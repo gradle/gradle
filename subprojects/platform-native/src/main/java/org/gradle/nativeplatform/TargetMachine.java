@@ -41,12 +41,12 @@ public interface TargetMachine {
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 32-bit architecture
      */
-    TargetMachine x86();
+    TargetMachine getX86();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 64-bit architecture
      */
-    TargetMachine x86_64();
+    TargetMachine getX86_64();
 
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the specified architecture.

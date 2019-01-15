@@ -57,7 +57,9 @@ public class FormatSupport {
             // This is a workaround for https://github.com/gradle/gradle-private/issues/1690
             return new BigDecimal(0);
         }
-        return new BigDecimal(100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
+
+        double sign = Math.signum(getDifferencePercentage(baseline, current).doubleValue());
+        return new BigDecimal(sign * 100.0 * confidenceInDifference(baseline.getTotalTime(), current.getTotalTime())).setScale(2, RoundingMode.HALF_UP);
     }
 
     public static Number getDifferencePercentage(MeasuredOperationList baseline, MeasuredOperationList current) {
@@ -79,7 +81,9 @@ public class FormatSupport {
         Amount<Duration> current = currentVersion.getMedian();
         Amount<Duration> diff = current.minus(base);
 
-        return String.format("%s (%.2f%%)", diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
+        String sign = diff.getValue().doubleValue() > 0 ? "+" : "";
+
+        return String.format("%s%s (%.2f%%)", sign, diff.format(), 100.0 * FormatSupport.getDifferenceRatio(baselineVersion, currentVersion).doubleValue());
     }
 
     public static String getFormattedConfidence(DataSeries<Duration> baselineVersion, DataSeries<Duration> currentVersion) {

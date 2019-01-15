@@ -683,13 +683,6 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                module('org:platform:2.7.9:default') {
-                    noArtifacts()
-                    constraint('org:core:2.7.9')
-                    constraint('org:databind:2.7.9')
-                    constraint('org:annotations:2.7.9')
-                    constraint('org:kotlin:2.7.9')
-                }
             }
         }
 
@@ -742,15 +735,6 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                constraint('org:platform:2.7.9', 'org:platform:2.7.9') {
-                    noArtifacts()
-                    byConstraint("belongs to platform org:platform:2.7.9")
-                    forced()
-                    constraint('org:core:2.7.9')
-                    constraint('org:databind:2.7.9')
-                    constraint('org:annotations:2.7.9')
-                    constraint('org:kotlin:2.7.9')
-                }
             }
             virtualConfiguration('org:platform:2.7.9')
         }
@@ -802,14 +786,6 @@ include 'other'
                     module('org:core:2.9.4.1')
                     module('org:annotations:2.9.4.1')
                 }
-                constraint('org:platform:2.9.4.1', 'org:platform:2.9.4.1') {
-                    noArtifacts()
-                    byConstraint("belongs to platform org:platform:2.9.4.1")
-                    constraint('org:core:2.9.4.1')
-                    constraint('org:databind:2.9.4.1')
-                    constraint('org:annotations:2.9.4.1')
-                    constraint('org:kotlin:2.9.4.1')
-                }
             }
             virtualConfiguration('org:platform:2.9.4.1')
         }
@@ -852,7 +828,7 @@ include 'other'
         """
 
         and:
-        "a rule which infers module set from group and version"()
+        "a rule which infers module set from group and version"(false)
 
         when:
         allowAllRepositoryInteractions()
@@ -873,7 +849,7 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforced-platform' : 'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataEnabled() ? 'enforcedPlatform' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
@@ -943,15 +919,6 @@ include 'other'
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                constraint('org:platform:2.7.9', 'org:platform:2.7.9') {
-                    noArtifacts()
-                    byConstraint("belongs to platform org:platform:2.7.9")
-                    forced()
-                    constraint('org:core:2.7.9')
-                    constraint('org:databind:2.7.9')
-                    constraint('org:annotations:2.7.9')
-                    constraint('org:kotlin:2.7.9')
-                }
             }
             virtualConfiguration('org:platform:2.7.9')
         }
@@ -1010,17 +977,6 @@ include 'other'
                 if (forceNotation.contains("force = true")) {
                     module("org:databind:2.8.11.1")
                 }
-                if (forceNotation.contains('enforcedPlatform')) {
-                    module("org:platform:2.8.11.1:default") {
-                        noArtifacts()
-                        byConstraint("belongs to platform org:platform:2.8.11.1")
-                        forced()
-                        constraint('org:core:2.8.10')
-                        constraint('org:databind:2.8.11.1')
-                        constraint('org:annotations:2.8.10')
-                        constraint('org:cbor:2.8.10')
-                    }
-                }
             }
         }
 
@@ -1077,17 +1033,6 @@ include 'other'
                 if (forceNotation.contains("force = true")) {
                     module("org:databind:2.6.7.1")
                 }
-                if (forceNotation.contains('enforcedPlatform')) {
-                    module("org:platform:2.6.7.1:default") {
-                        noArtifacts()
-                        byConstraint("belongs to platform org:platform:2.6.7.1")
-                        forced()
-                        constraint('org:core:2.6.7')
-                        constraint('org:databind:2.6.7.1')
-                        constraint('org:annotations:2.6.7')
-                        constraint('org:cbor:2.6.7')
-                    }
-                }
             }
         }
 
@@ -1112,25 +1057,23 @@ include 'other'
      * @param members
      */
     void platform(RemoteRepositorySpec repo, String platformGroup, String platformName, String platformVersion, List<String> members) {
-        ['platform', 'enforced-platform'].each { kind ->
-            repo.group(platformGroup) {
-                module(platformName) {
-                    version(platformVersion) {
-                        variant(kind) {
-                            attribute('org.gradle.component.category', kind)
-                            members.each { member ->
-                                constraint(member)
-                            }
-                        }
-                        // this is used only in BOMs
+        repo.group(platformGroup) {
+            module(platformName) {
+                version(platformVersion) {
+                    variant("platform") {
+                        attribute('org.gradle.component.category', 'platform')
                         members.each { member ->
                             constraint(member)
                         }
+                    }
+                    // this is used only in BOMs
+                    members.each { member ->
+                        constraint(member)
+                    }
 
-                        withModule(MavenHttpModule) {
-                            // make it a BOM
-                            hasPackaging('pom')
-                        }
+                    withModule(MavenHttpModule) {
+                        // make it a BOM
+                        hasPackaging('pom')
                     }
                 }
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -73,7 +74,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisit
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
-import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolverAwareContext;
+import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -88,6 +90,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -115,6 +118,7 @@ import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -124,6 +128,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
+import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
@@ -276,7 +281,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, callbackDecorator);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         path = domainObjectContext.projectPath(name);
     }
@@ -553,6 +558,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         });
     }
 
+    /**
+     * Must be called from {@link #resolveExclusively(InternalState)} only.
+     */
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == ARTIFACTS_RESOLVED || resolvedState == GRAPH_RESOLVED) {
             if (dependenciesModified) {
@@ -567,11 +575,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 runDependencyActions();
                 preventFromFurtherMutation();
 
-                final ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
+                ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                if (cachedResolverResults == null) {
-                    cachedResolverResults = new DefaultResolverResults();
-                }
+                cachedResolverResults = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
                 dependenciesModified = false;
                 resolvedState = GRAPH_RESOLVED;
@@ -639,6 +645,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    /**
+     * Must be called from {@link #resolveExclusively(InternalState)} only.
+     */
     private void resolveArtifactsIfRequired() {
         if (resolvedState == ARTIFACTS_RESOLVED) {
             return;
@@ -648,6 +657,50 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
         resolver.resolveArtifacts(DefaultConfiguration.this, cachedResolverResults);
         resolvedState = ARTIFACTS_RESOLVED;
+    }
+
+    @Override
+    public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new WorkNodeAction() {
+            @Nullable
+            @Override
+            public Project getProject() {
+                return maybeGetOwningProject();
+            }
+
+            @Override
+            public void run() {
+                resolveExclusively(GRAPH_RESOLVED);
+            }
+        });
+    }
+
+    private ResolverResults getResultsForBuildDependencies() {
+        if (resolvedState == UNRESOLVED) {
+            throw new IllegalStateException("Cannot query results until resolution has happened.");
+        }
+        return cachedResolverResults;
+    }
+
+    private ResolverResults getResultsForArtifacts() {
+        resolveExclusively(ARTIFACTS_RESOLVED);
+        return cachedResolverResults;
+    }
+
+    private ResolverResults resolveGraphForBuildDependenciesIfRequired() {
+        if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
+            // Force graph resolution as this is required to calculate build dependencies
+            resolveToStateOrLater(GRAPH_RESOLVED);
+        }
+        if (resolvedState == UNRESOLVED) {
+            // Traverse graph
+            ResolverResults results = new DefaultResolverResults();
+            resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
+            resolvedState = BUILD_DEPENDENCIES_RESOLVED;
+            cachedResolverResults = results;
+        }
+        // Otherwise, already have a result, so reuse it
+        return cachedResolverResults;
     }
 
     public TaskDependency getBuildDependencies() {
@@ -1124,17 +1177,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private boolean hasMutableProjectState() {
-        if (domainObjectContext.getProjectPath() != null) {
-            Project project = projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-            if (project != null) {
-                ProjectState projectState = projectStateRegistry.stateFor(project);
-                if (!projectState.hasMutableState()) {
-                    return false;
-                }
-            }
+        Project project = maybeGetOwningProject();
+        if (project != null) {
+            ProjectState projectState = projectStateRegistry.stateFor(project);
+            return projectState.hasMutableState();
         }
-
         return true;
+    }
+
+    @Nullable
+    private Project maybeGetOwningProject() {
+        if (domainObjectContext.getProjectPath() != null) {
+            return projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
+        } else {
+            return null;
+        }
     }
 
     private void assertIsResolvable() {
@@ -1185,6 +1242,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void setCanBeResolved(boolean allowed) {
         validateMutation(MutationType.ROLE);
         canBeResolved = allowed;
+    }
+
+    @VisibleForTesting
+    ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
+        return dependencyResolutionListeners;
     }
 
     /**
@@ -1593,21 +1655,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public void visitDependencies(final TaskDependencyResolveContext context) {
-            if (getResolutionStrategy().resolveGraphToDetermineTaskDependencies()) {
-                // Force graph resolution as this is required to calculate build dependencies
-                resolveToStateOrLater(GRAPH_RESOLVED);
-            }
-            ResolverResults results;
-            if (getState() == State.UNRESOLVED) {
-                // Traverse graph
-                results = new DefaultResolverResults();
-                resolver.resolveBuildDependencies(DefaultConfiguration.this, results);
-            } else {
-                // Otherwise, already have a result, so reuse it
-                results = cachedResolverResults;
-            }
+            ResolverResults results = resolveGraphForBuildDependenciesIfRequired();
             SelectedArtifactSet selected = results.getVisitedArtifacts().select(dependencySpec, requestedAttributes, componentIdentifierSpec, allowNoMatchingVariants);
-            FailureCollectingTaskDependencyResolveContext collectingContext = new ExecutionGraphDependenciesResolverAwareContext(context, results);
+            FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
             selected.visitDependencies(collectingContext);
             if (!lenient) {
                 rethrowFailure("task dependencies", collectingContext.getFailures());

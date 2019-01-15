@@ -18,10 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
@@ -36,6 +38,7 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -50,7 +53,7 @@ import java.util.Set;
 /**
  * Represents a node in the dependency graph.
  */
-class NodeState implements DependencyGraphNode {
+public class NodeState implements DependencyGraphNode {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
     private static final Spec<EdgeState> TRANSITIVE_EDGES = new Spec<EdgeState>() {
         @Override
@@ -68,19 +71,22 @@ class NodeState implements DependencyGraphNode {
     private final ConfigurationMetadata metaData;
     private final ResolveState resolveState;
     private final boolean isTransitive;
+    private final boolean selectedByVariantAwareResolution;
 
     ModuleExclusion previousTraversalExclusions;
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private List<EdgeState> virtualEdges;
     private boolean queued;
+    private boolean evicted;
 
-    NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
+    public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
         this.id = id;
         this.component = component;
         this.resolveState = resolveState;
         this.metaData = md;
         this.isTransitive = metaData.isTransitive();
+        this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         component.addConfiguration(this);
     }
 
@@ -99,7 +105,7 @@ class NodeState implements DependencyGraphNode {
         return this;
     }
 
-    ComponentState getComponent() {
+    public ComponentState getComponent() {
         return component;
     }
 
@@ -154,6 +160,14 @@ class NodeState implements DependencyGraphNode {
     @Override
     public String toString() {
         return String.format("%s(%s)", component, id.getConfiguration());
+    }
+
+    public String getSimpleName() {
+        return component.getId().toString();
+    }
+
+    public String getNameWithVariant() {
+        return component.getId() + " variant " + id.getConfiguration();
     }
 
     public boolean isTransitive() {
@@ -375,6 +389,15 @@ class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
+    public void evict() {
+        evicted = true;
+        restartIncomingEdges();
+    }
+
+    public boolean shouldIncludedInGraphResult() {
+        return isSelected() && !component.getModule().isVirtualPlatform();
+    }
+
     private ModuleExclusion getModuleResolutionFilter(List<EdgeState> incomingEdges) {
         ModuleExclusions moduleExclusions = resolveState.getModuleExclusions();
         ModuleExclusion nodeExclusions = moduleExclusions.excludeAny(metaData.getExcludes());
@@ -441,7 +464,9 @@ class NodeState implements DependencyGraphNode {
         // If this configuration belongs to the select version, queue ourselves up for traversal.
         // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
         if (component == selected) {
-            resolveState.onMoreSelected(this);
+            if (!evicted) {
+                resolveState.onMoreSelected(this);
+            }
         } else {
             if (!incomingEdges.isEmpty()) {
                 restartIncomingEdges();
@@ -481,7 +506,6 @@ class NodeState implements DependencyGraphNode {
     /**
      * Invoked when this node is back to being a pending dependency.
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
-     * @param pendingDependencies
      */
     public void clearConstraintEdges(PendingDependencies pendingDependencies) {
         for (EdgeState incomingEdge : incomingEdges) {
@@ -492,5 +516,55 @@ class NodeState implements DependencyGraphNode {
             pendingDependencies.addNode(from);
         }
         incomingEdges.clear();
+    }
+
+    void forEachCapability(Action<? super Capability> action) {
+        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        // If there's more than one node selected for the same component, we need to add
+        // the implicit capability to the list, in order to make sure we can discover conflicts
+        // between variants of the same module. Note that the fact the implicit capability is
+        // in general not included is not a bug but a performance optimization
+        if (capabilities.isEmpty() && component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+            action.execute(component.getImplicitCapability());
+        } else {
+            // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list
+            // because it still creates an inner class for an iterator, which delegates to an Array iterator, which does... nothing.
+            // so just adding this check has a significant impact because most components do not declare any capability
+            if (!capabilities.isEmpty()) {
+                for (Capability capability : capabilities) {
+                    action.execute(capability);
+                }
+            }
+        }
+    }
+
+    public Capability findCapability(String group, String name) {
+        Capability onComponent = component.findCapability(group, name);
+        if (onComponent != null) {
+            return onComponent;
+        }
+        List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
+        if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
+            for (Capability capability : capabilities) {
+                if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
+                    return capability;
+                }
+            }
+        }
+        return null;
+    }
+
+    public boolean isAttachedToVirtualPlatform() {
+        for (EdgeState incomingEdge : incomingEdges) {
+            if (incomingEdge.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean isSelectedByVariantAwareResolution() {
+        // the order is strange logically but here for performance optimization
+        return selectedByVariantAwareResolution && isSelected();
     }
 }

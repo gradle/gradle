@@ -126,6 +126,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.output.resourcesDir == new File(project.buildDir, 'resources/custom')
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
 
         def processResources = project.tasks['processCustomResources']
         processResources.description == "Processes custom resources."
@@ -163,6 +164,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
 
         def processResources = project.tasks.processResources
         processResources.description == "Processes main resources."
@@ -207,6 +209,19 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.destinationDir == classesDir
+    }
+
+    void sourceSetReflectChangesToTasksConfiguration() {
+        def generatedSourcesDir = project.file('target/generated-sources')
+
+        when:
+        project.pluginManager.apply(JavaBasePlugin)
+        project.sourceSets.create('custom')
+        def compileJava = project.tasks['compileCustomJava']
+        compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
+
+        then:
+        project.sourceSets.custom.output.generatedSourcesDirs.files == toLinkedSet(generatedSourcesDir)
     }
 
     void createsConfigurationsForNewSourceSet() {

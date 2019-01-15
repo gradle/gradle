@@ -16,8 +16,8 @@
 
 package org.gradle.platform.base.binary
 
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.internal.reflect.DirectInstantiator
+
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.model.internal.core.NamedEntityInstantiator
 import org.gradle.model.internal.type.ModelType
@@ -26,15 +26,13 @@ import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
+import org.gradle.util.TestUtil
 
 class BaseBinaryFixtures {
-    static final def GENERATOR = new AsmBackedClassGenerator()
-
     static <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode) {
         return BaseInstanceFixtureSupport.create(publicType, BinarySpecInternal, implType, name) { MutableModelNode node ->
-            def generated = GENERATOR.generate(implType)
             def identifier = componentNode ? componentNode.asImmutable(ModelType.of(ComponentSpecInternal), null).instance.identifier.child(name) : new DefaultComponentSpecIdentifier("project", name)
-            return BaseBinarySpec.create(publicType, generated, identifier, node, componentNode, DirectInstantiator.INSTANCE, {} as NamedEntityInstantiator)
+            return BaseBinarySpec.create(publicType, implType, identifier, node, componentNode, TestUtil.instantiatorFactory().injectLenient(), {} as NamedEntityInstantiator, CollectionCallbackActionDecorator.NOOP)
         }
     }
 }

@@ -51,6 +51,7 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         methods << getQueryMethods() + getMutatingMethods()
     }
 
+    @Unroll
     def "disallow mutating from register actions using #mutatingMethods.key"() {
         setupContainerDefaults()
         String methodUnderTest = mutatingMethods.key

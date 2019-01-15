@@ -28,8 +28,8 @@ import java.util.Queue;
 public class DefaultPropertyWalker implements PropertyWalker {
     private final RuntimeBeanNodeFactory nodeFactory;
 
-    public DefaultPropertyWalker(PropertyMetadataStore propertyMetadataStore) {
-        this.nodeFactory = new RuntimeBeanNodeFactory(propertyMetadataStore);
+    public DefaultPropertyWalker(TypeMetadataStore typeMetadataStore) {
+        this.nodeFactory = new RuntimeBeanNodeFactory(typeMetadataStore);
     }
 
     @Override

@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.AbstractTask
-import org.gradle.api.internal.ConventionAwareHelper
+import org.gradle.internal.extensibility.ConventionAwareHelper
 import org.gradle.api.internal.ConventionTask
 
 public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
@@ -35,7 +35,7 @@ public abstract class AbstractConventionTaskTest extends AbstractTaskTest {
         ConventionAwareHelper conventionMapping = (ConventionAwareHelper) task.getConventionMapping();
 
         then:
-        conventionMapping.getConvention().is(getProject().getConvention())
+        conventionMapping.getConvention().is(task.getConvention())
     }
 }
 

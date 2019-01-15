@@ -36,8 +36,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.provider.Property;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
@@ -69,11 +71,21 @@ public class MavenPomFileGenerator {
     private static final String POM_VERSION = "4.0.0";
 
     private final Model model = new Model();
-    private XmlTransformer xmlTransformer = new XmlTransformer();
+    private final XmlTransformer xmlTransformer = new XmlTransformer();
     private final VersionRangeMapper versionRangeMapper;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final ImmutableAttributes compileScopeAttributes;
+    private final ImmutableAttributes runtimeScopeAttributes;
 
-    public MavenPomFileGenerator(MavenProjectIdentity identity, VersionRangeMapper versionRangeMapper) {
+    public MavenPomFileGenerator(MavenProjectIdentity identity,
+                                 VersionRangeMapper versionRangeMapper,
+                                 VersionMappingStrategyInternal versionMappingStrategy,
+                                 ImmutableAttributes compileScopeAttributes,
+                                 ImmutableAttributes runtimeScopeAttributes) {
         this.versionRangeMapper = versionRangeMapper;
+        this.versionMappingStrategy = versionMappingStrategy;
+        this.compileScopeAttributes = compileScopeAttributes;
+        this.runtimeScopeAttributes = runtimeScopeAttributes;
         model.setModelVersion(POM_VERSION);
         model.setGroupId(identity.getGroupId().get());
         model.setArtifactId(identity.getArtifactId().get());
@@ -159,7 +171,7 @@ public class MavenPomFileGenerator {
         return target;
     }
 
-    private Properties convertProperties(Property<Map<String, String>> source) {
+    private Properties convertProperties(Provider<Map<String, String>> source) {
         Properties target = new Properties();
         target.putAll(source.getOrElse(Collections.<String, String>emptyMap()));
         return target;
@@ -249,9 +261,13 @@ public class MavenPomFileGenerator {
 
     private void addDependency(MavenDependencyInternal dependency, String artifactId, String scope, String type, String classifier) {
         Dependency mavenDependency = new Dependency();
-        mavenDependency.setGroupId(dependency.getGroupId());
+        String groupId = dependency.getGroupId();
+        String dependencyVersion = dependency.getVersion();
+        ImmutableAttributes attributes = attributesForScope(scope);
+        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(scope, attributes).maybeResolveVersion(groupId, artifactId);
+        mavenDependency.setGroupId(groupId);
         mavenDependency.setArtifactId(artifactId);
-        mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+        mavenDependency.setVersion(resolvedVersion != null ? resolvedVersion : mapToMavenSyntax(dependencyVersion));
         mavenDependency.setType(type);
         mavenDependency.setScope(scope);
         mavenDependency.setClassifier(classifier);
@@ -266,11 +282,24 @@ public class MavenPomFileGenerator {
         model.addDependency(mavenDependency);
     }
 
+    private ImmutableAttributes attributesForScope(String scope) {
+        if ("compile".equals(scope)) {
+            return compileScopeAttributes;
+        } else if ("runtime".equals(scope) || "import".equals(scope)) {
+            return runtimeScopeAttributes;
+        }
+        throw new IllegalStateException("Unexpected scope : " + scope);
+    }
+
     private void addDependencyManagement(MavenDependency dependency, String scope) {
         Dependency mavenDependency = new Dependency();
-        mavenDependency.setGroupId(dependency.getGroupId());
-        mavenDependency.setArtifactId(dependency.getArtifactId());
-        mavenDependency.setVersion(mapToMavenSyntax(dependency.getVersion()));
+        String groupId = dependency.getGroupId();
+        mavenDependency.setGroupId(groupId);
+        String artifactId = dependency.getArtifactId();
+        mavenDependency.setArtifactId(artifactId);
+        ImmutableAttributes attributes = attributesForScope(scope);
+        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(scope, attributes).maybeResolveVersion(groupId, artifactId);
+        mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion);
         String type = dependency.getType();
         if (type != null) {
             mavenDependency.setType(type);

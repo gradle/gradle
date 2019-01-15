@@ -11,7 +11,7 @@ dependencies {
 // end::define-classpath[]
 
 // tag::use-classpath[]
-task("check") {
+tasks.register("check") {
     doLast {
         ant.withGroovyBuilder {
             "taskdef"("name" to "pmd",

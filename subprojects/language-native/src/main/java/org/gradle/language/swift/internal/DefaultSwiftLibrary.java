@@ -34,7 +34,6 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
 import org.gradle.nativeplatform.Linkage;
-import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -49,7 +48,7 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, TargetMachineFactory targetMachineFactory) {
+    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
         super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.configurations = configurations;
@@ -80,14 +79,14 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
         action.execute(dependencies);
     }
 
-    public SwiftStaticLibrary addStaticLibrary(String nameSuffix, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        SwiftStaticLibrary result = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, getNames().append(nameSuffix), getModule(), testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public SwiftStaticLibrary addStaticLibrary(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftStaticLibrary result = objectFactory.newInstance(DefaultSwiftStaticLibrary.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
 
-    public SwiftSharedLibrary addSharedLibrary(String nameSuffix, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        SwiftSharedLibrary result = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, getNames().append(nameSuffix), getModule(), testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+    public SwiftSharedLibrary addSharedLibrary(NativeVariantIdentity identity, boolean testable, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
+        SwiftSharedLibrary result = objectFactory.newInstance(DefaultSwiftSharedLibrary.class, getNames().append(identity.getName()), getModule(), testable, getSwiftSource(), configurations, getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }

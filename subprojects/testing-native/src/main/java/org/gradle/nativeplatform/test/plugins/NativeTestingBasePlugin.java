@@ -16,19 +16,23 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.language.ComponentWithTargetMachines;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.plugins.NativeBasePlugin;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.test.TestSuiteComponent;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
+import javax.inject.Inject;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -46,9 +50,19 @@ import java.util.concurrent.Callable;
  * @since 4.5
  */
 @Incubating
-public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
+public class NativeTestingBasePlugin implements Plugin<Project> {
+    private final TargetMachineFactory targetMachineFactory;
+
+    private static final String TEST_TASK_NAME = "test";
+    private static final String TEST_COMPONENT_NAME = "test";
+
+    @Inject
+    public NativeTestingBasePlugin(TargetMachineFactory targetMachineFactory) {
+        this.targetMachineFactory = targetMachineFactory;
+    }
+
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
         project.getPluginManager().apply(NativeBasePlugin.class);
         project.getPluginManager().apply(TestingBasePlugin.class);
@@ -56,28 +70,30 @@ public class NativeTestingBasePlugin implements Plugin<ProjectInternal> {
         // Create test lifecycle task
         TaskContainer tasks = project.getTasks();
 
-        final TaskProvider<Task> test = tasks.register("test", new Action<Task>() {
-            @Override
-            public void execute(Task test) {
-                test.dependsOn(new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName("test");
-                        if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
-                            return unitTestSuite.getTestBinary().get().getRunTask().get();
+        final TaskProvider<Task> test = tasks.register(TEST_TASK_NAME, task -> task.dependsOn((Callable<Object>) () -> {
+            TestSuiteComponent unitTestSuite = project.getComponents().withType(TestSuiteComponent.class).findByName(TEST_COMPONENT_NAME);
+            if (unitTestSuite != null && unitTestSuite.getTestBinary().isPresent()) {
+                return unitTestSuite.getTestBinary().get().getRunTask();
+            }
+            return null;
+        }));
+
+        project.getComponents().withType(TestSuiteComponent.class, testSuiteComponent -> {
+            if (testSuiteComponent instanceof ComponentWithTargetMachines) {
+                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines) testSuiteComponent;
+                if (TEST_COMPONENT_NAME.equals(testSuiteComponent.getName())) {
+                    test.configure(task -> task.dependsOn((Callable) () -> {
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
+                        boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
+                        if (!targetsCurrentMachine) {
+                            task.getLogger().warn("'" + testSuiteComponent.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");
                         }
-                        return null;
-                    }
-                });
+                        return Collections.emptyList();
+                    }));
+                }
             }
         });
 
-
-        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(test);
-            }
-        });
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(test));
     }
 }

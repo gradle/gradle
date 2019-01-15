@@ -23,7 +23,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultSoftwareComponentContainer extends DefaultNamedDomainObjectSet<SoftwareComponent> implements SoftwareComponentContainer {
-    public DefaultSoftwareComponentContainer(Instantiator instantiator) {
-        super(SoftwareComponentInternal.class, instantiator, CollectionCallbackActionDecorator.NOOP);
+    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+        super(SoftwareComponentInternal.class, instantiator, decorator);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Try;
 
 /**
  * A series of {@link TransformationStep}s.
@@ -56,9 +57,9 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public TransformationSubject transform(TransformationSubject subjectToTransform, ArtifactTransformDependenciesProvider dependenciesProvider) {
-        TransformationSubject intermediateSubject = first.transform(subjectToTransform, dependenciesProvider);
-        return second.transform(intermediateSubject, dependenciesProvider);
+    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        return first.transform(subjectToTransform, dependenciesResolver)
+            .flatMap(intermediateSubject -> second.transform(intermediateSubject, dependenciesResolver));
     }
 
     @Override

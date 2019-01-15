@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.alignment
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
@@ -823,7 +824,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    def "virtual platform missing modules are cached accross builds"() {
+    def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
         executer.withArgument('--no-daemon')
@@ -1051,4 +1052,41 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
+    @Issue("gradle/gradle#7916")
+    def "shouldn't fail when a referenced component is a virtual platform"() {
+        repository {
+            'org:foo:1.0'()
+            'org:foo:1.1'()
+        }
+
+        given:
+        buildFile << '''
+            dependencies {
+              constraints {
+                  conf platform("org:platform:1.1")
+              }
+            
+              conf 'org:foo:1.0'
+            }
+        '''
+
+        and:
+        "align the 'org' group only"()
+
+        when:
+        expectAlignment {
+            module('foo') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+        }
+        run ':checkDeps', 'dependencyInsight', '--configuration', 'conf', '--dependency', 'foo'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    byConstraint("belongs to platform org:platform:1.1")
+                }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
 }

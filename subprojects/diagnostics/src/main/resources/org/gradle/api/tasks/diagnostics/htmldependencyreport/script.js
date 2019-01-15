@@ -192,7 +192,7 @@ function initializeProjectPage(report) {
             $(this).toggleClass('closed');
         });
 
-        $('#projectBreacrumb').text(project.name);
+        $('#projectBreadcrumb').text(project.name);
         populateFooter(report);
     });
 }

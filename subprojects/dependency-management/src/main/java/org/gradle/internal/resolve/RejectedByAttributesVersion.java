@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.text.TreeFormatter;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collections;
 import java.util.Comparator;

@@ -22,7 +22,7 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
@@ -114,7 +114,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration);
+                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
                 for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                     pluginServiceRegistry.registerProjectServices(registration);
                 }
@@ -157,7 +157,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory) {
-        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorate());
+        return execFactory.forContext(get(FileResolver.class), get(InstantiatorFactory.class).decorateLenient());
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -197,9 +197,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator);
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer() {
+    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {
         Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator);
     }
 
     protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {

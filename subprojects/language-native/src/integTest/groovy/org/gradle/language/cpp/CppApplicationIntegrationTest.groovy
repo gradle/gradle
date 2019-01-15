@@ -26,6 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraryAndOptionalFeatur
 import org.gradle.nativeplatform.fixtures.app.CppAppWithOptionalFeature
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
 
@@ -403,7 +404,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':app') {
                 apply plugin: 'cpp-application'
                 application {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.os('host-family')${currentHostArchitectureDsl}]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
                 }
                 dependencies {
                     implementation project(':hello')
@@ -412,7 +413,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':hello') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}, machines.os('host-family')${currentHostArchitectureDsl}]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
                 }
             }
         """
@@ -439,7 +440,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             project(':app') {
                 apply plugin: 'cpp-application'
                 application {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}${currentHostArchitectureDsl}]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
                 }
                 dependencies {
                     implementation project(':hello')
@@ -567,12 +568,13 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """Unable to find a matching variant of project :hello: Variant 'cppApiElements':
-  - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
-  - Required org.gradle.native.debuggable 'true' but no value provided.
-  - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
-  - Required org.gradle.native.optimized 'false' but no value provided.
-  - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'."""
+        failure.assertHasCause """Unable to find a matching variant of project :hello:
+  - Variant 'cppApiElements':
+      - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
+      - Required org.gradle.native.debuggable 'true' but no value provided.
+      - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
+      - Required org.gradle.native.optimized 'false' but no value provided.
+      - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'."""
     }
 
     def "can compile and link against a static library"() {
@@ -1032,5 +1034,32 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         executable("build/exe/main/debug/app").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/950")
+    def "can handle candidate header directory which happens to match an existing file"() {
+        def app = new CppApp()
+
+        given:
+        app.sources.writeToSourceDir(file('src/main/cpp'))
+        app.greeter.headers.writeToSourceDir(file('src/main/headers'))
+        app.sum.headers.writeToSourceDir(file('src/sumHeaders/foo'))
+
+        file("src/main/cpp/main.cpp").text = file("src/main/cpp/main.cpp").text.replace("sum.h", "foo/sum.h")
+        file("src/main/cpp/sum.cpp").text = file("src/main/cpp/sum.cpp").text.replace("sum.h", "foo/sum.h")
+
+        // poison file
+        file('src/main/headers/foo').createNewFile()
+
+        buildFile << """
+            apply plugin: 'cpp-application'
+            
+            application {
+                privateHeaders.from 'src/main/headers', 'src/sumHeaders'
+            }
+        """
+
+        expect:
+        succeeds "assemble"
     }
 }

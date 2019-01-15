@@ -19,6 +19,21 @@ package org.gradle.nativeplatform.test.cpp
 import org.gradle.language.cpp.AbstractCppComponentIntegrationTest
 
 abstract class AbstractCppUnitTestComponentIntegrationTest extends AbstractCppComponentIntegrationTest {
+    def "check task warns when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "check"
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
+    }
+
     @Override
     protected String getComponentUnderTestDsl() {
         return 'unitTest'
@@ -27,5 +42,14 @@ abstract class AbstractCppUnitTestComponentIntegrationTest extends AbstractCppCo
     @Override
     protected String getTaskNameToAssembleDevelopmentBinary() {
         return 'test'
+    }
+
+    protected String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture) {
+        return ":runTest${architecture.capitalize()}"
+    }
+
+    @Override
+    protected String getComponentName() {
+        return "test"
     }
 }

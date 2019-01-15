@@ -20,6 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
 
+import java.util.jar.Attributes
+import java.util.jar.Manifest
+
+import static org.gradle.internal.hash.HashUtil.sha256
+
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -61,12 +66,14 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "generated wrapper files are reproducible"() {
-
         when:
         executer.inDirectory(file("first")).withTasks("wrapper").run()
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
-        then:
+        then: "the checksum should be constant (unless there are code changes)"
+        sha256(file("first/gradle/wrapper/gradle-wrapper.jar")).asHexString() == "76b12da7f4a7cdd025e5996811a2e49bf5df0fb62d72554ab555c0e434b63aae"
+
+        and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash
         file("first/gradle/wrapper/gradle-wrapper.properties").md5Hash == file("second/gradle/wrapper/gradle-wrapper.properties").md5Hash
         file("first/gradlew").md5Hash == file("second/gradlew").md5Hash
@@ -126,5 +133,21 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionSha256Sum=somehash")
+    }
+
+    def "wrapper JAR does not contain version in manifest"() {
+        when:
+        run "wrapper"
+
+        then:
+        def contents = file('contents')
+        file("gradle/wrapper/gradle-wrapper.jar").unzipTo(contents)
+
+        Manifest manifest = contents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) } as Manifest
+        with(manifest.mainAttributes) {
+            size() == 2
+            getValue(Attributes.Name.MANIFEST_VERSION) == '1.0'
+            getValue(Attributes.Name.IMPLEMENTATION_TITLE) == 'Gradle Wrapper'
+        }
     }
 }

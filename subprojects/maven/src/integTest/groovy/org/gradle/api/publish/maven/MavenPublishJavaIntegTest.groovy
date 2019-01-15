@@ -210,7 +210,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         javaLibrary.parsedModuleMetadata.variant('runtime') {
-            dependency('commons-collections:commons-collections:') {
+            dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
                 prefers(null)
                 strictly('3.2.2')
@@ -297,7 +297,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 rejects()
                 noMoreExcludes()
             }
-            constraint('org.tukaani:xz:') {
+            constraint('org.tukaani:xz:1.6') {
                 prefers(null)
                 strictly('1.6')
                 rejects()
@@ -506,6 +506,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
 """)
+        executer.expectDeprecationWarning()
 
         when:
         run "publish"
@@ -866,7 +867,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                     maven { url "${mavenRepo.uri}" }
                 }
             }
-
             group = 'org.gradle.test'
             version = '1.9'
 
@@ -957,7 +957,7 @@ $append
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components.javaLibraryPlatform
+                        from components.java
                     }
                 }
             }
@@ -970,8 +970,8 @@ $append
         def mavenModule = javaLibrary.mavenModule
 
         mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
-        mavenModule.parsedPom.scopes['import'].assertDependencyManagement([] as String[])
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom", "publishTest-1.9.jar")
+        mavenModule.parsedPom.scopes['import'] == null
 
         and:
         javaLibrary.parsedModuleMetadata.variant('api') {
@@ -986,4 +986,123 @@ $append
 
     }
 
+    def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:bar:1.0"
+                api platform("org.test:platform:1.0")
+                components.withModule('org.test:bar', VirtualPlatform)
+            }
+            
+            class VirtualPlatform implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext ctx) {
+                    ctx.details.with {
+                        belongsTo("org.test:platform:\${id.version}")
+                    }
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        pom.withXml {
+                            asNode().dependencyManagement.dependencies.dependency.findAll { node ->
+                                node.groupId[0].text().equals('org.test') &&
+                                node.artifactId[0].text().equals('platform') &&
+                                node.scope[0].text().equals('import')
+                            }.each { node -> node.replaceNode {} }
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        def mavenModule = javaLibrary.mavenModule
+
+        mavenModule.assertPublished()
+        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom", "publishTest-1.9.jar")
+        mavenModule.parsedPom.scopes['import'] == null
+
+        // Sadly this does not take care of the Gradle metadata
+    }
+
+    @Unroll
+    def 'can publish java library with a #config dependency on a java-platform subproject"'() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        settingsFile << """
+include(':platform')
+"""
+        createBuildScripts("""
+            dependencies {
+                ${config} "org.test:bar"
+                ${config} platform(project(':platform'))
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            project(':platform') {
+                apply plugin: 'java-platform'
+
+                group = 'org.gradle.test'
+                version = '1.9'
+
+                dependencies {
+                    constraints {
+                        api 'org.test:bar:1.0'
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+
+        def mavenModule = javaLibrary.mavenModule
+        mavenModule.parsedPom.scopes['import'].expectDependencyManagement('org.gradle.test:platform:1.9').hasType('pom')
+        mavenModule.parsedPom.scopes[scope].assertDependsOn('org.test:bar:')
+
+        and:
+        if (config == "api") {
+            javaLibrary.parsedModuleMetadata.variant('api') {
+                dependency('org.test:bar:').exists()
+                dependency('org.gradle.test:platform:1.9') {
+                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                }
+                noMoreDependencies()
+            }
+        }
+
+        javaLibrary.parsedModuleMetadata.variant('runtime') {
+            dependency('org.test:bar:').exists()
+            dependency('org.gradle.test:platform:1.9') {
+                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+            }
+            noMoreDependencies()
+        }
+
+        where:
+        config           | scope
+        "api"            | "compile"
+        "implementation" | "runtime"
+
+    }
 }

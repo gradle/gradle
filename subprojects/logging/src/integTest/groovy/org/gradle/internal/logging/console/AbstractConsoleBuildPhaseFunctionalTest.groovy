@@ -19,10 +19,12 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RichConsoleStyling
+import org.gradle.integtests.fixtures.executer.ConsoleAttachment
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableIncrementalArtifactTransformations
 
@@ -38,7 +40,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
     abstract ConsoleOutput getConsoleType()
 
-    def "shows progress bar and percent phase completion"() {
+    @Unroll
+    def "shows progress bar and percent phase completion when #attachment"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
             include "a", "b", "c", "d"
@@ -81,6 +84,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
         def buildFinished = server.expectAndBlock('build-finished')
+        executer.withTestConsoleAttached(attachment)
         gradle = executer.withTasks("hello2").start()
 
         expect:
@@ -125,9 +129,13 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
         and:
         gradle.waitForFinish()
+
+        where:
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
     }
 
-    def "shows progress bar and percent phase completion with included build"() {
+    @Unroll
+    def "shows progress bar and percent phase completion with included build when #attachment"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
             includeBuild "child"
@@ -169,6 +177,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def task1 = server.expectAndBlock('task1')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
+        executer.withTestConsoleAttached(attachment)
         gradle = executer.withTasks("hello2").start()
 
         expect:
@@ -208,9 +217,13 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
         and:
         gradle.waitForFinish()
+
+        where:
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
     }
 
-    def "shows progress bar and percent phase completion with buildSrc build"() {
+    @Unroll
+    def "shows progress bar and percent phase completion with buildSrc build when #attachment"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
         """
@@ -254,6 +267,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
+        executer.withTestConsoleAttached(attachment)
         gradle = executer.withTasks("hello").start()
 
         expect:
@@ -298,9 +312,13 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
         and:
         gradle.waitForFinish()
+
+        where:
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
     }
 
-    def "shows progress bar and percent phase completion with artifact transforms"() {
+    @Unroll
+    def "shows progress bar and percent phase completion with artifact transforms with #attachment"() {
         given:
         settingsFile << """
             include 'lib'
@@ -393,6 +411,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         def buildFinished = server.expectAndBlock('build-finished')
 
         when:
+        executer.withTestConsoleAttached(attachment)
         gradle = executer.withTasks(":util:resolve").start()
 
         then:
@@ -422,6 +441,23 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
         and:
         gradle.waitForFinish()
+
+        where:
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
+    }
+
+    @Unroll
+    def "does not show progress bar when stdout is #attachment"() {
+        when:
+        succeeds()
+
+        then:
+        result.assertNotOutput("INITIALIZING")
+        result.assertNotOutput("CONFIGURING")
+        result.assertNotOutput("EXECUTING")
+
+        where:
+        attachment << [ConsoleAttachment.ATTACHED_STDERR_ONLY, ConsoleAttachment.NOT_ATTACHED]
     }
 
     void assertHasBuildPhase(String message) {

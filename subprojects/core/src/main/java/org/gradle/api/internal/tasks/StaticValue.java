@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
@@ -47,12 +48,18 @@ public class StaticValue implements ValidatingValue {
     @Nullable
     @Override
     public Object call() {
+        // Replace absent Provider with null.
+        // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
+        // Returning null from a Callable is ignored, and PropertyValue is a callable.
+        if (value instanceof Provider && !((Provider<?>) value).isPresent()) {
+            return null;
+        }
         return value;
     }
 
     @Override
     public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpack(value);
+        Object unpacked = DeferredUtil.unpack(call());
         if (unpacked == null) {
             if (!optional) {
                 context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));

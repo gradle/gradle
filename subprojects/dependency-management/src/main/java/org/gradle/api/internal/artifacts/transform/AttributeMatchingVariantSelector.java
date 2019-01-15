@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -33,7 +32,10 @@ import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
@@ -41,7 +43,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ImmutableAttributesFactory attributesFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
-    private final ResolvableDependencies resolvableDependencies;
+    private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -49,14 +51,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ImmutableAttributesFactory attributesFactory,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
-        ResolvableDependencies resolvableDependencies
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
-        this.resolvableDependencies = resolvableDependencies;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     @Override
@@ -77,7 +79,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
-        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverridenAttributes());
+        ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
         List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
@@ -96,14 +98,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         if (candidates.size() > 1) {
-            candidates = tryDisambiguate(candidates);
+            candidates = tryDisambiguate(matcher, candidates);
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(artifacts, attributes, transformation, resolvableDependencies);
+            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver);
         }
 
         if (!candidates.isEmpty()) {
@@ -116,24 +118,60 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
-        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> shortestTransforms = Lists.newArrayListWithExpectedSize(candidates.size());
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+        if (candidates.size() == 2) {
+            // Short circuit logic when only 2 candidates
+            return compareCandidates(matcher, candidates.get(0), candidates.get(1))
+                .map(Collections::singletonList)
+                .orElse(candidates);
+        }
 
-        for (Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> candidate : candidates) {
-            boolean newCandidate = true;
-            for (int i = 0; i < shortestTransforms.size(); i++) {
-                Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> shorterTransform = shortestTransforms.get(i);
-                if (shorterTransform.right.transformation.endsWith(candidate.right.transformation)) {
-                    newCandidate = false;
-                    shortestTransforms.set(i, candidate);
-                } else if (candidate.right.transformation.endsWith(shorterTransform.right.transformation)) {
-                    newCandidate = false;
-                }
+        List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> shortestTransforms = Lists.newArrayListWithExpectedSize(candidates.size());
+        candidates.sort(Comparator.comparingInt(candidate -> candidate.right.depth));
+
+        // Need to remember if a further element was matched by an earlier one, no need to consider it then
+        boolean[] hasBetterMatch = new boolean[candidates.size()];
+
+        for (int i = 0; i < candidates.size(); i++) {
+            if (hasBetterMatch[i]) {
+                continue;
             }
-            if (newCandidate) {
-                shortestTransforms.add(candidate);
+            boolean candidateIsDifferent = true;
+            Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> current = candidates.get(i);
+            for (int j = i + 1; j < candidates.size(); j++) {
+                if (hasBetterMatch[j]) {
+                    continue;
+                }
+                int index = j; // Needed to use inside lambda below
+                candidateIsDifferent = compareCandidates(matcher, current, candidates.get(index)).map(candidate -> {
+                    if (candidate != current) {
+                        // The other is better, current is not part of result
+                        return false;
+                    } else {
+                        // The other is disambiguated by current, never consider other again
+                        hasBetterMatch[index] = true;
+                    }
+                    return true;
+                }).orElse(true);
+            }
+            if (candidateIsDifferent) {
+                shortestTransforms.add(current);
             }
         }
         return shortestTransforms;
+    }
+
+    private Optional<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> compareCandidates(AttributeMatcher matcher,
+                                                                                                          Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> firstCandidate,
+                                                                                                          Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> secondCandidate) {
+
+        if (matcher.isMatching(firstCandidate.right.attributes, secondCandidate.right.attributes)) {
+            if (firstCandidate.right.depth >= secondCandidate.right.depth) {
+                return Optional.of(secondCandidate);
+            } else {
+                return Optional.of(firstCandidate);
+            }
+        }
+        return Optional.empty();
     }
 }

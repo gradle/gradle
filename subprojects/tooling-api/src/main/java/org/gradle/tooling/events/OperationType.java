@@ -54,6 +54,14 @@ public enum OperationType {
      * @since 5.1
      */
     @Incubating
-    PROJECT_CONFIGURATION
+    PROJECT_CONFIGURATION,
+
+    /**
+     * Flag for transform operation progress events.
+     *
+     * @since 5.1
+     */
+    @Incubating
+    TRANSFORM
 
 }

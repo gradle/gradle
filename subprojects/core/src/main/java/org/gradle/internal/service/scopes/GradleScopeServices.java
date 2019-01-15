@@ -20,7 +20,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -62,6 +62,8 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.execution.plan.WorkNodeDependencyResolver;
+import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.Factory;
@@ -171,12 +173,20 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new TaskNodeDependencyResolver(taskNodeFactory);
     }
 
+    WorkNodeDependencyResolver createWorkNodeResolver() {
+        return new WorkNodeDependencyResolver();
+    }
+
     TaskDependencyResolver createTaskDependencyResolver(List<DependencyResolver> dependencyResolvers) {
         return new TaskDependencyResolver(dependencyResolvers);
     }
 
     LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
         return new LocalTaskNodeExecutor();
+    }
+
+    WorkNodeExecutor createWorkNodeExecutor() {
+        return new WorkNodeExecutor();
     }
 
     ListenerBroadcast<TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {

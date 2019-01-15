@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import groovy.json.JsonGenerator;
 import org.gradle.reporting.ReportRenderer;
@@ -26,6 +27,7 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -91,12 +93,16 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         private List<ExecutionData> totalTime;
         private List<ExecutionData> confidence;
         private List<ExecutionData> difference;
+        private List<BackgroundColor> background;
 
         AllExecutionData(List<ExecutionLabel> executionLabels, List<ExecutionData> totalTime, List<ExecutionData> confidence, List<ExecutionData> difference) {
             this.executionLabels = executionLabels;
             this.totalTime = totalTime;
             this.confidence = confidence;
             this.difference = difference;
+            if (confidence != null) {
+                this.background = confidence.stream().flatMap(data -> data.data.stream()).map(BackgroundColor::ofConfidence).filter(Objects::nonNull).collect(Collectors.toList());
+            }
         }
 
         public List<ExecutionLabel> getExecutionLabels() {
@@ -113,6 +119,10 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
 
         public List<ExecutionData> getDifference() {
             return difference;
+        }
+
+        public List<BackgroundColor> getBackground() {
+            return background;
         }
     }
 
@@ -134,7 +144,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         }
     }
 
-    class ExecutionLabel {
+    static class ExecutionLabel {
         private String id;
         private String branch;
         private String date;
@@ -161,6 +171,49 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
 
         public List<String> getCommits() {
             return commits;
+        }
+    }
+
+    static class BackgroundColor {
+        private static final int THRESHOLD = 80;
+        private Map xaxis;
+        private String color;
+
+        static BackgroundColor ofConfidence(List<Number> xy) {
+            double index = xy.get(0).doubleValue();
+            double confidencePercentage = xy.get(1).doubleValue();
+
+            if (Math.abs(confidencePercentage) >= THRESHOLD) {
+                return new BackgroundColor(index, redComponent(confidencePercentage), greenComponent(confidencePercentage), opacity(confidencePercentage));
+            } else {
+                return null;
+            }
+        }
+
+        // See TestDataGeneratorTest for examples
+        private static double opacity(double confidencePercentage) {
+            return (Math.abs(confidencePercentage) - THRESHOLD) / (100 - THRESHOLD);
+        }
+
+        private static int redComponent(double confidencePercentage) {
+            return confidencePercentage > 0 ? 255 : 0;
+        }
+
+        private static int greenComponent(double confidencePercentage) {
+            return confidencePercentage < 0 ? 255 : 0;
+        }
+
+        private BackgroundColor(double index, int redComponent, int greenComponent, double opacity) {
+            this.xaxis = ImmutableMap.of("from", index - 0.5, "to", index + 0.5);
+            this.color = String.format("rgba(%d,%d,0,%.1f)", redComponent, greenComponent, opacity);
+        }
+
+        public Map getXaxis() {
+            return xaxis;
+        }
+
+        public String getColor() {
+            return color;
         }
     }
 }

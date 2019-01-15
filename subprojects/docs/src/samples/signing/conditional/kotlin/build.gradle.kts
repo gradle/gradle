@@ -1,8 +1,3 @@
-// tag::conditional-signing[]
-import java.util.concurrent.Callable
-
-// end::conditional-signing[]
-
 plugins {
     java
     maven
@@ -16,7 +11,7 @@ version = "1.0-SNAPSHOT"
 extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
 signing {
-    setRequired(Callable {
+    setRequired({
         (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
     })
     sign(configurations.archives.get())
@@ -25,12 +20,12 @@ signing {
 
 // Alternative to signing.required
 // tag::only-if[]
-tasks.withType<Sign> {
+tasks.withType<Sign>().configureEach {
     onlyIf { project.extra["isReleaseVersion"] as Boolean }
 }
 // end::only-if[]
 
-tasks.getByName<Upload>("uploadArchives") {
+tasks.named<Upload>("uploadArchives") {
     repositories {
         withConvention(MavenRepositoryHandlerConvention::class) {
             mavenDeployer {

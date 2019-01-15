@@ -162,6 +162,27 @@ task thing {
         output.contains("prop = value 1")
     }
 
+    def "can use property with no value as optional ad hoc task input property"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.property(String)
+
+task thing {
+    inputs.property("prop", prop).optional(true)
+    doLast {
+        println "prop = " + prop.getOrNull()
+    }
+}
+"""
+
+        when:
+        run("thing")
+
+        then:
+        output.contains("prop = null")
+    }
+
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -261,7 +282,7 @@ class SomeTask extends DefaultTask {
     final Property<String> prop = project.objects.property(String)
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = "value"
 assert custom.prop.get() == "value"
 
@@ -294,7 +315,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 custom.prop = "\${'some value'.substring(5)}"
 assert custom.prop.get() == "value"
 
@@ -321,7 +342,7 @@ class SomeExtension {
     }
 }
 
-extensions.create('custom', SomeExtension, objects)
+extensions.create('custom', SomeExtension)
 
 task wrongValueTypeDsl {
     doLast {
@@ -398,6 +419,7 @@ class SomeExtension {
     final Property<Set<String>> prop2
     final Property<Directory> prop3
     final Property<RegularFile> prop4
+    final Property<Map<String, String>> prop5
 
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
@@ -405,14 +427,15 @@ class SomeExtension {
         prop2 = objects.property(Set)
         prop3 = objects.property(Directory)
         prop4 = objects.property(RegularFile)
+        prop5 = objects.property(Map)
     }
 }
  
-project.extensions.create("some", SomeExtension, objects)            
+project.extensions.create("some", SomeExtension)            
         """
 
         when:
-        executer.expectDeprecationWarnings(4)
+        executer.expectDeprecationWarnings(5)
         succeeds()
 
         then:
@@ -420,6 +443,7 @@ project.extensions.create("some", SomeExtension, objects)
         outputContains("Using method ObjectFactory.property() method to create a property of type Set<T> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.setProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
+        outputContains("Using method ObjectFactory.property() method to create a property of type Map<K, V> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.mapProperty() method instead.")
     }
 
     def taskTypeWritesPropertyValueToFile() {

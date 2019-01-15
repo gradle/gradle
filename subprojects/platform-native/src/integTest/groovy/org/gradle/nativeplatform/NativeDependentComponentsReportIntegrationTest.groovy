@@ -95,7 +95,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     }
 
     @Unroll
-    def "hide non-buidable dependents by default #nonBuildables"() {
+    def "hide non-buildable dependents by default #nonBuildables"() {
         given:
         buildScript simpleCppBuild()
         nonBuildables.each { nonBuildable ->

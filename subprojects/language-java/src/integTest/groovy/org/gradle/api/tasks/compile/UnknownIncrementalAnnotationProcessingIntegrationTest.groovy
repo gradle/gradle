@@ -80,14 +80,14 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.snapshot { run "compileJava" }
 
         then:
-        file("build/classes/java/main/AThing.java").exists()
+        file("build/generated/sources/annotationProcessor/java/main/AThing.java").exists()
 
         when:
         buildFile << "compileJava.options.annotationProcessorPath = files()"
         run "compileJava", "--info"
 
         then:
-        !file("build/classes/java/main/AThing.java").exists()
+        !file("build/generated/sources/annotationProcessor/java/main/AThing.java").exists()
 
         and:
         outputs.deletedClasses("AThing")

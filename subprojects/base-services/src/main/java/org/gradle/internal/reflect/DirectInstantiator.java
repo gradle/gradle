@@ -25,12 +25,22 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
+/**
+ * You should use the methods of {@link org.gradle.api.internal.InstantiatorFactory} instead of this type, as it will give better error reporting, more consistent behaviour and better performance.
+ * This type will be retired in favor of {@link org.gradle.api.internal.InstantiatorFactory} at some point. Currently it is too tangled with a few things to just remove.
+ */
 public class DirectInstantiator implements Instantiator {
 
+    /**
+     * Please use {@link org.gradle.api.internal.InstantiatorFactory} instead.
+     */
     public static final Instantiator INSTANCE = new DirectInstantiator();
 
     private final ConstructorCache constructorCache = new ConstructorCache();
 
+    /**
+     * Please use {@link org.gradle.api.internal.InstantiatorFactory} instead.
+     */
     public static <T> T instantiate(Class<? extends T> type, Object... params) {
         return INSTANCE.newInstance(type, params);
     }
@@ -73,10 +83,10 @@ public class DirectInstantiator implements Instantiator {
     }
 
     @VisibleForTesting
-    public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor> {
+    public static class ConstructorCache extends ReflectionCache<CachedConstructor> {
 
         @Override
-        protected JavaReflectionUtil.CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
+        protected CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
             Constructor<?>[] constructors = receiver.getConstructors();
             Constructor<?> match = null;
             for (Constructor<?> constructor : constructors) {
@@ -93,7 +103,7 @@ public class DirectInstantiator implements Instantiator {
             if (match == null) {
                 throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters [%s].", receiver, prettify(argumentTypes)));
             }
-            return new JavaReflectionUtil.CachedConstructor(match);
+            return new CachedConstructor(match);
         }
 
         private String prettify(Class<?>[] argumentTypes) {
@@ -126,4 +136,11 @@ public class DirectInstantiator implements Instantiator {
             return true;
         }
     }
+
+    private static class CachedConstructor extends CachedInvokable<Constructor<?>> {
+        public CachedConstructor(Constructor<?> ctor) {
+            super(ctor);
+        }
+    }
+
 }

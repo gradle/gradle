@@ -19,7 +19,6 @@ package org.gradle.caching.internal;
 import org.gradle.api.Describable;
 import org.gradle.internal.file.TreeType;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -28,9 +27,17 @@ import java.io.File;
 public interface CacheableEntity extends Describable {
     String getIdentity();
 
-    void visitTrees(CacheableTreeVisitor visitor);
+    void visitOutputTrees(CacheableTreeVisitor visitor);
 
+    void visitLocalState(LocalStateVisitor visitor);
+
+    @FunctionalInterface
     interface CacheableTreeVisitor {
-        void visitTree(String name, TreeType type, @Nullable File root);
+        void visitOutputTree(String name, TreeType type, File root);
+    }
+
+    @FunctionalInterface
+    interface LocalStateVisitor {
+        void visitLocalStateRoot(File localStateRoot);
     }
 }

@@ -54,7 +54,7 @@ const val testJavaHomePropertyName = "testJavaHome"
 
 
 private
-const val oracleJdk9 = "Oracle JDK 9"
+const val productionJdkName = "OpenJDK 11"
 
 
 open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
@@ -106,8 +106,8 @@ open class AvailableJavaInstallations(private val project: Project, private val 
     private
     fun validateProductionJdks(): Map<String, Boolean> =
         mapOf(
-            "Must use Oracle JDK 9 to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
-                (currentJavaInstallation.vendorAndMajorVersion != oracleJdk9)
+            "Must use $productionJdkName to perform this build. Is currently ${currentJavaInstallation.vendorAndMajorVersion} at ${currentJavaInstallation.javaHome}." to
+                (currentJavaInstallation.vendorAndMajorVersion != productionJdkName)
         )
 
     private

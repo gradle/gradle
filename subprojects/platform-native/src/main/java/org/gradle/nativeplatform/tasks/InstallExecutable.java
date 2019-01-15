@@ -49,6 +49,7 @@ import org.gradle.util.GFileUtils;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
@@ -196,13 +197,19 @@ public class InstallExecutable extends DefaultTask {
 
     @TaskAction
     public void install() {
-        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
         NativePlatform nativePlatform = targetPlatform.get();
+        File executable = getExecutableFile().get().getAsFile();
+        File libDirectory = getLibDirectory().get().getAsFile();
+        File runScript = getRunScriptFile().get().getAsFile();
+        Collection<File> libs = getLibs().getFiles();
+
+        // TODO: Migrate this to the worker API once the FileSystem and FileOperations services can be injected
         workerLeaseService.withoutProjectLock(() -> {
+            installToDir(libDirectory, executable, libs);
             if (nativePlatform.getOperatingSystem().isWindows()) {
-                installWindows();
+                installWindows(executable, runScript);
             } else {
-                installUnix();
+                installUnix(executable, runScript);
             }
         });
     }
@@ -211,11 +218,7 @@ public class InstallExecutable extends DefaultTask {
         return getInstallDirectory().dir("lib");
     }
 
-    private void installWindows() {
-        final File executable = getExecutableFile().get().getAsFile();
-
-        installToDir(getLibDirectory().get().getAsFile());
-
+    private void installWindows(File executable, File runScript) {
         StringBuilder toolChainPath = new StringBuilder();
 
         NativeToolChain toolChain = getToolChain().get();
@@ -237,15 +240,10 @@ public class InstallExecutable extends DefaultTask {
             + "\nEXIT /B %ERRORLEVEL%"
             + "\nENDLOCAL"
             + "\n";
-        GFileUtils.writeFile(runScriptText, getRunScriptFile().get().getAsFile());
+        GFileUtils.writeFile(runScriptText, runScript);
     }
 
-    private void installUnix() {
-        final File destination = getInstallDirectory().get().getAsFile();
-        final File executable = getExecutableFile().get().getAsFile();
-
-        installToDir(new File(destination, "lib"));
-
+    private void installUnix(File executable, File runScript) {
         String runScriptText =
               "#!/bin/sh"
             + "\nAPP_BASE_NAME=`dirname \"$0\"`"
@@ -255,17 +253,17 @@ public class InstallExecutable extends DefaultTask {
             + "\nexport LD_LIBRARY_PATH"
             + "\nexec \"$APP_BASE_NAME/lib/" + executable.getName() + "\" \"$@\""
             + "\n";
-        File runScript = getRunScriptFile().get().getAsFile();
+
         GFileUtils.writeFile(runScriptText, runScript);
 
         getFileSystem().chmod(runScript, 0755);
     }
 
-    private void installToDir(final File binaryDir) {
+    private void installToDir(final File binaryDir, final File executableFile, final Collection<File> libs) {
         getFileOperations().sync(copySpec -> {
             copySpec.into(binaryDir);
-            copySpec.from(getExecutableFile());
-            copySpec.from(getLibs());
+            copySpec.from(executableFile);
+            copySpec.from(libs);
         });
     }
 }

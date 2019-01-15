@@ -16,13 +16,17 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assume
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
-import static org.gradle.nativeplatform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
@@ -44,7 +48,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
-                    targetMachines = [machines.windows().architecture('${currentArchitecture}'), machines.linux().architecture('${currentArchitecture}'), machines.macOS().architecture('${currentArchitecture}')]
+                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
             project(':deck') { 
@@ -91,9 +95,8 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
@@ -112,7 +115,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
                 
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
-                    targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                    targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
             project(':deck') { 
@@ -180,8 +183,8 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        return staticLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}").file
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        return staticLibrary("${module}/build/lib/main/${variantContext.asPath}${module}").file
     }
 
     @Override

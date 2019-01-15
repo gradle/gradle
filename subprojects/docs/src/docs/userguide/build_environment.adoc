@@ -55,9 +55,9 @@ Gradle Daemon will terminate itself after specified number of idle milliseconds.
 `org.gradle.debug=(true,false)`::
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached. Default is `false`.
 `org.gradle.java.home=(path to JDK home)`::
-Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. A reasonable default is used if the setting is unspecified.
+Specifies the Java home for the Gradle build process. The value can be set to either a `jdk` or `jre` location, however, depending on what your build does, using a JDK is safer. A reasonable default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified. This does not affect the version of Java used to launch the Gradle client VM (<<#sec:gradle_environment_variables, see Environment variables>>).
 `org.gradle.jvmargs=(JVM arguments)`::
-Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
+Specifies the JVM arguments used for the Gradle Daemon. The setting is particularly useful for <<#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance. This does not affect the JVM settings for the Gradle client VM.
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
 `org.gradle.parallel=(true,false)`::
@@ -121,7 +121,7 @@ The actual build is run by the Gradle daemon, which is not affected by this envi
 `GRADLE_USER_HOME`::
 Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
 `JAVA_HOME`::
-Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file.
+Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 
 [[sec:project_properties]]
 == Project properties

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.ExecutionOutcome;
@@ -29,7 +30,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Formatter;
 import java.util.List;
 
@@ -75,14 +75,13 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
                     }
 
                     @Override
-                    public ExecutionOutcome getOutcome() {
-                        return ExecutionOutcome.UP_TO_DATE;
+                    public Try<ExecutionOutcome> getOutcome() {
+                        return Try.successful(ExecutionOutcome.UP_TO_DATE);
                     }
 
-                    @Nullable
                     @Override
-                    public Throwable getFailure() {
-                        return null;
+                    public boolean isReused() {
+                        return true;
                     }
                 };
             } else {
@@ -111,14 +110,13 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
             }
 
             @Override
-            public ExecutionOutcome getOutcome() {
+            public Try<ExecutionOutcome> getOutcome() {
                 return result.getOutcome();
             }
 
-            @Nullable
             @Override
-            public Throwable getFailure() {
-                return result.getFailure();
+            public boolean isReused() {
+                return result.isReused();
             }
         };
     }

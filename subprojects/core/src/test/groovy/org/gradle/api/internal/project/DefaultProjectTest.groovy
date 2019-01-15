@@ -36,9 +36,10 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
@@ -190,7 +191,9 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(projectRegistryType) >> projectRegistry
         serviceRegistryMock.get(DependencyMetaDataProvider) >> dependencyMetaDataProviderMock
         serviceRegistryMock.get(FileResolver) >> Stub(FileResolver)
+        serviceRegistryMock.get(CollectionCallbackActionDecorator) >> Stub(CollectionCallbackActionDecorator)
         serviceRegistryMock.get(Instantiator) >> instantiatorMock
+        serviceRegistryMock.get(InstantiatorFactory) >> TestUtil.instantiatorFactory()
         serviceRegistryMock.get((Type) FileOperations) >> fileOperationsMock
         serviceRegistryMock.get((Type) ProviderFactory) >> propertyStateFactoryMock
         serviceRegistryMock.get((Type) ProcessOperations) >> processOperationsMock
@@ -233,22 +236,21 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
 
-        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
-        project = defaultProject(classGenerator, 'root', null, rootDir, rootProjectClassLoaderScope)
+        project = defaultProject('root', null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1")
-        child1 = defaultProject(classGenerator, "child1", project, new File("child1"), child1ClassLoaderScope)
+        child1 = defaultProject("child1", project, new File("child1"), child1ClassLoaderScope)
         project.addChildProject(child1)
-        childchild = defaultProject(classGenerator, "childchild", child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
+        childchild = defaultProject("childchild", child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild"))
         child1.addChildProject(childchild)
-        child2 = defaultProject(classGenerator, "child2", project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
+        child2 = defaultProject("child2", project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2"))
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
     }
 
-    private DefaultProject defaultProject(AsmBackedClassGenerator classGenerator, String name, def parent, File rootDir, ClassLoaderScope scope) {
-        classGenerator.newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+    private DefaultProject defaultProject(String name, def parent, File rootDir, ClassLoaderScope scope) {
+        TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, this.projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
     }
 
     Type getProjectRegistryType() {
@@ -986,13 +988,10 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        when:
-        def container = Stub(FactoryNamedDomainObjectContainer)
-        instantiatorMock.newInstance(FactoryNamedDomainObjectContainer, _) >> container
-        then:
-        project.container(String).is(container)
-        project.container(String, Stub(NamedDomainObjectFactory)).is(container)
-        project.container(String, {}).is(container)
+        expect:
+        project.container(String) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
+        project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
     }
 
 }

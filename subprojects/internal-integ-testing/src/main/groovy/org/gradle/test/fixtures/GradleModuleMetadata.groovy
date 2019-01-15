@@ -185,7 +185,7 @@ class GradleModuleMetadata {
             return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5)) }
         }
 
-        DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+        DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def view = new DependencyView(group, module, version)
             action.delegate = view
             action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -193,12 +193,12 @@ class GradleModuleMetadata {
             view
         }
 
-        DependencyView dependency(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+        DependencyView dependency(String notation, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def (String group, String module, String version) = notation.split(':') as List
             dependency(group, module, version, action)
         }
 
-        DependencyConstraintView constraint(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+        DependencyConstraintView constraint(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def view = new DependencyConstraintView(group, module, version)
             action.delegate = view
             action.resolveStrategy = Closure.DELEGATE_FIRST
@@ -206,7 +206,7 @@ class GradleModuleMetadata {
             view
         }
 
-        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyConstraintView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = {}) {
+        DependencyConstraintView constraint(String notation, @DelegatesTo(value=DependencyConstraintView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
             def (String group, String module, String version) = notation.split(':') as List
             constraint(group, module, version, action)
         }
@@ -331,6 +331,7 @@ class GradleModuleMetadata {
 
             DependencyConstraint find() {
                 def depConstraint = dependencyConstraints.find { it.group == group && it.module == module && it.version == version }
+                assert depConstraint : "constraint ${group}:${module}:${version} not found in $dependencyConstraints"
                 checkedDependencyConstraints << depConstraint
                 depConstraint
             }

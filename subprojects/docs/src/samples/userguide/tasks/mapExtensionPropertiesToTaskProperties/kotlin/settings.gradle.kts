@@ -1,1 +1,0 @@
-rootProject.name = "map-extension-properties-to-task-properties"

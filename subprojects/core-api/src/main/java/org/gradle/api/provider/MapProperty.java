@@ -138,6 +138,22 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>> {
     Provider<Set<K>> keySet();
 
     /**
+     * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param value The value.
+     * @return this
+     */
+    MapProperty<K, V> convention(Map<? extends K, ? extends V> value);
+
+    /**
+     * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.
+     *
+     * @param valueProvider The provider of the value.
+     * @return this
+     */
+    MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider);
+
+    /**
      * Disallows further changes to the value of this property. Calls to methods that change the value of this property, such as {@link #set(Map)} or {@link #put(Object, Object)} will fail.
      *
      * <p>When this property has elements provided by a {@link Provider}, the value of the provider is queried when this method is called  and the value of the provider will no longer be tracked.</p>

@@ -15,12 +15,9 @@
  */
 package org.gradle.util
 
-import org.codehaus.groovy.control.CompilerConfiguration
+
 import org.gradle.api.Task
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.DefaultInstantiatorFactory
 import org.gradle.api.internal.FeaturePreviews
-import org.gradle.api.internal.InstantiatorFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -32,21 +29,21 @@ import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.groovy.scripts.DefaultScript
-import org.gradle.groovy.scripts.Script
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.InjectAnnotationHandler
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-
-import java.rmi.server.UID
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA
 
 class TestUtil {
     public static final Closure TEST_CLOSURE = {}
+    private static InstantiatorFactory instantiatorFactory
 
     private final File rootDir
 
@@ -56,8 +53,12 @@ class TestUtil {
     }
 
     static InstantiatorFactory instantiatorFactory() {
-        def generator = new AsmBackedClassGenerator()
-        return new DefaultInstantiatorFactory(generator, new TestCrossBuildInMemoryCacheFactory())
+        if (instantiatorFactory == null) {
+            NativeServicesTestFixture.initialize()
+            def annotationHandlers = ProjectBuilderImpl.getGlobalServices().getAll(InjectAnnotationHandler.class)
+            instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), annotationHandlers)
+        }
+        return instantiatorFactory
     }
 
     static ObjectFactory objectFactory() {
@@ -147,16 +148,6 @@ class TestUtil {
         return new GroovyShell().evaluate("return " + text)
     }
 
-    static Closure toClosure(ScriptSource source) {
-        CompilerConfiguration configuration = new CompilerConfiguration()
-        configuration.setScriptBaseClass(TestScript.getName())
-
-        GroovyShell shell = new GroovyShell(configuration)
-        Script script = shell.parse(source.resource.text)
-        script.setScriptSource(source)
-        return script.run()
-    }
-
     static Closure toClosure(TestClosure closure) {
         return { param -> closure.call(param) }
     }
@@ -164,24 +155,8 @@ class TestUtil {
     static Closure returns(Object value) {
         return { value }
     }
-
-    static Closure createSetterClosure(String name, String value) {
-        return {
-            "set$name"(value)
-        }
-    }
-
-    static String createUniqueId() {
-        return new UID().toString()
-    }
-
-
 }
-
 
 interface TestClosure {
     Object call(Object param);
-}
-
-abstract class TestScript extends DefaultScript {
 }

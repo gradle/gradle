@@ -28,7 +28,7 @@ public interface DependencyManagementServices {
     /**
      * Registers the dependency management DSL services.
      */
-    void addDslServices(ServiceRegistration registration);
+    void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext);
 
     DependencyResolutionServices create(FileResolver resolver, DependencyMetaDataProvider dependencyMetaDataProvider,
                                         ProjectFinder projectFinder, DomainObjectContext domainObjectContext);

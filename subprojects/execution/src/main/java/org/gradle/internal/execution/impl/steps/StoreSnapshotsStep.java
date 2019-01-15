@@ -39,7 +39,7 @@ public class StoreSnapshotsStep<C extends Context> implements Step<C, CurrentSna
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getWork().persistResult(
             finalOutputs,
-            result.getFailure() == null,
+            result.getOutcome().isSuccessful(),
             result.getOriginMetadata()
         );
         outputFilesRepository.recordOutputs(finalOutputs.values());

@@ -20,7 +20,6 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
 
 class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -79,12 +78,12 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureDescriptionContains("Execution failed for task ':assemble'.")
-        failure.assertThatCause(Matchers.<String>allOf(
-                Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("Jar 'myJvmLib1:jar': Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("Jar 'myJvmLib2:jar': Could not target platform: 'Java SE 9' using tool chain:"),
-                Matchers.containsString("Jar 'myJvmLib3:jar': Disabled by user")
-        ))
+        failure.assertHasCause("""No buildable binaries found:
+  - Jar 'myJvmLib1:jar':
+      - Could not target platform: 'Java SE 9' using tool chain: 'JDK 8 (1.8)'.
+  - Jar 'myJvmLib2:jar':
+      - Could not target platform: 'Java SE 9' using tool chain: 'JDK 8 (1.8)'.
+  - Jar 'myJvmLib3:jar': Disabled by user""")
     }
 
     def "model report should display configured components and binaries"() {

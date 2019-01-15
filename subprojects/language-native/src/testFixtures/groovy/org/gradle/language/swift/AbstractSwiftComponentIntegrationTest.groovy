@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -171,22 +172,46 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "ignores compile and link tasks when current operating system family is excluded"() {
+    def "assemble task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()
         swift4Component.writeToProject(testDirectory)
 
         and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.os('some-other-family')]
-            }
-        """
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
+    }
+
+    def "build task warns when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "build"
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
+    }
+
+    def "does not fail when current operating system family is excluded but assemble is not invoked"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "help"
     }
 
     def "fails configuration when no target machine is configured"() {
@@ -195,11 +220,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         swift4Component.writeToProject(testDirectory)
 
         and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = []
-            }
-        """
+        buildFile << configureTargetMachines('')
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
@@ -207,9 +228,13 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         failure.assertHasCause("A target machine needs to be specified")
     }
 
-
     protected String getCurrentHostOperatingSystemFamilyDsl() {
-        return DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName() + "()"
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
     }
 
     abstract String getDevelopmentBinaryCompileTask()
@@ -221,4 +246,14 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract String getTaskNameToAssembleDevelopmentBinary()
 
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
+
+    abstract String getComponentName()
+
+    protected configureTargetMachines(String targetMachines) {
+        return """
+            ${componentUnderTestDsl} {
+                targetMachines = [${targetMachines}]
+            }
+        """
+    }
 }

@@ -110,6 +110,23 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated-sources/TestAppHelper.java").assertDoesNotExist()
     }
 
+    def "generated sources directories track task dependency"() {
+        given:
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            task sourcesJar(type: Jar) {
+                from sourceSets.main.output.generatedSourcesDirs
+            }
+        """
+
+        expect:
+        succeeds "sourcesJar"
+        ":compileJava" in executedTasks
+    }
+
     def "can model annotation processor arguments"() {
         buildFile << """                                                       
             class HelperAnnotationProcessor implements CommandLineArgumentProvider {
@@ -138,7 +155,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
         run "compileJava"
 
         then:
-        file("build/classes/java/main/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "fromOptions"; }}'
+        file("build/generated/sources/annotationProcessor/java/main/TestAppHelper.java").text == 'class TestAppHelper {    String getValue() { return "fromOptions"; }}'
     }
 
     def "processors in the compile classpath are ignored"() {
@@ -266,7 +283,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5448")
-    def "can add classes directory as source"() {
+    def "can add generated sources directory as source"() {
         // This is sometimes done for IDE support.
         // We should deprecate this behaviour, since output directories are added as inputs.
         buildFile << """
@@ -274,7 +291,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            sourceSets.main.java.srcDir("build/classes/java/main")
+            sourceSets.main.java.srcDir("build/generated/sources/annotationProcessor/java/main")
         """
 
         expect:

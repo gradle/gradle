@@ -20,8 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.provider.Property
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDeveloper
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomDistributionManagement
@@ -32,7 +35,6 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomProjectM
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPomScm
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 import org.gradle.api.publish.maven.internal.publication.ReadableMavenProjectIdentity
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.CollectionUtils
@@ -46,8 +48,13 @@ class MavenPomFileGeneratorTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
     def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
-    def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper)
-    def instantiator = DirectInstantiator.INSTANCE
+    def strategy = Stub(VersionMappingStrategyInternal) {
+        findStrategyForVariant(_, _) >> Stub(VariantVersionMappingStrategyInternal) {
+            maybeResolveVersion(_, _) >> null
+        }
+    }
+    def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
+    def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def objectFactory = TestUtil.objectFactory()
 
     def "writes correct prologue and schema declarations"() {
@@ -167,7 +174,7 @@ class MavenPomFileGeneratorTest extends Specification {
         def groupId = 'group-ぴ₦ガき∆ç√∫'
         def artifactId = 'artifact-<tag attrib="value"/>-markup'
         def version = 'version-&"'
-        generator = new MavenPomFileGenerator(new ReadableMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper))
+        generator = new MavenPomFileGenerator(new ReadableMavenProjectIdentity(groupId, artifactId, version), Stub(VersionRangeMapper), Stub(VersionMappingStrategyInternal), ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         then:
         with (pom) {

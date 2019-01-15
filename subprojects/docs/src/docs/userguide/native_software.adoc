@@ -84,12 +84,12 @@ The following tool chains are supported:
 | Windows XP and later, Visual C++ 2010/2012/2013/2015/2017.
 
 | Windows
-| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32]
+| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32 and Cygwin 64]
 | Windows XP and later.
 
 | Windows
-| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW]
-| Windows XP and later. http://mingw-w64.sourceforge.net[Mingw-w64] is currently not supported.
+| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW] and https://mingw-w64.org/doku.php[MinGW64]
+| Windows XP and later.
 |===
 
 The following tool chains are unofficially supported. They generally work fine, but are not tested continuously:
@@ -105,10 +105,6 @@ The following tool chains are unofficially supported. They generally work fine, 
 | macOS
 | http://clang.llvm.org[Clang] from Macports
 |
-
-| Windows
-| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 64]
-| Windows XP and later.
 
 | UNIX-like
 | http://gcc.gnu.org/[GCC]

@@ -25,56 +25,58 @@ import java.util.Properties
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin.ktlint-convention") version "0.1.15" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.0" apply false
 }
 
 subprojects {
+    if (name != "buildPlatform") {
+        apply(plugin = "java-library")
 
-    apply(plugin = "java-library")
 
-    if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+        if (file("src/main/groovy").isDirectory || file("src/test/groovy").isDirectory) {
+            applyGroovyProjectConventions()
+        }
 
-        applyGroovyProjectConventions()
+        if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
+            applyKotlinProjectConventions()
+        }
+
+        configure<JavaPluginExtension> {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = JavaVersion.VERSION_1_8
+        }
+
+        dependencies {
+            compile(gradleApi())
+        }
+
+        afterEvaluate {
+            if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
+                val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+                    outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
+
+                    val mainSourceSet = project.sourceSets.main.get()
+                    classes.setFrom(mainSourceSet.output.classesDirs)
+                    classpath.setFrom(mainSourceSet.compileClasspath)
+                    dependsOn(mainSourceSet.output)
+                }
+                tasks.check { dependsOn(validateTaskProperties) }
+            }
+        }
+
+        tasks.withType<ValidateTaskProperties> {
+            failOnWarning = true
+            enableStricterValidation = true
+        }
+
+        apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     }
 
-    if (file("src/main/kotlin").isDirectory || file("src/test/kotlin").isDirectory) {
-
-        applyKotlinProjectConventions()
-    }
-
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    
     apply(plugin = "idea")
     apply(plugin = "eclipse")
 
     configure<IdeaModel> {
         module.name = "buildSrc-${this@subprojects.name}"
-    }
-
-    dependencies {
-        compile(gradleApi())
-    }
-
-    afterEvaluate {
-        if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-            val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
-                outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
-
-                val mainSourceSet = project.sourceSets.main.get()
-                classes.setFrom(mainSourceSet.output.classesDirs)
-                classpath.setFrom(mainSourceSet.compileClasspath)
-                dependsOn(mainSourceSet.output)
-            }
-            tasks.check { dependsOn(validateTaskProperties) }
-        }
-    }
-
-    tasks.withType<ValidateTaskProperties> {
-        failOnWarning = true
-        enableStricterValidation = true
     }
 }
 
@@ -113,10 +115,6 @@ if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
 
 // TODO Avoid duplication of what defines a CI Server with BuildEnvironment
 val isCiServer: Boolean by extra { "CI" in System.getenv() }
-if (!isCiServer || System.getProperty("enableCodeQuality")?.toLowerCase() == "true") {
-    apply(from = "../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-}
-
 if (isCiServer) {
     gradle.buildFinished {
         allprojects.forEach { project ->
@@ -217,7 +215,7 @@ fun Project.applyGroovyProjectConventions() {
 
 fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-    apply(plugin = "org.gradle.kotlin.ktlint-convention")
+    apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
         kotlinDslPluginOptions {

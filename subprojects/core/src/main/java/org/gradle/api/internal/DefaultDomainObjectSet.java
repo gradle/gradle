@@ -33,6 +33,10 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     // TODO: Combine these with MutationGuard
     private ImmutableActionSet<Void> beforeContainerChange = ImmutableActionSet.empty();
 
+    /**
+     * This internal constructor is used by the 'com.android.application' plugin which we test as part of our ci pipeline.
+     * */
+    @Deprecated
     public DefaultDomainObjectSet(Class<? extends T> type) {
         super(type, new IterationOrderRetainingSetElementSource<T>(), CollectionCallbackActionDecorator.NOOP);
     }

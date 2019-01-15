@@ -145,6 +145,28 @@ task thing {
         output.contains("prop = [value 1]")
     }
 
+    def "can use property with no value as optional ad hoc task input property"() {
+        given:
+        buildFile << """
+
+def prop = project.objects.listProperty(String)
+prop.set((List)null)
+
+task thing {
+    inputs.property("prop", prop).optional(true)
+    doLast {
+        println "prop = " + prop.getOrNull()
+    }
+}
+"""
+
+        when:
+        run("thing")
+
+        then:
+        output.contains("prop = null")
+    }
+
     @Unroll
     def "can set value for list property from DSL"() {
         buildFile << """

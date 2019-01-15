@@ -27,6 +27,7 @@ import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
@@ -62,17 +63,19 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final FileOperations fileOperations;
+    private final CollectionCallbackActionDecorator callbackActionDecorator;
 
     @Inject
-    public DistributionPlugin(Instantiator instantiator, FileOperations fileOperations) {
+    public DistributionPlugin(Instantiator instantiator, FileOperations fileOperations, CollectionCallbackActionDecorator callbackActionDecorator) {
         this.instantiator = instantiator;
         this.fileOperations = fileOperations;
+        this.callbackActionDecorator = callbackActionDecorator;
     }
 
     @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
-        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
+        DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations, callbackActionDecorator);
 
         // TODO - refactor this action out so it can be unit tested
         distributions.all(new Action<Distribution>() {

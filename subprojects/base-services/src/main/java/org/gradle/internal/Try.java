@@ -42,7 +42,11 @@ public abstract class Try<T> {
         return new Failure<U>(e);
     }
 
+    public abstract boolean isSuccessful();
+
     public abstract T get();
+
+    public abstract T orElseMapFailure(Function<Throwable, T> f);
 
     public abstract Optional<Throwable> getFailure();
 
@@ -61,6 +65,8 @@ public abstract class Try<T> {
 
     public abstract void ifSuccessful(Consumer<T> consumer);
 
+    public abstract void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer);
+
     private static class Success<T> extends Try<T> {
         private final T value;
 
@@ -69,7 +75,17 @@ public abstract class Try<T> {
         }
 
         @Override
+        public boolean isSuccessful() {
+            return true;
+        }
+
+        @Override
         public T get() {
+            return value;
+        }
+
+        @Override
+        public T orElseMapFailure(Function<Throwable, T> f) {
             return value;
         }
 
@@ -95,6 +111,11 @@ public abstract class Try<T> {
         @Override
         public void ifSuccessful(Consumer<T> consumer) {
             consumer.accept(value);
+        }
+
+        @Override
+        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+            successConsumer.accept(value);
         }
 
         @Override
@@ -125,8 +146,18 @@ public abstract class Try<T> {
         }
 
         @Override
+        public boolean isSuccessful() {
+            return false;
+        }
+
+        @Override
         public T get() {
             throw UncheckedException.throwAsUncheckedException(failure);
+        }
+
+        @Override
+        public T orElseMapFailure(Function<Throwable, T> f) {
+            return f.apply(failure);
         }
 
         @Override
@@ -146,6 +177,11 @@ public abstract class Try<T> {
 
         @Override
         public void ifSuccessful(Consumer<T> consumer) {
+        }
+
+        @Override
+        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+            failureConsumer.accept(failure);
         }
 
         @Override

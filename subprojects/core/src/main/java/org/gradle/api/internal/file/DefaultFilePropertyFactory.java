@@ -189,6 +189,18 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
             super.value(value);
             return this;
         }
+
+        @Override
+        public RegularFileProperty convention(RegularFile value) {
+            super.convention(value);
+            return this;
+        }
+
+        @Override
+        public RegularFileProperty convention(Provider<? extends RegularFile> valueProvider) {
+            super.convention(valueProvider);
+            return this;
+        }
     }
 
     static class ResolvingDirectory extends AbstractResolvingProvider<Directory> {
@@ -244,6 +256,18 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public DirectoryProperty value(Directory value) {
             super.value(value);
+            return this;
+        }
+
+        @Override
+        public DirectoryProperty convention(Directory value) {
+            super.convention(value);
+            return this;
+        }
+
+        @Override
+        public DirectoryProperty convention(Provider<? extends Directory> valueProvider) {
+            super.convention(valueProvider);
             return this;
         }
 

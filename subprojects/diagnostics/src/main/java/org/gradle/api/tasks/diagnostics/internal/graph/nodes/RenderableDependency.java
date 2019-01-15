@@ -30,7 +30,7 @@ public interface RenderableDependency {
     Object getId();
     String getName();
     String getDescription();
-    ResolvedVariantResult getResolvedVariant();
+    List<ResolvedVariantResult> getResolvedVariants();
     ResolutionState getResolutionState();
     Set<? extends RenderableDependency> getChildren();
     List<Section> getExtraDetails();

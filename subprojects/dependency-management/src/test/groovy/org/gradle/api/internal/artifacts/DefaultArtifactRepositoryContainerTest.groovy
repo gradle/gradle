@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.artifacts.UnknownRepositoryException
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultArtifactRepositoryContainerTest extends Specification {
@@ -32,7 +32,7 @@ class DefaultArtifactRepositoryContainerTest extends Specification {
         container = createResolverContainer()
     }
 
-    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = DirectInstantiator.INSTANCE) {
+    ArtifactRepositoryContainer createResolverContainer(Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()) {
         new DefaultArtifactRepositoryContainer(instantiator, CollectionCallbackActionDecorator.NOOP)
     }
 

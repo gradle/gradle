@@ -40,6 +40,9 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def sourceZipContents() {
         given:
+        // workaround for https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/270
+        // can be removed once 1.5.9.3/1.5.10 is released
+        executer.noDeprecationChecks()
         TestFile contentsDir = unpackDistribution()
 
         expect:

@@ -93,12 +93,14 @@ class ScenarioBuildResultData {
     static class ExecutionData {
         Date time
         String commitId
+        String shortCommitId
         MeasuredOperationList baseVersion
         MeasuredOperationList currentVersion
 
         ExecutionData(long time, String commitId, MeasuredOperationList baseVersion, MeasuredOperationList currentVersion) {
             this.time = new Date(time)
             this.commitId = commitId
+            this.shortCommitId = commitId.substring(0, Math.min(7, commitId.length()))
             this.baseVersion = baseVersion
             this.currentVersion = currentVersion
         }

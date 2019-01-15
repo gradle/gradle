@@ -23,7 +23,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import java.util.Collections;
 import java.util.Set;
 
-public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     public KotlinLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
         super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
     }
@@ -50,6 +50,8 @@ public class KotlinLibraryProjectInitDescriptor extends LanguageLibraryProjectIn
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generate(settings, buildScriptBuilder);
+
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")

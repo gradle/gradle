@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -28,13 +27,12 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -48,16 +46,17 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final OutputChangeListener outputChangeListener;
     private final TaskExecuter executer;
-    private final BuildInvocationScopeId buildInvocationScopeId;
+    private final ExecutionHistoryStore executionHistoryStore;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer, BuildInvocationScopeId buildInvocationScopeId) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, ExecutionHistoryStore executionHistoryStore, BuildOutputCleanupRegistry buildOutputCleanupRegistry, OutputChangeListener outputChangeListener, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
+        this.executionHistoryStore = executionHistoryStore;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.outputChangeListener = outputChangeListener;
         this.executer = executer;
-        this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
+    @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         TaskProperties taskProperties = context.getTaskProperties();
         FileCollection sourceFiles = taskProperties.getSourceFiles();
@@ -71,8 +70,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
-                boolean cleanupDirectories = taskArtifactState.getOverlappingOutputs() == null;
+                boolean cleanupDirectories = !context.getOverlappingOutputs().isPresent();
                 if (!cleanupDirectories) {
                     LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
                 }
@@ -101,16 +99,10 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 } else {
                     state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 }
-                // TODO Create new current execution with new outputs
-                // taskArtifactState.snapshotAfterTaskExecution(true, buildInvocationScopeId.getId(), context);
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
-            return new TaskExecuterResult() {
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return OriginMetadata.fromCurrentBuild(buildInvocationScopeId.getId(), context.markExecutionTime());
-                }
-            };
+            executionHistoryStore.remove(task.getPath());
+            return TaskExecuterResult.NO_REUSED_OUTPUT;
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskProperties.getInputFiles()));
         }

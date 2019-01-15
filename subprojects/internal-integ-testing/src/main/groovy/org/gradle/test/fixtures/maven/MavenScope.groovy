@@ -25,7 +25,15 @@ class MavenScope {
     Map<String, MavenDependency> dependencies = [:]
     Map<String, MavenDependency> dependencyManagement = [:]
 
-    void assertDependsOn(String[] expected) {
+    void assertNoDependencies() {
+        assert dependencies.isEmpty()
+    }
+
+    void assertNoDependencyManagement() {
+        assert dependencyManagement.isEmpty()
+    }
+
+    void assertDependsOn(String... expected) {
         assert dependencies.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
@@ -39,7 +47,7 @@ class MavenScope {
         }
     }
 
-    void assertDependencyManagement(String[] expected) {
+    void assertDependencyManagement(String... expected) {
         assert dependencyManagement.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")

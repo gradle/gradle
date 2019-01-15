@@ -19,10 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * The final representation of a component in the resolved dependency graph.
@@ -51,22 +50,10 @@ public interface ResolvedGraphComponent {
     ComponentSelectionReason getSelectionReason();
 
     /**
-     * Returns the name of the resolved variant. This can currently be 2 different things: for legacy components,
-     * it's going to be the name of a "configuration" (either a project configuration, an Ivy configuration name or a Maven "scope").
-     * For components with variants, it's going to be the name of the variant. This name is going to be used for reporting purposes.
-     */
-    DisplayName getVariantName();
-
-    /**
-     * Returns the attributes of the resolved variant. This is going to be used for reporting purposes. In practice, variant attributes
-     * should effectively be what defines the _identity_ of the variant. In practice, because we have multiple kind of components, it's
-     * not necessarily the case.
-     */
-    AttributeContainer getVariantAttributes();
-
-    /**
      * Returns the name of the repository used to source this component, or {@code null} if this component was not resolved from a repository.
      */
     @Nullable
     String getRepositoryName();
+
+    List<ResolvedVariantDetails> getResolvedVariants();
 }

@@ -159,7 +159,7 @@ public interface LongRunningOperation {
      * If an unknown or unsupported command line option is specified, {@link org.gradle.tooling.exceptions.UnsupportedBuildArgumentException}
      * will be thrown at the time the operation is executed via {@link BuildLauncher#run()} or {@link ModelBuilder#get()}.
      * <p>
-     * For the list of all Gradle command line options please refer to the user guide
+     * For the list of all Gradle command line options please refer to the User Manual
      * or take a look at the output of the 'gradle -?' command. Majority of arguments modeled by
      * {@link org.gradle.StartParameter} are supported.
      * <p>

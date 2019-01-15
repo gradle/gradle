@@ -45,7 +45,7 @@ public class DaemonGreeter {
         sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
         sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
         sb.append("\nFor example, an unrecognized jvm option is used.");
-        sb.append("\nPlease refer to the user guide chapter on the daemon at ");
+        sb.append("\nPlease refer to the User Manual chapter on the daemon at ");
         sb.append(documentationRegistry.getDocumentationFor("gradle_daemon"));
         sb.append("\nPlease read the following process output to find out more:");
         sb.append("\n-----------------------\n");

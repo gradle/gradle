@@ -2,25 +2,24 @@
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
 // end::filter-files[]
-import java.util.concurrent.Callable
 
 version = "1.1"
 
 // tag::copy-single-file-example[]
-task<Copy>("copyReport") {
+tasks.register<Copy>("copyReport") {
     from(file("$buildDir/reports/my-report.pdf"))
     into(file("$buildDir/toArchive"))
 }
 // end::copy-single-file-example[]
 
 // tag::copy-single-file-example-without-file-method[]
-task<Copy>("copyReport2") {
+tasks.register<Copy>("copyReport2") {
     from("$buildDir/reports/my-report.pdf")
     into("$buildDir/toArchive")
 }
 // end::copy-single-file-example-without-file-method[]
 
-val myReportTask by tasks.creating {
+val myReportTask by tasks.registering {
     val outputFile by extra { file("$buildDir/reports/my-report.pdf") }
 
     outputs.files(outputFile)
@@ -29,29 +28,29 @@ val myReportTask by tasks.creating {
     }
 }
 
-val archiveReportsTask by tasks.creating {
+val archiveReportsTask by tasks.registering {
     val dirToArchive by extra { file("$buildDir/toArchive") }
     inputs.dir(dirToArchive)
 }
 
 // tag::copy-single-file-example-with-task-properties[]
-task<Copy>("copyReport3") {
-    val outputFile: File by myReportTask.extra
-    val dirToArchive: File by archiveReportsTask.extra
+tasks.register<Copy>("copyReport3") {
+    val outputFile: File by myReportTask.get().extra
+    val dirToArchive: File by archiveReportsTask.get().extra
     from(outputFile)
     into(dirToArchive)
 }
 // end::copy-single-file-example-with-task-properties[]
 
 // tag::copy-multiple-files-example[]
-task<Copy>("copyReportsForArchiving") {
+tasks.register<Copy>("copyReportsForArchiving") {
     from("$buildDir/reports/my-report.pdf", "src/docs/manual.pdf")
     into("$buildDir/toArchive")
 }
 // end::copy-multiple-files-example[]
 
 // tag::copy-multiple-files-with-flat-filter-example[]
-task<Copy>("copyPdfReportsForArchiving") {
+tasks.register<Copy>("copyPdfReportsForArchiving") {
     from("$buildDir/reports")
     include("*.pdf")
     into("$buildDir/toArchive")
@@ -59,7 +58,7 @@ task<Copy>("copyPdfReportsForArchiving") {
 // end::copy-multiple-files-with-flat-filter-example[]
 
 // tag::copy-multiple-files-with-deep-filter-example[]
-task<Copy>("copyAllPdfReportsForArchiving") {
+tasks.register<Copy>("copyAllPdfReportsForArchiving") {
     from("$buildDir/reports")
     include("**/*.pdf")
     into("$buildDir/toArchive")
@@ -68,14 +67,14 @@ task<Copy>("copyAllPdfReportsForArchiving") {
 
 
 // tag::copy-directory-example[]
-task<Copy>("copyReportsDirForArchiving") {
+tasks.register<Copy>("copyReportsDirForArchiving") {
     from("$buildDir/reports")
     into("$buildDir/toArchive")
 }
 // end::copy-directory-example[]
 
 // tag::copy-directory-including-itself-example[]
-task<Copy>("copyReportsDirForArchiving2") {
+tasks.register<Copy>("copyReportsDirForArchiving2") {
     from("$buildDir") {
         include("reports/**")
     }
@@ -84,7 +83,7 @@ task<Copy>("copyReportsDirForArchiving2") {
 // end::copy-directory-including-itself-example[]
 
 // tag::create-archive-example[]
-task<Zip>("packageDistribution") {
+tasks.register<Zip>("packageDistribution") {
     archiveName = "my-distribution.zip"
     destinationDir = file("$buildDir/dist")
 
@@ -93,7 +92,7 @@ task<Zip>("packageDistribution") {
 // end::create-archive-example[]
 
 // tag::rename-on-copy-example[]
-task<Copy>("copyFromStaging") {
+tasks.register<Copy>("copyFromStaging") {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
 
@@ -102,7 +101,7 @@ task<Copy>("copyFromStaging") {
 // end::rename-on-copy-example[]
 
 // tag::truncate-names-example[]
-task<Copy>("copyWithTruncate") {
+tasks.register<Copy>("copyWithTruncate") {
     from("$buildDir/reports")
     rename { filename: String ->
         if (filename.length > 10) {
@@ -120,13 +119,13 @@ task<Copy>("copyWithTruncate") {
 
 
 
-val copyTask by tasks.creating(Copy::class) {
+val copyTask by tasks.registering(Copy::class) {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
 }
 
 // tag::copy-task-with-patterns[]
-task<Copy>("copyTaskWithPatterns") {
+tasks.register<Copy>("copyTaskWithPatterns") {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
     include("**/*.html")
@@ -139,7 +138,7 @@ task<Copy>("copyTaskWithPatterns") {
 // end::copy-task-with-patterns[]
 
 // tag::copy-task-2[]
-task<Copy>("anotherCopyTask") {
+tasks.register<Copy>("anotherCopyTask") {
     // Copy everything under src/main/webapp
     from("src/main/webapp")
     // Copy a single file
@@ -151,14 +150,14 @@ task<Copy>("anotherCopyTask") {
     // Copy the contents of a Zip file
     from(zipTree("src/main/assets.zip"))
     // Determine the destination directory later
-    into(Callable { getDestDir() })
+    into({ getDestDir() })
 }
 // end::copy-task-2[]
 
 fun getDestDir() = file("some-dir")
 
 // tag::copy-method[]
-task("copyMethod") {
+tasks.register("copyMethod") {
     doLast {
         copy {
             from("src/main/webapp")
@@ -171,7 +170,7 @@ task("copyMethod") {
 // end::copy-method[]
 
 // tag::copy-method-with-dependency[]
-task("copyMethodWithExplicitDependencies") {
+tasks.register("copyMethodWithExplicitDependencies") {
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files(copyTask)
     outputs.dir("some-dir") // up-to-date check for outputs
@@ -188,7 +187,7 @@ task("copyMethodWithExplicitDependencies") {
 configurations { "runtime" }
 
 // tag::rename-files[]
-task<Copy>("rename") {
+tasks.register<Copy>("rename") {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
     // Use a closure to convert all file names to upper case
@@ -202,7 +201,7 @@ task<Copy>("rename") {
 // end::rename-files[]
 
 // tag::filter-files[]
-task<Copy>("filter") {
+tasks.register<Copy>("filter") {
     from("src/main/webapp")
     into("$buildDir/explodedWar")
     // Substitute property tokens in files
@@ -223,7 +222,7 @@ task<Copy>("filter") {
 }
 // end::filter-files[]
 
-task("test") {
+tasks.register("test") {
     dependsOn(tasks.withType<Copy>())
     dependsOn(tasks["copyMethod"])
     dependsOn(tasks["copyMethodWithExplicitDependencies"])
@@ -238,12 +237,12 @@ val webAssetsSpec: CopySpec = copySpec {
     rename("(.+)-staging(.+)", "$1$2")
 }
 
-task<Copy>("copyAssets") {
+tasks.register<Copy>("copyAssets") {
     into("$buildDir/inPlaceApp")
     with(webAssetsSpec)
 }
 
-task<Zip>("distApp") {
+tasks.register<Zip>("distApp") {
     archiveName = "my-app-dist.zip"
     destinationDir = file("$buildDir/dists")
 
@@ -257,12 +256,12 @@ val webAssetPatterns = Action<CopySpec> {
     include("**/*.html", "**/*.png", "**/*.jpg")
 }
 
-task<Copy>("copyAppAssets") {
+tasks.register<Copy>("copyAppAssets") {
     into("$buildDir/inPlaceApp")
     from("src/main/webapp", webAssetPatterns)
 }
 
-task<Zip>("archiveDistAssets") {
+tasks.register<Zip>("archiveDistAssets") {
     archiveName = "distribution-assets.zip"
     destinationDir = file("$buildDir/dists")
 
@@ -271,7 +270,7 @@ task<Zip>("archiveDistAssets") {
 // end::shared-copy-patterns[]
 
 // tag::change-default-exclusions[]
-task<Copy>("forcedCopy") {
+tasks.register<Copy>("forcedCopy") {
     into("$buildDir/inPlaceApp")
     from("src/main/webapp")
 

@@ -27,6 +27,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.publish.Publication;
@@ -63,9 +64,11 @@ public class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final DefaultDomainObjectSet<Signature> signatures = new DefaultDomainObjectSet<Signature>(Signature.class);
+    private final DefaultDomainObjectSet<Signature> signatures;
 
+    @Inject
     public Sign() {
+        this.signatures = new DefaultDomainObjectSet<Signature>(Signature.class, getCallbackActionDecorator());
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf(task -> isRequired() || getSignatory() != null);
     }
@@ -320,5 +323,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
 
     public void setRequired(boolean required) {
         this.required = required;
+    }
+
+    /**
+     * Required for decorating reports container callbacks for tracing user code application.
+     *
+     * @since 5.1
+     */
+    @Inject
+    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
+        throw new UnsupportedOperationException();
     }
 }

@@ -15,31 +15,52 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.internal.changedetection.TaskArtifactState;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.OverlappingOutputs;
+import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
+    private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
-    private TaskArtifactState taskArtifactState;
+    private OverlappingOutputs overlappingOutputs;
+    private ExecutionStateChanges executionStateChanges;
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
+    private BeforeExecutionState beforeExecutionState;
+    private TaskExecutionMode taskExecutionMode;
+    private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
     private TaskProperties taskProperties;
     private boolean taskCachingEnabled;
     private Long executionTime;
+    private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
     private final Timer executionTimer;
     private boolean taskExecutedIncrementally;
 
-    public DefaultTaskExecutionContext() {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode) {
+        this.localTaskNode = localTaskNode;
         this.executionTimer = Time.startTimer();
+    }
+
+    @Override
+    public LocalTaskNode getLocalTaskNode() {
+        return localTaskNode;
     }
 
     @Nullable
@@ -54,13 +75,62 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public TaskArtifactState getTaskArtifactState() {
-        return taskArtifactState;
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution() {
+        return outputFilesBeforeExecution;
     }
 
     @Override
-    public void setTaskArtifactState(TaskArtifactState taskArtifactState) {
-        this.taskArtifactState = taskArtifactState;
+    public void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution) {
+        this.outputFilesBeforeExecution = outputFilesBeforeExecution;
+    }
+
+    @Override
+    public Optional<OverlappingOutputs> getOverlappingOutputs() {
+        return Optional.ofNullable(overlappingOutputs);
+    }
+
+    @Override
+    public void setOverlappingOutputs(OverlappingOutputs overlappingOutputs) {
+        this.overlappingOutputs = overlappingOutputs;
+    }
+
+    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+        return Optional.ofNullable(beforeExecutionState);
+    }
+
+    @Override
+    public void setBeforeExecutionState(BeforeExecutionState beforeExecutionState) {
+        this.beforeExecutionState = beforeExecutionState;
+    }
+
+    @Override
+    public TaskExecutionMode getTaskExecutionMode() {
+        return taskExecutionMode;
+    }
+
+    @Override
+    public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
+        this.taskExecutionMode = taskExecutionMode;
+    }
+
+    @Override
+    public boolean isOutputRemovedBeforeExecution() {
+        return outputRemovedBeforeExecution;
+    }
+
+    @Override
+    public void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution) {
+        this.outputRemovedBeforeExecution = outputRemovedBeforeExecution;
+    }
+
+    @Override
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
+        return Optional.ofNullable(executionStateChanges);
+    }
+
+    @Override
+    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
+        this.executionStateChanges = executionStateChanges;
     }
 
     @Override
@@ -129,5 +199,17 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
         this.taskExecutedIncrementally = taskExecutedIncrementally;
+    }
+
+    @Override
+    public Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation() {
+        Optional<ExecutingBuildOperation> result = Optional.ofNullable(snapshotTaskInputsBuildOperation);
+        snapshotTaskInputsBuildOperation = null;
+        return result;
+    }
+
+    @Override
+    public void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation snapshotTaskInputsBuildOperation) {
+        this.snapshotTaskInputsBuildOperation = snapshotTaskInputsBuildOperation;
     }
 }

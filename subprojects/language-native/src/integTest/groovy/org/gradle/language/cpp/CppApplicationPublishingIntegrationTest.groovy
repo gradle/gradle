@@ -17,6 +17,8 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.language.VariantContext
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
@@ -24,7 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assume
 
 import static org.gradle.nativeplatform.MachineArchitecture.ARCHITECTURE_ATTRIBUTE
 import static org.gradle.nativeplatform.MachineArchitecture.X86
@@ -426,7 +427,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.windows().x86(), machines.linux().x86(), machines.macOS().x86_64()]
+                targetMachines = [machines.windows.x86, machines.linux.x86, machines.macOS.x86_64]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
@@ -462,9 +463,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
     // macOS can only build 64-bit under 10.14+
     @Requires(TestPrecondition.NOT_MAC_OS_X)
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         def app = new CppApp()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
@@ -477,7 +477,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             version = '1.2'
             application {
                 baseName = 'test'
-                targetMachines = [machines.os('${currentOsFamilyName}').x86(), machines.os('${currentOsFamilyName}').x86_64()]
+                targetMachines = [machines.os('${currentOsFamilyName}').x86, machines.os('${currentOsFamilyName}').x86_64]
             }
             publishing {
                 repositories { maven { url '$mavenRepo.uri' } }
@@ -490,7 +490,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
 
         then:
         assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
-        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines.findAll { it.os == currentOsFamilyName })
+        assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines)
 
         when:
         consumer.file("build.gradle") << """
@@ -528,8 +528,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        def executable = executable("build/exe/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        def executable = executable("build/exe/main/${variantContext.asPath}${module}")
         return variantContext.buildType.name == 'release' ? executable.strippedRuntimeFile : executable.file
     }
 

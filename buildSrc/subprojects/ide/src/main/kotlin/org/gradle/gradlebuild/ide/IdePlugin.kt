@@ -119,9 +119,9 @@ open class IdePlugin : Plugin<Project> {
             eclipse {
                 classpath {
                     file.whenMerged(Action<Classpath> {
-                        //There are classes in here not designed to be compiled, but just used in our testing
+                        // There are classes in here not designed to be compiled, but just used in our testing
                         entries.removeAll { it is AbstractClasspathEntry && it.path.contains("src/integTest/resources") }
-                        //Workaround for some projects referring to themselves as dependent projects
+                        // Workaround for some projects referring to themselves as dependent projects
                         entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name") && it.kind == "src" }
                         // Remove references to libraries in the build folder
                         entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name/build") && it.kind == "lib" }

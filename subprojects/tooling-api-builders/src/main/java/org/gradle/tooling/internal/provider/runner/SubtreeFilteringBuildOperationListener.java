@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -41,7 +39,7 @@ import java.util.Set;
  *
  * @since 5.1
  */
-abstract class SubtreeFilteringBuildOperationListener<D> implements BuildOperationListener, TaskExecutionGraphListener {
+abstract class SubtreeFilteringBuildOperationListener<D> implements BuildOperationListener {
 
     protected final ProgressEventConsumer eventConsumer;
     private final BuildOperationListener delegate;
@@ -60,13 +58,6 @@ abstract class SubtreeFilteringBuildOperationListener<D> implements BuildOperati
 
     protected boolean isEnabled() {
         return enabled;
-    }
-
-    @Override
-    public void graphPopulated(TaskExecutionGraph graph) {
-        if (delegate instanceof TaskExecutionGraphListener) {
-            ((TaskExecutionGraphListener) delegate).graphPopulated(graph);
-        }
     }
 
     @Override

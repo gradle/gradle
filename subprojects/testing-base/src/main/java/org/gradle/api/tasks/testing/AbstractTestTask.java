@@ -31,6 +31,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
@@ -118,7 +119,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = instantiator.newInstance(DefaultTestTaskReports.class, this);
+        reports = instantiator.newInstance(DefaultTestTaskReports.class, this, getCallbackActionDecorator());
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
 
@@ -152,6 +153,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Required for decorating reports container callbacks for tracing user code application.
+     *
+     * @since 5.1
+     */
+    @Inject
+    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 

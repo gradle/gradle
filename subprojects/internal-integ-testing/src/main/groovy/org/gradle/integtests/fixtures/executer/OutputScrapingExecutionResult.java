@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
+import org.junit.ComparisonFailure;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -324,11 +325,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        failureOnUnexpectedOutput(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
+        throw new ComparisonFailure(unexpectedOutputMessage(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual)), expected, actual);
     }
 
     protected void failureOnUnexpectedOutput(String message) {
-        throw new AssertionError(String.format("%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, getOutput(), getError()));
+        throw new AssertionError(unexpectedOutputMessage(message));
+    }
+
+    private String unexpectedOutputMessage(String message) {
+        return String.format("%s%nOutput:%n=======%n%s%nError:%n======%n%s", message, getOutput(), getError());
     }
 
     private List<String> grepTasks(final Pattern pattern) {

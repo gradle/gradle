@@ -366,8 +366,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         fails ":resolve"
 
         then:
-        failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
-        failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size} using transform SynchronizedTransform")
+        failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size}")
     }
 
     def "only one transformer execution per workspace"() {

@@ -21,11 +21,18 @@
 
     function renderGraphs(allDataJson, charts) {
         charts.forEach(function(chart) {
-            renderGraph(allDataJson[chart.field], allDataJson.executionLabels, chart.label, chart.unit, chart.chartId)
+            renderGraph(
+                allDataJson[chart.field],
+                allDataJson.executionLabels,
+                chart.label,
+                chart.unit,
+                chart.chartId,
+                chart.renderBackground ? allDataJson.background : []
+            )
         })
     }
 
-    function renderGraph(data, executionLabels, label, unit, chartId) {
+    function renderGraph(data, executionLabels, label, unit, chartId, background) {
         if(!data) {
             return
         }
@@ -44,7 +51,7 @@
                         return '<a href="#" class="chart-legend" onClick="performanceTests.togglePlot(\''+chartId+'\', \''+label+'\'); return false;">'+label+'</a>';
                     }
             },
-            grid: { hoverable: true, clickable: true },
+            grid: { hoverable: true, clickable: true, markings: background },
             xaxis: { tickFormatter:
                     function(index, value) {
                         if (index === parseInt(index, 10)) { // portable way to check if sth is an integer
@@ -108,13 +115,7 @@
 
     function determineMinY(data, unit) {
         if (unit == '%') {
-            var min = 0
-            for(var i = 0; i < data.length; ++i) {
-                if(data[i][1] < min) {
-                    min = data[i][1]
-                }
-            }
-            return min - 10
+            return -100
         } else {
             return 0
         }

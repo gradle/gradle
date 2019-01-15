@@ -39,4 +39,16 @@ public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
      */
     @Override
     SetProperty<T> empty();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> convention(Iterable<? extends T> elements);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SetProperty<T> convention(Provider<? extends Iterable<? extends T>> provider);
 }

@@ -23,7 +23,7 @@ public interface PropertySpecFactory {
 
     DeclaredTaskInputFileProperty createInputDirSpec(ValidatingValue path);
 
-    DefaultTaskInputPropertySpec createInputPropertySpec(String name, ValidatingValue value);
+    DeclaredTaskInputProperty createInputPropertySpec(String name, ValidatingValue value);
 
     DeclaredTaskOutputFileProperty createOutputFileSpec(ValidatingValue path);
 

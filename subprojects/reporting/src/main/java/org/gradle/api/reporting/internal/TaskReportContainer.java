@@ -17,16 +17,23 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
     private final TaskInternal task;
 
     public TaskReportContainer(Class<? extends T> type, final Task task) {
-        super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class));
+        this(type, task, CollectionCallbackActionDecorator.NOOP);
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor TaskReportContainer(Class<T>, Task)");
+    }
+
+    public TaskReportContainer(Class<? extends T> type, final Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class), callbackActionDecorator);
         this.task = (TaskInternal) task;
     }
 

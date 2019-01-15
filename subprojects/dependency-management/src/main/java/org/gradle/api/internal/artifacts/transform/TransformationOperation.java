@@ -16,30 +16,29 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.util.List;
 
 class TransformationOperation implements RunnableBuildOperation {
     private final Transformation transformation;
     private final TransformationSubject subject;
-    private final ArtifactTransformDependenciesProvider dependenciesProvider;
-    private TransformationSubject result;
+    private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private Try<TransformationSubject> result;
 
-    TransformationOperation(Transformation transformation, TransformationSubject subject, ArtifactTransformDependenciesProvider dependenciesProvider) {
+    TransformationOperation(Transformation transformation, TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformation = transformation;
         this.subject = subject;
-        this.dependenciesProvider = dependenciesProvider;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject, dependenciesProvider);
+        result = transformation.transform(subject, dependenciesResolver);
     }
 
     @Override
@@ -50,13 +49,7 @@ class TransformationOperation implements RunnableBuildOperation {
             .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
-    @Nullable
-    public Throwable getFailure() {
-        return result.getFailure();
-    }
-
-    @Nullable
-    public List<File> getResult() {
-        return result.getFiles();
+    public Try<TransformationSubject> getResult() {
+        return result;
     }
 }

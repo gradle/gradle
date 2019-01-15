@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-rootProject.name = "declaring-capabitilies"
+rootProject.name = "declaring-capabilities"

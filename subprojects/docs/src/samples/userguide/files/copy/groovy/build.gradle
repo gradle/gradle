@@ -119,7 +119,7 @@ task copyTask(type: Copy) {
 // end::copy-task[]
 
 // tag::copy-task-with-patterns[]
-task copyTaskWithPatterns(type: Copy) {
+task copyTaskWithPatterns (type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     include '**/*.html'
@@ -132,7 +132,7 @@ task copyTaskWithPatterns(type: Copy) {
 // end::copy-task-with-patterns[]
 
 // tag::copy-task-2[]
-task anotherCopyTask(type: Copy) {
+task anotherCopyTask (type: Copy) {
     // Copy everything under src/main/webapp
     from 'src/main/webapp'
     // Copy a single file
@@ -166,7 +166,7 @@ task copyMethod {
 // end::copy-method[]
 
 // tag::copy-method-with-dependency[]
-task copyMethodWithExplicitDependencies{
+task copyMethodWithExplicitDependencies {
     // up-to-date check for inputs, plus add copyTask as dependency
     inputs.files copyTask
     outputs.dir 'some-dir' // up-to-date check for outputs
@@ -183,7 +183,7 @@ task copyMethodWithExplicitDependencies{
 configurations { runtime }
 
 // tag::rename-files[]
-task rename(type: Copy) {
+task rename (type: Copy) {
     from 'src/main/webapp'
     into "$buildDir/explodedWar"
     // Use a closure to convert all file names to upper case
@@ -236,7 +236,7 @@ CopySpec webAssetsSpec = copySpec {
     rename '(.+)-staging(.+)', '$1$2'
 }
 
-task copyAssets(type: Copy) {
+task copyAssets (type: Copy) {
     into "$buildDir/inPlaceApp"
     with webAssetsSpec
 }
@@ -269,7 +269,7 @@ task archiveDistAssets(type: Zip) {
 // end::shared-copy-patterns[]
 
 // tag::change-default-exclusions[]
-task forcedCopy(type: Copy) {
+task forcedCopy (type: Copy) {
     into "$buildDir/inPlaceApp"
     from 'src/main/webapp'
 

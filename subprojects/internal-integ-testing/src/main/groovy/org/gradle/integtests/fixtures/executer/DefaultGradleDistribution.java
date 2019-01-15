@@ -193,13 +193,13 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiRetainsOriginalFailureOnCancel() {
         // Versions before 5.1 would unpack the exception and throw part of it, losing some context
-        return isSameOrNewer("5.1");
+        return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
     public boolean isToolingApiDoesNotAddCausesOnTaskCancel() {
         // Versions before 5.1 would sometimes add some additional 'build cancelled' exceptions
-        return isSameOrNewer("5.1");
+        return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
@@ -211,7 +211,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiHasCauseOnForcedCancel() {
         // Versions before 5.1 would discard context on forced cancel
-        return isSameOrNewer("5.1");
+        return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
@@ -222,7 +222,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiHasCauseOnPhasedActionFail() {
-        return isSameOrNewer("5.1");
+        return isSameOrNewer("5.1-rc-1");
     }
 
     @Override
@@ -237,7 +237,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
-        if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1")) {
+        if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1-rc-1")) {
             return stderr;
         }
         return stdout;

@@ -22,9 +22,12 @@ import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
+import org.gradle.nativeplatform.MachineArchitecture
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.junit.Assume.assumeTrue
@@ -148,86 +151,76 @@ rootProject.name = "${rootProjectName}"
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {
         target.assertIsUnitTest()
-        assert target.productName == expectedProductName
+        target.assertProductNameEquals(expectedProductName)
         assert target.name == "$expectedProductName"
         assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE, DefaultXcodeProject.TEST_DEBUG]
-        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildConfigurationList.buildConfigurations.every {
             it.buildSettings.SWIFT_INCLUDE_PATHS == '"' + file('build/modules/main/debug').absolutePath + '"'
         }
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
-        assertUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[2].buildSettings)
     }
 
     void assertTargetIsDynamicLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsDynamicLibrary()
-        assert target.productName == expectedProductName
+        target.assertProductNameEquals(expectedProductName)
+        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == sharedLib("build/lib/main/debug/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/stripped").absolutePath
     }
 
     void assertTargetIsStaticLibrary(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsStaticLibrary()
-        assert target.productName == expectedProductName
+        target.assertProductNameEquals(expectedProductName)
+        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == staticLib("build/lib/main/debug/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug").absolutePath
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release").absolutePath
     }
 
     void assertTargetIsTool(ProjectFile.PBXTarget target, String expectedProductName, String expectedBinaryName = expectedProductName) {
         target.assertIsTool()
-        assert target.productName == expectedProductName
+        target.assertProductNameEquals(expectedProductName)
+        target.assertSupportedArchitectures(MachineArchitecture.X86_64)
         assert target.name == expectedProductName
         assert target.productReference.path == exe("build/install/main/debug/lib/$expectedBinaryName").absolutePath
-        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG, DefaultXcodeProject.BUILD_RELEASE]
-        assert target.buildConfigurationList.buildConfigurations.every { it.buildSettings.PRODUCT_NAME == expectedProductName }
         assert target.buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[0].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[0].name == DefaultXcodeProject.BUILD_DEBUG
+        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/lib").absolutePath
-        assertNotUnitTestBuildSettings(target.buildConfigurationList.buildConfigurations[1].buildSettings)
+
+        assert target.buildConfigurationList.buildConfigurations[1].name == DefaultXcodeProject.BUILD_RELEASE
+        assert target.buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
         assert target.buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/lib").absolutePath
-    }
-
-    void assertUnitTestBuildSettings(Map<String, String> buildSettings) {
-        assert buildSettings.OTHER_CFLAGS == "-help"
-        assert buildSettings.OTHER_LDFLAGS == "-help"
-        assert buildSettings.OTHER_SWIFT_FLAGS == "-help"
-        assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == "NO"
-        assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == "\$(PRODUCT_NAME).h"
-    }
-
-    void assertNotUnitTestBuildSettings(Map<String, String> buildSettings) {
-        assert buildSettings.OTHER_CFLAGS == null
-        assert buildSettings.OTHER_LDFLAGS == null
-        assert buildSettings.OTHER_SWIFT_FLAGS == null
-        assert buildSettings.SWIFT_INSTALL_OBJC_HEADER == null
-        assert buildSettings.SWIFT_OBJC_INTERFACE_HEADER_NAME == null
-    }
-
-    void assertTargetIsIndexer(ProjectFile.PBXTarget target, String expectedProductName, String swiftIncludes = null) {
-        assert target.productName == expectedProductName
-        assert target.name.startsWith("[INDEXING ONLY] $expectedProductName")
-        assert target.buildConfigurationList.buildConfigurations.name == [DefaultXcodeProject.BUILD_DEBUG]
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.PRODUCT_NAME == expectedProductName
-        assert target.buildConfigurationList.buildConfigurations[0].buildSettings.SWIFT_INCLUDE_PATHS == swiftIncludes
     }
 
     static List<TestFile> toFiles(Object includePath) {
         def includePathElements = Splitter.on('"').splitToList(String.valueOf(includePath))
         return includePathElements.grep( { !it.trim().empty }).collect { new TestFile(it) }
+    }
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
     }
 }

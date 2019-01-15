@@ -22,7 +22,6 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.TargetMachineFactory
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,7 +33,7 @@ class DefaultCppTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def testSuite = new DefaultCppTestSuite("test", project.objects, project.services.get(FileOperations), project.services.get(TargetMachineFactory))
+    def testSuite = new DefaultCppTestSuite("test", project.objects, project.services.get(FileOperations))
 
     def "has display name"() {
         expect:
@@ -49,8 +48,8 @@ class DefaultCppTestSuiteTest extends Specification {
 
     def "can add executable"() {
         expect:
-        def exe = testSuite.addExecutable(identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
-        exe.name == 'testExecutable'
+        def exe = testSuite.addExecutable("Foo", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
+        exe.name == 'testFooExecutable'
     }
 
     private NativeVariantIdentity getIdentity() {

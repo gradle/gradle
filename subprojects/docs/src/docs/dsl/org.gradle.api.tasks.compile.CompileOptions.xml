@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
@@ -74,11 +74,11 @@
             </tr>
             <tr>
                 <td>annotationProcessorPath</td>
-                <td><literal>null</literal></td>
+                <td><literal><replaceable>sourceSet</replaceable>.annotationProcessorPath</literal></td>
             </tr>
             <tr>
                 <td>annotationProcessorGeneratedSourcesDirectory</td>
-                <td><literal>null</literal></td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/generated/sources/annotationProcessor/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>headerOutputDirectory</td>

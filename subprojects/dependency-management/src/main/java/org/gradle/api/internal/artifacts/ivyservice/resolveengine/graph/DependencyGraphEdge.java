@@ -48,4 +48,6 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
     @Nullable
     Dependency getOriginalDependency();
 
+    boolean isTargetVirtualPlatform();
+
 }

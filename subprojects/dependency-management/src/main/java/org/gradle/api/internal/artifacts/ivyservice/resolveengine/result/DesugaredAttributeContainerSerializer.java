@@ -69,7 +69,7 @@ public class DesugaredAttributeContainerSerializer extends AbstractSerializer<At
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
                 encoder.writeBoolean((Boolean) container.getAttribute(attribute));
             } else {
-                assert attribute.getType().equals(String.class);
+                assert attribute.getType().equals(String.class) : "Unexpected attribute type " + attribute.getType() + " : should be " + String.class.getSimpleName();
                 encoder.writeByte(STRING_ATTRIBUTE);
                 encoder.writeString((String) container.getAttribute(attribute));
             }

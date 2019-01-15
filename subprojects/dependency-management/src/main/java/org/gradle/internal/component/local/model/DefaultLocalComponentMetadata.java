@@ -33,7 +33,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -405,6 +407,15 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     }
                 }
                 maybeAddGeneratedDependencies(result);
+                AttributeValue<String> attributeValue = this.getAttributes().findEntry(PlatformSupport.COMPONENT_CATEGORY);
+                if (attributeValue.isPresent() && attributeValue.get().equals(PlatformSupport.ENFORCED_PLATFORM)) {
+                    // need to wrap all dependencies to force them
+                    ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
+                    result = ImmutableList.builder();
+                    for (LocalOriginDependencyMetadata rawDependency : rawDependencies) {
+                        result.add(rawDependency.forced());
+                    }
+                }
                 configurationDependencies = result.build();
             }
             return configurationDependencies;

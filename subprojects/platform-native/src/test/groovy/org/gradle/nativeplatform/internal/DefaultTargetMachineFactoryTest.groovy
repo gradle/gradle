@@ -23,10 +23,10 @@ class DefaultTargetMachineFactoryTest extends Specification {
     def factory = new DefaultTargetMachineFactory(TestUtil.objectFactory())
 
     def "can use created target machines in Set"() {
-        def windows1 = factory.windows()
-        def windows2 = factory.windows()
-        def linux1 = factory.linux().x86_64()
-        def linux2 = factory.linux().x86_64()
+        def windows1 = factory.windows
+        def windows2 = factory.windows
+        def linux1 = factory.linux.x86_64
+        def linux2 = factory.linux.x86_64
 
         expect:
         def targetMachines = [windows1, windows2, linux1, linux2] as Set
@@ -36,23 +36,23 @@ class DefaultTargetMachineFactoryTest extends Specification {
 
     def "same target machine are equals"() {
         expect:
-        factory.windows() == factory.windows()
-        factory.linux() == factory.linux()
-        factory.macOS() == factory.macOS()
-        factory.windows().x86() == factory.windows().x86()
-        factory.linux().x86_64() == factory.linux().x86_64()
-        factory.windows().architecture("arm") == factory.windows().architecture("arm")
+        factory.windows == factory.windows
+        factory.linux == factory.linux
+        factory.macOS == factory.macOS
+        factory.windows.x86 == factory.windows.x86
+        factory.linux.x86_64 == factory.linux.x86_64
+        factory.windows.architecture("arm") == factory.windows.architecture("arm")
         factory.os("fushia").architecture("arm") == factory.os("fushia").architecture("arm")
     }
 
     def "different target machine are not equals"() {
         expect:
-        factory.windows() != factory.linux()
-        factory.linux() != factory.macOS()
-        factory.macOS() != factory.windows()
-        factory.windows().x86() != factory.windows().x86_64()
-        factory.linux().x86() != factory.windows().x86()
-        factory.windows().architecture("arm") != factory.windows().architecture("leg")
+        factory.windows != factory.linux
+        factory.linux != factory.macOS
+        factory.macOS != factory.windows
+        factory.windows.x86 != factory.windows.x86_64
+        factory.linux.x86 != factory.windows.x86
+        factory.windows.architecture("arm") != factory.windows.architecture("leg")
         factory.os("fushia").architecture("arm") != factory.os("helenOS").architecture("arm")
     }
 }

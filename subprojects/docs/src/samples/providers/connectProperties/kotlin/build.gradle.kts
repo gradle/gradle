@@ -21,10 +21,10 @@ open class Greeting : DefaultTask() {
 }
 
 // Create the project extension
-val messages = project.extensions.create("messages", MessageExtension::class, project.objects)
+val messages = project.extensions.create("messages", MessageExtension::class)
 
 // Create the greeting task
-task<Greeting>("greeting") {
+tasks.register<Greeting>("greeting") {
     // Attach the greeting from the project extension
     // Note that the values of the project extension have not been configured yet
     greeting.set(messages.greeting)

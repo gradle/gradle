@@ -34,6 +34,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -43,11 +44,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
@@ -67,6 +70,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -119,19 +123,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public DefaultIvyPublication(
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews) {
+        ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
-        configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator);
+        this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.featurePreviews = featurePreviews;
-        mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory);
-        metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory);
-        derivedArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory);
-        publishableArtifacts = new CompositePublicationArtifactSet<IvyArtifact>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
-        ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class);
-        descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
+        this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.derivedArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.publishableArtifacts = new CompositePublicationArtifactSet<IvyArtifact>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
+        this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
     }
 
     public String getName() {
@@ -209,6 +214,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             throw new InvalidUserDataException(String.format("Ivy publication '%s' cannot include multiple components", name));
         }
         this.component = (SoftwareComponentInternal) component;
+        if (component instanceof JavaLibraryPlatform) {
+            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("components.javaLibraryPlatform", "Use the 'java-platform' plugin instead.");
+        }
         artifactsOverridden = false;
         updateModuleDescriptorArtifact();
     }
@@ -464,6 +472,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return publishedUrl;
             }
         };
+    }
+
+    @Override
+    @Nullable
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return null;
     }
 
     @Override

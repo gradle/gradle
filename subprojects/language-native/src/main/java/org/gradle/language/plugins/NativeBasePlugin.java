@@ -16,11 +16,7 @@
 
 package org.gradle.language.plugins;
 
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -35,7 +31,6 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -47,6 +42,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
+import org.gradle.language.ComponentWithTargetMachines;
 import org.gradle.language.ProductionComponent;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
@@ -60,6 +56,7 @@ import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.AbstractLinkTask;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
@@ -72,7 +69,9 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
@@ -106,7 +105,7 @@ import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
  * @since 4.5
  */
 @Incubating
-public class NativeBasePlugin implements Plugin<ProjectInternal> {
+public class NativeBasePlugin implements Plugin<Project> {
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
@@ -115,7 +114,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         addTargetMachineFactoryAsExtension(project.getExtensions(), targetMachineFactory);
@@ -125,7 +124,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
 
         final SoftwareComponentContainer components = project.getComponents();
 
-        addLifecycleTasks(tasks, components);
+        addLifecycleTasks(project, tasks, components);
 
         // Add tasks to build various kinds of components
 
@@ -148,7 +147,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         extensions.add(TargetMachineFactory.class, "machines", targetMachineFactory);
     }
 
-    private void addLifecycleTasks(final TaskContainer tasks, final SoftwareComponentContainer components) {
+    private void addLifecycleTasks(final Project project, final TaskContainer tasks, final SoftwareComponentContainer components) {
         components.withType(ComponentWithBinaries.class, component -> {
             // Register each child of each component
             component.getBinaries().whenElementKnown(binary -> components.add(binary));
@@ -164,6 +163,20 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
                     if (binary == ((ProductionComponent) component).getDevelopmentBinary().get()) {
                         tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> task.dependsOn(outputs));
                     }
+                });
+            }
+
+            if (component instanceof ComponentWithTargetMachines) {
+                ComponentWithTargetMachines componentWithTargetMachines = (ComponentWithTargetMachines)component;
+                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME, task -> {
+                    task.dependsOn((Callable) () -> {
+                        TargetMachine currentHost = ((DefaultTargetMachineFactory)targetMachineFactory).host();
+                        boolean targetsCurrentMachine = componentWithTargetMachines.getTargetMachines().get().stream().anyMatch(targetMachine -> currentHost.getOperatingSystemFamily().equals(targetMachine.getOperatingSystemFamily()));
+                        if (!targetsCurrentMachine) {
+                            task.getLogger().warn("'" + component.getName() + "' component in project '" + project.getPath() + "' does not target this operating system.");
+                        }
+                        return Collections.emptyList();
+                    });
                 });
             }
         });
@@ -339,7 +352,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addPublicationsFromVariants(final ProjectInternal project, final SoftwareComponentContainer components) {
+    private void addPublicationsFromVariants(final Project project, final SoftwareComponentContainer components) {
         project.getPluginManager().withPlugin("maven-publish", plugin -> {
             components.withType(PublicationAwareComponent.class, component -> {
                 project.getExtensions().configure(PublishingExtension.class, publishing -> {
@@ -364,7 +377,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void addPublicationFromVariant(SoftwareComponent child, PublishingExtension publishing, ProjectInternal project) {
+    private void addPublicationFromVariant(SoftwareComponent child, PublishingExtension publishing, Project project) {
         if (child instanceof PublishableComponent) {
             publishing.getPublications().create(child.getName(), MavenPublication.class, publication -> {
                 MavenPublicationInternal publicationInternal = (MavenPublicationInternal) publication;
@@ -375,7 +388,7 @@ public class NativeBasePlugin implements Plugin<ProjectInternal> {
         }
     }
 
-    private void fillInCoordinates(ProjectInternal project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
+    private void fillInCoordinates(Project project, MavenPublicationInternal publication, PublishableComponent publishableComponent) {
         final ModuleVersionIdentifier coordinates = publishableComponent.getCoordinates();
         MutableMavenProjectIdentity identity = publication.getMavenProjectIdentity();
         identity.getGroupId().set(project.provider(() -> coordinates.getGroup()));

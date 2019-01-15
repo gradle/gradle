@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;

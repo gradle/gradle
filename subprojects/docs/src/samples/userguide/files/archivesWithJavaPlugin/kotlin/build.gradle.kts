@@ -1,5 +1,3 @@
-import java.util.concurrent.Callable
-
 // tag::create-uber-jar-example[]
 plugins {
     java
@@ -15,14 +13,14 @@ dependencies {
     implementation("commons-io:commons-io:2.6")
 }
 
-task<Jar>("uberJar") {
+tasks.register<Jar>("uberJar") {
     appendix = "uber"
 
     from(sourceSets.main.get().output)
 
     dependsOn(configurations.runtimeClasspath)
-    from(Callable {
-        configurations.runtimeClasspath.filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
     })
 }
 // end::create-uber-jar-example[]

@@ -22,6 +22,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -33,6 +34,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.ReusableAction;
@@ -48,6 +50,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
@@ -77,11 +80,13 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
+    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory) {
+    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -108,7 +113,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator, collectionCallbackActionDecorator);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
@@ -152,17 +157,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 defineConfigurationsForSourceSet(sourceSet, configurations);
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
-                createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
+                Provider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
+
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
+                    @Override
+                    public CompileOptions transform(JavaCompile javaCompile) {
+                        return javaCompile.getOptions();
+                    }
+                }));
             }
         });
     }
 
-    private void createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
-        target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
+    private Provider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
+        return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, new Action<JavaCompile>() {
             @Override
             public void execute(JavaCompile compileTask) {
                 compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
@@ -173,7 +184,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                         return sourceSet.getCompileClasspath();
                     }
                 });
-                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, compileTask.getOptions(), target);
+                SourceSetUtil.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
                 compileTask.setDestinationDir(target.provider(new Callable<File>() {
                     @Override
                     public File call() {

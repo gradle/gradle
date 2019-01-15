@@ -22,8 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -73,12 +73,11 @@ import java.util.Collections;
 
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
-    private static final AsmBackedClassGenerator CLASS_GENERATOR = new AsmBackedClassGenerator();
 
     public Project createChildProject(String name, Project parent, File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
-        DefaultProject project = CLASS_GENERATOR.newInstance(
+        DefaultProject project = parentProject.getServices().get(InstantiatorFactory.class).decorateLenient().newInstance(
             DefaultProject.class,
             name,
             parentProject,
@@ -119,7 +118,7 @@ public class ProjectBuilderImpl {
         TestRootBuild build = new TestRootBuild();
         buildServices.add(BuildState.class, build);
 
-        GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
+        GradleInternal gradle = buildServices.get(InstantiatorFactory.class).decorateLenient().newInstance(DefaultGradle.class, null, startParameter, buildServices.get(ServiceRegistryFactory.class));
         gradle.setIncludedBuilds(Collections.<IncludedBuild>emptyList());
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -148,7 +147,7 @@ public class ProjectBuilderImpl {
         return userHomeScopeServiceRegistry.getServicesFor(userHomeDir);
     }
 
-    private ServiceRegistry getGlobalServices() {
+    public static ServiceRegistry getGlobalServices() {
         if (globalServices == null) {
             globalServices = ServiceRegistryBuilder
                 .builder()
@@ -163,7 +162,7 @@ public class ProjectBuilderImpl {
             // into the system class loader and there exists no Gradle class loader hierarchy in the running test. (See Implementation
             // in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory, BootstrapSecurityManager and GradleWorkerMain.)
             // Thus, we inject the missing interfaces directly into the system class loader used to load all classes in the test.
-            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(getClass().getClassLoader());
+            globalServices.get(LegacyTypesSupport.class).injectEmptyInterfacesIntoClassLoader(ProjectBuilderImpl.class.getClassLoader());
         }
         return globalServices;
     }

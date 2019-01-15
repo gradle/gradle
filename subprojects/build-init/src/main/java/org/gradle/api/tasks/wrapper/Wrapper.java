@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -32,8 +31,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
@@ -48,14 +45,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
 /**
  * <p>Generates scripts (for *nix and windows) which allow you to build your project with Gradle, without having to
@@ -142,38 +137,15 @@ public class Wrapper extends DefaultTask {
     }
 
     private void writeWrapperTo(File destination) {
-        InputStream gradleWrapperJar = Wrapper.class.getResourceAsStream("/gradle-wrapper.jar");
-        if (gradleWrapperJar == null) {
+        URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
+        if (jarFileSource == null) {
             throw new GradleException("Cannot locate wrapper JAR resource.");
         }
-        ZipInputStream zipInputStream = null;
-        ZipOutputStream zipOutputStream = null;
-        try {
-            zipInputStream = new ZipInputStream(gradleWrapperJar);
-            zipOutputStream = new ZipOutputStream(new FileOutputStream(destination));
-            for (ZipEntry entry = zipInputStream.getNextEntry(); entry != null; entry = zipInputStream.getNextEntry()) {
-                zipOutputStream.putNextEntry(entry);
-                if (!entry.isDirectory()) {
-                    ByteStreams.copy(zipInputStream, zipOutputStream);
-                }
-                zipOutputStream.closeEntry();
-            }
-            addBuildReceipt(zipOutputStream);
+        try (InputStream in = jarFileSource.openStream(); OutputStream out = new FileOutputStream(destination)) {
+            ByteStreams.copy(in, out);
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            IoActions.closeQuietly(zipInputStream);
-            IoActions.closeQuietly(zipOutputStream);
+            throw new UncheckedIOException("Failed to write wrapper JAR to " + destination, e);
         }
-    }
-
-    private void addBuildReceipt(ZipOutputStream zipOutputStream) throws IOException {
-        ZipEntry buildReceipt = new ZipEntry("build-receipt.properties");
-        buildReceipt.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
-        zipOutputStream.putNextEntry(buildReceipt);
-        String contents = "versionNumber=" + GradleVersion.current().getVersion();
-        zipOutputStream.write(contents.getBytes(StandardCharsets.ISO_8859_1));
-        zipOutputStream.closeEntry();
     }
 
     private void writeProperties(File propertiesFileDestination) {
@@ -257,7 +229,7 @@ public class Wrapper extends DefaultTask {
     public File getPropertiesFile() {
         File jarFileDestination = getJarFile();
         return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$",
-                ".properties"));
+            ".properties"));
     }
 
     /**

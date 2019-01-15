@@ -35,7 +35,8 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Unable to determine InjectingRunnable argument #1: missing parameter value of type $forbiddenType, or no service of type $forbiddenType")
+        failure.assertHasCause("Could not create an instance of type InjectingRunnable.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of $forbiddenType, or no service of type $forbiddenType")
 
         where:
         forbiddenType << [Project, FileResolver]

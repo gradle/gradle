@@ -272,9 +272,9 @@ class SelectorStateResolverTest extends Specification {
         }
     }
 
-    static class FailingConflictResolver implements ModuleConflictResolver {
+    static class FailingConflictResolver<T> implements ModuleConflictResolver<T> {
         @Override
-        <T extends ComponentResolutionState> void select(ConflictResolverDetails<T> details) {
+        void select(ConflictResolverDetails<T> details) {
             assert false : "Unexpected conflict resolution: " + details.candidates.collect {it.id}
         }
     }

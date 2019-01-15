@@ -21,7 +21,7 @@ details of 2
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
 
@@ -38,7 +38,7 @@ Known issues are problems that were discovered post release that are directly re
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 6.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version (Gradle 6.0). See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
@@ -50,7 +50,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 <!-- summary and links -->
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_{previous-gradle-version}.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_{gradleVersion}) to learn about breaking changes and considerations when upgrading to Gradle {gradleVersion}.
+
+<!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
 ## External contributions
 

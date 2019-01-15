@@ -195,7 +195,7 @@ In this case, we're taking the runtime dependencies of the project — `configur
 [[sec:creating_directories_example]]
 == Creating directories
 
-Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user guide. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
+Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user manual. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
 
 In cases where you need to create a directory manually, you can use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:mkdir(java.lang.Object)[Project.mkdir(java.lang.Object)] method from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
 

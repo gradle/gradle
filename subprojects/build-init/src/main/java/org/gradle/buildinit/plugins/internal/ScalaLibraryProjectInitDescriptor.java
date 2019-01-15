@@ -23,7 +23,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import java.util.Collections;
 import java.util.Set;
 
-public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
 
     private final DocumentationRegistry documentationRegistry;
 
@@ -40,6 +40,8 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generate(settings, buildScriptBuilder);
+
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
         String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
@@ -49,7 +51,7 @@ public class ScalaLibraryProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder
             .fileComment("This generated file contains a sample Scala library project to get you started.")
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
-            .fileComment("user guide available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
             .plugin("Apply the scala plugin to add support for Scala", "scala")
             .implementationDependency("Use Scala " + scalaVersion + " in our library project",
                 "org.scala-lang:scala-library:" + scalaLibraryVersion)

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.SingleFileReport;
@@ -28,8 +29,8 @@ import javax.inject.Inject;
 
 public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport> implements CheckstyleReports {
     @Inject
-    public CheckstyleReportsImpl(Task task) {
-        super(SingleFileReport.class, task);
+    public CheckstyleReportsImpl(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
+        super(SingleFileReport.class, task, callbackActionDecorator);
 
         add(CustomizableHtmlReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);

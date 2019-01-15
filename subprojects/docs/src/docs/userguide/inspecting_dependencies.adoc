@@ -24,7 +24,7 @@ A project can declare one or more dependencies. Gradle can visualize the whole d
 
 Rendering the dependency tree is particularly useful if you'd like to identify which dependencies have been resolved at runtime. It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version. The dependency report always contains declared and transitive dependencies.
 
-Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't doesn't pollute other contexts like the compilation classpath for your production source code.
+Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process. You can declare dependencies for any external tooling with the help of a <<managing_dependency_configurations.adoc#managing_dependency_configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
 
 .Declaring the JGit dependency with a custom configuration
 ====

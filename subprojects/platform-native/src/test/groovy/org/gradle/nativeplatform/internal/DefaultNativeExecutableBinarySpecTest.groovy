@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.internal
 
-
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.NativeExecutableBinarySpec
 import org.gradle.nativeplatform.NativeExecutableSpec
@@ -39,7 +39,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     final testUtil = TestUtil.create(tmpDir)
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
-    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
+    def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null, CollectionCallbackActionDecorator.NOOP))
 
     def "has useful string representation"() {
         given:

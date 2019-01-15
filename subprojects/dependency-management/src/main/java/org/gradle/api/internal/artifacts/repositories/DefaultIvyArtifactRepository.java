@@ -29,7 +29,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -116,7 +116,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         IvyMutableModuleMetadataFactory metadataFactory,
                                         IsolatableFactory isolatableFactory,
                                         ObjectFactory objectFactory) {
-        super(instantiatorFactory.decorate(), authenticationContainer, objectFactory);
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -131,7 +131,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         this.isolatableFactory = isolatableFactory;
         this.layout = new GradleRepositoryLayout();
         this.metaDataProvider = new MetaDataProvider();
-        this.instantiator = instantiatorFactory.decorate();
+        this.instantiator = instantiatorFactory.decorateLenient();
         this.ivyContextManager = ivyContextManager;
         this.metadataSources.setDefaults(featurePreviews);
     }

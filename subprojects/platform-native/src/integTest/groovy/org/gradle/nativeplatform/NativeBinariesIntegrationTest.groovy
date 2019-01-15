@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
@@ -21,7 +22,6 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.Matchers
 import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
@@ -119,14 +119,21 @@ model {
 
         then:
         failureDescriptionContains("Execution failed for task ':assemble'.")
-        failure.assertThatCause(Matchers.<String>allOf(
-                Matchers.startsWith("No buildable binaries found:"),
-                Matchers.containsString("shared library 'hello:sharedLibrary': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("static library 'hello:staticLibrary': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("executable 'main:executable': No tool chain is available to build for platform 'unknown'"),
-                Matchers.containsString("static library 'another:staticLibrary': Disabled by user"),
-                Matchers.containsString("shared library 'another:sharedLibrary': Disabled by user")
-        ))
+        failure.assertHasCause("""No buildable binaries found:
+  - shared library 'another:sharedLibrary': Disabled by user
+  - static library 'another:staticLibrary': Disabled by user
+  - shared library 'hello:sharedLibrary':
+      - No tool chain is available to build for platform 'unknown':
+          - ${toolChain.instanceDisplayName}:
+              - Don't know how to build for platform 'unknown'.
+  - static library 'hello:staticLibrary':
+      - No tool chain is available to build for platform 'unknown':
+          - ${toolChain.instanceDisplayName}:
+              - Don't know how to build for platform 'unknown'.
+  - executable 'main:executable':
+      - No tool chain is available to build for platform 'unknown':
+          - ${toolChain.instanceDisplayName}:
+              - Don't know how to build for platform 'unknown'.""")
     }
 
     def "assemble executable from component with multiple language source sets"() {

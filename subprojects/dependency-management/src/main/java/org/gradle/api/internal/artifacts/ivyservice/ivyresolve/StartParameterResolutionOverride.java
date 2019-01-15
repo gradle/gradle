@@ -129,7 +129,7 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    public ExternalResourceConnector overrideExternalResourceConnnector(ExternalResourceConnector original) {
+    public ExternalResourceConnector overrideExternalResourceConnector(ExternalResourceConnector original) {
         if (startParameter.isOffline()) {
             return new OfflineExternalResourceConnector();
         }

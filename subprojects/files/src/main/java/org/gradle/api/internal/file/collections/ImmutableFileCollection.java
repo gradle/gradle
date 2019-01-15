@@ -50,7 +50,7 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
         return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
     }
 
-    public static ImmutableFileCollection of(Iterable<File> files) {
+    public static ImmutableFileCollection of(Iterable<? extends File> files) {
         if (Iterables.isEmpty(files)) {
             return EMPTY;
         }

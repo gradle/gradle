@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -40,6 +41,7 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -290,7 +292,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public Set<Task> getDependencies(Task task) {
         ensurePopulated();
-        return executionPlan.getDependencies(task);
+        Node node = executionPlan.getNode(task);
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
+        for (Node dependencyNode : node.getDependencySuccessors()) {
+            if (dependencyNode instanceof TaskNode) {
+                builder.add(((TaskNode) dependencyNode).getTask());
+            }
+        }
+        return builder.build();
     }
 
     private void ensurePopulated() {

@@ -37,6 +37,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -64,7 +65,7 @@ public class PropertyValidationAccess {
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
         DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
-        PropertyMetadataStore metadataStore = new DefaultPropertyMetadataStore(ImmutableList.of(
+        TypeMetadataStore metadataStore = new DefaultTypeMetadataStore(ImmutableList.of(
             new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
         ), cacheFactory);
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
@@ -80,9 +81,9 @@ public class PropertyValidationAccess {
     }
 
     private static class BeanTypeNodeFactory {
-        private final PropertyMetadataStore metadataStore;
+        private final TypeMetadataStore metadataStore;
 
-        public BeanTypeNodeFactory(PropertyMetadataStore metadataStore) {
+        public BeanTypeNodeFactory(TypeMetadataStore metadataStore) {
             this.metadataStore = metadataStore;
         }
 
@@ -143,27 +144,27 @@ public class PropertyValidationAccess {
 
         @Override
         public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            for (PropertyMetadata metadata : getTypeMetadata().getPropertiesMetadata()) {
-                String qualifiedPropertyName = getQualifiedPropertyName(metadata.getFieldName());
-                for (String validationMessage : metadata.getValidationMessages()) {
+            for (PropertyMetadata propertyMetadata : getTypeMetadata().getPropertiesMetadata()) {
+                String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
+                for (String validationMessage : propertyMetadata.getValidationMessages()) {
                     problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                 }
-                Class<? extends Annotation> propertyType = metadata.getPropertyType();
+                Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
                 if (propertyType == null) {
-                    if (!Modifier.isPrivate(metadata.getMethod().getModifiers())) {
+                    if (!Modifier.isPrivate(propertyMetadata.getGetterMethod().getModifiers())) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
                     }
                     continue;
                 }
                 PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
-                    String validationMessage = validator.validate(stricterValidation, metadata);
+                    String validationMessage = validator.validate(stricterValidation, propertyMetadata);
                     if (validationMessage != null) {
                         problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                     }
                 }
-                if (metadata.isAnnotationPresent(Nested.class)) {
-                    TypeToken<?> beanType = unpackProvider(metadata.getMethod());
+                if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                    TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
                     nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
                 }
             }

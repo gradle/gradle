@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
-import org.gradle.api.artifacts.transform.TransformationException
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -30,6 +29,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
+import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -211,8 +211,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
         def wrappedFailure = result.failure.get()
-        wrappedFailure instanceof TransformationException
-        wrappedFailure.cause.cause == failure
+        wrappedFailure.cause == failure
 
         when:
         invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))

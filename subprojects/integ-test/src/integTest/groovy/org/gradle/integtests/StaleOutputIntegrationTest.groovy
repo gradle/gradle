@@ -56,6 +56,13 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         then:
         taskWithSources.outputsHaveBeenRemoved()
         skipped(taskWithSources.taskPath)
+
+        when:
+        taskWithSources.outputFile << "Added by other task"
+        run(taskWithSources.taskPath)
+        then:
+        taskWithSources.outputFile.exists()
+        skipped(taskWithSources.taskPath)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/973")

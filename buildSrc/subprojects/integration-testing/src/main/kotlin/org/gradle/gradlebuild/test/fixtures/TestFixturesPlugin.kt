@@ -39,7 +39,7 @@ import java.util.Locale
  *
  * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
  */
-//TODO convert this to use variant aware dependency management
+// TODO convert this to use variant aware dependency management
 @Suppress("unused")
 open class TestFixturesPlugin : Plugin<Project> {
 
@@ -126,6 +126,7 @@ open class TestFixturesPlugin : Plugin<Project> {
 
             testFixturesApi(project(path))
             testFixturesApi(library("junit"))
+            testFixturesApi(library("groovy"))
             testFixturesApi(testLibrary("spock"))
             testFixturesRuntimeOnly(testLibrary("bytebuddy"))
             testFixturesRuntimeOnly(testLibrary("cglib"))

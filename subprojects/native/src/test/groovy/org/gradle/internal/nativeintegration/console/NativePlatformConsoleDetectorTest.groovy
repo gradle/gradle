@@ -16,7 +16,8 @@
 
 package org.gradle.internal.nativeintegration.console
 
-import net.rubygrapefruit.platform.Terminals
+
+import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires

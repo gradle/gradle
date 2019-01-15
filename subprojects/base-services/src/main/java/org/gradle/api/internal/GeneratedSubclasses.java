@@ -21,13 +21,9 @@ public class GeneratedSubclasses {
     private GeneratedSubclasses() {
     }
 
-    public static <T> boolean is(Class<T> clazz) {
-        return GeneratedSubclass.class.isAssignableFrom(clazz);
-    }
-
     public static <T> Class<? super T> unpack(Class<T> clazz) {
-        if (is(clazz)) {
-            return clazz.getSuperclass();
+        if (GeneratedSubclass.class.isAssignableFrom(clazz)) {
+            return unpack(clazz.getSuperclass());
         } else {
             return clazz;
         }

@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -212,6 +213,11 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     }
 
     @Override
+    public <T> void registerTransform(Class<T> configurationType, Action<? super ArtifactTransformSpec<T>> registrationAction) {
+        transforms.registerTransform(configurationType, registrationAction);
+    }
+
+    @Override
     public Dependency platform(Object notation) {
         Dependency dependency = create(notation);
         if (dependency instanceof HasConfigurableAttributes) {
@@ -234,6 +240,8 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
             externalModuleDependency.setForce(true);
             PlatformSupport.addPlatformAttribute(externalModuleDependency, PlatformSupport.ENFORCED_PLATFORM);
+        } else if (platformDependency instanceof HasConfigurableAttributes) {
+            PlatformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, PlatformSupport.ENFORCED_PLATFORM);
         }
         return platformDependency;
     }

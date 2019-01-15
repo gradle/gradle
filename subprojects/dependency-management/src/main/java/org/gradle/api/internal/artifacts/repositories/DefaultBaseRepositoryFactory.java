@@ -24,8 +24,9 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
@@ -74,6 +75,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final IvyMutableModuleMetadataFactory ivyMetadataFactory;
     private final IsolatableFactory isolatableFactory;
     private final ObjectFactory objectFactory;
+    private CollectionCallbackActionDecorator callbackActionDecorator;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -92,11 +94,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                         IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                         IsolatableFactory isolatableFactory,
-                                        ObjectFactory objectFactory) {
+                                        ObjectFactory objectFactory,
+                                        CollectionCallbackActionDecorator callbackActionDecorator) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.metadataParser = metadataParser;
-        this.instantiator = instantiatorFactory.decorate();
+        this.instantiator = instantiatorFactory.decorateLenient();
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -112,6 +115,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.ivyMetadataFactory = ivyMetadataFactory;
         this.isolatableFactory = isolatableFactory;
         this.objectFactory = objectFactory;
+        this.callbackActionDecorator = callbackActionDecorator;
     }
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
@@ -169,7 +173,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     }
 
     protected AuthenticationContainer createAuthenticationContainer() {
-        DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
+        DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator, callbackActionDecorator);
 
         for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
             container.registerBinding(e.getKey(), e.getValue());

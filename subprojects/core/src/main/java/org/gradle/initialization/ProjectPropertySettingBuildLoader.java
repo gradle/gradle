@@ -22,7 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -99,7 +99,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 propertyMutator.setValue(project, value);
             } else {
                 if (!mutators.containsKey(key)) {
-                    propertyMutator = JavaReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
+                    propertyMutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
                     mutators.put(key, propertyMutator);
                     if (propertyMutator != null) {
                         propertyMutator.setValue(project, value);

@@ -694,9 +694,11 @@ ${showFailuresTask(expression)}
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
         failure.assertHasCause("""Unable to find a matching variant of project :a:
-  - Variant 'compile': Required volume '11' and found incompatible value '8'.""")
+  - Variant 'compile':
+      - Required volume '11' and found incompatible value '8'.""")
         failure.assertHasCause("""Unable to find a matching variant of project :b:
-  - Variant 'compile': Required volume '11' and found incompatible value '9'.""")
+  - Variant 'compile':
+      - Required volume '11' and found incompatible value '9'.""")
 
         where:
         expression                                                    | _
@@ -888,8 +890,10 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
-  - Configuration ':a:default' variant v1: Required usage 'compile' but no value provided.
-  - Configuration ':a:default' variant v2: Required usage 'compile' but no value provided.""")
+  - Configuration ':a:default' variant v1:
+      - Required usage 'compile' but no value provided.
+  - Configuration ':a:default' variant v2:
+      - Required usage 'compile' but no value provided.""")
     }
 
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {

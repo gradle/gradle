@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -124,4 +125,7 @@ public abstract class TaskNode extends Node {
     public abstract void appendPostAction(Action<? super Task> action);
 
     public abstract Action<? super Task> getPostAction();
+
+    public abstract TaskInternal getTask();
+
 }

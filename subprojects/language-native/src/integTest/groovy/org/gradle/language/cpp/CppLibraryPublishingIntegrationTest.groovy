@@ -16,6 +16,8 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.language.VariantContext
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
@@ -26,11 +28,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matchers
-import org.junit.Assume
 import spock.lang.Issue
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
-import static org.gradle.nativeplatform.OperatingSystemFamily.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
+import static org.gradle.nativeplatform.OperatingSystemFamily.LINUX
+import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
+import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest implements CppTaskNames {
 
@@ -753,7 +757,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.windows().architecture('${currentArchitecture}'), machines.linux().architecture('${currentArchitecture}'), machines.macOS().architecture('${currentArchitecture}')]
+                    targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
             project(':deck') { 
@@ -803,9 +807,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
 
@@ -823,7 +826,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86(), machines.host().x86_64()]
+                    targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
             project(':deck') { 
@@ -873,9 +876,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     def "fails when a dependency is published without a matching target architecture"() {
-        Assume.assumeFalse(toolChain.meets(ToolChainRequirement.WINDOWS_GCC))
-
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
@@ -892,7 +894,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
                 }
                 
                 components.withType(CppComponent) {
-                    targetMachines = [machines.host().x86_64()]
+                    targetMachines = [machines.host().x86_64]
                 }
             }
             project(':deck') { 
@@ -919,7 +921,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             apply plugin: 'cpp-application'
             repositories { maven { url '${mavenRepo.uri}' } }
             dependencies { implementation 'some.group:deck:1.2' }
-            application { targetMachines = [machines.host().x86()] }
+            application { targetMachines = [machines.host().x86] }
         """
         app.main.writeToProject(consumer)
 
@@ -947,8 +949,8 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Override
-    TestFile getVariantSourceFile(String module, Map<String, VariantDimension> variantContext) {
-        def library = sharedLibrary("${module}/build/lib/main${variantContext.buildType.asPath}${variantContext.os.asPath}${variantContext.architecture.asPath}/${module}")
+    TestFile getVariantSourceFile(String module, VariantContext variantContext) {
+        def library = sharedLibrary("${module}/build/lib/main/${variantContext.asPath}${module}")
         return variantContext.buildType.name == 'release' ? library.strippedRuntimeFile : library.file
     }
 

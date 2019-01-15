@@ -47,7 +47,7 @@ abstract class AbstractWorkerExecutorIntegrationTest extends AbstractIntegration
     }
 
     @Override
-    protected TestFile getBuildFile() {
+    TestFile getBuildFile() {
         return fixture.getBuildFile()
     }
 

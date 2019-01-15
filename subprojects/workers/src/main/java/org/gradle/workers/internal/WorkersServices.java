@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -91,7 +91,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
     private static class ProjectScopeServices {
         WorkerExecutor createWorkerExecutor(InstantiatorFactory instantiatorFactory, WorkerDaemonFactory daemonWorkerFactory, IsolatedClassloaderWorkerFactory isolatedClassloaderWorkerFactory, PathToFileResolver fileResolver, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, asyncWorkTracker, instantiatorFactory);
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorate().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, fileResolver, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, fileResolver, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

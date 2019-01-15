@@ -153,7 +153,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             @Override
             public TaskInputPropertyBuilder call() {
                 StaticValue staticValue = new StaticValue(value);
-                DefaultTaskInputPropertySpec inputPropertySpec = specFactory.createInputPropertySpec(name, staticValue);
+                DeclaredTaskInputProperty inputPropertySpec = specFactory.createInputPropertySpec(name, staticValue);
                 registeredProperties.add(inputPropertySpec);
                 return inputPropertySpec;
             }

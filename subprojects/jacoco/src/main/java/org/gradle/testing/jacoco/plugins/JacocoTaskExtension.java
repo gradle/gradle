@@ -132,7 +132,7 @@ public class JacocoTaskExtension {
     }
 
     /**
-     * Whether or not data should be appended if the {@link #destinationFile} already exists. Defaults to {@code true}.
+     * Whether or not data should be appended if the {@link #getDestinationFile()} already exists. Defaults to {@code true}.
      *
      * @deprecated The Jacoco plugin now deletes the old coverage file before task execution, so the data will never be appended to an existing coverage file from another task.
      * Use {@link org.gradle.testing.jacoco.tasks.JacocoMerge} to merge different execution files or use {@link org.gradle.testing.jacoco.tasks.JacocoReportBase#setExecutionData(FileCollection)} to generate a report from multiple execution files at once.

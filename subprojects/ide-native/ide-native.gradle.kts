@@ -38,6 +38,7 @@ gradlebuildJava {
 testFixtures {
     from(":core")
     from(":platformNative")
+    from(":languageNative")
     from(":versionControl")
     from(":ide", "testFixtures")
 }

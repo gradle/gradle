@@ -164,7 +164,7 @@ class EdgeState implements DependencyGraphEdge {
 
     public ImmutableAttributes getAttributes() {
         ModuleResolveState module = selector.getTargetModule();
-        return module.getMergedSelectorAttributes();
+        return module.mergedConstraintsAttributes(dependencyState.getRequested().getAttributes());
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
@@ -236,6 +236,12 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public Long getSelected() {
         return getSelectedComponent().getResultId();
+    }
+
+    @Override
+    public boolean isTargetVirtualPlatform() {
+        ComponentState selectedComponent = getSelectedComponent();
+        return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
     }
 
     @Override

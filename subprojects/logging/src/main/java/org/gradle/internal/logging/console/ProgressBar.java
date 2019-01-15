@@ -20,12 +20,14 @@ import com.google.common.collect.Lists;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
 import java.util.List;
 
 public class ProgressBar {
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
 
+    private final ConsoleMetaData consoleMetaData;
     private final String progressBarPrefix;
     private int progressBarWidth;
     private final String progressBarSuffix;
@@ -36,8 +38,11 @@ public class ProgressBar {
     private int current;
     private int total;
     private boolean failing;
+    private String lastElapsedTimeStr;
+    private List<StyledTextOutputEvent.Span> formatted;
 
-    public ProgressBar(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress) {
+    public ProgressBar(ConsoleMetaData consoleMetaData, String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress) {
+        this.consoleMetaData = consoleMetaData;
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
         this.progressBarSuffix = progressBarSuffix;
@@ -50,27 +55,43 @@ public class ProgressBar {
 
     public void moreProgress(int totalProgress) {
         total += totalProgress;
+        formatted = null;
     }
 
     public void update(boolean failing) {
         this.current++;
         this.failing = this.failing || failing;
+        formatted = null;
     }
 
-    public List<StyledTextOutputEvent.Span> formatProgress(int consoleCols, boolean timerEnabled, long elapsedTime) {
-        int completedWidth = (int) ((current * 1.0) / total * progressBarWidth);
-        int remainingWidth = progressBarWidth - completedWidth;
+    public List<StyledTextOutputEvent.Span> formatProgress(boolean timerEnabled, long elapsedTime) {
+        String elapsedTimeStr = elapsedTimeFormatter.format(elapsedTime);
+        if (formatted == null || !elapsedTimeStr.equals(lastElapsedTimeStr)) {
+            int consoleCols = consoleMetaData.getCols();
+            int completedWidth = (int) ((current * 1.0) / total * progressBarWidth);
+            int remainingWidth = progressBarWidth - completedWidth;
 
-        String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
-        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), new String(new char[completedWidth]).replace('\0', fillerChar));
-        String statusSuffix = trimToConsole(consoleCols, coloredProgress.length(), new String(new char[remainingWidth]).replace('\0', incompleteChar)
-            + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
-            + (timerEnabled ? " [" + elapsedTimeFormatter.format(elapsedTime) + "]" : ""));
+            String statusPrefix = trimToConsole(consoleCols, 0, progressBarPrefix);
+            String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), fill(fillerChar, completedWidth));
+            String statusSuffix = trimToConsole(consoleCols, coloredProgress.length(), fill(incompleteChar, remainingWidth)
+                + progressBarSuffix + " " + (int) (current * 100.0 / total) + '%' + ' ' + suffix
+                + (timerEnabled ? " [" + elapsedTimeStr + "]" : ""));
 
-        return Lists.newArrayList(
-            new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
-            new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
-            new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
+            lastElapsedTimeStr = elapsedTimeStr;
+            formatted = Lists.newArrayList(
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusPrefix),
+                new StyledTextOutputEvent.Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, statusSuffix));
+        }
+        return formatted;
+    }
+
+    private String fill(char ch, int count) {
+        char[] chars = new char[count];
+        for (int i = 0; i < chars.length; i++) {
+            chars[i] = ch;
+        }
+        return new String(chars);
     }
 
     private String trimToConsole(int cols, int prefixLength, String str) {

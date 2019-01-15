@@ -28,6 +28,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class UnresolvedDependencyEdge implements DependencyEdge {
@@ -73,8 +74,8 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
-    public ResolvedVariantResult getSelectedVariant() {
-        return null;
+    public List<ResolvedVariantResult> getSelectedVariants() {
+        return Collections.emptyList();
     }
 
     @Override

@@ -25,7 +25,6 @@ import org.gradle.api.Rule
 import org.gradle.api.Task
 import org.gradle.api.UnknownTaskException
 import org.gradle.api.internal.AbstractPolymorphicDomainObjectContainerSpec
-import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
@@ -42,6 +41,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
@@ -1493,7 +1493,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         thrown(UnsupportedOperationException)
     }
 
-    def factory = new TaskInstantiator(new TaskFactory(new AsmBackedClassGenerator()).createChild(project, DirectInstantiator.INSTANCE), project)
+    def factory = new TaskInstantiator(new TaskFactory().createChild(project, TestUtil.instantiatorFactory().decorateLenient()), project)
     final SomeTask a = factory.create("a", SomeTask)
     final SomeTask b = factory.create("b", SomeTask)
     final SomeTask c = factory.create("c", SomeTask)

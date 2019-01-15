@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class AbstractCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
 
     private final TransformationWorkspaceProvider delegate;
-    private final Cache<TransformationIdentity, Try<ImmutableList<File>>> inMemoryResultCache = CacheBuilder.newBuilder().build();
+    private final Cache<TransformationWorkspaceIdentity, Try<ImmutableList<File>>> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
     public AbstractCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         this.delegate = delegate;
@@ -43,12 +43,12 @@ public abstract class AbstractCachingTransformationWorkspaceProvider implements 
     }
 
     @Override
-    public boolean hasCachedResult(TransformationIdentity identity) {
+    public boolean hasCachedResult(TransformationWorkspaceIdentity identity) {
         return inMemoryResultCache.getIfPresent(identity) != null;
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         try {
             return inMemoryResultCache.get(identity, () -> {
                     return delegate.withWorkspace(identity, workspaceAction);

@@ -969,8 +969,8 @@ class DefaultServiceRegistryTest extends Specification {
 
     def closeInvokesCloseMethodOnEachServiceCreatedFromImplementationClass() {
         given:
-        registry.register({ registration -> registration.add(ClosableService) } as Action)
-        def service = registry.get(ClosableService)
+        registry.register({ registration -> registration.add(CloseableService) } as Action)
+        def service = registry.get(CloseableService)
 
         when:
         registry.close()
@@ -1000,22 +1000,22 @@ class DefaultServiceRegistryTest extends Specification {
     def closeClosesServicesInDependencyOrder() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
-        def service3 = Mock(ClosableService)
+        def service3 = Mock(CloseableService)
         def registry = new DefaultServiceRegistry()
 
         given:
         registry.addProvider(new Object() {
-            ClosableService createService3() {
+            CloseableService createService3() {
                 return service3
             }
 
-            TestStopService createService2(ClosableService b) {
+            TestStopService createService2(CloseableService b) {
                 return service2
             }
 
         })
         registry.addProvider(new Object() {
-            TestCloseService createService1(TestStopService a, ClosableService b) {
+            TestCloseService createService1(TestStopService a, CloseableService b) {
                 return service1
             }
         })
@@ -1073,13 +1073,13 @@ class DefaultServiceRegistryTest extends Specification {
     def closeContinuesToCloseServicesAfterFailingToStopSomeService() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
-        def service3 = Mock(ClosableService)
+        def service3 = Mock(CloseableService)
         def failure = new RuntimeException()
         def registry = new DefaultServiceRegistry()
 
         given:
         registry.addProvider(new Object() {
-            TestStopService createService2(ClosableService b) {
+            TestStopService createService2(CloseableService b) {
                 return service2
             }
 
@@ -1087,7 +1087,7 @@ class DefaultServiceRegistryTest extends Specification {
                 return service1
             }
 
-            ClosableService createService3() {
+            CloseableService createService3() {
                 return service3
             }
         })
@@ -1185,7 +1185,7 @@ class DefaultServiceRegistryTest extends Specification {
         given:
         def parentService = Mock(TestCloseService)
         registry.addProvider(new Object(){
-            Closeable createClosableService() {
+            Closeable createCloseableService() {
                 parentService
             }
         })
@@ -1193,7 +1193,7 @@ class DefaultServiceRegistryTest extends Specification {
         def child = new DefaultServiceRegistry(registry)
         def childService = Mock(TestStopService)
         child.addProvider(new Object() {
-            Stoppable createClosableService(Closeable dependency) {
+            Stoppable createCloseableService(Closeable dependency) {
                 childService
             }
         })
@@ -1216,23 +1216,23 @@ class DefaultServiceRegistryTest extends Specification {
     def "closes services in dependency order even when child requested them first"() {
         def service1 = Mock(TestCloseService)
         def service2 = Mock(TestStopService)
-        def service3 = Mock(ClosableService)
+        def service3 = Mock(CloseableService)
         def parent = new DefaultServiceRegistry()
         def child = new DefaultServiceRegistry(parent)
 
         given:
         parent.addProvider(new Object() {
-            ClosableService createService3() {
+            CloseableService createService3() {
                 return service3
             }
 
-            TestStopService createService2(ClosableService b) {
+            TestStopService createService2(CloseableService b) {
                 return service2
             }
         })
 
         child.addProvider(new Object() {
-            TestCloseService createService1(TestStopService a, ClosableService b) {
+            TestCloseService createService1(TestStopService a, CloseableService b) {
                 return service1
             }
         })
@@ -1645,7 +1645,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    static class ClosableService implements Closeable {
+    static class CloseableService implements Closeable {
         boolean closed
 
         void close() {

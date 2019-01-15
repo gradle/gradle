@@ -20,9 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.TransformationException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -37,6 +34,7 @@ import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -113,7 +111,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
         FileSystemLocationSnapshot primaryInputSnapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        TransformationIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, dependenciesFingerprint);
+        TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, dependenciesFingerprint);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
                 CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
@@ -133,21 +131,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);
             });
-        }).mapFailure(e -> wrapInTransformInvocationException(transformer.getImplementationClass(), primaryInput, e));
+        });
     }
 
-    private Exception wrapInTransformInvocationException(Class<? extends ArtifactTransform> transformerType, File primaryInput, Throwable originalFailure) {
-        return new TransformationException(primaryInput.getAbsoluteFile(), transformerType, originalFailure);
-    }
-
-    private TransformationIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private TransformationIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new ImmutableTransformationIdentity(
+    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+        return new ImmutableTransformationWorkspaceIdentity(
             primaryInputSnapshot.getAbsolutePath(),
             primaryInputSnapshot.getHash(),
             transformer.getSecondaryInputHash(),
@@ -155,8 +149,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
-        return new MutableTransformationIdentity(
+    private TransformationWorkspaceIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+        return new MutableTransformationWorkspaceIdentity(
             primaryInputSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),
             dependenciesFingerprint.getHash()
@@ -246,14 +240,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean execute() {
+        public ExecutionOutcome execute() {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
             writeResultsFile(outputDir, resultsFile, result);
-            return true;
+            return ExecutionOutcome.EXECUTED;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -278,8 +272,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
         }
 
-        public Try<ImmutableList<File>> getResult(UpToDateResult outcome) {
-            return outcome.getFailure() == null ? Try.successful(loadResultsFile()) : Try.failure(outcome.getFailure());
+        private Try<ImmutableList<File>> getResult(UpToDateResult result) {
+            return result.getOutcome()
+                .map(outcome -> loadResultsFile());
         }
 
         private ImmutableList<File> loadResultsFile() {
@@ -308,9 +303,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitOutputs(OutputVisitor outputVisitor) {
-            outputVisitor.visitOutput(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
-            outputVisitor.visitOutput(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
+        public void visitOutputProperties(OutputPropertyVisitor visitor) {
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
         }
 
         @Override
@@ -320,8 +315,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public FileCollection getLocalState() {
-            return ImmutableFileCollection.of();
+        public void visitLocalState(LocalStateVisitor visitor) {
         }
 
         @Override
@@ -360,8 +354,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            Optional<AfterPreviousExecutionState> previousExecution = Optional.ofNullable(executionHistoryStore.load(identityString));
-            return previousExecution.map(previous -> {
+            return executionHistoryStore.load(identityString).map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
                 InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
@@ -394,7 +387,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitTrees(CacheableTreeVisitor visitor) {
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
             throw new UnsupportedOperationException("we don't cache yet");
         }
 
@@ -448,13 +441,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    public static class ImmutableTransformationIdentity implements TransformationIdentity {
+    public static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final String primaryInputAbsolutePath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
+        public ImmutableTransformationWorkspaceIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
@@ -480,7 +473,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return false;
             }
 
-            ImmutableTransformationIdentity that = (ImmutableTransformationIdentity) o;
+            ImmutableTransformationWorkspaceIdentity that = (ImmutableTransformationWorkspaceIdentity) o;
 
             if (!primaryInputHash.equals(that.primaryInputHash)) {
                 return false;
@@ -503,12 +496,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    public static class MutableTransformationIdentity implements TransformationIdentity {
+    public static class MutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final String primaryInputAbsolutePath;
         private final HashCode secondaryInputsHash;
         private final HashCode dependenciesHash;
 
-        public MutableTransformationIdentity(String primaryInputAbsolutePath, HashCode secondaryInputsHash, HashCode dependenciesHash) {
+        public MutableTransformationWorkspaceIdentity(String primaryInputAbsolutePath, HashCode secondaryInputsHash, HashCode dependenciesHash) {
             this.primaryInputAbsolutePath = primaryInputAbsolutePath;
             this.secondaryInputsHash = secondaryInputsHash;
             this.dependenciesHash = dependenciesHash;
@@ -532,7 +525,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return false;
             }
 
-            MutableTransformationIdentity that = (MutableTransformationIdentity) o;
+            MutableTransformationWorkspaceIdentity that = (MutableTransformationWorkspaceIdentity) o;
 
             if (!secondaryInputsHash.equals(that.secondaryInputsHash)) {
                 return false;

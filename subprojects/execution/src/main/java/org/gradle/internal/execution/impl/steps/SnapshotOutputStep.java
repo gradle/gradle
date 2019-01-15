@@ -18,13 +18,12 @@ package org.gradle.internal.execution.impl.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
-
-import javax.annotation.Nullable;
 
 public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -44,7 +43,7 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSna
 
         UnitOfWork work = context.getWork();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = work.snapshotAfterOutputsGenerated();
-        OriginMetadata originMetadata = OriginMetadata.fromCurrentBuild(buildInvocationScopeId, work.markExecutionTime());
+        OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId, work.markExecutionTime());
         return new CurrentSnapshotResult() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
@@ -57,14 +56,13 @@ public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSna
             }
 
             @Override
-            public ExecutionOutcome getOutcome() {
+            public Try<ExecutionOutcome> getOutcome() {
                 return result.getOutcome();
             }
 
-            @Nullable
             @Override
-            public Throwable getFailure() {
-                return result.getFailure();
+            public boolean isReused() {
+                return false;
             }
         };
     }

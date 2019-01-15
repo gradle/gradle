@@ -18,7 +18,7 @@ package org.gradle.caching.internal.services;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;

@@ -18,12 +18,12 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Named
-import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TypedDomainObjectContainerWrapperTest extends Specification {
 
-    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, DirectInstantiator.INSTANCE)
+    DefaultPolymorphicDomainObjectContainer<Type> parent = new DefaultPolymorphicDomainObjectContainer<Type>(Type, TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)
 
     def setup() {
         parent.add(type("typeOne"))

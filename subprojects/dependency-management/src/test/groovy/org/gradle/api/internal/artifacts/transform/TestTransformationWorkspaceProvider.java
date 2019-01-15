@@ -37,13 +37,13 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
         return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
     }
 
     @Override
-    public boolean hasCachedResult(TransformationIdentity identity) {
+    public boolean hasCachedResult(TransformationWorkspaceIdentity identity) {
         return false;
     }
 }

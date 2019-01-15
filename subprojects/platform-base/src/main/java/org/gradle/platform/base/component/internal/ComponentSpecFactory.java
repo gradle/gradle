@@ -17,6 +17,7 @@
 package org.gradle.platform.base.component.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
@@ -39,7 +40,8 @@ import javax.annotation.Nullable;
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory) {
+    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
+                                final CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
@@ -55,13 +57,14 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
                 MutableModelNode componentNode = findOwner(binaryNode);
                 ComponentSpecIdentifier id = getId(componentNode, name);
                 return BaseBinarySpec.create(
-                        publicType.getConcreteClass(),
-                        implementationType.getConcreteClass(),
-                        id,
-                        binaryNode,
-                        componentNode,
-                        instantiator,
-                        taskInstantiator);
+                    publicType.getConcreteClass(),
+                    implementationType.getConcreteClass(),
+                    id,
+                    binaryNode,
+                    componentNode,
+                    instantiator,
+                    taskInstantiator,
+                    collectionCallbackActionDecorator);
             }
         });
         registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {

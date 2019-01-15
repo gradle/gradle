@@ -107,7 +107,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using custom attribute value #attributeValue")
     def "attribute value is used during selection"() {
@@ -158,7 +158,52 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
+    def "Fails resolution because dependency attributes and constraint attributes conflict"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf('org:test') {
+                   attributes {
+                      attribute(CUSTOM_ATTRIBUTE, 'c1')
+                   }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org:test:1.0""")
+    }
+
+    @RequiredFeatures(
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
     @Issue("gradle/gradle#5232")
@@ -218,7 +263,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Issue("gradle/gradle#5232")
     def "Serializes and reads back failed resolution when failure comes from an unmatched typed attribute"() {
@@ -270,7 +315,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     def "Merges consumer configuration attributes with dependency attributes"() {
         given:
@@ -317,7 +362,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     def "Fails resolution because consumer configuration attributes and dependency attributes conflict"() {
         given:
@@ -365,7 +410,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue")
     def "dependency attribute value overrides configuration attribute"() {
@@ -418,7 +463,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue using dependency constraint")
     def "dependency attribute value overrides configuration attribute using dependency constraint"() {
@@ -478,7 +523,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     def "Fails resolution because consumer configuration attributes and constraint attributes conflict"() {
         given:
@@ -529,54 +574,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
-    def "Fails resolution because dependency attributes and constraint attributes conflict"() {
-        given:
-        repository {
-            'org:test:1.0' {
-                variant('api') {
-                    attribute('custom', 'c1')
-                }
-                variant('runtime') {
-                    attribute('custom', 'c2')
-                }
-            }
-        }
-
-        buildFile << """
-            dependencies {
-                constraints {
-                    conf('org:test:1.0') {
-                        attributes {
-                            attribute(CUSTOM_ATTRIBUTE, 'c2')
-                        }
-                    }
-                }
-                conf('org:test') {
-                   attributes {
-                      attribute(CUSTOM_ATTRIBUTE, 'c1')
-                   }
-                }
-            }
-        """
-
-        when:
-        repositoryInteractions {
-            'org:test:1.0' {
-                expectGetMetadata()
-            }
-        }
-        fails 'checkDeps'
-
-        then:
-        failure.assertHasCause("""Cannot select a variant of 'org:test' because different values for attribute 'custom' are requested:
-  - Dependency path ':test:unspecified' wants 'org:test' with attribute custom = c1
-  - Constraint path ':test:unspecified' wants 'org:test:1.0' with attribute custom = c2""")
-    }
-
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using dependency attribute value #attributeValue set in a metadata rule")
     def "attribute value set by metadata rule is used during selection"() {
@@ -708,7 +706,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects variant #expectedVariant using transitive dependency attribute value #attributeValue set in a metadata rule")
     def "attribute value set by metadata rule on transitive dependency is used during selection"() {
@@ -857,7 +855,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives")
     def "Attribute value on dependency only affects selection of this dependency (using component metadata rules)"() {
@@ -981,7 +979,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
     @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives (using published metadata)")
     def "Attribute value on dependency only affects selection of this dependency (using published metadata)"() {
@@ -1075,73 +1073,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'                        | 'c2'                      | 'c1'                      | 'api'                 | 'runtime'                  | 'api'                      | 'api'
         'c2'                        | 'c2'                      | 'c1'                      | 'runtime'             | 'runtime'                  | 'api'                      | 'runtime'
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
-    }
-
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
-    def "fails when 2 transitive dependencies requires a different attribute value"() {
-        given:
-        repository {
-            'org:directA:1.0' {
-                variant('api') {
-                    dependsOn('org:transitive:1.0') {
-                        attribute('custom', 'c1')
-                    }
-                }
-                variant('runtime') {
-                    dependsOn('org:transitive:1.0') {
-                        attribute('custom', 'c1')
-                    }
-                }
-            }
-            'org:directB:1.0' {
-                variant('api') {
-                    dependsOn('org:transitive:1.0') {
-                        attribute('custom', 'c2')
-                    }
-                }
-                variant('runtime') {
-                    dependsOn('org:transitive:1.0') {
-                        attribute('custom', 'c2')
-                    }
-                }
-            }
-            'org:transitive:1.0' {
-                variant('api') {
-                    attribute('custom', 'c1')
-                }
-                variant('runtime') {
-                    attribute('custom', 'c2')
-                }
-            }
-        }
-
-        buildFile << """
-            dependencies {
-               conf('org:directA:1.0')
-               conf('org:directB:1.0')
-            }
-        """
-
-        when:
-        repositoryInteractions {
-            'org:directA:1.0' {
-                expectGetMetadata()
-            }
-            'org:directB:1.0' {
-                expectGetMetadata()
-            }
-            'org:transitive:1.0' {
-                expectGetMetadata()
-            }
-        }
-        fails 'checkDeps'
-
-        then:
-        failure.assertHasCause("""Cannot select a variant of 'org:transitive' because different values for attribute 'custom' are requested:
-  - Dependency path ':test:unspecified' --> 'org:directA:1.0' wants 'org:transitive:1.0' with attribute custom = c1
-  - Dependency path ':test:unspecified' --> 'org:directB:1.0' wants 'org:transitive:1.0' with attribute custom = c2""")
     }
 
     static Closure<String> defaultStatus() {

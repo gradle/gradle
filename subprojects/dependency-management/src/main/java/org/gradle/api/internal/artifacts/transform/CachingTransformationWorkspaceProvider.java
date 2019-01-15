@@ -17,5 +17,5 @@
 package org.gradle.api.internal.artifacts.transform;
 
 public interface CachingTransformationWorkspaceProvider extends TransformationWorkspaceProvider {
-    boolean hasCachedResult(TransformationIdentity identity);
+    boolean hasCachedResult(TransformationWorkspaceIdentity identity);
 }

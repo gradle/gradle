@@ -23,6 +23,7 @@ import org.gradle.caching.internal.command.BuildCacheLoadListener;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
@@ -59,8 +60,8 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
             .load(cacheKey -> load(context.getWork(), cacheKey))
             .map(loadResult -> (CurrentSnapshotResult) new CurrentSnapshotResult() {
                 @Override
-                public ExecutionOutcome getOutcome() {
-                    return ExecutionOutcome.FROM_CACHE;
+                public Try<ExecutionOutcome> getOutcome() {
+                    return Try.successful(ExecutionOutcome.FROM_CACHE);
                 }
 
                 @Override
@@ -69,23 +70,21 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
                 }
 
                 @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                    return loadResult.getResultingSnapshots();
+                public boolean isReused() {
+                    return true;
                 }
 
-                @Nullable
                 @Override
-                public Throwable getFailure() {
-                    return null;
+                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                    return loadResult.getResultingSnapshots();
                 }
             })
             .orElseGet(() -> {
                 CurrentSnapshotResult executionResult = executeWithoutCache(context);
-                if (executionResult.getFailure() == null) {
-                    context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult));
-                } else {
-                    LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName());
-                }
+                executionResult.getOutcome().ifSuccessfulOrElse(
+                    outcome -> context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
+                    failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
+                );
                 return executionResult;
             });
     }
@@ -94,7 +93,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
     private BuildCacheCommandFactory.LoadMetadata load(UnitOfWork work, BuildCacheKey cacheKey) {
         try {
             return buildCache.load(
-                    commandFactory.createLoad(cacheKey, work, work.getLocalState(), new BuildCacheLoadListener() {
+                    commandFactory.createLoad(cacheKey, work, new BuildCacheLoadListener() {
                         @Override
                         public void beforeLoad() {
                             Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
@@ -115,7 +114,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
             // garbage among the task's outputs, thus we must fail the build
             throw e;
         } catch (Exception e) {
-            // There was a failure during downloading, previous task outputs should bu unaffected
+            // There was a failure during downloading, previous task outputs should be unaffected
             LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", work.getDisplayName(), e);
             return null;
         }

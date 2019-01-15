@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@IntegrationTestTimeout(120)
+@IntegrationTestTimeout(180)
 class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     String logSnapshot = ""
 

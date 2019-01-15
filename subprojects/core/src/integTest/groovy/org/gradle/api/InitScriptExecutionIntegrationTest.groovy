@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import spock.lang.Issue
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
@@ -226,6 +227,51 @@ rootProject {
             succeeds()
             result.assertOutputContains("counter: $it")
         }
+    }
+
+    def 'init script classpath configuration has proper usage attribute'() {
+        def initScript = file('init.gradle')
+        initScript << """
+initscript {
+    configurations.classpath {
+        def value = attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+        assert value.name == Usage.JAVA_RUNTIME
+    }
+}
+"""
+        expect:
+        executer.withArguments('--init-script', initScript.absolutePath)
+        succeeds()
+    }
+
+    @Issue("https://github.com/gradle/gradle-native/issues/962")
+    def "init script can register all projects hook from within the projects loaded callback of build listener"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+
+        and:
+        file("buildSrc").mkdir()
+
+        and:
+        executer.gradleUserHomeDir.file('init.d/a.gradle') << '''
+            gradle.addListener(new BuildAdapter() {
+                void projectsLoaded(Gradle gradle) {
+                    gradle.rootProject.allprojects {
+                        println "Project '$name'"
+                    }
+                }
+            })
+        '''
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+
+        when:
+        succeeds()
+
+        then:
+        output.contains("Project 'buildSrc'")
+        output.contains("Project 'root'")
     }
 
     private def createExternalJar() {

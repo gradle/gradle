@@ -17,40 +17,42 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.exceptions.ValueCollectingDiagnosticsVisitor;
 import org.gradle.internal.reflect.JavaMethod;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.IncompleteAnnotationException;
 import java.lang.reflect.Method;
-import java.util.Set;
+import java.util.List;
 
 abstract class AbstractOptionElement implements OptionElement {
     private final String optionName;
     private final String description;
     private final Class<?> optionType;
-    private final NotationParser<CharSequence, ?> notationParser;
 
-    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass, NotationParser<CharSequence, ?> notationParser) {
-        this(readDescription(option, optionName, declaringClass), optionName, optionType, notationParser);
+    public AbstractOptionElement(String optionName, Option option, Class<?> optionType, Class<?> declaringClass) {
+        this(readDescription(option, optionName, declaringClass), optionName, optionType);
     }
 
-    private AbstractOptionElement(String description, String optionName, Class<?> optionType, NotationParser<CharSequence, ?> notationParser) {
+    private AbstractOptionElement(String description, String optionName, Class<?> optionType) {
         this.description = description;
         this.optionName = optionName;
         this.optionType = optionType;
-        this.notationParser = notationParser;
-    }
-
-    public Set<String> getAvailableValues() {
-        ValueCollectingDiagnosticsVisitor visitor = new ValueCollectingDiagnosticsVisitor();
-        notationParser.describe(visitor);
-        return visitor.getValues();
     }
 
     public Class<?> getOptionType() {
         return optionType;
+    }
+
+    public static OptionElement of(String optionName, Option option, PropertySetter setter, OptionValueNotationParserFactory notationParserFactory) {
+        if (setter.getRawType().equals(Boolean.class) || setter.getRawType().equals(Boolean.TYPE)) {
+            return new BooleanOptionElement(optionName, option, setter);
+        }
+        if (setter.getRawType().equals(List.class)) {
+            Class<?> elementType = ModelType.of(setter.getGenericType()).getTypeVariables().get(0).getRawClass();
+            return new MultipleValueOptionElement(optionName, option, elementType, setter, notationParserFactory);
+        }
+        return new SingleValueOptionElement(optionName, option, setter.getRawType(), setter, notationParserFactory);
     }
 
     private static String readDescription(Option option, String optionName, Class<?> declaringClass) {
@@ -62,7 +64,7 @@ abstract class AbstractOptionElement implements OptionElement {
     }
 
     protected Object invokeMethod(Object object, Method method, Object... parameterValues) {
-        final JavaMethod<Object, Object> javaMethod = JavaReflectionUtil.method(Object.class, method);
+        final JavaMethod<Object, Object> javaMethod = JavaMethod.of(Object.class, method);
         return javaMethod.invoke(object, parameterValues);
     }
 
@@ -74,15 +76,11 @@ abstract class AbstractOptionElement implements OptionElement {
         return description;
     }
 
-    protected NotationParser<CharSequence, ?> getNotationParser() {
-        return notationParser;
-    }
-
     protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
         try {
             return optionValueNotationParserFactory.toComposite(optionType);
         } catch (OptionValidationException ex) {
-            throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
+            throw new OptionValidationException(String.format("Option '%s' cannot be cast to type '%s' in class '%s'.",
                     optionName, optionType.getName(), declaringClass.getName()));
         }
     }

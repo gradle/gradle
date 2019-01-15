@@ -37,8 +37,8 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -66,12 +66,12 @@ import org.gradle.internal.Factories
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -83,7 +83,7 @@ import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = DirectInstantiator.INSTANCE
+    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
     def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
@@ -1133,7 +1133,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:
@@ -1187,7 +1187,7 @@ class DefaultConfigurationSpec extends Specification {
         config.getBuildDependencies().getDependencies(null)
 
         then:
-        config.resolvedState == ConfigurationInternal.InternalState.UNRESOLVED
+        config.resolvedState == ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED
         config.state == UNRESOLVED
 
         and:

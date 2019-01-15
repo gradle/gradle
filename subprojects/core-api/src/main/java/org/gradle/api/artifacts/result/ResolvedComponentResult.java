@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -75,7 +76,21 @@ public interface ResolvedComponentResult extends ComponentResult {
      * @return the resolved variant for this component
      *
      * @since 4.6
+     *
+     * @deprecated Use {@link #getVariants()} instead}
      */
     @Incubating
+    @Deprecated
     ResolvedVariantResult getVariant();
+
+    /**
+     * Returns the variants that were selected for this component. When Gradle metadata is not used, this usually only refers to the target
+     * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
+     *
+     * @return the resolved variants for this component
+     *
+     * @since 5.2
+     */
+    @Incubating
+    List<ResolvedVariantResult> getVariants();
 }

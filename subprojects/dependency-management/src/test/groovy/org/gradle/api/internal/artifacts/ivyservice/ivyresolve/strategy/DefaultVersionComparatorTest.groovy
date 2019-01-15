@@ -161,6 +161,43 @@ class DefaultVersionComparatorTest extends Specification {
         compare("1.a.2", "1a2") == 0 // number-word and word-number boundaries are considered separators
     }
 
+    def "compares versions that differ only in leading zeros equal"() {
+        expect:
+        compare("01.0", "1.0") == 0
+        compare("1.0", "01.0") == 0
+        compare("001.2.003", "0001.02.3") == 0
+    }
+
+    def "compares different versions that also differ in leading zeros"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "1.01"         | "1.2"
+        "1.1"          | "1.02"
+        "01.0"         | "2.0"
+        "1.0"          | "02.0"
+    }
+
+    def "compares versions where earlier version parts differ only in leading zeros"() {
+        expect:
+        compare(smaller, larger) < 0
+        compare(larger, smaller) > 0
+        compare(smaller, smaller) == 0
+        compare(larger, larger) == 0
+
+        where:
+        smaller        | larger
+        "01.1"         | "1.2"
+        "1.1"          | "01.2"
+        "1.01.1"       | "1.1.2"
+        "1.1.1"        | "1.01.2"
+    }
+
     def "compares unrelated versions unequal"() {
         expect:
         compare("1.0", "") != 0

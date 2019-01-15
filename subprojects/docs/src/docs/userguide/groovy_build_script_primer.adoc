@@ -111,12 +111,12 @@ println 'Hello, World!'
 
 A method represents some behavior of an object, although Gradle often uses methods to configure the state of objects as well. Methods are identifiable by their arguments or empty parantheses. Note that parentheses are sometimes required, such as when a method has zero arguments, so you may find it simplest to always use parentheses.
 
-<<#groovy:blocks,Blocks>> are also methods, just with specific types for the last argument.
-
 NOTE: Gradle has a convention whereby if a method has the same name as a collection-based property, then the method _appends_ its values to that collection.
 
 [[groovy:blocks]]
 == Blocks
+
+Blocks are also <<#groovy:methods,methods>>, just with specific types for the last argument.
 
 [source,groovy]
 ----

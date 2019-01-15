@@ -18,6 +18,8 @@ package org.gradle.language.assembler
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +27,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
+@RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     HelloWorldApp app = new MixedLanguageHelloWorldApp(AbstractInstalledToolChainIntegrationSpec.toolChain)

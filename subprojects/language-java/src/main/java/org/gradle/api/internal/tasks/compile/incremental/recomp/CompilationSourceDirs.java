@@ -21,8 +21,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 import java.util.List;
@@ -77,11 +77,16 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
-            sourceRoots.add(directoryTree.getDir());
+        public void visitFileTree(File root, PatternSet patterns) {
+            // We need to add missing files as source roots, since the package name for deleted files provided by IncrementalTaskInputs also need to be determined.
+            if (!root.exists() || root.isDirectory()) {
+                sourceRoots.add(root);
+            } else {
+                cannotInferSourceRoots("file '" + root + "'");
+            }
         }
 
-        private void cannotInferSourceRoots(FileCollectionInternal fileCollection) {
+        private void cannotInferSourceRoots(Object fileCollection) {
             canInferSourceRoots = false;
             LOG.info("Cannot infer source root(s) for source `{}`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.", fileCollection);
         }

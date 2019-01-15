@@ -63,7 +63,7 @@ import java.util.Map;
 /**
  * Executes two Gradle builds (that can be the same build) with specified versions and compares the outcomes.
  *
- * Please see the “Comparing Builds” chapter of the Gradle User Guide for more information.
+ * Please see the “Comparing Builds” chapter of the Gradle User Manual for more information.
  */
 public class CompareGradleBuilds extends DefaultTask implements VerificationTask {
 

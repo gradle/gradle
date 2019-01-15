@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="5d59fee9-be42-4f6d-9e0b-fe103e0d2765" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
+  <name>AdHoc Functional Test - Linux</name>
+  <description />
+  <settings>
+    <options>
+      <option name="artifactRules" value="build/report-* =&gt; .&#xA;buildSrc/build/report-* =&gt; .&#xA;subprojects/*/build/tmp/test files/** =&gt; test-files&#xA;build/errorLogs/** =&gt; errorLogs" />
+      <option name="buildDefaultBranch" value="false" />
+      <option name="checkoutMode" value="ON_AGENT" />
+      <option name="executionTimeoutMin" value="180" />
+    </options>
+    <parameters>
+      <param name="buildType" value="" spec="select data_6='noDaemonTest' data_5='parallelTest' data_7='java9SmokeTest' display='prompt' data_2='platformTest' data_1='quickTest' data_4='quickFeedbackCrossVersionTest' data_3='crossVersionTest'" />
+      <param name="env.ANDROID_HOME" value="/opt/android/sdk" />
+      <param name="maxParallelForks" value="4" />
+      <param name="subproject" value="" spec="select data_71='testingNative' data_70='testingJvm' data_33='languageGroovy' data_32='jvmServices' data_35='languageJvm' data_34='languageJava' data_73='toolingApiBuilders' data_72='toolingApi' data_31='javascript' data_75='wrapper' data_30='jacoco' data_74='workers' data_37='languageScala' data_36='languageNative' data_39='logging' data_38='launcher' data_44='native' data_43='modelGroovy' data_02='antlr' data_46='performance' data_01='announce' data_45='osgi' data_40='maven' data_42='modelCore' data_41='messaging' data_08='buildInit' data_07='buildComparison' data_09='buildScanPerformance' data_04='baseServicesGroovy' data_48='platformBase' data_03='baseServices' data_47='persistentCache' data_06='buildCacheHttp' data_05='buildCache' data_49='platformJvm' data_11='codeQuality' data_55='processServices' data_10='cli' data_54='plugins' data_13='core' data_57='reporting' data_12='compositeBuilds' data_56='publish' data_51='platformPlay' data_50='platformNative' data_53='pluginUse' data_52='pluginDevelopment' data_19='ear' data_18='docs' data_15='dependencyManagement' data_59='resourcesGcs' data_14='coreApi' data_58='resources' data_17='distributions' data_16='diagnostics' display='prompt' data_60='resourcesHttp' data_22='idePlay' data_66='smokeTest' data_21='ideNative' data_65='signing' data_24='integTest' data_68='testKit' data_23='installationBeacon' data_67='soak' data_62='resourcesSftp' data_61='resourcesS3' data_20='ide' data_64='scala' data_63='runtimeApiInfo' data_29='ivy' data_26='internalIntegTesting' data_25='internalAndroidPerformanceTesting' data_69='testingBase' data_28='internalTesting' data_27='internalPerformanceTesting'" />
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_1" name="GRADLE_RUNNER" type="gradle-runner">
+        <parameters>
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts" />
+          <param name="ui.gradleRunner.gradle.build.file" value="" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean %subproject%:%buildType%" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_2" name="CHECK_CLEAN_M2" type="simpleRunner">
+        <parameters>
+          <param name="script.content"><![CDATA[REPO=/home/%env.USER%/.m2/repository
+if [ -e $REPO ] ; then
+    tree $REPO
+    rm -rf $REPO
+    echo "$REPO was polluted during the build"
+    exit 1
+else
+    echo "$REPO does not exist"
+fi]]></param>
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_3" name="VERIFY_TEST_FILES_CLEANUP" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PmaxParallelForks=%maxParallelForks% -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts" />
+          <param name="ui.gradleRunner.gradle.build.file" value="" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="verifyTestFilesCleanup" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_4" name="TAG_BUILD" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="execute_always" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%" />
+          <param name="ui.gradleRunner.gradle.build.file" value="" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="tagBuild" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradlePersonalBranches" />
+    </vcs-settings>
+    <requirements>
+      <contains id="RQ_1" name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers />
+    <artifact-dependencies>
+      <dependency id="ARTIFACT_DEPENDENCY_Gradle_Check_BuildDistributions" sourceBuildTypeId="Gradle_Check_BuildDistributions" cleanDestination="true">
+        <revisionRule name="sameChainOrLastFinished" revision="latest.sameChainOrLastFinished" />
+        <artifact sourcePath="distributions/*-all.zip =&gt; incoming-distributions&#xA;build-receipt.properties =&gt; incoming-distributions" />
+      </dependency>
+    </artifact-dependencies>
+    <dependencies>
+      <depend-on sourceBuildTypeId="Gradle_Check_BuildDistributions">
+        <options>
+          <option name="run-build-if-dependency-failed" value="CANCEL" />
+          <option name="run-build-if-dependency-failed-to-start" value="CANCEL" />
+          <option name="take-started-build-with-same-revisions" value="true" />
+          <option name="take-successful-builds-only" value="true" />
+        </options>
+      </depend-on>
+    </dependencies>
+    <cleanup />
+  </settings>
+</build-type>
+

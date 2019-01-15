@@ -17,13 +17,14 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
+import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
-import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,8 +35,8 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
     private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
-    public DefaultNativeToolChainRegistry(Instantiator instantiator) {
-        super(NativeToolChain.class, instantiator);
+    public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(NativeToolChain.class, instantiator, collectionCallbackActionDecorator);
         whenObjectAdded(new Action<NativeToolChain>() {
             public void execute(NativeToolChain toolChain) {
                 searchOrder.add((NativeToolChainInternal) toolChain);
@@ -104,7 +105,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         }
 
         @Override
-        public void explain(TreeVisitor<? super String> visitor) {
+        public void explain(DiagnosticsVisitor visitor) {
             String verb = sourceLanguage == NativeLanguage.ANY ? "build" : "build " + sourceLanguage;
             visitor.node(String.format("No tool chain is available to %s for %s", verb, targetPlatform.getDisplayName()));
             visitor.startChildren();

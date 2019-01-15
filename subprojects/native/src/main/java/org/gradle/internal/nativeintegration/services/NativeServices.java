@@ -15,17 +15,17 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
-import net.rubygrapefruit.platform.Files;
-import net.rubygrapefruit.platform.Memory;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import net.rubygrapefruit.platform.PosixFiles;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
-import net.rubygrapefruit.platform.Terminals;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import net.rubygrapefruit.platform.file.Files;
+import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
+import net.rubygrapefruit.platform.memory.Memory;
+import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
@@ -43,7 +43,6 @@ import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
@@ -53,6 +52,8 @@ import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+
+import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
 /**
  * Provides various native platform integration services.
@@ -251,7 +252,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
 
         if (JavaVersion.current().isJava7Compatible()) {
-            return JavaReflectionUtil.newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
+            return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
         }
 
         return new FallbackFileMetadataAccessor();

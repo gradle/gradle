@@ -18,20 +18,22 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.internal.Factory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
-    private final ResolverResults results;
+    private final Factory<ResolverResults> graphResults;
+    private final Factory<ResolverResults> artifactResults;
+    private final WorkNodeAction graphResolveAction;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(ResolverResults results) {
-        this.results = results;
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction) {
+        this.graphResults = graphResults;
+        this.artifactResults = artifactResults;
+        this.graphResolveAction = graphResolveAction;
     }
 
     @Override
-    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation) {
-        if (transformation.requiresDependencies()) {
-            return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, results);
-        } else {
-            return ExecutionGraphDependenciesResolver.EMPTY_RESOLVER;
-        }
+    public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, graphResolveAction);
     }
 }

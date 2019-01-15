@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
+import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
@@ -26,7 +27,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TreeVisitor
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.VersionNumber
 import org.junit.Rule
@@ -206,7 +206,7 @@ End of search list.
     }
 
     def "handles output that cannot be parsed"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         expect:
         def result = output(out)
@@ -223,7 +223,7 @@ End of search list.
     }
 
     def "yields broken result when version number in stdout and stderr do not match up"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         expect:
         def result = output(gcc4, gccVerboseOutput('4.8'))
@@ -238,7 +238,7 @@ End of search list.
 
     def "handles failure to execute g++"() {
         given:
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
         def action = Mock(ExecAction)
         def execResult = Mock(ExecResult)
 
@@ -278,7 +278,7 @@ End of search list.
     }
 
     def "detects clang pretending to be gcc"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         expect:
         def result = output clang
@@ -292,7 +292,7 @@ End of search list.
     }
 
     def "detects gcc pretending to be clang"() {
-        def visitor = Mock(TreeVisitor)
+        def visitor = Mock(DiagnosticsVisitor)
 
         expect:
         def result = output gcc4, CLANG
