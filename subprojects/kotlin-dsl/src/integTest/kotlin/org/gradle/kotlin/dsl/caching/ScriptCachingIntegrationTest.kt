@@ -26,14 +26,12 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.junit.Ignore
 
 import org.junit.Test
 
 import java.io.File
 
 
-@Ignore // TODO:kotlin-dsl fix flakiness
 @LeaksFileHandles("""
     Daemons hold their daemon log file open after the build has finished, debug logging exacerbates this.
     This should be revisited once TestKit provides a mechanism to control daemon termination.

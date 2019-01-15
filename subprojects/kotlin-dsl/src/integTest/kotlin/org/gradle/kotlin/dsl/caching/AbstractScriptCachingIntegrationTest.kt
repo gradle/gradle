@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
+import org.junit.After
 import org.junit.Before
 
 
@@ -32,6 +33,11 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractKotlinIntegrationT
             requireDaemon()
             requireIsolatedDaemons()
         }
+    }
+
+    @After
+    fun stopDaemons() {
+        build("--stop")
     }
 
     protected
