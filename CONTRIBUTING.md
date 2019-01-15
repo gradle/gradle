@@ -58,6 +58,8 @@ You require IntelliJ 2018.3.1 or newer.
 - In the "Open Project" dialogue, choose "Delete Existing Project and Import"
 - Revert the Git changes to files in the `.idea` folder
 
+NOTE: Due to the project size, the initial import can take a while and IntelliJ might become unresponsive for several seconds during this period.
+
 ### Eclipse
 
 You can generate the Eclipse projects by running
