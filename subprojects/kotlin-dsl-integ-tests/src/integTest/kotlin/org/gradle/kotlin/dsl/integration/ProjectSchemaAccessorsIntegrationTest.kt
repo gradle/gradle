@@ -35,7 +35,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of internal type made public`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         lateinit var extensionSourceFile: File
 
@@ -94,7 +94,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of default package type`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildSrc {
 
@@ -134,7 +134,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access task of default package type`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildSrc {
             "src/main/kotlin" {
@@ -171,7 +171,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extension of nested type`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildSrc {
             "src/main/kotlin/my" {
@@ -228,7 +228,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `multiple generic extension targets`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildSrc {
 
@@ -282,7 +282,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build scripts with same body`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withFolders {
 
@@ -331,7 +331,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `conflicting extensions across build runs`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withFolders {
 
@@ -419,7 +419,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildSrc {
             withFile("src/main/kotlin/my/DocumentationPlugin.kt", """
@@ -560,7 +560,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can add artifacts using generated accessors for configurations`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -692,7 +692,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -748,7 +748,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -851,7 +851,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `convention accessors honor HasPublicType`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 
@@ -1043,7 +1043,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to extensions of the dependency handler`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/Mine.kt", """

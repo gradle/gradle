@@ -86,7 +86,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `accepts lambda as SAM argument to Kotlin function`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withKotlinBuildSrc()
 

@@ -32,17 +32,11 @@ import org.hamcrest.Matcher
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
-import org.junit.Before
 
 import java.io.File
 
 
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
-
-    @Before
-    fun kotlinDslIntegrationTestSetup() {
-        assumeNonEmbeddedGradleExecuter()
-    }
 
     protected
     open val defaultSettingsScript
@@ -196,6 +190,13 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun assumeNonEmbeddedGradleExecuter() {
         assumeFalse(GradleContextualExecuter.isEmbedded())
+    }
+
+    protected
+    fun requireGradleDistributionOnEmbeddedExecuter() {
+        if (GradleContextualExecuter.isEmbedded()) {
+            executer.requireGradleDistribution()
+        }
     }
 
     protected

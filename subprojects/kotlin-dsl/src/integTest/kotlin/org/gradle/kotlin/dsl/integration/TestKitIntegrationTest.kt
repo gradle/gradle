@@ -26,7 +26,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `withPluginClasspath works`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettings()
 

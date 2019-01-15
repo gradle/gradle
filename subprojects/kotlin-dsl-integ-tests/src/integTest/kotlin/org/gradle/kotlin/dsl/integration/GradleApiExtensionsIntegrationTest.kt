@@ -138,7 +138,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can use Gradle API generated extensions in buildSrc`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 

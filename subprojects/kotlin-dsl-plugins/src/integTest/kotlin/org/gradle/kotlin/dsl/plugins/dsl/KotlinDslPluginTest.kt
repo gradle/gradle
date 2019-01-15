@@ -44,7 +44,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildScript("""
 
@@ -100,7 +100,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withBuildScript("""
 

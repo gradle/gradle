@@ -129,7 +129,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withKotlinBuildSrc()
 
@@ -183,7 +183,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         val differentKotlinVersion = "1.0.7"
         val expectedKotlinCompilerVersionString = "1.0.7-release-1"
@@ -782,7 +782,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `given generic extension types they can be accessed and configured`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
 

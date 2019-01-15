@@ -34,7 +34,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `precompiled script plugins adapters generation is cached and relocatable`() {
 
-        assumeNonEmbeddedGradleExecuter()
+        requireGradleDistributionOnEmbeddedExecuter()
 
         val firstLocation = "first-location"
         val secondLocation = "second-location"
