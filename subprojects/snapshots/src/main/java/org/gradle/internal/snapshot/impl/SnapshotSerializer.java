@@ -16,16 +16,14 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import java.util.Map;
 
 public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int NULL_SNAPSHOT = 0;
@@ -96,9 +94,9 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new SetValueSnapshot(setBuilder.build());
             case MAP_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ImmutableMap.Builder<ValueSnapshot, ValueSnapshot> mapBuilder = ImmutableMap.builder();
+                ImmutableList.Builder<Pair<ValueSnapshot, ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
-                    mapBuilder.put(read(decoder), read(decoder));
+                    mapBuilder.add(Pair.of(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
             case PROVIDER_SNAPSHOT:
@@ -191,9 +189,9 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             MapValueSnapshot mapSnapshot = (MapValueSnapshot) snapshot;
             encoder.writeSmallInt(MAP_SNAPSHOT);
             encoder.writeSmallInt(mapSnapshot.getEntries().size());
-            for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries().entrySet()) {
-                write(encoder, entry.getKey());
-                write(encoder, entry.getValue());
+            for (Pair<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries()) {
+                write(encoder, entry.left);
+                write(encoder, entry.right);
             }
         } else if (snapshot instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot arraySnapshot = (ArrayValueSnapshot) snapshot;

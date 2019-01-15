@@ -52,7 +52,6 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final static Logger LOGGER = Logging.getLogger(CrossBuildCachingRuleExecutor.class);
 
     private final ValueSnapshotter snapshotter;
-    private final Transformer<Serializable, KEY> ketToSnapshottable;
+    private final Transformer<?, KEY> keyToSnapshottable;
     private final PersistentCache cache;
     private final PersistentIndexedCache<HashCode, CachedEntry<RESULT>> store;
     private final BuildCommencedTimeProvider timeProvider;
@@ -73,11 +72,11 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
                                          ValueSnapshotter snapshotter,
                                          BuildCommencedTimeProvider timeProvider,
                                          EntryValidator<RESULT> validator,
-                                         Transformer<Serializable, KEY> ketToSnapshottable,
+                                         Transformer<?, KEY> keyToSnapshottable,
                                          Serializer<RESULT> resultSerializer) {
         this.snapshotter = snapshotter;
         this.validator = validator;
-        this.ketToSnapshottable = ketToSnapshottable;
+        this.keyToSnapshottable = keyToSnapshottable;
         this.timeProvider = timeProvider;
         this.cache = cacheRepository
             .cache(name)
@@ -151,7 +150,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
      */
     private HashCode computeExplicitInputsSnapshot(KEY key, ConfigurableRules<DETAILS> rules) {
         List<Object> toBeSnapshotted = Lists.newArrayListWithExpectedSize(2 + 2 * rules.getConfigurableRules().size());
-        toBeSnapshotted.add(ketToSnapshottable.transform(key));
+        toBeSnapshotted.add(keyToSnapshottable.transform(key));
         for (ConfigurableRule<DETAILS> rule : rules.getConfigurableRules()) {
             Class<? extends Action<DETAILS>> ruleClass = rule.getRuleClass();
             Isolatable<Object[]> ruleParams = rule.getRuleParams();

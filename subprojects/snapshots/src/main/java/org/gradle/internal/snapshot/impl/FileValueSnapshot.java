@@ -35,6 +35,11 @@ public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> imple
     }
 
     @Override
+    public ValueSnapshot asSnapshot() {
+        return this;
+    }
+
+    @Override
     public File isolate() {
         return new File(getValue());
     }

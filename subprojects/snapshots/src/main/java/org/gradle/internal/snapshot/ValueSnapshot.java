@@ -20,6 +20,9 @@ import org.gradle.internal.hash.Hashable;
 
 /**
  * An immutable snapshot of the state of some Java object or object graph.
+ *
+ * <p>Implementations are not required to be able to recreate the object, and should retain as little state as possible.
+ * In particular, implementations should not hold on to user ClassLoaders.</p>
  */
 public interface ValueSnapshot extends Hashable {
     /**

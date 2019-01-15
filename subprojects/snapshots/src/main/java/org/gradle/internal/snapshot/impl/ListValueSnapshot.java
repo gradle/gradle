@@ -17,36 +17,16 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolationException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
+public class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> implements ValueSnapshot {
     public static final ListValueSnapshot EMPTY = new ListValueSnapshot(ImmutableList.of());
 
-    private final ImmutableList<ValueSnapshot> elements;
-
     public ListValueSnapshot(ImmutableList<ValueSnapshot> elements) {
-        this.elements = elements;
-    }
-
-    public List<ValueSnapshot> getElements() {
-        return elements;
-    }
-
-    @Override
-    public void appendToHasher(Hasher hasher) {
-        hasher.putString("List");
-        hasher.putInt(elements.size());
-        for (ValueSnapshot element : elements) {
-            element.appendToHasher(hasher);
-        }
+        super(elements);
     }
 
     @Override
@@ -95,42 +75,5 @@ public class ListValueSnapshot implements ValueSnapshot, Isolatable<List> {
         }
 
         return new ListValueSnapshot(newElements.build());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        ListValueSnapshot other = (ListValueSnapshot) obj;
-        return elements.equals(other.elements);
-    }
-
-    @Override
-    public int hashCode() {
-        return elements.hashCode();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public List isolate() {
-        List list = new ArrayList();
-        for (ValueSnapshot snapshot : elements) {
-            if (snapshot instanceof Isolatable) {
-                list.add(((Isolatable) snapshot).isolate());
-            } else {
-                throw new IsolationException(snapshot);
-            }
-        }
-        return list;
-    }
-
-    @Nullable
-    @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return null;
     }
 }

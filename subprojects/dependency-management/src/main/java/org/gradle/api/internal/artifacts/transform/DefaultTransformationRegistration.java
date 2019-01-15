@@ -50,7 +50,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
-        Isolatable<Object> configSnapshot = isolatableFactory.isolate(config);
+        Isolatable<?> configSnapshot = isolatableFactory.isolate(config);
 
         paramsSnapshot.appendToHasher(hasher);
         configSnapshot.appendToHasher(hasher);
