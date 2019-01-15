@@ -96,7 +96,7 @@ open class ParameterNamesIndex : DefaultTask() {
 
     private
     fun commaSeparatedParameterNamesOf(method: JavaMethod) =
-        method.parameters.joinToString(separator = ",") { it.name }
+        method.parameters.joinToString(separator = ",") { it.binaryName }
 
     private
     fun javaProjectBuilderFor(loader: ClassLoader) =
