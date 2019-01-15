@@ -66,11 +66,11 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
+        this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
         this.compileTaskProperty = objects.property(CppCompile.class);
         this.identity = identity;
-        this.targetPlatform = targetPlatform;
 
         // TODO - reduce duplication with Swift binary
 

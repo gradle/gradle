@@ -75,7 +75,7 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
     /**
      * Returns the target platform for this component.
      *
-     * @since 5.2
+     * @since 4.5
      */
     CppPlatform getTargetPlatform();
 
