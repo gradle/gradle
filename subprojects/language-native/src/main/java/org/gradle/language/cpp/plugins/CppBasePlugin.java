@@ -89,7 +89,7 @@ public class CppBasePlugin implements Plugin<Project> {
                 if (binary.isOptimized()) {
                     task.setOptimized(true);
                 }
-                task.getTargetPlatform().set(binary.getTargetPlatform());
+                task.getTargetPlatform().set(binary.getNativePlatform());
                 task.getToolChain().set(binary.getToolChain());
                 task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
 

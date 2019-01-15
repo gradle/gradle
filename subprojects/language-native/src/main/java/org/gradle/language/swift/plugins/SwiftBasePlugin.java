@@ -85,9 +85,9 @@ public class SwiftBasePlugin implements Plugin<Project> {
                 task.getModuleName().set(binary.getModule());
                 task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
                 task.getModuleFile().set(buildDirectory.file(binary.getModule().map(moduleName -> "modules/" + names.getDirName() + moduleName + ".swiftmodule")));
-                task.getSourceCompatibility().set(binary.getTargetMachine().getSourceCompatibility());
+                task.getSourceCompatibility().set(binary.getTargetPlatform().getSourceCompatibility());
 
-                task.getTargetPlatform().set(binary.getTargetPlatform());
+                task.getTargetPlatform().set(binary.getNativePlatform());
 
                 // TODO - make this lazy
                 task.getToolChain().set(binary.getToolChain());

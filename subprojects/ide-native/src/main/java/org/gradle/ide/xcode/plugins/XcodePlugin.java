@@ -228,7 +228,7 @@ public class XcodePlugin extends IdePlugin {
                 component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
                     @Override
                     public void execute(SwiftBinary swiftBinary) {
-                        target.getSwiftSourceCompatibility().set(swiftBinary.getTargetMachine().getSourceCompatibility());
+                        target.getSwiftSourceCompatibility().set(swiftBinary.getTargetPlatform().getSourceCompatibility());
                     }
                 });
                 xcodeProject.addTarget(target);
@@ -267,7 +267,7 @@ public class XcodePlugin extends IdePlugin {
                             target.addBinary(toBuildConfigurationName(component, swiftBinary), ((SwiftStaticLibrary) swiftBinary).getLinkFile(), swiftBinary.getTargetMachine().getArchitecture().getName());
                             target.setProductType(PBXTarget.ProductType.STATIC_LIBRARY);
                         }
-                        target.getSwiftSourceCompatibility().set(swiftBinary.getTargetMachine().getSourceCompatibility());
+                        target.getSwiftSourceCompatibility().set(swiftBinary.getTargetPlatform().getSourceCompatibility());
 
                         if (swiftBinary == component.getDevelopmentBinary().get()) {
                             target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());

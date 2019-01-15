@@ -44,6 +44,7 @@ import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -67,18 +68,19 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Configuration runtimeLibs;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
-    private final SwiftPlatform targetMachine;
+    private final SwiftPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftPlatform targetMachine) {
-        super(names, objectFactory, componentImplementation, targetPlatform);
+    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, componentImplementation);
         this.module = module;
         this.testable = testable;
         this.source = source;
         this.moduleFile = objectFactory.fileProperty();
         this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
+        this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
 
@@ -114,7 +116,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         linkLibs = nativeLink;
         runtimeLibs = nativeRuntime;
         this.identity = identity;
-        this.targetMachine = targetMachine;
     }
 
     @Override
@@ -180,8 +181,17 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     }
 
     @Override
-    public SwiftPlatform getTargetMachine() {
-        return targetMachine;
+    public TargetMachine getTargetMachine() {
+        return targetPlatform.getTargetMachine();
+    }
+
+    @Override
+    public SwiftPlatform getTargetPlatform() {
+        return targetPlatform;
+    }
+
+    public NativePlatform getNativePlatform() {
+        return ((DefaultSwiftPlatform) targetPlatform).getNativePlatform();
     }
 
     @Override

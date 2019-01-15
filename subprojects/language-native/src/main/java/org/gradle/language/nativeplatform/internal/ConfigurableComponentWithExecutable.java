@@ -36,7 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 public interface ConfigurableComponentWithExecutable extends ComponentWithExecutable, ComponentWithInstallation, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
     PlatformToolProvider getPlatformToolProvider();
 
-    NativePlatform getTargetPlatform();
+    NativePlatform getNativePlatform();
 
     @Override
     Property<LinkExecutable> getLinkTask();

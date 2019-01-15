@@ -28,7 +28,6 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -46,8 +45,8 @@ public abstract class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implem
     private final RegularFileProperty runScriptFile;
     private final Property<XCTest> runTaskProperty;
 
-    public DefaultSwiftXCTestBinary(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftPlatform targetMachine) {
-        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
+    public DefaultSwiftXCTestBinary(Names names, ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
         this.installDirectory = objectFactory.directoryProperty();
         this.runScriptFile = objectFactory.fileProperty();

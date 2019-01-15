@@ -30,6 +30,7 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
@@ -56,7 +57,8 @@ class SwiftBasePluginTest extends Specification {
         binary.name >> name
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
-        binary.targetMachine >> Stub(SwiftPlatform)
+        binary.targetMachine >> Stub(TargetMachine)
+        binary.targetPlatform >> Stub(SwiftPlatform)
         binary.sourceCompatibility >> project.objects.property(SwiftVersion)
 
         when:

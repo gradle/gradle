@@ -16,15 +16,14 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppPlatform;
-import org.gradle.language.cpp.internal.DefaultCppTargetMachine;
+import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftVersion;
-import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
+import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
@@ -38,41 +37,62 @@ import javax.inject.Inject;
 
 public class DefaultToolChainSelector implements ToolChainSelector {
     private final ModelRegistry modelRegistry;
-    private final ObjectFactory objectFactory;
     private DefaultNativePlatform host;
 
     @Inject
-    public DefaultToolChainSelector(ModelRegistry modelRegistry, ObjectFactory objectFactory) {
+    public DefaultToolChainSelector(ModelRegistry modelRegistry) {
         this.modelRegistry = modelRegistry;
-        this.objectFactory = objectFactory;
         this.host = DefaultNativePlatform.host();
     }
 
     @Override
-    public <T extends TargetMachine> Result<T> select(Class<T> platformType, TargetMachine requestedTargetMachine) {
-        DefaultNativePlatform targetPlatform = host.withArchitecture(Architectures.forInput(requestedTargetMachine.getArchitecture().getName()));
-
-        // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
-
-        NativeLanguage sourceLanguage = platformType == SwiftPlatform.class ? NativeLanguage.SWIFT : NativeLanguage.CPP;
-        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
-        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetPlatform);
-        // TODO - don't select again here, as the selection is already performed to select the toolchain
-        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetPlatform);
-
-        final T targetMachine;
+    public <T> Result<T> select(Class<T> platformType, T requestPlatform) {
         if (CppPlatform.class.isAssignableFrom(platformType)) {
-            targetMachine = platformType.cast(new DefaultCppTargetMachine(requestedTargetMachine));
+            return Cast.uncheckedCast(select((CppPlatform) requestPlatform));
         } else if (SwiftPlatform.class.isAssignableFrom(platformType)) {
-            SwiftVersion sourceCompatibility = ((SwiftPlatform) requestedTargetMachine).getSourceCompatibility();
-            if (sourceCompatibility == null && toolProvider.isAvailable()) {
-                sourceCompatibility = toSwiftVersion(toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
-            }
-            targetMachine = platformType.cast(new DefaultSwiftTargetMachine(requestedTargetMachine, sourceCompatibility));
+            return Cast.uncheckedCast(select((SwiftPlatform) requestPlatform));
         } else {
             throw new IllegalArgumentException("Unknown type of platform " + platformType);
         }
-        return new DefaultResult<T>(toolChain, toolProvider, targetPlatform, targetMachine);
+
+    }
+
+    public Result<CppPlatform> select(CppPlatform requestPlatform) {
+        DefaultNativePlatform targetNativePlatform = newNativePlatform(requestPlatform.getTargetMachine());
+
+        // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
+
+        NativeLanguage sourceLanguage = NativeLanguage.CPP;
+        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
+        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        // TODO - don't select again here, as the selection is already performed to select the toolchain
+        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
+
+        CppPlatform targetPlatform = new DefaultCppPlatform(requestPlatform.getTargetMachine(), targetNativePlatform);
+        return new DefaultResult<CppPlatform>(toolChain, toolProvider, targetPlatform);
+    }
+
+    public Result<SwiftPlatform> select(SwiftPlatform requestPlatform) {
+        DefaultNativePlatform targetNativePlatform = newNativePlatform(requestPlatform.getTargetMachine());
+
+        // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
+
+        NativeLanguage sourceLanguage = NativeLanguage.SWIFT;
+        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
+        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        // TODO - don't select again here, as the selection is already performed to select the toolchain
+        PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
+
+        SwiftVersion sourceCompatibility = requestPlatform.getSourceCompatibility();
+        if (sourceCompatibility == null && toolProvider.isAvailable()) {
+            sourceCompatibility = toSwiftVersion(toolProvider.getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
+        }
+        SwiftPlatform targetPlatform = new DefaultSwiftPlatform(requestPlatform.getTargetMachine(), sourceCompatibility, targetNativePlatform);
+        return new DefaultResult<SwiftPlatform>(toolChain, toolProvider, targetPlatform);
+    }
+
+    private DefaultNativePlatform newNativePlatform(TargetMachine targetMachine) {
+        return host.withArchitecture(Architectures.forInput(targetMachine.getArchitecture().getName()));
     }
 
     static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
@@ -85,17 +105,15 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
     }
 
-    class DefaultResult<T extends TargetMachine> implements Result<T> {
+    class DefaultResult<T> implements Result<T> {
         private final NativeToolChainInternal toolChain;
         private final PlatformToolProvider platformToolProvider;
-        private final NativePlatform targetPlatform;
-        private final T targetMachine;
+        private final T targetPlatform;
 
-        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativePlatform targetPlatform, T targetMachine) {
+        DefaultResult(NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, T targetPlatform) {
             this.toolChain = toolChain;
             this.platformToolProvider = platformToolProvider;
             this.targetPlatform = targetPlatform;
-            this.targetMachine = targetMachine;
         }
 
         @Override
@@ -104,12 +122,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         }
 
         @Override
-        public T getTargetMachine() {
-            return targetMachine;
-        }
-
-        @Override
-        public NativePlatform getTargetPlatform() {
+        public T getTargetPlatform() {
             return targetPlatform;
         }
 

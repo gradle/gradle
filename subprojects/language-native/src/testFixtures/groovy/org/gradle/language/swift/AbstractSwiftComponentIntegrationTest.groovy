@@ -33,7 +33,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetMachine.sourceCompatibility.version == ${expectedVersion}
+                        assert it.targetPlatform.sourceCompatibility.version == ${expectedVersion}
                     }
                 }
             }
@@ -53,7 +53,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             }
 
             ${componentUnderTestDsl}.binaries.whenElementKnown {
-                assert it.targetMachine.sourceCompatibility == SwiftVersion.SWIFT3
+                assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
                 ${componentUnderTestDsl}.sourceCompatibility = SwiftVersion.SWIFT4
             }
 
@@ -80,7 +80,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetMachine.sourceCompatibility == SwiftVersion.SWIFT3
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
                     }
                 }
             }
@@ -108,7 +108,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT4
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
                     }
                 }
             }
@@ -133,7 +133,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
                     }
                 }
             }
@@ -157,7 +157,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetMachine.sourceCompatibility == SwiftVersion.SWIFT4
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
                     }
                 }
             }

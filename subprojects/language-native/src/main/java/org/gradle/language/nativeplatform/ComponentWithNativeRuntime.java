@@ -45,7 +45,7 @@ public interface ComponentWithNativeRuntime extends SoftwareComponent {
     boolean isOptimized();
 
     /**
-     * Returns the target platform for this component.
+     * Returns the target machine for this component.
      *
      * @since 5.2
      */

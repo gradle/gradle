@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform.internal.toolchains
 
-import org.gradle.api.model.ObjectFactory
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.nativeplatform.MachineArchitecture
@@ -50,8 +49,7 @@ class DefaultToolChainSelectorTest extends Specification {
     def os = Stub(OperatingSystemInternal)
     def arch = Stub(ArchitectureInternal)
     def host = new DefaultNativePlatform("host", os, arch)
-    def objectFactory = Mock(ObjectFactory)
-    def selector = new DefaultToolChainSelector(modelRegistry, objectFactory)
+    def selector = new DefaultToolChainSelector(modelRegistry)
 
     def setup() {
         selector.host = host
@@ -61,22 +59,22 @@ class DefaultToolChainSelectorTest extends Specification {
         def registry = Mock(NativeToolChainRegistryInternal)
         def toolChain = Mock(NativeToolChainInternal)
         def toolProvider = Mock(PlatformToolProvider)
+        def requestPlatform = Stub(CppPlatform) {
+            getTargetMachine() >> targetMachine
+        }
 
         given:
-        objectFactory.named(_, _) >> Mock(OperatingSystemFamily)
         modelRegistry.realize(_, NativeToolChainRegistryInternal) >> registry
         machineArchitecture.name >> architecture
 
         when:
-        def result = selector.select(CppPlatform, targetMachine)
+        def result = selector.select(CppPlatform, requestPlatform)
 
         then:
         result.toolChain == toolChain
-        result.targetMachine instanceof CppPlatform
-        result.targetMachine.operatingSystemFamily == osFamily
-        result.targetMachine.architecture == machineArchitecture
-        result.targetPlatform.operatingSystem == os
-        result.targetPlatform.architecture == Architectures.forInput(architecture)
+        result.targetPlatform instanceof CppPlatform
+        result.targetPlatform.targetMachine.operatingSystemFamily == osFamily
+        result.targetPlatform.targetMachine.architecture == machineArchitecture
         result.platformToolProvider == toolProvider
 
         and:

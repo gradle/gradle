@@ -16,14 +16,12 @@
 
 package org.gradle.language.swift.internal
 
-
 import org.gradle.language.cpp.internal.DefaultUsageContext
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -59,18 +57,17 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     def "can create static binary"() {
-        def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftPlatform)
+        def targetPlatform = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addStaticLibrary(identity, true, targetPlatform, toolChain, platformToolProvider, targetMachine)
+        def binary = library.addStaticLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable
-        binary.targetMachine == targetMachine
+        binary.targetPlatform == targetPlatform
         binary.toolChain == toolChain
         binary.platformToolProvider == platformToolProvider
 
@@ -79,18 +76,17 @@ class DefaultSwiftLibraryTest extends Specification {
     }
 
     def "can create shared binary"() {
-        def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftPlatform)
+        def targetPlatform = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def binary = library.addSharedLibrary(identity, true, targetPlatform, toolChain, platformToolProvider, targetMachine)
+        def binary = library.addSharedLibrary(identity, true, targetPlatform, toolChain, platformToolProvider)
         binary.name == "mainTest"
         binary.debuggable
         !binary.optimized
         binary.testable
-        binary.targetMachine == targetMachine
+        binary.targetPlatform == targetPlatform
         binary.toolChain == toolChain
         binary.platformToolProvider == platformToolProvider
 

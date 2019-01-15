@@ -33,7 +33,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 public interface ConfigurableComponentWithStaticLibrary extends ComponentWithStaticLibrary, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
     PlatformToolProvider getPlatformToolProvider();
 
-    NativePlatform getTargetPlatform();
+    NativePlatform getNativePlatform();
 
     @Override
     Property<RegularFile> getLinkFile();

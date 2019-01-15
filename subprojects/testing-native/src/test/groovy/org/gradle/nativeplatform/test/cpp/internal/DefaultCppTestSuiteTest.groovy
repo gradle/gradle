@@ -22,7 +22,6 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -49,7 +48,7 @@ class DefaultCppTestSuiteTest extends Specification {
 
     def "can add executable"() {
         expect:
-        def exe = testSuite.addExecutable("Foo", identity, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(CppPlatform))
+        def exe = testSuite.addExecutable("Foo", identity, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testFooExecutable'
     }
 

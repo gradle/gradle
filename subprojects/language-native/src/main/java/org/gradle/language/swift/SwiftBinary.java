@@ -80,9 +80,9 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
     Provider<RegularFile> getModuleFile();
 
     /**
-     * {@inheritDoc}
+     * Returns the target platform for this component.
      *
      * @since 5.2
      */
-    SwiftPlatform getTargetMachine();
+    SwiftPlatform getTargetPlatform();
 }

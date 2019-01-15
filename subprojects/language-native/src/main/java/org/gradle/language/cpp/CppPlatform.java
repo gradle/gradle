@@ -20,10 +20,14 @@ import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
- * A target machine for building C++ binaries.
+ * A target platform for building C++ binaries.
  *
  * @since 5.2
  */
 @Incubating
-public interface CppPlatform extends TargetMachine {
+public interface CppPlatform {
+    /**
+     * Returns the target machine for this platform.
+     */
+    TargetMachine getTargetMachine();
 }

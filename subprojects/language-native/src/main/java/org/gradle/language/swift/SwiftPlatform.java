@@ -20,12 +20,17 @@ import org.gradle.api.Incubating;
 import org.gradle.nativeplatform.TargetMachine;
 
 /**
- * A target machine for building Swift binaries.
+ * A target platform for building Swift binaries.
  *
  * @since 5.2
  */
 @Incubating
-public interface SwiftPlatform extends TargetMachine {
+public interface SwiftPlatform {
+    /**
+     * Returns the target machine for this platform.
+     */
+    TargetMachine getTargetMachine();
+
     /**
      * Returns the Swift language level to use to compile the source files.
      */

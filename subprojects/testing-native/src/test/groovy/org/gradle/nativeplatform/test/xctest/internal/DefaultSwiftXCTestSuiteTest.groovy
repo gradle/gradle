@@ -22,7 +22,6 @@ import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
-import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -49,22 +48,21 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     }
 
     def "can add a test executable"() {
-        def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftPlatform)
+        def targetPlatform = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
         expect:
-        def exe = testSuite.addExecutable(identity, targetPlatform, toolChain, platformToolProvider, targetMachine)
+        def exe = testSuite.addExecutable(identity, targetPlatform, toolChain, platformToolProvider)
         exe.name == 'testExecutable'
-        exe.targetMachine == targetMachine
+        exe.targetPlatform == targetPlatform
         exe.toolChain == toolChain
         exe.platformToolProvider == platformToolProvider
     }
 
     def "can add a test bundle"() {
         expect:
-        def exe = testSuite.addBundle(identity, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(SwiftPlatform))
+        def exe = testSuite.addBundle(identity, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider))
         exe.name == 'testExecutable'
     }
 
