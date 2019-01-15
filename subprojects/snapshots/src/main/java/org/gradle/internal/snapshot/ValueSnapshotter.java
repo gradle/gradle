@@ -43,7 +43,7 @@ public interface ValueSnapshotter extends IsolatableFactory {
     ValueSnapshot isolatableSnapshot(Object value) throws UncheckedIOException;
 
     /**
-     * Creates a snapshot of the given value, given a candidate snapshot. If the value is the same as the value provided by the candidate snapshot, the candidate _must_ be returned.
+     * Creates a snapshot of the given value, given a candidate snapshot. If the value is the same as the value provided by the candidate snapshot, the candidate <em>must</em> be returned.
      */
     ValueSnapshot snapshot(Object value, ValueSnapshot candidate);
 }
