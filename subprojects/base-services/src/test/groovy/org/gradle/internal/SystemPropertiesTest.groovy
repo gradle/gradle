@@ -20,7 +20,6 @@ import spock.lang.Specification
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicReference
 
 class SystemPropertiesTest extends Specification {
     def "can be queried for standard system properties"() {
