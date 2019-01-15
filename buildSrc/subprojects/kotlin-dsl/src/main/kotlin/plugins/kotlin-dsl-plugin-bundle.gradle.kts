@@ -41,53 +41,44 @@ tasks {
 }
 
 
-workAroundTestKitWithPluginClassPathIssues()
+// publish plugin to local repository for integration testing -----------------
+// See AbstractPluginTest
 
-
-// TODO Remove work around for TestKit withPluginClassPath() issues
-// See https://github.com/gradle/kotlin-dsl/issues/492
-// Also see AbstractPluginTest
-fun Project.workAroundTestKitWithPluginClassPathIssues() {
-
-    val publishPluginsToTestRepository by tasks.registering {
-        dependsOn("publishPluginMavenPublicationToTestRepository")
-    }
-
-    val writeFuturePluginVersions = registerWriteFuturePluginVersionsTask()
-
-    afterEvaluate {
-
-        publishing {
-            repositories {
-                maven {
-                    name = "test"
-                    url = uri("$buildDir/repository")
-                }
-            }
-        }
-
-        gradlePlugin {
-            plugins.all {
-
-                val plugin = this
-
-                publishPluginsToTestRepository {
-                    dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
-                }
-
-                writeFuturePluginVersions {
-                    property(plugin.id, version)
-                }
-            }
-        }
-    }
+val publishPluginsToTestRepository by tasks.registering {
+    dependsOn("publishPluginMavenPublicationToTestRepository")
 }
 
+val processIntegTestResources by tasks.existing(ProcessResources::class)
+val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
+    outputFile = processIntegTestResources.get().futurePluginVersionsFile
+}
+processIntegTestResources {
+    dependsOn(writeFuturePluginVersions)
+}
 
-fun Project.registerWriteFuturePluginVersionsTask(): TaskProvider<WriteProperties> {
-    val processTestResources = tasks["processIntegTestResources"] as ProcessResources
-    return tasks.register<WriteProperties>("writeFuturePluginVersions") {
-        outputFile = processTestResources.futurePluginVersionsFile
-        processTestResources.dependsOn(this)
+afterEvaluate {
+
+    publishing {
+        repositories {
+            maven {
+                name = "test"
+                url = uri("$buildDir/repository")
+            }
+        }
+    }
+
+    gradlePlugin {
+        plugins.all {
+
+            val plugin = this
+
+            publishPluginsToTestRepository {
+                dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+            }
+
+            writeFuturePluginVersions {
+                property(plugin.id, version)
+            }
+        }
     }
 }
