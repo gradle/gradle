@@ -20,9 +20,8 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.PropertyMetadata;
-
-import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -35,6 +34,6 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitOutputFileProperty(propertyName, isOptional(propertyMetadata), value, getFilePropertyType());
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, getFilePropertyType());
     }
 }

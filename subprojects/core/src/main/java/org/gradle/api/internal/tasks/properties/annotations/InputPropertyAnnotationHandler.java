@@ -19,11 +19,10 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -37,6 +36,6 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitInputProperty(propertyName, value, isOptional(propertyMetadata));
+        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
     }
 }

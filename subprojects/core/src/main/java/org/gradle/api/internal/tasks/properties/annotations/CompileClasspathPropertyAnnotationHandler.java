@@ -23,14 +23,13 @@ import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public class CompileClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileFingerprintingPropertyAnnotationHandler {
     @Override
@@ -57,7 +56,7 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         visitor.visitInputFileProperty(
             propertyName,
-            isOptional(propertyMetadata),
+            propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
             CompileClasspathNormalizer.class,
             value,

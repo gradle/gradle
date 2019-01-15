@@ -22,13 +22,12 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandlerUtils.isOptional;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -53,7 +52,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
         if (nested != null) {
             context.addNested(propertyName, nested);
-        } else if (!isOptional(propertyMetadata)) {
+        } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
             visitor.visitInputProperty(propertyName, new AbsentValue(), false);
         }
     }
