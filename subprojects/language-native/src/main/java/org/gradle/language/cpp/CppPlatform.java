@@ -25,5 +25,5 @@ import org.gradle.nativeplatform.TargetMachine;
  * @since 5.2
  */
 @Incubating
-public interface CppTargetMachine extends TargetMachine {
+public interface CppPlatform extends TargetMachine {
 }

@@ -17,7 +17,7 @@
 package org.gradle.language.nativeplatform.internal.toolchains
 
 import org.gradle.api.model.ObjectFactory
-import org.gradle.language.cpp.CppTargetMachine
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
@@ -68,11 +68,11 @@ class DefaultToolChainSelectorTest extends Specification {
         machineArchitecture.name >> architecture
 
         when:
-        def result = selector.select(CppTargetMachine, targetMachine)
+        def result = selector.select(CppPlatform, targetMachine)
 
         then:
         result.toolChain == toolChain
-        result.targetMachine instanceof CppTargetMachine
+        result.targetMachine instanceof CppPlatform
         result.targetMachine.operatingSystemFamily == osFamily
         result.targetMachine.architecture == machineArchitecture
         result.targetPlatform.operatingSystem == os

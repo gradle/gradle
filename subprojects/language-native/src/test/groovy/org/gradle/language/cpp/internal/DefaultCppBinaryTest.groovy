@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.provider.Provider
-import org.gradle.language.cpp.CppTargetMachine
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.nativeplatform.platform.NativePlatform
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
@@ -51,7 +51,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("nativeRuntimeDebug") >> runtime
         _ * componentHeaders.plus(_) >> headerDirs
 
-        binary = new DefaultCppBinary(Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity), Stub(CppTargetMachine))
+        binary = new DefaultCppBinary(Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity), Stub(CppPlatform))
     }
 
     def "creates configurations for the binary"() {

@@ -34,7 +34,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.language.LibraryDependencies;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
-import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.internal.DefaultLibraryDependencies;
 import org.gradle.language.nativeplatform.internal.PublicationAwareComponent;
 import org.gradle.nativeplatform.Linkage;
@@ -78,13 +78,13 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, collectionCallbackActionDecorator);
     }
 
-    public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, CppTargetMachine targetMachine) {
+    public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, CppPlatform targetMachine) {
         DefaultCppSharedLibrary result = objectFactory.newInstance(DefaultCppSharedLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         getBinaries().add(result);
         return result;
     }
 
-    public DefaultCppStaticLibrary addStaticLibrary(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, CppTargetMachine targetMachine) {
+    public DefaultCppStaticLibrary addStaticLibrary(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, CppPlatform targetMachine) {
         DefaultCppStaticLibrary result = objectFactory.newInstance(DefaultCppStaticLibrary.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getAllHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         getBinaries().add(result);
         return result;

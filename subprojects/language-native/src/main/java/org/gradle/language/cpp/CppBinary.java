@@ -77,7 +77,7 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
      *
      * @since 5.2
      */
-    CppTargetMachine getTargetMachine();
+    CppPlatform getTargetMachine();
 
     /**
      * Returns the compile task for this binary.

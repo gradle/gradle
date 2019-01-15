@@ -33,7 +33,7 @@ import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
-import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppLibrary;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Dimensions;
@@ -137,7 +137,7 @@ public class CppLibraryPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppTargetMachine> result = toolChainSelector.select(CppTargetMachine.class, variantIdentity.getTargetMachine());
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
 
                             if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
                                 library.addSharedLibrary(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());

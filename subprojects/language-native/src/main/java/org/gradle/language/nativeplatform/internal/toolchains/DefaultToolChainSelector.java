@@ -17,7 +17,7 @@
 package org.gradle.language.nativeplatform.internal.toolchains;
 
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.internal.DefaultCppTargetMachine;
 import org.gradle.language.swift.SwiftTargetMachine;
 import org.gradle.language.swift.SwiftVersion;
@@ -61,7 +61,7 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetPlatform);
 
         final T targetMachine;
-        if (CppTargetMachine.class.isAssignableFrom(platformType)) {
+        if (CppPlatform.class.isAssignableFrom(platformType)) {
             targetMachine = platformType.cast(new DefaultCppTargetMachine(requestedTargetMachine));
         } else if (SwiftTargetMachine.class.isAssignableFrom(platformType)) {
             SwiftVersion sourceCompatibility = ((SwiftTargetMachine) requestedTargetMachine).getSourceCompatibility();

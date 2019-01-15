@@ -16,11 +16,11 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.internal.DefaultTargetMachine;
 
-public class DefaultCppTargetMachine extends DefaultTargetMachine implements CppTargetMachine {
+public class DefaultCppTargetMachine extends DefaultTargetMachine implements CppPlatform {
     public DefaultCppTargetMachine(TargetMachine targetMachine) {
         super(targetMachine.getOperatingSystemFamily(), targetMachine.getArchitecture());
     }

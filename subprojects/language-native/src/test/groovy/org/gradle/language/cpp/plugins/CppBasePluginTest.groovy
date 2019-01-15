@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.language.cpp.CppTargetMachine
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.DefaultCppApplication
 import org.gradle.language.cpp.internal.DefaultCppBinary
 import org.gradle.language.cpp.internal.DefaultCppExecutable
@@ -52,7 +52,7 @@ class CppBasePluginTest extends Specification {
         def binary = Stub(DefaultCppBinary)
         binary.name >> name
         binary.names >> Names.of(name)
-        binary.targetMachine >> Stub(CppTargetMachine)
+        binary.targetMachine >> Stub(CppPlatform)
 
         when:
         project.pluginManager.apply(CppBasePlugin)
@@ -80,7 +80,7 @@ class CppBasePluginTest extends Specification {
         executable.names >> Names.of(name)
         executable.baseName >> baseName
         executable.getExecutableFile() >> executableFile
-        executable.targetMachine >> Stub(CppTargetMachine)
+        executable.targetMachine >> Stub(CppPlatform)
         executable.platformToolProvider >> new TestPlatformToolProvider()
         executable.implementationDependencies >> Stub(ConfigurationInternal)
 
@@ -112,7 +112,7 @@ class CppBasePluginTest extends Specification {
         library.name >> name
         library.names >> Names.of(name)
         library.baseName >> baseName
-        library.targetMachine >> Stub(CppTargetMachine)
+        library.targetMachine >> Stub(CppPlatform)
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.linkFile >> project.objects.fileProperty()
         library.implementationDependencies >> Stub(ConfigurationInternal)

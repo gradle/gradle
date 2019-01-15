@@ -31,7 +31,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
-import org.gradle.language.cpp.CppTargetMachine;
+import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
@@ -137,7 +137,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppTargetMachine> result = toolChainSelector.select(CppTargetMachine.class, variantIdentity.getTargetMachine());
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
                             CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());
                             testComponent.getTestBinary().set(testExecutable);

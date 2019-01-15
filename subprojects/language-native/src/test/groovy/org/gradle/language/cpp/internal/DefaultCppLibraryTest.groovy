@@ -18,7 +18,7 @@ package org.gradle.language.cpp.internal
 
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.language.cpp.CppTargetMachine
+import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
@@ -83,7 +83,7 @@ class DefaultCppLibraryTest extends Specification {
 
     def "can add shared library"() {
         def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(CppTargetMachine)
+        def targetMachine = Stub(CppPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
@@ -102,7 +102,7 @@ class DefaultCppLibraryTest extends Specification {
 
     def "can add static library"() {
         def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(CppTargetMachine)
+        def targetMachine = Stub(CppPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
@@ -128,7 +128,7 @@ class DefaultCppLibraryTest extends Specification {
         def d4 = tmpDir.file("src/main/d4")
 
         expect:
-        def binary = library.addSharedLibrary(identity, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(CppTargetMachine))
+        def binary = library.addSharedLibrary(identity, Stub(NativePlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(CppPlatform))
         binary.compileIncludePath.files as List == [defaultPublic, defaultPrivate]
 
         library.publicHeaders.from(d1)
