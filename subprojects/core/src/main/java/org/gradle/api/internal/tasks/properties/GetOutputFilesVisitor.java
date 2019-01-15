@@ -24,12 +24,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.TreeType;
 import org.gradle.util.DeferredUtil;
 
@@ -44,11 +44,11 @@ import java.util.Map;
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
     private final String ownerDisplayName;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 
-    public GetOutputFilesVisitor(String ownerDisplayName, FileResolver fileResolver) {
+    public GetOutputFilesVisitor(String ownerDisplayName, PathToFileResolver fileResolver) {
         this.ownerDisplayName = ownerDisplayName;
         this.fileResolver = fileResolver;
     }
@@ -89,7 +89,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
         return hasDeclaredOutputs;
     }
 
-    private static Iterator<OutputFilePropertySpec> resolveToOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, PropertyValue value, final TreeType outputType, final FileResolver resolver) {
+    private static Iterator<OutputFilePropertySpec> resolveToOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, PropertyValue value, final TreeType outputType, final PathToFileResolver resolver) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return Collections.emptyIterator();
@@ -114,7 +114,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
         } else {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedValue);
+            FileCollectionInternal outputFileCollection = FileCollectionHelper.asFileCollection(resolver, unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {

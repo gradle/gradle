@@ -32,7 +32,7 @@ import java.util.Map;
  *
  * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
  *
- * Created by {@link DefaultUnitOfWorkProperties#resolve(PropertyWalker, org.gradle.api.internal.file.FileResolver, TaskInternal)}.
+ * Created by {@link DefaultUnitOfWorkProperties#resolve(PropertyWalker, org.gradle.internal.file.PathToFileResolver, TaskInternal)}.
  */
 @NonNullApi
 public interface UnitOfWorkProperties {

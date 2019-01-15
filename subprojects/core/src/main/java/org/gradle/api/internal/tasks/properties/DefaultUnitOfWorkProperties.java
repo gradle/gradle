@@ -23,7 +23,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
@@ -52,7 +51,7 @@ public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingProperty> validatingProperties;
 
-    public static UnitOfWorkProperties resolve(PropertyWalker propertyWalker, FileResolver resolver, TaskInternal task) {
+    public static UnitOfWorkProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, resolver);
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver);

@@ -18,29 +18,29 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<InputFilePropertySpec> specs = Lists.newArrayList();
-    private final FileResolver resolver;
+    private final PathToFileResolver resolver;
     private final String ownerDisplayName;
     private boolean hasSourceFiles;
 
     private ImmutableSortedSet<InputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor(String ownerDisplayName, FileResolver fileResolver) {
+    public GetInputFilesVisitor(String ownerDisplayName, PathToFileResolver fileResolver) {
         this.resolver = fileResolver;
         this.ownerDisplayName = ownerDisplayName;
     }
 
     @Override
     public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-        Object actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? resolver.resolveFilesAsTree(value) : value;
+        Object actualValue = FileCollectionHelper.forInputFileValue(resolver, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,

@@ -26,7 +26,6 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
@@ -38,6 +37,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -59,7 +59,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileResolver fileResolver) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PathToFileResolver fileResolver) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);

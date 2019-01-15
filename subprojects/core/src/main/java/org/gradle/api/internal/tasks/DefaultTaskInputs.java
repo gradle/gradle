@@ -23,8 +23,8 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.tasks.properties.FileCollectionHelper;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -47,12 +48,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final List<RegisteredTaskInputProperty> registeredProperties = Lists.newArrayList();
     private final FilePropertyContainer<RegisteredTaskInputFileProperty> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileResolver fileResolver) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PathToFileResolver fileResolver) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
@@ -191,9 +192,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final String type;
         private final TaskInternal task;
         private final PropertyWalker propertyWalker;
-        private final FileResolver fileResolver;
+        private final PathToFileResolver fileResolver;
 
-        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileResolver fileResolver) {
+        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, PathToFileResolver fileResolver) {
             this.taskDisplayName = taskDisplayName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
@@ -213,7 +214,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 @Override
                 public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
-                        Object actualValue = filePropertyType == InputFilePropertyType.DIRECTORY ? fileResolver.resolveFilesAsTree(value) : value;
+                        Object actualValue = FileCollectionHelper.forInputFileValue(fileResolver, filePropertyType, value);
                         context.add(new PropertyFileCollection(task.toString(), propertyName, "input", fileResolver, actualValue));
                     }
                 }
