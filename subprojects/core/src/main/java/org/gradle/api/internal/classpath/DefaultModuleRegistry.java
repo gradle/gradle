@@ -97,6 +97,9 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     private Module loadExternalModule(String name) {
         File externalJar = findJar(name);
         if (externalJar == null) {
+            if (gradleInstallation == null) {
+                throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in in classpath: %s.", name, classpath));
+            }
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
         }
         return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet());
