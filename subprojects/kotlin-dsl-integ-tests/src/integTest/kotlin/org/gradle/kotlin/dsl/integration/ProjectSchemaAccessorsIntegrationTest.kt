@@ -54,6 +54,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -112,6 +113,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -149,6 +151,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -195,6 +198,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -262,6 +266,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -451,6 +456,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """)
         }
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -482,6 +488,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins { application }
 
@@ -593,6 +600,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -676,6 +684,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        withDefaultSettings()
         withBuildScript("""
 
             inline fun <reified T> typeOf(t: T) = T::class.simpleName
@@ -728,6 +737,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("mine")
@@ -824,6 +834,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -894,6 +905,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             class MyPrivateConventionImpl : MyConvention
         """)
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -934,6 +946,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing configurations`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -958,6 +971,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing tasks`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -986,6 +1000,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing source sets`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1025,6 +1040,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing elements of extensions that are containers`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 distribution
@@ -1056,6 +1072,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             (dependencies as ExtensionAware).extensions.create<Mine>("mine")
         """)
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `my-plugin`

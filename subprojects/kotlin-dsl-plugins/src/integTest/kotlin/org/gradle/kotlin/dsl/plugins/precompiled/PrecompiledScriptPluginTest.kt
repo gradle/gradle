@@ -103,6 +103,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
+        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
@@ -362,6 +363,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     private
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {
+        withDefaultSettings()
         withKotlinDslPlugin()
         withFile("src/main/kotlin/$fileName", code)
         compileKotlin()

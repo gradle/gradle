@@ -10,6 +10,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `kotlin-dsl`

@@ -40,6 +40,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `applies the kotlin plugin`() {
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -55,6 +56,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
     fun `adds stdlib and reflect as compile only dependencies`() {
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -82,6 +84,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `all embedded kotlin dependencies are resolvable without any added repository`() {
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -108,6 +111,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `sources and javadoc of all embedded kotlin dependencies are resolvable with an added repository`() {
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -165,6 +169,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `can add embedded dependencies to custom configuration`() {
 
+        withDefaultSettings()
         withBuildScript("""
 
             plugins {
