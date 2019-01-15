@@ -77,7 +77,7 @@ public class NodeState implements DependencyGraphNode {
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private List<EdgeState> virtualEdges;
     private boolean queued;
-    private boolean excluded;
+    private boolean evicted;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -389,8 +389,8 @@ public class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
-    public void exclude() {
-        excluded = true;
+    public void evict() {
+        evicted = true;
         restartIncomingEdges();
     }
 
@@ -464,7 +464,7 @@ public class NodeState implements DependencyGraphNode {
         // If this configuration belongs to the select version, queue ourselves up for traversal.
         // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
         if (component == selected) {
-            if (!excluded) {
+            if (!evicted) {
                 resolveState.onMoreSelected(this);
             }
         } else {

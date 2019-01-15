@@ -198,7 +198,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
                             @Override
                             public void evict() {
-                                node.exclude();
+                                node.evict();
                                 evicted.add(node);
                             }
 
