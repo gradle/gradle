@@ -117,10 +117,15 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureIdeaForRootProject() {
+        apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
+        tasks.named("idea") {
+            doFirst {
+                throw RuntimeException("To import in IntelliJ, please follow the insturctions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
+            }
+        }
+
         val rootProject = this
         plugins.withType<IdeaPlugin> {
-            apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
-
             with(model) {
                 module {
                     excludeDirs = excludeDirs + rootExcludeDirs
