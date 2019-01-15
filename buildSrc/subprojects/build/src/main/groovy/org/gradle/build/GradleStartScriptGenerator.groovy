@@ -62,7 +62,7 @@ class GradleStartScriptGenerator extends DefaultTask {
         generator.scriptRelPath = 'bin/gradle'
         generator.classpath = ["lib/${launcherJar.singleFile.name}" as String]
         generator.appNameSystemProperty = 'org.gradle.appname'
-        generator.defaultJvmOpts = ["-Xmx64m"]
+        generator.defaultJvmOpts = ["-Xmx64m", "-Xms64m"]
         generator.generateUnixScript(shellScript)
         generator.generateWindowsScript(batchFile)
     }
