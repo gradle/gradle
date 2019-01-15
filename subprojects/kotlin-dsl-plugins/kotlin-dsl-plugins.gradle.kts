@@ -85,3 +85,9 @@ val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 integTestTasks.configureEach {
     dependsOn("publishPluginsToTestRepository")
 }
+
+// TODO:kotlin-dsl investigate
+// See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
+tasks.noDaemonIntegTest {
+    enabled = false
+}
