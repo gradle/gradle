@@ -38,7 +38,7 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
         assert version != null : "version cannot be null";
         this.id = id;
         this.version = version;
-        // pre-compule the hashcode as it's going to be used anyway, and this object
+        // pre-compute the hashcode as it's going to be used anyway, and this object
         // is used as a key in several hash maps
         this.hashCode = 31 * id.hashCode() ^ version.hashCode();
     }

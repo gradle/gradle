@@ -45,10 +45,16 @@ include::sample[dir="userguide/buildlifecycle/basic/groovy",files="settings.grad
 include::sample[dir="userguide/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
-.Output of `gradle test testBoth`
+=== Output of **`gradle test testBoth`**
+[source.multi-language-sample,groovy]
 ----
 > gradle test testBoth
-include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.out[]
+include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.groovy.out[]
+----
+[source.multi-language-sample,kotlin]
+----
+> gradle test testBoth
+include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.kotlin.out[]
 ----
 
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] class in the API documentation for more information.

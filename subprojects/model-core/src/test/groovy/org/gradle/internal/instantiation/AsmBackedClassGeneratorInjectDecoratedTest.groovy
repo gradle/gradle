@@ -65,6 +65,20 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
     }
 
+    def "can inject service using @Inject on an interface getter method"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(Number) >> 12
+
+        when:
+        def obj = create(InterfaceWithServices, services)
+
+        then:
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+    }
+
     def "can optionally set injected service using a service setter method"() {
         given:
         def services = Mock(ServiceLookup)
@@ -82,7 +96,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         0 * services._
     }
 
-    def "retains declared type of service getter"() {
+    def "retains declared generic type of service getter"() {
         given:
         def services = Mock(ServiceLookup)
         _ * services.get(_) >> { Type type ->
@@ -298,6 +312,11 @@ class CustomAnnotationHandler implements InjectAnnotationHandler {
 abstract class AbstractBeanWithServices {
     @Inject
     abstract Number getThing()
+}
+
+interface InterfaceWithServices {
+    @Inject
+    Number getThing()
 }
 
 class BeanWithServices {

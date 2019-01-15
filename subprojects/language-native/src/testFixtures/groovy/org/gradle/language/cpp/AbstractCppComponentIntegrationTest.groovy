@@ -39,7 +39,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
-    def "ignores compile and link tasks when current operating system family is excluded"() {
+    def "assemble task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -49,8 +49,36 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(":$taskNameToAssembleDevelopmentBinary")
-        result.assertTasksSkipped(":$taskNameToAssembleDevelopmentBinary")
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
+    }
+
+    def "build task warns when current operating system family is excluded"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "build"
+
+        and:
+        outputContains("'${componentName}' component in project ':' does not target this operating system.")
+    }
+
+    def "does not fail when current operating system family is excluded but assemble is not invoked"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.os('some-other-family')")
+
+        expect:
+        succeeds "help"
     }
 
     def "fails configuration when no target machine is configured"() {
@@ -152,6 +180,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     protected abstract String getTaskNameToAssembleDevelopmentBinary()
 
     protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
+
+    protected abstract String getComponentName()
 
     protected configureTargetMachines(String targetMachines) {
         return """

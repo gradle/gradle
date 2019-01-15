@@ -16,20 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.reflect.ObjectInstantiationException
-import org.gradle.internal.Try
+import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.snapshot.ValueSnapshot
-import org.gradle.internal.snapshot.impl.ArrayValueSnapshot
-import org.gradle.internal.snapshot.impl.StringValueSnapshot
+import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -40,32 +35,22 @@ import javax.inject.Inject
 
 class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
-    public static final TEST_INPUT = new File("input").absoluteFile
 
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
-        getFiles() >> []
-        fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
-    }
-    def dependenciesProvider = Stub(ExecutionGraphDependenciesResolver) {
-        forTransformer(_ as Transformer) >> Try.successful(dependencies)
-    }
     def instantiatorFactory = TestUtil.instantiatorFactory()
-    def outputDirectory = tmpDir.createDir("OUTPUT_DIR")
-    def outputFile = outputDirectory.file('input/OUTPUT_FILE')
     def transformerInvoker = Mock(TransformerInvoker)
-    def isolatableFactory = Mock(IsolatableFactory)
+    def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
-    def configuration = Mock(ConfigurationInternal)
 
-    def "creates registration without configuration"() {
-        given:
-        def valueSnapshotArray = [] as ValueSnapshot[]
+    def "setup"() {
+        _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> HashCode.fromInt(123)
+    }
 
+    def "creates registration without parameters"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -74,35 +59,16 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-
-        and:
         registry.transforms.size() == 1
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-
-        and:
-        !outputFile.exists()
-
-        when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).get().files
-
-        then:
-        transformed.size() == 1
-        transformed.first() == new File(outputDirectory, "OUTPUT_FILE")
-
-        and:
-        interaction {
-            runTransformer(TEST_INPUT)
-        }
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.config.isolate() == null
+        registration.transformationStep.transformer.parameters.isolate() == []
     }
 
-    def "creates registration with configuration"() {
-        given:
-        def valueSnapshotArray = [new StringValueSnapshot("EXTRA_1"), new StringValueSnapshot("EXTRA_2")] as ValueSnapshot[]
-
+    def "creates registration with parameters"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -113,134 +79,105 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransform.classLoader) >> HashCode.fromInt(123)
-
-        and:
         registry.transforms.size() == 1
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-
-        and:
-        !outputFile.exists()
-
-        when:
-        def transformed = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).get().files
-
-        then:
-        transformed.collect { it.name } == ['OUTPUT_FILE', 'EXTRA_1', 'EXTRA_2']
-        transformed.each {
-            assert it.exists()
-            assert it.parentFile == outputDirectory
-        }
-
-        and:
-        interaction {
-            runTransformer(TEST_INPUT)
-        }
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
+        registration.transformationStep.transformer.config.isolate() == null
+        registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
-    def "fails when artifactTransform cannot be instantiated"() {
-        given:
-        def valueSnapshotArray = [] as ValueSnapshot[]
+    def "delegates are DSL decorated but not extensible when registering without config object"() {
+        def registration
+        def config
 
         when:
         registry.registerTransform {
+            registration = it
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(CannotConstructTransform)
-        }
-
-        then:
-        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(CannotConstructTransform.classLoader) >> HashCode.fromInt(123)
-
-        and:
-        registry.transforms.size() == 1
-
-        when:
-        def registration = registry.transforms.first()
-        def result = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider)
-
-        then:
-        def failure = result.failure.get()
-        failure.message == "Could not create an instance of type $CannotConstructTransform.name."
-
-        and:
-        interaction {
-            runTransformer(TEST_INPUT)
-        }
-    }
-
-    def "fails when incorrect number of artifactTransform parameters supplied for registration"() {
-        given:
-        def valueSnapshotArray = [new StringValueSnapshot("EXTRA_1"),
-                                  new StringValueSnapshot("EXTRA_2"),
-                                  new StringValueSnapshot("EXTRA_3")] as ValueSnapshot[]
-
-        when:
-        registry.registerTransform {
-            it.from.attribute(TEST_ATTRIBUTE, "FROM")
-            it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(TestArtifactTransformWithParams) { artifactConfig ->
-                artifactConfig.params("EXTRA_1", "EXTRA_2")
-                artifactConfig.params("EXTRA_3")
+            it.artifactTransform(TestArtifactTransform) {
+                config = it
             }
         }
 
         then:
-        1 * isolatableFactory.isolate(["EXTRA_1", "EXTRA_2", "EXTRA_3"] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(TestArtifactTransformWithParams.classLoader) >> HashCode.fromInt(123)
-
-        and:
-        registry.transforms.size() == 1
-
-        when:
-        def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure.get()
-
-        then:
-        failure instanceof ObjectInstantiationException
-        failure.message == "Could not create an instance of type $TestArtifactTransformWithParams.name."
-        failure.cause instanceof IllegalArgumentException
-        failure.cause.message == "Too many parameters provided for constructor for class ${TestArtifactTransformWithParams.name}. Expected 2, received 3."
-
-        and:
-        interaction {
-            runTransformer(TEST_INPUT)
-        }
+        registration instanceof DynamicObjectAware
+        !(registration instanceof ExtensionAware)
+        config instanceof DynamicObjectAware
+        !(config instanceof ExtensionAware)
     }
 
-    def "fails when artifactTransform throws exception"() {
-        given:
-        def valueSnapshotArray = [] as ValueSnapshot[]
-
+    def "creates registration with annotated config object and without parameters"() {
         when:
-        registry.registerTransform {
+        registry.registerTransform(TestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.artifactTransform(BrokenTransform)
+            assert it.actionClass == TestArtifactTransform
         }
 
         then:
-        1 * isolatableFactory.isolate([] as Object[]) >> new ArrayValueSnapshot(valueSnapshotArray)
-        1 * classLoaderHierarchyHasher.getClassLoaderHash(BrokenTransform.classLoader) >> HashCode.fromInt(123)
-
-        and:
         registry.transforms.size() == 1
+        def registration = registry.transforms[0]
+        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
+        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
+        registration.transformationStep.transformer.parameters.isolate() == []
+    }
+
+    def "creates registration with unannotated config object and without parameters"() {
+        when:
+        registry.registerTransform(UnAnnotatedTestTransformConfig) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.actionClass = TestArtifactTransform
+        }
+
+        then:
+        registry.transforms.size() == 1
+        def registration = registry.transforms[0]
+        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
+        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.config.isolate() instanceof UnAnnotatedTestTransformConfig
+        registration.transformationStep.transformer.parameters.isolate() == []
+    }
+
+    def "creates registration with annotated config object and parameters"() {
+        when:
+        registry.registerTransform(TestTransformConfig) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.params = ["EXTRA_1", "EXTRA_2"]
+            it.actionClass = TestArtifactTransformWithParams
+        }
+
+        then:
+        registry.transforms.size() == 1
+        def registration = registry.transforms[0]
+        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
+        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
+        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
+        registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
+    }
+
+    def "delegates are DSL decorated but not extensible when registering with config object"() {
+        def registration
 
         when:
-        def registration = registry.transforms.first()
-        def failure = registration.transformationStep.transform(TransformationSubject.initial(TEST_INPUT), dependenciesProvider).failure.get()
+        registry.registerTransform(TestTransformConfig) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.actionClass = TestArtifactTransform
+            registration = it
+        }
 
         then:
-        failure.message == 'broken'
-
-        and:
-        interaction {
-            runTransformer(TEST_INPUT)
-        }
+        registration instanceof DynamicObjectAware
+        !(registration instanceof ExtensionAware)
     }
 
     def "fails when artifactTransform configuration action fails for registration"() {
@@ -326,56 +263,30 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    private void runTransformer(File input) {
-        1 * transformerInvoker.invoke(_ as Transformer, input, _ as ArtifactTransformDependenciesInternal, _ as TransformationSubject)  >> { Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject ->
-            return Try.ofFailable { ImmutableList.copyOf(transformer.transform(primaryInput, outputDirectory, dependencies)) }
-        }
+    @TransformAction(TestArtifactTransform)
+    static class TestTransformConfig {
+        String value
+    }
+
+    static class UnAnnotatedTestTransformConfig {
+        String value
     }
 
     static class TestArtifactTransform extends ArtifactTransform {
         @Override
         List<File> transform(File input) {
-            assert input == TEST_INPUT
-            def outputFile = new File(outputDirectory, 'OUTPUT_FILE')
-            outputFile << "tmp"
-            [outputFile]
+            throw new UnsupportedOperationException()
         }
     }
 
     static class TestArtifactTransformWithParams extends ArtifactTransform {
-        def outputFiles = ['OUTPUT_FILE']
-
         @Inject
         TestArtifactTransformWithParams(String extra1, String extra2) {
-            outputFiles << extra1 << extra2
         }
 
         @Override
         List<File> transform(File input) {
-            assert input == TEST_INPUT
-            return outputFiles.collect { outputFileName ->
-                def outputFile = new File(outputDirectory, outputFileName)
-                outputFile << "tmp"
-                outputFile
-            }
-        }
-    }
-
-    static class BrokenTransform extends ArtifactTransform {
-        @Override
-        List<File> transform(File input) {
-            throw new RuntimeException("broken")
-        }
-    }
-
-    static class CannotConstructTransform extends ArtifactTransform {
-        CannotConstructTransform() {
-            throw new RuntimeException("broken")
-        }
-
-        @Override
-        List<File> transform(File input) {
-            return []
+            throw new UnsupportedOperationException()
         }
     }
 }

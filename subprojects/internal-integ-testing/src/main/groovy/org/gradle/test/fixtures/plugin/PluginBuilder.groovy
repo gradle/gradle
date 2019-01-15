@@ -182,7 +182,7 @@ class PluginBuilder {
         this
     }
 
-    PluginBuilder addNonConstructablePlugin(String id = "test-plugin", String className = "TestPlugin") {
+    PluginBuilder addNonConstructiblePlugin(String id = "test-plugin", String className = "TestPlugin") {
         addPluginSource(id, className, """
             package $packageName
 

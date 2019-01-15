@@ -62,7 +62,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     @Deprecated
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor FactoryNamedDomainObjectContaineronstructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator)", "Don't use internal API");
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor FactoryNamedDomainObjectContainerConstructor AbstractNamedDomainObjectContainer(Class<T>, Instantiator)", "Don't use internal API");
     }
 
     /**

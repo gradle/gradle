@@ -69,6 +69,23 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Thing(thing2): Thing(thing2)")
     }
 
+    def "plugin can create instance of interface with mutable properties"() {
+        buildFile << """
+            interface Thing {
+                String getProp();
+                void setProp(String value);
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.prop == null
+            t.prop = "value"
+            assert t.prop == "value"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "services are injected into instances using constructor or getter"() {
         buildFile << """
             class Thing1 {
@@ -152,6 +169,20 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             assert objects.newInstance(Thing2).name == "name"
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "services can be injected using getter on interface"() {
+        buildFile << """
+            interface Thing {
+                @javax.inject.Inject
+                ObjectFactory getObjects()
+            }
+            
+            assert objects.newInstance(Thing).objects != null
 """
 
         expect:
@@ -251,7 +282,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    def "object creation fails with ObjectInstantiationException given invalid factory constructor"() {
+    def "object creation fails with ObjectInstantiationException given invalid construction parameters"() {
         given:
         buildFile << """
         class Thing {}
@@ -271,7 +302,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Too many parameters provided for constructor for class Thing. Expected 0, received 1.')
     }
 
-    def "object creation fails with ObjectInstantiationException given interface"() {
+    def "object creation fails with ObjectInstantiationException when construction parameters provided for interface"() {
         given:
         buildFile << """
         interface Thing {}
@@ -288,7 +319,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Interface Thing is not a class.')
+        failure.assertHasCause('Too many parameters provided for constructor for interface Thing. Expected 0, received 1.')
     }
 
     def "object creation fails with ObjectInstantiationException given non-static inner class"() {
@@ -314,7 +345,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Class Things$Thing is a non-static inner class.')
     }
 
-    def "object creation fails with ObjectInstantiationException given unknown service requested"() {
+    def "object creation fails with ObjectInstantiationException given unknown service requested as constructor parameter"() {
         given:
         buildFile << """
         interface Unknown { }

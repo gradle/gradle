@@ -65,7 +65,7 @@ class DefaultColorMapTest extends Specification {
         1 * ansi.fg(Color.CYAN)
         1 * ansi.a(Attribute.ITALIC)
 
-        when: 'A color is requested for FailureHeader which defaults to combinging Failure and Header'
+        when: 'A color is requested for FailureHeader which defaults to combining Failure and Header'
         color = map.getColourFor(Style.FailureHeader)
         color.on(ansi)
 

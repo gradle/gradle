@@ -80,7 +80,7 @@ class BuildScopeServicesTest extends Specification {
     StartParameter startParameter = new StartParameter()
     ServiceRegistry sessionServices = Mock()
     Factory<CacheFactory> cacheFactoryFactory = Mock()
-    ClosableCacheFactory cacheFactory = Mock()
+    CloseableCacheFactory cacheFactory = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
     ListenerManager listenerManager = new DefaultListenerManager()
 
@@ -261,7 +261,7 @@ class BuildScopeServicesTest extends Specification {
         t
     }
 
-    public interface ClosableCacheFactory extends CacheFactory {
+    public interface CloseableCacheFactory extends CacheFactory {
         void close()
     }
 }
