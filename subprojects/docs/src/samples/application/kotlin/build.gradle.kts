@@ -6,6 +6,10 @@ plugins {
 
 version = "1.0.2"
 
+// tag::applicationName-conf[]
+application.applicationName = "my-app"
+// end::applicationName-conf[]
+
 // tag::mainClassName-conf[]
 application {
     mainClassName = "org.gradle.sample.Main"
