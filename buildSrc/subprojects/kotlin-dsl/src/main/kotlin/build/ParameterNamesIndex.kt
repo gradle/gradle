@@ -18,7 +18,7 @@ package build
 
 
 import com.thoughtworks.qdox.JavaProjectBuilder
-import com.thoughtworks.qdox.library.SortedClassLibraryBuilder
+import com.thoughtworks.qdox.library.OrderedClassLibraryBuilder
 import com.thoughtworks.qdox.model.JavaMethod
 
 import org.gradle.api.DefaultTask
@@ -100,7 +100,7 @@ open class ParameterNamesIndex : DefaultTask() {
 
     private
     fun javaProjectBuilderFor(loader: ClassLoader) =
-        JavaProjectBuilder(SortedClassLibraryBuilder().apply { appendClassLoader(loader) })
+        JavaProjectBuilder(OrderedClassLibraryBuilder().apply { appendClassLoader(loader) })
 
     private
     fun JavaProjectBuilder.sequenceOfJavaSourcesFrom(sources: Set<File>) =
