@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -78,20 +79,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return ArrayValueSnapshot.EMPTY;
             case ARRAY_SNAPSHOT:
                 size = decoder.readSmallInt();
-                elements = new ValueSnapshot[size];
-                for (int i = 0; i < size; i++) {
-                    elements[i] = read(decoder);
-                }
-                return new ArrayValueSnapshot(elements);
+                ImmutableList<ValueSnapshot> arrayElements = readList(decoder, size);
+                return new ArrayValueSnapshot(arrayElements);
             case EMPTY_LIST_SNAPSHOT:
                 return ListValueSnapshot.EMPTY;
             case LIST_SNAPSHOT:
                 size = decoder.readSmallInt();
-                elements = new ValueSnapshot[size];
-                for (int i = 0; i < size; i++) {
-                    elements[i] = read(decoder);
-                }
-                return new ListValueSnapshot(elements);
+                ImmutableList<ValueSnapshot> listElements = readList(decoder, size);
+                return new ListValueSnapshot(listElements);
             case SET_SNAPSHOT:
                 size = decoder.readSmallInt();
                 ImmutableSet.Builder<ValueSnapshot> setBuilder = ImmutableSet.builder();
@@ -119,6 +114,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
         }
     }
 
+    private ImmutableList<ValueSnapshot> readList(Decoder decoder, int size) throws Exception {
+        ImmutableList.Builder<ValueSnapshot> arrayElements = ImmutableList.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            arrayElements.add(read(decoder));
+        }
+        return arrayElements.build();
+    }
+
     @Override
     public void write(Encoder encoder, ValueSnapshot snapshot) throws Exception {
         if (snapshot == NullValueSnapshot.INSTANCE) {
@@ -129,11 +132,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             encoder.writeString(stringSnapshot.getValue());
         } else if (snapshot instanceof ListValueSnapshot) {
             ListValueSnapshot listSnapshot = (ListValueSnapshot) snapshot;
-            if (listSnapshot.getElements().length == 0) {
+            if (listSnapshot.getElements().isEmpty()) {
                 encoder.writeSmallInt(EMPTY_LIST_SNAPSHOT);
             } else {
                 encoder.writeSmallInt(LIST_SNAPSHOT);
-                encoder.writeSmallInt(listSnapshot.getElements().length);
+                encoder.writeSmallInt(listSnapshot.getElements().size());
                 for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
                     write(encoder, valueSnapshot);
                 }
@@ -194,11 +197,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             }
         } else if (snapshot instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot arraySnapshot = (ArrayValueSnapshot) snapshot;
-            if (arraySnapshot.getElements().length == 0) {
+            if (arraySnapshot.getElements().isEmpty()) {
                 encoder.writeSmallInt(EMPTY_ARRAY_SNAPSHOT);
             } else {
                 encoder.writeSmallInt(ARRAY_SNAPSHOT);
-                encoder.writeSmallInt(arraySnapshot.getElements().length);
+                encoder.writeSmallInt(arraySnapshot.getElements().size());
                 for (ValueSnapshot valueSnapshot : arraySnapshot.getElements()) {
                     write(encoder, valueSnapshot);
                 }
