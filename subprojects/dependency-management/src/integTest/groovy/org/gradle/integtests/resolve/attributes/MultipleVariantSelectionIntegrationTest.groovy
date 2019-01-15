@@ -474,6 +474,83 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
+    def "detects conflicts between component with a capability and a variant with the same capability"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+            'org:bar:1.0' {
+                variant('api') {
+                    capability('org', 'foo', '1.0')
+                }
+                variant('runtime') {
+                    capability('org', 'foo', '1.0')
+                }
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0')
+                conf('org:bar:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:foo:1.0')
+    }
+
+    def "detects conflicts between 2 variants of 2 different components with the same capability"() {
+        given:
+        repository {
+            'org:foo:1.0'{
+                variant('api') {
+                    capability('org', 'blah', '1.0')
+                }
+                variant('runtime') {
+                    capability('org', 'blah', '1.0')
+                }
+            }
+            'org:bar:1.0' {
+                variant('api') {
+                    capability('org', 'blah', '1.0')
+                }
+                variant('runtime') {
+                    capability('org', 'blah', '1.0')
+                }
+            }
+        }
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0')
+                conf('org:bar:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:blah:1.0')
+    }
+
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }
