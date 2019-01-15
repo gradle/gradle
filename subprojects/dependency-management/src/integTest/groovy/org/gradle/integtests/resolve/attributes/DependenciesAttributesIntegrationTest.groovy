@@ -160,6 +160,51 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     @RequiredFeatures(
             @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
+    def "Fails resolution because dependency attributes and constraint attributes conflict"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                constraints {
+                    conf('org:test:1.0') {
+                        attributes {
+                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        }
+                    }
+                }
+                conf('org:test') {
+                   attributes {
+                      attribute(CUSTOM_ATTRIBUTE, 'c1')
+                   }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("""Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org:test:1.0""")
+    }
+
+    @RequiredFeatures(
+            @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    )
     @Unroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
     @Issue("gradle/gradle#5232")
     def "can declare typed attributes without failing serialization"() {
