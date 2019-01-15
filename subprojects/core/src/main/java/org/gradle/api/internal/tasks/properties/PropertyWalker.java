@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.file.FileResolver;
-
 /**
  * Walks properties declared by the type.
  */
 public interface PropertyWalker {
-    void visitProperties(PropertyVisitor visitor, Object instance, FileResolver resolver);
+    void visitProperties(PropertyVisitor visitor, Object instance);
 }

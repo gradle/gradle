@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Named
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Destroys
@@ -225,6 +224,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task, TestFiles.resolver())
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task)
     }
 }
