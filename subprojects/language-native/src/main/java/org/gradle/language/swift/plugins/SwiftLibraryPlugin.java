@@ -36,7 +36,7 @@ import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
@@ -136,7 +136,7 @@ public class SwiftLibraryPlugin implements Plugin<Project> {
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             library.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftTargetMachine> result = toolChainSelector.select(SwiftTargetMachine.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), library.getSourceCompatibility().getOrNull()));
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), library.getSourceCompatibility().getOrNull()));
 
                             if (variantIdentity.getLinkage().equals(Linkage.SHARED)) {
                                 library.addSharedLibrary(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());

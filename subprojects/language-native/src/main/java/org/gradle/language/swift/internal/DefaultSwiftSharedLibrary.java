@@ -37,7 +37,7 @@ import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRunt
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftSharedLibrary;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
@@ -58,7 +58,7 @@ public class DefaultSwiftSharedLibrary extends DefaultSwiftBinary implements Swi
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftTargetMachine targetMachine) {
+    public DefaultSwiftSharedLibrary(Names names, ObjectFactory objectFactory, FileOperations fileOperations, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftPlatform targetMachine) {
         super(names, objectFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         this.linkFile = objectFactory.fileProperty();
         this.linkFileProducer = objectFactory.property(Task.class);

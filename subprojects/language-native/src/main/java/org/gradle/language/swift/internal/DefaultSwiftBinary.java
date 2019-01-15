@@ -40,7 +40,7 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftBinary;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
@@ -67,12 +67,12 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final Configuration runtimeLibs;
     private final RegularFileProperty moduleFile;
     private final Property<SwiftCompile> compileTaskProperty;
-    private final SwiftTargetMachine targetMachine;
+    private final SwiftPlatform targetMachine;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration importPathConfiguration;
 
-    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftTargetMachine targetMachine) {
+    public DefaultSwiftBinary(Names names, final ObjectFactory objectFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration componentImplementation, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, SwiftPlatform targetMachine) {
         super(names, objectFactory, componentImplementation, targetPlatform);
         this.module = module;
         this.testable = testable;
@@ -180,7 +180,7 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     }
 
     @Override
-    public SwiftTargetMachine getTargetMachine() {
+    public SwiftPlatform getTargetMachine() {
         return targetMachine;
     }
 

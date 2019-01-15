@@ -28,7 +28,7 @@ import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.internal.DefaultComponentDependencies;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.test.xctest.SwiftXCTestBinary;
@@ -63,13 +63,13 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
         return Describables.withTypeAndName("XCTest suite", getName());
     }
 
-    public SwiftXCTestExecutable addExecutable(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftTargetMachine targetMachine) {
+    public SwiftXCTestExecutable addExecutable(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftPlatform targetMachine) {
         SwiftXCTestExecutable result = objectFactory.newInstance(DefaultSwiftXCTestExecutable.class, Names.of(getName() + "Executable", getName()), getModule(), false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         getBinaries().add(result);
         return result;
     }
 
-    public SwiftXCTestBundle addBundle(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftTargetMachine targetMachine) {
+    public SwiftXCTestBundle addBundle(NativeVariantIdentity identity, NativePlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, SwiftPlatform targetMachine) {
         SwiftXCTestBundle result = objectFactory.newInstance(DefaultSwiftXCTestBundle.class, Names.of(getName() + "Executable", getName()), getModule(), false, getSwiftSource(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity, targetMachine);
         getBinaries().add(result);
         return result;

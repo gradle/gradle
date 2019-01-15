@@ -39,7 +39,7 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
@@ -163,7 +163,7 @@ public class XCTestConventionPlugin implements Plugin<Project> {
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             testComponent.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftTargetMachine> result = toolChainSelector.select(SwiftTargetMachine.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), testComponent.getSourceCompatibility().getOrNull()));
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), testComponent.getSourceCompatibility().getOrNull()));
 
                             // Create test suite executable
                             if (result.getTargetMachine().getOperatingSystemFamily().isMacOs()) {

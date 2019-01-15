@@ -17,7 +17,7 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.language.cpp.internal.NativeVariantIdentity
-import org.gradle.language.swift.SwiftTargetMachine
+import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
@@ -48,7 +48,7 @@ class DefaultSwiftApplicationTest extends Specification {
 
     def "can create executable binary"() {
         def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftTargetMachine)
+        def targetMachine = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 

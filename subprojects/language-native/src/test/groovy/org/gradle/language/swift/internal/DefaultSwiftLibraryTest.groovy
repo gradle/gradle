@@ -19,7 +19,7 @@ package org.gradle.language.swift.internal
 
 import org.gradle.language.cpp.internal.DefaultUsageContext
 import org.gradle.language.cpp.internal.NativeVariantIdentity
-import org.gradle.language.swift.SwiftTargetMachine
+import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.TargetMachine
@@ -60,7 +60,7 @@ class DefaultSwiftLibraryTest extends Specification {
 
     def "can create static binary"() {
         def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftTargetMachine)
+        def targetMachine = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 
@@ -80,7 +80,7 @@ class DefaultSwiftLibraryTest extends Specification {
 
     def "can create shared binary"() {
         def targetPlatform = Stub(NativePlatform)
-        def targetMachine = Stub(SwiftTargetMachine)
+        def targetMachine = Stub(SwiftPlatform)
         def toolChain = Stub(NativeToolChainInternal)
         def platformToolProvider = Stub(PlatformToolProvider)
 

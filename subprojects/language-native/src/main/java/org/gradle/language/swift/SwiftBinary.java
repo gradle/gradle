@@ -84,5 +84,5 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
      *
      * @since 5.2
      */
-    SwiftTargetMachine getTargetMachine();
+    SwiftPlatform getTargetMachine();
 }

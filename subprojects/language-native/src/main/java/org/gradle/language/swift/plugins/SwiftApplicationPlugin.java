@@ -28,7 +28,7 @@ import org.gradle.language.nativeplatform.internal.Dimensions;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftExecutable;
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftApplication;
 import org.gradle.language.swift.internal.DefaultSwiftTargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
@@ -106,7 +106,7 @@ public class SwiftApplicationPlugin implements Plugin<Project> {
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
                             application.getSourceCompatibility().finalizeValue();
-                            ToolChainSelector.Result<SwiftTargetMachine> result = toolChainSelector.select(SwiftTargetMachine.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftTargetMachine(variantIdentity.getTargetMachine(), application.getSourceCompatibility().getOrNull()));
                             application.addExecutable(variantIdentity, variantIdentity.isDebuggable() && !variantIdentity.isOptimized(), result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider(), result.getTargetMachine());
                         }
                     });

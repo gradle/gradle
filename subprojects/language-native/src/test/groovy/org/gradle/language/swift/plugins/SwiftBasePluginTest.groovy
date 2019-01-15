@@ -23,7 +23,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.nativeplatform.internal.Names
-import org.gradle.language.swift.SwiftTargetMachine
+import org.gradle.language.swift.SwiftPlatform
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.language.swift.internal.DefaultSwiftApplication
 import org.gradle.language.swift.internal.DefaultSwiftBinary
@@ -56,7 +56,7 @@ class SwiftBasePluginTest extends Specification {
         binary.name >> name
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
-        binary.targetMachine >> Stub(SwiftTargetMachine)
+        binary.targetMachine >> Stub(SwiftPlatform)
         binary.sourceCompatibility >> project.objects.property(SwiftVersion)
 
         when:
@@ -84,7 +84,7 @@ class SwiftBasePluginTest extends Specification {
         executable.module >> Providers.of("TestApp")
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
-        executable.targetMachine >> Stub(SwiftTargetMachine)
+        executable.targetMachine >> Stub(SwiftPlatform)
         executable.sourceCompatibility >> project.objects.property(SwiftVersion)
         executable.platformToolProvider >> new TestPlatformToolProvider()
         executable.implementationDependencies >> Stub(ConfigurationInternal)
@@ -116,7 +116,7 @@ class SwiftBasePluginTest extends Specification {
         library.names >> Names.of(name)
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
-        library.targetMachine >> Stub(SwiftTargetMachine)
+        library.targetMachine >> Stub(SwiftPlatform)
         library.sourceCompatibility >> Stub(PropertyInternal) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.linkFile >> project.objects.fileProperty()

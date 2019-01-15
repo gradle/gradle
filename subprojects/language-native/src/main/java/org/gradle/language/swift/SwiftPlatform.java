@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.TargetMachine;
  * @since 5.2
  */
 @Incubating
-public interface SwiftTargetMachine extends TargetMachine {
+public interface SwiftPlatform extends TargetMachine {
     /**
      * Returns the Swift language level to use to compile the source files.
      */

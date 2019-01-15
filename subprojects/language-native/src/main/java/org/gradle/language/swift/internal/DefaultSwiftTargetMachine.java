@@ -16,12 +16,12 @@
 
 package org.gradle.language.swift.internal;
 
-import org.gradle.language.swift.SwiftTargetMachine;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.internal.DefaultTargetMachine;
 
-public class DefaultSwiftTargetMachine extends DefaultTargetMachine implements SwiftTargetMachine {
+public class DefaultSwiftTargetMachine extends DefaultTargetMachine implements SwiftPlatform {
     private final SwiftVersion sourceCompatibility;
 
     public DefaultSwiftTargetMachine(TargetMachine targetMachine, SwiftVersion sourceCompatibility) {
