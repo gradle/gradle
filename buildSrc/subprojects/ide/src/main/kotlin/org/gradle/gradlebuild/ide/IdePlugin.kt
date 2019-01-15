@@ -18,12 +18,10 @@ package org.gradle.gradlebuild.ide
 import accessors.base
 import accessors.eclipse
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
-import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Copy
@@ -34,12 +32,7 @@ import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.IdeaPlugin
-import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
-import org.gradle.plugins.ide.idea.model.IdeaModule
 import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.gradle.plugins.ide.idea.model.Module
-import org.gradle.plugins.ide.idea.model.ModuleLibrary
-import org.jetbrains.gradle.ext.ActionDelegationConfig
 import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
@@ -51,16 +44,7 @@ import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
 import org.jetbrains.gradle.ext.TaskTriggersConfig
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.Entities
-import org.jsoup.parser.Parser
 import java.io.File
-
-
-private
-const val ideConfigurationBaseName = "ideConfiguration"
 
 
 private
@@ -101,7 +85,6 @@ open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         configureEclipseForAllProjects()
-        configureIdeaForAllProjects()
         configureIdeaForRootProject()
     }
 
@@ -133,83 +116,20 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureIdeaForAllProjects() = allprojects {
-        plugins.withType<IdeaPlugin> {
-            with(model) {
-                module {
-                    configureLanguageLevel(this)
-                    iml {
-                        whenMerged(Action<Module> {
-                            removeGradleBuildOutputDirectories(this)
-                        })
-                        withXml {
-                            withJsoup {
-                                configureSourceFolders(it)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private
     fun Project.configureIdeaForRootProject() {
         val rootProject = this
         plugins.withType<IdeaPlugin> {
             apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
+
             with(model) {
                 module {
                     excludeDirs = excludeDirs + rootExcludeDirs
                 }
 
                 project {
-                    jdkName = "9.0"
+                    jdkName = "11.0"
                     wildcards.add("?*.gradle")
                     vcs = "Git"
-                    ipr {
-                        withXml {
-                            withJsoup { document ->
-                                val projectElement = document.getElementsByTag("project").first()
-                                configureCompilerConfiguration(projectElement)
-                                configureCopyright(projectElement)
-
-                                // We are using an extension method instead of appending a fixed XML String,
-                                // since jsoup `append` method converts all xml tags to lower case.
-                                // In doing so, tags in the code style settings are ignored.
-                                projectElement.removeBySelector("component[name=ProjectCodeStyleConfiguration]")
-                                    .configureCodeStyleSettings()
-                                projectElement.removeBySelector("component[name=InspectionProjectProfileManager]")
-                                    .configureInspectionSettings()
-
-                                configureFrameworkDetectionExcludes(projectElement)
-                                configureBuildSrc(projectElement)
-                            }
-                            // TODO replace this hack by trying out with kotlinx.dom
-                            val xmlStringBuilder = asString()
-                            val toReplace = "{newline}"
-                            var startIndex = xmlStringBuilder.indexOf(toReplace)
-                            while (startIndex > -1) {
-                                xmlStringBuilder.replace(startIndex, startIndex + toReplace.length, "&#10;")
-                                startIndex = xmlStringBuilder.indexOf(toReplace)
-                            }
-                        }
-                    }
-                    workspace {
-                        iws {
-                            withXml {
-                                withJsoup { document ->
-                                    val projectElement = document.getElementsByTag("project").first()
-                                    projectElement.createOrEmptyOutChildElement("CompilerWorkspaceConfiguration")
-                                        .option("COMPILER_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
-                                    val runManagerComponent = projectElement.select("component[name=RunManager]")
-                                        .first()
-                                    updateJUnitRunConfigurationsOf(runManagerComponent)
-                                    configureGradleRunConfigurations(runManagerComponent)
-                                }
-                            }
-                        }
-                    }
 
                     settings {
                         configureCompilerSettings(rootProject)
@@ -225,52 +145,6 @@ open class IdePlugin : Plugin<Project> {
             }
         }
         configureJUnitDefaults()
-    }
-
-    private
-    fun configureGradleRunConfigurations(runManagerComponent: org.jsoup.nodes.Element) {
-        runManagerComponent.attr("selected", "Application.Gradle")
-        runManagerComponent.removeBySelector("configuration[name=gradle]")
-            .append(GRADLE_CONFIGURATION)
-        val gradleRunners = mapOf(
-            "Regenerate IDEA metadata" to "idea",
-            "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives")
-        gradleRunners.forEach { runnerName, commandLine ->
-            runManagerComponent.removeBySelector("configuration[name=$runnerName]")
-                .append(getGradleRunnerConfiguration(runnerName, commandLine))
-        }
-        val remoteDebugConfigurationName = "Remote debug port 5005"
-        configureRemoteDebugConfiguration(runManagerComponent, remoteDebugConfigurationName)
-        configureListItems(remoteDebugConfigurationName, gradleRunners, runManagerComponent)
-    }
-
-    private
-    fun configureListItems(remoteDebugConfigurationName: String, gradleRunners: Map<String, String>, runManagerComponent: Element) {
-        val listItemValues = mutableListOf("Application.Gradle", remoteDebugConfigurationName)
-        listItemValues += gradleRunners.values
-        val list = runManagerComponent.removeBySelector("list")
-            .appendElement("list")
-            .attr("size", listItemValues.size.toString())
-        listItemValues.forEachIndexed { index, itemValue ->
-            list.appendElement("item")
-                .attr("index", index.toString())
-                .attr("class", "java.lang.String")
-                .attr("itemvalue", itemValue)
-        }
-    }
-
-    private
-    fun configureRemoteDebugConfiguration(runManagerComponent: org.jsoup.nodes.Element, configurationName: String) {
-        runManagerComponent.removeBySelector("configuration[name=$configurationName]").append("""
-                <configuration default="false" name="$configurationName" type="Remote" factoryName="Remote">
-                  <option name="USE_SOCKET_TRANSPORT" value="true" />
-                  <option name="SERVER_MODE" value="false" />
-                  <option name="SHMEM_ADDRESS" value="javadebug" />
-                  <option name="HOST" value="localhost" />
-                  <option name="PORT" value="5005" />
-                  <method />
-                </configuration>
-            """)
     }
 
     private
@@ -312,26 +186,6 @@ open class IdePlugin : Plugin<Project> {
                 host = "localhost"
                 port = 5005
             }
-        }
-    }
-
-    private
-    fun Project.updateJUnitRunConfigurationsOf(runManagerComponent: org.jsoup.nodes.Element) {
-        val junitVmParameters = getDefaultJunitVmParameters(docsProject())
-        runManagerComponent.select("configuration[type=JUnit]").forEach {
-            updateJUnitRunConfiguration(it, junitVmParameters)
-        }
-    }
-
-    private
-    fun updateJUnitRunConfiguration(junitConfiguration: Element, junitVmParameters: String) {
-        junitConfiguration.apply {
-            select("option[name=VM_PARAMETERS]").first()
-                .attr("value", junitVmParameters)
-            select("envs").first()
-                .createOrEmptyOutChildElement("env")
-                .attr("name", "LANG")
-                .attr("value", lang)
         }
     }
 
@@ -389,110 +243,6 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun configureSourceFolders(document: Document) {
-        val sourceFolders = document
-            .select("component[name=NewModuleRootManager]").first()
-            .select("content").first()
-            .select("sourceFolder[url$=/resources]")
-
-        sourceFolders.forEach {
-            it.attributes().apply {
-                val isTestSource = get("isTestSource") == "true"
-                remove("isTestSource")
-                put("type", if (isTestSource) "java-test-resource" else "java-resource")
-            }
-        }
-    }
-
-    private
-    fun Project.configureLanguageLevel(ideaModule: IdeaModule) {
-        @Suppress("UNCHECKED_CAST")
-        val ideaLanguageLevel = "1.8"
-        // Force everything to Java 8, pending detangling some int test cycles or switching to project-per-source-set mapping
-        ideaModule.languageLevel = IdeaLanguageLevel(ideaLanguageLevel)
-        ideaModule.targetBytecodeVersion = JavaVersion.toVersion(ideaLanguageLevel)
-    }
-
-    private
-    fun removeGradleBuildOutputDirectories(module: Module) {
-        module.dependencies.removeAll {
-            it is ModuleLibrary &&
-                it.classes.any {
-                    // remove all Gradle build output directories from all scopes
-                    it.url.contains("/build/classes/") ||
-                        it.url.contains("/build/resources/") ||
-                        // remove possible resource directories from all scopes
-                        // replaced by java-resource/java-test-resource
-                        it.url.contains("${'$'}MODULE_DIR$/src/") ||
-                        // keep for build/generated-resources/main/*-classpath.properties
-                        // required by DefaultModuleRegistry
-                        it.url.contains("${'$'}MODULE_DIR$/build/") && !it.url.contains("generated-resources")
-                }
-        }
-        // remove all build directories from sourceFolders
-        // f.e. buildInit module contains such a sourceFolder
-        module.sourceFolders.removeAll {
-            it.url.contains("${'$'}MODULE_DIR$/build/")
-        }
-    }
-
-    private
-    val minusLower = "-\\p{Lower}".toRegex()
-
-    private
-    fun String.toCamelCase() =
-        replace(minusLower) { "${it.value[1].toUpperCase()}" }
-
-    private
-    fun Project.configureBuildSrc(root: Element) {
-        val subprojectModuleFiles = file("buildSrc/subprojects").listFiles().filter { it.isDirectory }.map {
-            val projectName = it.name.toCamelCase()
-            "buildSrc/subprojects/${it.name}/buildSrc-$projectName.iml"
-        }
-        val projectModuleManager = root.select("component[name=ProjectModuleManager]").first()
-        subprojectModuleFiles.filter { file(it).exists() }.forEach { relativeModulePath ->
-            val hasModule = projectModuleManager
-                .select("modules")?.first()
-                ?.select("module[filepath*=$relativeModulePath]")?.isNotEmpty() ?: false
-
-            if (!hasModule) {
-                projectModuleManager
-                    .select("modules").first()
-                    .appendElement("module")
-                    .attr("fileurl", "file://\$PROJECT_DIR\$/$relativeModulePath")
-                    .attr("filepath", "\$PROJECT_DIR\$/$relativeModulePath")
-            }
-        }
-    }
-
-    private
-    fun configureFrameworkDetectionExcludes(root: Element) {
-        val componentName = "FrameworkDetectionExcludesConfiguration"
-        root.removeBySelector("component[name=$componentName]")
-            .appendElement("component").attr("name", componentName)
-            .appendElement("type").attr("id", "android")
-            .appendElement("type").attr("id", "web")
-    }
-
-    private
-    fun configureCopyright(root: Element) {
-        val options = mapOf(
-            // TODO Get rid of {newline} and the replacement hack by using a better XML parser / writer
-            "notice" to GradleCopyright.notice.replace("\n", "{newline}"),
-            "keyword" to GradleCopyright.keyword,
-            "allowReplaceKeyword" to "",
-            "myName" to GradleCopyright.profileName,
-            "myLocal" to "true")
-        val copyrightManager = root.select("component[name=CopyrightManager]").first()
-        copyrightManager.attr("default", GradleCopyright.profileName)
-        copyrightManager.createOrEmptyOutChildElement("copyright").let {
-            options.forEach { name, value ->
-                it.option(name, value)
-            }
-        }
-    }
-
-    private
     fun ProjectSettings.configureCopyright() {
         copyright {
             useDefault = GradleCopyright.profileName
@@ -503,16 +253,6 @@ open class IdePlugin : Plugin<Project> {
                 }
             }
         }
-    }
-
-    private
-    fun configureCompilerConfiguration(root: Element) {
-        val compilerConfiguration = root.select("component[name=CompilerConfiguration]").first()
-        compilerConfiguration.createOrEmptyOutChildElement("excludeFromCompile")
-        compilerConfiguration.removeBySelector("option[name=BUILD_PROCESS_HEAP_SIZE]")
-            .option("BUILD_PROCESS_HEAP_SIZE", javaCompilerHeapSpace.toString())
-        compilerConfiguration.removeBySelector("option[name=USE_RELEASE_OPTION]")
-            .option("USE_RELEASE_OPTION", "false")
     }
 
     private
@@ -529,30 +269,17 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun getGradleRunnerConfiguration(runnerName: String, commandLine: String): String {
-        return """
-            <configuration default="false" name="$runnerName" type="Application" factoryName="Application">
-                <extension name="coverage" enabled="false" merge="false" />
-                <option name="MAIN_CLASS_NAME" value="org.gradle.testing.internal.util.GradlewRunner" />
-                <option name="VM_PARAMETERS" value="" />
-                <option name="PROGRAM_PARAMETERS" value="$commandLine" />
-                <option name="WORKING_DIRECTORY" value="file://${'$'}PROJECT_DIR$" />
-                <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-                <option name="ALTERNATIVE_JRE_PATH" value="" />
-                <option name="ENABLE_SWING_INSPECTOR" value="false" />
-                <option name="ENV_VARIABLES" />
-                <option name="PASS_PARENT_ENVS" value="true" />
-                <module name="internalTesting" />
-                <envs>
-                    <env name="TERM" value="xterm" />
-                </envs>
-                <method>
-                    <option name="Make" enabled="false" />
-                </method>
-            </configuration>"""
+    fun ProjectSettings.configureInspections() {
+        inspections {
+            disabledInspections.forEach { name ->
+                create(name) {
+                    enabled = false
+                }
+            }
+        }
     }
 
-    @Suppress("UNCHECKED_CAST")
+
     private
     fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
@@ -612,9 +339,6 @@ fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.()
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.delegateActions(configuration: ActionDelegationConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
-
-
 fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
     this.apply(configuration)
 }
@@ -623,162 +347,3 @@ fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspec
 fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
     (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
 }
-
-
-private
-const val GRADLE_CONFIGURATION = """
-    <configuration default="false" name="Gradle" type="Application" factoryName="Application">
-       <extension name="coverage" enabled="false" merge="false" />
-       <option name="MAIN_CLASS_NAME" value="org.gradle.debug.GradleRunConfiguration" />
-       <option name="VM_PARAMETERS" value="" />
-       <option name="PROGRAM_PARAMETERS" value="" />
-       <option name="WORKING_DIRECTORY" value="file://${'$'}PROJECT_DIR$" />
-       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-       <option name="ALTERNATIVE_JRE_PATH" value="" />
-       <option name="ENABLE_SWING_INSPECTOR" value="false" />
-       <option name="ENV_VARIABLES" />
-       <option name="PASS_PARENT_ENVS" value="true" />
-       <module name="integTest" />
-       <envs />
-       <RunnerSettings RunnerId="Debug">
-         <option name="DEBUG_PORT" value="63810" />
-         <option name="TRANSPORT" value="0" />
-         <option name="LOCAL" value="true" />
-       </RunnerSettings>
-       <RunnerSettings RunnerId="Run" />
-       <ConfigurationWrapper RunnerId="Debug" />
-       <ConfigurationWrapper RunnerId="Run" />
-       <method />
-    </configuration>
-"""
-
-
-private
-fun Element.configureCodeStyleSettings() {
-    val config = appendElement("component")
-        .attr("name", "ProjectCodeStyleConfiguration")
-
-    config.option("USE_PER_PROJECT_SETTINGS", "true")
-    val codeScheme = config.appendElement("code_scheme")
-        .attr("name", "Project")
-        .attr("version", "173")
-
-    listOf(
-        "USE_SAME_INDENTS" to "true",
-        "IGNORE_SAME_INDENTS_FOR_LANGUAGES" to "true",
-        "RIGHT_MARGIN" to "200",
-        "FORMATTER_TAGS_ENABLED" to "true",
-        "WRAP_COMMENTS" to "true",
-        "IF_BRACE_FORCE" to "3",
-        "DOWHILE_BRACE_FORCE" to "3",
-        "WHILE_BRACE_FORCE" to "3",
-        "FOR_BRACE_FORCE" to "3"
-    ).forEach { (name, value) ->
-        codeScheme.option(name, value)
-    }
-
-    val groovyCodeStyleSettings = codeScheme.appendElement("GroovyCodeStyleSettings")
-
-    listOf(
-        "CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
-        "NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
-        "ALIGN_NAMED_ARGS_IN_MAP" to "false"
-    ).forEach { (name, value) ->
-        groovyCodeStyleSettings.option(name, value)
-    }
-
-    val javaCodeStyleSettings = codeScheme.appendElement("JavaCodeStyleSettings")
-
-    listOf(
-        "CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
-        "NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" to "999",
-        "JD_ALIGN_PARAM_COMMENTS" to "false",
-        "JD_ALIGN_EXCEPTION_COMMENTS" to "false",
-        "JD_P_AT_EMPTY_LINES" to "false",
-        "JD_KEEP_EMPTY_PARAMETER" to "false",
-        "JD_KEEP_EMPTY_EXCEPTION" to "false",
-        "JD_KEEP_EMPTY_RETURN" to "false"
-    ).forEach { (name, value) ->
-        javaCodeStyleSettings.option(name, value)
-    }
-}
-
-
-private
-fun Element.configureInspectionSettings() {
-    val config = appendElement("component")
-        .attr("name", "InspectionProjectProfileManager")
-
-    val profile = config.appendElement("profile")
-        .attr("version", "1.0")
-    profile.option("myName", "Project Default")
-
-    disabledInspections.forEach { profile.inspectionTool(it) }
-
-    config.appendElement("version")
-        .attr("value", "1.0")
-}
-
-
-private
-fun Element.inspectionTool(clazz: String, level: String = "INFORMATION", enabled: Boolean = false) {
-    appendElement("inspection_tool")
-        .attr("class", clazz)
-        .attr("enabled", enabled.toString())
-        .attr("level", level)
-        .attr("enabled_by_default", "false")
-}
-
-
-private
-fun ProjectSettings.configureInspections() {
-    inspections {
-        disabledInspections.forEach { name ->
-            create(name) {
-                enabled = false
-            }
-        }
-    }
-}
-
-
-private
-fun Element.option(name: String, value: String) {
-    appendElement("option")
-        .attr("name", name)
-        .attr("value", value)
-}
-
-
-private
-fun XmlProvider.withJsoup(function: (Document) -> Unit) {
-    val xml = asString()
-    val document = modifyXmlDocument(xml, function)
-    xml.replace(0, xml.length, document)
-}
-
-
-private
-fun modifyXmlDocument(xml: StringBuilder, function: (Document) -> Unit): String {
-    val document = Jsoup.parse(xml.toString(), "", Parser.xmlParser())
-    function(document)
-    document.outputSettings().escapeMode(Entities.EscapeMode.xhtml)
-    return document.toString()
-}
-
-
-private
-fun Element.createOrEmptyOutChildElement(childName: String): Element {
-    val children = getElementsByTag(childName)
-    if (children.isEmpty()) {
-        return appendElement(childName)
-    }
-    return children.first().apply {
-        children().remove()
-    }
-}
-
-
-private
-fun Element.removeBySelector(selector: String): Element =
-    apply { select(selector).remove() }
