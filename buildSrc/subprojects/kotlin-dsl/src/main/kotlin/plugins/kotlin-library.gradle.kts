@@ -18,6 +18,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 
+import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
+import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
+
+
 plugins {
     kotlin("jvm")
     id("org.gradle.kotlin-dsl.ktlint-convention")
@@ -38,7 +42,19 @@ tasks {
         }
     }
 
+    withType<KtlintFormatTask>().configureEach {
+        enabled = false
+    }
+
+    val ktlintCheckTasks = withType<KtlintCheckTask>()
+
+    named("codeQuality") {
+        dependsOn(ktlintCheckTasks)
+    }
+
     withType<Test>().configureEach {
+
+        shouldRunAfter(ktlintCheckTasks)
 
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
