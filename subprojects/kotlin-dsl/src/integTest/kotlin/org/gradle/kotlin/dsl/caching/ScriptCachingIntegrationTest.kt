@@ -30,6 +30,7 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.junit.Test
 
 import java.io.File
+import java.util.UUID
 
 
 @LeaksFileHandles("""
@@ -253,7 +254,12 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     private
-    fun withMultiProjectBuild(settings: String = "", root: String = "", left: String = "", right: String = "") =
+    fun withMultiProjectBuild(
+        settings: String = randomScriptContent(),
+        root: String = randomScriptContent(),
+        left: String = randomScriptContent(),
+        right: String = randomScriptContent()
+    ) =
         MultiProjectCachedScripts(
             cachedSettingsFile(
                 withSettings("""
@@ -272,6 +278,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             cachedBuildFile(
                 withBuildScriptIn("right", right),
                 hasBody(right)))
+
+    private
+    fun randomScriptContent() =
+        "println(\"${UUID.randomUUID()}\")"
 }
 
 
