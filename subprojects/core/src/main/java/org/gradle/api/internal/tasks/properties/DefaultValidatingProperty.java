@@ -16,40 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.util.DeferredUtil;
-
-public class DefaultValidatingProperty implements ValidatingProperty {
-    private final String propertyName;
-    private final PropertyValue value;
-    private final boolean optional;
-    private final ValidationAction validationAction;
-
+public class DefaultValidatingProperty extends AbstractValidatingProperty {
     public DefaultValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
-        this.propertyName = propertyName;
-        this.value = value;
-        this.optional = optional;
-        this.validationAction = validationAction;
-    }
-
-    @Override
-    public void validate(TaskValidationContext context) {
-        Object unpacked = DeferredUtil.unpack(value.call());
-        if (unpacked == null) {
-            if (!optional) {
-                context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-            }
-        } else {
-            validationAction.validate(propertyName, unpacked, context);
-        }
-    }
-
-    @Override
-    public void prepareValue() {
-        value.maybeFinalizeValue();
-    }
-
-    @Override
-    public void cleanupValue() {
+        super(propertyName, value, optional, validationAction);
     }
 }

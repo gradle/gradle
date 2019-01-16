@@ -250,7 +250,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-            taskPropertySpecs.add(new DefaultValidatingInputFileProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
+            taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 
         @Override

@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-public class DefaultValidatingInputFileProperty extends DefaultValidatingProperty {
+public class DefaultFinalizingValidatingProperty extends AbstractValidatingProperty {
     private final PropertyValue value;
     private LifecycleAwareValue lifecycleAware;
 
-    public DefaultValidatingInputFileProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
+    public DefaultFinalizingValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         super(propertyName, value, optional, validationAction);
         this.value = value;
     }

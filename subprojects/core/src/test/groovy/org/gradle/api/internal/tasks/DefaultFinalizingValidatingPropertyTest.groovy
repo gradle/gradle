@@ -17,17 +17,17 @@
 package org.gradle.api.internal.tasks
 
 
-import org.gradle.api.internal.tasks.properties.DefaultValidatingInputFileProperty
+import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import spock.lang.Specification
 
-class DefaultValidatingInputFilePropertyTest extends Specification {
+class DefaultFinalizingValidatingPropertyTest extends Specification {
     def "notifies property value of start and end of execution when it implements lifecycle interface"() {
         def value = Mock(LifecycleAwareValue)
         def valueWrapper = Stub(PropertyValue)
-        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, false, ValidationActions.NO_OP)
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> value
@@ -49,7 +49,7 @@ class DefaultValidatingInputFilePropertyTest extends Specification {
 
     def "does not notify null property value"() {
         def valueWrapper = Stub(PropertyValue)
-        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, true, ValidationActions.NO_OP)
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, true, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> null
@@ -64,7 +64,7 @@ class DefaultValidatingInputFilePropertyTest extends Specification {
 
     def "does not notify property value that does not implement lifecycle interface"() {
         def valueWrapper = Stub(PropertyValue)
-        def property = new DefaultValidatingInputFileProperty("name", valueWrapper, false, ValidationActions.NO_OP)
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.NO_OP)
 
         given:
         valueWrapper.call() >> "thing"
