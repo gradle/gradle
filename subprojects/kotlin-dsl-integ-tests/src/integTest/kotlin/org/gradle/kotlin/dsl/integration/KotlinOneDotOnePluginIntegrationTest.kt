@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.junit.Test
 
@@ -26,6 +27,7 @@ import java.io.File
 class KotlinOneDotOnePluginIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    @LeaksFileHandles("Kotlin Gradle Plugin 1.1")
     fun `given a plugin compiled against Kotlin one dot one, it will run against the embedded Kotlin version`() {
 
         assumeJavaLessThan9()
