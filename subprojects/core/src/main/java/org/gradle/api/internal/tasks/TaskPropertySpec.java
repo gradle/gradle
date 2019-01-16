@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-
 public interface TaskPropertySpec {
     String getPropertyName();
-    PropertyValue getValue();
+    StaticValue getValue();
     boolean isOptional();
 }

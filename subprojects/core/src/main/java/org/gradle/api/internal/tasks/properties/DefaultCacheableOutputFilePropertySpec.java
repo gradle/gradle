@@ -23,7 +23,7 @@ import org.gradle.internal.fingerprint.OutputNormalizer;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultCacheableOutputFilePropertySpec extends DefaultFilePropertySpec implements CacheableOutputFilePropertySpec {
+public class DefaultCacheableOutputFilePropertySpec extends AbstractFilePropertySpec implements CacheableOutputFilePropertySpec {
     private final String propertySuffix;
     private final File outputFile;
     private final TreeType outputType;

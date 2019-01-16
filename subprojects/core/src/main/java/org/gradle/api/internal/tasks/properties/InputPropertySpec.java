@@ -20,12 +20,9 @@ public class InputPropertySpec implements PropertySpec {
     private final String propertyName;
     private final PropertyValue value;
 
-    private final boolean optional;
-
-    public InputPropertySpec(String propertyName, PropertyValue value, boolean optional) {
+    public InputPropertySpec(String propertyName, PropertyValue value) {
         this.propertyName = propertyName;
         this.value = value;
-        this.optional = optional;
     }
 
     @Override
@@ -35,10 +32,6 @@ public class InputPropertySpec implements PropertySpec {
 
     public PropertyValue getValue() {
         return value;
-    }
-
-    public boolean isOptional() {
-        return optional;
     }
 
     @Override

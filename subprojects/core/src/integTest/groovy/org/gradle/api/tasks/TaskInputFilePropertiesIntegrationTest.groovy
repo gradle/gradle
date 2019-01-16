@@ -34,7 +34,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
                     def fileResolver = project.services.get(FileResolver)
-                    GetInputFilesVisitor visitor = new GetInputFilesVisitor(name, fileResolver)
+                    GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileResolver)
                     def walker = services.get(PropertyWalker)
                     TaskPropertyUtils.visitProperties(walker, this, visitor)
                     def inputFiles = visitor.fileProperties*.propertyFiles*.files.flatten()

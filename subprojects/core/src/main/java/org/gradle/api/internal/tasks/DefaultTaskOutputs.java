@@ -158,7 +158,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                RegisteredTaskOutputFileProperty outputFileSpec = createOutputFilePropertySpec(value, OutputFilePropertyType.FILE);
+                RegisteredTaskOutputFileProperty outputFileSpec = new DefaultRegisteredTaskOutputFileProperty(value, OutputFilePropertyType.FILE);
                 registeredFileProperties.add(outputFileSpec);
                 return outputFileSpec;
             }
@@ -172,7 +172,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                RegisteredTaskOutputFileProperty outputDirSpec = createOutputFilePropertySpec(value, OutputFilePropertyType.DIRECTORY);
+                RegisteredTaskOutputFileProperty outputDirSpec = new DefaultRegisteredTaskOutputFileProperty(value, OutputFilePropertyType.DIRECTORY);
                 registeredFileProperties.add(outputDirSpec);
                 return outputDirSpec;
             }
@@ -185,7 +185,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                RegisteredTaskOutputFileProperty outputFilesSpec = createOutputFilePropertySpec(value, OutputFilePropertyType.FILES);
+                RegisteredTaskOutputFileProperty outputFilesSpec = new DefaultRegisteredTaskOutputFileProperty(value, OutputFilePropertyType.FILES);
                 registeredFileProperties.add(outputFilesSpec);
                 return outputFilesSpec;
             }
@@ -198,7 +198,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                RegisteredTaskOutputFileProperty outputDirsSpec = createOutputFilePropertySpec(value, OutputFilePropertyType.DIRECTORIES);
+                RegisteredTaskOutputFileProperty outputDirsSpec = new DefaultRegisteredTaskOutputFileProperty(value, OutputFilePropertyType.DIRECTORIES);
                 registeredFileProperties.add(outputDirsSpec);
                 return outputDirsSpec;
             }
@@ -208,10 +208,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Nullable
     private static Object resolveSingleArray(@Nullable Object[] paths) {
         return (paths != null && paths.length == 1) ? paths[0] : paths;
-    }
-
-    private RegisteredTaskOutputFileProperty createOutputFilePropertySpec(PropertyValue value, OutputFilePropertyType propertyType) {
-        return new DefaultRegisteredTaskOutputFileProperty(value, propertyType);
     }
 
     @Override

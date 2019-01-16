@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
@@ -28,19 +27,19 @@ import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 public class DefaultRegisteredTaskInputFileProperty implements RegisteredTaskInputFileProperty {
 
     private final InputFilePropertyType filePropertyType;
-    private final PropertyValue value;
+    private final StaticValue value;
     private String propertyName;
     private boolean skipWhenEmpty;
     private boolean optional;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
-    public DefaultRegisteredTaskInputFileProperty(PropertyValue value, InputFilePropertyType filePropertyType) {
+    public DefaultRegisteredTaskInputFileProperty(StaticValue value, InputFilePropertyType filePropertyType) {
         this.value = value;
         this.filePropertyType = filePropertyType;
     }
 
     @Override
-    public PropertyValue getValue() {
+    public StaticValue getValue() {
         return value;
     }
 

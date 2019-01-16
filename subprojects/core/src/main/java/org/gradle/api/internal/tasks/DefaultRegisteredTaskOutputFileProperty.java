@@ -17,16 +17,15 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
 public class DefaultRegisteredTaskOutputFileProperty implements RegisteredTaskOutputFileProperty {
-    private final PropertyValue value;
+    private final StaticValue value;
     private boolean optional;
     private String propertyName;
     private final OutputFilePropertyType outputFilePropertyType;
 
-    public DefaultRegisteredTaskOutputFileProperty(PropertyValue value, OutputFilePropertyType outputFilePropertyType) {
+    public DefaultRegisteredTaskOutputFileProperty(StaticValue value, OutputFilePropertyType outputFilePropertyType) {
         this.value = value;
         this.outputFilePropertyType = outputFilePropertyType;
     }
@@ -49,7 +48,7 @@ public class DefaultRegisteredTaskOutputFileProperty implements RegisteredTaskOu
     }
 
     @Override
-    public PropertyValue getValue() {
+    public StaticValue getValue() {
         return value;
     }
 

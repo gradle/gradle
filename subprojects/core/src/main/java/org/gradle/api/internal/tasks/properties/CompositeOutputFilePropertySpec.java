@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
-public class CompositeOutputFilePropertySpec extends DefaultFilePropertySpec implements OutputFilePropertySpec {
+public class CompositeOutputFilePropertySpec extends AbstractFilePropertySpec implements OutputFilePropertySpec {
     private final TreeType outputType;
 
     public CompositeOutputFilePropertySpec(String propertyName, FileCollection files, TreeType outputType) {

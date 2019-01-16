@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 
-public class DefaultInputFilePropertySpec extends DefaultFilePropertySpec implements InputFilePropertySpec {
+public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
     private final boolean skipWhenEmpty;
 
     public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollection files, boolean skipWhenEmpty) {
