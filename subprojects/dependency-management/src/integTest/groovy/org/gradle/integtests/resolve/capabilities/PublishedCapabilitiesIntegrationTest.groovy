@@ -32,6 +32,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.5' {
                 variant("runtime") {
+                    capability('cglib', 'cglib-nodep', '3.2.5')
                     capability('cglib', 'cglib', '3.2.5')
                 }
             }
@@ -65,6 +66,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             'cglib:cglib:3.2.5'()
             'cglib:cglib-nodep:3.2.4' {
                 variant("runtime") {
+                    capability('cglib', 'cglib-nodep', '3.2.4')
                     capability('cglib', 'cglib', '3.2.4')
                 }
             }
@@ -103,6 +105,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:test:1.0' {
                 variant("runtime") {
+                    capability('org', 'test', '1.0')
                     capability('org', 'capability', '1.0')
                 }
             }
@@ -145,11 +148,13 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:testA:1.0' {
                 variant('runtime') {
+                    capability('org', 'testA', '1.0')
                     capability('cap')
                 }
             }
             'org:testB:1.0' {
                 variant('runtime') {
+                    capability('org', 'testB', '1.0')
                     capability('cap')
                 }
             }
@@ -182,11 +187,13 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         repository {
             'org:testA:1.0' {
                 variant('runtime') {
+                    capability('org', 'testA', '1.0')
                     capability('org', 'cap', '1')
                 }
             }
             'org:testB:1.0' {
                 variant('runtime') {
+                    capability('org', 'testB', '1.0')
                     capability('org', 'cap', '4')
                 }
             }
@@ -198,6 +205,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
             'org:testCC:1.0' {
                 variant('runtime') {
+                    capability('org', 'testCC', '1.0')
                     capability('org', 'cap', '2')
                 }
             }

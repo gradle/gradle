@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.capabilities.Capability;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -179,4 +180,22 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      */
     @Incubating
     ModuleDependency attributes(Action<? super AttributeContainer> configureAction);
+
+    /**
+     * Configures the requested capabilities of this dependency.
+     * @param configureAction the configuration action
+     *
+     * @since 5.2
+     */
+    @Incubating
+    ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
+
+    /**
+     * Returns the set of requested capabilities for this dependency.
+     * @return An immutable view of requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
+     *
+     * @since 5.2
+     */
+    @Incubating
+    Set<Capability> getRequestedCapabilities();
 }

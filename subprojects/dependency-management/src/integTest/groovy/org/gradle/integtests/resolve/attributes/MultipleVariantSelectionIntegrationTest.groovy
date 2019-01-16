@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.resolve.attributes
 
+
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -38,11 +40,19 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         given:
         repository {
             'org:test:1.0' {
-                variant('api') {
+                variant('api1') {
                     attribute('custom', 'c1')
                     capability('cap1')
                 }
-                variant('runtime') {
+                variant('api2') {
+                    attribute('custom', 'c2')
+                    capability('cap1')
+                }
+                variant('runtime1') {
+                    attribute('custom', 'c1')
+                    capability('cap2')
+                }
+                variant('runtime2') {
                     attribute('custom', 'c2')
                     capability('cap2')
                 }
@@ -55,10 +65,16 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     attributes {
                         attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
+                    capabilities {
+                        requireCapability('org.test:cap1:1.0')
+                    }
                 }
                 conf('org:test:1.0') {
                     attributes {
                         attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap2:1.0')
                     }
                 }
             }
@@ -76,10 +92,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    variant('api', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1'])
+                    variant('api1', ['org.gradle.status': defaultStatus(), custom: 'c1'])
                 }
                 module('org:test:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
+                    variant('runtime2', ['org.gradle.status': defaultStatus(), custom: 'c2'])
                 }
             }
         }
@@ -147,10 +163,16 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     attributes {
                         attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
+                    capabilities {
+                        requireCapability('org.test:cap:1.0')
+                    }
                 }
                 conf('org:test:1.0') {
                     attributes {
                         attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap:1.0')
                     }
                 }
             }
@@ -191,42 +213,49 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         conflict << [true, false]
     }
 
+    @Ignore("Requires a way for an external dependency to declare a dependency with a capability")
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
         given:
         repository {
             'org:foo:1.0' {
                 variant('api') {
                     attribute('custom', 'c1')
-                    capability('cap1')
                     artifact('c1')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
-                    capability('cap2')
                     artifact('c2')
+                }
+                variant('altruntime') {
+                    attribute('custom', 'c3')
+                    capability('cap3')
+                    artifact('c3')
                 }
             }
             'org:foo:1.1' {
                 variant('api') {
                     attribute('custom', 'c1')
-                    capability('cap1')
                     artifact('c1')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
-                    capability('cap2')
                     artifact('c2')
+                }
+                variant('altruntime') {
+                    attribute('custom', 'c3')
+                    capability('cap3')
+                    artifact('c3')
                 }
             }
             'org:bar:1.0' {
                 variant('api') {
                     dependsOn('org:foo:1.1') {
-                        attributes.custom = 'c1'
+                        attributes.custom = 'c3'
                     }
                 }
                 variant('runtime') {
                     dependsOn('org:foo:1.1') {
-                        attributes.custom = 'c1'
+                        attributes.custom = 'c3'
                     }
                 }
             }
@@ -255,6 +284,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 expectGetMetadata()
                 expectGetVariantArtifacts('api')
                 expectGetVariantArtifacts('runtime')
+                expectGetVariantArtifacts('altruntime')
             }
         }
         succeeds 'checkDeps'
@@ -430,7 +460,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 variant('api') {}
                 variant('runtime') {}
                 variant('test-fixtures') {
-                    attribute('test-fixtures', 'true')
                     artifact('test-fixtures')
                     capability('org', 'foo-testfixtures', '1.0')
                 }
@@ -441,10 +470,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
-                    attributes {
-                        // This setup is for tests only. Do not assume this is the right
-                        // way to define test fixtures
-                        attribute(Attribute.of("test-fixtures", String), 'true')
+                    capabilities {
+                        requireCapability('org:foo-testfixtures:1.0')
                     }
                 }
             }
@@ -465,9 +492,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0'
-                }
-                module('org:foo:1.0') {
-                    variant('test-fixtures', ['org.gradle.status': defaultStatus(), 'test-fixtures': 'true'])
+                    variant('test-fixtures', ['org.gradle.status': defaultStatus()])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'test-fixtures'
                 }
             }
@@ -480,9 +505,11 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             'org:foo:1.0'()
             'org:bar:1.0' {
                 variant('api') {
+                    capability('org', 'bar', '1.0')
                     capability('org', 'foo', '1.0')
                 }
                 variant('runtime') {
+                    capability('org', 'bar', '1.0')
                     capability('org', 'foo', '1.0')
                 }
             }
@@ -514,17 +541,21 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         repository {
             'org:foo:1.0'{
                 variant('api') {
+                    capability('org', 'foo', '1.0')
                     capability('org', 'blah', '1.0')
                 }
                 variant('runtime') {
+                    capability('org', 'foo', '1.0')
                     capability('org', 'blah', '1.0')
                 }
             }
             'org:bar:1.0' {
                 variant('api') {
+                    capability('org', 'bar', '1.0')
                     capability('org', 'blah', '1.0')
                 }
                 variant('runtime') {
+                    capability('org', 'bar', '1.0')
                     capability('org', 'blah', '1.0')
                 }
             }

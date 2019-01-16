@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -1100,7 +1101,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(moduleIdentifierFactory.module(excluded.moduleVersionId.group, excluded.moduleVersionId.name))
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(from.id, componentSelector,
-            "default", null, ImmutableAttributes.EMPTY, "default", [] as List<IvyArtifactName>,
+            "default", null, ImmutableAttributes.EMPTY, "default", [] as Set<Capability>, [] as List<IvyArtifactName>,
             excludeRules, force, false, transitive, false, null)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency) {
             getAttributes() >> ImmutableAttributes.EMPTY

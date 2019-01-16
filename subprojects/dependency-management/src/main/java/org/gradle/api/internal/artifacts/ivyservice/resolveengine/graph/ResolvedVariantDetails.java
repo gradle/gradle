@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.DisplayName;
+
+import java.util.List;
 
 public interface ResolvedVariantDetails {
     /**
@@ -32,4 +35,9 @@ public interface ResolvedVariantDetails {
      * not necessarily the case.
      */
     AttributeContainer getVariantAttributes();
+
+    /**
+     * Returns the capabilities provided by this variant.
+     */
+    List<Capability> getCapabilities();
 }
