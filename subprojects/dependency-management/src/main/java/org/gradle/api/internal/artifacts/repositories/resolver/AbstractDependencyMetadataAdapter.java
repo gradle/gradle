@@ -107,7 +107,7 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
         ModuleComponentSelector selector = getOriginalMetadata().getSelector();
         AttributeContainerInternal attributes = attributesFactory.mutable((AttributeContainerInternal) selector.getAttributes());
         configureAction.execute(attributes);
-        ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), selector.getVersionConstraint(), attributes.asImmutable());
+        ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), selector.getVersionConstraint(), attributes.asImmutable(), selector.getRequestedCapabilities());
         ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getOriginalMetadata().withTarget(target);
         updateMetadata(metadata);
         return Cast.uncheckedCast(this);

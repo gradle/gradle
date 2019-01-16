@@ -32,7 +32,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY)
+        ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY, [])
 
         then:
         defaultBuildComponentSelector.projectPath == ":project:path"
@@ -77,7 +77,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "matches id (#buildName #projectPath)"() {
         expect:
-        def selector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName", ImmutableAttributes.EMPTY, [])
         def sameIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
         def differentIdPath = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path2"), Path.path(":project:path"), "projectName")
         selector.matchesStrictly(sameIdPath)

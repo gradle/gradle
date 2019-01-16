@@ -62,6 +62,7 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantConstraints(ImmutableList<? extends ComponentVariant.DependencyConstraint> constraints) throws IOException {
             encoder.writeSmallInt(constraints.size());
             for (ComponentVariant.DependencyConstraint constraint : constraints) {
-                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes());
+                componentSelectorSerializer.write(encoder, constraint.getGroup(), constraint.getModule(), constraint.getVersionConstraint(), constraint.getAttributes(), Collections.emptyList());
                 encoder.writeNullableString(constraint.getReason());
             }
         }
@@ -146,7 +147,7 @@ public class ModuleMetadataSerializer {
         private void writeVariantDependencies(List<? extends ComponentVariant.Dependency> dependencies) throws IOException {
             encoder.writeSmallInt(dependencies.size());
             for (ComponentVariant.Dependency dependency : dependencies) {
-                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes());
+                componentSelectorSerializer.write(encoder, dependency.getGroup(), dependency.getModule(), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
                 encoder.writeNullableString(dependency.getReason());
                 writeVariantDependencyExcludes(dependency.getExcludes());
             }
@@ -448,7 +449,7 @@ public class ModuleMetadataSerializer {
                 ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
                 String reason = decoder.readNullableString();
                 ImmutableList<ExcludeMetadata> excludes = readVariantDependencyExcludes();
-                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes());
+                variant.addDependency(selector.getGroup(), selector.getModule(), selector.getVersionConstraint(), excludes, reason, (ImmutableAttributes) selector.getAttributes(), selector.getRequestedCapabilities());
             }
         }
 

@@ -36,6 +36,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -204,9 +205,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public Set<Capability> getRequestedCapabilities() {
+    public List<Capability> getRequestedCapabilities() {
         if (moduleDependencyCapabilities == null) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
         return moduleDependencyCapabilities.getRequestedCapabilities();
     }

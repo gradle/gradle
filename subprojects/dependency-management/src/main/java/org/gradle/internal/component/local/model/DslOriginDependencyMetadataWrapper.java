@@ -28,8 +28,8 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata, LocalOriginDependencyMetadata {
     private final LocalOriginDependencyMetadata delegate;
@@ -58,7 +58,7 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 
@@ -115,11 +115,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
-    }
-
-    @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return delegate.getRequestedCapabilities();
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -42,7 +43,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [])
 
         then:
         selector.group == 'some-group'
@@ -77,20 +78,21 @@ class DefaultModuleComponentSelectorTest extends Specification {
     }
 
     @Unroll
-    def "is instantiated with null constructor parameter values (#group, #name, #version, #attrs)"() {
+    def "is instantiated with null constructor parameter values (#group, #name, #version, #attrs, #caps)"() {
         when:
-        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version, attrs)
+        DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version, attrs, caps)
 
         then:
         Throwable t = thrown(AssertionError)
         assert t.message == assertionMessage
 
         where:
-        group        | name        | version  | attrs                     | assertionMessage
-        null         | 'some-name' | v('1.0') | attributes(custom: 'foo') | 'group cannot be null'
-        'some-group' | null        | v('1.0') | attributes(custom: 'foo') | 'name cannot be null'
-        'some-group' | 'some-name' | null     | attributes(custom: 'foo') | 'version cannot be null'
-        'some-group' | 'some-name' | v('1.0') | null                      | 'attributes cannot be null'
+        group        | name        | version  | attrs                     | caps | assertionMessage
+        null         | 'some-name' | v('1.0') | attributes(custom: 'foo') | []   | 'group cannot be null'
+        'some-group' | null        | v('1.0') | attributes(custom: 'foo') | []   | 'name cannot be null'
+        'some-group' | 'some-name' | null     | attributes(custom: 'foo') | []   | 'version cannot be null'
+        'some-group' | 'some-name' | v('1.0') | null                      | []   | 'attributes cannot be null'
+        'some-group' | 'some-name' | v('1.0') | attributes(custom: 'foo') | null | 'capabilities cannot be null'
     }
 
     @Unroll
@@ -131,7 +133,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
         def otherAttr = Attribute.of('other', String)
 
         when:
-        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), attributes(custom: 'foo', other: 'bar'))
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), attributes(custom: 'foo', other: 'bar'), [])
 
         then:
         selector.group == 'some-group'
@@ -144,6 +146,27 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.attributes.keySet() == [customAttr, otherAttr] as Set
         selector.attributes.getAttribute(customAttr) == 'foo'
         selector.attributes.getAttribute(otherAttr) == 'bar'
+        selector.displayName == 'some-group:some-name:1.0'
+        selector.toString() == 'some-group:some-name:1.0'
+    }
+
+    def "can create new selector with capabilities"() {
+        def customAttr = Attribute.of('custom', String)
+        def otherAttr = Attribute.of('other', String)
+
+        when:
+        def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('some-group', 'some-name'), v('1.0'), ImmutableAttributes.EMPTY, [new ImmutableCapability("org", "blah", "1.5")])
+
+        then:
+        selector.group == 'some-group'
+        selector.module == 'some-name'
+        selector.version == '1.0'
+        selector.versionConstraint.requiredVersion == '1.0'
+        selector.versionConstraint.preferredVersion == ''
+        selector.versionConstraint.strictVersion == ''
+        selector.versionConstraint.rejectedVersions == []
+        selector.attributes.isEmpty()
+        selector.requestedCapabilities == [new ImmutableCapability("org", "blah", "1.5")]
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'
     }

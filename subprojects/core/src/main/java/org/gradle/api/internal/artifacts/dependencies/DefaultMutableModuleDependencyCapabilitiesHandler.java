@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.List;
 import java.util.Set;
 
 public class DefaultMutableModuleDependencyCapabilitiesHandler implements ModuleDependencyCapabilitiesInternal {
     private final NotationParser<Object, Capability> notationParser;
-    private final Set<Capability> requestedCapabilities = Sets.newHashSet();
+    private final Set<Capability> requestedCapabilities = Sets.newLinkedHashSet();
 
     public DefaultMutableModuleDependencyCapabilitiesHandler(NotationParser<Object, Capability> notationParser) {
         this.notationParser = notationParser;
@@ -44,7 +45,7 @@ public class DefaultMutableModuleDependencyCapabilitiesHandler implements Module
     }
 
     @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return ImmutableSet.copyOf(requestedCapabilities);
+    public List<Capability> getRequestedCapabilities() {
+        return ImmutableList.copyOf(requestedCapabilities);
     }
 }

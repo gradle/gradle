@@ -33,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -266,10 +267,18 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         d7.transitive >> true
         d7.attributes >> attributes(foo: 'foo', bar: 'baz')
 
+        def d8 = Stub(ModuleDependency)
+        d8.group >> "g1"
+        d8.name >> "m1"
+        d8.version >> "v1"
+        d8.transitive >> true
+        d8.attributes >> ImmutableAttributes.EMPTY
+        d8.requestedCapabilities >> [new ImmutableCapability("org", "test", "1.0")]
+
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
-        v1.dependencies >> [d1]
+        v1.dependencies >> [d1, d8]
 
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
@@ -309,6 +318,20 @@ class ModuleMetadataFileGeneratorTest extends Specification {
           "version": {
             "requires": "v1"
           }
+        },
+        {
+          "group": "g1",
+          "module": "m1",
+          "version": {
+            "requires": "v1"
+          },
+          "requestedCapabilities": [
+            {
+              "group": "org",
+              "name": "test",
+              "version": "1.0"
+            }
+          ]
         }
       ]
     },

@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.capabilities.Capability;
 
-import java.util.Set;
+import java.util.List;
 
 public interface ModuleDependencyCapabilitiesInternal extends ModuleDependencyCapabilitiesHandler {
-    Set<Capability> getRequestedCapabilities();
+    List<Capability> getRequestedCapabilities();
 }

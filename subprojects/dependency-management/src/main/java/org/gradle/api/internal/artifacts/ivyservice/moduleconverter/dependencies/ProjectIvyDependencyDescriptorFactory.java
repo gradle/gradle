@@ -39,7 +39,9 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     public LocalOriginDependencyMetadata createDependencyDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(), ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable());
+        ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject(),
+                ((AttributeContainerInternal)projectDependency.getAttributes()).asImmutable(),
+                projectDependency.getRequestedCapabilities());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
@@ -49,8 +51,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             clientAttributes,
             dependency.getAttributes(),
             projectDependency.getTargetConfiguration(),
-            projectDependency.getRequestedCapabilities(),
-            convertArtifacts(dependency.getArtifacts()),
+                convertArtifacts(dependency.getArtifacts()),
             excludes,
             false, false, dependency.isTransitive(), false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);

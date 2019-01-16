@@ -24,6 +24,7 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -197,5 +198,5 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 5.2
      */
     @Incubating
-    Set<Capability> getRequestedCapabilities();
+    List<Capability> getRequestedCapabilities();
 }
