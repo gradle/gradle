@@ -90,6 +90,7 @@ See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Thomas Broyer](https://github.com/tbroyer) - Provide default value for annotationProcessorGeneratedSourcesDirectory (gradle/gradle#7551)
+ - [Szczepan Faber](https://github.com/mockitoguy) - User can specify environment variables in TestKit runner (gradle/gradle#8089)
  - [Stefan M.](https://github.com/StefMa) - Deprecate ProjectBuilder constructor (gradle/gradle#7444)
  - [Roberto Perez Alcolea](https://github.com/rpalcolea) - Ignore ProjectBuilder deprecation warning when using builder (gradle/gradle#8067)
  - [Ian Kerins](https://github.com/isker) - Fix links to CreateStartScripts DSL docs in Application Plugin user manual chapter (gradle/gradle#7938)
