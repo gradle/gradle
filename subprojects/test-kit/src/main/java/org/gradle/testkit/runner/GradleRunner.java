@@ -18,10 +18,12 @@ package org.gradle.testkit.runner;
 
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Executes a Gradle build, allowing inspection of the outcome.
@@ -281,6 +283,9 @@ public abstract class GradleRunner {
      * Debug support is off (i.e. {@code false}) by default.
      * It can be enabled by setting the system property {@code org.gradle.testkit.debug} to {@code true} for the test process,
      * or by using the {@link #withDebug(boolean)} method.
+     * <p>
+     * When {@link #withEnvironment(Map)} is specified, running with debug is not allowed.
+     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
      *
      * @return whether the build should be executed in the same process
      * @since 2.9
@@ -296,6 +301,28 @@ public abstract class GradleRunner {
      * @since 2.9
      */
     public abstract GradleRunner withDebug(boolean flag);
+
+    /**
+     * Environment variables for the build.
+     * {@code null} is valid and indicates the build will use system environment.
+     *
+     * @return environment variables
+     * @since 5.2
+     */
+    @Nullable
+    public abstract Map<String, String> getEnvironment();
+
+    /**
+     * Sets the environment variables for the build.
+     * {@code null} is permitted and will make the build use system environment.
+     * When environment is specified, running with {@link #isDebug()} is not allowed.
+     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
+     *
+     * @param environmentVariables the variables to use, null ok.
+     * @return this
+     * @since 5.2
+     */
+    public abstract GradleRunner withEnvironment(Map<String, String> environmentVariables);
 
     /**
      * Configures the runner to forward standard output from builds to the given writer.

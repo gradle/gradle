@@ -79,7 +79,6 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
 
     public void run(final ResultHandler<? super Void> handler) {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
-
         connection.run(new ConsumerAction<Void>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
