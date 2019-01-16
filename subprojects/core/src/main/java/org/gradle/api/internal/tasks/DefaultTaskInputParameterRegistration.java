@@ -20,13 +20,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 @NonNullApi
-public class DefaultRegisteredTaskInputProperty extends TaskInputsDeprecationSupport implements RegisteredTaskInputProperty {
+public class DefaultTaskInputParameterRegistration extends TaskInputsDeprecationSupport implements TaskInputParameterRegistration {
 
     private final String propertyName;
     private final StaticValue value;
     private boolean optional;
 
-    public DefaultRegisteredTaskInputProperty(String propertyName, StaticValue value) {
+    public DefaultTaskInputParameterRegistration(String propertyName, StaticValue value) {
         this.propertyName = propertyName;
         this.value = value;
     }

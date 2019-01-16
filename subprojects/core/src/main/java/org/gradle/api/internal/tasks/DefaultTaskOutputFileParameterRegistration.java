@@ -19,10 +19,10 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-public class DefaultRegisteredTaskOutputFileProperty extends AbstractTaskFilePropertySpec implements RegisteredTaskOutputFileProperty {
+public class DefaultTaskOutputFileParameterRegistration extends AbstractTaskFileParameterRegistration implements TaskOutputFileParameterRegistration {
     private final OutputFilePropertyType outputFilePropertyType;
 
-    public DefaultRegisteredTaskOutputFileProperty(StaticValue value, OutputFilePropertyType outputFilePropertyType) {
+    public DefaultTaskOutputFileParameterRegistration(StaticValue value, OutputFilePropertyType outputFilePropertyType) {
         super(value);
         this.outputFilePropertyType = outputFilePropertyType;
     }

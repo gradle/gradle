@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-public abstract class AbstractTaskFilePropertySpec implements TaskPropertySpec {
+public abstract class AbstractTaskFileParameterRegistration implements TaskParameterRegistration {
     private String propertyName;
     private boolean optional;
     private final StaticValue value;
 
-    public AbstractTaskFilePropertySpec(StaticValue value) {
+    public AbstractTaskFileParameterRegistration(StaticValue value) {
         this.value = value;
     }
 

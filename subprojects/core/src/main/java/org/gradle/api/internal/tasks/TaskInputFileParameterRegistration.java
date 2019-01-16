@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.tasks.FileNormalizer;
 
-public interface RegisteredTaskOutputFileProperty extends TaskPropertySpec, TaskOutputFilePropertyBuilder {
-    OutputFilePropertyType getPropertyType();
+public interface TaskInputFileParameterRegistration extends TaskParameterRegistration, TaskInputFilePropertyBuilderInternal {
+    Class<? extends FileNormalizer> getNormalizer();
+    InputFilePropertyType getFilePropertyType();
+    boolean isSkipWhenEmpty();
 }
