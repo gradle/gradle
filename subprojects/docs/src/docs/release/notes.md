@@ -3,8 +3,10 @@ The Gradle team is excited to announce Gradle 5.2.
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
-[Thomas Broyer](https://github.com/tbroyer).
 
+[Thomas Broyer](https://github.com/tbroyer), [Szczepan Faber](https://github.com/mockitoguy), [Stefan M.](https://github.com/StefMa), [Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker), and [Richard Newton](https://github.com/ricnewton).
+
+ 
 ## Upgrade Instructions
 
 Switch your build to use Gradle 5.2 by updating your wrapper properties:
@@ -22,7 +24,9 @@ There are several [useful services](userguide/custom_tasks.html#service_injectio
 See the [User Manual](userguide/custom_plugins.html#service_injection) for details.
 
 TBD - can have abstract service getter
+
 TBD - can use server getter on plugins
+
 TBD - can use service injection on `project.container(Class)` elements 
 
 ## The Java Platform plugin
@@ -36,16 +40,38 @@ Read the [Java Platform plugin section of the userguide](userguide/java_platform
 When using the [`maven-publish` plugin](userguide/publishing_maven.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
 For details, have a look at the [dedicated section](userguide/publishing_maven.html#publishing_maven:resolved_dependencies) in the plugin documentation.
 
-## Support for additional Windows native toolchains
+## Building Native software with Gradle 
+
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-52).
+
+### Support for additional Windows native toolchains
 
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
-These toolchains are now officially supported by Gradle.  See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
+These toolchains are now officially supported by Gradle. See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
+
+### Support for testing applications on Windows
+
+Gradle now automatically hides the main symbol when building native applications, so applications can be tested on Windows like they already were on macOS and Linux.
+
+Contributed by [Richard Newton](https://github.com/ricnewton).
 
 ## Rich console improvements on Windows
 
 This release includes some improvements to Gradle's console integration on Windows. Gradle now detects when it is running from Mintty on Windows and enables the rich console. Mintty is a popular terminal emulator used by projects such as Cygwin and Git for Windows. 
 
 The implementation of the rich console has been improved to remove some distracting visual artifacts on Windows. 
+
+## Support for setting environment variables when using Gradle TestKit
+  
+Gradle TestKit based tests can now specify environment variables via the [TestKit](userguide/test_kit.html) [`GradleRunner`] 
+
+Contributed by [Szczepan Faber](https://github.com/mockitoguy).
+
+## Annotation processor improvements
+
+TBD
+
+Contributed by [Thomas Broyer](https://github.com/tbroyer).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -76,8 +102,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### `ProjectBuilder` constructor
 
-The default constructor of `ProjectBuilder` is now deprecated.
-You should always use `ProjectBuilder#builder()` to create instances.
+The default constructor of `ProjectBuilder` is now deprecated. You should always use `ProjectBuilder#builder()` to create instances.
 
 ### Breaking changes
 
@@ -86,20 +111,10 @@ You should always use `ProjectBuilder#builder()` to create instances.
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
 
 ## External contributions
-
-We would like to thank the following community members for making contributions to this release of Gradle.
-
- - [Thomas Broyer](https://github.com/tbroyer) - Provide default value for annotationProcessorGeneratedSourcesDirectory (gradle/gradle#7551)
- - [Szczepan Faber](https://github.com/mockitoguy) - User can specify environment variables in TestKit runner (gradle/gradle#8089)
- - [Stefan M.](https://github.com/StefMa) - Deprecate ProjectBuilder constructor (gradle/gradle#7444)
- - [Roberto Perez Alcolea](https://github.com/rpalcolea) - Ignore ProjectBuilder deprecation warning when using builder (gradle/gradle#8067)
- - [Ian Kerins](https://github.com/isker) - Fix links to CreateStartScripts DSL docs in Application Plugin user manual chapter (gradle/gradle#7938)
- - [Kim Brouer](https://github.com/brouer) - Fix issue with leading zero in version numbers (gradle/gradle#7806)
- - [Richard Newton](https://github.com/ricnewton) - Enable hiding of main symbols for Windows executables (gradle/gradle#8127)
- - [Thomas Broyer](https://github.com/tbroyer) - Add annotation processor generated sources to SourceSetOutput (gradle/gradle#8134)
- - [Thomas Broyer](https://github.com/tbroyer) - Silence unrecognized annotation processor option during incremental processing (gradle/gradle#8135)
  
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
+
+## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
 
