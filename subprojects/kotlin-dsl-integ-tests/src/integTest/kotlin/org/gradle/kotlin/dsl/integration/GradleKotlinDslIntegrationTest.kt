@@ -778,8 +778,8 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             """))
     }
 
-    @LeaksFileHandles // TODO:kotlin-dsl investigate
     @Test
+    @LeaksFileHandles
     fun `given generic extension types they can be accessed and configured`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
