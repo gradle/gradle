@@ -19,20 +19,14 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 
-public abstract class AbstractFilePropertySpec implements FilePropertySpec {
-    private final String propertyName;
+public abstract class AbstractFilePropertySpec extends AbstractPropertySpec implements FilePropertySpec {
     private final Class<? extends FileNormalizer> normalizer;
     private final FileCollection files;
 
     public AbstractFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollection files) {
-        this.propertyName = propertyName;
+        super(propertyName);
         this.normalizer = normalizer;
         this.files = files;
-    }
-
-    @Override
-    public String getPropertyName() {
-        return propertyName;
     }
 
     @Override
@@ -48,10 +42,5 @@ public abstract class AbstractFilePropertySpec implements FilePropertySpec {
     @Override
     public String toString() {
         return getPropertyName() + " (" + getNormalizer().getSimpleName().replace("Normalizer", "") + ")";
-    }
-
-    @Override
-    public int compareTo(PropertySpec o) {
-        return getPropertyName().compareTo(o.getPropertyName());
     }
 }
