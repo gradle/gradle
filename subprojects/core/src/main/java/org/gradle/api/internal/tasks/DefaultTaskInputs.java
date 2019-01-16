@@ -24,7 +24,7 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.properties.FileCollectionHelper;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
@@ -214,7 +214,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 @Override
                 public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || skipWhenEmpty) {
-                        Object actualValue = FileCollectionHelper.forInputFileValue(fileResolver, filePropertyType, value);
+                        Object actualValue = FileParameterUtils.resolveInputFileValue(fileResolver, filePropertyType, value);
                         context.add(new PropertyFileCollection(task.toString(), propertyName, "input", fileResolver, actualValue));
                     }
                 }

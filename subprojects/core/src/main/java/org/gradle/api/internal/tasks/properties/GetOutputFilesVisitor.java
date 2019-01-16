@@ -16,29 +16,13 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.tasks.PropertyFileCollection;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.file.TreeType;
-import org.gradle.util.DeferredUtil;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Consumer;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
@@ -56,105 +40,23 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     @Override
     public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
-        if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            Iterators.addAll(specs, resolveToOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType.getOutputType(), fileResolver));
-        } else {
-            File outputFile = unpackOutputFileValue(value);
-            if (outputFile == null) {
-                return;
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileResolver, new Consumer<OutputFilePropertySpec>() {
+            @Override
+            public void accept(OutputFilePropertySpec outputFilePropertySpec) {
+                specs.add(outputFilePropertySpec);
             }
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
-            specs.add(filePropertySpec);
-        }
-    }
-
-    @Nullable
-    private File unpackOutputFileValue(PropertyValue value) {
-        Object unpackedOutput = DeferredUtil.unpack(value.call());
-        if (unpackedOutput == null) {
-            return null;
-        }
-        return fileResolver.resolve(unpackedOutput);
-
+        });
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            fileProperties = TaskPropertyUtils.collectFileProperties("output", specs.iterator());
+            fileProperties = FileParameterUtils.collectFileProperties("output", specs.iterator());
         }
         return fileProperties;
     }
 
     public boolean hasDeclaredOutputs() {
         return hasDeclaredOutputs;
-    }
-
-    private static Iterator<OutputFilePropertySpec> resolveToOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, PropertyValue value, final TreeType outputType, final PathToFileResolver resolver) {
-        Object unpackedValue = DeferredUtil.unpack(value);
-        if (unpackedValue == null) {
-            return Collections.emptyIterator();
-        } else if (unpackedValue instanceof Map) {
-            final Iterator<? extends Map.Entry<?, ?>> iterator = ((Map<?, ?>) unpackedValue).entrySet().iterator();
-            return new AbstractIterator<OutputFilePropertySpec>() {
-                @Override
-                protected OutputFilePropertySpec computeNext() {
-                    if (iterator.hasNext()) {
-                        Map.Entry<?, ?> entry = iterator.next();
-                        Object key = entry.getKey();
-                        if (key == null) {
-                            throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
-                        }
-                        String id = key.toString();
-                        File file = resolver.resolve(entry.getValue());
-                        return new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, file, outputType);
-                    }
-                    return endOfData();
-                }
-            };
-        } else {
-            final List<File> roots = Lists.newArrayList();
-            final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = FileCollectionHelper.asFileCollection(resolver, unpackedValue);
-            outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
-                @Override
-                public void visitCollection(FileCollectionInternal fileCollection) {
-                    Iterables.addAll(roots, fileCollection);
-                }
-
-                @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree) {
-                    nonFileRoot.set(true);
-                }
-
-                @Override
-                public void visitFileTree(File root, PatternSet patterns) {
-                    // We could support an unfiltered DirectoryFileTree here as a cacheable root,
-                    // but because @OutputDirectory also doesn't support it we choose not to.
-                    nonFileRoot.set(true);
-                }
-            });
-
-            if (nonFileRoot.get()) {
-                return Iterators.<OutputFilePropertySpec>singletonIterator(new CompositeOutputFilePropertySpec(
-                    propertyName,
-                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", resolver, value),
-                    outputType)
-                );
-            } else {
-                final Iterator<File> iterator = roots.iterator();
-                return new AbstractIterator<OutputFilePropertySpec>() {
-                    private int index;
-
-                    @Override
-                    protected OutputFilePropertySpec computeNext() {
-                        if (!iterator.hasNext()) {
-                            return endOfData();
-                        }
-                        return new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), iterator.next(), outputType);
-                    }
-                };
-            }
-        }
     }
 
 }

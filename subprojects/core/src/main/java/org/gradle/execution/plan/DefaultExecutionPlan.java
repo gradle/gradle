@@ -35,11 +35,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -61,7 +62,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeferredUtil;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -79,6 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -595,7 +596,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private void resolveMutations(final MutationInfo mutations, Node node) {
         if (node instanceof LocalTaskNode) {
             final LocalTaskNode taskNode = (LocalTaskNode) node;
-            TaskInternal task = taskNode.getTask();
+            final TaskInternal task = taskNode.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             final FileResolver resolver = serviceRegistry.get(FileResolver.class);
@@ -603,28 +604,46 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             try {
                 TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
                     @Override
-                    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                        addCanonicalizedPaths(
+                    public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
+                        reportDeadlockOnParameterResolution(
                             taskNode,
-                            mutations.outputPaths,
                             "an output",
                             "output property '" + propertyName + "'",
-                            value,
-                            resolver,
-                            filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, resolver, new Consumer<OutputFilePropertySpec>() {
+                                        @Override
+                                        public void accept(OutputFilePropertySpec outputFilePropertySpec) {
+                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
+                                        }
+                                    });
+
+                                }
+                            }
                         );
                         mutations.hasOutputs = true;
                     }
 
                     @Override
-                    public void visitLocalStateProperty(Object value) {
-                        addCanonicalizedPaths(taskNode, mutations.outputPaths, "a local state property", "local state properties", value, resolver, false);
+                    public void visitLocalStateProperty(final Object value) {
+                        reportDeadlockOnParameterResolution(taskNode, "a local state property", "local state properties", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
                         mutations.hasLocalState = true;
                     }
 
                     @Override
-                    public void visitDestroyableProperty(Object value) {
-                        addCanonicalizedPaths(taskNode, mutations.destroyablePaths, "a destroyable", "destroyables", value, resolver, false);
+                    public void visitDestroyableProperty(final Object value) {
+                        reportDeadlockOnParameterResolution(taskNode, "a destroyable", "destroyables", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
                     }
 
                     @Override
@@ -652,21 +671,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private void addCanonicalizedPaths(TaskNode task, Set<String> targetCollection, String singular, String description, Object value, FileResolver resolver, boolean allowMap) {
+    private void reportDeadlockOnParameterResolution(TaskNode task, String singular, String description, Runnable runnable) {
         try {
-            Object unpackedValue = DeferredUtil.unpack(value);
-            if (unpackedValue == null) {
-                return;
-            }
-            if (allowMap && unpackedValue instanceof Map) {
-                for (Object mapValue : ((Map<?, ?>) unpackedValue).values()) {
-                    File file = resolver.resolve(mapValue);
-                    targetCollection.add(canonicalizePath(file, canonicalizedFileCache));
-                }
-            } else {
-                FileCollectionInternal outputFileCollection = resolver.resolveFiles(unpackedValue);
-                targetCollection.addAll(canonicalizedPaths(canonicalizedFileCache, outputFileCollection));
-            }
+            runnable.run();
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
         }

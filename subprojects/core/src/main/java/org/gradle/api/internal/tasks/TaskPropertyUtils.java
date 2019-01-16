@@ -16,16 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-
-import java.util.Iterator;
-import java.util.Set;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -49,25 +43,6 @@ public class TaskPropertyUtils {
         for (Object path : ((TaskLocalStateInternal) task.getLocalState()).getRegisteredPaths()) {
             visitor.visitLocalStateProperty(path);
         }
-    }
-
-    /**
-     * Collects property specs in a sorted set to ensure consistent ordering.
-     *
-     * @throws IllegalArgumentException if there are multiple properties declared with the same name.
-     */
-    public static <T extends FilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
-        Set<String> names = Sets.newHashSet();
-        ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
-        while (fileProperties.hasNext()) {
-            T propertySpec = fileProperties.next();
-            String propertyName = propertySpec.getPropertyName();
-            if (!names.add(propertyName)) {
-                throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
-            }
-            builder.add(propertySpec);
-        }
-        return builder.build();
     }
 
     /**

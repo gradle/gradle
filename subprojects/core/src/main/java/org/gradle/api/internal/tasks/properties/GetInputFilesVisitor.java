@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.file.PathToFileResolver;
 
@@ -40,7 +39,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     @Override
     public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-        Object actualValue = FileCollectionHelper.forInputFileValue(resolver, filePropertyType, value);
+        Object actualValue = FileParameterUtils.resolveInputFileValue(resolver, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,
@@ -53,7 +52,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
 
     public ImmutableSortedSet<InputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            fileProperties = TaskPropertyUtils.collectFileProperties("input", specs.iterator());
+            fileProperties = FileParameterUtils.collectFileProperties("input", specs.iterator());
         }
         return fileProperties;
     }

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -75,7 +75,7 @@ public class DefaultTaskInputFileParameterRegistration extends AbstractTaskFileP
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withNormalizer(AbstractInputFilePropertyAnnotationHandler.determineNormalizerForPathSensitivity(sensitivity));
+        return withNormalizer(FileParameterUtils.determineNormalizerForPathSensitivity(sensitivity));
     }
 
     @Override
