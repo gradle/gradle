@@ -40,6 +40,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -79,18 +80,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return Collections.emptySet();
-    }
-
-    @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         if (targetComponent instanceof LenientPlatformResolveMetadata) {
             LenientPlatformResolveMetadata platformMetadata = (LenientPlatformResolveMetadata) targetComponent;
             return Collections.singletonList(new LenientPlatformConfigurationMetadata(platformMetadata.getPlatformState(), platformId));
         }
         // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.emptySet(), Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        return new LocalComponentDependencyMetadata(componentId, cs, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, null, Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), false, false, true, false, null).selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override

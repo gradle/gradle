@@ -34,9 +34,8 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class GradleDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
     private final ModuleComponentSelector selector;
@@ -63,7 +62,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes()), excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities()), excludes, constraint, reason, force);
     }
 
     @Override
@@ -72,11 +71,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
             return this;
         }
         return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
-    }
-
-    @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return Collections.emptySet();
     }
 
     @Override
@@ -101,7 +95,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
      * Always use attribute matching to choose a target variant.
      */
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema));
     }
 

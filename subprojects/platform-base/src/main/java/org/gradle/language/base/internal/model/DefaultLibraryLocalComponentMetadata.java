@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
@@ -164,7 +163,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         return new LocalComponentDependencyMetadata(
             new OpaqueComponentIdentifier("TODO"),
             selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
-            ImmutableSet.<Capability>of(), ImmutableList.<IvyArtifactName>of(),
+                ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
             false, false, true, false, null);
     }

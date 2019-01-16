@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.resolve.attributes
 
-
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -213,7 +211,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         conflict << [true, false]
     }
 
-    @Ignore("Requires a way for an external dependency to declare a dependency with a capability")
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
         given:
         repository {
@@ -250,11 +247,13 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             'org:bar:1.0' {
                 variant('api') {
                     dependsOn('org:foo:1.1') {
+                        capability('org.test', 'cap3', '1.0')
                         attributes.custom = 'c3'
                     }
                 }
                 variant('runtime') {
                     dependsOn('org:foo:1.1') {
+                        requestedCapability('org.test', 'cap3', '1.0')
                         attributes.custom = 'c3'
                     }
                 }
@@ -282,7 +281,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             }
             'org:foo:1.1' {
                 expectGetMetadata()
-                expectGetVariantArtifacts('api')
                 expectGetVariantArtifacts('runtime')
                 expectGetVariantArtifacts('altruntime')
             }
@@ -295,10 +293,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.0 and 1.1')
                     // the following assertion is true but limitations to the test fixtures make it hard to check
-                    //variant('api',[custom:'c1', 'org.gradle.status':'integration', 'org.gradle.usage':'java-api'])
+                    //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
                     variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c1'
-                    artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
+                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
+                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
                 }
                 module('org:bar:1.0') {
                     module('org:foo:1.1')
@@ -492,6 +490,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0'
+                }
+                module('org:foo:1.0') {
                     variant('test-fixtures', ['org.gradle.status': defaultStatus()])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'test-fixtures'
                 }

@@ -100,6 +100,15 @@ class GradleFileModuleAdapter {
                                     }
                                 }
                             }
+                            if (d.requestedCapabilities) {
+                                requestedCapabilities(d.requestedCapabilities.collect { c ->
+                                    { ->
+                                        group c.group
+                                        name c.name
+                                        version c.version
+                                    }
+                                })
+                            }
                         }
                     })
                     dependencyConstraints(v.dependencyConstraints.collect { dc ->

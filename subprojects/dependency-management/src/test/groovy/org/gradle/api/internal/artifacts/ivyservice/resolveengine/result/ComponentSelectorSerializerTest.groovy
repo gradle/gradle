@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
@@ -60,7 +62,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes root project ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.ROOT, Path.ROOT, "rootProject", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), Path.ROOT, Path.ROOT, "rootProject", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -70,11 +72,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == selector.projectPath
         result.projectPath() == selector.projectPath()
         result.projectName == selector.projectName
+        result.requestedCapabilities == selector.requestedCapabilities
     }
 
     def "serializes root build ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":a:b"), path(":a:b"), "b", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":a:b"), path(":a:b"), "b", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -84,11 +87,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == selector.projectPath
         result.projectPath() == selector.projectPath()
         result.projectName == selector.projectName
+        result.requestedCapabilities == selector.requestedCapabilities
     }
 
     def "serializes other build root ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:someProject"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:someProject"), Path.ROOT, "someProject", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -98,11 +102,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == selector.projectPath
         result.projectPath() == selector.projectPath()
         result.projectName == selector.projectName
+        result.requestedCapabilities == selector.requestedCapabilities
     }
 
     def "serializes other build ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:b"), path(":a:b"), "b", ImmutableAttributes.EMPTY)
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier("build"), path(":prefix:a:b"), path(":a:b"), "b", ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -112,12 +117,13 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == selector.projectPath
         result.projectPath() == selector.projectPath()
         result.projectName == selector.projectName
+        result.requestedCapabilities == selector.requestedCapabilities
     }
 
     @Unroll
     def "serializes ProjectComponentSelector with attributes"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, AttributeTestUtil.attributes(foo: 'x', bar: 'y'))
+        def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
 
         when:
         def result = serialize(selector, serializer)
@@ -129,6 +135,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectName == selector.projectName
         result.attributes.getAttribute(Attribute.of('foo', String)) == 'x'
         result.attributes.getAttribute(Attribute.of('bar', String)) == 'y'
+        result.requestedCapabilities == selector.requestedCapabilities
 
         where:
         buildId | identityPath                       | projectPath       | projectName
@@ -140,10 +147,10 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ModuleComponentSelector"() {
         given:
-        ModuleComponentSelector selection = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('version-one'))
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('group-one', 'name-one'), constraint('version-one'), ImmutableAttributes.EMPTY, capabilities())
 
         when:
-        ModuleComponentSelector result = serialize(selection, serializer)
+        ModuleComponentSelector result = serialize(selector, serializer)
 
         then:
         result.group == 'group-one'
@@ -153,6 +160,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.versionConstraint.preferredVersion == ''
         result.versionConstraint.strictVersion == ''
         result.versionConstraint.rejectedVersions == []
+        result.requestedCapabilities == selector.requestedCapabilities
     }
 
     def "serializes BuildComponentSelector"() {
@@ -201,5 +209,9 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.versionConstraint.preferredVersion == 'pref'
         result.versionConstraint.strictVersion == 'strict'
         result.versionConstraint.rejectedVersions == ['rej']
+    }
+
+    private static List<Capability> capabilities() {
+        [new ImmutableCapability("org", "foo", "${Math.random()}"), new ImmutableCapability("org", "bar", "${Math.random()}")]
     }
 }

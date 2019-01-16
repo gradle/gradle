@@ -29,11 +29,10 @@ import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public abstract class AttributeConfigurationSelector {
 
-    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Set<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> consumableConfigurations = variantsForGraphTraversal.or(ImmutableList.<ConfigurationMetadata>of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
@@ -58,7 +57,7 @@ public abstract class AttributeConfigurationSelector {
         }
     }
 
-    private static ImmutableList<? extends ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Set<? extends Capability> explicitRequestedCapabilities, ImmutableList<? extends ConfigurationMetadata> consumableConfigurations, String group, String name) {
+    private static ImmutableList<? extends ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, ImmutableList<? extends ConfigurationMetadata> consumableConfigurations, String group, String name) {
         if (consumableConfigurations.isEmpty()) {
             return consumableConfigurations;
         }
@@ -90,7 +89,7 @@ public abstract class AttributeConfigurationSelector {
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private static boolean providesAllCapabilities(ComponentResolveMetadata targetComponent, Set<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
+    private static boolean providesAllCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
         if (providerCapabilities.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {

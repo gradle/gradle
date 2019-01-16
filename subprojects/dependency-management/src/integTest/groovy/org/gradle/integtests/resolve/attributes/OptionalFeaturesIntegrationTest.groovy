@@ -71,7 +71,8 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0'
-
+                }
+                module('org:foo:1.0') {
                     variant('feature1', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                 }
@@ -174,7 +175,8 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
                 module('org:foo:1.0') {
                     variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0'
-
+                }
+                module('org:foo:1.0') {
                     variant('v2', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat1'
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'feat3'

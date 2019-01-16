@@ -33,9 +33,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A `ModuleDependencyMetadata` implementation that is backed by an `ExternalDependencyDescriptor` bound to a particular
@@ -81,7 +80,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
      * otherwise revert to legacy selection of target configurations.
      */
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
         if (alwaysUseAttributeMatching || hasVariants(targetComponent)) {
@@ -107,7 +106,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes());
+            ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(moduleTarget.getModuleIdentifier(), moduleTarget.getVersionConstraint(), moduleTarget.getAttributes(), moduleTarget.getRequestedCapabilities());
             if (newSelector.equals(getSelector())) {
                 return this;
             }
@@ -126,7 +125,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes());
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities());
         return withRequested(newSelector);
     }
 
@@ -136,11 +135,6 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
             return this;
         }
         return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
-    }
-
-    @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return Collections.emptySet();
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {

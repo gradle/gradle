@@ -28,8 +28,8 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadata, ModuleDependencyMetadata {
     private final ModuleDependencyMetadata delegate;
@@ -54,12 +54,7 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return delegate.getRequestedCapabilities();
-    }
-
-    @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 

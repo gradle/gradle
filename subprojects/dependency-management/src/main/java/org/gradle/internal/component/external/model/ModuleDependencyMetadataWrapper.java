@@ -27,8 +27,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata {
     private final DependencyMetadata delegate;
@@ -47,18 +47,13 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
         ModuleComponentSelector selector = getSelector();
-        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes());
+        ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities());
         return new ModuleDependencyMetadataWrapper(delegate.withTarget(newSelector));
     }
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
         return new ModuleDependencyMetadataWrapper(delegate.withReason(reason));
-    }
-
-    @Override
-    public Set<Capability> getRequestedCapabilities() {
-        return delegate.getRequestedCapabilities();
     }
 
     @Override
@@ -77,7 +72,7 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
         return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 

@@ -59,7 +59,7 @@ abstract class AttributeDesugaring {
             AttributeContainer moduleAttributes = module.getAttributes();
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
-                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes, attributesFactory));
+                return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes, attributesFactory), module.getRequestedCapabilities());
             }
         }
         if (selector instanceof DefaultProjectComponentSelector) {
@@ -67,7 +67,7 @@ abstract class AttributeDesugaring {
             AttributeContainer projectAttributes = project.getAttributes();
             if (!projectAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) projectAttributes).asImmutable();
-                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes, attributesFactory));
+                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes, attributesFactory), project.getRequestedCapabilities());
             }
         }
         return selector;

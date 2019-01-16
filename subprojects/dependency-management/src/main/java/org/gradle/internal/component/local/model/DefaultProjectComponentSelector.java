@@ -21,11 +21,15 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.util.Path;
+
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final BuildIdentifier buildIdentifier;
@@ -33,19 +37,22 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     private final Path identityPath;
     private final String projectName;
     private final ImmutableAttributes attributes;
+    private final List<Capability> requestedCapabilities;
     private String displayName;
 
-    public DefaultProjectComponentSelector(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName, ImmutableAttributes attributes) {
+    public DefaultProjectComponentSelector(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
         assert buildIdentifier != null : "build cannot be null";
         assert identityPath != null : "identity path cannot be null";
         assert projectPath != null : "project path cannot be null";
         assert projectName != null : "project name cannot be null";
         assert attributes != null : "attributes cannot be null";
+        assert requestedCapabilities != null : "capabilities cannot be null";
         this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.projectPath = projectPath;
         this.projectName = projectName;
         this.attributes = attributes;
+        this.requestedCapabilities = requestedCapabilities;
     }
 
     public String getDisplayName() {
@@ -97,6 +104,11 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     @Override
+    public List<Capability> getRequestedCapabilities() {
+        return requestedCapabilities;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -109,6 +121,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
             return false;
         }
         if (!attributes.equals(that.attributes)) {
+            return false;
+        }
+        if (!requestedCapabilities.equals(that.requestedCapabilities)) {
             return false;
         }
         return true;
@@ -125,18 +140,18 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public static ProjectComponentSelector newSelector(Project project) {
-        return newSelector(project, ImmutableAttributes.EMPTY);
+        return newSelector(project, ImmutableAttributes.EMPTY, Collections.emptyList());
     }
 
-    public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes) {
+    public static ProjectComponentSelector newSelector(Project project, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
         ProjectInternal projectInternal = (ProjectInternal) project;
         BuildIdentifier currentBuild = projectInternal.getServices().get(BuildState.class).getBuildIdentifier();
-        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes);
+        return new DefaultProjectComponentSelector(currentBuild, projectInternal.getIdentityPath(), projectInternal.getProjectPath(), project.getName(), attributes, requestedCapabilities);
     }
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier identifier) {
         DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), ImmutableAttributes.EMPTY);
+        return new DefaultProjectComponentSelector(projectComponentIdentifier.getBuild(), projectComponentIdentifier.getIdentityPath(), projectComponentIdentifier.projectPath(), projectComponentIdentifier.getProjectName(), ImmutableAttributes.EMPTY, Collections.emptyList());
     }
 
     public ProjectComponentIdentifier toIdentifier() {
