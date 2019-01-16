@@ -29,9 +29,9 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.DefaultUnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -63,7 +63,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         Timer clock = Time.startTimer();
-        UnitOfWorkProperties properties = DefaultUnitOfWorkProperties.resolve(propertyWalker, fileResolver, task);
+        TaskProperties properties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, task);
         context.setTaskProperties(properties);
         TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, properties);
         TaskOutputsInternal outputs = task.getOutputs();

@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
+public class DefaultTaskProperties implements TaskProperties {
 
     private final Factory<Map<String, Object>> inputPropertyValues;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
@@ -51,7 +51,7 @@ public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingProperty> validatingProperties;
 
-    public static UnitOfWorkProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
+    public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, resolver);
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver);
@@ -72,7 +72,7 @@ public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
             throw new TaskExecutionException(task, e);
         }
 
-        return new DefaultUnitOfWorkProperties(
+        return new DefaultTaskProperties(
             task.toString(),
             inputPropertiesVisitor.getPropertyValuesFactory(),
             inputFilesVisitor.getFileProperties(),
@@ -83,7 +83,7 @@ public class DefaultUnitOfWorkProperties implements UnitOfWorkProperties {
             validationVisitor.getTaskPropertySpecs());
     }
 
-    private DefaultUnitOfWorkProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
+    private DefaultTaskProperties(final String name, Factory<Map<String, Object>> inputPropertyValues, final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties, final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties, boolean hasDeclaredOutputs, FileCollection localStateFiles, FileCollection destroyableFiles, List<ValidatingProperty> validatingProperties) {
         this.validatingProperties = validatingProperties;
 
         this.inputPropertyValues = inputPropertyValues;

@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.specs.AndSpec;
 
 @NonNullApi
@@ -33,7 +33,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
         this.startParameter = startParameter;
     }
 
-    public TaskExecutionMode getExecutionMode(TaskInternal task, UnitOfWorkProperties properties) {
+    public TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties) {
         // Only false if no declared outputs AND no Task.upToDateWhen spec. We force to true for incremental tasks.
         AndSpec<? super TaskInternal> upToDateSpec = task.getOutputs().getUpToDateSpec();
         if (!properties.hasDeclaredOutputs() && upToDateSpec.isEmpty()) {

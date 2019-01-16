@@ -19,7 +19,7 @@ package org.gradle.caching.internal.tasks;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -32,7 +32,7 @@ import java.util.SortedMap;
 
 public class DefaultTaskCacheKeyCalculator implements TaskCacheKeyCalculator {
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, UnitOfWorkProperties properties, boolean buildCacheDebugLogging) {
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties properties, boolean buildCacheDebugLogging) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);

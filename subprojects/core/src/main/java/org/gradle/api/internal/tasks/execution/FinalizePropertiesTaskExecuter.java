@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareProperty;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 
 /**
  * Notifies the task properties of the start and completion of task execution, so they may finalize and cache whatever state is required to efficiently fingerprint inputs and outputs, apply validation or whatever.
@@ -38,7 +38,7 @@ public class FinalizePropertiesTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        UnitOfWorkProperties properties = context.getTaskProperties();
+        TaskProperties properties = context.getTaskProperties();
         for (LifecycleAwareProperty property : properties.getLifecycleAwareProperties()) {
             property.prepareValue();
         }

@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.properties.UnitOfWorkProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -46,7 +46,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private List<String> upToDateMessages;
-    private UnitOfWorkProperties properties;
+    private TaskProperties properties;
     private boolean taskCachingEnabled;
     private Long executionTime;
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
@@ -173,12 +173,12 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public void setTaskProperties(UnitOfWorkProperties properties) {
+    public void setTaskProperties(TaskProperties properties) {
         this.properties = properties;
     }
 
     @Override
-    public UnitOfWorkProperties getTaskProperties() {
+    public TaskProperties getTaskProperties() {
         return properties;
     }
 
