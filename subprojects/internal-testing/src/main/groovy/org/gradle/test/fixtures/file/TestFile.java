@@ -643,7 +643,11 @@ public class TestFile extends File {
     public TestFile forceDeleteDir() throws IOException {
         if (isDirectory()) {
             List<String> errorPaths = new ArrayList<>();
-            if (!FileUtils.isSymlink(this)) {
+            if (FileUtils.isSymlink(this)) {
+                if (!delete()) {
+                    errorPaths.add(getCanonicalPath());
+                }
+            } else {
                 Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
 
                     @Override
@@ -662,9 +666,6 @@ public class TestFile extends File {
                         return FileVisitResult.CONTINUE;
                     }
                 });
-            }
-            if (!delete()) {
-                errorPaths.add(getCanonicalPath());
             }
             if (!errorPaths.isEmpty()) {
                 StringBuilder builder = new StringBuilder()
