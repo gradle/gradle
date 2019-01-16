@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
@@ -27,7 +25,6 @@ import org.junit.Test
 
 class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @LeaksFileHandles
     @Test
     fun `can use accessors for plugins in the buildSrc classpath`() {
 
@@ -39,7 +36,6 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
             println("*my.plugin-a*")
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 my.`plugin-a`
