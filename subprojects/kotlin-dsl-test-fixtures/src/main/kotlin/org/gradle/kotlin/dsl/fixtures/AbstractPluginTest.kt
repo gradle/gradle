@@ -1,7 +1,5 @@
 package org.gradle.kotlin.dsl.fixtures
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.util.TextUtil.normaliseFileSeparators
 
 import java.io.File
@@ -12,7 +10,6 @@ import java.util.*
  * Base class for Gradle plugins tests.
  * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
  */
-@LeaksFileHandles
 open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
 
     override val defaultSettingsScript: String

@@ -33,10 +33,6 @@ import java.io.File
 import java.util.UUID
 
 
-@LeaksFileHandles("""
-    Daemons hold their daemon log file open after the build has finished, debug logging exacerbates this.
-    This should be revisited once TestKit provides a mechanism to control daemon termination.
-""")
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test

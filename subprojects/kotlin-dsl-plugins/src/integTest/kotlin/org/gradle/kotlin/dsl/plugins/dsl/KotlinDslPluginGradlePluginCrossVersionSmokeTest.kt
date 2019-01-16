@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
@@ -48,7 +46,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         )
     }
 
-    @LeaksFileHandles // TODO:kotlin-dsl investigate
     @Test
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 

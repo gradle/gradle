@@ -15,6 +15,8 @@
  */
 package org.gradle.kotlin.dsl.plugins.embedded
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
@@ -191,6 +193,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @LeaksFileHandles
     fun `can be used with GRADLE_METADATA feature preview enabled`() {
 
         withSettings("""

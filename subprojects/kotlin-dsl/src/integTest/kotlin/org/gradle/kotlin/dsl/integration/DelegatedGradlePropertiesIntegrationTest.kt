@@ -2,8 +2,6 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
@@ -38,7 +36,6 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             containsString("Cannot get non-null property 'nonExisting' on root project '${projectRoot.name}' as it does not exist"))
     }
 
-    @LeaksFileHandles
     @Test
     fun `delegated properties follow Gradle mechanics and allow to model optional properties via nullable kotlin types`() {
 
