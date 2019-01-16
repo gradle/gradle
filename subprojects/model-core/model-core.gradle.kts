@@ -37,16 +37,9 @@ dependencies {
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
     implementation(library("asm"))
-    implementation(library("asm_tree"))
 
-    integTestImplementation(project(":core"))
-    integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":apiMetadata"))
-
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":core"))
 }
 
 gradlebuildJava {

@@ -42,7 +42,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int SET_SNAPSHOT = 13;
     private static final int MAP_SNAPSHOT = 14;
     private static final int PROVIDER_SNAPSHOT = 15;
-    private static final int MANAGED_NAMED_SNAPSHOT = 16;
+    private static final int MANAGED_SNAPSHOT = 16;
     private static final int IMPLEMENTATION_SNAPSHOT = 17;
     private static final int DEFAULT_SNAPSHOT = 18;
 
@@ -101,8 +101,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new MapValueSnapshot(mapBuilder.build());
             case PROVIDER_SNAPSHOT:
                 return new ProviderSnapshot(read(decoder));
-            case MANAGED_NAMED_SNAPSHOT:
-                return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
+            case MANAGED_SNAPSHOT:
+                String className = decoder.readString();
+                size = decoder.readSmallInt();
+                ImmutableList<ValueSnapshot> stateElements = readList(decoder, size);
+                return new ManagedTypeSnapshot(className, stateElements);
             case IMPLEMENTATION_SNAPSHOT:
                 return implementationSnapshotSerializer.read(decoder);
             case DEFAULT_SNAPSHOT:
@@ -208,11 +211,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             encoder.writeSmallInt(PROVIDER_SNAPSHOT);
             ProviderSnapshot providerSnapshot = (ProviderSnapshot) snapshot;
             write(encoder, providerSnapshot.getValue());
-        } else if (snapshot instanceof ManagedNamedTypeSnapshot) {
-            encoder.writeSmallInt(MANAGED_NAMED_SNAPSHOT);
-            ManagedNamedTypeSnapshot namedSnapshot = (ManagedNamedTypeSnapshot) snapshot;
-            encoder.writeString(namedSnapshot.getClassName());
-            encoder.writeString(namedSnapshot.getName());
+        } else if (snapshot instanceof ManagedTypeSnapshot) {
+            encoder.writeSmallInt(MANAGED_SNAPSHOT);
+            ManagedTypeSnapshot managedTypeSnapshot = (ManagedTypeSnapshot) snapshot;
+            encoder.writeString(managedTypeSnapshot.getClassName());
+            encoder.writeSmallInt(managedTypeSnapshot.getState().size());
+            for (ValueSnapshot valueSnapshot : managedTypeSnapshot.getState()) {
+                write(encoder, valueSnapshot);
+            }
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

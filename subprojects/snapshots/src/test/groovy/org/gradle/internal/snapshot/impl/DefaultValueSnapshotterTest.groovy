@@ -25,6 +25,7 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultValueSnapshotterTest extends Specification {
@@ -491,7 +492,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedNamedTypeSnapshot
+        snapshot instanceof ManagedTypeSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -504,7 +505,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(value)
-        isolated instanceof ManagedNamedTypeSnapshot
+        isolated instanceof IsolatedManagedTypeSnapshot
         isolated.isolate().is(value)
     }
 
@@ -515,6 +516,7 @@ class DefaultValueSnapshotterTest extends Specification {
         def spec = new FilteringClassLoader.Spec()
         spec.allowClass(Named)
         spec.allowPackage("org.gradle.api.internal.model") // mixed into the implementation
+        spec.allowPackage("org.gradle.internal.instantiation") // mixed into the implementation
         def filter = new FilteringClassLoader(getClass().classLoader, spec)
         def loader = new GroovyClassLoader(filter)
         loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
@@ -543,6 +545,77 @@ class DefaultValueSnapshotterTest extends Specification {
         def isolated = snapshotter.isolate(value)
         snapshotter.snapshot(value) == snapshotter.snapshot(isolated)
         snapshotter.snapshot(other) != snapshotter.snapshot(isolated)
+    }
+
+    interface BeanInterface {
+        String getProp1()
+        void setProp1(String value)
+    }
+
+    def "creates snapshot for managed interface"() {
+        def instantiator = TestUtil.instantiatorFactory().inject()
+        def value = instantiator.newInstance(BeanInterface)
+        value.prop1 = "a"
+        def value1 = instantiator.newInstance(BeanInterface)
+        value1.prop1 = "a"
+        def value2 = instantiator.newInstance(BeanInterface)
+        value2.prop1 = "b"
+        def value3 = instantiator.newInstance(AbstractBean)
+        value3.prop1 = "a"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ManagedTypeSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value1)
+        snapshot != snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
+    }
+
+    def "creates isolated managed interface"() {
+        def instantiator = TestUtil.instantiatorFactory().inject()
+        def value = instantiator.newInstance(BeanInterface)
+        value.prop1 = "a"
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated instanceof IsolatedManagedTypeSnapshot
+        def copy = isolated.isolate()
+        !copy.is(value)
+        copy.prop1 == "a"
+    }
+
+    def "creates snapshot for managed abstract class"() {
+        def instantiator = TestUtil.instantiatorFactory().inject()
+        def value = instantiator.newInstance(AbstractBean)
+        value.prop1 = "a"
+        def value1 = instantiator.newInstance(AbstractBean)
+        value1.prop1 = "a"
+        def value2 = instantiator.newInstance(AbstractBean)
+        value2.prop1 = "b"
+        def value3 = instantiator.newInstance(BeanInterface)
+        value3.prop1 = "a"
+
+        expect:
+        def snapshot = snapshotter.snapshot(value)
+        snapshot instanceof ManagedTypeSnapshot
+        snapshot == snapshotter.snapshot(value)
+        snapshot == snapshotter.snapshot(value1)
+        snapshot != snapshotter.snapshot(value2)
+        snapshot != snapshotter.snapshot(value3)
+    }
+
+    def "creates isolated managed abstract class"() {
+        def instantiator = TestUtil.instantiatorFactory().inject()
+        def value = instantiator.newInstance(AbstractBean)
+        value.prop1 = "a"
+
+        expect:
+        def isolated = snapshotter.isolate(value)
+        isolated instanceof IsolatedManagedTypeSnapshot
+        def copy = isolated.isolate()
+        !copy.is(value)
+        copy.prop1 == "a"
     }
 
     def "creates snapshot for serializable type"() {

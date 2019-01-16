@@ -172,10 +172,10 @@ class SnapshotSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes managed named properties"() {
+    def "serializes managed type properties"() {
         def value = Stub(Named)
         value.name >> "123"
-        def original = new ManagedNamedTypeSnapshot(value)
+        def original = new ManagedTypeSnapshot("named", ImmutableList.of(string("a"), integer(123)))
         write(original)
 
         expect:

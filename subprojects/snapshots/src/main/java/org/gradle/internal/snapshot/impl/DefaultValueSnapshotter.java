@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Named;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -26,6 +25,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
@@ -149,8 +149,14 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
             T providerValueSnapshot = processValue(providerValue, visitor);
             return visitor.provider(providerValue, providerValueSnapshot);
         }
-        if (value instanceof NamedObjectInstantiator.Managed) {
-            return visitor.namedValue((Named) value);
+        if (value instanceof Managed) {
+            Managed managed = (Managed) value;
+            Object[] state = managed.unpackState();
+            ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(state.length);
+            for (Object element : state) {
+                builder.add(processValue(element, visitor));
+            }
+            return visitor.managedValue(managed, builder.build());
         }
         if (value instanceof Isolatable) {
             return visitor.fromIsolatable((Isolatable<?>) value);
@@ -195,7 +201,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T attributeValue(Attribute<?> value);
 
-        T namedValue(Named value);
+        T managedValue(Managed value, ImmutableList<T> state);
 
         T fromIsolatable(Isolatable<?> value);
 
@@ -274,8 +280,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot namedValue(Named value) {
-            return new ManagedNamedTypeSnapshot(value);
+        public ValueSnapshot managedValue(Managed value, ImmutableList<ValueSnapshot> state) {
+            return new ManagedTypeSnapshot(value.publicType().getName(), state);
         }
 
         @Override
@@ -384,8 +390,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public Isolatable<?> namedValue(Named value) {
-            return new IsolatedManagedNamedTypeSnapshot(value, namedObjectInstantiator);
+        public Isolatable<?> managedValue(Managed value, ImmutableList<Isolatable<?>> state) {
+            return new IsolatedManagedTypeSnapshot(value.publicType(), value.managedFactory(), state);
         }
 
         @Override

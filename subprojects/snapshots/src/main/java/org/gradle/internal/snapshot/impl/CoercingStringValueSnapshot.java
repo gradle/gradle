@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
@@ -43,7 +44,8 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
             return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), getValue())));
         }
         if (Named.class.isAssignableFrom(type)) {
-            return Cast.uncheckedCast(new IsolatedManagedNamedTypeSnapshot(instantiator.named((Class<? extends Named>) type, getValue()), instantiator));
+            ImmutableList<Isolatable<?>> state = ImmutableList.of(new StringValueSnapshot(getValue()));
+            return Cast.uncheckedCast(new IsolatedManagedTypeSnapshot(type, instantiator, state));
         }
         return null;
     }
