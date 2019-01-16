@@ -1,8 +1,8 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 import model.OS
 import model.PerformanceTestType

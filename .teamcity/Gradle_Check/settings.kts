@@ -1,7 +1,7 @@
 package Gradle_Check
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.project
-import jetbrains.buildServer.configs.kotlin.v2018_1.version
+import jetbrains.buildServer.configs.kotlin.v2018_2.project
+import jetbrains.buildServer.configs.kotlin.v2018_2.version
 import model.CIBuildModel
 import projects.RootProject
 
