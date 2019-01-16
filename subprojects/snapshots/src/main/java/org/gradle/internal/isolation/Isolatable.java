@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
  */
 public interface Isolatable<T> extends Hashable {
     /**
-     * Returns this value as a {@link ValueSnapshot}.
+     * Returns this value as a {@link ValueSnapshot}. The returned value should not hold any references to user ClassLoaders.
      */
     ValueSnapshot asSnapshot();
 

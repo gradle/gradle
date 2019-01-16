@@ -30,6 +30,8 @@ dependencies {
     api(library("jsr305"))
     api(library("inject"))
 
+    implementation(project(":modelCore"))
+
     testImplementation(project(":internalTesting"))
 }
 
