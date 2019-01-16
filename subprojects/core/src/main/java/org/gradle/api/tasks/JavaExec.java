@@ -381,9 +381,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * Returns the version of the Java executable specified by {@link #getExecutable()}.
      *
-     * @since 5.1
+     * @since 5.2
      */
     @Input
+    @Incubating
     public JavaVersion getJavaVersion() {
         return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
     }
@@ -391,7 +392,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
+    @Internal("covered by getJavaVersion")
     @Nullable
     @Override
     public String getExecutable() {
