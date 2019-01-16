@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.TaskPropertySpec;
 import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 import java.util.Iterator;
@@ -27,7 +27,7 @@ import java.util.List;
  * Container for {@link org.gradle.api.internal.tasks.TaskPropertySpec}s that might not have a name. The container
  * ensures that whenever properties are iterated they are always assigned a name.
  */
-public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskFilePropertySpec> implements Iterable<T> {
+public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskPropertySpec> implements Iterable<T> {
     private final List<T> properties = Lists.newArrayList();
     private boolean changed;
     private int unnamedPropertyCounter;
@@ -35,7 +35,7 @@ public class FilePropertyContainer<T extends TaskFilePropertyBuilder & TaskFileP
     private FilePropertyContainer() {
     }
 
-    public static <T extends TaskFilePropertyBuilder & TaskFilePropertySpec> FilePropertyContainer<T> create() {
+    public static <T extends TaskFilePropertyBuilder & TaskPropertySpec> FilePropertyContainer<T> create() {
         return new FilePropertyContainer<T>();
     }
 

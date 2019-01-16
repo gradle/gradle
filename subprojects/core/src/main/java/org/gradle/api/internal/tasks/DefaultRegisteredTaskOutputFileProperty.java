@@ -19,20 +19,17 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-public class DefaultRegisteredTaskOutputFileProperty implements RegisteredTaskOutputFileProperty {
-    private final StaticValue value;
-    private boolean optional;
-    private String propertyName;
+public class DefaultRegisteredTaskOutputFileProperty extends AbstractTaskFilePropertySpec implements RegisteredTaskOutputFileProperty {
     private final OutputFilePropertyType outputFilePropertyType;
 
     public DefaultRegisteredTaskOutputFileProperty(StaticValue value, OutputFilePropertyType outputFilePropertyType) {
-        this.value = value;
+        super(value);
         this.outputFilePropertyType = outputFilePropertyType;
     }
 
     @Override
     public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
-        this.propertyName = propertyName;
+        setPropertyName(propertyName);
         return this;
     }
 
@@ -43,22 +40,8 @@ public class DefaultRegisteredTaskOutputFileProperty implements RegisteredTaskOu
 
     @Override
     public TaskOutputFilePropertyBuilder optional(boolean optional) {
-        this.optional = optional;
+        setOptional(optional);
         return this;
-    }
-
-    @Override
-    public StaticValue getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean isOptional() {
-        return optional;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
     }
 
     public OutputFilePropertyType getPropertyType() {

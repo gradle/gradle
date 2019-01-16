@@ -24,28 +24,15 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 
 @NonNullApi
-public class DefaultRegisteredTaskInputFileProperty implements RegisteredTaskInputFileProperty {
+public class DefaultRegisteredTaskInputFileProperty extends AbstractTaskFilePropertySpec implements RegisteredTaskInputFileProperty {
 
     private final InputFilePropertyType filePropertyType;
-    private final StaticValue value;
-    private String propertyName;
     private boolean skipWhenEmpty;
-    private boolean optional;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
     public DefaultRegisteredTaskInputFileProperty(StaticValue value, InputFilePropertyType filePropertyType) {
-        this.value = value;
+        super(value);
         this.filePropertyType = filePropertyType;
-    }
-
-    @Override
-    public StaticValue getValue() {
-        return value;
-    }
-
-    @Override
-    public String getPropertyName() {
-        return propertyName;
     }
 
     @Override
@@ -55,7 +42,7 @@ public class DefaultRegisteredTaskInputFileProperty implements RegisteredTaskInp
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
-        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
+        setPropertyName(propertyName);
         return this;
     }
 
@@ -76,13 +63,8 @@ public class DefaultRegisteredTaskInputFileProperty implements RegisteredTaskInp
     }
 
     @Override
-    public boolean isOptional() {
-        return optional;
-    }
-
-    @Override
     public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
-        this.optional = optional;
+        setOptional(optional);
         return this;
     }
 

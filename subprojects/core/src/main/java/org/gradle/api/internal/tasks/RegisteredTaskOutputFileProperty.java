@@ -19,6 +19,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 
-public interface RegisteredTaskOutputFileProperty extends TaskFilePropertySpec, TaskOutputFilePropertyBuilder {
+public interface RegisteredTaskOutputFileProperty extends TaskPropertySpec, TaskOutputFilePropertyBuilder {
     OutputFilePropertyType getPropertyType();
 }
