@@ -339,7 +339,7 @@ class PropertyExtractorTest extends Specification {
 
     private static void assertPropertyTypes(Map<String, ?> expectedPropertyTypes, Set<PropertyMetadata> typeMetadata) {
         def propertyTypes = typeMetadata.collectEntries { propertyMetadata ->
-            [(propertyMetadata.fieldName): propertyMetadata.propertyType]
+            [(propertyMetadata.propertyName): propertyMetadata.propertyType]
         }
         assert propertyTypes == expectedPropertyTypes
     }

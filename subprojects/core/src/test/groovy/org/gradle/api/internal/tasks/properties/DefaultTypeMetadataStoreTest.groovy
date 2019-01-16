@@ -97,7 +97,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         then:
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
-        propertyMetadata.fieldName == 'searchPath'
+        propertyMetadata.propertyName == 'searchPath'
         propertyMetadata.propertyType == SearchPath
         propertyMetadata.validationMessages.empty
         typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
@@ -205,7 +205,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
-        typeMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
+        typeMetadata*.propertyName as List == ["inputFiles1", "inputFiles2"]
         typeMetadata*.propertyType as List == [Classpath, Classpath]
         typeMetadata*.validationMessages.flatten().empty
     }
@@ -217,7 +217,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
         then:
-        typeMetadata*.fieldName.empty
+        typeMetadata*.propertyName.empty
 
         where:
         workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
@@ -278,6 +278,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     private static List<String> nonIgnoredProperties(Collection<PropertyMetadata> typeMetadata) {
-        typeMetadata.findAll { !isIgnored(it) }*.fieldName.sort()
+        typeMetadata.findAll { !isIgnored(it) }*.propertyName.sort()
     }
 }
