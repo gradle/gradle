@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -28,6 +29,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     private final ProjectComponentSelector selector;
@@ -79,8 +81,8 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
-        return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema);
+    public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Set<? extends Capability> explicitRequestedCapabilities) {
+        return delegate.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
     }
 
     @Override
@@ -91,6 +93,11 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
     @Override
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
+    }
+
+    @Override
+    public Set<Capability> getRequestedCapabilities() {
+        return delegate.getRequestedCapabilities();
     }
 
 }

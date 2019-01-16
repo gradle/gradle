@@ -49,6 +49,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             clientAttributes,
             dependency.getAttributes(),
             projectDependency.getTargetConfiguration(),
+            projectDependency.getRequestedCapabilities(),
             convertArtifacts(dependency.getArtifacts()),
             excludes,
             false, false, dependency.isTransitive(), false, dependency.getReason());

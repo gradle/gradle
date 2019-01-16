@@ -66,14 +66,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
 
     def "returns this when same target requested"() {
         def selector = Stub(ProjectComponentSelector)
-        def dep = new LocalComponentDependencyMetadata(componentId, selector, "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, selector, "from", null, ImmutableAttributes.EMPTY, "to", [] as Set, [] as List, [], false, false, true, false, null)
 
         expect:
         dep.withTarget(selector).is(dep)
     }
 
     def "selects the target configuration from target component"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as Set, [] as List, [], false, false, true, false, null)
         def toComponent = Stub(ComponentResolveMetadata)
         def toConfig = Stub(LocalConfigurationMetadata) {
             isCanBeConsumed() >> true
@@ -84,12 +84,12 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("to") >> toConfig
 
         expect:
-        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema) == [toConfig]
+        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema, [] as Set) == [toConfig]
     }
 
     @Unroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -114,7 +114,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set == [expected] as Set
 
         where:
         scenario                                         | queryAttributes                 | expected
@@ -124,7 +124,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
     }
 
     def "revalidates default configuration if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, Dependency.DEFAULT_CONFIGURATION, [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, Dependency.DEFAULT_CONFIGURATION, [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'default'
             isCanBeResolved() >> true
@@ -144,7 +144,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         toComponent.getConfiguration("default") >> defaultConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'other'), toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'other'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -154,7 +154,7 @@ Configuration 'default':
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, 'bar', [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, 'bar', [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -182,7 +182,7 @@ Configuration 'default':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         when:
-        dep.selectConfigurations(attributes(key: 'something'), toComponent, attributesSchema)*.name as Set
+        dep.selectConfigurations(attributes(key: 'something'), toComponent, attributesSchema, [] as Set)*.name as Set
 
         then:
         def e = thrown(IncompatibleConfigurationSelectionException)
@@ -193,7 +193,7 @@ Configuration 'bar':
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -228,7 +228,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -263,7 +263,7 @@ Configuration 'bar':
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -298,7 +298,7 @@ Configuration 'bar':
 
         expect:
         try {
-            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema)*.name as Set
+            def result = dep.selectConfigurations(attributes(queryAttributes), toComponent, attributesSchema, [] as Set)*.name as Set
             if (expected == null && result) {
                 throw new AssertionError("Expected an ambiguous result, but got $result")
             }
@@ -333,7 +333,7 @@ Configuration 'bar':
 
     def "fails to select target configuration when not present in the target component"() {
         def fromId = Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
-        def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(fromId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as Set, [] as List, [], false, false, true, false, null)
         def toComponent = Stub(ComponentResolveMetadata)
         toComponent.id >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
 
@@ -341,7 +341,7 @@ Configuration 'bar':
         toComponent.getConfiguration("to") >> null
 
         when:
-        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema)
+        dep.selectConfigurations(attributes([:]), toComponent, attributesSchema,[] as Set)
 
         then:
         def e = thrown(ConfigurationNotFoundException)
@@ -350,7 +350,7 @@ Configuration 'bar':
 
     def "excludes nothing when no exclude rules provided"() {
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as Set, [] as List, [], false, false, true, false, null)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
@@ -362,7 +362,7 @@ Configuration 'bar':
         def exclude1 = new DefaultExclude(DefaultModuleIdentifier.newId("group1", "*"))
         def exclude2 = new DefaultExclude(DefaultModuleIdentifier.newId("group2", "*"))
         def moduleExclusions = new ModuleExclusions(new DefaultImmutableModuleIdentifierFactory())
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as List, [exclude1, exclude2], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, "to", [] as Set, [] as List, [exclude1, exclude2], false, false, true, false, null)
 
         expect:
         def exclusions = moduleExclusions.excludeAny(copyOf(dep.excludes))
@@ -393,7 +393,7 @@ Configuration 'bar':
 
     @Unroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
-        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, null)
+        def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as Set, [] as List, [], false, false, true, false, null)
         def defaultConfig = defaultConfiguration()
         def toFooConfig = Stub(LocalConfigurationMetadata) {
             getName() >> 'foo'
@@ -422,7 +422,7 @@ Configuration 'bar':
         toComponent.getConfiguration("bar") >> toBarConfig
 
         expect:
-        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility)*.name as Set == [expected] as Set
+        dep.selectConfigurations(attributes(queryAttributes), toComponent, attributeSchemaWithCompatibility, [] as Set)*.name as Set == [expected] as Set
 
         where:
         scenario                     | queryAttributes                 | expected

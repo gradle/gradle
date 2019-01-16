@@ -23,6 +23,7 @@ import org.gradle.api.component.Artifact;
 import org.gradle.internal.DisplayName;
 
 import java.io.File;
+import java.util.Collections;
 
 public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
     private final ComponentArtifactIdentifier identifier;
@@ -36,7 +37,7 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
 
     public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier, DisplayName variantDisplayName, AttributeContainer variantAttributes, Class<? extends Artifact> type, File file) {
         this.identifier = identifier;
-        this.variant = new DefaultResolvedVariantResult(variantDisplayName, variantAttributes);
+        this.variant = new DefaultResolvedVariantResult(variantDisplayName, variantAttributes, Collections.emptyList());
         this.type = type;
         this.file = file;
     }

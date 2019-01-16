@@ -77,7 +77,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
         this.componentLevelAttributes = defaultAttributes(attributesFactory);
-        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -91,7 +91,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
-        this.variantMetadataRules = new VariantMetadataRules(attributesFactory);
+        this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
 

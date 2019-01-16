@@ -87,7 +87,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                         ? DefaultMutableVersionConstraint.withStrictVersion(lockedVersion)
                         : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
-                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
+                    result.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null, Collections.emptySet(),
                         Collections.<IvyArtifactName>emptyList(),  Collections.<ExcludeMetadata>emptyList(), false, false, false, true, true, getLockReason(strict, lockedVersion)));
                 }
             }

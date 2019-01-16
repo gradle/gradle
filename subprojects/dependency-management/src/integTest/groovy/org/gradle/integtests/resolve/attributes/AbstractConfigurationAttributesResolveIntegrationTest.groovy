@@ -35,6 +35,12 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         "${free}; ${release}"
     }
 
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+    }
+
     abstract String getDebug()
 
     abstract String getFree()
@@ -391,7 +397,7 @@ include 'a', 'b'
 
         then:
         failure.assertHasCause '''Variant 'bar' in project :b does not match the consumer attributes
-Variant 'bar':
+Variant 'bar' capability test:b:unspecified:
   - Required buildType 'debug' and found incompatible value 'release'.
   - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -527,10 +533,10 @@ Variant 'bar':
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Unable to find a matching variant of project :b:
-  - Variant 'bar':
+  - Variant 'bar' capability test:b:unspecified:
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' but no value provided.
-  - Variant 'foo':
+  - Variant 'foo' capability test:b:unspecified:
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.""")
     }
@@ -575,8 +581,9 @@ Variant 'bar':
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar': Found buildType 'release' but wasn't required.
-  - Variant 'foo':
+  - Variant 'bar' capability test:b:unspecified:
+      - Found buildType 'release' but wasn't required.
+  - Variant 'foo' capability test:b:unspecified:
       - Found buildType 'release' but wasn't required.
       - Found flavor 'free' but wasn't required.""")
     }
@@ -706,10 +713,10 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause '''Unable to find a matching variant of project :b:
-  - Variant 'bar':
+  - Variant 'bar' capability test:b:unspecified:
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found incompatible value 'paid'.
-  - Variant 'foo':
+  - Variant 'foo' capability test:b:unspecified:
       - Required buildType 'debug' and found incompatible value 'release'.
       - Required flavor 'free' and found compatible value 'free'.'''
 
@@ -833,10 +840,10 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar':
+  - Variant 'bar' capability test:b:unspecified:
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Variant 'foo':
+  - Variant 'foo' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided.""")
     }
@@ -925,9 +932,9 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar':
+  - Variant 'bar' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
-  - Variant 'foo':
+  - Variant 'foo' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'."""
     }
 
@@ -976,11 +983,11 @@ All of them match the consumer attributes:
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar':
+  - Variant 'bar' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Variant 'foo':
+  - Variant 'foo' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1055,10 +1062,10 @@ All of them match the consumer attributes:
   - compile
   - debug
 All of them match the consumer attributes:
-  - Variant 'compile':
+  - Variant 'compile' capability test:b:unspecified:
       - Required buildType 'debug' but no value provided.
       - Required flavor 'free' and found compatible value 'free'.
-  - Variant 'debug':
+  - Variant 'debug' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' but no value provided."""
     }
@@ -1382,11 +1389,11 @@ All of them match the consumer attributes:
   - foo
   - foo2
 All of them match the consumer attributes:
-  - Variant 'foo':
+  - Variant 'foo' capability test:c:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Variant 'foo2':
+  - Variant 'foo2' capability test:c:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
@@ -1399,11 +1406,11 @@ All of them match the consumer attributes:
   - bar
   - bar2
 All of them match the consumer attributes:
-  - Variant 'bar':
+  - Variant 'bar' capability test:c:unspecified:
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'.
-  - Variant 'bar2':
+  - Variant 'bar2' capability test:c:unspecified:
       - Required buildType 'release' and found compatible value 'release'.
       - Found extra 'extra 2' but wasn't required.
       - Required flavor 'free' and found compatible value 'free'."""
