@@ -1097,7 +1097,7 @@ task generate(type: TransformerTask) {
         succeeds "customTask", "--info"
         then:
         skippedTasks.empty
-        output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask\$Dsl')."
+        output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
     def "task with custom action loaded with custom classloader is never up-to-date"() {
