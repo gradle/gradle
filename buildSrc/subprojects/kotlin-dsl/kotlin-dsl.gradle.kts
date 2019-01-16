@@ -7,7 +7,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
 
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.0")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.3")
     implementation("com.gradle.publish:plugin-publish-plugin:0.10.0")
 
     implementation("com.thoughtworks.qdox:qdox:2.0-M9")
