@@ -106,10 +106,5 @@ object BuildServices {
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
-        { id, creator -> jarCache["$id-$gradleKotlinDslVersion", creator] }
-
-    private
-    val gradleKotlinDslVersion by lazy {
-        this::class.java.`package`.implementationVersion
-    }
+        { id, creator -> jarCache[id, creator] }
 }
