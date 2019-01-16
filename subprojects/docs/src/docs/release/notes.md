@@ -4,9 +4,12 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[Thomas Broyer](https://github.com/tbroyer), [Szczepan Faber](https://github.com/mockitoguy), [Stefan M.](https://github.com/StefMa), [Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker), and [Richard Newton](https://github.com/ricnewton).
+[Thomas Broyer](https://github.com/tbroyer), [Szczepan Faber](https://github.com/mockitoguy), [Stefan M.](https://github.com/StefMa), 
+[Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker),
+[Josh Soref](https://github.com/jsoref), [Andrew Nessin](https://github.com/andrewnessinjim), [NFM](https://github.com/not-for-me),
+[Jean-Michel Fayard](https://github.com/jmfayard), [Arun Ponniah Sethuramalingam](https://github.com/saponniah), [Victor Jacobs](https://github.com/victorjacobs),
+and [Richard Newton](https://github.com/ricnewton).
 
- 
 ## Upgrade Instructions
 
 Switch your build to use Gradle 5.2 by updating your wrapper properties:
