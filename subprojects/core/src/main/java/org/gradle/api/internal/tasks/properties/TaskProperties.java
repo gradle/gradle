@@ -37,9 +37,9 @@ import java.util.Map;
 @NonNullApi
 public interface TaskProperties {
     /**
-     * The lifecycle aware properties.
+     * The lifecycle aware values.
      */
-    Iterable<? extends LifecycleAwareProperty> getLifecycleAwareProperties();
+    Iterable<? extends LifecycleAwareValue> getLifecycleAwareValues();
 
     /**
      * A factory for the input properties.

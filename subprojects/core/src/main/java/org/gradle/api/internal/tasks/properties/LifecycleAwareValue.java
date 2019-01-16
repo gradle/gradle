@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 /**
  * An input property value may implement this interface to be notified when the task that owns it starts and completes execution.
  */
-public interface LifecycleAwareProperty {
+public interface LifecycleAwareValue {
 
     /**
      * Called immediately prior to this property being used as an input.

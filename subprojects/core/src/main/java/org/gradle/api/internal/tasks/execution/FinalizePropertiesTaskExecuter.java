@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.LifecycleAwareProperty;
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 
 /**
@@ -39,14 +39,14 @@ public class FinalizePropertiesTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         TaskProperties properties = context.getTaskProperties();
-        for (LifecycleAwareProperty property : properties.getLifecycleAwareProperties()) {
-            property.prepareValue();
+        for (LifecycleAwareValue value : properties.getLifecycleAwareValues()) {
+            value.prepareValue();
         }
         try {
             return taskExecuter.execute(task, state, context);
         } finally {
-            for (LifecycleAwareProperty property : properties.getLifecycleAwareProperties()) {
-                property.cleanupValue();
+            for (LifecycleAwareValue value : properties.getLifecycleAwareValues()) {
+                value.cleanupValue();
             }
         }
     }

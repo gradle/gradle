@@ -144,7 +144,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public Iterable<? extends LifecycleAwareProperty> getLifecycleAwareProperties() {
+    public Iterable<? extends LifecycleAwareValue> getLifecycleAwareValues() {
         return validatingProperties;
     }
 
