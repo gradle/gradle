@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import javax.annotation.Nullable;
@@ -304,24 +305,27 @@ public abstract class GradleRunner {
 
     /**
      * Environment variables for the build.
-     * {@code null} is valid and indicates the build will use system environment.
+     * {@code null} is valid and indicates the build will use the system environment.
      *
      * @return environment variables
      * @since 5.2
      */
     @Nullable
+    @Incubating
     public abstract Map<String, String> getEnvironment();
 
     /**
      * Sets the environment variables for the build.
-     * {@code null} is permitted and will make the build use system environment.
+     * {@code null} is permitted and will make the build use the system environment.
+     * <p>
      * When environment is specified, running with {@link #isDebug()} is not allowed.
-     * Debug mode runs "in process" and we need to fork a separate process to pass environment variables.
+     * Debug mode runs in-process and TestKit must fork a separate process to pass environment variables.
      *
-     * @param environmentVariables the variables to use, null ok.
+     * @param environmentVariables the variables to use, {@code null} is allowed.
      * @return this
      * @since 5.2
      */
+    @Incubating
     public abstract GradleRunner withEnvironment(Map<String, String> environmentVariables);
 
     /**
