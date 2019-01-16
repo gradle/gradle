@@ -8,6 +8,7 @@ We would like to thank the following community contributors to this release of G
 [Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker),
 [Josh Soref](https://github.com/jsoref), [Andrew Nessin](https://github.com/andrewnessinjim), [NFM](https://github.com/not-for-me),
 [Jean-Michel Fayard](https://github.com/jmfayard), [Arun Ponniah Sethuramalingam](https://github.com/saponniah), [Victor Jacobs](https://github.com/victorjacobs),
+[Theodore Ni](https://github.com/tjni),
 and [Richard Newton](https://github.com/ricnewton).
 
 ## Upgrade Instructions
@@ -66,7 +67,7 @@ The implementation of the rich console has been improved to remove some distract
 
 ## Support for setting environment variables when using Gradle TestKit
   
-Gradle TestKit based tests can now specify environment variables via the [TestKit](userguide/test_kit.html) [`GradleRunner`] 
+Gradle [TestKit](userguide/test_kit.html) based tests can now specify environment variables via [`GradleRunner`](javadoc/org/gradle/testkit/runner/GradleRunner.html). These environemnt variables will be visible to the build under test.
 
 Contributed by [Szczepan Faber](https://github.com/mockitoguy).
 
@@ -75,6 +76,12 @@ Contributed by [Szczepan Faber](https://github.com/mockitoguy).
 TBD
 
 Contributed by [Thomas Broyer](https://github.com/tbroyer).
+
+## `JavaExec` tasks track the version of Java used
+
+Tasks that use `JavaExec` now track the version of Java used instead of the absolute path to the `java` executable.
+
+Contributed by [Theodore Ni](https://github.com/tjni).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
