@@ -35,6 +35,7 @@ import org.junit.Before
 import org.junit.Test
 
 
+@LeaksFileHandles
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Before
@@ -235,7 +236,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
         assumeNonEmbeddedGradleExecuter()
