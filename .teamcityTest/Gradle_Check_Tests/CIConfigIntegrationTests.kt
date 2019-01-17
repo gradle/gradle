@@ -1,6 +1,6 @@
 
 import configurations.shouldBeSkipped
-import jetbrains.buildServer.configs.kotlin.v2018_1.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.GradleSubproject
 import model.JvmVendor

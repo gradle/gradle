@@ -6,7 +6,7 @@ import configurations.DependenciesCheck
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName{

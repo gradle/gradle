@@ -1,6 +1,6 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
 
