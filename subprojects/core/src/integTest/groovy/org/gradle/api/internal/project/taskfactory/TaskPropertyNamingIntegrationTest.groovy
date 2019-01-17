@@ -77,21 +77,21 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 namedOutputDirectories = [one: file("outputs-one"), two: file("outputs-two")]
 
                 doLast {
-                    def outputFiles = []
-                    def inputFiles = []
+                    def outputFiles = [:]
+                    def inputFiles = [:]
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            inputFiles << inputFileProperty
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                            inputFiles[propertyName] = project.files(value)
                         }
 
                         @Override
-                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-                            outputFiles << outputFileProperty
+                        void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+                            outputFiles[propertyName] = project.files(value)
                         }
                     })
-                    inputFiles.each { property ->
-                        println "Input: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
+                    inputFiles.each { propertyName, value ->
+                        println "Input: \${propertyName} \${value.files*.name.sort()}"
                     }
                     outputs.fileProperties.each { property ->
                         println "Output: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
@@ -102,7 +102,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "myTask"
         then:
-        output.contains "Input: inputDirectory [inputA.txt, inputB.txt]"
+        output.contains "Input: inputDirectory [inputs]"
         output.contains "Input: inputFile [input.txt]"
         output.contains "Input: inputFiles [input1.txt, input2.txt]"
         output.contains "Input: nested.inputFile [input-nested.txt]"
@@ -393,28 +393,28 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 void printInputsAndOutputs() {
                     TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputProperty(TaskInputPropertySpec inputProperty) {
-                            println "Input property '\${inputProperty.propertyName}'"
+                        void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                            println "Input property '\${propertyName}'"
                         }
 
                         @Override
-                        void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
-                            println "Input file property '\${inputFileProperty.propertyName}'"
+                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                            println "Input file property '\${propertyName}'"
                         }
 
                         @Override
-                        void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-                            println "Output file property '\${outputFileProperty.propertyName}'"
+                        void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+                            println "Output file property '\${propertyName}'"
                         }
 
                         @Override
-                        void visitDestroyableProperty(TaskDestroyablePropertySpec destroyable) {
-                            println "Destroys: '\${destroyable.value.call()}'"
+                        void visitDestroyableProperty(Object path) {
+                            println "Destroys: '\${path.call()}'"
                         }
 
                         @Override
-                        void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
-                            println "Local state: '\${localStateProperty.value.call()}'"
+                        void visitLocalStateProperty(Object value) {
+                            println "Local state: '\${value.call()}'"
                         }
                     })
                 }

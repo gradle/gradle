@@ -25,6 +25,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -61,7 +62,6 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -110,7 +110,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     ExecutionHistoryStore executionHistoryStore,
                                     OutputFilesRepository outputFilesRepository,
                                     BuildScanPluginApplied buildScanPlugin,
-                                    PathToFileResolver resolver,
+                                    FileResolver resolver,
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     TaskExecutionListener taskExecutionListener,

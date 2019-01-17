@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 public interface PropertyMetadata {
-    String getFieldName();
+    String getPropertyName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 

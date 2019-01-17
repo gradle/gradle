@@ -25,7 +25,7 @@ import spock.lang.Specification
 class CachingTaskInputFileCollectionTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def collection = new CachingTaskInputFileCollection(":task", TestFiles.resolver(), Stub(TaskResolver))
+    def collection = new CachingTaskInputFileCollection(TestFiles.resolver(), Stub(TaskResolver))
 
     def "results are live prior to task execution"() {
         def files = []

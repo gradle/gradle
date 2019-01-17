@@ -88,7 +88,7 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
 
     @Override
     public ConfigurableFileCollection newInputFileCollection(Task consumer) {
-        return new CachingTaskInputFileCollection(consumer.getPath(), projectDir.fileResolver, taskResolver);
+        return new CachingTaskInputFileCollection(projectDir.fileResolver, taskResolver);
     }
 
     @Override

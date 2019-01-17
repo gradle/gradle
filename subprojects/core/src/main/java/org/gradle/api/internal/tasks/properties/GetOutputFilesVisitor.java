@@ -17,42 +17,40 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.CompositeTaskOutputPropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.internal.file.PathToFileResolver;
 
-import java.io.File;
 import java.util.List;
+import java.util.function.Consumer;
 
 @NonNullApi
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
-    private final List<TaskOutputFilePropertySpec> specs = Lists.newArrayList();
-    private ImmutableSortedSet<TaskOutputFilePropertySpec> fileProperties;
+    private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
+    private final String ownerDisplayName;
+    private final PathToFileResolver fileResolver;
+    private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 
-    @Override
-    public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
-        hasDeclaredOutputs = true;
-        if (outputFileProperty instanceof CompositeTaskOutputPropertySpec) {
-            Iterators.addAll(specs, ((CompositeTaskOutputPropertySpec) outputFileProperty).resolveToOutputProperties());
-        } else {
-            if (outputFileProperty instanceof CacheableTaskOutputFilePropertySpec) {
-                File outputFile = ((CacheableTaskOutputFilePropertySpec) outputFileProperty).getOutputFile();
-                if (outputFile == null) {
-                    return;
-                }
-            }
-            specs.add(outputFileProperty);
-        }
+    public GetOutputFilesVisitor(String ownerDisplayName, PathToFileResolver fileResolver) {
+        this.ownerDisplayName = ownerDisplayName;
+        this.fileResolver = fileResolver;
     }
 
-    public ImmutableSortedSet<TaskOutputFilePropertySpec> getFileProperties() {
+    @Override
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+        hasDeclaredOutputs = true;
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileResolver, new Consumer<OutputFilePropertySpec>() {
+            @Override
+            public void accept(OutputFilePropertySpec outputFilePropertySpec) {
+                specs.add(outputFilePropertySpec);
+            }
+        });
+    }
+
+    public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
-            fileProperties = TaskPropertyUtils.collectFileProperties("output", specs.iterator());
+            fileProperties = FileParameterUtils.collectFileProperties("output", specs.iterator());
         }
         return fileProperties;
     }
@@ -60,4 +58,5 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     public boolean hasDeclaredOutputs() {
         return hasDeclaredOutputs;
     }
+
 }

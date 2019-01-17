@@ -20,7 +20,7 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.tasks.execution.TaskProperties
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
 

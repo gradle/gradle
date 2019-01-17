@@ -18,42 +18,44 @@ package org.gradle.api.internal.tasks.properties.annotations
 
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.DefaultPropertySpecFactory
 import org.gradle.api.internal.tasks.TaskValidationContext
-import org.gradle.api.internal.tasks.ValidatingTaskPropertySpec
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext
+import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.internal.tasks.properties.ValidationActions
+import org.gradle.api.tasks.Optional
+import org.gradle.internal.reflect.PropertyMetadata
 import spock.lang.Specification
 
 class NestedBeanAnnotationHandlerTest extends Specification {
 
-    def propertyValue = Mock(PropertyValue)
+    def value = Mock(PropertyValue)
     def propertyVisitor = Mock(PropertyVisitor)
     def task = Stub(TaskInternal)
     def resolver = Mock(FileResolver)
-    def specFactory = new DefaultPropertySpecFactory(task, resolver)
     def context = Mock(BeanPropertyContext)
+    def propertyMetadata = Mock(PropertyMetadata)
 
     def "absent nested property is reported as error"() {
-        ValidatingTaskPropertySpec taskInputPropertySpec = null
+        PropertyValue validatingValue = null
         def validationContext = Mock(TaskValidationContext)
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
-        1 * propertyValue.value >> null
-        1 * propertyValue.propertyName >> "name"
-        1 * propertyValue.optional >> false
-        1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
-            taskInputPropertySpec = arguments[0]
+        1 * value.call() >> null
+        1 * propertyMetadata.isAnnotationPresent(Optional) >> false
+        1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
+            validatingValue = arguments[1]
         }
         0 * _
-        taskInputPropertySpec.value == null
+        validatingValue.call() == null
 
         when:
-        taskInputPropertySpec.validate(validationContext)
+        def validatingSpec = new DefaultValidatingProperty("name", validatingValue, false, ValidationActions.NO_OP)
+        validatingSpec.validate(validationContext)
 
         then:
         1 * validationContext.recordValidationMessage("No value has been specified for property 'name'.")
@@ -62,34 +64,32 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def "absent optional nested property is ignored"() {
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
-        1 * propertyValue.value >> null
-        1 * propertyValue.optional >> true
+        1 * value.call() >> null
+        1 * propertyMetadata.isAnnotationPresent(Optional) >> true
         0 * _
     }
 
     def "exception thrown by nested property is propagated"() {
-        ValidatingTaskPropertySpec taskInputPropertySpec = null
-        def validationContext = Mock(TaskValidationContext)
+        PropertyValue validatingValue = null
         def exception = new RuntimeException("BOOM!")
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
-        1 * propertyValue.value >> {
+        1 * value.call() >> {
             throw exception
         }
-        1 * propertyValue.getPropertyName() >> "name"
-        1 * propertyVisitor.visitInputProperty(_) >> { arguments ->
-            taskInputPropertySpec = arguments[0]
+        1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
+            validatingValue = arguments[1]
         }
         0 * _
 
         when:
-        taskInputPropertySpec.validate(validationContext)
+        validatingValue.call()
 
         then:
         0 * _
@@ -102,11 +102,10 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def nestedPropertyName = "someProperty"
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(propertyValue, propertyVisitor, specFactory, context)
+        new NestedBeanAnnotationHandler().visitPropertyValue(nestedPropertyName, value, propertyMetadata, propertyVisitor, context)
 
         then:
-        1 * propertyValue.value >> nestedBean
-        1 * propertyValue.getPropertyName() >> nestedPropertyName
+        1 * value.call() >> nestedBean
         1 * context.addNested(nestedPropertyName, nestedBean)
         0 * _
     }

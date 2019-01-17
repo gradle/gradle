@@ -145,7 +145,7 @@ public class PropertyValidationAccess {
         @Override
         public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             for (PropertyMetadata propertyMetadata : getTypeMetadata().getPropertiesMetadata()) {
-                String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
+                String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
                 for (String validationMessage : propertyMetadata.getValidationMessages()) {
                     problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
                 }

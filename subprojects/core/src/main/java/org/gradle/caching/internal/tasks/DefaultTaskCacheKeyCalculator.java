@@ -17,9 +17,9 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -32,7 +32,7 @@ import java.util.SortedMap;
 
 public class DefaultTaskCacheKeyCalculator implements TaskCacheKeyCalculator {
 
-    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties taskProperties, boolean buildCacheDebugLogging) {
+    public TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties properties, boolean buildCacheDebugLogging) {
         TaskOutputCachingBuildCacheKeyBuilder builder = new DefaultTaskOutputCachingBuildCacheKeyBuilder(task.getIdentityPath());
         if (buildCacheDebugLogging) {
             builder = new DebuggingTaskOutputCachingBuildCacheKeyBuilder(builder);
@@ -57,11 +57,11 @@ public class DefaultTaskCacheKeyCalculator implements TaskCacheKeyCalculator {
             builder.appendInputFilesProperty(entry.getKey(), entry.getValue());
         }
 
-        for (TaskOutputFilePropertySpec propertySpec : taskProperties.getOutputFileProperties()) {
-            if (!(propertySpec instanceof CacheableTaskOutputFilePropertySpec)) {
+        for (OutputFilePropertySpec propertySpec : properties.getOutputFileProperties()) {
+            if (!(propertySpec instanceof CacheableOutputFilePropertySpec)) {
                 continue;
             }
-            if (((CacheableTaskOutputFilePropertySpec) propertySpec).getOutputFile() != null) {
+            if (((CacheableOutputFilePropertySpec) propertySpec).getOutputFile() != null) {
                 builder.appendOutputPropertyName(propertySpec.getPropertyName());
             }
         }
