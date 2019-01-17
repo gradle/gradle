@@ -246,7 +246,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         PropertyWalker createPropertyWalker() {
             return new PropertyWalker() {
                 @Override
-                public void visitProperties(PropertyVisitor visitor, Object instance, FileResolver resolver) {
+                public void visitProperties(PropertyVisitor visitor, Object instance) {
                     throw new RuntimeException("Cannot be used");
                 }
             };

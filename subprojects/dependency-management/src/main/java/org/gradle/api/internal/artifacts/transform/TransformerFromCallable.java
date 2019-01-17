@@ -65,10 +65,10 @@ public class TransformerFromCallable extends AbstractTransformer<Callable<List<F
 
         ImmutableSortedSet.Builder<InputFilePropertySpec> builder = ImmutableSortedSet.naturalOrder();
 
-        propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "action."), transformerInstance, fileResolver);
+        propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "action."), transformerInstance);
         Object config = getConfig();
         if (config != null) {
-            propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "configuration."), config, fileResolver);
+            propertyWalker.visitProperties(new InputFilePropertySpecsVisitor(fileResolver, builder, "configuration."), config);
         }
         return taskFingerprinter.fingerprintTaskFiles(owner.toString(), builder.build());
     }

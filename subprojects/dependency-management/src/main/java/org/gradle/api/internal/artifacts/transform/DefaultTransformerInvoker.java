@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
@@ -138,13 +137,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFingerprints, Transformer transformer) {
-        ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> rootHashes = ImmutableSortedMap.copyOf(Maps.transformValues(inputFingerprints, CurrentFileCollectionFingerprint::getRootHashes));
         return project == null
-            ? getImmutableTransformationIdentity(rootHashes, transformer)
-            : getMutableTransformationIdentity(rootHashes, transformer);
+            ? getImmutableTransformationIdentity(ImmutableSortedMap.copyOf(Maps.transformValues(inputFingerprints, CurrentFileCollectionFingerprint::getHash)), transformer)
+            : getMutableTransformationIdentity(ImmutableSortedMap.copyOf(Maps.transformValues(inputFingerprints, fingerprint -> fingerprint.getRootHashes().keySet())), transformer);
     }
 
-    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> inputFingerprints, Transformer transformer) {
+    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(ImmutableSortedMap<String, HashCode> inputFingerprints, Transformer transformer) {
 
         return new ImmutableTransformationWorkspaceIdentity(
             inputFingerprints,
@@ -152,9 +150,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         );
     }
 
-    private TransformationWorkspaceIdentity getMutableTransformationIdentity(ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> inputFingerprints, Transformer transformer) {
+    private TransformationWorkspaceIdentity getMutableTransformationIdentity(ImmutableSortedMap<String, ImmutableSet<String>> inputFilePaths, Transformer transformer) {
         return new MutableTransformationWorkspaceIdentity(
-            inputFingerprints,
+            inputFilePaths,
             transformer.getSecondaryInputHash()
         );
     }
@@ -432,9 +430,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     public static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
         private final HashCode secondaryInputHash;
-        private final ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> inputFingerprints;
+        private final ImmutableSortedMap<String, HashCode> inputFingerprints;
 
-        public ImmutableTransformationWorkspaceIdentity(ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> inputFingerprints, HashCode secondaryInputHash) {
+        public ImmutableTransformationWorkspaceIdentity(ImmutableSortedMap<String, HashCode> inputFingerprints, HashCode secondaryInputHash) {
             this.inputFingerprints = inputFingerprints;
             this.secondaryInputHash = secondaryInputHash;
         }
@@ -443,12 +441,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public String getIdentity() {
             Hasher hasher = Hashing.newHasher();
             hasher.putHash(secondaryInputHash);
-            for (Map.Entry<String, ImmutableMultimap<String, HashCode>> entry : inputFingerprints.entrySet()) {
+            for (Map.Entry<String, HashCode> entry : inputFingerprints.entrySet()) {
                 hasher.putString(entry.getKey());
-                for (Map.Entry<String, HashCode> rootHash : entry.getValue().entries()) {
-                    hasher.putString(rootHash.getKey());
-                    hasher.putHash(rootHash.getValue());
-                }
+                hasher.putHash(entry.getValue());
             }
             return hasher.hash().toString();
         }
@@ -482,8 +477,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final HashCode secondaryInputsHash;
         private NavigableMap<String, ImmutableSet<String>> inputFilesPaths;
 
-        public MutableTransformationWorkspaceIdentity(ImmutableSortedMap<String, ImmutableMultimap<String, HashCode>> inputFingerprints, HashCode secondaryInputsHash) {
-            inputFilesPaths = Maps.transformValues(inputFingerprints, rootHashes -> rootHashes.keySet());
+        public MutableTransformationWorkspaceIdentity(ImmutableSortedMap<String, ImmutableSet<String>> inputFilePaths, HashCode secondaryInputsHash) {
+            this.inputFilesPaths = inputFilePaths;
             this.secondaryInputsHash = secondaryInputsHash;
         }
 
