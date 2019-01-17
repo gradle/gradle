@@ -55,7 +55,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private FileCollection previousOutputFiles;
-    private final FilePropertyContainer<TaskOutputFileParameterRegistration> registeredFileProperties = FilePropertyContainer.create();
+    private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
@@ -69,7 +69,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
-        for (TaskOutputFileParameterRegistration registration : registeredFileProperties) {
+        for (TaskOutputFilePropertyRegistration registration : registeredFileProperties) {
             visitor.visitOutputFileProperty(registration.getPropertyName(), registration.isOptional(), registration.getValue(), registration.getPropertyType());
         }
     }
@@ -158,7 +158,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                TaskOutputFileParameterRegistration registration = new DefaultTaskOutputFileParameterRegistration(value, OutputFilePropertyType.FILE);
+                TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILE);
                 registeredFileProperties.add(registration);
                 return registration;
             }
@@ -172,7 +172,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(path);
                 value.attachProducer(task);
-                TaskOutputFileParameterRegistration registration = new DefaultTaskOutputFileParameterRegistration(value, OutputFilePropertyType.DIRECTORY);
+                TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORY);
                 registeredFileProperties.add(registration);
                 return registration;
             }
@@ -185,7 +185,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                TaskOutputFileParameterRegistration registration = new DefaultTaskOutputFileParameterRegistration(value, OutputFilePropertyType.FILES);
+                TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.FILES);
                 registeredFileProperties.add(registration);
                 return registration;
             }
@@ -198,7 +198,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public TaskOutputFilePropertyBuilder call() {
                 StaticValue value = new StaticValue(resolveSingleArray(paths));
-                TaskOutputFileParameterRegistration registration = new DefaultTaskOutputFileParameterRegistration(value, OutputFilePropertyType.DIRECTORIES);
+                TaskOutputFilePropertyRegistration registration = new DefaultTaskOutputFilePropertyRegistration(value, OutputFilePropertyType.DIRECTORIES);
                 registeredFileProperties.add(registration);
                 return registration;
             }

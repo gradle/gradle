@@ -24,13 +24,13 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 
 @NonNullApi
-public class DefaultTaskInputFileParameterRegistration extends AbstractTaskFileParameterRegistration implements TaskInputFileParameterRegistration {
+public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
-    public DefaultTaskInputFileParameterRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
+    public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
         super(value);
         this.filePropertyType = filePropertyType;
     }

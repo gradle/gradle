@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.TaskInputPropertyBuilder;
-
-@NonNullApi
-public class DefaultTaskInputParameterRegistration extends TaskInputsDeprecationSupport implements TaskInputParameterRegistration {
-
-    private final String propertyName;
-    private final StaticValue value;
+public abstract class AbstractTaskFilePropertyRegistration implements TaskPropertyRegistration {
+    private String propertyName;
     private boolean optional;
+    private final StaticValue value;
 
-    public DefaultTaskInputParameterRegistration(String propertyName, StaticValue value) {
-        this.propertyName = propertyName;
+    public AbstractTaskFilePropertyRegistration(StaticValue value) {
         this.value = value;
     }
 
@@ -37,23 +31,20 @@ public class DefaultTaskInputParameterRegistration extends TaskInputsDeprecation
     }
 
     @Override
-    public boolean isOptional() {
-        return optional;
-    }
-
-    @Override
-    public TaskInputPropertyBuilder optional(boolean optional) {
-        this.optional = optional;
-        return this;
-    }
-
-    @Override
     public StaticValue getValue() {
         return value;
     }
 
     @Override
-    public String toString() {
-        return propertyName;
+    public boolean isOptional() {
+        return optional;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
+    }
+
+    public void setOptional(boolean optional) {
+        this.optional = optional;
     }
 }

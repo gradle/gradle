@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskParameterRegistration {
+public interface TaskPropertyRegistration {
     String getPropertyName();
     StaticValue getValue();
     boolean isOptional();
