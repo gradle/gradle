@@ -1,10 +1,11 @@
-The Gradle team is excited to announce Gradle {gradleVersion}.
+The Gradle team is excited to announce Gradle 5.3.
 
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
- [Some person](https://github.com/some-person), // name only, details in separate section
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
 -->
 
 <!-- 
@@ -18,6 +19,14 @@ details of 2
 
 ## n
 -->
+
+## Upgrade Instructions
+
+Switch your build to use Gradle 5.3 by updating your wrapper properties:
+
+`./gradlew wrapper --gradle-version=5.3`
+
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -50,29 +59,13 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 <!-- summary and links -->
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_{gradleVersion}) to learn about breaking changes and considerations when upgrading to Gradle {gradleVersion}.
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_5.3) to learn about breaking changes and considerations when upgrading to Gradle 5.3.
 
 <!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
 ## External contributions
 
-We would like to thank the following community members for making contributions to this release of Gradle.
-
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (gradle/gradle#1234)
--->
-
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
-
-Known issues are problems that were discovered post release that are directly related to changes made in this release.
-
-## Upgrade Instructions
-
-Switch your build to use Gradle {gradleVersion} by updating your wrapper properties:
-
-`./gradlew wrapper --gradle-version={gradleVersion}`
-
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## Reporting Problems
 
