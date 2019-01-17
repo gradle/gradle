@@ -56,7 +56,7 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
         succeeds('installDist')
 
         then:
-        def installDir = dslDir.file('build/install/application')
+        def installDir = dslDir.file('build/install/my-app')
         installDir.assertIsDir()
 
         checkApplicationImage(installDir, executableDir)
@@ -75,13 +75,13 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
         succeeds('distZip')
 
         then:
-        def distFile = dslDir.file('build/distributions/application-1.0.2.zip')
+        def distFile = dslDir.file('build/distributions/my-app-1.0.2.zip')
         distFile.assertIsFile()
 
         def installDir = dslDir.file('unzip')
         distFile.usingNativeTools().unzipTo(installDir)
 
-        checkApplicationImage(installDir.file('application-1.0.2'), executableDir)
+        checkApplicationImage(installDir.file('my-app-1.0.2'), executableDir)
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -98,8 +98,8 @@ application {
     }
 
     private void checkApplicationImage(TestFile installDir, String executableDir) {
-        installDir.file("${executableDir}/application").assertIsFile()
-        installDir.file("${executableDir}/application.bat").assertIsFile()
+        installDir.file("${executableDir}/my-app").assertIsFile()
+        installDir.file("${executableDir}/my-app.bat").assertIsFile()
         installDir.file('lib/application-1.0.2.jar').assertIsFile()
         installDir.file('lib/commons-collections-3.2.2.jar').assertIsFile()
 
@@ -108,7 +108,7 @@ application {
 
         def builder = new ScriptExecuter()
         builder.workingDir installDir.file(executableDir)
-        builder.executable 'application'
+        builder.executable 'my-app'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
 

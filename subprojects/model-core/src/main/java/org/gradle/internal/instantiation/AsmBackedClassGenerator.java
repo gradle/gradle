@@ -118,7 +118,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
      * Returns a generator that applies DSL mix-in, extensibility and service injection for generated classes.
      */
     static ClassGenerator decorateAndInject(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
-        return new AsmBackedClassGenerator(true, "$Dsl", allKnownAnnotations, enabledAnnotations);
+        // TODO wolfs: We use `_Decorated` here, since IDEA import currently relies on this
+        // See https://github.com/gradle/gradle/issues/8244
+        return new AsmBackedClassGenerator(true, "_Decorated", allKnownAnnotations, enabledAnnotations);
     }
 
     /**

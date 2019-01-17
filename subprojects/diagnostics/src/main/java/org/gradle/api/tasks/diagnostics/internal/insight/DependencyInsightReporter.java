@@ -114,8 +114,8 @@ public class DependencyInsightReporter {
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
-        ResolvedVariantResult selectedVariant = dependency.getSelectedVariant();
-        return new DependencyReportHeader(dependency, reasonShortDescription, selectedVariant, extraDetails);
+        List<ResolvedVariantResult> selectedVariants = dependency.getSelectedVariants();
+        return new DependencyReportHeader(dependency, reasonShortDescription, selectedVariants, extraDetails);
     }
 
     private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {

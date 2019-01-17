@@ -19,10 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
+
+import java.util.List;
 
 /**
  * A {@link ResolvedGraphComponent} implementation that is detached from the original resolution process.
@@ -33,17 +33,15 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     private final ModuleVersionIdentifier id;
     private final ComponentSelectionReason reason;
     private final ComponentIdentifier componentIdentifier;
-    private final DisplayName variantName;
-    private final AttributeContainer variantAttributes;
+    private final List<ResolvedVariantDetails> resolvedVariants;
     private final String repositoryName;
 
-    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, String variantName, AttributeContainer variantAttributes, String repositoryName) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, List<ResolvedVariantDetails> resolvedVariants, String repositoryName) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
-        this.variantName = Describables.of(variantName);
-        this.variantAttributes = variantAttributes;
+        this.resolvedVariants = resolvedVariants;
         this.repositoryName = repositoryName;
     }
 
@@ -65,17 +63,12 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     }
 
     @Override
-    public DisplayName getVariantName() {
-        return variantName;
-    }
-
-    @Override
-    public AttributeContainer getVariantAttributes() {
-        return variantAttributes;
-    }
-
-    @Override
     public String getRepositoryName() {
         return repositoryName;
+    }
+
+    @Override
+    public List<ResolvedVariantDetails> getResolvedVariants() {
+        return resolvedVariants;
     }
 }

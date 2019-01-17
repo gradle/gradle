@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 
 import java.util.Set;
 
@@ -59,6 +60,14 @@ abstract class AttributeDesugaring {
             if (!moduleAttributes.isEmpty()) {
                 ImmutableAttributes attributes = ((AttributeContainerInternal) moduleAttributes).asImmutable();
                 return DefaultModuleComponentSelector.newSelector(module.getModuleIdentifier(), module.getVersionConstraint(), desugar(attributes, attributesFactory));
+            }
+        }
+        if (selector instanceof DefaultProjectComponentSelector) {
+            DefaultProjectComponentSelector project = (DefaultProjectComponentSelector) selector;
+            AttributeContainer projectAttributes = project.getAttributes();
+            if (!projectAttributes.isEmpty()) {
+                ImmutableAttributes attributes = ((AttributeContainerInternal) projectAttributes).asImmutable();
+                return new DefaultProjectComponentSelector(project.getBuildIdentifier(), project.getIdentityPath(), project.projectPath(), project.getProjectName(), desugar(attributes, attributesFactory));
             }
         }
         return selector;

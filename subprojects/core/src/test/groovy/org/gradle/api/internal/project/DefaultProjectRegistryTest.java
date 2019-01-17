@@ -27,7 +27,6 @@ import org.junit.Test;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import static junit.framework.Assert.assertSame;
 import static org.gradle.util.WrapUtil.toSet;
 import static org.gradle.util.WrapUtil.toSortedSet;
 import static org.hamcrest.Matchers.*;

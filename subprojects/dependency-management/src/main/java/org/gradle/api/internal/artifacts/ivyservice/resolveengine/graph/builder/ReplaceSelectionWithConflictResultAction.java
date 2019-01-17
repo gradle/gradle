@@ -28,13 +28,24 @@ class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolut
     }
 
     public void execute(final ConflictResolutionResult result) {
-        final ComponentState selected = result.getSelected();
+        Object selected = result.getSelected();
+        final ComponentState component = findComponent(selected);
         result.withParticipatingModules(new Action<ModuleIdentifier>() {
             public void execute(ModuleIdentifier moduleIdentifier) {
                 // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
                 // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-                resolveState.getModule(moduleIdentifier).restart(selected);
+                resolveState.getModule(moduleIdentifier).restart(component);
             }
         });
+    }
+
+    private ComponentState findComponent(Object selected) {
+        if (selected instanceof ComponentState) {
+            return (ComponentState) selected;
+        }
+        if (selected instanceof NodeState) {
+            return ((NodeState) selected).getComponent();
+        }
+        return null;
     }
 }

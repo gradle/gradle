@@ -40,9 +40,11 @@
           <param name="cronExpression_year" value="*" />
           <param name="dayOfWeek" value="Sunday" />
           <param name="enableQueueOptimization" value="true" />
-          <param name="hour" value="0" />
+          <param name="hour" value="1" />
           <param name="minute" value="0" />
+          <param name="revisionRule" value="lastFinished" />
           <param name="schedulingPolicy" value="daily" />
+          <param name="timezone" value="SERVER" />
         </parameters>
       </build-trigger>
     </build-triggers>

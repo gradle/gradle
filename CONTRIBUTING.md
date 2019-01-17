@@ -49,14 +49,16 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 ### IntelliJ
 
-You can generate the IntelliJ projects by importing it using the import wizard. You must use IntelliJ 2018.3 or newer.
+You require IntelliJ 2018.3.1 or newer.
+- Open the `build.gradle.kts` file with IntelliJ and choose "Open as Project"
+- Make sure "Create separate module per source set" is selected
+- Make sure  "Use default gradle wrapper" is selected
+- Select a Java 11 VM as "Gradle JVM"
+- In the "File already exists" dialogue, choose "Yes" to overwrite
+- In the "Open Project" dialogue, choose "Delete Existing Project and Import"
+- Revert the Git changes to files in the `.idea` folder
 
-
-Alternatively, you may also generated IDEA metadata files with:
-
-    ./gradlew idea
-
-then open the generated `gradle.ipr` file.  This is unsupported and will be removed at some point.
+NOTE: Due to the project size, the initial import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 ### Eclipse
 
@@ -65,7 +67,7 @@ You can generate the Eclipse projects by running
     ./gradlew eclipse
 
 Then you can import the generated projects into Eclipse
-  
+
 1. Install Eclipse 4.5 (Mars) at least
 2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 3. Make sure you have a Java 8 compatible JDK configured in your workspace
@@ -73,7 +75,7 @@ Then you can import the generated projects into Eclipse
 5. Import all projects using the "Import Existing Projects into Workspace" wizard
 
 
- 
+
 ### Code Change Guidelines
 
 All code contributions should contain the following:

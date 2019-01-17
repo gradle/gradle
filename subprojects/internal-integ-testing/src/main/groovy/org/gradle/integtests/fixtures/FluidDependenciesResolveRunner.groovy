@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 /**
  * Runs tests with fluid dependencies enabled and disabled: when fluid dependencies are enabled, any configuration that
@@ -28,7 +29,11 @@ class FluidDependenciesResolveRunner extends BehindFlagFeatureRunner {
     public final static String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies"
 
     FluidDependenciesResolveRunner(Class<?> target) {
-        super(target, [ASSUME_FLUID_DEPENDENCIES: booleanFeature("fluid dependencies")])
+        super(target, [ASSUME_FLUID_DEPENDENCIES: booleanFeature("fluid dependencies")], doNotExecuteAllPermutationsForNoDaemonExecuter())
+    }
+
+    private static boolean doNotExecuteAllPermutationsForNoDaemonExecuter() {
+        !GradleContextualExecuter.isNoDaemon()
     }
 
     static isFluid() {

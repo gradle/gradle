@@ -25,19 +25,19 @@ import org.gradle.util.TextUtil
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_7).size() > 1 })
+@Requires(adhoc = { AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_8).size() > 1 })
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private File getOriginalJavaExecutable() {
-        getAvailableJdk7s()[0].javaExecutable
+        getAvailableJdk8s()[0].javaExecutable
     }
 
     private File getDifferentJavaExecutable() {
-        getAvailableJdk7s()[1].javaExecutable
+        getAvailableJdk8s()[1].javaExecutable
     }
 
-    private List<Jvm> getAvailableJdk7s() {
-        AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_7)
+    private List<Jvm> getAvailableJdk8s() {
+        AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_8)
     }
 
     @Override

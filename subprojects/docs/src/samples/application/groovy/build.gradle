@@ -22,21 +22,25 @@ plugins {
 
 version = '1.0.2'
 
+// tag::applicationName-conf[]
+applicationName = 'my-app'
+// end::applicationName-conf[]
+
 // tag::mainClassName-conf[]
 application {
-    mainClassName = "org.gradle.sample.Main"
+    mainClassName = 'org.gradle.sample.Main'
 }
 // end::mainClassName-conf[]
 
 // tag::application-defaultjvmargs[]
 application {
-    applicationDefaultJvmArgs = ["-Dgreeting.language=en"]
+    applicationDefaultJvmArgs = ['-Dgreeting.language=en']
 }
 // end::application-defaultjvmargs[]
 
 // tag::executableDir-conf[]
 application {
-    executableDir = "custom_bin_dir"
+    executableDir = 'custom_bin_dir'
 }
 // end::executableDir-conf[]
 
@@ -46,7 +50,7 @@ task createDocs {
     outputs.dir docs
     doLast {
         docs.mkdirs()
-        new File(docs, "readme.txt").write("Read me!")
+        new File(docs, 'readme.txt').write('Read me!')
     }
 }
 
@@ -54,7 +58,7 @@ distributions {
     main {
         contents {
             from(createDocs) {
-                into "docs"
+                into 'docs'
             }
         }
     }

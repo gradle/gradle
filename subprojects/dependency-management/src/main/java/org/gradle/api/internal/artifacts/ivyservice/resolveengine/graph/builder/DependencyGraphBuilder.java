@@ -162,7 +162,7 @@ public class DependencyGraphBuilder {
                 LOGGER.debug("Visiting configuration {}.", node);
 
                 // Register capabilities for this node
-                registerCapabilities(resolveState, node.getComponent());
+                registerCapabilities(resolveState, node);
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
@@ -180,27 +180,40 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private void registerCapabilities(final ResolveState resolveState, final ComponentState moduleRevision) {
-        moduleRevision.forEachCapability(new Action<Capability>() {
+    private void registerCapabilities(final ResolveState resolveState, final NodeState node) {
+        node.forEachCapability(new Action<Capability>() {
             @Override
             public void execute(Capability capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
                 // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
                 // then we try to find a module which provides the same capability. It that module has been found, then we register it.
                 // Otherwise, we have nothing to do. This avoids most of registrations.
-                Collection<ComponentState> implicitProvidersForCapability = Collections.emptyList();
+                Collection<NodeState> implicitProvidersForCapability = Collections.emptyList();
                 for (ModuleResolveState state : resolveState.getModules()) {
                     if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
-                        implicitProvidersForCapability = state.getVersions();
+                        Collection<ComponentState> versions = state.getVersions();
+                        implicitProvidersForCapability = Lists.newArrayListWithExpectedSize(versions.size());
+                        for (ComponentState version : versions) {
+                            List<NodeState> nodes = version.getNodes();
+                            for (NodeState nodeState : nodes) {
+                                if (nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
+                                    implicitProvidersForCapability.add(nodeState);
+                                }
+                            }
+                        }
                         break;
                     }
                 }
                 PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
-                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
+                    DefaultCapabilitiesConflictHandler.candidate(node, capability, implicitProvidersForCapability)
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
                 }
+            }
+
+            private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
+                return nodeState.getMetadata().getCapabilities().getCapabilities().isEmpty();
             }
         });
     }

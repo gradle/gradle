@@ -71,13 +71,7 @@ subprojects {
 
         apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
     }
-
-    apply(plugin = "idea")
     apply(plugin = "eclipse")
-
-    configure<IdeaModel> {
-        module.name = "buildSrc-${this@subprojects.name}"
-    }
 }
 
 allprojects {
