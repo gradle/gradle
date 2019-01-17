@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
@@ -35,11 +36,13 @@ abstract class ClassPathSensitiveCodeGenerationTask : DefaultTask() {
     @get:Classpath
     lateinit var classPathFiles: FileCollection
 
+    @get:Internal
     protected
     val classPath by lazy {
         DefaultClassPath.of(classPathFiles.files)
     }
 
+    @get:Internal
     protected
     val classPathHash
         get() = hashOf(classPath)
