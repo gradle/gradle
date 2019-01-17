@@ -186,7 +186,7 @@ public class NativeBasePlugin implements Plugin<Project> {
         components.withType(ConfigurableComponentWithExecutable.class, executable -> {
             final Names names = executable.getNames();
             final NativeToolChain toolChain = executable.getToolChain();
-            final NativePlatform targetPlatform = executable.getTargetPlatform();
+            final NativePlatform targetPlatform = executable.getNativePlatform();
             final PlatformToolProvider toolProvider = executable.getPlatformToolProvider();
 
             // Add a link task
@@ -240,7 +240,7 @@ public class NativeBasePlugin implements Plugin<Project> {
     private void addTasksForComponentWithSharedLibrary(final TaskContainer tasks, final DirectoryProperty buildDirectory, SoftwareComponentContainer components) {
         components.withType(ConfigurableComponentWithSharedLibrary.class, library -> {
             final Names names = library.getNames();
-            final NativePlatform targetPlatform = library.getTargetPlatform();
+            final NativePlatform targetPlatform = library.getNativePlatform();
             final NativeToolChain toolChain = library.getToolChain();
             final PlatformToolProvider toolProvider = library.getPlatformToolProvider();
 
@@ -305,7 +305,7 @@ public class NativeBasePlugin implements Plugin<Project> {
                 Provider<RegularFile> linktimeFile = buildDirectory.file(
                         library.getBaseName().map(baseName -> toolProvider.getStaticLibraryName("lib/" + names.getDirName() + baseName)));
                 task.getOutputFile().set(linktimeFile);
-                task.getTargetPlatform().set(library.getTargetPlatform());
+                task.getTargetPlatform().set(library.getNativePlatform());
                 task.getToolChain().set(library.getToolChain());
             });
 

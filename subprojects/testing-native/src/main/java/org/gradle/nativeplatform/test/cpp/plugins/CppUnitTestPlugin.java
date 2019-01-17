@@ -34,6 +34,7 @@ import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.ProductionCppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
+import org.gradle.language.cpp.internal.DefaultCppPlatform;
 import org.gradle.language.cpp.plugins.CppBasePlugin;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithLinkUsage;
@@ -137,7 +138,7 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, variantIdentity.getTargetMachine());
+                            ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
                             CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                             testComponent.getTestBinary().set(testExecutable);
@@ -187,8 +188,8 @@ public class CppUnitTestPlugin implements Plugin<Project> {
 
     private boolean isTestedBinary(DefaultCppTestExecutable testExecutable, ProductionCppComponent mainComponent, CppBinary testedBinary) {
         // TODO: Make this more intelligent by matching the attributes of the runtime usage on the variant identities
-        return testedBinary.getTargetPlatform().getOperatingSystemFamily().getName().equals(testExecutable.getTargetPlatform().getOperatingSystemFamily().getName())
-                && testedBinary.getTargetPlatform().getArchitecture().getName().equals(testExecutable.getTargetPlatform().getArchitecture().getName())
+        return testedBinary.getTargetMachine().getOperatingSystemFamily().getName().equals(testExecutable.getTargetMachine().getOperatingSystemFamily().getName())
+                && testedBinary.getTargetMachine().getArchitecture().getName().equals(testExecutable.getTargetMachine().getArchitecture().getName())
                 && !testedBinary.isOptimized()
                 && hasDevelopmentBinaryLinkage(mainComponent, testedBinary);
     }

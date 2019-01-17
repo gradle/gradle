@@ -23,6 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
 import org.gradle.language.nativeplatform.ComponentWithStaticLibrary;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -31,6 +32,8 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
  */
 public interface ConfigurableComponentWithStaticLibrary extends ComponentWithStaticLibrary, ComponentWithObjectFiles, ComponentWithOutputs, ComponentWithNames {
     PlatformToolProvider getPlatformToolProvider();
+
+    NativePlatform getNativePlatform();
 
     @Override
     Property<RegularFile> getLinkFile();
