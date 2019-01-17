@@ -48,7 +48,7 @@ public class XcodeTarget implements Named {
     private String gradleCommand;
 
     private List<XcodeBinary> binaries = Lists.newArrayList();
-    private Provider<? extends FileSystemLocation> debugOutputFile;
+    private final Property<FileSystemLocation> debugOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private Property<SwiftVersion> swiftSourceCompatibility;
@@ -64,6 +64,7 @@ public class XcodeTarget implements Named {
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.defaultConfigurationName = objectFactory.property(String.class);
         this.defaultConfigurationName.set(BUILD_DEBUG);
+        this.debugOutputFile = objectFactory.property(FileSystemLocation.class);
     }
 
     public String getId() {
@@ -166,11 +167,15 @@ public class XcodeTarget implements Named {
     public void addBinary(String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
         binaries.add(new XcodeBinary(configuration, outputFile, architectureName));
         if (configuration.contains("Debug")) {
-            this.debugOutputFile = outputFile;
+            this.debugOutputFile.set(outputFile);
         }
     }
 
     public Property<String> getDefaultConfigurationName() {
         return defaultConfigurationName;
+    }
+
+    public boolean isBuildable() {
+        return productType != null;
     }
 }

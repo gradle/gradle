@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.ide.xcode.internal.DefaultXcodeProject.TEST_DEBUG;
@@ -68,6 +69,7 @@ import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList;
 @Incubating
 public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<XcodeProjectFile> {
     private static final String PRODUCTS_GROUP_NAME = "Products";
+    private static final String UNBUILDABLE_BUILD_CONFIGURATION_NAME = "unbuildable";
     private final GidGenerator gidGenerator;
     private DefaultXcodeProject xcodeProject;
     private Map<String, PBXFileReference> pathToFileReference = new HashMap<String, PBXFileReference>();
@@ -81,27 +83,27 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     protected void configure(XcodeProjectFile projectFile) {
         PBXProject project = new PBXProject(getProject().getPath());
 
-        getAllBinaries().stream().map(XcodeBinary::getBuildConfigurationName).forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::getUnchecked);
-
         addToGroup(project.getMainGroup(), xcodeProject.getGroups().getSources(), "Sources");
         addToGroup(project.getMainGroup(), xcodeProject.getGroups().getHeaders(), "Headers");
         addToGroup(project.getMainGroup(), xcodeProject.getGroups().getTests(), "Tests");
         addToGroup(project.getMainGroup(), xcodeProject.getGroups().getRoot());
 
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
-            project.getTargets().add(toGradlePbxTarget(xcodeTarget));
+            if (xcodeTarget.isBuildable()) {
+                project.getTargets().add(toGradlePbxTarget(xcodeTarget));
+            }
             project.getTargets().add(toIndexPbxTarget(xcodeTarget));
 
-            if (xcodeTarget.isUnitTest()) {
-                // Creates XCTest configuration only if XCTest are present.
-                project.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG);
-            } else {
+            if (!xcodeTarget.isUnitTest() && xcodeTarget.getDebugOutputFile().isPresent()) {
                 File debugOutputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
                 PBXFileReference fileReference = new PBXFileReference(debugOutputFile.getName(), debugOutputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE);
                 fileReference.setExplicitFileType(Optional.of(xcodeTarget.getOutputFileType()));
                 project.getMainGroup().getOrCreateChildGroupByName(PRODUCTS_GROUP_NAME).getChildren().add(fileReference);
             }
         }
+
+        // Create build configuration at the project level from all target's build configuration
+        project.getTargets().stream().flatMap(it -> it.getBuildConfigurationList().getBuildConfigurationsByName().asMap().keySet().stream()).forEach(project.getBuildConfigurationList().getBuildConfigurationsByName()::getUnchecked);
 
         XcodeprojSerializer serializer = new XcodeprojSerializer(gidGenerator, project);
         final NSDictionary rootObject = serializer.toPlist();
@@ -206,11 +208,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
-        getAllBinaries().stream().filter(it -> !Objects.equals(it.getBuildConfigurationName(), TEST_DEBUG)).forEach(xcodeBinary -> {
-            NSDictionary settings = newBuildSettings(xcodeTarget);
-            settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
-        });
+        getAllBinaries().stream().filter(it -> !Objects.equals(it.getBuildConfigurationName(), TEST_DEBUG)).forEach(configureBuildSettings(xcodeTarget, target));
 
         NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
 
@@ -230,17 +228,28 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     }
 
     private PBXTarget toIndexPbxTarget(XcodeTarget xcodeTarget) {
-        PBXNativeTarget target = new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.getName(), xcodeTarget.getProductType());
+        PBXNativeTarget target = new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.getName(), PBXTarget.ProductType.INDEXER);
         target.setProductName(xcodeTarget.getProductName());
         target.getBuildPhases().add(newSourceBuildPhase(xcodeTarget.getSources()));
 
-        xcodeTarget.getBinaries().forEach(xcodeBinary -> {
+        xcodeTarget.getBinaries().forEach(configureBuildSettings(xcodeTarget, target));
+
+        // Create unbuildable build configuration so the indexer can keep functioning
+        if (xcodeTarget.getBinaries().isEmpty()) {
             NSDictionary settings = newBuildSettings(xcodeTarget);
-            settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
-            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
-        });
+            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(UNBUILDABLE_BUILD_CONFIGURATION_NAME).setBuildSettings(settings);
+        }
 
         return target;
+    }
+
+    private Consumer<XcodeBinary> configureBuildSettings(XcodeTarget xcodeTarget, PBXNativeTarget target) {
+        return xcodeBinary -> {
+            NSDictionary settings = newBuildSettings(xcodeTarget);
+            settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
+            settings.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.getArchitectureName())).distinct().collect(Collectors.joining(" ")));
+            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
+        };
     }
 
     private PBXSourcesBuildPhase newSourceBuildPhase(FileCollection sourceFiles) {
@@ -256,7 +265,6 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         NSDictionary result = new NSDictionary();
         result.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
         result.put("PRODUCT_NAME", xcodeTarget.getProductName());  // Mandatory
-        result.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.getArchitectureName())).distinct().collect(Collectors.joining(" ")));
 
         if (!xcodeTarget.getHeaderSearchPaths().isEmpty()) {
             result.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.getHeaderSearchPaths()));
