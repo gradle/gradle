@@ -605,7 +605,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
                     @Override
                     public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
-                        reportDeadlockOnParameterResolution(
+                        withDeadlockHandling(
                             taskNode,
                             "an output",
                             "output property '" + propertyName + "'",
@@ -627,7 +627,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                     @Override
                     public void visitLocalStateProperty(final Object value) {
-                        reportDeadlockOnParameterResolution(taskNode, "a local state property", "local state properties", new Runnable() {
+                        withDeadlockHandling(taskNode, "a local state property", "local state properties", new Runnable() {
                             @Override
                             public void run() {
                                 mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
@@ -638,7 +638,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                     @Override
                     public void visitDestroyableProperty(final Object value) {
-                        reportDeadlockOnParameterResolution(taskNode, "a destroyable", "destroyables", new Runnable() {
+                        withDeadlockHandling(taskNode, "a destroyable", "destroyables", new Runnable() {
                             @Override
                             public void run() {
                                 mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
@@ -671,7 +671,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private void reportDeadlockOnParameterResolution(TaskNode task, String singular, String description, Runnable runnable) {
+    private void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
         try {
             runnable.run();
         } catch (ResourceDeadlockException e) {
