@@ -13,6 +13,8 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
@@ -233,6 +235,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @LeaksFileHandles
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
         assumeNonEmbeddedGradleExecuter()

@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
@@ -47,6 +49,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     }
 
     @Test
+    @LeaksFileHandles
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         if (kotlinVersion == "1.2.20") {
