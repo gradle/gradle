@@ -25,7 +25,6 @@ import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -36,8 +35,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         def app = new SwiftApp()
         app.writeToProject(testDirectory)
@@ -127,8 +126,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
 
@@ -292,9 +291,9 @@ apply plugin: 'swift-library'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-application'
+            apply plugin: 'xctest'
+        """
 
         def app = new SwiftAppWithXCTest()
         app.writeToProject(testDirectory)
@@ -329,9 +328,9 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-library'
+            apply plugin: 'xctest'
+        """
         def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
 
@@ -366,8 +365,8 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
@@ -409,8 +408,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
@@ -443,8 +442,8 @@ apply plugin: 'swift-library'
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
@@ -482,9 +481,9 @@ apply plugin: 'swift-library'
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
         buildFile << """
-apply plugin: 'swift-library'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-library'
+            apply plugin: 'xctest'
+        """
 
         lib.writeToProject(testDirectory)
         succeeds("xcode")
@@ -510,12 +509,12 @@ apply plugin: 'xctest'
 
         given:
         settingsFile.text = """
-rootProject.name = 'app'
-"""
+            rootProject.name = 'app'
+        """
         buildFile << """
-apply plugin: 'swift-application'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-application'
+            apply plugin: 'xctest'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -543,8 +542,8 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -630,8 +629,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -653,8 +652,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -686,8 +685,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         lib.writeToProject(testDirectory)
         succeeds("xcode")
@@ -771,8 +770,8 @@ apply plugin: 'swift-library'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         when:
         def lib = new SwiftLib()
@@ -796,8 +795,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         when:
         def app = new SwiftApp()
@@ -822,12 +821,12 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
+            apply plugin: 'swift-application'
 
-application {
-    source.from 'Sources'
-}
-"""
+            application {
+                source.from 'Sources'
+            }
+        """
 
         when:
         def app = new SwiftApp()
@@ -844,12 +843,12 @@ application {
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
+            apply plugin: 'swift-library'
 
-library {
-    source.from 'Sources'
-}
-"""
+            library {
+                source.from 'Sources'
+            }
+        """
 
         when:
         def lib = new SwiftLib()
@@ -866,10 +865,10 @@ library {
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-buildDir = 'output'
-application.module = 'TestApp'
-"""
+            apply plugin: 'swift-application'
+            buildDir = 'output'
+            application.module = 'TestApp'
+        """
 
         def app = new SwiftApp()
         app.writeToProject(testDirectory)
@@ -897,10 +896,10 @@ application.module = 'TestApp'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-buildDir = 'output'
-library.module = 'TestLib'
-"""
+            apply plugin: 'swift-library'
+            buildDir = 'output'
+            library.module = 'TestLib'
+        """
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
 
@@ -920,9 +919,5 @@ library.module = 'TestLib'
         project.targets[1].name == '[INDEXING ONLY] TestLib'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
-    }
-
-    protected String getCurrentOsFamilyName() {
-        DefaultNativePlatform.currentOperatingSystem.toFamilyName()
     }
 }

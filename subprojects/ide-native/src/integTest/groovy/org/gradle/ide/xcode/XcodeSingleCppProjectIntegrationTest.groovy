@@ -32,8 +32,8 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
     def "can create xcode project for C++ application"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         def app = new CppApp()
         app.writeToProject(testDirectory)
@@ -122,8 +122,8 @@ apply plugin: 'cpp-application'
     def "can create xcode project for C++ library"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-"""
+            apply plugin: 'cpp-library'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
@@ -217,8 +217,8 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
@@ -260,8 +260,8 @@ apply plugin: 'cpp-application'
 
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-"""
+            apply plugin: 'cpp-library'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
@@ -306,8 +306,8 @@ apply plugin: 'cpp-library'
 
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -478,8 +478,8 @@ apply plugin: 'cpp-library'
     def "adds new source files in the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         when:
         def app = new CppApp()
@@ -502,8 +502,8 @@ apply plugin: 'cpp-application'
     def "removes deleted source files from the project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-"""
+            apply plugin: 'cpp-application'
+        """
 
         when:
         def app = new CppApp()
@@ -527,13 +527,13 @@ apply plugin: 'cpp-application'
     def "includes source files in a non-default location in C++ executable project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
+            apply plugin: 'cpp-application'
 
-application {
-    source.from 'Sources'
-    privateHeaders.from 'Sources/include'
-}
-"""
+            application {
+                source.from 'Sources'
+                privateHeaders.from 'Sources/include'
+            }
+        """
 
         when:
         def app = new CppApp()
@@ -551,14 +551,14 @@ application {
     def "includes source files in a non-default location in C++ library project"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
+            apply plugin: 'cpp-library'
 
-library {
-    source.from 'Sources'
-    privateHeaders.from 'Sources/include'
-    publicHeaders.from 'Includes'
-}
-"""
+            library {
+                source.from 'Sources'
+                privateHeaders.from 'Sources/include'
+                publicHeaders.from 'Includes'
+            }
+        """
 
         when:
         def lib = new CppLib()
@@ -578,10 +578,10 @@ library {
     def "honors changes to application output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-application'
-buildDir = 'output'
-application.baseName = 'test_app'
-"""
+            apply plugin: 'cpp-application'
+            buildDir = 'output'
+            application.baseName = 'test_app'
+        """
 
         def app = new CppApp()
         app.writeToProject(testDirectory)
@@ -608,10 +608,10 @@ application.baseName = 'test_app'
     def "honors changes to library output locations"() {
         given:
         buildFile << """
-apply plugin: 'cpp-library'
-buildDir = 'output'
-library.baseName = 'test_lib'
-"""
+            apply plugin: 'cpp-library'
+            buildDir = 'output'
+            library.baseName = 'test_lib'
+        """
 
         def lib = new CppLib()
         lib.writeToProject(testDirectory)
