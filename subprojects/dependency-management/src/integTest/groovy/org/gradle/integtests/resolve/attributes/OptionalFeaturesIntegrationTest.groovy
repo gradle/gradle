@@ -185,7 +185,6 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
         }
     }
 
-
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }
