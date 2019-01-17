@@ -637,6 +637,54 @@ public class TestFile extends File {
         return this;
     }
 
+    /**
+     * Recursively delete this directory, reporting all failed paths.
+     */
+    public TestFile forceDeleteDir() throws IOException {
+        if (isDirectory()) {
+            if (FileUtils.isSymlink(this)) {
+                if (!delete()) {
+                    throw new IOException("Unable to delete symlink: " + getCanonicalPath());
+                }
+            } else {
+                List<String> errorPaths = new ArrayList<>();
+                Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (!file.toFile().delete()) {
+                            errorPaths.add(file.toFile().getCanonicalPath());
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        if (!dir.toFile().delete()) {
+                            errorPaths.add(dir.toFile().getCanonicalPath());
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+                if (!errorPaths.isEmpty()) {
+                    StringBuilder builder = new StringBuilder()
+                        .append("Unable to recursively delete directory ")
+                        .append(getCanonicalPath())
+                        .append(", failed paths:\n");
+                    for (String errorPath : errorPaths) {
+                        builder.append("\t- ").append(errorPath).append("\n");
+                    }
+                    throw new IOException(builder.toString());
+                }
+            }
+        } else if (exists()) {
+            if (!delete()) {
+                throw new IOException("Unable to delete file: " + getCanonicalPath());
+            }
+        }
+        return this;
+    }
+
     public TestFile createFile() {
         new TestFile(getParentFile()).createDir();
         try {
