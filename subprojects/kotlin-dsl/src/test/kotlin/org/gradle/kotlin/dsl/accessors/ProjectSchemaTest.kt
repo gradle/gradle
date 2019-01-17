@@ -200,18 +200,34 @@ class ProjectSchemaTest : TestWithClassPath() {
     }
 
     private
-    fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) =
-        ProjectSchema(
-            extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) },
-            conventions = emptyList(),
-            tasks = emptyList(),
-            containerElements = emptyList(),
-            configurations = emptyList())
+    fun schemaWithExtensions(vararg pairs: Pair<String, SchemaType>) = projectSchemaWith(
+        extensions = pairs.map { ProjectSchemaEntry(SchemaType.of<Project>(), it.first, it.second) }
+    )
 
     private
     fun <T> ProjectSchema<T>.extension(name: String) =
         extensions.single { it.name == name }
 }
+
+
+internal
+fun projectSchemaWith(
+    extensions: TypedProjectSchemaEntryList = emptyList(),
+    conventions: TypedProjectSchemaEntryList = emptyList(),
+    tasks: TypedProjectSchemaEntryList = emptyList(),
+    containerElements: TypedProjectSchemaEntryList = emptyList(),
+    configurations: List<String> = emptyList()
+) = TypedProjectSchema(
+    extensions = extensions,
+    conventions = conventions,
+    tasks = tasks,
+    containerElements = containerElements,
+    configurations = configurations
+)
+
+
+internal
+typealias TypedProjectSchemaEntryList = List<ProjectSchemaEntry<SchemaType>>
 
 
 internal

@@ -33,6 +33,63 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    fun `can access sub-project specific task`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withSettings("""
+            $pluginManagementBlock
+            include(":sub")
+        """)
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my/base.gradle.kts", """
+            package my
+            tasks.register("myBaseTask")
+        """)
+
+        withBuildScriptIn("sub", """
+            plugins {
+                base
+                my.base
+            }
+
+            tasks {
+                // prove accessing a `base` plugin task works
+                assemble {
+                }
+                myBaseTask {
+                    doLast {
+                        println("*my base*")
+                    }
+                }
+            }
+        """)
+
+        withBuildScript("""
+            plugins {
+                base
+            }
+
+            tasks {
+                wrapper {
+                    gradleVersion = "5.0"
+                }
+                assemble {
+                    doFirst {
+                         println("assembling!")
+                    }
+                }
+            }
+        """)
+
+        assertThat(
+            build(":sub:myBaseTask", "-q").output,
+            containsString("*my base*")
+        )
+    }
+
+    @Test
     fun `can access extension of internal type made public`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

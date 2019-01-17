@@ -24,7 +24,7 @@ plugins {
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
-version = "1.1.1"
+version = "1.1.2"
 
 gradlebuildJava {
     moduleType = ModuleType.CORE

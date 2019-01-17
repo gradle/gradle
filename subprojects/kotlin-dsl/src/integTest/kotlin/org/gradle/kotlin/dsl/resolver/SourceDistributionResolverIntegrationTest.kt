@@ -28,7 +28,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
         assertThat(
             build().output.linesPrefixedBy("*").map(::normaliseFileSeparators).toSet(),
-            equalTo(expectedSourceDirs))
+            equalTo(expectedSourceDirs)
+        )
     }
 
     private

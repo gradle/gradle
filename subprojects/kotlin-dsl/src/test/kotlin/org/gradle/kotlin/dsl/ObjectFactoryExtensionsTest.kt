@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Named
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 
@@ -108,6 +109,21 @@ class ObjectFactoryExtensionsTest {
 
         inOrder(objectFactory) {
             verify(objectFactory).listProperty(String::class.java)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun mapProperty() {
+
+        val objectFactory = mock<ObjectFactory> {
+            on { mapProperty(any<Class<*>>(), any<Class<*>>()) } doReturn mock<MapProperty<String, Int>>()
+        }
+
+        objectFactory.mapProperty<String, Int>()
+
+        inOrder(objectFactory) {
+            verify(objectFactory).mapProperty(String::class.java, Int::class.javaObjectType)
             verifyNoMoreInteractions()
         }
     }

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Named
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 
@@ -74,3 +75,12 @@ inline fun <reified T> ObjectFactory.setProperty(): SetProperty<T> =
  */
 inline fun <reified T> ObjectFactory.listProperty(): ListProperty<T> =
     listProperty(T::class.java)
+
+
+/**
+ * Creates a [MapProperty] that holds values of the given key type [K] and value type [V].
+ *
+ * @see [ObjectFactory.mapProperty]
+ */
+inline fun <reified K, reified V> ObjectFactory.mapProperty(): MapProperty<K, V> =
+    mapProperty(K::class.java, V::class.java)

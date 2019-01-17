@@ -115,6 +115,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             dependencies {
                 testCompile("junit:junit:4.12")
+                testCompile("org.hamcrest:hamcrest-library:1.3")
                 testCompile(gradleTestKit())
             }
 
