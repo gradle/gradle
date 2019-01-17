@@ -16,7 +16,6 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.ProjectFile
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
@@ -24,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 import spock.lang.Unroll
 
-abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
+abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     def setup() {
         requireSwiftToolChain()
     }
@@ -77,7 +76,33 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
         swift4Component | SwiftVersion.SWIFT4
     }
 
-    abstract void makeSingleProject()
+    @Unroll
+    def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
+        given:
+        makeSingleProject()
+        configureComponentUnderTest """
+            targetMachines = [machines.os('os-family')]
+            sourceCompatibility = ${sourceCompatibility}
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        def project = rootXcodeProject.projectFile
+        project.targets.each { target ->
+            assert target.buildConfigurationList.buildConfigurations.each {
+                it.buildSettings.SWIFT_VERSION == expectedSwiftVersion
+            }
+        }
+
+        where:
+        sourceCompatibility   | expectedSwiftVersion
+        "null"                | null
+        "SwiftVersion.SWIFT3" | "3.0"
+        "SwiftVersion.SWIFT4" | "4.0"
+    }
 
     SwiftSourceElement getSwift3Component() {
         return new Swift3(rootProjectName)
@@ -86,8 +111,6 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
     SwiftSourceElement getSwift4Component() {
         return new Swift4(rootProjectName)
     }
-
-    abstract String getComponentUnderTestDsl()
 
     void assertHasSwiftVersion(SwiftVersion expectedSwiftVersion, List<ProjectFile.PBXTarget> targets) {
         assert !targets.empty
@@ -99,4 +122,14 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeInt
             }
         }
     }
+
+    @Override
+    protected void assertXcodeProjectSources(List<String> rootChildren) {
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(rootChildren + ['Sources'])
+        project.sources.assertHasChildren(componentUnderTest.files*.name)
+    }
+
+    @Override
+    protected abstract SwiftSourceElement getComponentUnderTest()
 }
