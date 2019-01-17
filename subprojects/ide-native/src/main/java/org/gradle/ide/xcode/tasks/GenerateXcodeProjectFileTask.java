@@ -192,12 +192,6 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             + "  done\n"
             + "done");
 
-        PBXSourcesBuildPhase sourcesBuildPhase = new PBXSourcesBuildPhase();
-        for (File file : xcodeTarget.getSources()) {
-            PBXFileReference fileReference = pathToFileReference.get(file.getAbsolutePath());
-            sourcesBuildPhase.getFiles().add(new PBXBuildFile(fileReference));
-        }
-
         PBXShellScriptBuildPhase gradleBuildPhase = new PBXShellScriptBuildPhase();
         gradleBuildPhase.setShellPath("/bin/sh");
         gradleBuildPhase.setShellScript("exec \"" + xcodeTarget.getGradleCommand() + "\" " + buildGradleArgs(xcodeTarget) + " < /dev/null");
@@ -207,22 +201,15 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         target.setGlobalID(xcodeTarget.getId());
         // Note the order in which the build phase are added is important
         target.getBuildPhases().add(hackBuildPhase);
-        target.getBuildPhases().add(sourcesBuildPhase);
+        target.getBuildPhases().add(newSourceBuildPhase(xcodeTarget.getSources()));
         target.getBuildPhases().add(gradleBuildPhase);
         File outputFile = xcodeTarget.getDebugOutputFile().get().getAsFile();
         target.setProductReference(new PBXFileReference(outputFile.getName(), outputFile.getAbsolutePath(), PBXReference.SourceTree.ABSOLUTE));
 
         getAllBinaries().stream().filter(it -> !Objects.equals(it.getBuildConfigurationName(), TEST_DEBUG)).forEach(xcodeBinary -> {
-            NSDictionary settings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).getBuildSettings();
-
-            if (!xcodeTarget.getCompileModules().isEmpty()) {
-                settings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
-            }
-
-            settings.put("PRODUCT_NAME", target.getProductName());
-            settings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
+            NSDictionary settings = newBuildSettings(xcodeTarget);
             settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
-            settings.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(XcodeBinary::getArchitectureName).map(GenerateXcodeProjectFileTask::toXcodeArchitecture).distinct().collect(Collectors.joining(" ")));
+            target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
         });
 
         NSDictionary testRunnerSettings = target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(TEST_DEBUG).getBuildSettings();
@@ -243,35 +230,42 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
     }
 
     private PBXTarget toIndexPbxTarget(XcodeTarget xcodeTarget) {
-        PBXSourcesBuildPhase buildPhase = new PBXSourcesBuildPhase();
-        for (File file : xcodeTarget.getSources()) {
-            PBXFileReference fileReference = pathToFileReference.get(file.getAbsolutePath());
-            buildPhase.getFiles().add(new PBXBuildFile(fileReference));
-        }
-
         PBXNativeTarget target = new PBXNativeTarget("[INDEXING ONLY] " + xcodeTarget.getName(), xcodeTarget.getProductType());
         target.setProductName(xcodeTarget.getProductName());
+        target.getBuildPhases().add(newSourceBuildPhase(xcodeTarget.getSources()));
 
         xcodeTarget.getBinaries().forEach(xcodeBinary -> {
-            NSDictionary settings = new NSDictionary();
-            settings.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
-            settings.put("PRODUCT_NAME", xcodeTarget.getProductName());  // Mandatory
+            NSDictionary settings = newBuildSettings(xcodeTarget);
             settings.put("ARCHS", toXcodeArchitecture(xcodeBinary.getArchitectureName()));
-            settings.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(XcodeBinary::getArchitectureName).map(GenerateXcodeProjectFileTask::toXcodeArchitecture).distinct().collect(Collectors.joining(" ")));
-
-            if (!xcodeTarget.getHeaderSearchPaths().isEmpty()) {
-                settings.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.getHeaderSearchPaths()));
-            }
-
-            if (!xcodeTarget.getCompileModules().isEmpty()) {
-                settings.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
-            }
-
             target.getBuildConfigurationList().getBuildConfigurationsByName().getUnchecked(xcodeBinary.getBuildConfigurationName()).setBuildSettings(settings);
         });
-        target.getBuildPhases().add(buildPhase);
 
         return target;
+    }
+
+    private PBXSourcesBuildPhase newSourceBuildPhase(FileCollection sourceFiles) {
+        PBXSourcesBuildPhase result = new PBXSourcesBuildPhase();
+        for (File file : sourceFiles) {
+            PBXFileReference fileReference = pathToFileReference.get(file.getAbsolutePath());
+            result.getFiles().add(new PBXBuildFile(fileReference));
+        }
+        return result;
+    }
+
+    private NSDictionary newBuildSettings(XcodeTarget xcodeTarget) {
+        NSDictionary result = new NSDictionary();
+        result.put("SWIFT_VERSION", toXcodeSwiftVersion(xcodeTarget.getSwiftSourceCompatibility()));
+        result.put("PRODUCT_NAME", xcodeTarget.getProductName());  // Mandatory
+        result.put("VALID_ARCHS", xcodeTarget.getBinaries().stream().map(it -> GenerateXcodeProjectFileTask.toXcodeArchitecture(it.getArchitectureName())).distinct().collect(Collectors.joining(" ")));
+
+        if (!xcodeTarget.getHeaderSearchPaths().isEmpty()) {
+            result.put("HEADER_SEARCH_PATHS", toSpaceSeparatedList(xcodeTarget.getHeaderSearchPaths()));
+        }
+
+        if (!xcodeTarget.getCompileModules().isEmpty()) {
+            result.put("SWIFT_INCLUDE_PATHS", toSpaceSeparatedList(parentDirs(xcodeTarget.getCompileModules())));
+        }
+        return result;
     }
 
     private static String toXcodeArchitecture(String architectureName) {
