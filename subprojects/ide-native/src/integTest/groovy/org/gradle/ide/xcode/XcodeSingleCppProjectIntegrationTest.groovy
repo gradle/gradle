@@ -220,8 +220,8 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
             apply plugin: 'cpp-application'
         """
 
-        def lib = new CppLib()
-        lib.writeToProject(testDirectory)
+        def app = new CppApp()
+        app.writeToProject(testDirectory)
         succeeds("xcode")
 
         when:
