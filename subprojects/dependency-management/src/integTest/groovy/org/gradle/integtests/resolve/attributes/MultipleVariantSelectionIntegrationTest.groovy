@@ -30,11 +30,78 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     def setup() {
         buildFile << """
             def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            def CUSTOM2_ATTRIBUTE = Attribute.of('custom2', String)
             dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+            dependencies.attributesSchema.attribute(CUSTOM2_ATTRIBUTE)
         """
     }
 
     void "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api1') {
+                    attribute('custom', 'c1')
+                    capability('cap1')
+                }
+                variant('api2') {
+                    attribute('custom', 'c2')
+                    capability('cap1')
+                }
+                variant('runtime1') {
+                    attribute('custom2', 'c1')
+                    capability('cap2')
+                }
+                variant('runtime2') {
+                    attribute('custom2', 'c2')
+                    capability('cap2')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c1')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap1:1.0')
+                    }
+                }
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM2_ATTRIBUTE, 'c2')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap2:1.0')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0') {
+                    variant('api1', ['org.gradle.status': defaultStatus(), custom: 'c1'])
+                }
+                module('org:test:1.0') {
+                    variant('runtime2', ['org.gradle.status': defaultStatus(), custom2: 'c2'])
+                }
+            }
+        }
+    }
+
+    void "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
         given:
         repository {
             'org:test:1.0' {
@@ -81,22 +148,15 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         when:
         repositoryInteractions {
             'org:test:1.0' {
-                expectResolve()
+                expectGetMetadata()
             }
         }
-        succeeds 'checkDeps'
+        fails 'checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org:test:1.0') {
-                    variant('api1', ['org.gradle.status': defaultStatus(), custom: 'c1'])
-                }
-                module('org:test:1.0') {
-                    variant('runtime2', ['org.gradle.status': defaultStatus(), custom: 'c2'])
-                }
-            }
-        }
+        failure.assertHasCause("""Multiple incompatible variants of org:test:1.0 were selected:
+   - Variant org:test:1.0 variant api1 has attributes {custom=c1, org.gradle.status=${defaultStatus()}}
+   - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${defaultStatus()}}""")
     }
 
     void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
@@ -224,6 +284,101 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     artifact('c2')
                 }
                 variant('altruntime') {
+                    attribute('custom2', 'c3')
+                    capability('cap3')
+                    artifact('c3')
+                }
+            }
+            'org:foo:1.1' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    artifact('c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    artifact('c2')
+                }
+                variant('altruntime') {
+                    attribute('custom2', 'c3')
+                    capability('cap3')
+                    artifact('c3')
+                }
+            }
+            'org:bar:1.0' {
+                variant('api') {
+                    dependsOn('org:foo:1.1') {
+                        capability('org.test', 'cap3', '1.0')
+                        attributes.custom2 = 'c3'
+                    }
+                }
+                variant('runtime') {
+                    dependsOn('org:foo:1.1') {
+                        requestedCapability('org.test', 'cap3', '1.0')
+                        attributes.custom2 = 'c3'
+                    }
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                }
+                conf('org:bar:1.0')
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:bar:1.0' {
+                expectResolve()
+            }
+            'org:foo:1.0' {
+                expectGetMetadata()
+            }
+            'org:foo:1.1' {
+                expectGetMetadata()
+                expectGetVariantArtifacts('runtime')
+                expectGetVariantArtifacts('altruntime')
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:foo:1.0', 'org:foo:1.1') {
+                    byConflictResolution('between versions 1.0 and 1.1')
+                    // the following assertion is true but limitations to the test fixtures make it hard to check
+                    //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
+                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
+                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
+                }
+                module('org:bar:1.0') {
+                    module('org:foo:1.1')
+                }
+            }
+        }
+
+    }
+
+    def "prevents selection of 2 variants of the same component with transitive dependency if they have different capabilities but incompatible attributes"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    artifact('c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    artifact('c2')
+                }
+                variant('altruntime') {
                     attribute('custom', 'c3')
                     capability('cap3')
                     artifact('c3')
@@ -274,35 +429,21 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         when:
         repositoryInteractions {
             'org:bar:1.0' {
-                expectResolve()
+                expectGetMetadata()
             }
             'org:foo:1.0' {
                 expectGetMetadata()
             }
             'org:foo:1.1' {
                 expectGetMetadata()
-                expectGetVariantArtifacts('runtime')
-                expectGetVariantArtifacts('altruntime')
             }
         }
-        succeeds 'checkDeps'
+        fails 'checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge('org:foo:1.0', 'org:foo:1.1') {
-                    byConflictResolution('between versions 1.0 and 1.1')
-                    // the following assertion is true but limitations to the test fixtures make it hard to check
-                    //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
-                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
-                    artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
-                }
-                module('org:bar:1.0') {
-                    module('org:foo:1.1')
-                }
-            }
-        }
+        failure.assertHasCause("""Multiple incompatible variants of org:foo:1.1 were selected:
+   - Variant org:foo:1.1 variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
+   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
 
     }
 
