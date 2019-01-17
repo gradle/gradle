@@ -28,6 +28,7 @@ import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
@@ -125,11 +126,11 @@ fun IO.buildPluginAccessorsFor(
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir)
+    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
 
     val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
 
-    val baseFileName = "$packagePath/PluginAccessors"
+    val baseFileName = "$kotlinDslPackagePath/PluginAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
     val accessorList = pluginAccessorsFor(pluginTrees).toList()
@@ -379,7 +380,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, InternalName("$packagePath/$groupType"))
+    TypeSpec(groupType, InternalName("$kotlinDslPackagePath/$groupType"))
 
 
 internal

@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -33,27 +34,25 @@ import java.io.File
 @CacheableTask
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
+    @get:OutputDirectory
+    var outputDirectory = project.objects.directoryProperty()
+
     @get:Internal
     internal
     lateinit var plugins: List<ScriptPlugin>
-
-    @get:OutputDirectory
-    var outputDirectory = project.objects.directoryProperty()
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
     val scriptFiles: Set<File>
-        get() = plugins.map { it.scriptFile }.toSet()
+        get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
     @Suppress("unused")
     internal
     fun generate() =
-        outputDirectory.asFile.get().let { outputDir ->
-            outputDir.deleteRecursively()
-            outputDir.mkdirs()
+        outputDirectory.withOutputDirectory { outputDir ->
             for (scriptPlugin in plugins) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
             }
@@ -101,6 +100,14 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 private
 fun packageDir(outputDir: File, packageName: String) =
     outputDir.mkdir(packageName.replace('.', '/'))
+
+
+internal
+inline fun <T> DirectoryProperty.withOutputDirectory(action: (File) -> T): T =
+    asFile.get().let { outputDir ->
+        outputDir.mkdirs()
+        action(outputDir)
+    }
 
 
 private

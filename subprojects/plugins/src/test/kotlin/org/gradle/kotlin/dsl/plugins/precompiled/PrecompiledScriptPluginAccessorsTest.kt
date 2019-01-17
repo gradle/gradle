@@ -43,6 +43,81 @@ import java.io.File
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
+    fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
+
+        withProjectRoot(newDir("external-plugins")) {
+            withDefaultSettings()
+            withKotlinDslPlugin()
+            withFolders {
+                "src/main/kotlin" {
+                    "extensions" {
+                        withFile("Extensions.kt", """
+                            class App { var name: String = "app" }
+                            class Lib { var name: String = "lib" }
+                        """)
+                    }
+                    withFile("external-app.gradle.kts", """
+                        extensions.create("external", App::class)
+                    """)
+                    withFile("external-lib.gradle.kts", """
+                        extensions.create("external", Lib::class)
+                    """)
+                }
+            }
+            build("assemble")
+        }
+
+        val externalPlugins = existing("external-plugins/build/libs/external-plugins.jar")
+
+        withFolders {
+            "buildSrc" {
+                withDefaultSettingsIn(relativePath)
+                withKotlinDslPlugin().appendText("""
+                    dependencies {
+                        implementation(files("${externalPlugins.normalisedPath}"))
+                    }
+                """)
+
+                withFile("src/main/kotlin/local-app.gradle.kts", """
+                    plugins { `external-app` }
+                    println("*using " + external.name + " from local-app in " + project.name + "*")
+                """)
+
+                withFile("src/main/kotlin/local-lib.gradle.kts", """
+                    plugins { `external-lib` }
+                    println("*using " + external.name + " from local-lib in " + project.name + "*")
+                """)
+            }
+        }
+
+        withDefaultSettings().appendText("""
+            include("foo")
+            include("bar")
+        """)
+
+        withFolders {
+            "foo" {
+                withFile("build.gradle.kts", """
+                    plugins { `local-app` }
+                """)
+            }
+            "bar" {
+                withFile("build.gradle.kts", """
+                    plugins { `local-lib` }
+                """)
+            }
+        }
+
+        assertThat(
+            build("tasks").output,
+            allOf(
+                containsString("*using app from local-app in foo*"),
+                containsString("*using lib from local-lib in bar*")
+            )
+        )
+    }
+
+    @Test
     fun `can use core plugin spec builders`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """

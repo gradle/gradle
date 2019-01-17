@@ -69,8 +69,7 @@ interface AsyncIOScopeFactory {
 }
 
 
-internal
-inline fun <T> withAsynchronousIO(
+fun <T> withAsynchronousIO(
     project: Project,
     action: IO.() -> T
 ): T = project.serviceOf<AsyncIOScopeFactory>().newScope().useToRun(action)

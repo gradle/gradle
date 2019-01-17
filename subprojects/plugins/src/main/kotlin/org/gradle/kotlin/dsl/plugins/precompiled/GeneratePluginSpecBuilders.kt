@@ -16,43 +16,27 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.hash.HashCode
-
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
-import org.gradle.kotlin.dsl.support.serviceOf
 
 
 @CacheableTask
-open class GeneratePluginSpecBuilders : DefaultTask() {
-
-    @get:OutputDirectory
-    var outputDirectory = project.objects.directoryProperty()
-
-    @get:Classpath
-    lateinit var classPath: FileCollection
+open class GeneratePluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
 
     @TaskAction
     @Suppress("unused")
     internal
     fun generate() =
-        outputDirectory.asFile.get().let { outputDir ->
+        sourceCodeOutputDir.withOutputDirectory { outputDir ->
             val packageDir = outputDir.resolve(packageName.split('.').joinToString("/")).apply {
                 mkdirs()
             }
             val outputFile = packageDir.resolve("PluginSpecBuildersFor$$classPathHash.kt")
             writeSourceCodeForPluginSpecBuildersFor(
-                pluginDescriptorClassPath,
+                classPath,
                 outputFile,
                 packageName = kotlinPackageName
             )
@@ -64,26 +48,9 @@ open class GeneratePluginSpecBuilders : DefaultTask() {
         kotlinPackageNameFor(packageName)
     }
 
-    // TODO: consider a package name derived from the classpath hash
+    // TODO: move to a package name derived from the classpath hash
     // "gradle-kotlin-dsl.plugin-spec-builders.$$classPathHash"
     private
     val packageName
         get() = "org.gradle.kotlin.dsl"
-
-    private
-    val classPathHash
-        get() = hashOf(pluginDescriptorClassPath)
-
-    private
-    val pluginDescriptorClassPath by lazy {
-        DefaultClassPath.of(classPath.files)
-    }
-
-    private
-    fun hashOf(classPath: ClassPath): HashCode =
-        project.serviceOf<ClasspathHasher>().hash(classPath)
-
-    private
-    fun kotlinPackageNameFor(packageName: String) =
-        packageName.split('.').joinToString(".") { "`$it`" }
 }

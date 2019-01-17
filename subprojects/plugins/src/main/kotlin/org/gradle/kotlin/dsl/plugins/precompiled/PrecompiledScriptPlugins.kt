@@ -17,12 +17,15 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.Directory
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.provider.Provider
 
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 
@@ -98,60 +101,78 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * ## Implementation Notes
  * External plugin dependencies are declared as regular artifact dependencies but a more
  * semantic preserving model could be introduced in the future.
+ *
  * ## Todo
- *  - [ ] type-safe plugin spec accessors for plugins in the precompiled script plugin classpath
+ *  - DONE type-safe plugin spec accessors for plugins in the precompiled script plugin classpath
  *  - [ ] limit the set of type-safe accessors visible to a precompiled script plugin to
  *        those provided by the plugins in its `plugins` block
- *        - [ ] each set of accessors would be emitted to an internal object to avoid conflicts with
- *              external plugins
- *        - [ ] an internal object named against its precompiled script plugin would also let users
- *              know not to import them
- *  - [ ] emit error when a precompiled script plugin includes the version of a in its `plugins` block
- *  - [ ] validate plugin ids against declared plugin dependencies
+ *  - [ ] emit help message when a precompiled script plugin includes a version in its `plugins` block
+ *  - [ ] validate plugin ids against declared plugin dependencies (that comes for free)
  */
 class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        enableScriptCompilation()
+        val scriptPlugins = collectScriptPlugins()
+
+        enableScriptCompilationOf(scriptPlugins)
 
         plugins.withType<JavaGradlePluginPlugin> {
-            exposeScriptsAsGradlePlugins()
+            exposeScriptsAsGradlePlugins(scriptPlugins)
         }
     }
 }
 
 
 private
-fun Project.enableScriptCompilation() {
+fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
 
     dependencies {
         "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
         "kotlinCompilerPluginClasspath"(gradleApi())
     }
 
-    val generatedPluginSpecBuilders = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugin-accessors/kotlin")
-    sourceSets["main"].kotlin.srcDir(generatedPluginSpecBuilders)
+    val generatedPluginSpecBuilders = generatedSourceDirFor("plugin-spec-builders")
+
+    val generatedAccessors = generatedSourceDirFor("accessors")
+
+    val generatedMetadata = layout.buildDirectory.dir("precompiled-script-plugins")
 
     tasks {
 
         val generatePluginSpecBuilders by registering(GeneratePluginSpecBuilders::class) {
-            classPath = sourceSets["main"].compileClasspath
-            outputDirectory.set(generatedPluginSpecBuilders)
+            classPathFiles = sourceSets["main"].compileClasspath
+            sourceCodeOutputDir.set(generatedPluginSpecBuilders)
+        }
+
+        val generatePrecompiledScriptPluginAccessors by registering(GeneratePrecompiledScriptPluginAccessors::class) {
+            classPathFiles = sourceSets["main"].compileClasspath
+            sourceCodeOutputDir.set(generatedAccessors)
+            metadataOutputDir.set(generatedMetadata)
+            plugins = scriptPlugins
         }
 
         named<KotlinCompile>("compileKotlin") {
             dependsOn(generatePluginSpecBuilders)
+            dependsOn(generatePrecompiledScriptPluginAccessors)
             kotlinOptions {
                 freeCompilerArgs += listOf(
                     "-script-templates", scriptTemplates,
                     // Propagate implicit imports and other settings
-                    "-Xscript-resolver-environment=${resolverEnvironment(implicitImports() + (generatePluginSpecBuilders.get().kotlinPackageName + ".*"))}"
+                    "-Xscript-resolver-environment=${resolverEnvironmentFor(generatePrecompiledScriptPluginAccessors)}"
                 )
             }
         }
     }
 }
+
+
+private
+fun Project.resolverEnvironmentFor(
+    accessors: TaskProvider<GeneratePrecompiledScriptPluginAccessors>
+) = resolverEnvironment(
+    implicitImports() // + (accessors.get().kotlinPackageName + ".*")
+)
 
 
 private
@@ -179,19 +200,19 @@ fun Project.implicitImports(): List<String> =
 
 
 private
-fun Project.exposeScriptsAsGradlePlugins() {
-
-    val scriptSourceFiles = pluginSourceSet.allSource.matching {
-        it.include("**/*.gradle.kts")
-    }
-
-    val scriptPlugins =
-        scriptSourceFiles.map(::ScriptPlugin)
+fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<ScriptPlugin>) {
 
     declareScriptPlugins(scriptPlugins)
 
     generatePluginAdaptersFor(scriptPlugins)
 }
+
+
+private
+fun Project.collectScriptPlugins(): List<ScriptPlugin> =
+    pluginSourceSet.allSource.matching {
+        it.include("**/*.gradle.kts")
+    }.map(::ScriptPlugin)
 
 
 private
@@ -221,8 +242,7 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 private
 fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
 
-    val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
-    sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
+    val generatedSourcesDir = generatedSourceDirFor("plugins")
 
     tasks {
 
@@ -235,6 +255,14 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
             dependsOn(generateScriptPluginAdapters)
         }
     }
+}
+
+
+private
+fun Project.generatedSourceDirFor(purpose: String): Provider<Directory> {
+    val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-$purpose/kotlin")
+    sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
+    return generatedSourcesDir
 }
 
 

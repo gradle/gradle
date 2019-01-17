@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
+
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
@@ -40,7 +42,7 @@ fun IO.emitAccessorsFor(
     binDir: File
 ): List<InternalName> {
 
-    makeAccessorOutputDirs(srcDir, binDir)
+    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
 
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
@@ -57,7 +59,7 @@ fun IO.emitAccessorsFor(
 
 
 internal
-fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
+fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File, packagePath: String) = io {
     srcDir.resolve(packagePath).mkdirs()
     binDir.resolve(packagePath).mkdirs()
     binDir.resolve("META-INF").mkdir()

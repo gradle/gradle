@@ -29,7 +29,8 @@ import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
-import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
@@ -478,7 +479,6 @@ fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheK
         + classPath)
 
 
-internal
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
     putAll(schema.conventions)
@@ -515,9 +515,13 @@ fun enabledJitAccessors(project: Project) =
 
 
 internal
-fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List<String> = emptyList()) = io {
+fun IO.writeAccessorsTo(
+    outputFile: File,
+    accessors: List<String>,
+    imports: List<String> = emptyList()
+) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImports)
+        appendReproducibleNewLine(fileHeaderWithImportsFor(/* TODO: accept packageName here */))
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendReproducibleNewLine("import $it")
@@ -533,8 +537,8 @@ fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List
 
 
 internal
-val fileHeaderWithImports = """
-$fileHeader
+fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
+${fileHeaderFor(accessorsPackage)}
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating

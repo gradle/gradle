@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.codegen
 
 internal
 val fileHeader: String
-    get() = fileHeaderFor(packageName)
+    get() = fileHeaderFor(kotlinDslPackageName)
 
 
 internal
@@ -36,7 +36,11 @@ package $packageName
 
 
 internal
-const val packageName = "org.gradle.kotlin.dsl"
+const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
+
+
+internal
+const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
 
 
 internal
