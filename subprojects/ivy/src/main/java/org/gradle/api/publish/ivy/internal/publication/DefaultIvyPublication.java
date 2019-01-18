@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -94,18 +93,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
 
-    private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
-        @Override
-        public int compare(UsageContext left, UsageContext right) {
-            // API first
-            if (left.getUsage().getName().equals(Usage.JAVA_API)) {
-                return -1;
-            }
-            if (right.getUsage().getName().equals(Usage.JAVA_API)) {
-                return 1;
-            }
-            return left.getUsage().getName().compareTo(right.getUsage().getName());
+    private static final String API_VARIANT = "api";
+    private static final String RUNTIME_VARIANT = "runtime";
+    private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
+        // API first
+        if (API_VARIANT.equals(left)) {
+            return -1;
         }
+        if (API_VARIANT.equals(right)) {
+            return 1;
+        }
+        return left.compareTo(right);
     };
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
@@ -246,8 +244,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
-            Usage usage = usageContext.getUsage();
-            String conf = mapUsage(usage);
+            String conf = mapUsage(usageContext.getName());
             configurations.maybeCreate(conf);
             configurations.getByName("default").extend(conf);
 
@@ -299,18 +296,18 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private List<UsageContext> getSortedUsageContexts() {
         List<UsageContext> usageContexts = Lists.newArrayList(component.getUsages());
-        Collections.sort(usageContexts, USAGE_ORDERING);
+        Collections.sort(usageContexts, (u1, u2) -> VARIANT_ORDERING.compare(u1.getName(), u2.getName()));
         return usageContexts;
     }
 
-    private String mapUsage(Usage usage) {
-        if (Usage.JAVA_API.equals(usage.getName())) {
+    private String mapUsage(String name) {
+        if (API_VARIANT.equals(name)) {
             return "compile";
         }
-        if (Usage.JAVA_RUNTIME.equals(usage.getName())) {
+        if (RUNTIME_VARIANT.equals(name)) {
             return "runtime";
         }
-        return usage.getName();
+        return name;
     }
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {

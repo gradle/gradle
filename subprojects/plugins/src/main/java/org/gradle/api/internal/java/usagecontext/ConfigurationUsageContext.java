@@ -27,8 +27,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
@@ -42,14 +41,12 @@ public class ConfigurationUsageContext extends AbstractUsageContext {
     private Set<ExcludeRule> excludeRules;
 
 
-    public ConfigurationUsageContext(String usageName,
-                                     String name,
+    public ConfigurationUsageContext(String name,
                                      String configurationName,
                                      Set<PublishArtifact> artifacts,
                                      ConfigurationContainer configurations,
-                                     ObjectFactory objectFactory,
-                                     ImmutableAttributesFactory attributesFactory) {
-        super(usageName, artifacts, objectFactory, attributesFactory);
+                                     ImmutableAttributes attributes) {
+        super(attributes, artifacts);
         this.name = name;
         this.configurationName = configurationName;
         this.configurations = configurations;

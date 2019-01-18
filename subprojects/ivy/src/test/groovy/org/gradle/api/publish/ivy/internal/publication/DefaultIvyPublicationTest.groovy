@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.attributes.Usage
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -411,9 +410,7 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createComponent(def artifacts, def dependencies) {
         def usage = Stub(UsageContext) {
-            getUsage() >> Mock(Usage) {
-                getName() >> Usage.JAVA_RUNTIME
-            }
+            getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
         }
