@@ -23,20 +23,13 @@ import org.gradle.util.TestPrecondition
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
-        executer.withWelcomeMessageEnabled()
         file("build.gradle") << "task emptyTask"
     }
 
-    def "wrapper only renders welcome message when executed in quiet mode"() {
+    def "wrapper does not render welcome message when executed in quiet mode"() {
         given:
         prepareWrapper()
-
-        when:
-        args '-q'
-        result = wrapperExecuter.withTasks("emptyTask").run()
-
-        then:
-        outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+        executer.withWelcomeMessageEnabled()
 
         when:
         args '-q'
@@ -44,6 +37,45 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         result.output.empty
+    }
+
+    def "wrapper renders welcome message when executed the first time"() {
+        given:
+        prepareWrapper()
+
+        when:
+        executer.withWelcomeMessageEnabled()
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+
+        when:
+        executer.withWelcomeMessageEnabled()
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        outputDoesNotContain("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
+    }
+
+    def "wrapper renders welcome message when executed the first time after being executed in quiet mode"() {
+        given:
+        prepareWrapper()
+
+        when:
+        executer.withWelcomeMessageEnabled()
+        args '-q'
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        result.output.empty
+
+        when:
+        executer.withWelcomeMessageEnabled()
+        result = wrapperExecuter.withTasks("emptyTask").run()
+
+        then:
+        outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)

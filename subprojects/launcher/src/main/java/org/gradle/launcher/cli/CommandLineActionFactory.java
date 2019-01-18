@@ -23,6 +23,8 @@ import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
@@ -122,7 +124,10 @@ public class CommandLineActionFactory {
         out.println();
     }
 
-    static class WelcomeMessageAction implements Action<PrintStream> {
+    static class WelcomeMessageAction implements Action<Void> {
+
+        private static final Logger LOGGER = Logging.getLogger(WelcomeMessageAction.class);
+
         private final BuildLayoutParameters buildLayoutParameters;
         private final GradleVersion gradleVersion;
         private final Function<String, InputStream> inputStreamProvider;
@@ -145,29 +150,29 @@ public class CommandLineActionFactory {
         }
 
         @Override
-        public void execute(PrintStream out) {
+        public void execute(Void aVoid) {
             if (isWelcomeMessageEnabled()) {
                 File markerFile = getMarkerFile();
 
-                if (!markerFile.exists()) {
-                    out.println();
-                    out.print("Welcome to Gradle " + gradleVersion.getVersion() + "!");
+                if (!markerFile.exists() && LOGGER.isLifecycleEnabled()) {
+                    LOGGER.lifecycle("");
+                    LOGGER.lifecycle("Welcome to Gradle " + gradleVersion.getVersion() + "!");
 
                     String featureList = readReleaseFeatures();
 
                     if (StringUtils.isNotBlank(featureList)) {
-                        out.println();
-                        out.println();
-                        out.println("Here are the highlights of this release:");
-                        out.print(featureList);
+                        LOGGER.lifecycle("");
+                        LOGGER.lifecycle("");
+                        LOGGER.lifecycle("Here are the highlights of this release:");
+                        LOGGER.lifecycle(featureList);
                     }
 
                     if (!gradleVersion.isSnapshot()) {
-                        out.println();
-                        out.println("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
+                        LOGGER.lifecycle("");
+                        LOGGER.lifecycle("For more details see https://docs.gradle.org/" + gradleVersion.getVersion() + "/release-notes.html");
                     }
 
-                    out.println();
+                    LOGGER.lifecycle("");
 
                     writeMarkerFile(markerFile);
                 }
@@ -365,7 +370,7 @@ public class CommandLineActionFactory {
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-                new WelcomeMessageAction(buildLayout).execute(System.out);
+                new WelcomeMessageAction(buildLayout).execute(null);
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
