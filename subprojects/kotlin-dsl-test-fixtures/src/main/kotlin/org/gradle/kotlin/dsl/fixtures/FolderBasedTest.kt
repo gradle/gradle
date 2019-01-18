@@ -1,31 +1,36 @@
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+
 import org.junit.Rule
 
 import java.io.File
 
 
+@CleanupTestDirectory(fieldName = "tempFolder")
 abstract class FolderBasedTest {
 
     @JvmField
-    @Rule val tempFolder = ForcefullyDeletedTemporaryFolder()
+    @Rule
+    val tempFolder = TestNameTestDirectoryProvider()
 
     fun withFolders(folders: FoldersDslExpression) =
-        tempFolder.root.withFolders(folders)
+        tempFolder.testDirectory.withFolders(folders)
 
-    fun folder(path: String) =
+    fun folder(path: String): File =
         existing(path).apply {
             assert(isDirectory)
         }
 
-    fun file(path: String) =
+    fun file(path: String): File =
         existing(path).apply {
             assert(isFile)
         }
 
     private
     fun existing(path: String): File =
-        File(tempFolder.root, path).canonicalFile.apply {
+        tempFolder.testDirectory.file(path).canonicalFile.apply {
             assert(exists())
         }
 }
@@ -46,7 +51,7 @@ class FoldersDsl(val root: File) {
     operator fun String.unaryPlus(): File =
         canonicalFile(this).apply { mkdirs() }
 
-    fun withFile(fileName: String, content: String = "") =
+    fun withFile(fileName: String, content: String = ""): File =
         canonicalFile(fileName).apply {
             parentFile.mkdirs()
             writeText(content)
@@ -61,5 +66,5 @@ class FoldersDsl(val root: File) {
         file(fileName).canonicalFile
 
     fun file(fileName: String): File =
-        File(root, fileName)
+        root.resolve(fileName)
 }
