@@ -41,7 +41,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
-                    gradleParameters(daemon = false, isContinue = false)
+                    gradleParameters(isContinue = false)
                     + listOf("""clean %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""",
                             buildScanTag("IndividualPerformanceScenarioWorkers"), "-PtestJavaHome=${individualPerformanceTestJavaHome}")
                             + model.parentBuildCache.gradleParameters(OS.linux)

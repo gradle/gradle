@@ -23,7 +23,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         }
 
         if (subProject.hasTestsOf(testConfig.testType)) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
+            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
         }
     }
 }){

@@ -70,7 +70,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
                             subProject.hasTestsOf(testConfig.testType)
                         }
                         .forEach { testConfig ->
-                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
+                            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
                         }
                 }
         }
