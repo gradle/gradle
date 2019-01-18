@@ -8,7 +8,9 @@ import org.gradle.kotlin.dsl.fixtures.gradleRunnerFor
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 
@@ -77,5 +79,26 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         gradleRunnerFor(secondDir, "classes", "--build-cache").build().apply {
             assertThat(outcomeOf(generationTask), equalTo(FROM_CACHE))
         }
+    }
+
+    @Test
+    fun `precompiled script plugins adapters generation clean stale outputs`() {
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins { `kotlin-dsl` }
+            repositories { jcenter() }
+        """)
+
+        val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
+
+        build("generateScriptPluginAdapters")
+        assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").isFile)
+
+        fooScript.renameTo(fooScript.parentFile.resolve("bar.gradle.kts"))
+
+        build("generateScriptPluginAdapters")
+        assertFalse(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").exists())
+        assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/BarPlugin.kt").isFile)
     }
 }
