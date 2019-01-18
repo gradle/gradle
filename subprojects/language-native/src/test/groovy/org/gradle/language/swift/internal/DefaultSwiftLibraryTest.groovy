@@ -108,8 +108,8 @@ class DefaultSwiftLibraryTest extends Specification {
 
     private NativeVariantIdentity getIdentity() {
         return new NativeVariantIdentity("test", null, null, null, true, false, targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64),
-            new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable()),
-            new DefaultUsageContext("test", null, AttributeTestUtil.attributesFactory().mutable())
+            new DefaultUsageContext("test", AttributeTestUtil.attributesFactory().mutable()),
+            new DefaultUsageContext("test", AttributeTestUtil.attributesFactory().mutable())
         )
     }
 

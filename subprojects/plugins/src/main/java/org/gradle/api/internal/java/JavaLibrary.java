@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
@@ -72,11 +73,13 @@ public class JavaLibrary implements SoftwareComponentInternal {
     }
 
     private UsageContext createRuntimeUsageContext() {
-        return new ConfigurationUsageContext(Usage.JAVA_RUNTIME, "runtime", RUNTIME_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, objectFactory, attributesFactory);
+        ImmutableAttributes attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        return new ConfigurationUsageContext("runtime", RUNTIME_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, attributes);
     }
 
     private UsageContext createCompileUsageContext() {
-        return new ConfigurationUsageContext(Usage.JAVA_API, "api", API_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, objectFactory, attributesFactory);
+        ImmutableAttributes attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        return new ConfigurationUsageContext("api", API_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, attributes);
     }
 
 }

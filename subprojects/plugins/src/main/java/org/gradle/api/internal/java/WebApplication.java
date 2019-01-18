@@ -20,26 +20,26 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.api.internal.java.usagecontext.AbstractUsageContext;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
-    private final UsageContext webArchiveUsage = new WebArchiveUsageContext();
+    private final UsageContext webArchiveUsage;
     private final PublishArtifact warArtifact;
-    private final Usage masterUsage;
+    private final String variantName;
 
     @Inject
-    public WebApplication(PublishArtifact warArtifact, Usage masterUsage) {
+    public WebApplication(PublishArtifact warArtifact, String variantName) {
         this.warArtifact = warArtifact;
-        this.masterUsage = masterUsage;
+        this.variantName = variantName;
+        this.webArchiveUsage = new WebArchiveUsageContext();
     }
 
     @Override
@@ -52,25 +52,14 @@ public class WebApplication implements SoftwareComponentInternal {
         return Collections.singleton(webArchiveUsage);
     }
 
-    private class WebArchiveUsageContext implements UsageContext {
-        @Override
-        public Usage getUsage() {
-            return masterUsage;
+    private class WebArchiveUsageContext extends AbstractUsageContext {
+        public WebArchiveUsageContext() {
+            super(ImmutableAttributes.EMPTY, Collections.singleton(warArtifact));
         }
 
         @Override
         public String getName() {
-            return masterUsage.getName();
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            return ImmutableAttributes.EMPTY;
-        }
-
-        @Override
-        public Set<PublishArtifact> getArtifacts() {
-            return Collections.singleton(warArtifact);
+            return variantName;
         }
 
         @Override

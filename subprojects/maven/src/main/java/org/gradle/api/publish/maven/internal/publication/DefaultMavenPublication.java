@@ -33,7 +33,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -95,27 +94,28 @@ import java.util.Set;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
-
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
+
+    private static final String API_VARIANT = "api";
+    private static final String RUNTIME_VARIANT = "runtime";
+
     /*
      * Maven supports wildcards in exclusion rules according to:
      * http://www.smartjava.org/content/maven-and-wildcard-exclusions
      * https://issues.apache.org/jira/browse/MNG-3832
      * This should be used for non-transitive dependencies
      */
-    private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
-    private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
-        @Override
-        public int compare(UsageContext left, UsageContext right) {
-            // API first
-            if (left.getUsage().getName().equals(Usage.JAVA_API)) {
-                return -1;
-            }
-            if (right.getUsage().getName().equals(Usage.JAVA_API)) {
-                return 1;
-            }
-            return left.getUsage().getName().compareTo(right.getUsage().getName());
+    private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.singleton(new DefaultExcludeRule("*", "*"));
+
+    private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
+        // API first
+        if (API_VARIANT.equals(left)) {
+            return -1;
         }
+        if (API_VARIANT.equals(right)) {
+            return 1;
+        }
+        return left.compareTo(right);
     };
     @VisibleForTesting
     public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
@@ -269,7 +269,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<ExcludeRule> globalExcludes = usageContext.getGlobalExcludes();
 
-            Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getUsage());
+            Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getName());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency)) {
                     if (PlatformSupport.isTargettingPlatform(dependency)) {
@@ -296,7 +296,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     }
                 }
             }
-            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getUsage());
+            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getName());
             for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
                 if (seenConstraints.add(dependency) && dependency.getVersion() != null) {
                     addDependencyConstraint(dependency, dependencyConstraints);
@@ -335,19 +335,19 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private List<UsageContext> getSortedUsageContexts() {
         List<UsageContext> usageContexts = Lists.newArrayList(this.component.getUsages());
-        Collections.sort(usageContexts, USAGE_ORDERING);
+        Collections.sort(usageContexts, (u1, u2) -> VARIANT_ORDERING.compare(u1.getName(), u2.getName()));
         return usageContexts;
     }
 
-    private Set<MavenDependencyInternal> dependenciesFor(Usage usage) {
-        if (Usage.JAVA_API.equals(usage.getName())) {
+    private Set<MavenDependencyInternal> dependenciesFor(String name) {
+        if (API_VARIANT.equals(name)) {
             return apiDependencies;
         }
         return runtimeDependencies;
     }
 
-    private Set<MavenDependency> dependencyConstraintsFor(Usage usage) {
-        if (Usage.JAVA_API.equals(usage.getName())) {
+    private Set<MavenDependency> dependencyConstraintsFor(String name) {
+        if (API_VARIANT.equals(name)) {
             return apiDependencyConstraints;
         }
         return runtimeDependencyConstraints;

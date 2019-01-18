@@ -184,7 +184,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         def deckModule = repo.module('some.group', 'deck', '1.2')
         deckModule.assertPublished()
         deckModule.parsedPom.scopes.size() == 1
-        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
+        deckModule.parsedPom.scopes.compile.assertDependsOn("some.group:card:1.2")
 
         def deckMetadata = deckModule.parsedModuleMetadata
         def deckApi = deckMetadata.variant("api")
@@ -319,7 +319,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         def deckModule = repo.module('some.group', 'deck', '1.2')
         deckModule.assertPublished()
         deckModule.parsedPom.scopes.size() == 1
-        deckModule.parsedPom.scopes.runtime.assertDependsOn("some.group:card:1.2")
+        deckModule.parsedPom.scopes.compile.assertDependsOn("some.group:card:1.2")
 
         def deckMetadata = deckModule.parsedModuleMetadata
         def deckApi = deckMetadata.variant("api")
@@ -727,7 +727,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         module.assertPublished()
         with(module.parsedPom) {
             scopes.size() == 1
-            scopes.runtime.hasDependencyExclusion('some.group:card:1.2', new MavenDependencyExclusion('api-group', 'api-module'))
+            scopes.compile.hasDependencyExclusion('some.group:card:1.2', new MavenDependencyExclusion('api-group', 'api-module'))
         }
         with(module.parsedModuleMetadata) {
             variant('api') {
