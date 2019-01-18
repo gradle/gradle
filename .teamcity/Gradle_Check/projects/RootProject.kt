@@ -18,9 +18,9 @@ class RootProject(model: CIBuildModel) : Project({
         versionedSettings {
             id = "PROJECT_EXT_3"
             mode = VersionedSettings.Mode.ENABLED
-            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_CURRENT_SETTINGS
+            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_SETTINGS_FROM_VCS
             rootExtId = "Gradle_Branches_VersionedSettings"
-            showChanges = false
+            showChanges = true
             settingsFormat = VersionedSettings.Format.KOTLIN
             param("credentialsStorageType", "credentialsJSON")
         }
