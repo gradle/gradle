@@ -52,6 +52,7 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
     internal
     fun generate() =
         outputDirectory.asFile.get().let { outputDir ->
+            outputDir.deleteRecursively()
             outputDir.mkdirs()
             for (scriptPlugin in plugins) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
