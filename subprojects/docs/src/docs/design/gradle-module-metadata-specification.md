@@ -68,7 +68,7 @@ This value must contain an object with a value for each attribute. The attribute
 
 ### `capabilities` value
 
-This valud must contain an array of 0 or more capabilities. Each capability is an object consisting of the mandatory following values:
+This value must contain an array of 0 or more capabilities. Each capability is an object consisting of the mandatory following values:
 
 - `group`: The group of the capability. A string.
 - `name`: The name of the capability. A string.

@@ -27,9 +27,6 @@ configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {
     javaScript.googleApis()
-    repositories {
-        maven { url = uri("https://jitpack.io") }
-    }
 }
 
 dependencies {
@@ -46,8 +43,7 @@ dependencies {
     compile(library("jsch"))
     compile(library("commons_math"))
     compile(library("jcl_to_slf4j"))
-
-    flamegraph("com.github.oehme:jfr-flame-graph:v0.0.10:all")
+    compile("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
 
     runtime("com.h2database:h2:1.4.192")
 }

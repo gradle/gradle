@@ -78,6 +78,7 @@ public class FlameGraphSanitizer {
     }
 
     public void sanitize(final File in, File out) {
+        out.getParentFile().mkdirs();
         IoActions.writeTextFile(out, new ErroringAction<BufferedWriter>() {
             @Override
             protected void doExecute(BufferedWriter writer) throws Exception {

@@ -1,6 +1,6 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
 
@@ -10,7 +10,7 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"
 
-    applyDefaults(model, this, "packageBuild", extraParameters = buildScanTag("BuildDistributions") + " -PtestJavaHome=${distributionTestJavaHome}", daemon = false)
+    applyDefaults(model, this, "packageBuild", extraParameters = buildScanTag("BuildDistributions") + " -PtestJavaHome=${distributionTestJavaHome}")
 
     artifactRules = """$artifactRules
         build/distributions/*.zip => distributions

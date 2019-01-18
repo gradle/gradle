@@ -4,10 +4,10 @@ import configurations.FunctionalTest
 import configurations.PerformanceTest
 import configurations.SanityCheck
 import configurations.buildReportTab
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_1.IdOwner
-import jetbrains.buildServer.configs.kotlin.v2018_1.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_2.IdOwner
+import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.GradleSubproject
 import model.SpecificBuild
@@ -70,7 +70,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
                             subProject.hasTestsOf(testConfig.testType)
                         }
                         .forEach { testConfig ->
-                            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
+                            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
                         }
                 }
         }

@@ -30,7 +30,6 @@ dependencies {
     api(library("inject"))
 
     implementation(project(":baseServices"))
-    implementation(project(":files"))
     implementation(project(":snapshots"))
     implementation(project(":buildCachePackaging"))
     implementation(library("commons_lang"))

@@ -1,13 +1,13 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2018_1.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.TestType

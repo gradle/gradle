@@ -1,10 +1,10 @@
 package projects
 
 import configurations.StagePasses
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.Project
-import jetbrains.buildServer.configs.kotlin.v2018_1.projectFeatures.VersionedSettings
-import jetbrains.buildServer.configs.kotlin.v2018_1.projectFeatures.versionedSettings
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
+import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
 import model.CIBuildModel
 import model.Stage
 
@@ -18,9 +18,9 @@ class RootProject(model: CIBuildModel) : Project({
         versionedSettings {
             id = "PROJECT_EXT_3"
             mode = VersionedSettings.Mode.ENABLED
-            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_CURRENT_SETTINGS
+            buildSettingsMode = VersionedSettings.BuildSettingsMode.PREFER_SETTINGS_FROM_VCS
             rootExtId = "Gradle_Branches_VersionedSettings"
-            showChanges = false
+            showChanges = true
             settingsFormat = VersionedSettings.Format.KOTLIN
             param("credentialsStorageType", "credentialsJSON")
         }
