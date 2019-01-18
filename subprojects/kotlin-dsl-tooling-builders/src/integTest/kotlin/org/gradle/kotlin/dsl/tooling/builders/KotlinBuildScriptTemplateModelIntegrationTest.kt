@@ -22,7 +22,7 @@ import java.io.File
 class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @LeaksFileHandles
+    @LeaksFileHandles("ad-hoc TAPI usage, to be ported to proper cross-version tests")
     fun `can load script template using classpath model`() {
 
         withDefaultSettings()

@@ -49,7 +49,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     }
 
     @Test
-    @LeaksFileHandles
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         if (kotlinVersion == "1.2.20") {

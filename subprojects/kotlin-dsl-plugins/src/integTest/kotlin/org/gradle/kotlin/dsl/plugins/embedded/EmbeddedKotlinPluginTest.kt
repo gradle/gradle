@@ -193,7 +193,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @LeaksFileHandles
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `can be used with GRADLE_METADATA feature preview enabled`() {
 
         withSettings("""

@@ -83,7 +83,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `accepts lambda as SAM argument to Kotlin function`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

@@ -4,8 +4,6 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -61,7 +59,6 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
     fun `Kotlin init scripts from init dir can add buildscript repositories to projects`() {
 
         val testRepositoryDir = file("test-repository").apply { mkdirs() }

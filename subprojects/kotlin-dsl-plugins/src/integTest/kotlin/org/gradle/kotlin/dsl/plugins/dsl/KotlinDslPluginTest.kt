@@ -2,6 +2,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -14,6 +16,7 @@ import org.junit.Before
 import org.junit.Test
 
 
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Before

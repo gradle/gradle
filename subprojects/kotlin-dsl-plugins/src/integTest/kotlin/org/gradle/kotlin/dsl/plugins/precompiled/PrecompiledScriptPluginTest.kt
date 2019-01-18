@@ -35,7 +35,7 @@ import org.junit.Before
 import org.junit.Test
 
 
-@LeaksFileHandles
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Before

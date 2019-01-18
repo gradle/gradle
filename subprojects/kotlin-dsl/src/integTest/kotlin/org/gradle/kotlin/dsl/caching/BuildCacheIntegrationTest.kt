@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -53,7 +51,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
     }
 
-    @LeaksFileHandles("on the separate Gradle homes")
     @Test
     fun `build cache integration can be disabled via system property`() {
 
@@ -84,6 +81,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
             executer.withGradleUserHomeDir(newDir("guh-1"))
+            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
@@ -101,6 +99,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // Cache hit from build cache
             executer.withGradleUserHomeDir(newDir("guh-2"))
+            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
@@ -117,6 +116,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
                 )
             })
+            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {

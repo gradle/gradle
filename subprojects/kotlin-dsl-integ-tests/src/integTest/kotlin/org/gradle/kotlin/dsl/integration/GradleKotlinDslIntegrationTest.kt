@@ -779,7 +779,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @LeaksFileHandles
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `given generic extension types they can be accessed and configured`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

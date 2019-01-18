@@ -27,8 +27,8 @@ import org.junit.Test
 
 class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @LeaksFileHandles
     @Test
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `can use accessors for plugins in the buildSrc classpath`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
