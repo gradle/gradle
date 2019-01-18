@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.test.fixtures.file.CleanupTestDirectory
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 import org.gradle.kotlin.dsl.support.zipTo
@@ -19,33 +18,33 @@ abstract class TestWithTempFiles {
     val tempFolder = TestNameTestDirectoryProvider()
 
     protected
-    val root: TestFile
+    val root: File
         get() = tempFolder.testDirectory
 
     /**
      * See [org.junit.rules.TemporaryFolder.newFolder]
      */
-    fun newFolder(): TestFile =
-        root.createDir()
+    fun newFolder(): File =
+        tempFolder.testDirectory.createDir()
 
     protected
-    fun file(fileName: String): TestFile =
-        root.file(fileName)
+    fun file(fileName: String): File =
+        tempFolder.testDirectory.file(fileName)
 
     protected
-    fun newFile(fileName: String): TestFile =
-        root.createFile(fileName)
+    fun newFile(fileName: String): File =
+        tempFolder.testDirectory.createFile(fileName)
 
     protected
-    fun newFile(fileName: String, text: String): TestFile =
+    fun newFile(fileName: String, text: String): File =
         newFile(fileName).apply { writeText(text) }
 
     protected
-    fun newFolder(vararg folderNames: String): TestFile =
-        root.createDir(folderNames.joinToString(File.separator))
+    fun newFolder(vararg folderNames: String): File =
+        tempFolder.testDirectory.createDir(folderNames.joinToString(File.separator))
 
     protected
-    fun withZip(fileName: String, entries: Sequence<Pair<String, ByteArray>>): TestFile =
+    fun withZip(fileName: String, entries: Sequence<Pair<String, ByteArray>>): File =
         newFile(fileName).also {
             zipTo(it, entries)
         }
