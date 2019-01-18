@@ -56,7 +56,8 @@ class ProjectRootOfTest(private val settingsFileName: String) : FolderBasedTest(
         assertThat(
             projectRootOf(
                 scriptFile = file("separate-project-root/build.gradle.kts"),
-                importedProjectRoot = folder("root")),
+                importedProjectRoot = folder("root"),
+                stopAt = root),
             equalTo(folder("separate-project-root")))
     }
 

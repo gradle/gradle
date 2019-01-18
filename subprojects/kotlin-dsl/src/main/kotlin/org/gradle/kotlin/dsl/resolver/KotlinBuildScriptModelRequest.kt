@@ -147,7 +147,7 @@ fun buildSrcProjectDirOf(scriptFile: File, importedProjectDir: File): File? =
 
 
 internal
-fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
+fun projectRootOf(scriptFile: File, importedProjectRoot: File, stopAt: File? = null): File {
 
     // TODO remove hardcoded reference to settings.gradle once there's a public TAPI client api for that
     fun isProjectRoot(dir: File) =
@@ -162,7 +162,7 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File): File {
             else -> {
                 val parentDir = dir.parentFile
                 when (parentDir) {
-                    null, dir -> scriptFile.parentFile // external project
+                    null, dir, stopAt -> scriptFile.parentFile // external project
                     else -> test(parentDir)
                 }
             }

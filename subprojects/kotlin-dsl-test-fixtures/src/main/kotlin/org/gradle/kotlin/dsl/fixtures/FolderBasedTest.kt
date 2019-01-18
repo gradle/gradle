@@ -15,8 +15,11 @@ abstract class FolderBasedTest {
     @Rule
     val tempFolder = TestNameTestDirectoryProvider()
 
+    val root: File
+        get() = tempFolder.testDirectory
+
     fun withFolders(folders: FoldersDslExpression) =
-        tempFolder.testDirectory.withFolders(folders)
+        root.withFolders(folders)
 
     fun folder(path: String): File =
         existing(path).apply {
@@ -30,7 +33,7 @@ abstract class FolderBasedTest {
 
     private
     fun existing(path: String): File =
-        tempFolder.testDirectory.file(path).canonicalFile.apply {
+        File(root, path).canonicalFile.apply {
             assert(exists())
         }
 }
