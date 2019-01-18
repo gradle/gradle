@@ -115,7 +115,7 @@ class Maven2Gradle {
                 testNg(moduleDependencies, moduleScriptBuilder)
 
                 if (packageTests(module, moduleScriptBuilder)) {
-                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testJar"))
+                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
                 }
 
                 moduleScriptBuilder.create().generate()
@@ -160,7 +160,7 @@ class Maven2Gradle {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
         }
         if (testJarTaskGenerated) {
-            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testJar"))
+            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"))
         }
         if (javadocJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("javadocJar"))
@@ -397,7 +397,7 @@ class Maven2Gradle {
     boolean packageTests(project, builder) {
         def jarPlugin = plugin('maven-jar-plugin', project)
         if (pluginGoal('test-jar', jarPlugin)) {
-            def taskConfigBuilder = builder.taskRegistration(null, "testJar", "Jar")
+            def taskConfigBuilder = builder.taskRegistration(null, "testsJar", "Jar")
             taskConfigBuilder.propertyAssignment(null, "classifier", "tests")
             taskConfigBuilder.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
             return true

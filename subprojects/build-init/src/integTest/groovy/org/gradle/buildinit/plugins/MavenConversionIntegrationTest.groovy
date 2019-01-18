@@ -66,7 +66,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle").text.contains("options.encoding = 'UTF-8'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
         assertContainsPublishingConfig(file("build.gradle"), "    ", ["sourcesJar"])
-        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testJar)")
+        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
 
         when:
         run 'clean', 'build'
@@ -195,55 +195,67 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         failure.assertHasCause("There were failing tests.")
     }
 
-    def "testjar"() {
-        when:
+    def 'sourcesJar'() {
+        when: 'build is initialized'
         run 'init'
 
-        then:
-        gradleFilesGenerated()
-        assertContainsPublishingConfig(buildFile, "", ["testJar"])
-
-        when:
-        run 'clean', 'build', 'testJar'
-
-        then:
-        file("build/libs/testjar-2.5.jar").exists()
-        file("build/libs/testjar-2.5-tests.jar").exists()
-    }
-
-    def "sourcesJar"() {
-        when:
-        run 'init'
-
-        then:
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""
+        then: 'sourcesJar task configuration is generated'
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             task sourcesJar(type: Jar) {
                 classifier = 'sources'
                 from(sourceSets.main.allJava)
             }
-        """.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, "", ["sourcesJar"])
+        '''.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile, '', ['sourcesJar'])
+
+        when: 'the generated task is executed'
+        run 'clean', 'build', 'sourcesJar'
+
+        then: 'the sources jar is generated'
+        file('build/libs/util-2.5.jar').exists()
+        file('build/libs/util-2.5-sources.jar').exists()
     }
 
-    def "javadocJar"() {
+    def 'testsJar'() {
+        when: 'build is initialized'
+        run 'init'
+
+        then: 'testsJar task configuration is generated'
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+            task testsJar(type: Jar) {
+                classifier = 'tests'
+                from(sourceSets.test.output)
+            }
+        '''.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile, '', ['testsJar'])
+
+        when: 'the generated task is executed'
+        run 'clean', 'build', 'testJar'
+
+        then: 'the tests jar is generated'
+        file('build/libs/util-2.5.jar').exists()
+        file('build/libs/util-2.5-tests.jar').exists()
+    }
+
+    def 'javadocJar'() {
         when: 'build is initialized'
         run 'init'
 
         then: 'javadocJar task configuration is generated'
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             task javadocJar(type: Jar) {
                 classifier = 'javadoc'
                 from(javadoc.destinationDir)
             }
-        """.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, "", ["javadocJar"])
+        '''.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile, '', ['javadocJar'])
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'javadocJar'
 
-        then: 'the javadocJar is generated'
-        file("build/libs/util-2.5.jar").exists()
-        file("build/libs/util-2.5-javadoc.jar").exists()
+        then: 'the javadoc jar is generated'
+        file('build/libs/util-2.5.jar').exists()
+        file('build/libs/util-2.5-javadoc.jar').exists()
     }
 
     def "enforcerplugin"() {
