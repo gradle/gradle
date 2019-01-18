@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
@@ -83,7 +83,7 @@ public interface TaskExecutionContext {
 
     void setUpToDateMessages(List<String> upToDateMessages);
 
-    void setTaskProperties(TaskProperties taskProperties);
+    void setTaskProperties(TaskProperties properties);
 
     TaskProperties getTaskProperties();
 

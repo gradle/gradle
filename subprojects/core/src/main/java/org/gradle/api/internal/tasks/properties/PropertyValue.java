@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.ValidatingValue;
+import org.gradle.api.Task;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
+import java.util.concurrent.Callable;
 
-public interface PropertyValue extends ValidatingValue {
-
-    String getPropertyName();
-
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
-
+public interface PropertyValue extends Callable<Object> {
     @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+    @Override
+    Object call();
 
-    boolean isOptional();
+    void attachProducer(Task producer);
 
-    @Nullable
-    Object getValue();
+    void maybeFinalizeValue();
 }

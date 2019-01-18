@@ -34,14 +34,12 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.DefaultPropertySpecFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -137,7 +135,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private LoggingManagerInternal loggingManager;
 
     private String toStringValue;
-    private final PropertySpecFactory specFactory;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -166,9 +163,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         FileResolver fileResolver = project.getFileResolver();
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         taskMutator = new TaskMutator(this);
-        specFactory = new DefaultPropertySpecFactory(this, fileResolver);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, specFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, specFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileResolver);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileResolver);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator);
         taskLocalState = new DefaultTaskLocalState(taskMutator);
 

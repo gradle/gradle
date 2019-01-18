@@ -19,14 +19,13 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputPropertySpec;
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.reflect.Instantiator;
 
 public class PropertyAssociationTaskFactory implements ITaskFactory {
@@ -63,28 +62,28 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+        public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
+        public void visitDestroyableProperty(Object value) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+        public void visitLocalStateProperty(Object value) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void visitOutputFileProperty(TaskOutputFilePropertySpec property) {
-            property.attachProducer(task);
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            value.attachProducer(task);
         }
     }
 }

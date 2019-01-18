@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
 import java.io.File;
 
@@ -31,16 +31,14 @@ import java.io.File;
  * TODO - disallow further changes to this collection once task has started
  * TODO - keep the file entries to snapshot later, to avoid a stat on each file during snapshot
  */
-public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareTaskProperty {
-    private final String taskPath;
+public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
     private final FileResolver fileResolver;
     private boolean canCache;
     private ImmutableSet<File> cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFileCollection(String taskPath, FileResolver fileResolver, TaskResolver taskResolver) {
+    public CachingTaskInputFileCollection(FileResolver fileResolver, TaskResolver taskResolver) {
         super(fileResolver, taskResolver);
-        this.taskPath = taskPath;
         this.fileResolver = fileResolver;
     }
 

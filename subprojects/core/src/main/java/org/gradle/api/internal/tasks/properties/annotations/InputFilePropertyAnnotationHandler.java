@@ -15,20 +15,18 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.InputFile;
 
 import java.lang.annotation.Annotation;
 
-public class InputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
+public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputFile.class;
     }
 
     @Override
-    protected DeclaredTaskInputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory) {
-        return specFactory.createInputFileSpec(propertyValue);
+    protected InputFilePropertyType getFilePropertyType() {
+        return InputFilePropertyType.FILE;
     }
 }

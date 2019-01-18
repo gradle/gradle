@@ -16,16 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-
-import java.util.Iterator;
-import java.util.Set;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -35,8 +29,7 @@ public class TaskPropertyUtils {
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
-        final PropertySpecFactory specFactory = new DefaultPropertySpecFactory(task, ((ProjectInternal) task.getProject()).getFileResolver());
-        propertyWalker.visitProperties(specFactory, visitor, task);
+        propertyWalker.visitProperties(visitor, task);
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);
         }
@@ -44,33 +37,12 @@ public class TaskPropertyUtils {
         if (visitor.visitOutputFilePropertiesOnly()) {
             return;
         }
-        int destroyableCount = 0;
         for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
-            visitor.visitDestroyableProperty(new DefaultTaskDestroyablePropertySpec("$" + ++destroyableCount, path));
+            visitor.visitDestroyableProperty(path);
         }
-        int localStateCount = 0;
         for (Object path : ((TaskLocalStateInternal) task.getLocalState()).getRegisteredPaths()) {
-            visitor.visitLocalStateProperty(new DefaultTaskLocalStatePropertySpec("$" + ++localStateCount, path));
+            visitor.visitLocalStateProperty(path);
         }
-    }
-
-    /**
-     * Collects property specs in a sorted set to ensure consistent ordering.
-     *
-     * @throws IllegalArgumentException if there are multiple properties declared with the same name.
-     */
-    public static <T extends TaskFilePropertySpec> ImmutableSortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
-        Set<String> names = Sets.newHashSet();
-        ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
-        while (fileProperties.hasNext()) {
-            T propertySpec = fileProperties.next();
-            String propertyName = propertySpec.getPropertyName();
-            if (!names.add(propertyName)) {
-                throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
-            }
-            builder.add(propertySpec);
-        }
-        return builder.build();
     }
 
     /**

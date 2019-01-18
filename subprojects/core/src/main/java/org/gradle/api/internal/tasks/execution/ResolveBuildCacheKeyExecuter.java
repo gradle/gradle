@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -103,13 +104,13 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
     }
 
     private TaskOutputCachingBuildCacheKey resolve(final TaskInternal task, TaskExecutionContext context) {
-        final TaskProperties taskProperties = context.getTaskProperties();
+        final TaskProperties properties = context.getTaskProperties();
         return context.getBeforeExecutionState()
             .map(new Function<BeforeExecutionState, TaskOutputCachingBuildCacheKey>() {
                 @Override
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {
-                    TaskOutputCachingBuildCacheKey cacheKey = calculator.calculate(task, beforeExecutionState, taskProperties, buildCacheDebugLogging);
-                    if (taskProperties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
+                    TaskOutputCachingBuildCacheKey cacheKey = calculator.calculate(task, beforeExecutionState, properties, buildCacheDebugLogging);
+                    if (properties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
                         LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
                         LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
                     }

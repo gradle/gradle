@@ -311,7 +311,7 @@ public class PropertyExtractor {
         }
 
         @Override
-        public String getFieldName() {
+        public String getPropertyName() {
             return fieldName;
         }
 

@@ -23,8 +23,9 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
@@ -37,7 +38,7 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
     def executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, delegate)
 
     def taskProperties = Mock(TaskProperties)
-    def outputFileProperties = ImmutableSortedSet.<TaskOutputFilePropertySpec>of()
+    def outputFileProperties = ImmutableSortedSet.<OutputFilePropertySpec>of()
     def afterPreviousExecutionState = Mock(AfterPreviousExecutionState)
     def task = Mock(TaskInternal)
     def state = Mock(TaskStateInternal)

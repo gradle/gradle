@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -44,7 +43,7 @@ public abstract class RuntimeBeanNode<T> extends AbstractPropertyNode<Object> {
         return getBean();
     }
 
-    public abstract void visitNode(PropertyVisitor visitor, PropertySpecFactory specFactory, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory);
+    public abstract void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory);
 
     public RuntimeBeanNode<?> createChildNode(String propertyName, @Nullable Object input, RuntimeBeanNodeFactory nodeFactory) {
         String qualifiedPropertyName = getQualifiedPropertyName(propertyName);

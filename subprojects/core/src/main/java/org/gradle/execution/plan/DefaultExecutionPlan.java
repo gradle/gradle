@@ -33,17 +33,23 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.execution.DefaultTaskProperties;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.TaskPropertyUtils;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Pair;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
@@ -73,6 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A reusable implementation of ExecutionPlan. The {@link #addEntryTasks(java.util.Collection)} and {@link #clear()} methods are NOT threadsafe, and callers must synchronize access to these methods.
@@ -586,20 +593,68 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return mutations;
     }
 
-    private void resolveMutations(MutationInfo mutations, Node node) {
+    private void resolveMutations(final MutationInfo mutations, Node node) {
         if (node instanceof LocalTaskNode) {
-            LocalTaskNode taskNode = (LocalTaskNode) node;
-            TaskInternal task = taskNode.getTask();
+            final LocalTaskNode taskNode = (LocalTaskNode) node;
+            final TaskInternal task = taskNode.getTask();
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
-            PathToFileResolver resolver = serviceRegistry.get(PathToFileResolver.class);
+            final FileResolver resolver = serviceRegistry.get(FileResolver.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
-            TaskProperties taskProperties = DefaultTaskProperties.resolve(propertyWalker, resolver, task);
-            mutations.outputPaths.addAll(getOutputPaths(canonicalizedFileCache, taskNode, taskProperties.getOutputFiles(), taskProperties.getLocalStateFiles()));
-            mutations.destroyablePaths.addAll(getDestroyablePaths(canonicalizedFileCache, taskNode, taskProperties.getDestroyableFiles()));
-            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
-            mutations.hasOutputs = taskProperties.hasDeclaredOutputs();
-            mutations.hasLocalState = !taskProperties.getLocalStateFiles().isEmpty();
+            try {
+                TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+                    @Override
+                    public void visitOutputFileProperty(final String propertyName, boolean optional, final PropertyValue value, final OutputFilePropertyType filePropertyType) {
+                        withDeadlockHandling(
+                            taskNode,
+                            "an output",
+                            "output property '" + propertyName + "'",
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, resolver, new Consumer<OutputFilePropertySpec>() {
+                                        @Override
+                                        public void accept(OutputFilePropertySpec outputFilePropertySpec) {
+                                            mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
+                                        }
+                                    });
+
+                                }
+                            }
+                        );
+                        mutations.hasOutputs = true;
+                    }
+
+                    @Override
+                    public void visitLocalStateProperty(final Object value) {
+                        withDeadlockHandling(taskNode, "a local state property", "local state properties", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
+                        mutations.hasLocalState = true;
+                    }
+
+                    @Override
+                    public void visitDestroyableProperty(final Object value) {
+                        withDeadlockHandling(taskNode, "a destroyable", "destroyables", new Runnable() {
+                            @Override
+                            public void run() {
+                                mutations.destroyablePaths.addAll(canonicalizedPaths(canonicalizedFileCache, resolver.resolveFiles(value)));
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        mutations.hasFileInputs = true;
+                    }
+                });
+            } catch (Exception e) {
+                throw new TaskExecutionException(task, e);
+            }
+
             mutations.resolved = true;
 
             if (!mutations.destroyablePaths.isEmpty()) {
@@ -613,6 +668,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
                 }
             }
+        }
+    }
+
+    private void withDeadlockHandling(TaskNode task, String singular, String description, Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (ResourceDeadlockException e) {
+            throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
         }
     }
 
@@ -661,19 +724,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static ImmutableSet<String> canonicalizedPaths(final Map<File, String> cache, Iterable<File> files) {
         ImmutableSet.Builder<String> builder = ImmutableSet.builder();
         for (File file : files) {
-            String path;
-            try {
-                path = cache.get(file);
-                if (path == null) {
-                    path = file.getCanonicalPath();
-                    cache.put(file, path);
-                }
-                builder.add(path);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            builder.add(canonicalizePath(file, cache));
         }
         return builder.build();
+    }
+
+    private static String canonicalizePath(File file, Map<File, String> cache) {
+        try {
+            String path = cache.get(file);
+            if (path == null) {
+                path = file.getCanonicalPath();
+                cache.put(file, path);
+            }
+            return path;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private boolean hasNodeWithOverlappingMutations(Set<String> candidateMutationPaths) {
@@ -750,26 +816,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
 
         return false;
-    }
-
-    private static Set<String> getOutputPaths(Map<File, String> canonicalizedFileCache, TaskNode task, FileCollection outputFiles, FileCollection localStateFiles) {
-        try {
-            return canonicalizedPaths(canonicalizedFileCache, Iterables.concat(outputFiles, localStateFiles));
-        } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException(deadlockMessage(task, "an output or local state", "outputs"), e);
-        }
-    }
-
-    private static Set<String> getDestroyablePaths(Map<File, String> canonicalizedFileCache, TaskNode task, FileCollection destroyableFiles) {
-        try {
-            return canonicalizedPaths(canonicalizedFileCache, destroyableFiles);
-        } catch (ResourceDeadlockException e) {
-            throw new IllegalStateException(deadlockMessage(task, "a destroyable", "destroyables"), e);
-        }
-    }
-
-    private static String deadlockMessage(TaskNode task, String singular, String plural) {
-        return String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", plural, task, singular);
     }
 
     @Nullable

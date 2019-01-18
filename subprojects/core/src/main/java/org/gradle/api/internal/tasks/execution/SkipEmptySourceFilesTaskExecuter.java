@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
@@ -58,9 +59,9 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
-        TaskProperties taskProperties = context.getTaskProperties();
-        FileCollection sourceFiles = taskProperties.getSourceFiles();
-        if (taskProperties.hasSourceFiles() && sourceFiles.isEmpty()) {
+        TaskProperties properties = context.getTaskProperties();
+        FileCollection sourceFiles = properties.getSourceFiles();
+        if (properties.hasSourceFiles() && sourceFiles.isEmpty()) {
             AfterPreviousExecutionState previousExecution = context.getAfterPreviousExecution();
             @SuppressWarnings("RedundantTypeArguments")
             ImmutableSortedMap<String, FileCollectionFingerprint> outputFiles = previousExecution == null
@@ -104,7 +105,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             executionHistoryStore.remove(task.getPath());
             return TaskExecuterResult.NO_REUSED_OUTPUT;
         } else {
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskProperties.getInputFiles()));
+            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, properties.getInputFiles()));
         }
         return executer.execute(task, state, context);
     }

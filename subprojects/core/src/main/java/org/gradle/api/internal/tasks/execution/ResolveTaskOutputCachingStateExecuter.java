@@ -19,17 +19,18 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.DefaultTaskOutputCachingState;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.file.RelativeFilePathResolver;
@@ -94,7 +95,7 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
     @VisibleForTesting
     static TaskOutputCachingState resolveCachingState(
         boolean hasDeclaredOutputs,
-        Collection<TaskOutputFilePropertySpec> outputFileProperties,
+        ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         TaskOutputCachingBuildCacheKey buildCacheKey,
         TaskInternal task,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
@@ -116,8 +117,8 @@ public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
                     relativePath, overlappingOutputs.getPropertyName()));
         }
 
-        for (TaskOutputFilePropertySpec spec : outputFileProperties) {
-            if (!(spec instanceof CacheableTaskOutputFilePropertySpec)) {
+        for (OutputFilePropertySpec spec : outputFileProperties) {
+            if (!(spec instanceof CacheableOutputFilePropertySpec)) {
                 return DefaultTaskOutputCachingState.disabled(
                     NON_CACHEABLE_TREE_OUTPUT,
                     "Output property '"
