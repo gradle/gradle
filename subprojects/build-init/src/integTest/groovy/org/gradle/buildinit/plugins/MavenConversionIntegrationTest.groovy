@@ -225,6 +225,27 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         assertContainsPublishingConfig(buildFile, "", ["sourcesJar"])
     }
 
+    def "javadocJar"() {
+        when: 'build is initialized'
+        run 'init'
+
+        then: 'javadocJar task configuration is generated'
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""
+            task javadocJar(type: Jar) {
+                classifier = 'javadoc'
+                from(javadoc.destinationDir)
+            }
+        """.stripIndent().trim()))
+        assertContainsPublishingConfig(buildFile, "", ["javadocJar"])
+
+        when: 'the generated task is executed'
+        run 'clean', 'build', 'javadocJar'
+
+        then: 'the javadocJar is generated'
+        file("build/libs/util-2.5.jar").exists()
+        file("build/libs/util-2.5-javadoc.jar").exists()
+    }
+
     def "enforcerplugin"() {
         when:
         run 'init'
