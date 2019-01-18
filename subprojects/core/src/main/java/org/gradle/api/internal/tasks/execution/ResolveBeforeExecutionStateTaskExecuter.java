@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -74,7 +75,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         return delegate.execute(task, state, context);
     }
 
-    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties taskProperties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
+    private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
         Class<? extends TaskInternal> taskClass = task.getClass();
         List<ContextAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
@@ -87,9 +88,9 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
 
         @SuppressWarnings("RedundantTypeArguments")
         ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = afterPreviousExecutionState == null ? ImmutableSortedMap.<String, ValueSnapshot>of() : afterPreviousExecutionState.getInputProperties();
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, taskProperties, previousInputProperties, valueSnapshotter);
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = snapshotTaskInputProperties(task, properties, previousInputProperties, valueSnapshotter);
 
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, taskProperties.getInputFileProperties());
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = taskFingerprinter.fingerprintTaskFiles(task, properties.getInputFileProperties());
 
         return new DefaultBeforeExecutionState(
             taskImplementation,
@@ -111,9 +112,9 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         return actionImplementations.build();
     }
 
-    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskProperties taskProperties, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
+    private static ImmutableSortedMap<String, ValueSnapshot> snapshotTaskInputProperties(TaskInternal task, TaskProperties properties, ImmutableSortedMap<String, ValueSnapshot> previousInputProperties, ValueSnapshotter valueSnapshotter) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        Map<String, Object> inputPropertyValues = taskProperties.getInputPropertyValues().create();
+        Map<String, Object> inputPropertyValues = properties.getInputPropertyValues().create();
         assert inputPropertyValues != null;
         for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
             String propertyName = entry.getKey();

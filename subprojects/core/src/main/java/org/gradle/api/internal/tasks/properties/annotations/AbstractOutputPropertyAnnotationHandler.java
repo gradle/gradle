@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskOutputFileProperty;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.Optional;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    protected abstract DeclaredTaskOutputFileProperty createFileSpec(PropertyValue propertyValue, PropertySpecFactory specFactory);
+    protected abstract OutputFilePropertyType getFilePropertyType();
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
@@ -32,11 +33,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskOutputFileProperty fileSpec = createFileSpec(propertyValue, specFactory);
-        fileSpec
-            .withPropertyName(propertyValue.getPropertyName())
-            .optional(propertyValue.isOptional());
-        visitor.visitOutputFileProperty(fileSpec);
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, getFilePropertyType());
     }
 }

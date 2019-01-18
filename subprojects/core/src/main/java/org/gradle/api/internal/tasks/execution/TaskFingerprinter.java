@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.util.SortedSet;
 
 public interface TaskFingerprinter {
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends TaskFilePropertySpec> fileProperties);
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintTaskFiles(TaskInternal task, SortedSet<? extends FilePropertySpec> fileProperties);
 }

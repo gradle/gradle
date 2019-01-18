@@ -16,16 +16,18 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.DeclaredTaskInputFileProperty;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
@@ -51,12 +53,14 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
-    public void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
-        DeclaredTaskInputFileProperty fileSpec = specFactory.createInputFilesSpec(propertyValue);
-        fileSpec
-            .withPropertyName(propertyValue.getPropertyName())
-            .withNormalizer(CompileClasspathNormalizer.class)
-            .optional(propertyValue.isOptional());
-        visitor.visitInputFileProperty(fileSpec);
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+        visitor.visitInputFileProperty(
+            propertyName,
+            propertyMetadata.isAnnotationPresent(Optional.class),
+            propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            CompileClasspathNormalizer.class,
+            value,
+            InputFilePropertyType.FILES
+        );
     }
 }

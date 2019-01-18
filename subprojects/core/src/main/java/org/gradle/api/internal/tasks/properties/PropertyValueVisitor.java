@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.PropertySpecFactory;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 public interface PropertyValueVisitor {
     boolean shouldVisit(PropertyVisitor visitor);
 
-    void visitPropertyValue(PropertyValue propertyValue, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context);
+    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
 }

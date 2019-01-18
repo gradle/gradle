@@ -638,16 +638,16 @@ public class TestFile extends File {
     }
 
     /**
-     * Recursively delete this directory, collecting failures to do so.
+     * Recursively delete this directory, reporting all failed paths.
      */
     public TestFile forceDeleteDir() throws IOException {
         if (isDirectory()) {
-            List<String> errorPaths = new ArrayList<>();
             if (FileUtils.isSymlink(this)) {
                 if (!delete()) {
-                    errorPaths.add(getCanonicalPath());
+                    throw new IOException("Unable to delete symlink: " + getCanonicalPath());
                 }
             } else {
+                List<String> errorPaths = new ArrayList<>();
                 Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
 
                     @Override
@@ -666,16 +666,16 @@ public class TestFile extends File {
                         return FileVisitResult.CONTINUE;
                     }
                 });
-            }
-            if (!errorPaths.isEmpty()) {
-                StringBuilder builder = new StringBuilder()
-                    .append("Unable to recursively delete directory ")
-                    .append(getCanonicalPath())
-                    .append(", failed paths:\n");
-                for (String errorPath : errorPaths) {
-                    builder.append("\t- ").append(errorPath).append("\n");
+                if (!errorPaths.isEmpty()) {
+                    StringBuilder builder = new StringBuilder()
+                        .append("Unable to recursively delete directory ")
+                        .append(getCanonicalPath())
+                        .append(", failed paths:\n");
+                    for (String errorPath : errorPaths) {
+                        builder.append("\t- ").append(errorPath).append("\n");
+                    }
+                    throw new IOException(builder.toString());
                 }
-                throw new IOException(builder.toString());
             }
         } else if (exists()) {
             if (!delete()) {

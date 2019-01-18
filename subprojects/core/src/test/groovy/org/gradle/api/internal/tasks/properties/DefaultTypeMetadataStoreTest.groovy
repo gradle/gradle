@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.tasks.PropertySpecFactory
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.plugins.ExtensionAware
@@ -83,7 +82,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         }
 
         @Override
-        void visitPropertyValue(PropertyValue propertyInfo, PropertyVisitor visitor, PropertySpecFactory specFactory, BeanPropertyContext context) {
+        void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         }
     }
 
@@ -98,7 +97,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         then:
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
-        propertyMetadata.fieldName == 'searchPath'
+        propertyMetadata.propertyName == 'searchPath'
         propertyMetadata.propertyType == SearchPath
         propertyMetadata.validationMessages.empty
         typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
@@ -206,7 +205,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
 
         then:
-        typeMetadata*.fieldName as List == ["inputFiles1", "inputFiles2"]
+        typeMetadata*.propertyName as List == ["inputFiles1", "inputFiles2"]
         typeMetadata*.propertyType as List == [Classpath, Classpath]
         typeMetadata*.validationMessages.flatten().empty
     }
@@ -218,7 +217,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
         then:
-        typeMetadata*.fieldName.empty
+        typeMetadata*.propertyName.empty
 
         where:
         workClass << [ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class]
@@ -279,6 +278,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     private static List<String> nonIgnoredProperties(Collection<PropertyMetadata> typeMetadata) {
-        typeMetadata.findAll { !isIgnored(it) }*.fieldName.sort()
+        typeMetadata.findAll { !isIgnored(it) }*.propertyName.sort()
     }
 }

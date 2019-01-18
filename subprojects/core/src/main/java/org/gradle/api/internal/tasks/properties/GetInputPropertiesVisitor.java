@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskInputPropertySpec;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
@@ -33,15 +32,16 @@ import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
-    private List<TaskInputPropertySpec> inputProperties = new ArrayList<TaskInputPropertySpec>();
+    private List<InputPropertySpec> inputProperties = new ArrayList<InputPropertySpec>();
 
     public GetInputPropertiesVisitor(String beanName) {
         this.beanName = beanName;
     }
 
     @Override
-    public void visitInputProperty(TaskInputPropertySpec inputProperty) {
-        inputProperties.add(inputProperty);
+    public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+        InputPropertySpec spec = new DefaultInputPropertySpec(propertyName, value);
+        inputProperties.add(spec);
     }
 
     public Factory<Map<String, Object>> getPropertyValuesFactory() {
@@ -49,7 +49,7 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
             @Override
             public Map<String, Object> create() {
                 Map<String, Object> result = new HashMap<String, Object>();
-                for (TaskInputPropertySpec inputProperty : inputProperties) {
+                for (InputPropertySpec inputProperty : inputProperties) {
                     String propertyName = inputProperty.getPropertyName();
                     try {
                         Object value = prepareValue(inputProperty.getValue());

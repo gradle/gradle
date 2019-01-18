@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.internal.file.collections.MinimalFileSet
-import org.gradle.api.internal.tasks.LifecycleAwareTaskProperty
+import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
 import spock.lang.Specification
 
 
@@ -86,9 +86,9 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
     }
 
     def "notifies each of the inputs of task start and complete"() {
-        def input1 = Mock(LifecycleAwareTaskProperty)
+        def input1 = Mock(LifecycleAwareValue)
         def input2 = "other"
-        def input3 = Mock(LifecycleAwareTaskProperty)
+        def input3 = Mock(LifecycleAwareValue)
         def fileCollection = new CalculatedTaskInputFileCollection(":task", Stub(MinimalFileSet), input1, input2, input3)
 
         when:
@@ -125,6 +125,6 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
         0 * calculated._
     }
 
-    interface TestCollection extends MinimalFileSet, LifecycleAwareTaskProperty {
+    interface TestCollection extends MinimalFileSet, LifecycleAwareValue {
     }
 }
