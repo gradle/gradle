@@ -32,11 +32,17 @@ import org.hamcrest.Matcher
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
+import org.junit.Before
 
 import java.io.File
 
 
 abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
+
+    @Before
+    fun useRepositoryMirrors() {
+        executer.withRepositoryMirrors()
+    }
 
     protected
     open val defaultSettingsScript
