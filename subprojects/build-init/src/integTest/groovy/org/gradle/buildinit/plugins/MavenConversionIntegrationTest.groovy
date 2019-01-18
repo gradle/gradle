@@ -67,6 +67,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
         assertContainsPublishingConfig(file("build.gradle"), "    ", ["sourcesJar"])
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
+        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(javadocJar)")
 
         when:
         run 'clean', 'build'

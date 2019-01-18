@@ -117,6 +117,9 @@ class Maven2Gradle {
                 if (packageTests(module, moduleScriptBuilder)) {
                     moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
                 }
+                if (packageJavadocs(module, moduleScriptBuilder)) {
+                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("javadocJar"))
+                }
 
                 moduleScriptBuilder.create().generate()
             }
