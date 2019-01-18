@@ -1,0 +1,186 @@
+// Copyright 2019 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[cpp_plugin]]
+= Building C++ applications and libraries
+
+
+[NOTE]
+====
+
+Please be aware that the DSL, APIs and other configuration may change in later Gradle versions as we add new features with respect to our <<feature_lifecycle.adoc#feature_lifecycle,incubating feature lifecycle>>.
+
+====
+
+Gradle's C++ plugins add support for building applications and libraries written in C++. These plugins were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and recommended for https://blog.gradle.org/introducing-the-new-cpp-plugins[new projects in 2019 TODO TODO TODO]. You can also find a https://github.com/gradle/native-samples[large collection of samples for using the latest version of the plugins].
+
+[[cpp:features]]
+== Features
+
+The C++ plugins provide:
+
+* Support for building C++ libraries and applications on Windows, Linux, and macOS.
+* Support for building variants of the same software for different architectures and operating systems.
+* Incremental and parallel compilation 
+* Cacheable compilation (like ccache) with Gradle's <<build_cache.adoc#build_cache,build cache>>.
+* Dependency management features like any Java project built with Gradle.
+    - <<composite_builds.adoc#composite_builds,Composite build support>>.
+    - External dependency resolution from repositories.
+    - https://blog.gradle.org/introducing-source-dependencies[Source dependencies].
+* Publishing of libraries and applications to repositories.
+* Unit test execution.
+* Integration with various IDEs (Xcode, Visual Studio, CLion).
+* Automatic discovery of popular tool chains (Visual C++, GCC, Clang).
+* Integration with https://gradle.com/build-scans/[build scans].
+
+[[cpp:tool-chain-support]]
+== Tool chain support
+
+Gradle offers the ability to execute the same build using different tool chains. When you build a native binary, Gradle will attempt to locate a tool chain installed on your machine that can build the binary. 
+
+The following tool chains are supported:
+
+[%header%autowidth,compact]
+|===
+| Operating System | Tool Chain | Notes
+
+| Linux
+| http://gcc.gnu.org/[GCC]
+|
+
+| Linux
+| http://clang.llvm.org[Clang]
+|
+
+| macOS
+| XCode
+| Uses the Clang tool chain bundled with XCode.
+
+| Windows
+| https://visualstudio.microsoft.com/[Visual C++]
+| Windows XP and later, Visual C++ 2010 to 2017.
+
+| Windows
+| http://gcc.gnu.org/[GCC] with http://cygwin.com[Cygwin 32 and Cygwin 64]
+| Windows XP and later.
+
+| Windows
+| http://gcc.gnu.org/[GCC] with http://www.mingw.org/[MinGW] and https://mingw-w64.org/doku.php[MinGW64]
+| Windows XP and later.
+|===
+
+
+[[cpp:tool_chain_installation]]
+== Tool chain installation
+
+
+[NOTE]
+====
+
+Note that if you are using GCC then you currently need to install support for C+\+, even if you are not building from C++ source. This restriction will be removed in a future Gradle version.
+
+====
+
+To build C++ projects, you will need to have a compatible tool chain installed:
+
+=== Windows
+
+To build on Windows, install a compatible version of Visual Studio. The C++ plugins will discover the Visual Studio installations and select the latest version. There is no need to mess around with environment variables or batch scripts. This works fine from a Cygwin shell or the Windows command-line.
+
+Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not supported.
+
+=== macOS
+
+To build on macOS, you should install XCode. The C++ plugins will discover the XCode installation using the system PATH.
+
+The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains, you will need to make the tool chain the default using the `port select` command and add Macports to the system PATH.
+
+=== Linux
+
+To build on Linux, install a compatible version of GCC or Clang. The C++ plugins will discover GCC or Clang using the system PATH.
+
+[[cpp:component_and_binaries]]
+== C++ components and binaries
+
+TODO Describe how the new C++ plugin is structured.
+
+[[cpp:parallel_compilation]]
+== Parallel Compilation
+
+Gradle uses a single build worker pool to concurrently compile and link C++ binaries by default. No special configuration is required to enable parallel compilation.
+
+The worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
+
+This build worker pool is shared across all tasks. This means that when using <<multi_project_builds.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only try to compile 4 files at a time and not 40.
+
+[[cpp:building_a_library]]
+== Building a library
+
+TODO
+
+[[cpp:building_an_application]]
+== Building an application
+
+TODO
+
+[[cpp:cpp_sources]]
+=== C++ sources
+
+TODO configuring sources and default location of sources for C++ projects
+
+[[cpp:configuring_compile_and_link]]
+== Configuring the compile and linking tasks
+
+TODO Configuring tasks 
+
+[[cpp:declaring_dependencies]]
+== Declaring dependencies
+
+TODO
+
+[[cpp:project_dependencies]]
+=== Project Dependencies
+
+TODO 
+
+[[cpp:external_dependencies]]
+=== External Dependencies
+
+TODO 
+
+[[cpp:variants]]
+== C++ Binary Variants
+
+TODO
+
+[[cpp:build_type]]
+=== Build types
+
+TODO Explain built-in build types and how they're automatically configured.
+
+[[cpp:target_machine]]
+=== Target Machine
+
+TODO Explain how target machine is defined (OS + architecture)
+
+[[cpp:ide]]
+== IDE integration
+
+TODO integrates with Visual studio, Xcode, Clion
+
+[[cpp:unit_test]]
+== Unit Testing support
+
+TODO
+

@@ -37,7 +37,7 @@ See more information about the [Gradle native project](https://github.com/gradle
 ### Support for additional Windows native toolchains
 
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
-These toolchains are now officially supported by Gradle. See [the userguide](userguide/native_software.html#native-binaries:tool-chain-support) for more information about supported native toolchains.
+These toolchains are now officially supported by Gradle. See [the userguide](userguide/cpp_plugins.html#cpp:tool-chain-support) for more information about supported native toolchains.
 
 ### Support for testing applications on Windows
 
