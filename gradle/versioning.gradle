@@ -9,7 +9,7 @@ if (buildTypes.promotionBuild.active) {
 ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
-ext.versionQualifier = project.hasProperty("versionBranchName") ? project.versionBranchName: null
+ext.versionQualifier = project.hasProperty("versionQualifier") ? project.versionQualifier: null
 if ((milestoneNumber != null && rcNumber != null) ||
     (rcNumber != null && finalRelease) ||
     (milestoneNumber != null && finalRelease)) {
