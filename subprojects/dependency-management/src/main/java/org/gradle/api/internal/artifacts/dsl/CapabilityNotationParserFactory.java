@@ -46,21 +46,22 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         return SINGLETON_CONVERTER;
     }
 
-    private static class StringNotationParser extends TypedNotationConverter<String, Capability> {
+    private static class StringNotationParser extends TypedNotationConverter<CharSequence, Capability> {
 
         StringNotationParser() {
-            super(String.class);
+            super(CharSequence.class);
         }
 
         @Override
-        protected Capability parseType(String notation) {
-            String[] parts = notation.split(":");
+        protected Capability parseType(CharSequence notation) {
+            String stringNotation = notation.toString();
+            String[] parts = stringNotation.split(":");
             if (parts.length != 3) {
-                reportInvalidNotation(notation);
+                reportInvalidNotation(stringNotation);
             }
             for (String part : parts) {
                 if (StringUtils.isEmpty(part)) {
-                    reportInvalidNotation(notation);
+                    reportInvalidNotation(stringNotation);
                 }
             }
             return new ImmutableCapability(parts[0], parts[1], parts[2]);
