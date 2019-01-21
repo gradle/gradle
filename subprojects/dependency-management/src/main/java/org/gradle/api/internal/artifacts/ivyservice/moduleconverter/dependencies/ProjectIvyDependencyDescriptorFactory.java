@@ -51,7 +51,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
             clientAttributes,
             dependency.getAttributes(),
             projectDependency.getTargetConfiguration(),
-                convertArtifacts(dependency.getArtifacts()),
+            convertArtifacts(dependency.getArtifacts()),
             excludes,
             false, false, dependency.isTransitive(), false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
