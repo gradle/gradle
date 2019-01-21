@@ -35,7 +35,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
@@ -88,7 +87,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         // TODO - should calculate this lazily
         Object[] parameters = registration.getTransformParameters();
-        Object config = registration.getConfig();
+        Object config = registration.getParameterObject();
 
         Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, config, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
         transforms.add(finalizedRegistration);
@@ -120,7 +119,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         abstract Object[] getTransformParameters();
 
         @Nullable
-        abstract Object getConfig();
+        abstract Object getParameterObject();
     }
 
     @NonExtensible
@@ -157,20 +156,19 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        Object getConfig() {
+        Object getParameterObject() {
             return null;
         }
     }
 
     @NonExtensible
     public static class TypedRegistration<T> extends RecordingRegistration implements ArtifactTransformSpec<T> {
-        private final T config;
-        private final List<Object> params = Lists.newArrayList();
+        private final T parameterObject;
 
-        public TypedRegistration(T config, ImmutableAttributesFactory immutableAttributesFactory) {
+        public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
-            this.config = config;
-            TransformAction transformAction = config.getClass().getAnnotation(TransformAction.class);
+            this.parameterObject = parameterObject;
+            TransformAction transformAction = parameterObject.getClass().getAnnotation(TransformAction.class);
             if (transformAction != null) {
                 actionType = transformAction.value();
             }
@@ -188,39 +186,23 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public T getParameters() {
-            return config;
+            return parameterObject;
         }
 
         @Override
         public void parameters(Action<? super T> action) {
-            action.execute(config);
-        }
-
-        @Override
-        public Object[] getParams() {
-            return params.toArray();
-        }
-
-        @Override
-        public void setParams(Object[] params) {
-            this.params.clear();
-            Collections.addAll(this.params, params);
-        }
-
-        @Override
-        public void params(Object... params) {
-            Collections.addAll(this.params, params);
+            action.execute(parameterObject);
         }
 
         @Nullable
         @Override
-        Object getConfig() {
-            return config;
+        Object getParameterObject() {
+            return parameterObject;
         }
 
         @Override
         Object[] getTransformParameters() {
-            return params.toArray();
+            return new Object[0];
         }
     }
 }

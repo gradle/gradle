@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
@@ -40,17 +41,17 @@ import java.util.List;
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
-    private final Isolatable<Object> config;
+    private final Isolatable<Object> parameterObject;
     private final boolean requiresDependencies;
     private final Isolatable<Object[]> parameters;
     private final InstanceFactory<? extends ArtifactTransform> instanceFactory;
     private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object> parameterObject, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
-        this.config = config;
-        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class)).forType(implementationClass);
+        this.parameterObject = parameterObject;
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, TransformParameters.class)).forType(implementationClass);
         this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
@@ -99,7 +100,7 @@ public class DefaultTransformer implements Transformer {
     }
 
     private ArtifactTransform newTransformer(File inputFile, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, config.isolate(), requiresDependencies ? artifactTransformDependencies : null);
+        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, parameterObject.isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services, parameters.isolate());
     }
 
@@ -140,13 +141,13 @@ public class DefaultTransformer implements Transformer {
     private static class TransformServiceLookup implements ServiceLookup {
         private final File inputFile;
         private final File outputDir;
-        private final Object config;
+        private final Object parameters;
         private final ArtifactTransformDependencies artifactTransformDependencies;
 
-        public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object config, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+        public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             this.inputFile = inputFile;
             this.outputDir = outputDir;
-            this.config = config;
+            this.parameters = parameters;
             this.artifactTransformDependencies = artifactTransformDependencies;
         }
 
@@ -163,11 +164,11 @@ public class DefaultTransformer implements Transformer {
             if (annotatedWith == PrimaryInput.class && serviceClass.isAssignableFrom(File.class)) {
                 return inputFile;
             }
+            if (annotatedWith == TransformParameters.class && serviceClass.isInstance(parameters)) {
+                return parameters;
+            }
             if (annotatedWith == null && artifactTransformDependencies != null && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
                 return artifactTransformDependencies;
-            }
-            if (annotatedWith == null && serviceClass.isInstance(config)) {
-                return config;
             }
             return null;
         }

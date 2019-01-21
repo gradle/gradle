@@ -22,64 +22,8 @@ import spock.lang.Unroll
 
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
-    def "transform can receive configuration via constructor parameter"() {
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                    }
-                }
-            }
-            
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-            
-            @TransformAction(MakeGreenAction)
-            interface MakeGreen extends Serializable {
-                String getExtension()
-                void setExtension(String value)
-            }
-            
-            class MakeGreenAction extends ArtifactTransform {
-                MakeGreen conf
-                
-                @Inject
-                MakeGreenAction(MakeGreen conf) {
-                    this.conf = conf
-                }
-                
-                List<File> transform(File input) {
-                    println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + conf.extension)
-                    output.text = "ok"
-                    return [output]
-                }
-            }
-"""
 
-        when:
-        run(":a:resolve")
-
-        then:
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
-        outputContains("result = [b.jar.green, c.jar.green]")
-    }
-
-    def "transform can receive configuration via abstract getter"() {
+    def "transform can receive parameters via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -111,7 +55,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreenAction extends ArtifactTransform {
-                @Inject
+                @TransformParameters
                 abstract MakeGreen getConf()
                 
                 List<File> transform(File input) {
@@ -129,67 +73,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         outputContains("processing b.jar")
         outputContains("processing c.jar")
-        outputContains("result = [b.jar.green, c.jar.green]")
-    }
-
-    def "transform can receive configuration and construction parameters"() {
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                        params = ['from blue']
-                    }
-                }
-            }
-            
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-            
-            @TransformAction(MakeGreenAction)
-            interface MakeGreen extends Serializable {
-                String getExtension()
-                void setExtension(String value)
-            }
-            
-            abstract class MakeGreenAction extends ArtifactTransform {
-                String content
-                
-                @Inject
-                MakeGreenAction(String content) {
-                    this.content = content
-                }
-                
-                @Inject
-                abstract MakeGreen getConf()
-                
-                List<File> transform(File input) {
-                    println "processing \${input.name} with content '\${content}'"
-                    def output = new File(outputDirectory, input.name + "." + conf.extension)
-                    output.text = content
-                    return [output]
-                }
-            }
-"""
-
-        when:
-        run(":a:resolve")
-
-        then:
-        outputContains("processing b.jar with content 'from blue'")
-        outputContains("processing c.jar with content 'from blue'")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
@@ -274,6 +157,64 @@ abstract class MakeGreen extends ArtifactTransform {
         outputContains("processing c.jar")
         outputContains("processing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    def "transform cannot receive parameter object via constructor parameter"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                        parameters {
+                            extension = 'green'
+                        }
+                    }
+                }
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen extends Serializable {
+                String getExtension()
+                void setExtension(String value)
+            }
+            
+            class MakeGreenAction extends ArtifactTransform {
+                MakeGreen conf
+                
+                @Inject
+                MakeGreenAction(MakeGreen conf) {
+                    this.conf = conf
+                }
+                
+                List<File> transform(File input) {
+                    println "processing \${input.name}"
+                    def output = new File(outputDirectory, input.name + "." + conf.extension)
+                    output.text = "ok"
+                    return [output]
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        // Documents existing behaviour. Should fail eagerly and with a better error message
+        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasCause("Execution failed for MakeGreenAction: ${file('b/build/b.jar')}.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface MakeGreen, or no service of type interface MakeGreen")
     }
 
     @Unroll
