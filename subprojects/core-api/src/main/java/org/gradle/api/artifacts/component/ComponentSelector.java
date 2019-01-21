@@ -62,7 +62,7 @@ public interface ComponentSelector {
      * The requested capabilities.
      * @return the requested capabilities. If returning an empty list, the implicit capability will be used.
      *
-     * @since 5.2
+     * @since 5.3
      */
     @Incubating
     List<Capability> getRequestedCapabilities();
