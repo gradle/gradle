@@ -26,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.ConfigurationUsageContext;
+import org.gradle.api.internal.java.usagecontext.LazyConfigurationUsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlatformPlugin;
 
@@ -77,7 +77,7 @@ public class JavaPlatform implements SoftwareComponentInternal {
         ).asImmutable();
     }
 
-    private final static class JavaPlatformUsageContext extends ConfigurationUsageContext {
+    private final static class JavaPlatformUsageContext extends LazyConfigurationUsageContext {
         private final AttributeContainer attributes;
 
         private JavaPlatformUsageContext(String name,

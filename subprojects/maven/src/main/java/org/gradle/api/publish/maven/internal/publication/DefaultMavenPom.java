@@ -254,6 +254,11 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.getApiDependencies();
     }
 
+    @Override
+    public Set<MavenDependencyInternal> getOptionalDependencies() {
+        return mavenPublication.getOptionalDependencies();
+    }
+
     public Set<MavenDependencyInternal> getRuntimeDependencies() {
         return mavenPublication.getRuntimeDependencies();
     }

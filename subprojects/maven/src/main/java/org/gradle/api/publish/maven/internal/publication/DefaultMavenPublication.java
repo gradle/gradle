@@ -52,6 +52,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
+import org.gradle.api.internal.java.usagecontext.OptionalFeatureonfigurationUsageContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -130,6 +131,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
     private final Set<MavenDependencyInternal> runtimeDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependencyInternal> apiDependencies = new LinkedHashSet<MavenDependencyInternal>();
+    private final Set<MavenDependencyInternal> optionalDependencies = new LinkedHashSet<MavenDependencyInternal>();
     private final Set<MavenDependency> runtimeDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<MavenDependency>();
@@ -269,7 +271,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<ExcludeRule> globalExcludes = usageContext.getGlobalExcludes();
 
-            Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext.getName());
+            Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(dependency)) {
                     if (PlatformSupport.isTargettingPlatform(dependency)) {
@@ -339,7 +341,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return usageContexts;
     }
 
-    private Set<MavenDependencyInternal> dependenciesFor(String name) {
+    private Set<MavenDependencyInternal> dependenciesFor(UsageContext usage) {
+        if (usage instanceof OptionalFeatureonfigurationUsageContext) {
+            return optionalDependencies;
+        }
+        String name = usage.getName();
         if (API_VARIANT.equals(name)) {
             return apiDependencies;
         }
@@ -489,6 +495,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public Set<MavenDependencyInternal> getApiDependencies() {
         populateFromComponent();
         return apiDependencies;
+    }
+
+    @Override
+    public Set<MavenDependencyInternal> getOptionalDependencies() {
+        populateFromComponent();
+        return optionalDependencies;
     }
 
     public MavenNormalizedPublication asNormalisedPublication() {

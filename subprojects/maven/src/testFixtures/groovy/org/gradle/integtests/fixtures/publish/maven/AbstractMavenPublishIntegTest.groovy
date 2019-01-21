@@ -109,7 +109,9 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         }
 
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
-
+        def optional = params.optionalFeatureCapabilities.collect {
+            "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
+        }.join('\n')
         buildFile.text = """import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
@@ -135,6 +137,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                    .add(PlatformSupport.PreferRegularPlatform)
                }
                resolve($dependencyNotation) $extraArtifacts
+               $optional
             }
 
             task resolveArtifacts(type: Sync) {
@@ -164,6 +167,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         String variant
         boolean resolveModuleMetadata = GradleMetadataResolveRunner.isExperimentalResolveBehaviorEnabled()
         boolean expectFailure
+
+        List<String> optionalFeatureCapabilities = []
     }
 
     class MavenArtifactResolutionExpectation extends ResolveParams implements ArtifactResolutionExpectationSpec<MavenModule> {
@@ -193,7 +198,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                 additionalArtifacts: additionalArtifacts?.asImmutable(),
                 variant: variant,
                 resolveModuleMetadata: withModuleMetadata,
-                expectFailure: !expectationSpec.expectSuccess
+                expectFailure: !expectationSpec.expectSuccess,
+                optionalFeatureCapabilities: optionalFeatureCapabilities,
             )
             println "Checking ${additionalArtifacts?'additional artifacts':'artifacts'} when resolving ${withModuleMetadata?'with':'without'} Gradle module metadata"
             def resolutionResult = doResolveArtifacts(params)
