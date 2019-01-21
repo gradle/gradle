@@ -451,6 +451,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 library {
                     targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
                 }
+                ${configureToolChainSupport('foo')}
             }
         """
         app.greeter.writeToProject(file("hello"))

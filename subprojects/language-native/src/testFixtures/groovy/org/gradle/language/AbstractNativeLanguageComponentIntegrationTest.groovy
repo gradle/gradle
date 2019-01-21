@@ -16,8 +16,9 @@
 
 package org.gradle.language
 
-
+import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -57,6 +58,19 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         succeeds "verifyBinariesToolChainType"
     }
 
+    def "fails configuration when architecture is not supported by any tool chain"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')")
+
+        expect:
+        fails taskNameToAssembleDevelopmentBinary
+        failure.assertHasCause("No tool chain has support to build")
+    }
+
     protected String getDefaultArchitecture() {
         DefaultNativePlatform.currentArchitecture.name
     }
@@ -64,4 +78,25 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
     protected abstract void makeSingleProject()
 
     protected abstract String getComponentUnderTestDsl()
+
+    protected abstract SourceElement getComponentUnderTest()
+
+    protected abstract String getTaskNameToAssembleDevelopmentBinary()
+
+    protected String getCurrentHostOperatingSystemFamilyDsl() {
+        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
+        if (osFamily == OperatingSystemFamily.MACOS) {
+            return "macOS"
+        } else {
+            return osFamily
+        }
+    }
+
+    protected configureTargetMachines(String... targetMachines) {
+        return """
+            ${componentUnderTestDsl} {
+                targetMachines = [${targetMachines.join(",")}]
+            }
+        """
+    }
 }

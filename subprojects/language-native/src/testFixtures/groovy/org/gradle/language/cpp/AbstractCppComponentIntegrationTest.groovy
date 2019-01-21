@@ -18,11 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.MachineArchitecture
-import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
@@ -87,7 +84,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines('')
+        buildFile << configureTargetMachines()
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
@@ -101,7 +98,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.linux, machines.macOS, machines.windows")
+        buildFile << configureTargetMachines("machines.linux", "machines.macOS", "machines.windows")
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -115,7 +112,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.x86", "machines.${currentHostOperatingSystemFamilyDsl}.x86_64")
 
         expect:
         succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
@@ -131,7 +128,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.os('${currentOsFamilyName}').architecture('foo')")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')")
+        buildFile << configureToolChainSupport('foo')
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
@@ -144,7 +142,8 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')", "machines.${currentHostOperatingSystemFamilyDsl}")
+        buildFile << configureToolChainSupport('foo')
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
@@ -157,36 +156,47 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}, machines.${currentHostOperatingSystemFamilyDsl}")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}")
+        buildFile << """
+            task verifyTargetMachineCount {
+                doLast {
+                    assert ${componentUnderTestDsl}.targetMachines.get().size() == 1
+                    assert ${componentUnderTestDsl}.targetMachines.get() == [machines.${currentHostOperatingSystemFamilyDsl}] as Set
+                }
+            }
+        """
+
+        expect:
+        succeeds "verifyTargetMachineCount"
+    }
+
+    def "can specify unbuildable architecture as a component target machine"() {
+        given:
+        makeSingleProject()
+        componentUnderTest.writeToProject(testDirectory)
+
+        and:
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')")
+        buildFile << configureToolChainSupport('foo')
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
-
-    protected String getCurrentHostOperatingSystemFamilyDsl() {
-        String osFamily = DefaultNativePlatform.getCurrentOperatingSystem().toFamilyName()
-        if (osFamily == OperatingSystemFamily.MACOS) {
-            return "macOS"
-        } else {
-            return osFamily
-        }
-    }
-
-    protected abstract SourceElement getComponentUnderTest()
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary(String variant = "")
-
-    protected abstract String getTaskNameToAssembleDevelopmentBinary()
 
     protected abstract String getTaskNameToAssembleDevelopmentBinaryWithArchitecture(String architecture)
 
     protected abstract String getComponentName()
 
-    protected configureTargetMachines(String targetMachines) {
+    protected String configureToolChainSupport(String architecture) {
         return """
-            ${componentUnderTestDsl} {
-                targetMachines = [${targetMachines}]
+            model {
+                toolChains {
+                    toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                        target("host:${architecture}")
+                    }
+                }
             }
         """
     }

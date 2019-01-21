@@ -52,6 +52,8 @@ import org.gradle.nativeplatform.test.plugins.NativeTestingBasePlugin;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
 import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildOnHost;
 
@@ -103,12 +105,20 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             }
         });
 
-        testComponent.getTestBinary().convention(project.provider(() -> {
-            return testComponent.getBinaries().get().stream()
-                    .filter(CppTestExecutable.class::isInstance)
-                    .map(CppTestExecutable.class::cast)
-                    .findFirst()
-                    .orElse(null);
+        testComponent.getTestBinary().convention(project.provider(new Callable<CppTestExecutable>() {
+            @Override
+            public CppTestExecutable call() throws Exception {
+                return getAllTestExecutable()
+                        .filter(it -> it.getPlatformToolProvider().isAvailable())
+                        .findFirst()
+                        .orElse(getAllTestExecutable().findFirst().orElse(null));
+            }
+
+            private Stream<DefaultCppTestExecutable> getAllTestExecutable() {
+                return testComponent.getBinaries().get().stream()
+                        .filter(CppTestExecutable.class::isInstance)
+                        .map(DefaultCppTestExecutable.class::cast);
+            }
         }));
 
         testComponent.getBinaries().whenElementKnown(DefaultCppTestExecutable.class, binary -> {
@@ -141,7 +151,6 @@ public class CppUnitTestPlugin implements Plugin<Project> {
                             ToolChainSelector.Result<CppPlatform> result = toolChainSelector.select(CppPlatform.class, new DefaultCppPlatform(variantIdentity.getTargetMachine()));
                             // TODO: Removing `debug` from variant name to keep parity with previous Gradle version in tooling models
                             CppTestExecutable testExecutable = testComponent.addExecutable(variantIdentity.getName().replace("debug", ""), variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
-                            testComponent.getTestBinary().set(testExecutable);
                         }
                     });
             // TODO: Publishing for test executable?

@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -465,39 +466,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         def installation = installation("app/build/install/main/debug/${currentOsFamilyName}")
         installation.exec().out == app.expectedOutput
         installation.assertIncludesLibraries("Greeter")
-    }
-
-    def "fails when dependency library does not specify the same target machines"() {
-        settingsFile << "include 'app', 'greeter'"
-        def app = new SwiftAppWithLibrary()
-
-        given:
-        buildFile << """
-            project(':app') {
-                apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
-                application {
-                    targetMachines = [machines.macOS, machines.linux]
-                }
-            }
-            project(':greeter') {
-                apply plugin: 'swift-library'
-                library {
-                    targetMachines = [machines.host().architecture('foo')]
-                }
-            }
-        """
-        app.library.writeToProject(file("greeter"))
-        app.executable.writeToProject(file("app"))
-
-        expect:
-        fails ":app:assemble"
-
-        and:
-        failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
     }
 
     def "can compile and link against a static library"() {
