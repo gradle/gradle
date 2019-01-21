@@ -148,7 +148,7 @@ You'll find that the new Gradle build includes the following:
 
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
- * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,maven-publish>>, <<java_plugin,java>> and <<war_plugin,war>> plugins)
+ * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
  
 See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
 

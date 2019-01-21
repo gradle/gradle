@@ -76,7 +76,7 @@ The conversion process has the following features:
 * Supports both single module and multimodule projects
 * Supports custom module names (that differ from directory names)
 * Generates general metadata - id, description and version
-* Applies <<publishing_maven,maven-publish>>, <<java_plugin,java>> and <<war_plugin,war>> plugins (as needed)
+* Applies <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins (as needed)
 * Supports packaging war projects as jars if needed
 * Generates dependencies (both external and inter-module)
 * Generates download repositories (inc. local Maven repository)
