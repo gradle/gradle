@@ -25,7 +25,7 @@ import org.gradle.internal.HasInternalProtocol;
  * which corresponds to the GAV coordinates of the component. If the user calls methods
  * on this handler, then the requirements change and explicit capabilities are required.
  *
- * @since 5.2
+ * @since 5.3
  */
 @HasInternalProtocol
 @Incubating

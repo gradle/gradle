@@ -44,7 +44,7 @@ public interface ResolvedVariantResult {
     /**
      * The capabilities provided by this variant
      *
-     * @since 5.2
+     * @since 5.3
      */
     @Incubating
     List<Capability> getCapabilities();

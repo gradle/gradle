@@ -186,7 +186,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Configures the requested capabilities of this dependency.
      * @param configureAction the configuration action
      *
-     * @since 5.2
+     * @since 5.3
      */
     @Incubating
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
@@ -195,7 +195,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Returns the set of requested capabilities for this dependency.
      * @return An immutable view of requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
      *
-     * @since 5.2
+     * @since 5.3
      */
     @Incubating
     List<Capability> getRequestedCapabilities();
