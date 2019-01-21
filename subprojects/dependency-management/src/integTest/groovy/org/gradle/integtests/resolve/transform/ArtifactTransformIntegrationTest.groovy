@@ -1650,7 +1650,7 @@ Found the following transforms:
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Could not snapshot configuration values for transform Custom: [<custom>]")
+        failure.assertHasCause("Could not snapshot parameters values for transform Custom: [<custom>]")
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
     }
 

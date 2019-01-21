@@ -64,7 +64,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() == null
+        registration.transformationStep.transformer.parameterObject.isolate() == null
         registration.transformationStep.transformer.parameters.isolate() == []
     }
 
@@ -84,7 +84,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.config.isolate() == null
+        registration.transformationStep.transformer.parameterObject.isolate() == null
         registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
@@ -123,7 +123,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
+        registration.transformationStep.transformer.parameterObject.isolate() instanceof TestTransformConfig
         registration.transformationStep.transformer.parameters.isolate() == []
     }
 
@@ -141,27 +141,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() instanceof UnAnnotatedTestTransformConfig
+        registration.transformationStep.transformer.parameterObject.isolate() instanceof UnAnnotatedTestTransformConfig
         registration.transformationStep.transformer.parameters.isolate() == []
-    }
-
-    def "creates registration with annotated config object and parameters"() {
-        when:
-        registry.registerTransform(TestTransformConfig) {
-            it.from.attribute(TEST_ATTRIBUTE, "FROM")
-            it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.params = ["EXTRA_1", "EXTRA_2"]
-            it.actionClass = TestArtifactTransformWithParams
-        }
-
-        then:
-        registry.transforms.size() == 1
-        def registration = registry.transforms[0]
-        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
-        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {

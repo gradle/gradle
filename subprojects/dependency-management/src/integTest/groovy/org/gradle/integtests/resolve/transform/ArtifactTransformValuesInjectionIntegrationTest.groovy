@@ -33,7 +33,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        configuration {
+                        parameters {
                             extension = 'green'
                         }
                     }
@@ -90,7 +90,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        configuration {
+                        parameters {
                             extension = 'green'
                         }
                     }
@@ -143,7 +143,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
-                        configuration {
+                        parameters {
                             extension = 'green'
                         }
                         params = ['from blue']

@@ -63,7 +63,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public <T> void registerTransform(Class<T> configurationType, Action<? super ArtifactTransformSpec<T>> registrationAction) {
-        // TODO - should inject services into configuration
+        // TODO - should inject services into parameters
         // TODO - should decorate, need to stop using serialization of the config object
         T configuration = instantiatorFactory.inject().newInstance(configurationType);
         TypedRegistration<T> registration = instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, configuration, immutableAttributesFactory);
@@ -187,12 +187,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public T getConfiguration() {
+        public T getParameters() {
             return config;
         }
 
         @Override
-        public void configuration(Action<? super T> action) {
+        public void parameters(Action<? super T> action) {
             action.execute(config);
         }
 

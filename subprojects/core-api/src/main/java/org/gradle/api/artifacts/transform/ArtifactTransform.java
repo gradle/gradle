@@ -26,7 +26,7 @@ import java.util.List;
  *
  * <ul>
  * <li>{@link ArtifactTransformDependencies} parameter to receive the dependencies of the file to be transformed.</li>
- * <li>The object provided by {@link ArtifactTransformSpec#getConfiguration()}.</li>
+ * <li>The object provided by {@link ArtifactTransformSpec#getParameters()}.</li>
  * <li>The objects provided to {@link org.gradle.api.ActionConfiguration#setParams(Object...)}.</li>
  * </ul>
  *

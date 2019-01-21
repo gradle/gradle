@@ -48,7 +48,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         try {
             paramsSnapshot = isolatableFactory.isolate(params);
         } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Could not snapshot configuration values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
+            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
         Isolatable<Object> configSnapshot = isolatableFactory.isolate(config);
 
