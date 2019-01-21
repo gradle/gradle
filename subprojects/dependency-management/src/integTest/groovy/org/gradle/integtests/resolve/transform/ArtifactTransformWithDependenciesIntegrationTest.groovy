@@ -140,15 +140,16 @@ class Producer extends DefaultTask {
     }
 }
 
-class TestTransform extends ArtifactTransform {
+abstract class TestTransform extends ArtifactTransform {
 
-    ArtifactTransformDependencies artifactDependencies
     String transformName
 
+    @PrimaryInputDependencies
+    abstract ArtifactTransformDependencies getArtifactDependencies();
+
     @Inject
-    TestTransform(String transformName, ArtifactTransformDependencies artifactDependencies) {
+    TestTransform(String transformName) {
         this.transformName = transformName
-        this.artifactDependencies = artifactDependencies
     }
     
     List<File> transform(File input) {

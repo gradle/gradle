@@ -119,6 +119,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
+        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<>();
+
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
@@ -134,8 +136,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(servicesHandler);
         handlers.add(abstractPropertyHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
-            handlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
+            customAnnotationPropertyHandlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
+        handlers.addAll(customAnnotationPropertyHandlers);
         handlers.add(injectionHandler);
 
         // Order is significant
@@ -179,8 +182,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new ClassGenerationException(formatter.toString(), e);
         }
 
-        List<Class<?>> injectedServices = injectionHandler.getInjectedServices();
-        CachedClass cachedClass = new CachedClass(subclass, injectedServices);
+        ImmutableList.Builder<Class<?>> injectedServices = ImmutableList.builder();
+        injectedServices.addAll(injectionHandler.getInjectedServices());
+        for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
+            injectedServices.addAll(handler.getInjectedServices());
+        }
+        CachedClass cachedClass = new CachedClass(subclass, injectedServices.build());
         cache.put(type, cachedClass);
         cache.put(subclass, cachedClass);
         return cachedClass.asWrapper();

@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -51,7 +52,7 @@ public class DefaultTransformer implements Transformer {
     public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object> parameterObject, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
         this.parameterObject = parameterObject;
-        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, TransformParameters.class)).forType(implementationClass);
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
         this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
@@ -167,7 +168,7 @@ public class DefaultTransformer implements Transformer {
             if (annotatedWith == TransformParameters.class && serviceClass.isInstance(parameters)) {
                 return parameters;
             }
-            if (annotatedWith == null && artifactTransformDependencies != null && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
+            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
                 return artifactTransformDependencies;
             }
             return null;

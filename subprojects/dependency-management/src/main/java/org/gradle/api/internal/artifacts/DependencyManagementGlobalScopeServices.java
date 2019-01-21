@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.transform.PrimaryInputAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.PrimaryInputDependenciesAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.TransformParametersAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.WorkspaceAnnotationHandler;
 import org.gradle.cache.internal.ProducerGuard;
@@ -96,6 +97,10 @@ class DependencyManagementGlobalScopeServices {
 
     InjectAnnotationHandler createPrimaryInputAnnotationHandler() {
         return new PrimaryInputAnnotationHandler();
+    }
+
+    InjectAnnotationHandler createPrimaryInputDependenciesAnnotationHandler() {
+        return new PrimaryInputDependenciesAnnotationHandler();
     }
 
     InjectAnnotationHandler createTransformParametersAnnotationHandler() {

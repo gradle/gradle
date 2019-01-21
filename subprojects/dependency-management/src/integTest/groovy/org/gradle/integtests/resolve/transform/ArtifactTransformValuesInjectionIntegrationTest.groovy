@@ -95,7 +95,7 @@ project(':b') {
 }
 
 abstract class MakeGreen extends ArtifactTransform {
-    @Inject
+    @PrimaryInputDependencies
     abstract ArtifactTransformDependencies getDependencies()
     
     List<File> transform(File input) {
