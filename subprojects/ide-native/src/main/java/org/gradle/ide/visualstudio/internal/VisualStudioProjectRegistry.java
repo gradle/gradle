@@ -19,6 +19,8 @@ package org.gradle.ide.visualstudio.internal;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -27,11 +29,13 @@ import org.gradle.util.VersionNumber;
 public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<DefaultVisualStudioProject> {
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry ideArtifactRegistry;
+    private final ProviderFactory providerFactory;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ProviderFactory providerFactory) {
         super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
+        this.providerFactory = providerFactory;
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
@@ -40,7 +44,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     }
 
     public VisualStudioProjectConfiguration addProjectConfiguration(VisualStudioTargetBinary nativeBinary) {
-        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName(), nativeBinary.getVisualStudioVersion(), nativeBinary.getSdkVersion());
+        DefaultVisualStudioProject project = getOrCreateProject(nativeBinary.getVisualStudioProjectName(), nativeBinary.getComponentName(), providerFactory.provider(() -> nativeBinary.getVisualStudioVersion()), providerFactory.provider(() -> nativeBinary.getSdkVersion()));
         VisualStudioProjectConfiguration configuration = createVisualStudioProjectConfiguration(project, nativeBinary, nativeBinary.getVisualStudioConfigurationName());
         project.addConfiguration(nativeBinary, configuration);
         return configuration;
@@ -50,7 +54,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
         return getInstantiator().newInstance(VisualStudioProjectConfiguration.class, project, configuration, nativeBinary);
     }
 
-    private DefaultVisualStudioProject getOrCreateProject(String vsProjectName, String componentName, VersionNumber visualStudioVersion, VersionNumber sdkVersion) {
+    private DefaultVisualStudioProject getOrCreateProject(String vsProjectName, String componentName, Provider<VersionNumber> visualStudioVersion, Provider<VersionNumber> sdkVersion) {
         DefaultVisualStudioProject vsProject = findByName(vsProjectName);
         if (vsProject == null) {
             vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, visualStudioVersion, sdkVersion, fileResolver, getInstantiator());

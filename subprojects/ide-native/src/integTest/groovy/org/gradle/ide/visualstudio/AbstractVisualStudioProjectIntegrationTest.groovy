@@ -141,6 +141,28 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
     }
 
+    def "can configure project when plugin applied containing unbuildable architecture"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+
+            model {
+                toolChains {
+                    toolChainForFooArchitecture(Gcc) {
+                        target("foo")
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+    }
+
     String getRootProjectName() {
         return "app"
     }

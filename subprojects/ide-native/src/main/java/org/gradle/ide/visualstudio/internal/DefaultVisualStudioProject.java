@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -50,13 +51,13 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final DefaultConfigFile filtersFile;
     private final String name;
     private final String componentName;
-    private final VersionNumber visualStudioVersion;
-    private final VersionNumber sdkVersion;
+    private final Provider<VersionNumber> visualStudioVersion;
+    private final Provider<VersionNumber> sdkVersion;
     private final List<File> additionalFiles = new ArrayList<File>();
     private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
 
-    public DefaultVisualStudioProject(String name, String componentName, VersionNumber visualStudioVersion, VersionNumber sdkVersion, PathToFileResolver fileResolver, Instantiator instantiator) {
+    public DefaultVisualStudioProject(String name, String componentName, Provider<VersionNumber> visualStudioVersion, Provider<VersionNumber> sdkVersion, PathToFileResolver fileResolver, Instantiator instantiator) {
         this.name = name;
         this.componentName = componentName;
         this.visualStudioVersion = visualStudioVersion;
@@ -180,11 +181,11 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     public VersionNumber getVisualStudioVersion() {
-        return visualStudioVersion;
+        return visualStudioVersion.get();
     }
 
     public VersionNumber getSdkVersion() {
-        return sdkVersion;
+        return sdkVersion.get();
     }
 
     @Override
