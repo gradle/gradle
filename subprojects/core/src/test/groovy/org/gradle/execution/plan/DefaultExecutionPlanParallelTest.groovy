@@ -40,6 +40,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.TestUtil.createChildProject
@@ -618,6 +619,58 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
         then:
         finalizerInfo.task == finalizer
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8253")
+    def "dependency of dependency of finalizer is scheduled when another task depends on the dependency"() {
+        given:
+        Task finalizer = project.task("finalizer", type: Async)
+        Task finalized = project.task("finalized", type: Async)
+        Task dependency = project.task("dependency", type: Async)
+        Task otherTaskWithDependency = project.task("otherTaskWithDependency", type: Async)
+        Task dependencyOfDependency = project.task("dependencyOfDependency", type: Async)
+        finalized.finalizedBy(finalizer)
+        finalizer.dependsOn(dependency)
+        dependency.dependsOn(dependencyOfDependency)
+        otherTaskWithDependency.dependsOn(dependency)
+
+        when:
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([otherTaskWithDependency])
+        executionPlan.determineExecutionPlan()
+
+        and:
+        def finalizedNode = selectNextTaskNode()
+        def dependencyOfDependencyNode = selectNextTaskNode()
+        then:
+        finalizedNode.task == finalized
+        dependencyOfDependencyNode.task == dependencyOfDependency
+        selectNextTask() == null
+
+        when:
+        executionPlan.nodeComplete(dependencyOfDependencyNode)
+        def dependencyNode = selectNextTaskNode()
+        then:
+        dependencyNode.task == dependency
+        selectNextTask() == null
+
+        when:
+        executionPlan.nodeComplete(dependencyNode)
+        def otherTaskWithDependencyNode = selectNextTaskNode()
+        then:
+        otherTaskWithDependencyNode.task == otherTaskWithDependency
+        selectNextTask() == null
+
+        when:
+        executionPlan.nodeComplete(otherTaskWithDependencyNode)
+        then:
+        selectNextTask() == null
+
+        when:
+        executionPlan.nodeComplete(finalizedNode)
+        then:
+        selectNextTask() == finalizer
+        selectNextTask() == null
     }
 
     def "handles an exception while walking the task graph when an enforced task is present"() {
