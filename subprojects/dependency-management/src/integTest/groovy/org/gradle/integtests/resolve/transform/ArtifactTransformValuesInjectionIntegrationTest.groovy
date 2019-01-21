@@ -18,10 +18,12 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+    @Ignore("The API has been removed for 5.2")
     def "transform can receive configuration via constructor parameter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -79,6 +81,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @Ignore("The API has been removed for 5.2")
     def "transform can receive configuration via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -132,6 +135,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @Ignore("Ignored for 5.2")
     def "transform can receive configuration and construction parameters"() {
         settingsFile << """
             include 'a', 'b', 'c'
