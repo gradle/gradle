@@ -134,9 +134,9 @@ class Maven2Gradle {
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
             def sourcesJarTaskGenerated = packageSources(this.effectivePom, scriptBuilder)
-            def testJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
+            def testsJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
             def javadocJarGenerated = packageJavadocs(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testJarTaskGenerated, javadocJarGenerated)
+            configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testsJarTaskGenerated, javadocJarGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>();
@@ -154,7 +154,7 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false, boolean testJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
+    def configurePublishing(builder, boolean sourcesJarTaskGenerated = false, boolean testsJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
@@ -162,7 +162,7 @@ class Maven2Gradle {
         if (sourcesJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
         }
-        if (testJarTaskGenerated) {
+        if (testsJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"))
         }
         if (javadocJarTaskGenerated) {
