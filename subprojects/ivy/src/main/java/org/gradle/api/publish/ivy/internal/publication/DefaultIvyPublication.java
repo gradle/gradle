@@ -262,6 +262,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 if (seenDependencies.add(dependency)) {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
                     String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
+                    if (!dependency.getAttributes().isEmpty()) {
+                        publicationWarningsCollector.add(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                    }
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {

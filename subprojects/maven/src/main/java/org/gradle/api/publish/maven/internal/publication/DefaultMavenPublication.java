@@ -276,17 +276,22 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {
                             if (isVersionMavenIncompatible(dependency.getVersion())) {
-                                publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                                publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                             }
                             addImportDependencyConstraint(dependency);
                         }
-                    } else if (dependency instanceof ProjectDependency) {
-                        addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        if (isVersionMavenIncompatible(dependency.getVersion())) {
-                            publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        if (!dependency.getAttributes().isEmpty()) {
+                            publicationWarningsCollector.add(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
-                        addModuleDependency(dependency, globalExcludes, dependencies);
+                        if (dependency instanceof ProjectDependency) {
+                            addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
+                        } else {
+                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                                publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            }
+                            addModuleDependency(dependency, globalExcludes, dependencies);
+                        }
                     }
                 }
             }

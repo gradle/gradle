@@ -167,6 +167,7 @@ class DefaultIvyPublicationTest extends Specification {
         projectDependencyResolver.resolve(ModuleVersionIdentifier, projectDependency) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.targetConfiguration >> "dep-configuration"
         projectDependency.excludeRules >> [exclude]
+        projectDependency.attributes >> ImmutableAttributes.EMPTY
 
         when:
         publication.from(componentWithDependency(projectDependency))

@@ -863,6 +863,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertPublished()
 
         and:
+        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
         javaLibrary.parsedModuleMetadata.variant('api') {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
