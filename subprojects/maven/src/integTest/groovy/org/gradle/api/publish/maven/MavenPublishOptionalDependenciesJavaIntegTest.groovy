@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
+import spock.lang.Unroll
 
 class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
@@ -255,6 +256,100 @@ $append
         resolveArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
         resolveApiArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+    }
+
+    @Unroll("publish java-library with optional feature with additional artifact #id (#optionalFeatureFileName)")
+    def "publish java-library with optional feature with additional artifact"() {
+        mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
+
+        given:
+        buildFile << """
+            configurations {
+                optionalFeatureImplementation
+                optionalFeatureRuntimeElements {
+                    extendsFrom optionalFeatureImplementation
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                    }
+                    outgoing.capability("org:optional-feature:\${version}")
+                }
+                compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+            
+            dependencies {
+                optionalFeatureImplementation 'org:optionaldep:1.0'
+            }
+            
+            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            
+            artifacts {
+                optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
+            }
+            
+            task touchFile {
+                doLast {
+                    file("\$buildDir/$optionalFeatureFileName") << "test"
+                }
+            }
+        """
+
+        when:
+        if (failureText) {
+            fails "publish"
+        } else {
+            run "publish"
+        }
+
+        then:
+        if (failureText) {
+            failure.assertHasCause(failureText)
+        } else {
+            javaLibrary.withClassifiedArtifact("optional-feature", "jar")
+            javaLibrary.mavenModule.assertArtifactsPublished(
+                    "publishTest-1.9.jar" ,
+                    optionalFeatureFileName ,
+                    "publishTest-1.9.pom",
+                    "publishTest-1.9.module")
+            javaLibrary.parsedModuleMetadata.variant("api") {
+                assert files*.name == ["publishTest-1.9.jar"]
+                noMoreDependencies()
+            }
+            javaLibrary.parsedModuleMetadata.variant("runtime") {
+                assert files*.name == ["publishTest-1.9.jar"]
+                noMoreDependencies()
+            }
+            javaLibrary.parsedModuleMetadata.variant("optionalFeature") {
+                assert files*.name == [optionalFeatureFileName]
+                dependency('org', 'optionaldep', '1.0')
+                noMoreDependencies()
+            }
+            javaLibrary.parsedPom.scope('compile') {
+                assertOptionalDependencies('org:optionaldep:1.0')
+            }
+            javaLibrary.parsedPom.hasNoScope('runtime')
+
+            resolveRuntimeArtifacts(javaLibrary) {
+                optionalFeatureCapabilities << "org:optional-feature:1.0"
+                withModuleMetadata {
+                    expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar", optionalFeatureFileName
+                }
+                withoutModuleMetadata {
+                    shouldFail {
+                        // documents the current behavior
+                        assertHasCause("Unable to find a variant of org.gradle.test:publishTest:1.9 providing the requested capability org:optional-feature:1.0")
+                    }
+                }
+            }
+        }
+
+        where:
+        id                       | optionalFeatureFileName                | failureText
+        "with a classifier"      | "publishTest-1.9-optional-feature.jar" | null
+        "with an arbitrary name" | "optional-feature-1.9.jar"             | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
+        "with the same name "    | "publishTest-1.9.jar"                  | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
+
     }
 
 
