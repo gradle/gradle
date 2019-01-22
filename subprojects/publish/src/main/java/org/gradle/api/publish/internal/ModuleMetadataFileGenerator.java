@@ -307,7 +307,7 @@ public class ModuleMetadataFileGenerator {
         writeDependencies(variant, versionMappingStrategy, jsonWriter);
         writeDependencyConstraints(variant, jsonWriter, versionMappingStrategy);
         writeArtifacts(publication, variant, jsonWriter);
-        writeCapabilities(variant, jsonWriter);
+        writeCapabilities("capabilities", variant.getCapabilities(), jsonWriter);
 
         jsonWriter.endObject();
     }
@@ -430,8 +430,10 @@ public class ModuleMetadataFileGenerator {
             writeVersionConstraint(vc, resolvedVersion, jsonWriter);
         }
         if (dependency instanceof ModuleDependency) {
-            writeExcludes((ModuleDependency) dependency, additionalExcludes, jsonWriter);
-            writeAttributes(((ModuleDependency) dependency).getAttributes(), jsonWriter);
+            ModuleDependency moduleDependency = (ModuleDependency) dependency;
+            writeExcludes(moduleDependency, additionalExcludes, jsonWriter);
+            writeAttributes(moduleDependency.getAttributes(), jsonWriter);
+            writeCapabilities("requestedCapabilities", moduleDependency.getRequestedCapabilities(), jsonWriter);
         }
         String reason = dependency.getReason();
         if (StringUtils.isNotEmpty(reason)) {
@@ -500,10 +502,9 @@ public class ModuleMetadataFileGenerator {
         jsonWriter.endArray();
     }
 
-    private void writeCapabilities(UsageContext variant, JsonWriter jsonWriter) throws IOException {
-        Set<? extends Capability> capabilities = variant.getCapabilities();
+    private void writeCapabilities(String key, Collection<? extends Capability> capabilities, JsonWriter jsonWriter) throws IOException {
         if (!capabilities.isEmpty()) {
-            jsonWriter.name("capabilities");
+            jsonWriter.name(key);
             jsonWriter.beginArray();
             for (Capability capability : capabilities) {
                 jsonWriter.beginObject();

@@ -1,16 +1,73 @@
 {
-   "acceptedApiChanges": [
-      {
-         "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
-         "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.withCompileScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes)",
-         "acceptation": "Internal method used for attribute set injection",
-         "changes": []
-      },
-      {
-         "type": "org.gradle.api.publish.maven.tasks.GenerateMavenPom",
-         "member": "Method org.gradle.api.publish.maven.tasks.GenerateMavenPom.withRuntimeScopeAttributes(org.gradle.api.internal.attributes.ImmutableAttributes)",
-         "acceptation": "Internal method used for attribute set injection",
-         "changes": []
-      }
-   ]
+    // accept them to unblock the pipeline: https://github.com/gradle/gradle-private/issues/1786
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.language.cpp.CppBinary",
+            "member": "Method org.gradle.language.cpp.CppBinary.getTargetPlatform()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.cpp.CppPlatform",
+            "member": "Method org.gradle.language.cpp.CppPlatform.getOperatingSystemFamily()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.SwiftBinary",
+            "member": "Method org.gradle.language.swift.SwiftBinary.getSourceCompatibility()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.SwiftBinary",
+            "member": "Method org.gradle.language.swift.SwiftBinary.getTargetPlatform()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.language.swift.SwiftPlatform",
+            "member": "Method org.gradle.language.swift.SwiftPlatform.getOperatingSystemFamily()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.ComponentWithNativeRuntime",
+            "member": "Method org.gradle.language.nativeplatform.ComponentWithNativeRuntime.getTargetPlatform()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.TargetMachine",
+            "member": "Method org.gradle.nativeplatform.TargetMachine.architecture(java.lang.String)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.TargetMachine",
+            "member": "Method org.gradle.nativeplatform.TargetMachine.getX86()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.TargetMachine",
+            "member": "Method org.gradle.nativeplatform.TargetMachine.getX86_64()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }

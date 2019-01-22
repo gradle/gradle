@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -436,12 +437,21 @@ public interface DependencyHandler extends ExtensionAware {
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
 
     /**
-     * Register an artifact transformation.
+     * Registers an artifact transform.
      *
      * @see org.gradle.api.artifacts.transform.ArtifactTransform
      * @since 3.5
      */
     void registerTransform(Action<? super VariantTransform> registrationAction);
+
+    /**
+     * Registers an artifact transform.
+     *
+     * @see org.gradle.api.artifacts.transform.ArtifactTransform
+     * @since 5.2
+     */
+    @Incubating
+    <T> void registerTransform(Class<T> configurationType, Action<? super ArtifactTransformSpec<T>> registrationAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple

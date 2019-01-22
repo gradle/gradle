@@ -79,7 +79,7 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
         def handler = Mock(ResultHandler)
 
         given:
-        asyncConnection.run(!null, !null) >> { def consummerAction, ResultHandlerVersion1 adaptedHandler ->
+        asyncConnection.run(!null, !null) >> { def consumerAction, ResultHandlerVersion1 adaptedHandler ->
             start {
                 thread.blockUntil.dispatched
                 instant.resultAvailable
@@ -104,7 +104,7 @@ class DefaultPhasedBuildActionExecuterTest extends ConcurrentSpec {
 
     def "run() blocks until result is available"() {
         given:
-        asyncConnection.run(!null, !null) >> { def consummerAction, ResultHandlerVersion1 adaptedHandler ->
+        asyncConnection.run(!null, !null) >> { def consumerAction, ResultHandlerVersion1 adaptedHandler ->
             start {
                 thread.block()
                 instant.resultAvailable

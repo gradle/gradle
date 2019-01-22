@@ -252,6 +252,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.outputDir == new File(project.buildDir, 'classes/java/main')
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
+        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_JAVA_TASK_NAME ]
         set.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
 
@@ -267,6 +269,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.java.outputDir == new File(project.buildDir, 'classes/java/test')
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
+        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
         set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/main'))
         set.runtimeClasspath.contains(new File(project.buildDir, 'classes/java/test'))
@@ -286,6 +290,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
         set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
+        set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
+        set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
         Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
     }
 

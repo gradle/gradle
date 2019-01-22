@@ -23,7 +23,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.Convention;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
-        this._propertyNames = JavaReflectionUtil.propertyNames(source);
+        this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {

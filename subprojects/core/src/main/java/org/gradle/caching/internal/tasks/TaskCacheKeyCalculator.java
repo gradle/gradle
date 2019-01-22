@@ -17,9 +17,9 @@
 package org.gradle.caching.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.execution.TaskProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 
 public interface TaskCacheKeyCalculator {
-    TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties taskProperties, boolean buildCacheDebugLogging);
+    TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties properties, boolean buildCacheDebugLogging);
 }

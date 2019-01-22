@@ -27,7 +27,10 @@ Composite builds allow you to:
 
 A build that is included in a composite build is referred to, naturally enough, as an "included build". Included builds do not share any configuration with the composite build, or the other included builds. Each included build is configured and executed in isolation.
 
-Included builds interact with other builds via `dependency substitution`. If any build in the composite has a dependency that can be satisfied by the included build, then that dependency will be replaced by a project dependency on the included build.
+Included builds interact with other builds via <<customizing_dependency_resolution_behavior.adoc#sec:dependency_substitution_rules,_dependency substitution_>>.
+If any build in the composite has a dependency that can be satisfied by the included build, then that dependency will be replaced by a project dependency on the included build.
+_Because of the reliance on dependency substitution, composite builds may force configurations to be resolved earlier, when composing the task execution graph.
+This can have a negative impact on overall build performance, because these configurations are not resolved in parallel._
 
 By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <<#included_build_declaring_substitutions,Declaring substitutions>>.
 

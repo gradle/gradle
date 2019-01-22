@@ -25,7 +25,7 @@ import java.util.Set;
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
 
-public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
 
     public GroovyProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
@@ -36,6 +36,8 @@ public abstract class GroovyProjectInitDescriptor extends LanguageLibraryProject
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generate(settings, buildScriptBuilder);
+
         buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
             .fileComment("For more details take a look at the Groovy Quickstart chapter in the Gradle")

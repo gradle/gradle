@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
@@ -25,6 +28,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -41,8 +45,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -61,9 +67,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
@@ -162,7 +170,7 @@ public class DependencyGraphBuilder {
                 LOGGER.debug("Visiting configuration {}.", node);
 
                 // Register capabilities for this node
-                registerCapabilities(resolveState, node.getComponent());
+                registerCapabilities(resolveState, node);
 
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
@@ -180,27 +188,40 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private void registerCapabilities(final ResolveState resolveState, final ComponentState moduleRevision) {
-        moduleRevision.forEachCapability(new Action<Capability>() {
+    private void registerCapabilities(final ResolveState resolveState, final NodeState node) {
+        node.forEachCapability(new Action<Capability>() {
             @Override
             public void execute(Capability capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
                 // an implicit capability for each module that we see, we only consider modules which _declare_ capabilities. If they do,
                 // then we try to find a module which provides the same capability. It that module has been found, then we register it.
                 // Otherwise, we have nothing to do. This avoids most of registrations.
-                Collection<ComponentState> implicitProvidersForCapability = Collections.emptyList();
+                Collection<NodeState> implicitProvidersForCapability = Collections.emptyList();
                 for (ModuleResolveState state : resolveState.getModules()) {
                     if (state.getId().getGroup().equals(capability.getGroup()) && state.getId().getName().equals(capability.getName())) {
-                        implicitProvidersForCapability = state.getVersions();
+                        Collection<ComponentState> versions = state.getVersions();
+                        implicitProvidersForCapability = Lists.newArrayListWithExpectedSize(versions.size());
+                        for (ComponentState version : versions) {
+                            List<NodeState> nodes = version.getNodes();
+                            for (NodeState nodeState : nodes) {
+                                if (nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
+                                    implicitProvidersForCapability.add(nodeState);
+                                }
+                            }
+                        }
                         break;
                     }
                 }
                 PotentialConflict c = capabilitiesConflictHandler.registerCandidate(
-                    DefaultCapabilitiesConflictHandler.candidate(moduleRevision, capability, implicitProvidersForCapability)
+                    DefaultCapabilitiesConflictHandler.candidate(node, capability, implicitProvidersForCapability)
                 );
                 if (c.conflictExists()) {
                     c.withParticipatingModules(resolveState.getDeselectVersionAction());
                 }
+            }
+
+            private boolean doesNotDeclareExplicitCapability(NodeState nodeState) {
+                return nodeState.getMetadata().getCapabilities().getCapabilities().isEmpty();
             }
         });
     }
@@ -321,14 +342,68 @@ public class DependencyGraphBuilder {
 
     private void validateGraph(ResolveState resolveState) {
         for (ModuleResolveState module : resolveState.getModules()) {
-            if (module.getSelected() != null && module.getSelected().isRejected()) {
-                GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
-                attachFailureToEdges(error, module.getIncomingEdges());
-                // We need to attach failures on unattached dependencies too, in case a node wasn't selected
-                // at all, but we still want to see an error message for it.
-                attachFailureToEdges(error, module.getUnattachedDependencies());
+            ComponentState selected = module.getSelected();
+            if (selected != null) {
+                if (selected.isRejected()) {
+                    GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                    attachFailureToEdges(error, module.getIncomingEdges());
+                    // We need to attach failures on unattached dependencies too, in case a node wasn't selected
+                    // at all, but we still want to see an error message for it.
+                    attachFailureToEdges(error, module.getUnattachedDependencies());
+                } else {
+                    if (module.isVirtualPlatform()) {
+                        attachMultipleForceOnPlatformFailureToEdges(module);
+                    } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+                        validateMultipleNodeSelection(module, selected);
+                    }
+                }
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
+            }
+        }
+    }
+
+    /**
+     * Validates that all selected nodes of a single component have compatible attributes,
+     * when using variant aware resolution.
+     */
+    private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected) {
+        Set<NodeState> selectedNodes = selected.getNodes().stream()
+                .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform())
+                .collect(Collectors.toSet());
+        if (selectedNodes.size()<2) {
+            return;
+        }
+        Set<Set<NodeState>> combinations = Sets.combinations(selectedNodes, 2);
+        Set<NodeState> incompatibleNodes = Sets.newHashSet();
+        for (Set<NodeState> combination : combinations) {
+            Iterator<NodeState> it = combination.iterator();
+            NodeState first = it.next();
+            NodeState second = it.next();
+            assertCompatibleAttributes(first, second, incompatibleNodes);
+        }
+        if (!incompatibleNodes.isEmpty()) {
+            IncompatibleVariantsSelectionException variantsSelectionException = new IncompatibleVariantsSelectionException(
+                    IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
+            );
+            for (EdgeState edge : module.getIncomingEdges()) {
+                edge.failWith(variantsSelectionException);
+            }
+        }
+    }
+
+    private void assertCompatibleAttributes(NodeState first, NodeState second, Set<NodeState> incompatibleNodes) {
+        ImmutableAttributes firstAttributes = first.getMetadata().getAttributes();
+        ImmutableAttributes secondAttributes = second.getMetadata().getAttributes();
+        ImmutableSet<Attribute<?>> firstKeys = firstAttributes.keySet();
+        ImmutableSet<Attribute<?>> secondKeys = secondAttributes.keySet();
+        for (Attribute<?> attribute : Sets.intersection(firstKeys, secondKeys)) {
+            // for all commons attributes, make sure they are equal
+            Object v1 = firstAttributes.getAttribute(attribute);
+            Object v2 = secondAttributes.getAttribute(attribute);
+            if (!Objects.equal(v1, v2)) {
+                incompatibleNodes.add(first);
+                incompatibleNodes.add(second);
             }
         }
     }

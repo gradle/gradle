@@ -36,6 +36,7 @@
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.osgi.OsgiPluginConvention"/>
     </plugin>
     <plugin id="application" description="Application Plugin">
+        <extends targetClass="org.gradle.api.Project" id="application" extensionClass="org.gradle.api.plugins.JavaApplication"/>
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.ApplicationPluginConvention"/>
     </plugin>
     <plugin id="distribution" description="Distribution Plugin">

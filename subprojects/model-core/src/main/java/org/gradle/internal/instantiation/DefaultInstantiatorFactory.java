@@ -39,6 +39,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ConstructorSelector decoratedJsr330Selector;
     private final ConstructorSelector decoratedLenientSelector;
     private final Instantiator decoratingLenientInstantiator;
+    private final Instantiator decoratingJsr330Instantiator;
     private final Instantiator injectOnlyLenientInstantiator;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
@@ -65,6 +66,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
         injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
         decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
+        decoratingJsr330Instantiator = new DependencyInjectingInstantiator(decoratedJsr330Selector, noServices);
         decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
         injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(injectOnlyLenientSelector, noServices);
         injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, noServices);
@@ -103,6 +105,11 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     @Override
     public Instantiator decorateLenient() {
         return decoratingLenientInstantiator;
+    }
+
+    @Override
+    public Instantiator injectAndDecorate() {
+        return decoratingJsr330Instantiator;
     }
 
     @Override

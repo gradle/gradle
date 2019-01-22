@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskDestroyablePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskInputPropertySpec;
-import org.gradle.api.internal.tasks.TaskLocalStatePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
+import org.gradle.api.tasks.FileNormalizer;
 
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;
@@ -40,37 +36,37 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputFileProperty(TaskInputFilePropertySpec inputFileProperty) {
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputFileProperty(inputFileProperty);
+            visitor.visitInputFileProperty(propertyName, optional, skipWhenEmpty, fileNormalizer, value, filePropertyType);
         }
     }
 
     @Override
-    public void visitInputProperty(TaskInputPropertySpec inputProperty) {
+    public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitInputProperty(inputProperty);
+            visitor.visitInputProperty(propertyName, value, optional);
         }
     }
 
     @Override
-    public void visitOutputFileProperty(TaskOutputFilePropertySpec outputFileProperty) {
+    public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitOutputFileProperty(outputFileProperty);
+            visitor.visitOutputFileProperty(propertyName, optional, value, filePropertyType);
         }
     }
 
     @Override
-    public void visitDestroyableProperty(TaskDestroyablePropertySpec destroyableProperty) {
+    public void visitDestroyableProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitDestroyableProperty(destroyableProperty);
+            visitor.visitDestroyableProperty(value);
         }
     }
 
     @Override
-    public void visitLocalStateProperty(TaskLocalStatePropertySpec localStateProperty) {
+    public void visitLocalStateProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
-            visitor.visitLocalStateProperty(localStateProperty);
+            visitor.visitLocalStateProperty(value);
         }
     }
 }

@@ -416,11 +416,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
      * @since 3.4
-     * @return <code>true</code> if file timestamps should be preserved for archive entries
+     * @return <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     @Input
     public boolean isPreserveFileTimestamps() {
@@ -430,11 +430,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Specifies whether file timestamps should be preserved in the archive.
      * <p>
-     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * If <tt>false</tt> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
      * </p>
      *
      * @since 3.4
-     * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
+     * @param preserveFileTimestamps <tt>true</tt> if file timestamps should be preserved for archive entries
      */
     public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
         this.archivePreserveFileTimestamps.set(preserveFileTimestamps);
@@ -449,7 +449,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * </p>
      *
      * @since 3.4
-     * @return <code>true</code> if the files should read from disk in a reproducible order.
+     * @return <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     @Input
     public boolean isReproducibleFileOrder() {
@@ -464,7 +464,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * </p>
      *
      * @since 3.4
-     * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.
+     * @param reproducibleFileOrder <tt>true</tt> if the files should read from disk in a reproducible order.
      */
     public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
         this.archiveReproducibleFileOrder.set(reproducibleFileOrder);

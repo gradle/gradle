@@ -32,6 +32,7 @@ class BuildReceipt extends DefaultTask {
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
     private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss z')
     static {
+        TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
         ISO_TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
     private static final String UNKNOWN_TIMESTAMP = "unknown"

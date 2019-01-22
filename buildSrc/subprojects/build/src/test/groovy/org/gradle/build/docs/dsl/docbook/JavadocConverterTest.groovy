@@ -318,7 +318,7 @@ literal code</programlisting><para> does something.
     }
 
     def convertsTTElementToALiteralElement() {
-        _ * classMetaData.rawCommentText >> '<code>text</code>'
+        _ * classMetaData.rawCommentText >> '<tt>text</tt>'
 
         when:
         def result = parser.parse(classMetaData, listener)

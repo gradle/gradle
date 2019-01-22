@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.options;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Field;
@@ -103,7 +103,7 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            JavaReflectionUtil.method(Object.class, setter).invoke(target, value);
+            JavaMethod.of(Object.class, setter).invoke(target, value);
         }
     }
 
@@ -135,7 +135,7 @@ public class FieldOptionElement {
 
         @Override
         public void setValue(Object target, Object value) {
-            Property property = (Property) JavaReflectionUtil.method(Object.class, getter).invoke(target);
+            Property property = (Property) JavaMethod.of(Object.class, getter).invoke(target);
             property.set(value);
         }
     }

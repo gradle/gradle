@@ -55,7 +55,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
     }
 
     def "error creating plugin"() {
-        pluginBuilder.addNonConstructablePlugin(PLUGIN_ID)
+        pluginBuilder.addNonConstructiblePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
 
         buildScript applyPlugin()

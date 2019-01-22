@@ -35,8 +35,8 @@ import java.util.concurrent.Callable;
  * A plugin for the <a href="http://findbugs.sourceforge.net">FindBugs</a> byte code analyzer.
  *
  * <p>
- * Declares a <code>findbugs</code> configuration which needs to be configured with the FindBugs library to be used.
- * Additional plugins can be added to the <code>findbugsPlugins</code> configuration.
+ * Declares a <tt>findbugs</tt> configuration which needs to be configured with the FindBugs library to be used.
+ * Additional plugins can be added to the <tt>findbugsPlugins</tt> configuration.
  *
  * <p>
  * For projects that have the Java (base) plugin applied, a {@link FindBugs} task is

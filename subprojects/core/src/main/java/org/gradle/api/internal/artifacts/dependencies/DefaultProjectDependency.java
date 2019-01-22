@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -153,6 +154,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
         if (this.buildProjectDependencies != that.buildProjectDependencies) {
+            return false;
+        }
+        if (!Objects.equal(getAttributes(), that.getAttributes())) {
+            return false;
+        }
+        if (!Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities())) {
             return false;
         }
         return true;

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -34,6 +35,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.GroovyRuntime;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 
@@ -102,7 +104,6 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(groovySourceSet.getGroovy());
                 sourceSet.getAllSource().source(groovySourceSet.getGroovy());
 
-                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, groovySourceSet.getGroovy(), project);
                 final Provider<GroovyCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("groovy"), GroovyCompile.class, new Action<GroovyCompile>() {
                     @Override
                     public void execute(GroovyCompile compile) {
@@ -112,6 +113,12 @@ public class GroovyBasePlugin implements Plugin<Project> {
                         compile.setSource(groovySourceSet.getGroovy());
                     }
                 });
+                SourceSetUtil.configureOutputDirectoryForSourceSet(sourceSet, groovySourceSet.getGroovy(), project, compileTask, compileTask.map(new Transformer<CompileOptions, GroovyCompile>() {
+                    @Override
+                    public CompileOptions transform(GroovyCompile groovyCompile) {
+                        return groovyCompile.getOptions();
+                    }
+                }));
 
 
                 // TODO: `classes` should be a little more tied to the classesDirs for a SourceSet so every plugin

@@ -45,7 +45,3 @@ dependencies {
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
-
-ideConfiguration {
-    makeAllSourceDirsTestSourceDirsInIdeaModule()
-}

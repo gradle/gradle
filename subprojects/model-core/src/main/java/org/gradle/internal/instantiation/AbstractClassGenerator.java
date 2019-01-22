@@ -36,7 +36,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
@@ -122,6 +122,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
+        AbstractPropertyHandler abstractPropertyHandler = new AbstractPropertyHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
 
@@ -131,6 +132,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
         handlers.add(servicesHandler);
+        handlers.add(abstractPropertyHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
             handlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
@@ -158,8 +160,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 handler.applyTo(generationVisitor);
             }
 
-            for (Constructor<?> constructor : type.getConstructors()) {
-                if (Modifier.isPublic(constructor.getModifiers())) {
+            if (type.isInterface()) {
+                generationVisitor.addDefaultConstructor();
+            } else {
+                for (Constructor<?> constructor : type.getConstructors()) {
                     generationVisitor.addConstructor(constructor);
                 }
             }
@@ -663,7 +667,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         void startType(Class<?> type) {
             this.type = type;
-            extensible = JavaReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
+            extensible = JavaPropertyReflectionUtil.getAnnotation(type, NonExtensible.class) == null;
 
             noMappingClass = Object.class;
             for (Class<?> c = type; c != null && noMappingClass == Object.class; c = c.getSuperclass()) {
@@ -724,12 +728,48 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 visitor.mixInConventionAware();
             }
             for (PropertyMetaData property : conventionProperties) {
-                visitor.addConventionProperty(property);
+                visitor.applyConventionMappingToProperty(property);
                 for (Method getter : property.getOverridableGetters()) {
                     visitor.applyConventionMappingToGetter(property, getter);
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyConventionMappingToSetter(property, setter);
+                }
+            }
+        }
+    }
+
+    private static class AbstractPropertyHandler extends ClassGenerationHandler {
+        private final List<PropertyMetaData> properties = new ArrayList<>();
+
+        @Override
+        boolean claimProperty(PropertyMetaData property) {
+            for (Method getter : property.getters) {
+                if (!Modifier.isAbstract(getter.getModifiers())) {
+                    return false;
+                }
+            }
+            for (Method setter : property.setters) {
+                if (!Modifier.isAbstract(setter.getModifiers())) {
+                    return false;
+                }
+            }
+            if (property.setters.isEmpty()) {
+                return false;
+            }
+            properties.add(property);
+            return true;
+        }
+
+        @Override
+        void applyTo(ClassGenerationVisitor visitor) {
+            for (PropertyMetaData property : properties) {
+                visitor.applyManagedStateToProperty(property);
+                for (Method getter : property.getters) {
+                    visitor.applyManagedStateToGetter(property, getter);
+                }
+                for (Method setter : property.setters) {
+                    visitor.applyManagedStateToSetter(property, setter);
                 }
             }
         }
@@ -978,7 +1018,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface ClassGenerationVisitor {
-        void addConstructor(Constructor<?> constructor) throws Exception;
+        void addConstructor(Constructor<?> constructor);
+
+        void addDefaultConstructor();
 
         void mixInDynamicAware();
 
@@ -1000,7 +1042,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyServiceInjectionToSetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method setter);
 
-        void addConventionProperty(PropertyMetaData property);
+        void applyManagedStateToProperty(PropertyMetaData property);
+
+        void applyManagedStateToGetter(PropertyMetaData property, Method getter);
+
+        void applyManagedStateToSetter(PropertyMetaData property, Method setter);
+
+        void applyConventionMappingToProperty(PropertyMetaData property);
 
         void applyConventionMappingToGetter(PropertyMetaData property, Method getter);
 

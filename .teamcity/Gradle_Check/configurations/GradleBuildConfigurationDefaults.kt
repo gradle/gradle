@@ -1,16 +1,16 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_1.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2018_1.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_1.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.GradleBuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_1.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
 import model.OS

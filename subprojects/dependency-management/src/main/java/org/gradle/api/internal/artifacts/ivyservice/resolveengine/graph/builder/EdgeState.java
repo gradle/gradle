@@ -164,7 +164,7 @@ class EdgeState implements DependencyGraphEdge {
 
     public ImmutableAttributes getAttributes() {
         ModuleResolveState module = selector.getTargetModule();
-        return module.getMergedSelectorAttributes();
+        return module.mergedConstraintsAttributes(dependencyState.getRequested().getAttributes());
     }
 
     private void calculateTargetConfigurations(ComponentState targetComponent) {
@@ -181,7 +181,7 @@ class EdgeState implements DependencyGraphEdge {
         try {
             ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
             attributes = resolveState.getAttributesFactory().concat(attributes, getAttributes());
-            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
+            targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema(), dependencyState.getRequested().getRequestedCapabilities());
         } catch (Exception t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
             targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);

@@ -59,7 +59,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         !(bean instanceof GroovyObject)
     }
 
-    def "generates subclass when service getter methods present"() {
+    def "generates subclass that is not decorated when service getter methods present"() {
         def services = Stub(ServiceLookup)
         services.get(Number) >> 12
 

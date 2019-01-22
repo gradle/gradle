@@ -6,7 +6,7 @@ import configurations.DependenciesCheck
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
-import jetbrains.buildServer.configs.kotlin.v2018_1.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName{
@@ -153,12 +153,12 @@ data class CIBuildModel (
             GradleSubproject("testingJvm"),
             GradleSubproject("testingJunitPlatform"),
             GradleSubproject("testingNative"),
-            GradleSubproject("toolingApi", crossVersionTests = true, useDaemon = false),
+            GradleSubproject("toolingApi", crossVersionTests = true),
             GradleSubproject("toolingApiBuilders", functionalTests = false),
             GradleSubproject("toolingNative", unitTests = false, functionalTests = false, crossVersionTests = true),
             GradleSubproject("versionControl"),
             GradleSubproject("workers"),
-            GradleSubproject("wrapper", crossVersionTests = true, useDaemon = false),
+            GradleSubproject("wrapper", crossVersionTests = true),
 
             GradleSubproject("soak", unitTests = false, functionalTests = false),
 
@@ -183,14 +183,12 @@ data class CIBuildModel (
             GradleSubproject("smokeTest", unitTests = false, functionalTests = false))
         )
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false, val useDaemon: Boolean = true) {
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) {
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase() })
     }
 
     fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
-
-    fun useDaemonFor(type: TestType) = useDaemon && type != TestType.noDaemon
 }
 
 interface BuildCache {

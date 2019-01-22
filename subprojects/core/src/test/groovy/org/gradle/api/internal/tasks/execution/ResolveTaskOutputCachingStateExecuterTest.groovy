@@ -16,17 +16,18 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.GradleException
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.specs.Spec
 import org.gradle.caching.internal.tasks.DefaultTaskOutputCachingBuildCacheKeyBuilder
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
@@ -40,7 +41,7 @@ import javax.annotation.Nullable
 class ResolveTaskOutputCachingStateExecuterTest extends Specification {
 
     def task = Stub(TaskInternal)
-    def cacheableOutputProperty = Mock(CacheableTaskOutputFilePropertySpec)
+    def cacheableOutputProperty = Mock(CacheableOutputFilePropertySpec)
     def cacheKey = Stub(TaskOutputCachingBuildCacheKey) {
         isValid() >> true
     }
@@ -166,7 +167,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     def "caching is disabled for non-cacheable file outputs is reported"() {
         when:
         def state = resolveCachingState(
-            [Stub(TaskOutputFilePropertySpec) {
+            [Stub(OutputFilePropertySpec) {
                 getPropertyName() >> "non-cacheable property"
             }],
             cacheKey,
@@ -287,7 +288,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     }
 
     TaskOutputCachingState resolveCachingState(
-        Collection<TaskOutputFilePropertySpec> outputFileProperties,
+        Collection<OutputFilePropertySpec> outputFileProperties,
         TaskOutputCachingBuildCacheKey buildCacheKey,
         TaskInternal task,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
@@ -296,7 +297,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
     ) {
         return ResolveTaskOutputCachingStateExecuter.resolveCachingState(
             !outputFileProperties.isEmpty(),
-            outputFileProperties,
+            ImmutableSortedSet.copyOf(outputFileProperties),
             buildCacheKey,
             task,
             cacheIfSpecs,

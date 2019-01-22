@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import org.apache.tools.ant.filters.ReplaceTokens
-import org.asciidoctor.gradle.AsciidoctorTask
+import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.build.docs.Docbook2Xhtml
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask
@@ -279,7 +279,7 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask) {
+def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
@@ -293,7 +293,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", AsciidoctorTask)
         'source-highlighter': 'coderay'
 }
 
-def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
+def javaApiUrl = "https://docs.oracle.com/en/java/javase/11/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
@@ -305,9 +305,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (BuildEnvironment.javaVersion.isJava8Compatible()) {
-        options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
-    }
+    options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
@@ -322,6 +320,16 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.links(javaApiUrl, groovyApiUrl, mavenApiUrl)
     title = "Gradle API $version"
     ext.entryPoint = "$destinationDir/index.html"
+
+    if (BuildEnvironment.javaVersion.isJava11Compatible()) {
+        options.addBooleanOption('html4', true)
+        doLast {
+            // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
+            // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
+            // Here we generate this file manually
+            new File(destinationDir, 'package-list').text = new File(destinationDir, 'element-list').text
+        }
+    }
 }
 
 tasks.register("checkstyleApi", Checkstyle) {
@@ -331,7 +339,7 @@ tasks.register("checkstyleApi", Checkstyle) {
     reports.xml.destination = file("$checkstyle.reportsDir/checkstyle-api.xml")
 }
 
-def distDocs = tasks.register("distDocs", AsciidoctorTask) {
+def distDocs = tasks.register("distDocs", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
     outputDir = distDocsDir
     sources { include 'getting-started.adoc' }
@@ -340,18 +348,17 @@ def distDocs = tasks.register("distDocs", AsciidoctorTask) {
 
 asciidoctorj {
     noDefaultRepositories = true
-    version = '1.5.7'
 }
 
-tasks.withType(AsciidoctorTask).configureEach {
+tasks.withType(CacheableAsciidoctorTask).configureEach {
     dependsOn css, samples, defaultImports
 
     separateOutputDirs = false
     options doctype: 'book'
 
-    inputs.file "$srcDocsDir/css/manual.css"
-    inputs.dir file("src/main/resources")
-    inputs.dir samplesSrcDir
+    inputs.file("$srcDocsDir/css/manual.css").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources")).withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(samplesSrcDir).withPathSensitivity(PathSensitivity.RELATIVE)
 
     attributes stylesdir           : '../css/',
         stylesheet          : 'manual.css',
@@ -374,10 +381,10 @@ tasks.withType(AsciidoctorTask).configureEach {
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
         samplesPath         : "../../samples",
-        'samples-dir'       : "$projectDir/src/samples"
+        'samples-dir'       : 'src/samples'
 }
 
-def userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask) {
+def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     sourceDir = userguideSrcDir
 
     sources {

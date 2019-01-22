@@ -22,41 +22,35 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
-import org.gradle.api.internal.tasks.PropertySpecFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.internal.tasks.ValidationAction;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.TypePropertyMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.util.DeferredUtil;
 import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
-    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypePropertyMetadata typeMetadata) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
-    public void visitProperties(PropertyVisitor visitor, PropertySpecFactory specFactory, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
-        TypePropertyMetadata typeMetadata = getTypePropertyMetadata();
+    public void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
+        TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
-                String propertyName = getQualifiedPropertyName(propertyMetadata.getFieldName());
-                PropertyValue propertyValue = new DefaultPropertyValue(propertyName, propertyMetadata, getBean());
-                annotationHandler.visitPropertyValue(propertyValue, visitor, specFactory, new BeanPropertyContext() {
+                String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+                PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
+                annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
                     @Override
                     public void addNested(String propertyName, Object bean) {
                         queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
@@ -66,11 +60,9 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         }
     }
 
-    private static class DefaultPropertyValue implements PropertyValue {
-        private final String propertyName;
-        private final PropertyMetadata propertyMetadata;
-        private final Object bean;
+    private static class BeanPropertyValue implements PropertyValue {
         private final Method method;
+        private final Object bean;
         private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
@@ -89,38 +81,15 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         });
 
-        public DefaultPropertyValue(String propertyName, PropertyMetadata propertyMetadata, Object bean) {
-            this.propertyName = propertyName;
-            this.propertyMetadata = propertyMetadata;
+        public BeanPropertyValue(Object bean, Method method) {
             this.bean = bean;
-            this.method = propertyMetadata.getGetterMethod();
+            this.method = method;
             method.setAccessible(true);
         }
 
         @Override
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        @Override
-        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-            return propertyMetadata.isAnnotationPresent(annotationType);
-        }
-
-        @Nullable
-        @Override
-        public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-            return propertyMetadata.getAnnotation(annotationType);
-        }
-
-        @Override
-        public boolean isOptional() {
-            return isAnnotationPresent(Optional.class);
-        }
-
-        @Override
         public void attachProducer(Task producer) {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
                 if (value instanceof ProducerAwareProperty) {
                     ((ProducerAwareProperty) value).attachProducer(producer);
@@ -130,7 +99,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Override
         public void maybeFinalizeValue() {
-            if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (isProvider()) {
                 Object value = valueSupplier.get();
                 if (value instanceof PropertyInternal) {
                     ((PropertyInternal) value).finalizeValueOnReadAndWarnAboutChanges();
@@ -138,9 +107,13 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         }
 
+        private boolean isProvider() {
+            return Provider.class.isAssignableFrom(method.getReturnType());
+        }
+
         @Nullable
         @Override
-        public Object getValue() {
+        public Object call() {
             Object value = valueSupplier.get();
             // Replace absent Provider with null.
             // This is required for allowing optional provider properties - all code which unpacks providers calls Provider.get() and would fail if an optional provider is passed.
@@ -149,24 +122,6 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 return null;
             }
             return value;
-        }
-
-        @Nullable
-        @Override
-        public Object call() {
-            return getValue();
-        }
-
-        @Override
-        public void validate(String propertyName, boolean optional, ValidationAction valueValidator, TaskValidationContext context) {
-            Object unpacked = DeferredUtil.unpack(getValue());
-            if (unpacked == null) {
-                if (!optional) {
-                    context.recordValidationMessage(String.format("No value has been specified for property '%s'.", propertyName));
-                }
-            } else {
-                valueValidator.validate(propertyName, unpacked, context);
-            }
         }
     }
 }

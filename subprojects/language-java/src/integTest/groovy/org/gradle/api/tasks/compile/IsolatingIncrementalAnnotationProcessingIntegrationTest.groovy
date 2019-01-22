@@ -25,6 +25,7 @@ import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
 import org.gradle.util.TextUtil
+import spock.lang.Issue
 
 import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.ISOLATING
 
@@ -272,6 +273,27 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
 
         and:
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
+    }
+
+    @Issue(["https://github.com/gradle/gradle/issues/8128", "https://bugs.openjdk.java.net/browse/JDK-8162455"])
+    def "incremental processing doesn't trigger unmatched processor option warning"() {
+        buildFile << """
+            dependencies {
+                compileOnly project(":annotation")
+                annotationProcessor project(":processor")
+            }
+            compileJava.options.compilerArgs += [ "-Werror", "-Amessage=fromOptions" ]
+        """
+        java "@Helper class A {}"
+
+        outputs.snapshot { succeeds "compileJava" }
+
+        when:
+        java "class B {}"
+
+        then:
+        succeeds "compileJava"
+        outputs.recompiledClasses("B")
     }
 
     def "reports isolating processor in build operation"() {

@@ -34,7 +34,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -56,7 +56,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")
@@ -78,7 +78,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
 
         and:
-        commonFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl)
 
         when:
         run("build")

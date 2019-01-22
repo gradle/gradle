@@ -30,6 +30,7 @@ dependencies {
 
     api(project(":baseServices"))
     api(project(":coreApi"))
+    api(library("inject"))
     api(library("groovy"))
 
     implementation(project(":baseServicesGroovy"))
@@ -49,7 +50,7 @@ dependencies {
 }
 
 gradlebuildJava {
-    moduleType = ModuleType.ENTRY_POINT
+    moduleType = ModuleType.CORE
 }
 
 testFixtures {

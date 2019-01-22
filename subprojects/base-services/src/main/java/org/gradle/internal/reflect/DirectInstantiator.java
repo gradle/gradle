@@ -83,10 +83,10 @@ public class DirectInstantiator implements Instantiator {
     }
 
     @VisibleForTesting
-    public static class ConstructorCache extends ReflectionCache<JavaReflectionUtil.CachedConstructor> {
+    public static class ConstructorCache extends ReflectionCache<CachedConstructor> {
 
         @Override
-        protected JavaReflectionUtil.CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
+        protected CachedConstructor create(Class<?> receiver, Class<?>[] argumentTypes) {
             Constructor<?>[] constructors = receiver.getConstructors();
             Constructor<?> match = null;
             for (Constructor<?> constructor : constructors) {
@@ -103,7 +103,7 @@ public class DirectInstantiator implements Instantiator {
             if (match == null) {
                 throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters [%s].", receiver, prettify(argumentTypes)));
             }
-            return new JavaReflectionUtil.CachedConstructor(match);
+            return new CachedConstructor(match);
         }
 
         private String prettify(Class<?>[] argumentTypes) {
@@ -136,4 +136,11 @@ public class DirectInstantiator implements Instantiator {
             return true;
         }
     }
+
+    private static class CachedConstructor extends CachedInvokable<Constructor<?>> {
+        public CachedConstructor(Constructor<?> ctor) {
+            super(ctor);
+        }
+    }
+
 }

@@ -24,6 +24,8 @@ import org.gradle.buildinit.plugins.internal.BuildContentGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
 import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.CppApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.CppLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.DefaultTemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
 import org.gradle.buildinit.plugins.internal.GroovyApplicationProjectInitDescriptor;
@@ -70,6 +72,8 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new CppApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), commonGenerators));
+        registry.add(of(new CppLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), commonGenerators));
         registry.add(of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         registry.add(of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         return registry;

@@ -20,14 +20,14 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
@@ -167,18 +167,18 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
+            for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
             }
         }
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            for (final TaskOutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                if (!(property instanceof CacheableTaskOutputFilePropertySpec)) {
+            for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
+                if (!(property instanceof CacheableOutputFilePropertySpec)) {
                     throw new IllegalStateException("Non-cacheable property: " + property);
                 }
-                File cacheRoot = ((CacheableTaskOutputFilePropertySpec) property).getOutputFile();
+                File cacheRoot = ((CacheableOutputFilePropertySpec) property).getOutputFile();
                 if (cacheRoot == null) {
                     continue;
                 }

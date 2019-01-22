@@ -45,7 +45,7 @@ base.archivesBaseName = "gradle"
 
 buildTypes {
     create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll")
+        tasks(":createBuildReceipt", "compileAll", ":docs:distDocs")
         projectProperties("ignoreIncomingBuildReceipt" to true)
     }
 
@@ -158,6 +158,13 @@ allprojects {
         maven {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
+        maven {
+            name = "sonatype-snapshots"
+            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+            content {
+                includeGroup("org.openjdk.jmc")
+            }
         }
     }
 

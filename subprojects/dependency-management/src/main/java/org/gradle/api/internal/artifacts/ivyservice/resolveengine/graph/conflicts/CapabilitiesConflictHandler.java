@@ -17,15 +17,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 
 import java.util.Collection;
 
 public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult, CapabilitiesConflictHandler.Resolver> {
     interface Candidate {
-        ComponentState getComponent();
+        NodeState getNode();
         Capability getCapability();
-        Collection<ComponentState> getImplicitCapabilityProviders();
+        Collection<NodeState> getImplicitCapabilityProviders();
     }
 
     interface ResolutionDetails extends ConflictResolutionResult {

@@ -2,8 +2,8 @@ package projects
 
 import configurations.FunctionalTest
 import configurations.shouldBeSkipped
-import jetbrains.buildServer.configs.kotlin.v2018_1.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_1.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.Stage
 import model.TestCoverage
@@ -23,7 +23,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         }
 
         if (subProject.hasTestsOf(testConfig.testType)) {
-            buildType(FunctionalTest(model, testConfig, subProject.name, subProject.useDaemonFor(testConfig.testType), stage))
+            buildType(FunctionalTest(model, testConfig, subProject.name, stage))
         }
     }
 }){

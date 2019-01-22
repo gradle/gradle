@@ -24,9 +24,9 @@ import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matchers
-import org.jetbrains.annotations.NotNull
 import spock.lang.IgnoreIf
 
+import javax.annotation.Nonnull
 import java.util.regex.Pattern
 
 @IgnoreIf({ GradleContextualExecuter.parallel})
@@ -664,7 +664,7 @@ project(':app') {
         }
 
         @Override
-        int compareTo(@NotNull Transformation o) {
+        int compareTo(@Nonnull Transformation o) {
             name <=> o.name ?: artifact <=> o.artifact ?: Comparators.lexicographical(Comparator.<String>naturalOrder()).compare(dependencies, o.dependencies)
         }
     }

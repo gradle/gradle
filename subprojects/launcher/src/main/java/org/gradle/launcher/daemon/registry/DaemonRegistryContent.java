@@ -114,7 +114,7 @@ public class DaemonRegistryContent implements Serializable {
         @Override
         public DaemonRegistryContent read(Decoder decoder) throws Exception {
             if (decoder.readBoolean()) {
-                List<Address> addresses = readAdresses(decoder);
+                List<Address> addresses = readAddresses(decoder);
                 Map<Address, DaemonInfo> infosMap = readInfosMap(decoder, addresses);
                 List<DaemonStopEvent> stopEvents = readStopEvents(decoder);
                 return new DaemonRegistryContent(infosMap, stopEvents);
@@ -194,7 +194,7 @@ public class DaemonRegistryContent implements Serializable {
             }
         }
 
-        private List<Address> readAdresses(Decoder decoder) throws Exception {
+        private List<Address> readAddresses(Decoder decoder) throws Exception {
             int infosSize = decoder.readInt();
             List<Address> out = new ArrayList<Address>();
             for (int i=0; i<infosSize; i++) {

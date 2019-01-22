@@ -17,7 +17,10 @@ package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import java.util.List;
 
 /**
  * Represents some opaque criteria used to select a component instance during dependency resolution. Various sub-interfaces
@@ -54,4 +57,13 @@ public interface ComponentSelector {
      */
     @Incubating
     AttributeContainer getAttributes();
+
+    /**
+     * The requested capabilities.
+     * @return the requested capabilities. If returning an empty list, the implicit capability will be used.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    List<Capability> getRequestedCapabilities();
 }

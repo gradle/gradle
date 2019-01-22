@@ -17,9 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
@@ -35,11 +39,20 @@ class ComponentResultSerializerTest extends SerializerSpec {
         def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
+        def v1 = Mock(ResolvedVariantDetails) {
+            getVariantName() >> Describables.of("v1")
+            getVariantAttributes() >> ImmutableAttributes.EMPTY
+            getCapabilities() >> [capability('foo')]
+        }
+        def v2 = Mock(ResolvedVariantDetails) {
+            getVariantName() >> Describables.of("v2")
+            getVariantAttributes() >> attributes
+            getCapabilities() >> [capability('bar'), capability('baz')]
+        }
         def selection = new DetachedComponentResult(12L,
             newId('org', 'foo', '2.0'),
             ComponentSelectionReasons.requested(),
-            componentIdentifier, 'default',
-            attributes,
+            componentIdentifier, [v1, v2],
             'repoName')
 
         when:
@@ -50,8 +63,30 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.selectionReason == ComponentSelectionReasons.requested()
         result.moduleVersion == newId('org', 'foo', '2.0')
         result.componentId == componentIdentifier
-        result.variantName.displayName == 'default'
-        result.variantAttributes == attributes.asImmutable()
+        result.resolvedVariants.size() == 2
+        result.resolvedVariants[0].variantName.displayName == 'v1'
+        result.resolvedVariants[0].variantAttributes == ImmutableAttributes.EMPTY
+        result.resolvedVariants[0].capabilities.size() == 1
+        result.resolvedVariants[0].capabilities[0].group== 'org'
+        result.resolvedVariants[0].capabilities[0].name == 'foo'
+        result.resolvedVariants[0].capabilities[0].version == '1.0'
+        result.resolvedVariants[1].variantName.displayName == 'v2'
+        result.resolvedVariants[1].variantAttributes == attributes.asImmutable()
+        result.resolvedVariants[1].capabilities.size() == 2
+        result.resolvedVariants[1].capabilities[0].group== 'org'
+        result.resolvedVariants[1].capabilities[0].name == 'bar'
+        result.resolvedVariants[1].capabilities[0].version == '1.0'
+        result.resolvedVariants[1].capabilities[1].group== 'org'
+        result.resolvedVariants[1].capabilities[1].name == 'baz'
+        result.resolvedVariants[1].capabilities[1].version == '1.0'
         result.repositoryName == 'repoName'
+    }
+
+    private Capability capability(String name) {
+        Mock(Capability) {
+            getGroup() >> 'org'
+            getName() >> name
+            getVersion() >> '1.0'
+        }
     }
 }
