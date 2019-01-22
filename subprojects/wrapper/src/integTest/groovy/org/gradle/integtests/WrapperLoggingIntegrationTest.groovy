@@ -24,12 +24,14 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
         file("build.gradle") << "task emptyTask"
+        executer.beforeExecute {
+            withWelcomeMessageEnabled()
+        }
     }
 
     def "wrapper does not render welcome message when executed in quiet mode"() {
         given:
         prepareWrapper()
-        executer.withWelcomeMessageEnabled()
 
         when:
         args '-q'
@@ -44,14 +46,12 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper()
 
         when:
-        executer.withWelcomeMessageEnabled()
         result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
         outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
 
         when:
-        executer.withWelcomeMessageEnabled()
         result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
@@ -63,7 +63,6 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper()
 
         when:
-        executer.withWelcomeMessageEnabled()
         args '-q'
         result = wrapperExecuter.withTasks("emptyTask").run()
 
@@ -71,7 +70,6 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.empty
 
         when:
-        executer.withWelcomeMessageEnabled()
         result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
