@@ -108,7 +108,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     };
     @VisibleForTesting
-    public static final String INCOMPATIBLE_FEATURE = " uses dependency management feature(s) that will most likely make the produced Ivy file incomplete and/or not consumable by Ivy compatible solutions";
+    public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -240,7 +240,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, INCOMPATIBLE_FEATURE);
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "");
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -263,17 +263,17 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
                     String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
                     if (!dependency.getAttributes().isEmpty()) {
-                        publicationWarningsCollector.add(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                     }
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
                         ExternalDependency externalDependency = (ExternalDependency) dependency;
                         if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            publicationWarningsCollector.add(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
                         if (externalDependency.getVersion() == null) {
-                            publicationWarningsCollector.add(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
                         }
                         addExternalDependency(externalDependency, confMapping);
                     }
@@ -281,12 +281,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             }
             if (!usageContext.getDependencyConstraints().isEmpty()) {
                 for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
-                    publicationWarningsCollector.add(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
                 }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
                 for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
 

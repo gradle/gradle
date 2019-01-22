@@ -697,7 +697,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputContains(DefaultMavenPublication.UNSUPPORTED_FEATURE)
         outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 
@@ -863,7 +863,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary.assertPublished()
 
         and:
-        outputContains(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputContains(DefaultMavenPublication.UNSUPPORTED_FEATURE)
         javaLibrary.parsedModuleMetadata.variant('api') {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
