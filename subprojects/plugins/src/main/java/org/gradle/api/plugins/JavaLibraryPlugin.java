@@ -27,6 +27,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
@@ -69,10 +70,20 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         apiElementsConfiguration.extendsFrom(apiConfiguration);
 
-        final Provider<JavaCompile> javaCompile = project.getTasks().named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
+        registerClassesDirVariant(project.getTasks(), objectFactory, apiElementsConfiguration);
+
+        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        implementationConfiguration.extendsFrom(apiConfiguration);
+
+        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
+        apiConfiguration.extendsFrom(compileConfiguration);
+    }
+
+    public static void registerClassesDirVariant(TaskContainer tasks, ObjectFactory objectFactory, Configuration configuration) {
+        final Provider<JavaCompile> javaCompile = tasks.named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
 
         // Define a classes variant to use for compilation
-        ConfigurationPublications publications = apiElementsConfiguration.getOutgoing();
+        ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariant variant = publications.getVariants().create("classes");
         variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
         variant.artifact(new JavaPlugin.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
@@ -81,12 +92,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
                 return javaCompile.get().getDestinationDir();
             }
         });
-
-        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        implementationConfiguration.extendsFrom(apiConfiguration);
-
-        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
     }
 
 }
