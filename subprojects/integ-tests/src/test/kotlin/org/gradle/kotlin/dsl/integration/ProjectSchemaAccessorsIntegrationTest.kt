@@ -802,9 +802,19 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             import org.gradle.api.plugins.*
             import org.gradle.api.internal.*
             import org.gradle.api.internal.plugins.*
+            import org.gradle.internal.reflect.Instantiator
+            import org.gradle.kotlin.dsl.support.serviceOf
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
+
+                    val instantiator = project.serviceOf<Instantiator>()
+
+                    fun defaultConvention() = DefaultConvention(instantiator)
+
+                    fun MyExtension(value: String) = MyExtension(defaultConvention(), value)
+
+                    fun MyConvention(value: String) = MyConvention(defaultConvention(), value)
 
                     val rootExtension = MyExtension("root")
                     val rootExtensionNestedExtension = MyExtension("nested-in-extension")
@@ -830,14 +840,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            class MyExtension(val value: String = "value") : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention()
+            class MyExtension(private val convention: DefaultConvention, val value: String) : ExtensionAware, HasConvention {
                 override fun getExtensions(): ExtensionContainer = convention
                 override fun getConvention(): Convention = convention
             }
 
-            class MyConvention(val value: String = "value") : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention()
+            class MyConvention(private val convention: DefaultConvention, val value: String = "value") : ExtensionAware, HasConvention {
                 override fun getExtensions(): ExtensionContainer = convention
                 override fun getConvention(): Convention = convention
             }
