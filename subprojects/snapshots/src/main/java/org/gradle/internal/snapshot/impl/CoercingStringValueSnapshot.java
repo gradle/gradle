@@ -16,36 +16,30 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.Cast;
-import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
 
 public class CoercingStringValueSnapshot extends StringValueSnapshot {
-    private final String value;
     private final NamedObjectInstantiator instantiator;
 
     public CoercingStringValueSnapshot(String value, NamedObjectInstantiator instantiator) {
         super(value);
-        this.value = value;
         this.instantiator = instantiator;
     }
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        if (type.isInstance(value)) {
-            return Cast.uncheckedCast(this);
+    public <S> S coerce(Class<S> type) {
+        if (type.isInstance(getValue())) {
+            return type.cast(this);
         }
         if (type.isEnum()) {
-            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), getValue())));
+            return type.cast(Enum.valueOf(type.asSubclass(Enum.class), getValue()));
         }
         if (Named.class.isAssignableFrom(type)) {
-            ImmutableList<Isolatable<?>> state = ImmutableList.of(new StringValueSnapshot(getValue()));
-            return Cast.uncheckedCast(new IsolatedManagedTypeSnapshot(type, instantiator, state));
+            return type.cast(instantiator.named(type.asSubclass(Named.class), getValue()));
         }
         return null;
     }

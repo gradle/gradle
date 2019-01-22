@@ -44,17 +44,19 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated string"() {
         expect:
-        def isolated = snapshotter.isolate("abc")
+        def original = "abc"
+        def isolated = snapshotter.isolate(original)
         isolated instanceof StringValueSnapshot
-        isolated.isolate() == "abc"
+        isolated.isolate().is(original)
     }
 
     def "can coerce string value"() {
         expect:
-        def isolated = snapshotter.isolate("abc")
-        isolated.coerce(String).is(isolated)
-        isolated.coerce(CharSequence).is(isolated)
-        isolated.coerce(Object).is(isolated)
+        def original = "abc"
+        def isolated = snapshotter.isolate(original)
+        isolated.coerce(String).is(original)
+        isolated.coerce(CharSequence).is(original)
+        isolated.coerce(Object).is(original)
         isolated.coerce(Number) == null
     }
 
@@ -78,16 +80,18 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated integer"() {
         expect:
-        def isolated = snapshotter.isolate(123)
+        def original = 123
+        def isolated = snapshotter.isolate(original)
         isolated instanceof IntegerValueSnapshot
-        isolated.isolate() == 123
+        isolated.isolate().is(original)
     }
 
     def "can coerce integer value"() {
         expect:
-        def isolated = snapshotter.isolate(123)
-        isolated.coerce(Integer).is(isolated)
-        isolated.coerce(Number).is(isolated)
+        def original = 123
+        def isolated = snapshotter.isolate(original)
+        isolated.coerce(Integer).is(original)
+        isolated.coerce(Number).is(original)
         isolated.coerce(Long) == null
         isolated.coerce(Short) == null
         isolated.coerce(Byte) == null
@@ -114,16 +118,18 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated long"() {
         expect:
-        def isolated = snapshotter.isolate(123L)
+        def original = 123L
+        def isolated = snapshotter.isolate(original)
         isolated instanceof LongValueSnapshot
-        isolated.isolate() == 123L
+        isolated.isolate().is(original)
     }
 
     def "can coerce long value"() {
         expect:
-        def isolated = snapshotter.isolate(123L)
-        isolated.coerce(Long).is(isolated)
-        isolated.coerce(Number).is(isolated)
+        def original = 123L
+        def isolated = snapshotter.isolate(original)
+        isolated.coerce(Long).is(original)
+        isolated.coerce(Number).is(original)
         isolated.coerce(Integer) == null
         isolated.coerce(Short) == null
         isolated.coerce(Byte) == null
@@ -150,16 +156,18 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated short"() {
         expect:
-        def isolated = snapshotter.isolate(123 as short)
+        def original = 123 as short
+        def isolated = snapshotter.isolate(original)
         isolated instanceof ShortValueSnapshot
-        isolated.isolate() == 123 as short
+        isolated.isolate().is(original)
     }
 
     def "can coerce short value"() {
         expect:
-        def isolated = snapshotter.isolate(123 as short)
-        isolated.coerce(Short).is(isolated)
-        isolated.coerce(Number).is(isolated)
+        def original = 123 as short
+        def isolated = snapshotter.isolate(original)
+        isolated.coerce(Short).is(original)
+        isolated.coerce(Number).is(original)
         isolated.coerce(Integer) == null
         isolated.coerce(Byte) == null
         isolated.coerce(String) == null
@@ -186,8 +194,8 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "can coerce boolean value"() {
         expect:
-        snapshotter.isolate(true).coerce(Boolean).is BooleanValueSnapshot.TRUE
-        snapshotter.isolate(false).coerce(Boolean).is BooleanValueSnapshot.FALSE
+        snapshotter.isolate(true).coerce(Boolean)
+        !snapshotter.isolate(false).coerce(Boolean)
         snapshotter.isolate(false).coerce(String) == null
     }
 
@@ -210,7 +218,8 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "can coerce null value"() {
         expect:
-        snapshotter.isolate(null).coerce(String).is NullValueSnapshot.INSTANCE
+        snapshotter.isolate(null).coerce(String) == null
+        snapshotter.isolate(null).coerce(Number) == null
     }
 
     def "creates snapshot for isolated null value"() {
@@ -416,11 +425,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(Type1.TWO)
-        isolated.coerce(Type1).is(isolated)
+        isolated.coerce(Type1).is(Type1.TWO)
         isolated.coerce(Type2) == null
         isolated.coerce(String) == null
 
-        def v = isolated.coerce(cl).isolate()
+        def v = isolated.coerce(cl)
         cl.isInstance(v)
         v.name() == "TWO"
     }
@@ -455,8 +464,9 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "can coerce file value"() {
         expect:
-        def isolated = snapshotter.isolate(new File("abc"))
-        isolated.coerce(File).is(isolated)
+        def original = new File("abc")
+        def isolated = snapshotter.isolate(original)
+        isolated.coerce(File) == original
         isolated.coerce(String) == null
     }
 
@@ -492,7 +502,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedTypeSnapshot
+        snapshot instanceof ImmutableManagedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -505,7 +515,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(value)
-        isolated instanceof IsolatedManagedTypeSnapshot
+        isolated instanceof IsolatedImmutableManagedValue
         isolated.isolate().is(value)
     }
 
@@ -527,11 +537,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(value)
-        isolated.coerce(Thing).is(isolated)
-        isolated.coerce(Named).is(isolated)
+        isolated.coerce(Thing).is(value)
+        isolated.coerce(Named).is(value)
         isolated.coerce(String) == null
 
-        def v = isolated.coerce(cl).isolate()
+        def v = isolated.coerce(cl)
         cl.isInstance(v)
         v.name == "value1"
     }
@@ -645,16 +655,18 @@ class DefaultValueSnapshotterTest extends Specification {
         other.prop == "123"
         !other.is(value)
 
-        def v = isolated.coerce(cl).isolate()
+        def v = isolated.coerce(cl)
         v.prop == "123"
     }
 
     def "can coerce serializable value"() {
-        def value = new Bean(prop: "123")
+        def original = new Bean(prop: "123")
 
         expect:
-        def isolated = snapshotter.isolate(value)
-        isolated.coerce(Bean).is(isolated)
+        def isolated = snapshotter.isolate(original)
+        def other = isolated.coerce(Bean)
+        other.prop == "123"
+        !other.is(original)
         isolated.coerce(String) == null
     }
 

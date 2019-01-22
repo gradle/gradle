@@ -59,9 +59,9 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(Named, "a")
         n1 instanceof Managed
         n1.publicType() == Named
+        n1.immutable()
         def state = n1.unpackState()
-        state.length == 1
-        state[0] == "a"
+        state == "a"
 
         def n2 = n1.managedFactory().fromState(Named, state)
         n2.is(n1)
@@ -102,9 +102,9 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(CustomNamed, "a")
         n1 instanceof Managed
         n1.publicType() == CustomNamed
+        n1.immutable()
         def state = n1.unpackState()
-        state.length == 1
-        state[0] == "a"
+        state == "a"
 
         def n2 = n1.managedFactory().fromState(CustomNamed, state)
         n2.is(n1)
@@ -186,9 +186,9 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(AbstractNamed, "a")
         n1 instanceof Managed
         n1.publicType() == AbstractNamed
+        n1.immutable()
         def state = n1.unpackState()
-        state.length == 1
-        state[0] == "a"
+        state == "a"
 
         def n2 = n1.managedFactory().fromState(AbstractNamed, state)
         n2.is(n1)

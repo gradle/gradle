@@ -36,15 +36,17 @@ public interface Isolatable<T> extends Hashable {
     ValueSnapshot asSnapshot();
 
     /**
-     * Returns an instance of T that is isolated from the original object. When T is mutable, a new instance is created on each call. When T is immutable, a new instance may or may not be created on each call.
+     * Returns an instance of T that is isolated from the original object and all other instances.
+     * When T is mutable, a new instance is created on each call. When T is immutable, a new instance may or may not be created on each call. This may potentially be expensive.
      */
+    @Nullable
     T isolate();
 
     /**
-     * Returns an {@link Isolatable} that can produce values of the given type from this value, if possible.
+     * Returns an instance of S constructed from the state of the original object, if possible.
      *
-     * @return null if not supported.
+     * @return null if not supported, or the value is null.
      */
     @Nullable
-    <S> Isolatable<S> coerce(Class<S> type);
+    <S> S coerce(Class<S> type);
 }

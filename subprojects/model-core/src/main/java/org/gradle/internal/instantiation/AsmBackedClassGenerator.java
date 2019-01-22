@@ -83,6 +83,7 @@ import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.IFNULL;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.objectweb.asm.Opcodes.RETURN;
@@ -287,12 +288,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_INSTANTIATOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, INSTANTIATOR_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, Type.BOOLEAN_TYPE);
         private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
+        private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
         private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
         private static final String RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION = Type.getMethodDescriptor(Type.VOID_TYPE, CONVENTION_AWARE_TYPE, CONVENTION_TYPE);
         private static final String RETURN_CONVENTION = Type.getMethodDescriptor(CONVENTION_TYPE);
         private static final String RETURN_CONVENTION_MAPPING = Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE);
         private static final String RETURN_EXTENSTION_CONTAINER = Type.getMethodDescriptor(Type.getType(ExtensionContainer.class));
-        private static final String RETURN_OBJECT_ARRAY = Type.getMethodDescriptor(OBJECT_ARRAY_TYPE);
+        private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
         private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -748,7 +750,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, DYNAMIC_OBJECT_TYPE.getInternalName(), "hasProperty", RETURN_BOOLEAN_FROM_STRING, true);
 
             // END
-            methodVisitor.visitInsn(Opcodes.IRETURN);
+            methodVisitor.visitInsn(IRETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
@@ -988,8 +990,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
+            // Generate: Class immutable() { return <properties.empty> }
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+            methodVisitor.visitLdcInsn(properties.isEmpty());
+            methodVisitor.visitInsn(IRETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT_ARRAY, null, EMPTY_STRINGS);
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS);
             methodVisitor.visitLdcInsn(properties.size());
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
             // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
@@ -1062,7 +1071,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitJumpInsn(Opcodes.IFNONNULL, useConvention);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
-                methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+                methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
 
                 methodVisitor.visitLabel(useConvention);
             }
@@ -1101,7 +1110,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                                 : returnType.getInternalName());
             }
 
-            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -1136,7 +1145,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -1197,7 +1206,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // END
 
-            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }
@@ -1240,7 +1249,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), originalParameterTypes);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor, false);
 
-            methodVisitor.visitInsn(returnType.getOpcode(Opcodes.IRETURN));
+            methodVisitor.visitInsn(returnType.getOpcode(IRETURN));
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
         }

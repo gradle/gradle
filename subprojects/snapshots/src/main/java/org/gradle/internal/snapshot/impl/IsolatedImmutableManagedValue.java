@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,35 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instantiation.Managed;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
-public class IsolatedManagedTypeSnapshot extends AbstractManagedTypeSnapshot<Isolatable<?>> implements Isolatable<Object> {
-    private final Managed.Factory factory;
-    private final Class<?> targetType;
-
-    public IsolatedManagedTypeSnapshot(Class<?> targetType, Managed.Factory factory, Isolatable<?> state) {
-        super(state);
-        this.targetType = targetType;
-        this.factory = factory;
+public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Managed> {
+    public IsolatedImmutableManagedValue(Managed managed) {
+        super(managed);
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return new ManagedTypeSnapshot(targetType.getName(), state.asSnapshot());
+        return new ImmutableManagedValueSnapshot(getValue().publicType().getName(), (String) getValue().unpackState());
     }
 
     @Override
-    public Object isolate() {
-        return factory.fromState(targetType, state.isolate());
+    public void appendToHasher(Hasher hasher) {
+        asSnapshot().appendToHasher(hasher);
     }
 
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        if (type.isAssignableFrom(targetType)) {
-            return type.cast(isolate());
+        if (type.isInstance(getValue())) {
+            return type.cast(getValue());
         }
-        if (targetType.getName().equals(type.getName())) {
-            return type.cast(factory.fromState(type, state.isolate()));
+        if (type.getName().equals(getValue().publicType().getName())) {
+            return type.cast(getValue().managedFactory().fromState(type, getValue().unpackState()));
         }
         return null;
     }

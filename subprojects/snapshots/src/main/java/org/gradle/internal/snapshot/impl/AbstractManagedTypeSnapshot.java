@@ -16,18 +16,17 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
 public class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable {
-    protected final ImmutableList<T> state;
+    protected final T state;
 
-    public AbstractManagedTypeSnapshot(ImmutableList<T> state) {
+    public AbstractManagedTypeSnapshot(T state) {
         this.state = state;
     }
 
-    public ImmutableList<T> getState() {
+    public T getState() {
         return state;
     }
 
@@ -50,8 +49,6 @@ public class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable
 
     @Override
     public void appendToHasher(Hasher hasher) {
-        for (T element : state) {
-            element.appendToHasher(hasher);
-        }
+        state.appendToHasher(hasher);
     }
 }

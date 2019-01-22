@@ -50,7 +50,7 @@ public class IsolatedMap extends AbstractMapSnapshot<Isolatable<?>> implements I
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         return null;
     }
 }

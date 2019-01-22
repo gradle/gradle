@@ -30,9 +30,9 @@ public class ManagedTypeFactory implements Managed.Factory {
     }
 
     @Override
-    public <T> T fromState(Class<T> type, Object[] state) {
+    public <T> T fromState(Class<T> type, Object state) {
         try {
-            return type.cast(constructor.newInstance((Object) state));
+            return type.cast(constructor.newInstance(state));
         } catch (InvocationTargetException e) {
             throw new ObjectInstantiationException(type, e.getCause());
         } catch (Exception e) {

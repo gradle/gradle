@@ -49,7 +49,7 @@ public class IsolatedSet extends AbstractSetSnapshot<Isolatable<?>> implements I
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         return null;
     }
 }

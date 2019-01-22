@@ -21,16 +21,21 @@ package org.gradle.internal.instantiation;
  */
 public interface Managed {
     /**
-     * Returns a snapshot of the current state of this object. This can be passed to the {@link Factory#fromState(Class, Object[])} method to recreate this object from the snapshot.
-     * The state can be fingerprinted to generate a fingerprint of this object.
+     * Returns a snapshot of the current state of this object. This can be passed to the {@link Factory#fromState(Class, Object)} method to recreate this object from the snapshot.
+     * Note that the state may not be immutable, so should be made isolated to reuse in another context. The state can also be fingerprinted to generate a fingerprint of this object.
      */
-    Object[] unpackState();
+    Object unpackState();
+
+    /**
+     * Is this object graph immutable? Returns false if this object <em>may</em> be mutable, in which case the state should be unpacked and isolated.
+     */
+    boolean immutable();
 
     Class<?> publicType();
 
     Factory managedFactory();
 
     interface Factory {
-        <T> T fromState(Class<T> type, Object[] state);
+        <T> T fromState(Class<T> type, Object state);
     }
 }

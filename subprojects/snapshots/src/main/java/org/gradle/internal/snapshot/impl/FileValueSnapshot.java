@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -46,9 +45,9 @@ public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> imple
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         if (type.isAssignableFrom(File.class)) {
-            return Cast.uncheckedCast(this);
+            return type.cast(isolate());
         }
         return null;
     }

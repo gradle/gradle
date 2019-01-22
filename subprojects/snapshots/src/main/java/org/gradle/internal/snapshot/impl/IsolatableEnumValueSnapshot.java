@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -45,12 +44,12 @@ public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Is
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         if (type.isAssignableFrom(value.getClass())) {
-            return Cast.uncheckedCast(this);
+            return type.cast(value);
         }
         if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
-            return Cast.uncheckedCast(new IsolatableEnumValueSnapshot(Enum.valueOf(type.asSubclass(Enum.class), value.name())));
+            return type.cast(Enum.valueOf(type.asSubclass(Enum.class), value.name()));
         }
         return null;
     }

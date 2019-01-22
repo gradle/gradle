@@ -452,7 +452,8 @@ public class AsmBackedClassGeneratorTest {
 
         Managed managed = (Managed) bean;
         assertEquals(BeanWithAbstractProperty.class, managed.publicType());
-        Object[] state = managed.unpackState();
+        assertFalse(managed.immutable());
+        Object[] state = (Object[]) managed.unpackState();
         assertThat(state.length, equalTo(1));
         assertThat(state[0], equalTo(null));
 
@@ -462,7 +463,7 @@ public class AsmBackedClassGeneratorTest {
 
         bean.setName("name");
 
-        state = managed.unpackState();
+        state = (Object[]) managed.unpackState();
         assertThat(state.length, equalTo(1));
         assertThat(state[0], equalTo("name"));
 
@@ -491,7 +492,8 @@ public class AsmBackedClassGeneratorTest {
 
         Managed managed = (Managed) bean;
         assertEquals(InterfaceBean.class, managed.publicType());
-        Object[] state = managed.unpackState();
+        assertFalse(managed.immutable());
+        Object[] state = (Object[]) managed.unpackState();
         assertThat(state.length, equalTo(2));
         assertThat(state[0], equalTo(null));
         assertThat(state[1], equalTo(null));
@@ -503,7 +505,7 @@ public class AsmBackedClassGeneratorTest {
         bean.setName("name");
         bean.setNumbers(Collections.singleton(12));
 
-        state = managed.unpackState();
+        state = (Object[]) managed.unpackState();
         assertThat(state.length, equalTo(2));
         assertThat(state[0], equalTo("name"));
         assertThat(state[1], equalTo(Collections.singleton(12)));
@@ -527,7 +529,8 @@ public class AsmBackedClassGeneratorTest {
 
         Managed managed = (Managed) bean;
         assertEquals(InterfaceWithDefaultMethods.class, managed.publicType());
-        Object[] state = managed.unpackState();
+        assertTrue(managed.immutable()); // no properties
+        Object[] state = (Object[]) managed.unpackState();
         assertThat(state.length, equalTo(0));
 
         InterfaceWithDefaultMethods copy = managed.managedFactory().fromState(InterfaceWithDefaultMethods.class, state);
