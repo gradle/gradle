@@ -50,7 +50,7 @@ class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyRes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapability('org:feature-1:1.0')
+                        requireCapability('org:feature-1')
                     }
                 }
             }
@@ -104,7 +104,7 @@ class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyRes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapability('org:feature-3:1.0')
+                        requireCapability('org:feature-3')
                     }
                 }
             }
@@ -119,7 +119,7 @@ class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyRes
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a variant of org:foo:1.0 providing the requested capability org:feature-3:1.0:
+        failure.assertHasCause("""Unable to find a variant of org:foo:1.0 providing the requested capability org:feature-3:
    - Variant api provides org:foo:1.0
    - Variant runtime provides org:foo:1.0
    - Variant feature1 provides org:feature-1:1.0
@@ -154,7 +154,7 @@ class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyRes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapabilities('org:feature-1:1.0', 'org:feature-3:1.0')
+                        requireCapabilities('org:feature-1', 'org:feature-3')
                     }
                 }
             }

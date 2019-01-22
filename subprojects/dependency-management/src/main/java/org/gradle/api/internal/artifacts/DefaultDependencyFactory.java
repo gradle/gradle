@@ -57,11 +57,11 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     public Dependency createDependency(Object dependencyNotation) {
         Dependency dependency = dependencyNotationParser.parseNotation(dependencyNotation);
-        injectAttributesFactory(dependency);
+        injectServices(dependency);
         return dependency;
     }
 
-    private void injectAttributesFactory(Dependency dependency) {
+    private void injectServices(Dependency dependency) {
         if (dependency instanceof AbstractModuleDependency) {
             AbstractModuleDependency moduleDependency = (AbstractModuleDependency) dependency;
             moduleDependency.setAttributesFactory(attributesFactory);
@@ -72,11 +72,11 @@ public class DefaultDependencyFactory implements DependencyFactory {
     @Override
     public DependencyConstraint createDependencyConstraint(Object dependencyNotation) {
         DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.parseNotation(dependencyNotation);
-        injectAttributesFactory(dependencyConstraint);
+        injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
 
-    private void injectAttributesFactory(DependencyConstraint dependency) {
+    private void injectServices(DependencyConstraint dependency) {
         if (dependency instanceof DefaultDependencyConstraint) {
             ((DefaultDependencyConstraint) dependency).setAttributesFactory(attributesFactory);
         }
