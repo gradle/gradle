@@ -1,6 +1,9 @@
 The Gradle team is excited to announce Gradle 5.2.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features the [Java Platform plugin](userguide/java_platform_plugin.html) which allows users to define sets of dependencies that work together, [new C++ plugins](userguide/cpp_plugins.html) with dependency management built-in, [new C++ project types for the Build Init Plugin](userguide/build_init_plugin.html#sec:cppapplication_), and more.
+
+Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0. If upgrading from Gradle 4.x, please read 
+[upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first. Users upgrading from 5.1, should not have to worry about breaking changes.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -21,8 +24,10 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 
 ## The Java Platform plugin
 
-A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) allows the declaration and publication of platforms for the Java ecosystem.
-A platform is typically published as a bill-of-material (BOM) file, and can be used as a source of recommendations for versions, between projects or externally.
+A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) allows you to declare and publish a platform for the Java ecosystem. A platform is typically published as a 
+bill-of-material (BOM) file and can be used to define a set of versions for dependencies that are known to work together. These versions can be published and consumed elsewhere as dependency 
+recommendations.
+
 Read the [Java Platform plugin section of the userguide](userguide/java_platform_plugin.html) for more details.
 
 ## Maven publication: expose resolved versions
@@ -36,13 +41,13 @@ See more information about the [Gradle native project](https://github.com/gradle
 
 ### Recommend C++ projects use new C++ plugins
 
-We introduced new C++ plugins [last year](https://blog.gradle.org/introducing-the-new-cpp-plugins) that we thought were more feature rich and familiar to Gradle users. At the time, we thought they weren't mature enough for serious adoption.
+We introduced [new C++ plugins](https://blog.gradle.org/introducing-the-new-cpp-plugins) last year that we thought were more feature rich and familiar to Gradle users.
 
-In this release, we are recommending new C++ projects to use these plugins over [the existing software model plugins](userguide/native_software.html). The new plugins do not currently support C, Objective-C or Objective-C++ out of the box, but they have [a lot of other things to offer](userguide/cpp_plugins.html#cpp:features).
+In this release, we are recommending new C++ projects use these plugins over [the existing software model plugins](userguide/native_software.html). The new plugins do not currently support C, Objective-C or Objective-C++ out of the box, but they have [a lot of other things to offer](userguide/cpp_plugins.html#cpp:features).
 
 ### Build Init can now generate C++ sample projects
 
-If you want to get started quickly with a C++ project, try running `gradle init` and following the instructions to generate a sample C++ application or library.
+If you want to get started quickly with a C++ project, try running `gradle init` and following the instructions to generate a sample C++ application or library. You'll notice that the projects will be generated with the `cpp-application` or `cpp-library` plugins instead of the `cpp` plugin. This is now the recommended approach when starting new projects.
 
 ### Support for additional Windows native toolchains
 
@@ -61,9 +66,18 @@ This release includes some improvements to Gradle's console integration on Windo
 
 The implementation of the rich console has been improved to remove some distracting visual artifacts on Windows. 
 
+## Improvements for plugin authors 
+
+### Service injection into project extensions
+
+Previously, Gradle supported [service injection into tasks](userguide/custom_tasks.html#service_injection) and [service injection into plugins](userguide/custom_plugins.html#service_injection). In 
+this Gradle release, these services are also available for injection directly into project extensions. Using this can help simplify your plugin implementation.
+
+See the [user manual](userguide/custom_plugins.html#service_injection) for details.
+
 ## Support for setting environment variables when using Gradle TestKit
   
-Gradle [TestKit](userguide/test_kit.html) based tests can now specify environment variables via [`GradleRunner`](javadoc/org/gradle/testkit/runner/GradleRunner.html). These environemnt variables will be visible to the build under test.
+Gradle [TestKit](userguide/test_kit.html) based tests can now specify environment variables via [`GradleRunner`](javadoc/org/gradle/testkit/runner/GradleRunner.html). These environment variables will be visible to the build under test.
 
 Contributed by [Szczepan Faber](https://github.com/mockitoguy).
 
