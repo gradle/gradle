@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures
 
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -86,7 +84,6 @@ class AbstractIntegrationSpec extends Specification {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     def cleanup() {
         executer.cleanup()
     }
@@ -95,43 +92,35 @@ class AbstractIntegrationSpec extends Specification {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
-    @CompileStatic
     TestFile getBuildFile() {
         testDirectory.file(getDefaultBuildFileName())
     }
 
-    @CompileStatic
     protected TestFile getBuildKotlinFile() {
         testDirectory.file(getDefaultBuildKotlinFileName())
     }
 
-    @CompileStatic
     protected String getDefaultBuildFileName() {
         'build.gradle'
     }
 
-    @CompileStatic
     protected String getDefaultBuildKotlinFileName() {
         'build.gradle.kts'
     }
 
-    @CompileStatic
     protected TestFile buildScript(String script) {
         buildFile.text = script
         buildFile
     }
 
-    @CompileStatic
     protected TestFile getSettingsFile() {
         testDirectory.file('settings.gradle')
     }
 
-    @CompileStatic
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file('settings.gradle.kts')
     }
 
-    @CompileStatic
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
     }
@@ -225,7 +214,6 @@ class AbstractIntegrationSpec extends Specification {
     /**
      * Synonym for succeeds()
      */
-    @CompileStatic(TypeCheckingMode.SKIP)
     protected ExecutionResult run(String... tasks) {
         succeeds(*tasks)
     }
@@ -238,19 +226,16 @@ class AbstractIntegrationSpec extends Specification {
         executer.withArgument("-d")
     }
 
-    @CompileStatic
     protected ExecutionResult succeeds(String... tasks) {
-        result = executer.withTasks(tasks.toList()).run()
+        result = executer.withTasks(*tasks).run()
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     protected ExecutionFailure runAndFail(String... tasks) {
         fails(*tasks)
     }
 
-    @CompileStatic
     protected ExecutionFailure fails(String... tasks) {
-        failure = executer.withTasks(tasks.toList()).runWithFailure()
+        failure = executer.withTasks(*tasks).runWithFailure()
         result = failure
     }
 

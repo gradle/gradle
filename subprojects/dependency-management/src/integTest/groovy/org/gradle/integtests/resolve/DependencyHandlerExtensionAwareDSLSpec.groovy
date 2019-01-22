@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.junit.Test
 
@@ -47,10 +46,9 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec {
     @Test
     void "Can type-safely use DependencyHandler ExtensionAware with the Kotlin DSL"() {
         when:
-        // Need to use dependencies.extra because Kotlin DSL needs to be re-compiled
         buildKotlinFile << """
         dependencies {
-            val theAnswer: () -> Int by dependencies.extra {
+            val theAnswer: () -> Int by extra {
                 { 42 }
             }
         }
