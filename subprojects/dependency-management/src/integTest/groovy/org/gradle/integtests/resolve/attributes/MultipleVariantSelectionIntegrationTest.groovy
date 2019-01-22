@@ -66,7 +66,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
                     capabilities {
-                        requireCapability('org.test:cap1:1.0')
+                        requireCapability('org.test:cap1')
                     }
                 }
                 conf('org:test:1.0') {
@@ -74,7 +74,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM2_ATTRIBUTE, 'c2')
                     }
                     capabilities {
-                        requireCapability('org.test:cap2:1.0')
+                        requireCapability('org.test:cap2')
                     }
                 }
             }
@@ -131,7 +131,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
                     capabilities {
-                        requireCapability('org.test:cap1:1.0')
+                        requireCapability('org.test:cap1')
                     }
                 }
                 conf('org:test:1.0') {
@@ -139,7 +139,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM_ATTRIBUTE, 'c2')
                     }
                     capabilities {
-                        requireCapability('org.test:cap2:1.0')
+                        requireCapability('org.test:cap2')
                     }
                 }
             }
@@ -222,7 +222,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
                     capabilities {
-                        requireCapability('org.test:cap:1.0')
+                        requireCapability('org.test:cap')
                     }
                 }
                 conf('org:test:1.0') {
@@ -230,7 +230,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                         attribute(CUSTOM_ATTRIBUTE, 'c2')
                     }
                     capabilities {
-                        requireCapability('org.test:cap:1.0')
+                        requireCapability('org.test:cap')
                     }
                 }
             }
@@ -610,7 +610,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapability('org:foo-testfixtures:1.0')
+                        requireCapability('org:foo-testfixtures')
                     }
                 }
             }
