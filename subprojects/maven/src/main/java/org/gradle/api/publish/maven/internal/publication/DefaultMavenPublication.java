@@ -61,6 +61,7 @@ import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -77,7 +78,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -253,7 +253,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
-        Set<String> unsupportedUsages = null;
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, INCOMPATIBLE_FEATURE);
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -276,10 +276,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {
                             if (isVersionMavenIncompatible(dependency.getVersion())) {
-                                if (unsupportedUsages == null) {
-                                    unsupportedUsages = Sets.newHashSet();
-                                }
-                                unsupportedUsages.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                                publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                             }
                             addImportDependencyConstraint(dependency);
                         }
@@ -287,10 +284,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
                         if (isVersionMavenIncompatible(dependency.getVersion())) {
-                            if (unsupportedUsages == null) {
-                                unsupportedUsages = Sets.newHashSet();
-                            }
-                            unsupportedUsages.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            publicationWarningsCollector.add(String.format("%s:%s:%s declared with a Maven incompatible notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
                         addModuleDependency(dependency, globalExcludes, dependencies);
                     }
@@ -303,24 +297,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
-                if (unsupportedUsages == null) {
-                    unsupportedUsages = Sets.newHashSet();
-                }
                 for (Capability capability : usageContext.getCapabilities()) {
-                    unsupportedUsages.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
         }
-        if (unsupportedUsages != null) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(getDisplayName() + INCOMPATIBLE_FEATURE);
-            formatter.startChildren();
-            for (String usage : unsupportedUsages) {
-                formatter.node(usage);
-            }
-            formatter.endChildren();
-            LOG.lifecycle(formatter.toString());
-        }
+        publicationWarningsCollector.complete(getDisplayName());
     }
 
     private boolean isVersionMavenIncompatible(String version) {

@@ -56,6 +56,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -74,7 +75,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
-import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.DeprecationLogger;
@@ -240,7 +240,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        Set<String> unsupportedUsages = null;
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, INCOMPATIBLE_FEATURE);
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -267,35 +267,23 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     } else {
                         ExternalDependency externalDependency = (ExternalDependency) dependency;
                         if (PlatformSupport.isTargettingPlatform(dependency)) {
-                            if (unsupportedUsages == null) {
-                                unsupportedUsages = Sets.newHashSet();
-                            }
-                            unsupportedUsages.add(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            publicationWarningsCollector.add(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
                         if (externalDependency.getVersion() == null) {
-                            if (unsupportedUsages == null) {
-                                unsupportedUsages = Sets.newHashSet();
-                            }
-                            unsupportedUsages.add(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                            publicationWarningsCollector.add(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
                         }
                         addExternalDependency(externalDependency, confMapping);
                     }
                 }
             }
             if (!usageContext.getDependencyConstraints().isEmpty()) {
-                if (unsupportedUsages == null) {
-                    unsupportedUsages = Sets.newHashSet();
-                }
                 for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
-                    unsupportedUsages.add(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                    publicationWarningsCollector.add(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
                 }
             }
             if (!usageContext.getCapabilities().isEmpty()) {
-                if (unsupportedUsages == null) {
-                    unsupportedUsages = Sets.newHashSet();
-                }
                 for (Capability capability : usageContext.getCapabilities()) {
-                    unsupportedUsages.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.add(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
 
@@ -303,16 +291,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
         }
-        if (unsupportedUsages != null) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(getDisplayName() + INCOMPATIBLE_FEATURE);
-            formatter.startChildren();
-            for (String usage : unsupportedUsages) {
-                formatter.node(usage);
-            }
-            formatter.endChildren();
-            LOG.lifecycle(formatter.toString());
-        }
+        publicationWarningsCollector.complete(getDisplayName());
     }
 
     private List<UsageContext> getSortedUsageContexts() {
