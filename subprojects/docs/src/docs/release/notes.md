@@ -19,20 +19,6 @@ Switch your build to use Gradle 5.2 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Improvements for plugin authors 
-
-### Service injection into project extensions
-
-There are several [useful services](userguide/custom_tasks.html#service_injection) that Gradle makes available for task and plugin implementations to use. Previously, these were available for injection into task and plugin instances. In this Gradle release these services are also available for injection directly into project extensions. Using this can help simplify your plugin implementation.
-
-See the [User Manual](userguide/custom_plugins.html#service_injection) for details.
-
-TBD - can have abstract service getter
-
-TBD - can use server getter on plugins
-
-TBD - can use service injection on `project.container(Class)` elements 
-
 ## The Java Platform plugin
 
 A new plugin, the [Java Platform plugin](userguide/java_platform_plugin.html) allows the declaration and publication of platforms for the Java ecosystem.
@@ -44,7 +30,7 @@ Read the [Java Platform plugin section of the userguide](userguide/java_platform
 When using the [`maven-publish` plugin](userguide/publishing_maven.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
 For details, have a look at the [dedicated section](userguide/publishing_maven.html#publishing_maven:resolved_dependencies) in the plugin documentation.
 
-## Building Native software with Gradle 
+## Building native software with Gradle 
 
 See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-52).
 
@@ -55,7 +41,7 @@ These toolchains are now officially supported by Gradle. See [the userguide](use
 
 ### Support for testing applications on Windows
 
-Gradle now automatically hides the main symbol when building native applications, so applications can be tested on Windows like they already were on macOS and Linux.
+Gradle now automatically hides the `main` symbol when building native applications, so applications can be tested on Windows like they already were on macOS and Linux.
 
 Contributed by [Richard Newton](https://github.com/ricnewton).
 
@@ -84,6 +70,16 @@ Contributed by [Thomas Broyer](https://github.com/tbroyer).
 Tasks that use `JavaExec` now track the version of Java used instead of the absolute path to the `java` executable.
 
 Contributed by [Theodore Ni](https://github.com/tjni).
+
+## Improvements for plugin authors 
+
+### Service injection into plugins and project extensions
+
+There are several [useful services](userguide/custom_tasks.html#service_injection) that Gradle makes available for task and plugin implementations to use. Previously, these were available for injection into task and plugin instances. In this Gradle release these services are also available for injection directly into project extensions. Services are also now available for injection into the elements of a container created using the `project.container(Class)` method. Using this feature can help simplify your plugin implementation.
+
+Services can be injected into an instance either as constructor parameters or using a property getter method. In this release both options are available for all types for which service injection is available. In previous Gradle versions, using a property getter method was not supported for plugin types.
+
+See the [User Manual](userguide/custom_plugins.html#service_injection) for details.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
