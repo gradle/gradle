@@ -16,24 +16,10 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import org.gradle.test.fixtures.maven.MavenJavaModule
+
 import spock.lang.Unroll
 
-class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublishIntegTest {
-    MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
-
-    def setup() {
-        createBuildScripts("""
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-""")
-    }
+class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublishOptionalDependenciesJavaIntegTest {
 
     def "can publish java-library with optional feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
@@ -160,26 +146,6 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
 
         then:
         failure.assertHasCause("Cannot add optional feature variant 'api' as a variant with the same name is already registered")
-    }
-
-    def createBuildScripts(def append) {
-        settingsFile << "rootProject.name = 'publishTest' "
-
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-            }
-            group = 'org.gradle.test'
-            version = '1.9'
-
-$append
-"""
-
     }
 
     def "can group dependencies by optional feature"() {
