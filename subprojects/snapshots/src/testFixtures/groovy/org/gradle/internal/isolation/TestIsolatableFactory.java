@@ -37,7 +37,7 @@ public class TestIsolatableFactory implements IsolatableFactory {
 
             @Nullable
             @Override
-            public <S> Isolatable<S> coerce(Class<S> type) {
+            public <S> S coerce(Class<S> type) {
                 throw new UnsupportedOperationException();
             }
 

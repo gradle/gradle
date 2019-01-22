@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.Named
 import org.gradle.internal.Pair
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.InputStreamBackedDecoder
@@ -173,9 +172,15 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes managed type properties"() {
-        def value = Stub(Named)
-        value.name >> "123"
-        def original = new ManagedTypeSnapshot("named", ImmutableList.of(string("a"), integer(123)))
+        def original = new ManagedTypeSnapshot("named", integer(123))
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes immutable managed type properties"() {
+        def original = new ImmutableManagedValueSnapshot("type", "name")
         write(original)
 
         expect:

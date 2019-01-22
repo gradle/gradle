@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.hash.Hashable;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable snapshot of the state of some Java object or object graph.
  *
@@ -28,5 +30,5 @@ public interface ValueSnapshot extends Hashable {
     /**
      * Takes a snapshot of the given value, using this as a candidate snapshot. If the value is the same as the value represented by this snapshot, this snapshot <em>must</em> be returned.
      */
-    ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter);
+    ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter);
 }
