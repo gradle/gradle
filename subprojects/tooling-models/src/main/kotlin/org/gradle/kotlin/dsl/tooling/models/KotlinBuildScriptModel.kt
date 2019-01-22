@@ -24,7 +24,7 @@ interface KotlinBuildScriptModel {
     val sourcePath: List<File>
     val implicitImports: List<String>
     val editorReports: List<EditorReport>
-    val exceptions: List<Exception>
+    val exceptions: List<String>
 
     /**
      * The directory of the project in which the script was found.

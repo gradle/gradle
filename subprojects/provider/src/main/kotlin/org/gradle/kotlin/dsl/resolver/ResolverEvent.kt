@@ -74,7 +74,7 @@ internal
 data class ResolvedDependenciesWithErrors(
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
-    val exceptions: List<Exception>
+    val exceptions: List<String>
 ) : ResolverEvent()
 
 
@@ -82,5 +82,5 @@ internal
 data class ResolvedToPreviousWithErrors(
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
-    val exceptions: List<Exception>
+    val exceptions: List<String>
 ) : ResolverEvent()
