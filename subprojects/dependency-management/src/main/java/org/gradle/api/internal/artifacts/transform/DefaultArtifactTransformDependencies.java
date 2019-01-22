@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
 import java.io.File;
 
-public class DefaultArtifactTransformDependencies implements ArtifactTransformDependenciesInternal {
+public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
     private final FileCollection files;
 
     public DefaultArtifactTransformDependencies(FileCollection files) {

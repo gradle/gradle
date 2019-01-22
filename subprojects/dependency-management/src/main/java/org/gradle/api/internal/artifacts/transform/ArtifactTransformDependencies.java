@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
 import java.io.File;
 
-/**
- * An injectable service that when injected into an {@link ArtifactTransform} can be used to access
- * the dependency artifacts of the artifact being transformed.
- *
- * @since 5.1
- */
-@Incubating
-@HasInternalProtocol
 public interface ArtifactTransformDependencies {
     /**
      * Returns the dependency artifacts of the artifact being transformed.
      * The order of the files match that of the dependencies in the source artifact view.
      */
     Iterable<File> getFiles();
+
+    CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter);
 }

@@ -23,6 +23,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 
@@ -57,8 +58,13 @@ class DependencyInjectingInstantiator implements Instantiator {
         final ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forType(type);
         return new InstanceFactory<T>() {
             @Override
-            public boolean requiresService(Class<?> serviceType) {
-                return constructor.requiresService(serviceType);
+            public boolean requiresServiceByAnnotation(Class<? extends Annotation> annotation) {
+                return constructor.requiresServiceByAnnotation(annotation);
+            }
+
+            @Override
+            public boolean requiresServiceByType(Class<?> serviceType) {
+                return constructor.requiresServiceByType(serviceType);
             }
 
             @Override

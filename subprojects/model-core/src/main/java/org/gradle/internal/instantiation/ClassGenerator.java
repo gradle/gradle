@@ -49,9 +49,14 @@ interface ClassGenerator {
         T newInstance(ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
         /**
-         * Does this constructor use the given service?
+         * Does this constructor use the given service type?
          */
-        boolean requiresService(Class<?> serviceType);
+        boolean requiresServiceByType(Class<?> serviceType);
+
+        /**
+         * Does this constructor use a service injected via the given annotation?
+         */
+        boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceAnnotation);
 
         Class<?>[] getParameterTypes();
 

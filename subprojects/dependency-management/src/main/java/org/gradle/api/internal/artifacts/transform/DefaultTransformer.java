@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -53,7 +53,7 @@ public class DefaultTransformer implements Transformer {
         this.implementationClass = implementationClass;
         this.parameterObject = parameterObject;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
-        this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
+        this.requiresDependencies = instanceFactory.requiresServiceByAnnotation(PrimaryInputDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;
@@ -155,21 +155,19 @@ public class DefaultTransformer implements Transformer {
         @Nullable
         private
         Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
-            if (!(serviceType instanceof Class)) {
-                return null;
-            }
-            Class<?> serviceClass = (Class<?>) serviceType;
-            if (annotatedWith == Workspace.class && serviceClass.isAssignableFrom(File.class)) {
+            TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
+            TypeToken<Iterable<File>> iterableFileType = new TypeToken<Iterable<File>>() {};
+            if (annotatedWith == Workspace.class && serviceTypeToken.isSupertypeOf(File.class)) {
                 return outputDir;
             }
-            if (annotatedWith == PrimaryInput.class && serviceClass.isAssignableFrom(File.class)) {
+            if (annotatedWith == PrimaryInput.class && serviceTypeToken.isSupertypeOf(File.class)) {
                 return inputFile;
             }
-            if (annotatedWith == TransformParameters.class && serviceClass.isInstance(parameters)) {
+            if (annotatedWith == TransformParameters.class && serviceTypeToken.getRawType().isInstance(parameters)) {
                 return parameters;
             }
-            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
-                return artifactTransformDependencies;
+            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(iterableFileType)) {
+                return artifactTransformDependencies.getFiles();
             }
             return null;
         }

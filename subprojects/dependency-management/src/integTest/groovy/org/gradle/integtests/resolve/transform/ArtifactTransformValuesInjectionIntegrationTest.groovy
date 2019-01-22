@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
-
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
@@ -96,10 +94,10 @@ project(':b') {
 
 abstract class MakeGreen extends ArtifactTransform {
     @PrimaryInputDependencies
-    abstract ArtifactTransformDependencies getDependencies()
+    abstract Iterable<File> getDependencies()
     
     List<File> transform(File input) {
-        println "received dependencies files \${dependencies.files*.name} for processing \${input.name}"
+        println "received dependencies files \${dependencies*.name} for processing \${input.name}"
         def output = new File(outputDirectory, input.name + ".green")
         output.text = "ok"
         return [output]
@@ -233,7 +231,7 @@ project(':a') {
 
 abstract class MakeGreen extends ArtifactTransform {
     ${annotation}
-    abstract ArtifactTransformDependencies getDependencies()
+    abstract Iterable<File> getDependencies()
     
     List<File> transform(File input) {
         dependencies.files
@@ -249,7 +247,7 @@ abstract class MakeGreen extends ArtifactTransform {
         // Documents existing behaviour. Should fail eagerly and with a better error message
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type interface ${ArtifactTransformDependencies.name} available.")
+        failure.assertHasCause("No service of type ${Iterable.name}<${File.name}> available.")
 
         where:
         annotation << ["@Workspace", "@PrimaryInput"]

@@ -18,14 +18,21 @@ package org.gradle.internal.instantiation;
 
 import org.gradle.internal.service.ServiceLookup;
 
+import java.lang.annotation.Annotation;
+
 /**
  * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some additional metadata about the type, such as which services it requires, and can potentially produce instances more quickly due to the extra context it holds.
  */
 public interface InstanceFactory<T> {
     /**
-     * Is the given service required?
+     * Is the given service required to be injected by type?
      */
-    boolean requiresService(Class<?> serviceType);
+    boolean requiresServiceByType(Class<?> serviceType);
+
+    /**
+     * Is the given service required to be injected by annotation?
+     */
+    boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceType);
 
     /**
      * Creates a new instance from the given services and parameters.

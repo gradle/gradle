@@ -42,7 +42,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraphDependenciesResolver {
-    private static final ArtifactTransformDependenciesInternal EMPTY_DEPENDENCIES = new ArtifactTransformDependenciesInternal() {
+    private static final ArtifactTransformDependencies EMPTY_DEPENDENCIES = new ArtifactTransformDependencies() {
         @Override
         public Iterable<File> getFiles() {
             return ImmutableSet.of();
@@ -69,7 +69,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     }
 
     @Override
-    public Try<ArtifactTransformDependenciesInternal> forTransformer(Transformer transformer) {
+    public Try<ArtifactTransformDependencies> forTransformer(Transformer transformer) {
         if (!transformer.requiresDependencies()) {
             return Try.successful(EMPTY_DEPENDENCIES);
         }

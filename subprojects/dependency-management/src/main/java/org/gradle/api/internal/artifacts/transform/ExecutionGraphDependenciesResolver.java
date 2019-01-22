@@ -38,5 +38,5 @@ public interface ExecutionGraphDependenciesResolver {
     /**
      * Computes the dependency artifacts for the given transformation step.
      */
-    Try<ArtifactTransformDependenciesInternal> forTransformer(Transformer transformer);
+    Try<ArtifactTransformDependencies> forTransformer(Transformer transformer);
 }
