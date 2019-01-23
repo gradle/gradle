@@ -263,7 +263,7 @@ public class BuildScriptBuilder {
      *
      * @return The body of the configuration action for the task.
      */
-    public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
+    public ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.tasksRegistrations.add(registration);
         return registration.body;
@@ -997,7 +997,7 @@ public class BuildScriptBuilder {
         final String comment;
         final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        TaskRegistration(String comment, String taskName, String taskType) {
+        TaskRegistration(@Nullable String comment, String taskName, String taskType) {
             this.comment = comment;
             this.taskName = taskName;
             this.taskType = taskType;
