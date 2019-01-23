@@ -21,7 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,9 +31,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,10 +46,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
 
     private ImmutableAttributesFactory attributesFactory;
+    private NotationParser<Object, Capability> capabilityNotationParser;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
     private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
+    private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
 
     @Nullable
     private String configuration;
@@ -121,6 +128,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
         target.setAttributes(attributes);
+        target.moduleDependencyCapabilities = moduleDependencyCapabilities;
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
@@ -157,6 +165,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
             return false;
         }
+        if (!Objects.equal(getRequestedCapabilities(), dependencyRhs.getRequestedCapabilities())) {
+            return false;
+        }
         return true;
     }
 
@@ -169,7 +180,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public AbstractModuleDependency attributes(Action<? super AttributeContainer> configureAction) {
         validateMutation();
         if (attributesFactory == null) {
-            warnAboutInternalApiUse();
+            warnAboutInternalApiUse("attributes");
             return this;
         }
         if (attributes == null) {
@@ -179,12 +190,38 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return this;
     }
 
-    private void warnAboutInternalApiUse() {
-        LOG.warn("Cannot set attributes for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
+    @Override
+    public ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction) {
+        validateMutation();
+        if (capabilityNotationParser == null) {
+            warnAboutInternalApiUse("capabilities");
+            return this;
+        }
+        if (moduleDependencyCapabilities == null) {
+            moduleDependencyCapabilities = new DefaultMutableModuleDependencyCapabilitiesHandler(capabilityNotationParser);
+        }
+        configureAction.execute(moduleDependencyCapabilities);
+        return this;
+    }
+
+    @Override
+    public List<Capability> getRequestedCapabilities() {
+        if (moduleDependencyCapabilities == null) {
+            return Collections.emptyList();
+        }
+        return moduleDependencyCapabilities.getRequestedCapabilities();
+    }
+
+    private void warnAboutInternalApiUse(String thing) {
+        LOG.warn("Cannot set " + thing + " for dependency \"" + this.getGroup() + ":" + this.getName() + ":" + this.getVersion() + "\": it was probably created by a plugin using internal APIs");
     }
 
     public void setAttributesFactory(ImmutableAttributesFactory attributesFactory) {
         this.attributesFactory = attributesFactory;
+    }
+
+    public void setCapabilityNotationParser(NotationParser<Object, Capability> capabilityNotationParser) {
+        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     protected ImmutableAttributesFactory getAttributesFactory() {

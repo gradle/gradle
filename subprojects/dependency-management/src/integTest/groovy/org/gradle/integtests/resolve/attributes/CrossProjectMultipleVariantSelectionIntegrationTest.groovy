@@ -46,7 +46,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'test-fixtures'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -62,7 +62,10 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                 implementation project(':lib')
                 implementation (project(':lib')) {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'test-fixtures'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                    }
+                    capabilities {
+                        requireCapability('org:lib-fixtures:1.0')
                     }
                 }
             }
@@ -79,7 +82,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'test-fixtures']
+                    variant "testFixtures", ['org.gradle.usage':'java-api']
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }

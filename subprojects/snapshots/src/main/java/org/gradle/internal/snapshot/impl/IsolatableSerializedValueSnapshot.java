@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -34,18 +34,23 @@ public class IsolatableSerializedValueSnapshot extends SerializedValueSnapshot i
     }
 
     @Override
+    public ValueSnapshot asSnapshot() {
+        return new SerializedValueSnapshot(getImplementationHash(), getValue());
+    }
+
+    @Override
     public Object isolate() {
         return populateClass(originalClass);
     }
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         if (type.isAssignableFrom(originalClass)) {
-            return Cast.uncheckedCast(this);
+            return type.cast(isolate());
         }
         if (type.getName().equals(originalClass.getName())) {
-            return Cast.uncheckedCast(new IsolatableSerializedValueSnapshot(getImplementationHash(), getValue(), type));
+            return type.cast(populateClass(type));
         }
         return null;
     }

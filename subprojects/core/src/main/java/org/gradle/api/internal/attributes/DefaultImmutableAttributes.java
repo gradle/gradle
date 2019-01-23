@@ -163,10 +163,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     @Nullable
     private <S> S coerce(Class<S> type) {
         if (value != null) {
-            Isolatable<S> converted = value.coerce(type);
-            if (converted != null) {
-                return converted.isolate();
-            }
+            return value.coerce(type);
         }
         return null;
     }

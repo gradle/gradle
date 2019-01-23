@@ -293,7 +293,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciido
         'source-highlighter': 'coderay'
 }
 
-def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
+def javaApiUrl = "https://docs.oracle.com/en/java/javase/11/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
@@ -328,6 +328,10 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
             // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
             // Here we generate this file manually
             new File(destinationDir, 'package-list').text = new File(destinationDir, 'element-list').text
+
+            // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856) fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
+            // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
+            new File(destinationDir, 'script.js').text = new File(srcDocsDir, 'js/javadoc/script.js').text
         }
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.gradle.internal.os.OperatingSystem
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
@@ -29,8 +29,8 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
             task verifyBinariesPlatformType {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetPlatform.operatingSystem.name == "${OperatingSystem.current().name}"
-                        assert it.targetPlatform.architecture.name == "${defaultArchitecture}"
+                        assert it.targetMachine.operatingSystemFamily.name == "${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}"
+                        assert it.targetMachine.architecture.name == "${defaultArchitecture}"
                     }
                 }
             }

@@ -21,12 +21,14 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedVariantDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DefaultVariantDetails;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -64,9 +66,25 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         for (int i=0; i<size; i++) {
             String variantName = decoder.readString();
             AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-            builder.add(new DefaultVariantDetails(Describables.of(variantName), attributes));
+            List<Capability> capabilities = readCapabilities(decoder);
+            builder.add(new DefaultVariantDetails(Describables.of(variantName), attributes, capabilities));
         }
         return builder.build();
+    }
+
+    private List<Capability> readCapabilities(Decoder decoder) throws IOException {
+        int size = decoder.readSmallInt();
+        if (size == 0) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<Capability> capabilities = ImmutableList.builderWithExpectedSize(size);
+        for (int i=0; i<size; i++) {
+            String group = decoder.readString();
+            String name = decoder.readString();
+            String version = decoder.readNullableString();
+            capabilities.add(new ImmutableCapability(group, name, version));
+        }
+        return capabilities.build();
     }
 
     public void write(Encoder encoder, ResolvedGraphComponent value) throws IOException {
@@ -83,6 +101,18 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
         for (ResolvedVariantDetails variant : variants) {
             encoder.writeString(variant.getVariantName().getDisplayName());
             attributeContainerSerializer.write(encoder, variant.getVariantAttributes());
+            writeCapabilities(encoder, variant.getCapabilities());
         }
     }
+
+    private void writeCapabilities(Encoder encoder, List<Capability> capabilities) throws IOException {
+        encoder.writeSmallInt(capabilities.size());
+        for (Capability capability : capabilities) {
+            encoder.writeString(capability.getGroup());
+            encoder.writeString(capability.getName());
+            encoder.writeNullableString(capability.getVersion());
+        }
+    }
+
+
 }

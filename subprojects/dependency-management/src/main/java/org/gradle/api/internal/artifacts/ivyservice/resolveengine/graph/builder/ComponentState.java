@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -37,6 +38,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -252,9 +254,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         ResolvedVariantDetails cur = null;
         for (NodeState node : nodes) {
             if (node.isSelected()) {
-                DisplayName name = Describables.of(node.getMetadata().getName());
-                AttributeContainer attributes = AttributeDesugaring.desugar(node.getMetadata().getAttributes(), node.getAttributesFactory());
-                ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes);
+                ConfigurationMetadata metadata = node.getMetadata();
+                DisplayName name = Describables.of(metadata.getName());
+                List<? extends Capability> capabilities = metadata.getCapabilities().getCapabilities();
+                AttributeContainer attributes = AttributeDesugaring.desugar(metadata.getAttributes(), node.getAttributesFactory());
+                List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(implicitCapability) : ImmutableList.copyOf(capabilities);
+                ResolvedVariantDetails details = new DefaultVariantDetails(name, attributes, resolvedVariantCapabilities);
                 if (result != null) {
                     result.add(details);
                 } else if (cur != null) {

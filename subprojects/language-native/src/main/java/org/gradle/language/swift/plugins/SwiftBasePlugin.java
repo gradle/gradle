@@ -25,7 +25,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.language.nativeplatform.internal.Names;
@@ -33,16 +32,13 @@ import org.gradle.language.plugins.NativeBasePlugin;
 import org.gradle.language.swift.ProductionSwiftComponent;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
-import org.gradle.language.swift.SwiftVersion;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
 import org.gradle.language.swift.internal.DefaultSwiftComponent;
 import org.gradle.language.swift.tasks.SwiftCompile;
-import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.xcode.MacOSSdkPathLocator;
 import org.gradle.nativeplatform.toolchain.plugins.SwiftCompilerPlugin;
 import org.gradle.swiftpm.internal.NativeProjectPublication;
 import org.gradle.swiftpm.internal.SwiftPmTarget;
-import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 
@@ -82,16 +78,16 @@ public class SwiftBasePlugin implements Plugin<Project> {
                 if (binary.isTestable()) {
                     task.getCompilerArgs().add("-enable-testing");
                 }
-                if (binary.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
+                if (binary.getTargetMachine().getOperatingSystemFamily().isMacOs()) {
                     task.getCompilerArgs().add("-sdk");
                     task.getCompilerArgs().add(locator.find().getAbsolutePath());
                 }
                 task.getModuleName().set(binary.getModule());
                 task.getObjectFileDir().set(buildDirectory.dir("obj/" + names.getDirName()));
                 task.getModuleFile().set(buildDirectory.file(binary.getModule().map(moduleName -> "modules/" + names.getDirName() + moduleName + ".swiftmodule")));
-                task.getSourceCompatibility().set(binary.getSourceCompatibility());
+                task.getSourceCompatibility().set(binary.getTargetPlatform().getSourceCompatibility());
 
-                task.getTargetPlatform().set(binary.getTargetPlatform());
+                task.getTargetPlatform().set(binary.getNativePlatform());
 
                 // TODO - make this lazy
                 task.getToolChain().set(binary.getToolChain());
@@ -106,20 +102,6 @@ public class SwiftBasePlugin implements Plugin<Project> {
             binary.getObjectsDir().set(compile.flatMap(task -> task.getObjectFileDir()));
         });
 
-        project.getComponents().withType(DefaultSwiftComponent.class, component -> {
-            component.getBinaries().whenElementKnown(DefaultSwiftBinary.class, binary -> {
-                Provider<SwiftVersion> swiftLanguageVersionProvider = project.provider(() -> {
-                    component.getSourceCompatibility().finalizeValue();
-                    SwiftVersion swiftSourceCompatibility = component.getSourceCompatibility().getOrNull();
-                    if (swiftSourceCompatibility == null) {
-                        return toSwiftVersion(binary.getPlatformToolProvider().getCompilerMetadata(ToolType.SWIFT_COMPILER).getVersion());
-                    }
-                    return swiftSourceCompatibility;
-                });
-
-                binary.getSourceCompatibility().set(swiftLanguageVersionProvider);
-            });
-        });
         project.getComponents().withType(ProductionSwiftComponent.class, component -> {
             project.afterEvaluate(p -> {
                 DefaultSwiftComponent componentInternal = (DefaultSwiftComponent) component;
@@ -135,16 +117,6 @@ public class SwiftBasePlugin implements Plugin<Project> {
                     && Usage.C_PLUS_PLUS_API.equals(details.getProducerValue().getName())) {
                 details.compatible();
             }
-        }
-    }
-
-    static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
-        if (swiftCompilerVersion.getMajor() == 3) {
-            return SwiftVersion.SWIFT3;
-        } else if (swiftCompilerVersion.getMajor() == 4) {
-            return SwiftVersion.SWIFT4;
-        } else {
-            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
         }
     }
 }

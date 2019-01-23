@@ -31,6 +31,7 @@ class DependencySpec {
     List<ExcludeSpec> exclusions = []
     String reason
     Map<String, ?> attributes
+    List<CapabilitySpec> requestedCapabilities = []
 
     DependencySpec(String g, String m, String v, String preferredVersion, String strictVersion, List<String> rejects, Collection<Map> excludes, String reason, Map<String, ?> attributes) {
         group = g
@@ -52,6 +53,11 @@ class DependencySpec {
 
     DependencySpec attribute(String name, Object value) {
         attributes[name] = value
+        this
+    }
+
+    DependencySpec requestedCapability(String group, String name, String version) {
+        requestedCapabilities << new CapabilitySpec(group:group, name:name, version:version)
         this
     }
 }

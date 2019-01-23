@@ -42,13 +42,16 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         boolean transitive = externalModuleDependency.isTransitive();
 
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
-            ((VersionConstraintInternal)externalModuleDependency.getVersionConstraint()).asImmutable(),
-            dependency.getAttributes());
+                DefaultModuleIdentifier.newId(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName())),
+                ((VersionConstraintInternal) externalModuleDependency.getVersionConstraint()).asImmutable(),
+                dependency.getAttributes(),
+                dependency.getRequestedCapabilities());
 
         List<ExcludeMetadata> excludes = convertExcludeRules(clientConfiguration, dependency.getExcludeRules());
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                componentId, selector, clientConfiguration, clientAttributes, dependency.getAttributes(), dependency.getTargetConfiguration(),
+                componentId, selector, clientConfiguration, clientAttributes,
+                dependency.getAttributes(),
+                dependency.getTargetConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 excludes, force, changing, transitive, false, dependency.getReason());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);

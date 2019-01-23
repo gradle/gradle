@@ -54,12 +54,15 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'metadata'
-        cacheLayout.key == 'metadata-2.69'
-        cacheLayout.version == CacheVersion.parse("2.69")
-        cacheLayout.version.toString() == '2.69'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/metadata-2.69')
+        cacheLayout.key == "metadata-2.${expectedVersion}"
+        cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")
+        cacheLayout.version.toString() == "2.${expectedVersion}"
+        cacheLayout.getPath(new File('some/dir')) == new File("some/dir/metadata-2.${expectedVersion}")
         !cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-1")).present
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
+
+        where:
+        expectedVersion = 70
     }
 
     def "use transforms layout"() {

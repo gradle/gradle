@@ -198,7 +198,7 @@ class DependencyInsightReporterSpec extends Specification {
     }
 
     private static DefaultResolvedVariantResult defaultVariant() {
-        new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY)
+        new DefaultResolvedVariantResult(Describables.of("default"), ImmutableAttributes.EMPTY, [])
     }
 
     private static DefaultResolvedDependencyResult path(String path) {

@@ -59,7 +59,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             // HACK to install the executable from a repository 
             def binary = application.developmentBinary
             task install(type: InstallExecutable) {
-                targetPlatform.set(binary.map { it.targetPlatform })
+                targetPlatform.set(binary.map { it.compileTask.get().targetPlatform.get() })
                 toolChain.set(binary.map { it.toolChain }) 
                 installDirectory = layout.projectDirectory.dir("install")
                 lib(configurations.install)

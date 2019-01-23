@@ -597,9 +597,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
         failure.assertHasCause("""Unable to find a matching variant of project :external:
-  - Variant 'bar':
+  - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
       - Required flavor 'free' and found incompatible value 'blue'.
-  - Variant 'foo':
+  - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
       - Required flavor 'free' and found incompatible value 'red'.""")
 
         when:
@@ -611,9 +611,9 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
   - bar
   - foo
 All of them match the consumer attributes:
-  - Variant 'bar':
+  - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
       - Required flavor 'paid' and found compatible value 'blue'.
-  - Variant 'foo':
+  - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
       - Required flavor 'paid' and found compatible value 'red'.""")
     }
 

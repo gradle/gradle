@@ -68,7 +68,7 @@ class Jsr330ConstructorSelector implements ConstructorSelector {
     }
 
     private static <T> void validateType(Class<T> type) {
-        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
+        if (!type.isInterface() && type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(type);
             formatter.append(" is a non-static inner class.");

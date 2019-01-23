@@ -36,7 +36,7 @@ public class IncompatibleConfigurationSelectionException extends RuntimeExceptio
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, String targetConfiguration, boolean variantAware) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node((variantAware ? "Variant '" : "Configuration '") + targetConfiguration + "' in " + targetComponent.getId().getDisplayName() + " does not match the consumer attributes");
-        formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration), variantAware);
+        formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration), variantAware);
         return formatter.toString();
     }
 

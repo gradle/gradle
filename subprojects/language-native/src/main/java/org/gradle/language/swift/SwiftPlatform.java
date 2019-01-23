@@ -17,22 +17,22 @@
 package org.gradle.language.swift;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
-import org.gradle.nativeplatform.OperatingSystemFamily;
-import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.TargetMachine;
 
 /**
  * A target platform for building Swift binaries.
  *
- * @since 4.5
+ * @since 5.2
  */
 @Incubating
-public interface SwiftPlatform extends NativePlatform {
+public interface SwiftPlatform {
     /**
-     * The operating system family being targeted.
-     *
-     * @since 4.8
+     * Returns the target machine for this platform.
      */
-    @Nested
-    OperatingSystemFamily getOperatingSystemFamily();
+    TargetMachine getTargetMachine();
+
+    /**
+     * Returns the Swift language level to use to compile the source files.
+     */
+    SwiftVersion getSourceCompatibility();
 }

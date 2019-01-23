@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,36 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.Named;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-public class ManagedNamedTypeSnapshot implements ValueSnapshot {
+import javax.annotation.Nullable;
+
+public class ImmutableManagedValueSnapshot implements ValueSnapshot {
     private final String className;
-    private final String name;
+    private final String value;
 
-    public ManagedNamedTypeSnapshot(Named value) {
-        // Don't retain the value, to allow ClassLoader to be collected
-        className = value.getClass().getName();
-        name = value.getName();
-    }
-
-    public ManagedNamedTypeSnapshot(String className, String name) {
+    public ImmutableManagedValueSnapshot(String className, String value) {
         this.className = className;
-        this.name = name;
+        this.value = value;
     }
 
     public String getClassName() {
         return className;
     }
 
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
-        if (value instanceof NamedObjectInstantiator.Managed) {
-            Named named = (Named) value;
-            if (className.equals(named.getClass().getName()) && name.equals(named.getName())) {
-                return this;
-            }
+    public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
+        ValueSnapshot snapshot = snapshotter.snapshot(value);
+        if (equals(snapshot)) {
+            return this;
         }
-        return snapshotter.snapshot(value);
+        return snapshot;
     }
 
     @Override
@@ -64,18 +56,18 @@ public class ManagedNamedTypeSnapshot implements ValueSnapshot {
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        ManagedNamedTypeSnapshot other = (ManagedNamedTypeSnapshot) obj;
-        return other.className.equals(className) && other.name.equals(name);
+        ImmutableManagedValueSnapshot other = (ImmutableManagedValueSnapshot) obj;
+        return other.className.equals(className) && other.value.equals(value);
     }
 
     @Override
     public int hashCode() {
-        return className.hashCode() ^ name.hashCode();
+        return className.hashCode() ^ value.hashCode();
     }
 
     @Override
     public void appendToHasher(Hasher hasher) {
         hasher.putString(className);
-        hasher.putString(name);
+        hasher.putString(value);
     }
 }

@@ -38,31 +38,31 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "7.1.2"
+        static nebulaDependencyRecommender = "7.3.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "9.2.2"
+        static nebulaPluginPlugin = "9.2.4"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "10.3.3"
+        static nebulaLint = "10.4.2"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.0")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.0.5"
+        static nebulaResolutionRules = "7.0.7"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.3")
+        static shadow = Versions.of("4.0.4")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = "1.5.8.1"
+        static asciidoctor = "1.5.9.2"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "1.6.6"
+        static spotbugs = "1.6.9"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "4.1.0"
+        static docker = "4.3.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
@@ -71,13 +71,13 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.6.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.1.1.RELEASE"
+        static springBoot = "2.1.2.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "28.0.3"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle3x = "3.2.1"
-        static androidGradle = Versions.of(androidGradle3x)
+        static androidGradle3x = "3.3.0"
+        static androidGradle = Versions.of("3.2.1", androidGradle3x)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.2.21', '1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71', '1.3.0', '1.3.10', '1.3.11')

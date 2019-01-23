@@ -395,10 +395,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Variant 'foo2':
+  - Variant 'foo2' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'.
-  - Variant 'foo3':
+  - Variant 'foo3' capability test:b:unspecified:
       - Required buildType 'debug' and found compatible value 'debug'.
       - Required flavor 'free' and found compatible value 'ONE'."""
     }

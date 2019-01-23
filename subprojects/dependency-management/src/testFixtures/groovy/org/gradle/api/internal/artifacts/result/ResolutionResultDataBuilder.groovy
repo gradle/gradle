@@ -56,7 +56,7 @@ class ResolutionResultDataBuilder {
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
-        return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes)
+        return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes, [])
     }
 
     static ModuleComponentSelector newSelector(String group, String module, String version) {
