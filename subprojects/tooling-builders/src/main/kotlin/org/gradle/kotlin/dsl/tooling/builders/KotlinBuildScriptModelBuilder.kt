@@ -63,7 +63,9 @@ import org.gradle.kotlin.dsl.typeOf
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 import java.io.File
+import java.io.PrintWriter
 import java.io.Serializable
+import java.io.StringWriter
 
 import java.util.*
 
@@ -78,7 +80,7 @@ data class StandardKotlinBuildScriptModel(
     override val sourcePath: List<File>,
     override val implicitImports: List<String>,
     override val editorReports: List<EditorReport>,
-    override val exceptions: List<Exception>,
+    override val exceptions: List<String>,
     override val enclosingScriptProjectDir: File?
 ) : KotlinBuildScriptModel, Serializable
 
@@ -349,7 +351,7 @@ data class KotlinScriptTargetModelBuilder(
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
             implicitImports,
             buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
-            classPathModeExceptionCollector.exceptions,
+            classPathModeExceptionCollector.exceptions.map(::exceptionToString),
             enclosingScriptProjectDir
         )
     }
@@ -379,6 +381,10 @@ data class KotlinScriptTargetModelBuilder(
             exceptions,
             project.isLocationAwareEditorHintsEnabled
         )
+
+    private
+    fun exceptionToString(exception: Exception) =
+        StringWriter().also { exception.printStackTrace(PrintWriter(it)) }.toString()
 }
 
 
