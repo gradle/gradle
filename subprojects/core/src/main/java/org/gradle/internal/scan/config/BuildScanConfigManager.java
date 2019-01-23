@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
+import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.isNotSupported;
+
 /**
  * This is the meeting point between Gradle and the build scan plugin during initialization. This is effectively build scoped.
  */
@@ -105,11 +108,14 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
             throw new IllegalStateException("Configuration has already been collected.");
         }
 
+        VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
+        if (isNotSupported(pluginVersion)) {
+            throw new UnsupportedBuildScanPluginVersionException(UNSUPPORTED_PLUGIN_VERSION_MESSAGE);
+        }
+
         collected = true;
         BuildScanConfig.Attributes configAttributes = this.configAttributes.create();
-
-        VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        String unsupportedReason = compatibility.unsupportedReason(pluginVersion);
+        String unsupportedReason = compatibility.unsupportedReason();
 
         if (unsupportedReason != null) {
             if (isPluginAwareOfUnsupported(pluginVersion)) {
