@@ -142,9 +142,7 @@ class ResidualProgramCompiler(
             "()Ljava/lang/String;",
             "()Ljava/lang/String;"
         ) {
-            if (secondStageScriptText.length < 16 * 1024) {
-                LDC(secondStageScriptText)
-            } else {
+            if (mightBeLargerThan64KB(secondStageScriptText)) {
                 // Large scripts are stored as a resource to overcome
                 // the 64KB string constant limitation
                 val resourcePath = storeStringToResource(secondStageScriptText)
@@ -155,10 +153,18 @@ class ResidualProgramCompiler(
                     ExecutableProgram.StagedProgram::loadScriptResource.name,
                     "(Ljava/lang/String;)Ljava/lang/String;"
                 )
+            } else {
+                LDC(secondStageScriptText)
             }
             ARETURN()
         }
     }
+
+    private
+    fun mightBeLargerThan64KB(secondStageScriptText: String) =
+        // We use a simple heuristic to avoid converting the string to bytes
+        // if all code points are in UTF32, 16KB code points would be 64KB bytes
+        secondStageScriptText.length >= 16 * 1024
 
     private
     fun storeStringToResource(secondStageScriptText: String): String {
