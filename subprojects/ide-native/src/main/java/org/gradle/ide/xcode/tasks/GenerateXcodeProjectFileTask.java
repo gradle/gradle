@@ -91,6 +91,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
         for (XcodeTarget xcodeTarget : xcodeProject.getTargets()) {
             if (xcodeTarget.isBuildable()) {
                 project.getTargets().add(toGradlePbxTarget(xcodeTarget));
+            } else {
+                getLogger().warn("'" + xcodeTarget.getName() + "' component in project '" + getProject().getPath() + "' is not buildable.");
             }
             project.getTargets().add(toIndexPbxTarget(xcodeTarget));
 

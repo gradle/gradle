@@ -56,6 +56,24 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
         }
     }
 
+    def "warns about unbuildable components in generated xcode project"() {
+        given:
+        makeSingleProject()
+        configureComponentUnderTest """
+            targetMachines = [machines.os("os-family")]
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds("xcode")
+
+        then:
+        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
+        expectedXcodeTargets.each { target ->
+            result.assertOutputContains("'${target.name}' component in project ':' is not buildable.");
+        }
+    }
+
     @Requires(TestPrecondition.XCODE)
     def "returns meaningful errors from xcode when component product is unbuildable"() {
         useXcodebuildTool()
