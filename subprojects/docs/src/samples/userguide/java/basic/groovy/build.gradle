@@ -99,7 +99,7 @@ check.dependsOn integrationTest
 
 // tag::defining-sources-jar-task[]
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allJava
 }
 // end::defining-sources-jar-task[]

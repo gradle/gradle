@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -33,6 +34,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -43,6 +45,7 @@ import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -51,11 +54,14 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -90,6 +96,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
+    private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
     /*
      * Maven supports wildcards in exclusion rules according to:
      * http://www.smartjava.org/content/maven-and-wildcard-exclusions
@@ -110,6 +117,9 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return left.getUsage().getName().compareTo(right.getUsage().getName());
         }
     };
+    @VisibleForTesting
+    public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
+    public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published pom file.";
 
     private final String name;
     private final MavenPomInternal pom;
@@ -244,6 +254,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE);
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<ModuleDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -265,12 +276,23 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {
+                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                                publicationWarningsCollector.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            }
                             addImportDependencyConstraint(dependency);
                         }
-                    } else if (dependency instanceof ProjectDependency) {
-                        addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                     } else {
-                        addModuleDependency(dependency, globalExcludes, dependencies);
+                        if (!dependency.getAttributes().isEmpty()) {
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        }
+                        if (dependency instanceof ProjectDependency) {
+                            addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
+                        } else {
+                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                                publicationWarningsCollector.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                            }
+                            addModuleDependency(dependency, globalExcludes, dependencies);
+                        }
                     }
                 }
             }
@@ -280,7 +302,26 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     addDependencyConstraint(dependency, dependencyConstraints);
                 }
             }
+            if (!usageContext.getCapabilities().isEmpty()) {
+                for (Capability capability : usageContext.getCapabilities()) {
+                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
+            }
         }
+        publicationWarningsCollector.complete(getDisplayName());
+    }
+
+    private boolean isVersionMavenIncompatible(String version) {
+        if (version == null) {
+            return false;
+        }
+        if (version.contains("+")) {
+            return true;
+        }
+        if (version.contains("latest")) {
+            return !MavenVersionSelectorScheme.isSubstituableLatest(version);
+        }
+        return false;
     }
 
     private void addImportDependencyConstraint(ProjectDependency dependency) {

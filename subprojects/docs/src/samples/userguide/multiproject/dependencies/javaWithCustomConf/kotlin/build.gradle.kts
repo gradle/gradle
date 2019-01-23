@@ -12,7 +12,7 @@ project(":api") {
         "implementation"(project(":shared"))
     }
     tasks.register<Jar>("spiJar") {
-        baseName = "api-spi"
+        archiveBaseName.set("api-spi")
         from(project.the<SourceSetContainer>()["main"].output)
         include("org/gradle/sample/api/**")
     }

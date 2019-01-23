@@ -121,7 +121,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         def tmpOutDir = dslDir.file("tmp")
-        def zipFile = dslDir.file("build/libs/archives-example-uber-1.0.0.jar")
+        def zipFile = dslDir.file("build/libs/archives-example-1.0.0-uber.jar")
         zipFile.isFile()
         zipFile.unzipTo(tmpOutDir)
         tmpOutDir.file("META-INF/MANIFEST.MF").isFile()

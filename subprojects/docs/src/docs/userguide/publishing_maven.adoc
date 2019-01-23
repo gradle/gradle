@@ -219,7 +219,7 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                artifactId = jar.baseName
+                artifactId = jar.archiveBaseName
             }
         }
     }
@@ -236,7 +236,7 @@ subprojects {
         publications {
             create<MavenPublication>("mavenJava") {
                 from(components["java"])
-                artifactId = tasks.jar.get().baseName
+                artifactId = tasks.jar.get().archiveBaseName.get()
             }
         }
     }
@@ -260,7 +260,7 @@ subprojects {
             mavenJava(MavenPublication) {
                 from components.java
                 afterEvaluate {
-                    artifactId = jar.baseName
+                    artifactId = jar.archiveBaseName
                 }
             }
         }
@@ -279,7 +279,7 @@ subprojects {
             create<MavenPublication>("mavenJava") {
                 from(components["java"])
                 afterEvaluate {
-                    artifactId = tasks.jar.get().baseName
+                    artifactId = tasks.jar.get().archiveBaseName.get()
                 }
             }
         }

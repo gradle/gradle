@@ -660,7 +660,7 @@ tasks {
 
     register<Zip>("archiveTestReports") {
         val reportType: String by test.get().extra  // <2>
-        appendix = reportType
+        archiveAppendix.set(reportType)
         from(test.get().reports.html.destination)
     }
 }
@@ -678,7 +678,7 @@ tasks.test.doLast { ... }
 val testReportType by tasks.test.get().extra("dev")  // <1>
 
 tasks.create<Zip>("archiveTestReports") {
-    appendix = testReportType  // <2>
+    archiveAppendix.set(testReportType)  // <2>
     from(test.get().reports.html.destination)
 }
 ----

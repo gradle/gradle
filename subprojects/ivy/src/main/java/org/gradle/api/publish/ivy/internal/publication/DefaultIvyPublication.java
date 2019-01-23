@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -24,6 +25,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -31,6 +33,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
@@ -38,6 +41,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -46,10 +50,13 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
+import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfigurationContainer;
@@ -85,6 +92,8 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
+    private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
+
     private static final Comparator<? super UsageContext> USAGE_ORDERING = new Comparator<UsageContext>() {
         @Override
         public int compare(UsageContext left, UsageContext right) {
@@ -98,6 +107,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             return left.getUsage().getName().compareTo(right.getUsage().getName());
         }
     };
+    @VisibleForTesting
+    public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -229,6 +240,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "");
         configurations.maybeCreate("default");
 
         Set<PublishArtifact> seenArtifacts = Sets.newHashSet();
@@ -250,11 +262,31 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 if (seenDependencies.add(dependency)) {
                 // TODO: When we support multiple components or configurable dependencies, we'll need to merge the confs of multiple dependencies with same id.
                     String confMapping = String.format("%s->%s", conf, dependency.getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : dependency.getTargetConfiguration());
+                    if (!dependency.getAttributes().isEmpty()) {
+                        publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared with Gradle attributes", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                    }
                     if (dependency instanceof ProjectDependency) {
                         addProjectDependency((ProjectDependency) dependency, confMapping);
                     } else {
-                        addExternalDependency((ExternalDependency) dependency, confMapping);
+                        ExternalDependency externalDependency = (ExternalDependency) dependency;
+                        if (PlatformSupport.isTargettingPlatform(dependency)) {
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
+                        }
+                        if (externalDependency.getVersion() == null) {
+                            publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
+                        }
+                        addExternalDependency(externalDependency, confMapping);
                     }
+                }
+            }
+            if (!usageContext.getDependencyConstraints().isEmpty()) {
+                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                }
+            }
+            if (!usageContext.getCapabilities().isEmpty()) {
+                for (Capability capability : usageContext.getCapabilities()) {
+                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
 
@@ -262,6 +294,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
             }
         }
+        publicationWarningsCollector.complete(getDisplayName());
     }
 
     private List<UsageContext> getSortedUsageContexts() {

@@ -357,6 +357,8 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         '--source-path'    | 'CompileOptions.sourcepath'
         '-processorpath'   | 'CompileOptions.annotationProcessorPath'
         '--processor-path' | 'CompileOptions.annotationProcessorPath'
+        '-J'               | 'CompileOptions.forkOptions.jvmArgs'
+        '-J-Xdiag'         | 'CompileOptions.forkOptions.jvmArgs'
     }
 
     def "removes sourcepath when module-source-path is provided"() {

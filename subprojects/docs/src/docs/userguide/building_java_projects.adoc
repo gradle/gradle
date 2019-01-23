@@ -325,7 +325,8 @@ include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defin
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 ====
 
-See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
+See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you.
+And note that you need to use `archiveClassifier` rather than `archiveAppendix` here for correct publication of the JAR.
 
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
