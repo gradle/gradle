@@ -43,13 +43,10 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
     abstract String getTestedComponentDsl()
 
     @Override
-    protected void configureComponentUnderTest(String buildScript) {
-        super.configureComponentUnderTest(buildScript)
-        buildFile << """
-            ${testedComponentDsl} {
-                $buildScript
-            }
-        """
+    protected String configureTargetMachines(String... targetMachines) {
+        return """
+            ${testedComponentDsl}.targetMachines = [${targetMachines.join(",")}]
+        """ + super.configureTargetMachines(targetMachines)
     }
 
     @Override

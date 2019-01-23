@@ -80,9 +80,9 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
     def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
         given:
         makeSingleProject()
-        configureComponentUnderTest """
-            targetMachines = [machines.os('os-family')]
-            sourceCompatibility = ${sourceCompatibility}
+        buildFile << configureTargetMachines("machines.os('os-family')")
+        buildFile << """
+            ${componentUnderTestDsl}.sourceCompatibility = ${sourceCompatibility}
         """
         componentUnderTest.writeToProject(testDirectory)
 

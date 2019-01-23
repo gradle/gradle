@@ -25,9 +25,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
     def "can create xcode project for unbuildable component"() {
         given:
         makeSingleProject()
-        configureComponentUnderTest """
-            targetMachines = [machines.os("os-family")]
-        """
+        buildFile << configureTargetMachines("machines.os('os-family')")
         componentUnderTest.writeToProject(testDirectory)
 
         when:
@@ -59,9 +57,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
     def "warns about unbuildable components in generated xcode project"() {
         given:
         makeSingleProject()
-        configureComponentUnderTest """
-            targetMachines = [machines.os("os-family")]
-        """
+        buildFile << configureTargetMachines("machines.os('os-family')")
         componentUnderTest.writeToProject(testDirectory)
 
         when:
@@ -80,9 +76,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
 
         given:
         makeSingleProject()
-        configureComponentUnderTest """
-            targetMachines = [machines.os("os-family")]
-        """
+        buildFile << configureTargetMachines("machines.os('os-family')")
 
         componentUnderTest.writeToProject(testDirectory)
         succeeds("xcode")
@@ -102,6 +96,12 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
             ${componentUnderTestDsl} {
                 $buildScript
             }
+        """
+    }
+
+    protected String configureTargetMachines(String... targetMachines) {
+        return """
+            ${componentUnderTestDsl}.targetMachines = [${targetMachines.join(",")}]
         """
     }
 
