@@ -163,7 +163,7 @@ class ResidualProgramCompiler(
     private
     fun storeStringToResource(secondStageScriptText: String): String {
         val hash = Hashing.hashString(secondStageScriptText)
-        val resourcePath = "gradle-kotlin-dsl/$hash"
+        val resourcePath = "scripts/$hash.gradle.kts"
         writeResourceFile(resourcePath, secondStageScriptText)
         return resourcePath
     }
