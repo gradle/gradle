@@ -51,12 +51,12 @@ interface ClassGenerator {
         /**
          * Does this constructor use the given service type?
          */
-        boolean requiresServiceByType(Class<?> serviceType);
+        boolean requiresService(Class<?> serviceType);
 
         /**
          * Does this constructor use a service injected via the given annotation?
          */
-        boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceAnnotation);
+        boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation);
 
         Class<?>[] getParameterTypes();
 

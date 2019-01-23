@@ -27,12 +27,12 @@ public interface InstanceFactory<T> {
     /**
      * Is the given service required to be injected by type?
      */
-    boolean requiresServiceByType(Class<?> serviceType);
+    boolean requiresService(Class<?> serviceType);
 
     /**
-     * Is the given service required to be injected by annotation?
+     * Is any service injection triggered by the given annotation?
      */
-    boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceType);
+    boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> injectAnnotation);
 
     /**
      * Creates a new instance from the given services and parameters.

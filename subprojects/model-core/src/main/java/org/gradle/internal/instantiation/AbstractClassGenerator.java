@@ -183,13 +183,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new ClassGenerationException(formatter.toString(), e);
         }
 
-        ImmutableList.Builder<Class<? extends Annotation>> injectedServicesByAnnotation = ImmutableList.builder();
+        ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection = ImmutableList.builder();
         for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
             if (handler.isUsed()) {
-                injectedServicesByAnnotation.add(handler.getAnnotation());
+                annotationsTriggeringServiceInjection.add(handler.getAnnotation());
             }
         }
-        CachedClass cachedClass = new CachedClass(type, subclass, injectionHandler.getInjectedServices(), injectedServicesByAnnotation.build());
+        CachedClass cachedClass = new CachedClass(type, subclass, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
         cache.put(type, cachedClass);
         cache.put(subclass, cachedClass);
         return cachedClass.asWrapper();
@@ -312,15 +312,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private class GeneratedClassImpl implements GeneratedClass<Object> {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
-        private final List<Class<?>> injectedServicesByType;
-        private final List<Class<? extends Annotation>> injectedServicesByAnnotation;
+        private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServicesByType, List<Class<? extends Annotation>> injectedServicesByAnnotation) {
+        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = generatedClass;
             this.outerType = outerType;
-            this.injectedServicesByType = injectedServicesByType;
-            this.injectedServicesByAnnotation = injectedServicesByAnnotation;
+            this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
@@ -359,13 +359,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public boolean requiresServiceByType(Class<?> serviceType) {
+            public boolean requiresService(Class<?> serviceType) {
                 for (Class<?> parameterType : constructor.getParameterTypes()) {
                     if (parameterType.isAssignableFrom(serviceType)) {
                         return true;
                     }
                 }
-                for (Class<?> injectedService : injectedServicesByType) {
+                for (Class<?> injectedService : injectedServices) {
                     if (injectedService.isAssignableFrom(serviceType)) {
                         return true;
                     }
@@ -374,8 +374,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceAnnotation) {
-                return injectedServicesByAnnotation.contains(serviceAnnotation);
+            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
             }
 
             @Override
@@ -406,13 +406,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final WeakReference<Class<?>> generatedClass;
         private final WeakReference<Class<?>> outerType;
         // This should be a list of weak references. For now, assume that all services are Gradle core services and are never collected
-        private final List<Class<?>> injectedServicesByType;
-        private final List<Class<? extends Annotation>> injectedServicesByAnnotation;
+        private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
 
-        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServicesByType, List<Class<? extends Annotation>> injectedServicesByAnnotation) {
+        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = new WeakReference<Class<?>>(generatedClass);
-            this.injectedServicesByType = injectedServicesByType;
-            this.injectedServicesByAnnotation = injectedServicesByAnnotation;
+            this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
 
             // This is expensive to calculate, so cache the result
             Class<?> enclosingClass = type.getEnclosingClass();
@@ -430,7 +430,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (generatedClass == null) {
                 return null;
             }
-            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServicesByType, injectedServicesByAnnotation);
+            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices, annotationsTriggeringServiceInjection);
         }
     }
 

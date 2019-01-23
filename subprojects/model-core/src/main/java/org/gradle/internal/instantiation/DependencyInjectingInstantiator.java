@@ -58,13 +58,13 @@ class DependencyInjectingInstantiator implements Instantiator {
         final ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forType(type);
         return new InstanceFactory<T>() {
             @Override
-            public boolean requiresServiceByAnnotation(Class<? extends Annotation> annotation) {
-                return constructor.requiresServiceByAnnotation(annotation);
+            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> injectAnnotation) {
+                return constructor.serviceInjectionTriggeredByAnnotation(injectAnnotation);
             }
 
             @Override
-            public boolean requiresServiceByType(Class<?> serviceType) {
-                return constructor.requiresServiceByType(serviceType);
+            public boolean requiresService(Class<?> serviceType) {
+                return constructor.requiresService(serviceType);
             }
 
             @Override

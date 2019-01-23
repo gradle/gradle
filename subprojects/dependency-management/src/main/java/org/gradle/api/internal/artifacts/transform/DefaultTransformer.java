@@ -53,7 +53,7 @@ public class DefaultTransformer implements Transformer {
         this.implementationClass = implementationClass;
         this.parameterObject = parameterObject;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
-        this.requiresDependencies = instanceFactory.requiresServiceByAnnotation(PrimaryInputDependencies.class);
+        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;

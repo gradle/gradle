@@ -59,12 +59,12 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
 
                         @Override
-                        public boolean requiresServiceByType(Class<?> serviceType) {
+                        public boolean requiresService(Class<?> serviceType) {
                             return false;
                         }
 
                         @Override
-                        public boolean requiresServiceByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                        public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                             return false;
                         }
 

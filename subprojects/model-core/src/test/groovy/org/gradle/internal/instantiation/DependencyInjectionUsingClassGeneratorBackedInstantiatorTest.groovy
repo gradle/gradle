@@ -106,9 +106,9 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         def factory = instantiator.factoryFor(HasInjectConstructor)
 
         then:
-        factory.requiresServiceByType(String)
-        factory.requiresServiceByType(Number)
-        !factory.requiresServiceByType(Runnable)
+        factory.requiresService(String)
+        factory.requiresService(Number)
+        !factory.requiresService(Runnable)
     }
 
     def "can query whether service is required when declared as getter"() {
@@ -116,9 +116,9 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         def factory = instantiator.factoryFor(HasGetterInjection)
 
         then:
-        factory.requiresServiceByType(String)
-        !factory.requiresServiceByType(Number)
-        !factory.requiresServiceByType(Runnable)
+        factory.requiresService(String)
+        !factory.requiresService(Number)
+        !factory.requiresService(Runnable)
     }
 
     static class HasGetterInjection {

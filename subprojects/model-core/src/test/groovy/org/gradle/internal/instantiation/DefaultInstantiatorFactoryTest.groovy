@@ -66,14 +66,14 @@ class DefaultInstantiatorFactoryTest extends Specification {
         when:
         def instanceFactory = scheme.forType(UsesAnnotation1ForInjection)
         then:
-        instanceFactory.requiresServiceByAnnotation(Annotation1)
-        !instanceFactory.requiresServiceByAnnotation(Annotation2)
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1)
+        !instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
 
         when:
         instanceFactory = scheme.forType(UsesAnnotationsForInjection)
         then:
-        instanceFactory.requiresServiceByAnnotation(Annotation1)
-        instanceFactory.requiresServiceByAnnotation(Annotation2)
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1)
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
     }
 }
 
