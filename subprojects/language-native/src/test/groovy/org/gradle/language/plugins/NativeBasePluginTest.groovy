@@ -162,7 +162,7 @@ class NativeBasePluginTest extends Specification {
         def staticLib = Stub(ConfigurableComponentWithStaticLibrary)
         staticLib.name >> "windowsDebug"
         staticLib.names >> Names.of("windowsDebug")
-        staticLib.targetPlatform >> Stub(NativePlatformInternal)
+        staticLib.nativePlatform >> Stub(NativePlatformInternal)
         staticLib.toolChain >> Stub(NativeToolChainInternal)
         staticLib.platformToolProvider >> toolProvider
         staticLib.baseName >> Providers.of("test_lib")
@@ -196,7 +196,7 @@ class NativeBasePluginTest extends Specification {
         def sharedLibrary = Stub(ConfigurableComponentWithSharedLibrary)
         sharedLibrary.name >> "windowsDebug"
         sharedLibrary.names >> Names.of("windowsDebug")
-        sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
+        sharedLibrary.nativePlatform >> Stub(NativePlatformInternal)
         sharedLibrary.toolChain >> Stub(NativeToolChainInternal)
         sharedLibrary.platformToolProvider >> toolProvider
         sharedLibrary.baseName >> Providers.of("test_lib")
@@ -234,7 +234,7 @@ class NativeBasePluginTest extends Specification {
         sharedLibrary.names >> Names.of("windowsDebug")
         sharedLibrary.debuggable >> true
         sharedLibrary.optimized >> true
-        sharedLibrary.targetPlatform >> Stub(NativePlatformInternal)
+        sharedLibrary.nativePlatform >> Stub(NativePlatformInternal)
         sharedLibrary.toolChain >> Stub(NativeToolChainInternal)
         sharedLibrary.platformToolProvider >> toolProvider
         sharedLibrary.baseName >> Providers.of("test_lib")
@@ -281,7 +281,7 @@ class NativeBasePluginTest extends Specification {
         def executable = Stub(ConfigurableComponentWithExecutable)
         executable.name >> "windowsDebug"
         executable.names >> Names.of("windowsDebug")
-        executable.targetPlatform >> Stub(NativePlatformInternal)
+        executable.nativePlatform >> Stub(NativePlatformInternal)
         executable.toolChain >> Stub(NativeToolChainInternal)
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")
@@ -336,7 +336,7 @@ class NativeBasePluginTest extends Specification {
         executable.names >> Names.of("windowsDebug")
         executable.debuggable >> true
         executable.optimized >> true
-        executable.targetPlatform >> Stub(NativePlatformInternal)
+        executable.nativePlatform >> Stub(NativePlatformInternal)
         executable.toolChain >> Stub(NativeToolChainInternal)
         executable.platformToolProvider >> toolProvider
         executable.baseName >> Providers.of("test_app")

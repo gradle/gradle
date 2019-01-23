@@ -41,6 +41,7 @@ import org.gradle.language.swift.SwiftApplication;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftBinary;
+import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.language.swift.plugins.SwiftBasePlugin;
 import org.gradle.language.swift.tasks.SwiftCompile;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
@@ -120,6 +121,7 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         final DefaultSwiftXCTestSuite testComponent = testSuite;
 
         testComponent.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
+        testComponent.getSourceCompatibility().convention(testComponent.getTestedComponent().flatMap(it -> it.getSourceCompatibility()));
         final String mainComponentName = "main";
 
         project.getComponents().withType(ProductionSwiftComponent.class, component -> {
@@ -160,10 +162,11 @@ public class XCTestConventionPlugin implements Plugin<Project> {
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
-                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, variantIdentity.getTargetMachine());
+                            testComponent.getSourceCompatibility().finalizeValue();
+                            ToolChainSelector.Result<SwiftPlatform> result = toolChainSelector.select(SwiftPlatform.class, new DefaultSwiftPlatform(variantIdentity.getTargetMachine(), testComponent.getSourceCompatibility().getOrNull()));
 
                             // Create test suite executable
-                            if (result.getTargetPlatform().getOperatingSystemFamily().isMacOs()) {
+                            if (result.getTargetPlatform().getTargetMachine().getOperatingSystemFamily().isMacOs()) {
                                 testComponent.addBundle(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
                             } else {
                                 testComponent.addExecutable(variantIdentity, result.getTargetPlatform(), result.getToolChain(), result.getPlatformToolProvider());
@@ -242,11 +245,6 @@ public class XCTestConventionPlugin implements Plugin<Project> {
         testedComponent.getBinaries().whenElementFinalized(testedBinary -> {
             if (testedBinary != testedComponent.getDevelopmentBinary().get()) {
                 return;
-            }
-
-            // If nothing was configured for the test suite source compatibility, use the tested component one.
-            if (testSuite.getSourceCompatibility().getOrNull() == null) {
-                testExecutable.getSourceCompatibility().set(testedBinary.getSourceCompatibility());
             }
 
             // Setup the dependency on the main binary

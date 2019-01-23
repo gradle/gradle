@@ -99,7 +99,9 @@
             return null;
         };
     }
-    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + window.location.pathname + "']"), function (link) {
+
+    var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
+    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + currentChapterFileName + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
 

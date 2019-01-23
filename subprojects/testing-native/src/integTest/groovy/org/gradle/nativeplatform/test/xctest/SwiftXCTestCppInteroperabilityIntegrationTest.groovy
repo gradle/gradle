@@ -47,9 +47,9 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
             }
 
             [library, xctest]*.binaries*.configureEach {
-                if (targetPlatform.operatingSystemFamily.macOs) {
+                if (targetMachine.operatingSystemFamily.macOs) {
                     linkTask.get().linkerArgs.add("-lc++")
-                } else if (targetPlatform.operatingSystemFamily.linux) {
+                } else if (targetMachine.operatingSystemFamily.linux) {
                     linkTask.get().linkerArgs.add("-lstdc++")
                 }
             }

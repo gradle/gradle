@@ -37,7 +37,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.SWIFT3
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
                     }
                 }
             }
@@ -66,10 +66,10 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
             task verifyBinariesSwiftVersion {
                 doLast {
                     ${testedComponentDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.${componentSourceCompatibility.name()}
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${componentSourceCompatibility.name()}
                     }
                     ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.sourceCompatibility.get() == SwiftVersion.${xctestSourceCompatibility.name()}
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.${xctestSourceCompatibility.name()}
                     }
                 }
             }

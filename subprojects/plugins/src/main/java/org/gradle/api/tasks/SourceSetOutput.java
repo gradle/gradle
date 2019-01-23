@@ -43,7 +43,7 @@ import java.util.Map;
  *
  * Working with generated resources.
  * <p>
- * In general, we recommend generating resources into folders different than the regular resourcesDir and classesDir.
+ * In general, we recommend generating resources into folders different than the regular resourcesDir and classesDirs.
  * Usually, it makes the build easier to understand and maintain. Also it gives some additional benefits
  * because other Gradle plugins can take advantage of the output dirs 'registered' in the SourceSet.output.
  * For example: Java plugin will use those dirs in calculating class paths and for jarring the content;
