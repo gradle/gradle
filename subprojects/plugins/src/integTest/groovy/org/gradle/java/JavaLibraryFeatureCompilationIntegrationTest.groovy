@@ -20,7 +20,7 @@ package org.gradle.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class JavaLibraryOptionalFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
+class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         settingsFile << """
@@ -35,7 +35,7 @@ class JavaLibraryOptionalFeatureCompilationIntegrationTest extends AbstractInteg
     }
 
     @Unroll
-    def "project can declare and compile optional feature (configuration=#configuration)"() {
+    def "project can declare and compile feature (configuration=#configuration)"() {
         settingsFile << """
             include 'b'
         """
@@ -86,7 +86,7 @@ class JavaLibraryOptionalFeatureCompilationIntegrationTest extends AbstractInteg
         configuration << ["myFeatureApi", "myFeatureImplementation"]
     }
 
-    def "Java Library can depend on optional feature of component"() {
+    def "Java Library can depend on feature of component"() {
         settingsFile << """
             include 'b', 'c', 'd'
         """
@@ -174,7 +174,7 @@ class JavaLibraryOptionalFeatureCompilationIntegrationTest extends AbstractInteg
 
     }
 
-    def "main component doesn't expose dependencies from optional feature"() {
+    def "main component doesn't expose dependencies from feature"() {
         settingsFile << """
             include 'b', 'c'
         """

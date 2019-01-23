@@ -19,21 +19,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConfigurationPublications;
-import org.gradle.api.artifacts.ConfigurationVariant;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskContainer;
-import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.inject.Inject;
-import java.io.File;
 
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
+import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
 /**
  * <p>A {@link Plugin} which extends the capabilities of the {@link JavaPlugin Java plugin} by cleanly separating
@@ -77,21 +69,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
         apiConfiguration.extendsFrom(compileConfiguration);
-    }
-
-    public static void registerClassesDirVariant(TaskContainer tasks, ObjectFactory objectFactory, Configuration configuration) {
-        final Provider<JavaCompile> javaCompile = tasks.named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
-
-        // Define a classes variant to use for compilation
-        ConfigurationPublications publications = configuration.getOutgoing();
-        ConfigurationVariant variant = publications.getVariants().create("classes");
-        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
-        variant.artifact(new JavaPlugin.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
-            @Override
-            public File getFile() {
-                return javaCompile.get().getDestinationDir();
-            }
-        });
     }
 
 }

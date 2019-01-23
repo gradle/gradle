@@ -19,9 +19,9 @@ package org.gradle.api.publish.maven
 
 import spock.lang.Unroll
 
-class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublishOptionalDependenciesJavaIntegTest {
+class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
 
-    def "can publish java-library with optional feature"() {
+    def "can publish java-library with a feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
@@ -44,7 +44,7 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
         """
 
         when:
@@ -85,7 +85,7 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
         }
     }
 
-    def "doesn't allow publishing an optional feature without capability"() {
+    def "doesn't allow publishing a feature without capability"() {
         mavenRepo.module('org', 'optionaldep', '1.0').publish()
 
         given:
@@ -107,14 +107,14 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
         """
 
         when:
         fails "publish"
 
         then:
-        failure.assertHasCause("Cannot publish optional feature variant optionalFeature because configuration optionalFeatureRuntimeElements doesn't declare any capability")
+        failure.assertHasCause("Cannot publish feature variant optionalFeature because configuration optionalFeatureRuntimeElements doesn't declare any capability")
     }
 
     def "reasonable error message when declaring a variant which name already exists"() {
@@ -138,17 +138,17 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addOptionalFeatureVariantFromConfiguration('api', configurations.optionalFeatureRuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('api', configurations.optionalFeatureRuntimeElements)
         """
 
         when:
         fails "publish"
 
         then:
-        failure.assertHasCause("Cannot add optional feature variant 'api' as a variant with the same name is already registered")
+        failure.assertHasCause("Cannot add feature variant 'api' as a variant with the same name is already registered")
     }
 
-    def "can group dependencies by optional feature"() {
+    def "can group dependencies by feature"() {
         mavenRepo.module('org', 'optionaldep-g1', '1.0').publish()
         mavenRepo.module('org', 'optionaldep1-g2', '1.0').publish()
         mavenRepo.module('org', 'optionaldep2-g2', '1.0').publish()
@@ -187,8 +187,8 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
                 optionalFeature2Implementation 'org:optionaldep2-g2:1.0'
             }
             
-            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature1', configurations.optionalFeature1RuntimeElements)
-            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature2', configurations.optionalFeature2RuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('optionalFeature1', configurations.optionalFeature1RuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('optionalFeature2', configurations.optionalFeature2RuntimeElements)
         """
 
         when:
@@ -224,8 +224,8 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @Unroll("publish java-library with optional feature with additional artifact #id (#optionalFeatureFileName)")
-    def "publish java-library with optional feature with additional artifact"() {
+    @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
+    def "publish java-library with feature with additional artifact"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
@@ -248,7 +248,7 @@ class MavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublish
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addOptionalFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
             
             artifacts {
                 optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'

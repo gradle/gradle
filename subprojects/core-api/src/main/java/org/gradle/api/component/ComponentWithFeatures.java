@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
 /**
- * A component which can declare additional variants corresponding to optional
+ * A component which can declare additional variants corresponding to
  * features. When published to Maven POMs, the dependencies of those variants
  * are exposed as optional dependencies. When published to Gradle metadata, the
  * variants are published as is.
@@ -27,11 +27,11 @@ import org.gradle.api.artifacts.Configuration;
  * @since 5.3
  */
 @Incubating
-public interface ComponentWithOptionalFeatures extends SoftwareComponent {
+public interface ComponentWithFeatures extends SoftwareComponent {
     /**
-     * Declares an additional variant to publish, corresponding to an optional feature.
+     * Declares an additional variant to publish, corresponding to an additional feature.
      * @param name the name of the variant, used when publishing to Gradle metadata.
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
      */
-    void addOptionalFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration);
+    void addFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration);
 }

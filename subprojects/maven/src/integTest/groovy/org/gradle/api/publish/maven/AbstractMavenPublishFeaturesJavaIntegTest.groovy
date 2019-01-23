@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
-abstract class AbstractMavenPublishOptionalDependenciesJavaIntegTest extends AbstractMavenPublishIntegTest {
+abstract class AbstractMavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     def setup() {

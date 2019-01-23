@@ -26,12 +26,12 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithOptionalFeatures;
+import org.gradle.api.component.ComponentWithFeatures;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.OptionalFeatureonfigurationUsageContext;
+import org.gradle.api.internal.java.usagecontext.FeatureConfigurationUsageContext;
 import org.gradle.api.internal.java.usagecontext.LazyConfigurationUsageContext;
 import org.gradle.api.model.ObjectFactory;
 
@@ -47,7 +47,7 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
  */
-public class JavaLibrary implements ComponentWithOptionalFeatures, SoftwareComponentInternal {
+public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInternal {
 
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
@@ -103,7 +103,7 @@ public class JavaLibrary implements ComponentWithOptionalFeatures, SoftwareCompo
     }
 
     @Override
-    public void addOptionalFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration) {
+    public void addFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration) {
         if (optionalFeatures == null) {
             optionalFeatures = Lists.newArrayListWithExpectedSize(2);
         }
@@ -114,7 +114,7 @@ public class JavaLibrary implements ComponentWithOptionalFeatures, SoftwareCompo
     private void assertNoDuplicateVariant(String name) {
         if ("runtime".equals(name) || "api".equals(name) ||
                 Lists.transform(optionalFeatures, OptionalFeatureMapping.VARIANT_NAME).contains(name)) {
-            throw new InvalidUserDataException("Cannot add optional feature variant '" + name + "' as a variant with the same name is already registered");
+            throw new InvalidUserDataException("Cannot add feature variant '" + name + "' as a variant with the same name is already registered");
         }
     }
 
@@ -135,7 +135,7 @@ public class JavaLibrary implements ComponentWithOptionalFeatures, SoftwareCompo
         }
 
         UsageContext toUsageContext() {
-            return new OptionalFeatureonfigurationUsageContext(
+            return new FeatureConfigurationUsageContext(
                     variantName,
                     outgoingConfiguration
             );
@@ -144,7 +144,7 @@ public class JavaLibrary implements ComponentWithOptionalFeatures, SoftwareCompo
         public void validate() {
             Collection<? extends Capability> capabilities = outgoingConfiguration.getOutgoing().getCapabilities();
             if (capabilities.isEmpty()) {
-                throw new InvalidUserDataException("Cannot publish optional feature variant " + variantName + " because configuration " + outgoingConfiguration.getName() + " doesn't declare any capability");
+                throw new InvalidUserDataException("Cannot publish feature variant " + variantName + " because configuration " + outgoingConfiguration.getName() + " doesn't declare any capability");
             }
         }
     }
