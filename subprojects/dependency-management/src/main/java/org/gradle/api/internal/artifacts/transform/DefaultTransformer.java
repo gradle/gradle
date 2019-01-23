@@ -140,6 +140,8 @@ public class DefaultTransformer implements Transformer {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
+        public static final TypeToken<Iterable<File>> PRIMARY_INPUT_DEPENDENCIES_TYPE = new TypeToken<Iterable<File>>() {};
+
         private final File inputFile;
         private final File outputDir;
         private final Object parameters;
@@ -156,7 +158,6 @@ public class DefaultTransformer implements Transformer {
         private
         Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
-            TypeToken<Iterable<File>> iterableFileType = new TypeToken<Iterable<File>>() {};
             if (annotatedWith == Workspace.class && serviceTypeToken.isSupertypeOf(File.class)) {
                 return outputDir;
             }
@@ -166,7 +167,7 @@ public class DefaultTransformer implements Transformer {
             if (annotatedWith == TransformParameters.class && serviceTypeToken.getRawType().isInstance(parameters)) {
                 return parameters;
             }
-            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(iterableFileType)) {
+            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(PRIMARY_INPUT_DEPENDENCIES_TYPE)) {
                 return artifactTransformDependencies.getFiles();
             }
             return null;
