@@ -23,23 +23,18 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Date;
 
-import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
-
 /**
  * Helpers for Java plugins. They are in a separate class so that they don't leak
  * into the public API.
  */
 public class JavaPluginsHelper {
-    public static void registerClassesDirVariant(TaskContainer tasks, ObjectFactory objectFactory, Configuration configuration) {
-        final Provider<JavaCompile> javaCompile = tasks.named(COMPILE_JAVA_TASK_NAME, JavaCompile.class);
-
+    public static void registerClassesDirVariant(final Provider<JavaCompile> javaCompile, ObjectFactory objectFactory, Configuration configuration) {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();
         ConfigurationVariant variant = publications.getVariants().create("classes");

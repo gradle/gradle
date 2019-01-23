@@ -29,20 +29,24 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.util.TextUtil;
 
 import java.util.List;
 
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
-import static org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME;
 
-public class DefaultFeatureSpec implements FeatureSpecInternal {
+public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
     private final JavaPluginConvention javaPluginConvention;
     private final ConfigurationContainer configurationContainer;
@@ -55,14 +59,14 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
     private boolean overrideDefaultCapability = true;
     private SourceSet sourceSet;
 
-    public DefaultFeatureSpec(String name,
-                              Capability defaultCapability,
-                              JavaPluginConvention javaPluginConvention,
-                              ConfigurationContainer configurationContainer,
-                              ObjectFactory objectFactory,
-                              PluginManager pluginManager,
-                              SoftwareComponentContainer components,
-                              TaskContainer tasks) {
+    public DefaultJavaFeatureSpec(String name,
+                                  Capability defaultCapability,
+                                  JavaPluginConvention javaPluginConvention,
+                                  ConfigurationContainer configurationContainer,
+                                  ObjectFactory objectFactory,
+                                  PluginManager pluginManager,
+                                  SoftwareComponentContainer components,
+                                  TaskContainer tasks) {
         this.name = name;
         this.javaPluginConvention = javaPluginConvention;
         this.configurationContainer = configurationContainer;
@@ -89,14 +93,10 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
 
     @Override
     public void create() {
-        if (isMainSourceSet(sourceSet)) {
-            createFromMainSourceSet();
-        } else {
-            throw new UnsupportedOperationException("Registering a feature using a different source set than the main one is not supported.");
-        }
+        setupConfigurations(isMainSourceSet(sourceSet));
     }
 
-    private void createFromMainSourceSet() {
+    private void setupConfigurations(boolean isMainSourceSet) {
         String apiConfigurationName = name + "Api";
         String implConfigurationName = name + "Implementation";
         String apiElementsConfigurationName = apiConfigurationName + "Elements";
@@ -114,11 +114,16 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
-        registerClassesDirVariant(tasks, objectFactory, apiElements);
 
-        // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
-        configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
-        configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
+        String javaCompileTaskName = sourceSet.getCompileJavaTaskName();
+        Provider<JavaCompile> javaCompile = tasks.named(javaCompileTaskName, JavaCompile.class);
+        registerClassesDirVariant(javaCompile, objectFactory, apiElements);
+
+        if (isMainSourceSet) {
+            // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
+            configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
+            configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
+        }
 
         pluginManager.withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
@@ -133,7 +138,19 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
     }
 
     private void attachArtifactToConfiguration(Configuration configuration) {
-        TaskProvider<Task> jar = tasks.named(JAR_TASK_NAME);
+        String jarTaskName = sourceSet.getJarTaskName();
+        if (!tasks.getNames().contains(jarTaskName)) {
+            tasks.register(jarTaskName, Jar.class, new Action<Jar>() {
+                @Override
+                public void execute(Jar jar) {
+                    jar.setDescription("Assembles a jar archive containing the classes of the '" + name +"' feature.");
+                    jar.setGroup(BasePlugin.BUILD_GROUP);
+                    jar.from(sourceSet.getOutput());
+                    jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
+                }
+            });
+        }
+        TaskProvider<Task> jar = tasks.named(jarTaskName);
         configuration.getArtifacts().add(new LazyPublishArtifact(jar));
     }
 

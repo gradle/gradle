@@ -83,7 +83,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
                 notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(name),
                 notNull("version", project.getVersion())
         );
-        DefaultFeatureSpec spec = new DefaultFeatureSpec(
+        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
                 validateFeatureName(name),
                 defaultCapability, convention,
                 configurations,
