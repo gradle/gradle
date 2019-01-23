@@ -52,9 +52,9 @@ public interface JavaPluginExtension {
     void setTargetCompatibility(JavaVersion value);
 
     /**
-     * Registers an optional feature.
-     * @param name the name of the optional feature
-     * @param configureAction the configuration for the optional feature
+     * Registers a feature.
+     * @param name the name of the feature
+     * @param configureAction the configuration for the feature
      *
      * @since 5.3
      */

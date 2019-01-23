@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithOptionalFeatures;
+import org.gradle.api.component.ComponentWithFeatures;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
@@ -39,7 +39,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 
 import java.util.List;
 
-import static org.gradle.api.plugins.JavaLibraryPlugin.registerClassesDirVariant;
+import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 import static org.gradle.api.plugins.JavaPlugin.JAR_TASK_NAME;
 
 public class DefaultFeatureSpec implements FeatureSpecInternal {
@@ -123,10 +123,10 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
         pluginManager.withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin plugin) {
-                final ComponentWithOptionalFeatures component = findComponent();
+                final ComponentWithFeatures component = findComponent();
                 if (component != null) {
-                    component.addOptionalFeatureVariantFromConfiguration(name + "Api", apiElements);
-                    component.addOptionalFeatureVariantFromConfiguration(name + "Runtime", runtimeElements);
+                    component.addFeatureVariantFromConfiguration(name + "Api", apiElements);
+                    component.addFeatureVariantFromConfiguration(name + "Runtime", runtimeElements);
                 }
             }
         });
@@ -137,10 +137,10 @@ public class DefaultFeatureSpec implements FeatureSpecInternal {
         configuration.getArtifacts().add(new LazyPublishArtifact(jar));
     }
 
-    private ComponentWithOptionalFeatures findComponent() {
+    private ComponentWithFeatures findComponent() {
         SoftwareComponent component = components.findByName("java");
-        if (component instanceof ComponentWithOptionalFeatures) {
-            return (ComponentWithOptionalFeatures) component;
+        if (component instanceof ComponentWithFeatures) {
+            return (ComponentWithFeatures) component;
         }
         return null;
     }

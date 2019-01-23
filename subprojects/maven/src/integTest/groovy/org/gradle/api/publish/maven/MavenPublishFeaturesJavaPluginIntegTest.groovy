@@ -16,8 +16,8 @@
 
 package org.gradle.api.publish.maven
 
-class MavenPublishOptionalDependenciesJavaPluginIntegTest extends AbstractMavenPublishOptionalDependenciesJavaIntegTest {
-    def "can publish java-library with optional feature using extension"() {
+class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
+    def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:

@@ -18,10 +18,10 @@ package org.gradle.api.internal.java.usagecontext;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
-public class OptionalFeatureonfigurationUsageContext extends AbstractConfigurationUsageContext {
+public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext {
     private final Configuration configuration;
 
-    public OptionalFeatureonfigurationUsageContext(String name, Configuration configuration) {
+    public FeatureConfigurationUsageContext(String name, Configuration configuration) {
         super(name, ((AttributeContainerInternal)configuration.getAttributes()).asImmutable(), configuration.getArtifacts());
         this.configuration = configuration;
     }
