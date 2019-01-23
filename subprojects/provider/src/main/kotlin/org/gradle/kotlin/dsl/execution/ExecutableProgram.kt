@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -69,8 +70,8 @@ abstract class ExecutableProgram {
             accessorsClassPath: ClassPath?
         )
 
-        fun compileSecondStageScript(
-            scriptText: String,
+        fun compileSecondStageOf(
+            program: StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
@@ -88,6 +89,8 @@ abstract class ExecutableProgram {
 
     abstract class StagedProgram : ExecutableProgram() {
 
+        abstract val secondStageScriptText: String
+
         abstract fun loadSecondStageFor(
             programHost: Host,
             scriptHost: KotlinScriptHost<*>,
@@ -95,5 +98,10 @@ abstract class ExecutableProgram {
             sourceHash: HashCode,
             accessorsClassPath: ClassPath?
         ): Class<*>
+
+        fun loadScriptResource(resourcePath: String): String =
+            javaClass.getResourceAsStream(resourcePath).bufferedReader().useToRun {
+                readText()
+            }
     }
 }
