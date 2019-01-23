@@ -34,6 +34,12 @@ For details, have a look at the [dedicated section](userguide/publishing_maven.h
 
 See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-52).
 
+### Recommend C++ projects use new C++ plugins
+
+We introduced new C++ plugins [last year](https://blog.gradle.org/introducing-the-new-cpp-plugins) that we thought were more feature rich and familiar to Gradle users. At the time, we thought they weren't mature enough for serious adoption.
+
+In this release, we are recommending new C++ projects to use these plugins over [the existing software model plugins](userguide/native_software.html). The new plugins do not currently support C, Objective-C or Objective-C++ out of the box, but they have [a lot of other things to offer](userguide/cpp_plugins.html#cpp:features).
+
 ### Support for additional Windows native toolchains
 
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
