@@ -25,6 +25,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -687,6 +688,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Ignore("TODO: change this test not to be dependent on an old version of the build-scan plugin")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
