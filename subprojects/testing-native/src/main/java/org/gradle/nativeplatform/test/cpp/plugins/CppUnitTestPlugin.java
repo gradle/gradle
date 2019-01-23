@@ -43,6 +43,8 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.tasks.UnexportMainSymbol;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
+import org.gradle.nativeplatform.platform.NativePlatform;
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestSuite;
@@ -108,10 +110,20 @@ public class CppUnitTestPlugin implements Plugin<Project> {
         testComponent.getTestBinary().convention(project.provider(new Callable<CppTestExecutable>() {
             @Override
             public CppTestExecutable call() throws Exception {
-                return getAllTestExecutable()
-                        .filter(it -> it.getPlatformToolProvider().isAvailable())
+                return getAllBuildableTestExecutable()
+                        .filter(it -> isCurrentArchitecture(it.getNativePlatform()))
                         .findFirst()
-                        .orElse(getAllTestExecutable().findFirst().orElse(null));
+                        .orElse(
+                                getAllBuildableTestExecutable().findFirst().orElse(
+                                        getAllTestExecutable().findFirst().orElse(null)));
+            }
+
+            private boolean isCurrentArchitecture(NativePlatform targetPlatform) {
+                return targetPlatform.getArchitecture().equals(DefaultNativePlatform.getCurrentArchitecture());
+            }
+
+            private Stream<DefaultCppTestExecutable> getAllBuildableTestExecutable() {
+                return getAllTestExecutable().filter(it -> it.getPlatformToolProvider().isAvailable());
             }
 
             private Stream<DefaultCppTestExecutable> getAllTestExecutable() {
