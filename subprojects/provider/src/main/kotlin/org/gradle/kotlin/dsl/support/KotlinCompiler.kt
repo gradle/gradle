@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.AnalysisFlag
+import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -195,7 +195,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
     ),
     analysisFlags = mapOf(
-        AnalysisFlag.skipMetadataVersionCheck to true
+        AnalysisFlags.skipMetadataVersionCheck to true
     )
 )
 
