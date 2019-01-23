@@ -20,6 +20,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -43,7 +44,11 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
+import org.junit.Rule;
 import org.junit.Test;
 import spock.lang.Issue;
 
@@ -74,6 +79,7 @@ import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
@@ -89,9 +95,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.<InjectAnnotationHandler>emptyList(), Collections.<Class<? extends Annotation>>emptyList());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
+        return newInstance(clazz, new DefaultServiceRegistry(), args);
+    }
+
+    private <T> T newInstance(Class<T> clazz, ServiceRegistry services, Object... args) throws Exception {
         ClassGenerator.GeneratedClass<? extends T> type = generator.generate(clazz);
         for (ClassGenerator.GeneratedConstructor<?> constructor : type.getConstructors()) {
             if (constructor.getParameterTypes().length == args.length) {
@@ -107,7 +119,7 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) constructor.newInstance(new DefaultServiceRegistry(), DirectInstantiator.INSTANCE, args);
+                    return (T) constructor.newInstance(services, DirectInstantiator.INSTANCE, args);
                 }
             }
         }
@@ -117,7 +129,7 @@ public class AsmBackedClassGeneratorTest {
     @Test
     public void mixesInGeneratedSubclassInterface() {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class).getGeneratedClass();
-        assertTrue(GeneratedSubclasses.unpack(generatedClass).equals(Bean.class));
+        assertEquals(GeneratedSubclasses.unpack(generatedClass), Bean.class);
         assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
     }
 
@@ -153,7 +165,7 @@ public class AsmBackedClassGeneratorTest {
         Bean extn = extensionBean.getExtensions().create("nested", Bean.class);
 
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
-        assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extn);
+        assertSame(dynamicBean.getAsDynamicObject().getProperty("nested"), extn);
     }
 
     @Test
@@ -167,7 +179,7 @@ public class AsmBackedClassGeneratorTest {
         Bean extension = bean.getExtensions().create("nested", Bean.class);
 
         DynamicObjectAware dynamicBean = (DynamicObjectAware) bean;
-        assertTrue(dynamicBean.getAsDynamicObject().getProperty("nested") == extension);
+        assertSame(dynamicBean.getAsDynamicObject().getProperty("nested"), extension);
     }
 
     @Test
@@ -214,7 +226,7 @@ public class AsmBackedClassGeneratorTest {
 
         // Callable
         Type paramType = constructor.getGenericParameterTypes()[0];
-        assertThat(paramType, equalTo((Type) Callable.class));
+        assertThat(paramType, equalTo(Callable.class));
 
         // Callable<String>
         paramType = constructor.getGenericParameterTypes()[1];
@@ -516,6 +528,18 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void canConstructInstanceOfInterfaceWithFileCollectionGetter() throws Exception {
+        TestFile projectDir = tmpDir.getTestDirectory();
+        InterfaceFileCollectionBean bean = newInstance(InterfaceFileCollectionBean.class, TestUtil.createRootProject(projectDir).getServices());
+
+        assertTrue(bean.getFiles().isEmpty());
+
+        bean.getFiles().from("a", "b");
+
+        assertThat(bean.getFiles(), hasItems(projectDir.file("a"), projectDir.file("b")));
+    }
+
+    @Test
     public void canConstructInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
 
@@ -563,6 +587,17 @@ public class AsmBackedClassGeneratorTest {
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + GetterBeanInterface.class.getName() + "."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing()."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfInterfaceWithAbstractSetterAndNoGetter() throws Exception {
+        try {
+            newInstance(SetterBeanInterface.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + SetterBeanInterface.class.getName() + "."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing()."));
         }
     }
 
@@ -1680,6 +1715,10 @@ public class AsmBackedClassGeneratorTest {
         String getThing();
     }
 
+    public interface SetterBeanInterface {
+        void setThing(String value);
+    }
+
     public enum AnnotationEnum {
         A, B
     }
@@ -1831,6 +1870,10 @@ public class AsmBackedClassGeneratorTest {
         Set<Number> getNumbers();
 
         void setNumbers(Set<Number> values);
+    }
+
+    public interface InterfaceFileCollectionBean {
+        ConfigurableFileCollection getFiles();
     }
 
     public interface InterfaceWithDefaultMethods {

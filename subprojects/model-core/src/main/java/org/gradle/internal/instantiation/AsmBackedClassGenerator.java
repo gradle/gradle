@@ -25,6 +25,8 @@ import groovy.lang.MetaClassRegistry;
 import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
@@ -76,6 +78,7 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNCHRONIZED;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.GETFIELD;
@@ -293,6 +296,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
         private static final Type INSTANTIATOR_TYPE = Type.getType(Instantiator.class);
+        private static final Type PROJECT_LAYOUT_TYPE = Type.getType(ProjectLayout.class);
+        private static final Type CONFIGURABLE_FILE_COLLECTION_TYPE = Type.getType(ConfigurableFileCollection.class);
         private static final Type MANAGED_TYPE = Type.getType(Managed.class);
 
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
@@ -320,6 +325,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = Type.getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
+        private static final String RETURN_CONFIGURABLE_FILE_COLLECTION_FROM_OBJECT_ARRAY = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE, OBJECT_ARRAY_TYPE);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -871,15 +877,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             addLazyGetter(getterName, methodDescriptor, signature, propFieldName, serviceType, new MethodCodeBody() {
                 @Override
                 public void add(MethodVisitor methodVisitor) {
-                    if (requiresServicesMethod) {
-                        // this.<services_method>()
-                        methodVisitor.visitVarInsn(ALOAD, 0);
-                        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), SERVICES_METHOD, RETURN_SERVICE_LOOKUP, false);
-                    } else {
-                        // this.getServices()
-                        methodVisitor.visitVarInsn(ALOAD, 0);
-                        methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getServices", RETURN_SERVICE_REGISTRY, false);
-                    }
+                    putServiceRegistryOnStack(methodVisitor);
 
                     if (genericServiceType instanceof Class) {
                         // if the return type doesn't use generics, then it's faster to just rely on the type name directly
@@ -903,6 +901,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, serviceType.getInternalName());
                 }
             });
+        }
+
+        private void putServiceRegistryOnStack(MethodVisitor methodVisitor) {
+            if (requiresServicesMethod) {
+                // this.<services_method>()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), SERVICES_METHOD, RETURN_SERVICE_LOOKUP, false);
+            } else {
+                // this.getServices()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getServices", RETURN_SERVICE_REGISTRY, false);
+            }
         }
 
         @Override
@@ -929,6 +939,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE private <type> <property-field-name>;
             String fieldName = propFieldName(property);
             visitor.visitField(Opcodes.ACC_PRIVATE, fieldName, Type.getDescriptor(property.getType()), null, null);
+        }
+
+        @Override
+        public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
+            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ProjectLayout.class).configurableFiles(); } return <field> }
+            Type propType = Type.getType(property.getType());
+            addLazyGetter(getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), null, propFieldName(property), propType, methodVisitor -> {
+                // GENERATE services.get(ProjectLayout.class)
+                putServiceRegistryOnStack(methodVisitor);
+                methodVisitor.visitLdcInsn(PROJECT_LAYOUT_TYPE);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, SERVICE_LOOKUP_TYPE.getInternalName(), "get", RETURN_OBJECT_FROM_TYPE, true);
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, PROJECT_LAYOUT_TYPE.getInternalName());
+
+                // GENERATE projectLayout.configurableFiles(new Object[0])
+                // TODO - simplify this call
+                methodVisitor.visitLdcInsn(0);
+                methodVisitor.visitTypeInsn(ANEWARRAY, OBJECT_TYPE.getInternalName());
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROJECT_LAYOUT_TYPE.getInternalName(), "configurableFiles", RETURN_CONFIGURABLE_FILE_COLLECTION_FROM_OBJECT_ARRAY, true);
+            });
         }
 
         @Override
@@ -1462,6 +1491,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyManagedStateToProperty(PropertyMetaData property) {
+        }
+
+        @Override
+        public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
         }
 
         @Override

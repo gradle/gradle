@@ -565,4 +565,29 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
+
+    def "can define task using abstract FileCollection getter"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getSource()
+                
+                @TaskAction
+                void go() {
+                    println("files = \${source.files.name}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                source.from("a", "b", "c")
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("files = [a, b, c]")
+    }
 }
