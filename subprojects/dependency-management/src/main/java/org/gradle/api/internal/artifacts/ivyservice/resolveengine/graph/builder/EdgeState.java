@@ -55,6 +55,7 @@ class EdgeState implements DependencyGraphEdge {
     private final ModuleExclusion transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
+    private final boolean isConstraint;
 
     private ModuleVersionResolveException targetNodeSelectionFailure;
 
@@ -67,6 +68,7 @@ class EdgeState implements DependencyGraphEdge {
         this.resolveState = resolveState;
         this.selector = resolveState.getSelector(dependencyState);
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
+        this.isConstraint = dependencyMetadata.isConstraint();
     }
 
     @Override
@@ -115,7 +117,7 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        if (dependencyMetadata.isConstraint()) {
+        if (isConstraint) {
             // Need to double check that the target still has hard edges to it
             ModuleResolveState module = targetComponent.getModule();
             if (module.isPending()) {
@@ -181,7 +183,7 @@ class EdgeState implements DependencyGraphEdge {
         try {
             ImmutableAttributes attributes = resolveState.getRoot().getMetadata().getAttributes();
             attributes = resolveState.getAttributesFactory().concat(attributes, getAttributes());
-            if (isConstraint()) {
+            if (isConstraint) {
                 attributes = selector.getTargetModule().mergeConstraintAttributesWithHardDependencyAttributes(attributes);
             }
             targetConfigurations = dependencyMetadata.selectConfigurations(attributes, targetModuleVersion, resolveState.getAttributesSchema());
@@ -216,7 +218,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean contributesArtifacts() {
-        return !dependencyMetadata.isConstraint();
+        return !isConstraint;
     }
 
     @Override
@@ -254,7 +256,7 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean isConstraint() {
-        return dependencyMetadata.isConstraint();
+        return isConstraint;
     }
 
     private ComponentState getSelectedComponent() {
@@ -280,7 +282,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void maybeDecreaseHardEdgeCount() {
-        if (!dependencyMetadata.isConstraint()) {
+        if (!isConstraint) {
             selector.getTargetModule().decreaseHardEdgeCount();
         }
     }
