@@ -177,6 +177,6 @@ public class XcodeTarget implements Named {
     }
 
     public boolean isBuildable() {
-        return productType != null;
+         return !binaries.isEmpty();
     }
 }
