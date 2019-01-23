@@ -119,6 +119,39 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(taskWithSources.taskPath)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/8299")
+    def "two tasks can output in the same directory with --rerun-tasks"() {
+        buildFile << """
+            apply plugin: 'base'
+            
+            task firstCopy {
+                inputs.file('first.file')
+                outputs.dir('build/destination')
+                doLast {
+                    file('build/destination/first.file').text = file('first.file').text
+                }
+            }
+            
+            task secondCopy {
+                inputs.file('second.file')
+                outputs.dir('build/destination')
+                doLast {
+                    file('build/destination/second.file').text = file('second.file').text
+                }
+            }
+            
+            secondCopy.dependsOn firstCopy
+        """
+        file("first.file").createFile()
+        file("second.file").createFile()
+
+        when:
+        succeeds("secondCopy", "--rerun-tasks", "--info")
+        then:
+        file("build/destination/first.file").exists()
+        file("build/destination/second.file").exists()
+    }
+
     def "custom clean targets are removed"() {
         given:
         buildFile << """
