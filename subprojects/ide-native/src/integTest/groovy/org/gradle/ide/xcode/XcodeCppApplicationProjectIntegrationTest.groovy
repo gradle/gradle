@@ -84,7 +84,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
         project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"))
-        // TODO: HEADER_SEARCH_PATHS should contains file("app/src/main/public")
+        // TODO: HEADER_SEARCH_PATHS should contains file("greeter/src/main/public")
 
         when:
         def resultApp = xcodebuild
