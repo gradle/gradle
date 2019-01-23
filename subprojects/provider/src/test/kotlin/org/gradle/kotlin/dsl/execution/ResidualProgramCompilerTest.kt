@@ -508,7 +508,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
 
     private
-    fun withExecutableProgramFor(
+    inline fun withExecutableProgramFor(
         program: ResidualProgram,
         sourceHash: HashCode = HashCode.fromInt(0),
         programKind: ProgramKind = ProgramKind.TopLevel,
