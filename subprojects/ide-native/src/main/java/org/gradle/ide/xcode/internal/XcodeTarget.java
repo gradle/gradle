@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -48,7 +49,7 @@ public class XcodeTarget implements Named {
     private String gradleCommand;
 
     private List<XcodeBinary> binaries = Lists.newArrayList();
-    private final Property<FileSystemLocation> debugOutputFile;
+    private Provider<? extends FileSystemLocation> debugOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
     private Property<SwiftVersion> swiftSourceCompatibility;
@@ -64,7 +65,7 @@ public class XcodeTarget implements Named {
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.defaultConfigurationName = objectFactory.property(String.class);
         this.defaultConfigurationName.set(BUILD_DEBUG);
-        this.debugOutputFile = objectFactory.property(FileSystemLocation.class);
+        this.debugOutputFile = Providers.notDefined();
     }
 
     public String getId() {
@@ -167,7 +168,7 @@ public class XcodeTarget implements Named {
     public void addBinary(String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
         binaries.add(new XcodeBinary(configuration, outputFile, architectureName));
         if (configuration.contains("Debug")) {
-            this.debugOutputFile.set(outputFile);
+            this.debugOutputFile = outputFile;
         }
     }
 
