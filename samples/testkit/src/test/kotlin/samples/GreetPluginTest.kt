@@ -3,7 +3,7 @@ package samples
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
 
 import org.junit.Assert.assertThat
 import org.junit.Rule
@@ -31,8 +31,8 @@ class GreetPluginTest {
         """)
 
         assertThat(
-            build("greet", "-q").output.trimEnd(),
-            equalTo(message))
+            build("greet", "-q").output.lines(),
+            hasItem(message))
     }
 
     private

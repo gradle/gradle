@@ -30,7 +30,8 @@ import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Assert.assertNotEquals
@@ -732,13 +733,14 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         assertThat(
-            build("-I", init.absolutePath, "help", "-q").output,
-            containsMultiLineString("""
-                init: ${init.absolutePath}
-                settings: ${settings.absolutePath}
-                other: ${other.absolutePath}
-                main: ${main.absolutePath}
-            """))
+            build("-I", init.absolutePath, "help", "-q").output.lines(),
+            hasItems(
+                "init: ${init.absolutePath}",
+                "settings: ${settings.absolutePath}",
+                "other: ${other.absolutePath}",
+                "main: ${main.absolutePath}"
+            )
+        )
     }
 
     @Test
@@ -879,8 +881,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         assertThat(
-            build("-q", "test").output.trim(),
-            equalTo("default-value")
+            build("-q", "test").output.lines(),
+            hasItem("default-value")
         )
     }
 

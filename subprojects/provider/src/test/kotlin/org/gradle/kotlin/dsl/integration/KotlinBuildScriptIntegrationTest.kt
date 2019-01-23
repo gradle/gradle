@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItem
 
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -67,8 +67,8 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
         """)
 
         assertThat(
-            build("test", "-q").output,
-            equalTo("42!")
+            build("test", "-q").output.lines(),
+            hasItem("42!")
         )
     }
 
