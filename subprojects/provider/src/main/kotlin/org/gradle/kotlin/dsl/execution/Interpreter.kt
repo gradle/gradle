@@ -426,8 +426,8 @@ class Interpreter(val host: Host) {
                 host.compilationClassPathOf(scriptHost.targetScope)
             ).bin
 
-        override fun compileSecondStageScript(
-            scriptText: String,
+        override fun compileSecondStageOf(
+            program: ExecutableProgram.StagedProgram,
             scriptHost: KotlinScriptHost<*>,
             scriptTemplateId: String,
             sourceHash: HashCode,
@@ -469,7 +469,7 @@ class Interpreter(val host: Host) {
 
                         scriptSource.withLocationAwareExceptionHandling {
 
-                            withTemporaryScriptFileFor(originalScriptPath, scriptText) { scriptFile ->
+                            withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
 
                                 ResidualProgramCompiler(
                                     outputDir,

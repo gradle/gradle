@@ -20,6 +20,7 @@ import org.gradle.api.Project
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.KotlinBuildScript
 import org.gradle.kotlin.dsl.KotlinInitScript
@@ -129,7 +130,49 @@ class ResidualProgramCompiler(
                 emitEvaluateSecondStageOf()
             }
 
-            overrideLoadSecondStageFor(program.source.text)
+            overrideGetSecondStageScriptText(program.source.text)
+            overrideLoadSecondStageFor()
+        }
+    }
+
+    private
+    fun ClassWriter.overrideGetSecondStageScriptText(secondStageScriptText: String) {
+        publicMethod(
+            "getSecondStageScriptText",
+            "()Ljava/lang/String;",
+            "()Ljava/lang/String;"
+        ) {
+            if (secondStageScriptText.length < 16 * 1024) {
+                LDC(secondStageScriptText)
+            } else {
+                // Large scripts are stored as a resource to overcome
+                // the 64KB string constant limitation
+                val resourcePath = storeStringToResource(secondStageScriptText)
+                ALOAD(0)
+                LDC(resourcePath)
+                INVOKEVIRTUAL(
+                    ExecutableProgram.StagedProgram::class.internalName,
+                    ExecutableProgram.StagedProgram::loadScriptResource.name,
+                    "(Ljava/lang/String;)Ljava/lang/String;"
+                )
+            }
+            ARETURN()
+        }
+    }
+
+    private
+    fun storeStringToResource(secondStageScriptText: String): String {
+        val hash = Hashing.hashString(secondStageScriptText)
+        val resourcePath = "gradle-kotlin-dsl/$hash"
+        writeResourceFile(resourcePath, secondStageScriptText)
+        return resourcePath
+    }
+
+    private
+    fun writeResourceFile(resourcePath: String, resourceText: String) {
+        outputFile(resourcePath).apply {
+            parentFile.mkdir()
+            writeText(resourceText)
         }
     }
 
@@ -327,17 +370,17 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun ClassWriter.overrideLoadSecondStageFor(scriptText: String) {
+    fun ClassWriter.overrideLoadSecondStageFor() {
         publicMethod(
-            "loadSecondStageFor",
-            "(" +
+            name = "loadSecondStageFor",
+            desc = "(" +
                 "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
                 "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
                 "Ljava/lang/String;" +
                 "Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/internal/classpath/ClassPath;" +
                 ")Ljava/lang/Class;",
-            "(" +
+            signature = "(" +
                 "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
                 "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;" +
                 "Ljava/lang/String;" +
@@ -346,31 +389,27 @@ class ResidualProgramCompiler(
                 ")Ljava/lang/Class<*>;"
         ) {
 
-            emitCompileSecondStageScript(scriptText)
+            ALOAD(Vars.ProgramHost)
+            ALOAD(0)
+            ALOAD(Vars.ScriptHost)
+            ALOAD(3)
+            ALOAD(4)
+            GETSTATIC(programKind)
+            GETSTATIC(programTarget)
+            ALOAD(5)
+            invokeHost(
+                ExecutableProgram.Host::compileSecondStageOf.name,
+                "(" +
+                    stagedProgramType +
+                    "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
+                    "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
+                    "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
+                    "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
+                    "Lorg/gradle/internal/classpath/ClassPath;" +
+                    ")Ljava/lang/Class;"
+            )
             ARETURN()
         }
-    }
-
-    private
-    fun MethodVisitor.emitCompileSecondStageScript(scriptText: String) {
-        ALOAD(Vars.ProgramHost)
-        LDC(scriptText)
-        ALOAD(Vars.ScriptHost)
-        ALOAD(3)
-        ALOAD(4)
-        GETSTATIC(programKind)
-        GETSTATIC(programTarget)
-        ALOAD(5) // accessorsClassPath
-        invokeHost(
-            ExecutableProgram.Host::compileSecondStageScript.name,
-            "(" +
-                "Ljava/lang/String;" +
-                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
-                "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
-                "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
-                "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
-                "Lorg/gradle/internal/classpath/ClassPath;" +
-                ")Ljava/lang/Class;")
     }
 
     private
@@ -386,13 +425,16 @@ class ResidualProgramCompiler(
         invokeHost(
             ExecutableProgram.Host::evaluateSecondStageOf.name,
             "(" +
-                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;" +
+                stagedProgramType +
                 "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
                 "Ljava/lang/String;" +
                 "Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/internal/classpath/ClassPath;" +
                 ")V")
     }
+
+    private
+    val stagedProgramType = "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;"
 
     private
     fun requiresAccessors() =
