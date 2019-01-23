@@ -24,10 +24,6 @@ import java.io.File
 import java.util.Properties
 
 
-internal
-val isCI by lazy { !System.getenv("CI").isNullOrEmpty() }
-
-
 open class AbstractIntegrationTest {
 
     @JvmField
@@ -246,8 +242,7 @@ fun gradleRunnerFor(projectDir: File, vararg arguments: String): GradleRunner = 
     withGradleInstallation(customInstallation())
     withProjectDir(projectDir)
     withDebug(false)
-    if (isCI) withArguments(*arguments, "--stacktrace", "-Dkotlin-daemon.verbose=true")
-    else withArguments(*arguments, "--stacktrace")
+    withArguments(*arguments, "--stacktrace")
     return this
 }
 
