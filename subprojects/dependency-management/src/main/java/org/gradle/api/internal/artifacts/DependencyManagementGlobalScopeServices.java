@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -30,11 +34,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.transform.PrimaryInputAnnotationHandler;
-import org.gradle.api.internal.artifacts.transform.PrimaryInputDependenciesAnnotationHandler;
-import org.gradle.api.internal.artifacts.transform.TransformParametersAnnotationHandler;
-import org.gradle.api.internal.artifacts.transform.WorkspaceAnnotationHandler;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.instantiation.DefaultInjectAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
@@ -92,19 +93,19 @@ class DependencyManagementGlobalScopeServices {
     }
 
     InjectAnnotationHandler createWorkspaceAnnotationHandler() {
-        return new WorkspaceAnnotationHandler();
+        return new DefaultInjectAnnotationHandler(Workspace.class);
     }
 
     InjectAnnotationHandler createPrimaryInputAnnotationHandler() {
-        return new PrimaryInputAnnotationHandler();
+        return new DefaultInjectAnnotationHandler(PrimaryInput.class);
     }
 
     InjectAnnotationHandler createPrimaryInputDependenciesAnnotationHandler() {
-        return new PrimaryInputDependenciesAnnotationHandler();
+        return new DefaultInjectAnnotationHandler(PrimaryInputDependencies.class);
     }
 
     InjectAnnotationHandler createTransformParametersAnnotationHandler() {
-        return new TransformParametersAnnotationHandler();
+        return new DefaultInjectAnnotationHandler(TransformParameters.class);
     }
 
 }

@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
-
-import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
+package org.gradle.internal.instantiation;
 
 import java.lang.annotation.Annotation;
 
-public class PrimaryInputDependenciesAnnotationHandler implements InjectAnnotationHandler {
+public class DefaultInjectAnnotationHandler implements InjectAnnotationHandler {
+    private final Class<? extends Annotation> annotation;
+
+    public DefaultInjectAnnotationHandler(Class<? extends Annotation> annotation) {
+        this.annotation = annotation;
+    }
+
     @Override
     public Class<? extends Annotation> getAnnotation() {
-        return PrimaryInputDependencies.class;
+        return annotation;
     }
 }
