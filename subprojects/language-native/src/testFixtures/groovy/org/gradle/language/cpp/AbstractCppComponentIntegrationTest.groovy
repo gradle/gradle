@@ -194,6 +194,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
             model {
                 toolChains {
                     toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                        path "/not/found"
                         target("host:${architecture}")
                     }
                 }
