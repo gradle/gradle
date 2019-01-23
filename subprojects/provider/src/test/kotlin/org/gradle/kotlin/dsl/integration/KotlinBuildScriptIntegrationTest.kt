@@ -38,7 +38,7 @@ class KotlinBuildScriptIntegrationTest : AbstractIntegrationTest() {
                 val stmt = "val v$i = $i\n"
                 write(stmt)
                 i += 1
-                bytesWritten += stmt.length * 2
+                bytesWritten += stmt.toByteArray().size
             }
             write(suffix)
             toString()
