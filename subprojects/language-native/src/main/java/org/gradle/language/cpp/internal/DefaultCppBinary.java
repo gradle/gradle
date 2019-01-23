@@ -16,22 +16,21 @@
 
 package org.gradle.language.cpp.internal;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.artifacts.ArtifactCollection;
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.UncheckedException;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
@@ -45,11 +44,21 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.io.BufferedInputStream;
 import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
+    private final static String C_PLUS_PLUS_API_DIRS = "cplusplus-api-dirs";
+
     private final Provider<String> baseName;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
@@ -62,7 +71,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
-    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+    public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, ConfigurationContainer configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, DependencyHandler dependencyHandler) {
         super(names, objects, componentImplementation);
         this.baseName = baseName;
         this.sourceFiles = sourceFiles;
@@ -102,7 +111,17 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         nativeRuntime.extendsFrom(getImplementationDependencies());
 
         includePathConfiguration = includePathConfig;
-        includePath = componentHeaderDirs.plus(new FileCollectionAdapter(new IncludePath(includePathConfig)));
+        dependencyHandler.registerTransform(variantTransform -> {
+            variantTransform.artifactTransform(UnzipTransform.class);
+            variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, C_PLUS_PLUS_API_DIRS));
+        });
+        ArtifactView includeDirs = includePathConfig.getIncoming().artifactView(viewConfiguration -> {
+           viewConfiguration.attributes(attributeContainer -> {
+               attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, C_PLUS_PLUS_API_DIRS));
+           });
+        });
+        includePath = componentHeaderDirs.plus(includeDirs.getFiles());
         linkLibraries = nativeLink;
         runtimeLibraries = nativeRuntime;
     }
@@ -197,50 +216,46 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         return identity;
     }
 
-    private class IncludePath implements MinimalFileSet, Buildable {
-        private final Configuration includePathConfig;
-        private Set<File> result;
-
-        IncludePath(Configuration includePathConfig) {
-            this.includePathConfig = includePathConfig;
-        }
+    private static class UnzipTransform extends ArtifactTransform {
+        @Inject
+        UnzipTransform() { }
 
         @Override
-        public String getDisplayName() {
-            return "Include path for " + DefaultCppBinary.this.toString();
+        public List<File> transform(File zippedFile) {
+            if (zippedFile.isDirectory()) {
+                return Collections.singletonList(zippedFile);
+            } else {
+                String unzippedDirName = removeExtension(zippedFile.getName());
+                File unzipDir = new File(getOutputDirectory(), unzippedDirName);
+                try {
+                    unzipTo(zippedFile, unzipDir);
+                } catch (IOException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                return Collections.singletonList(unzipDir);
+            }
         }
 
-        @Override
-        public Set<File> getFiles() {
-            if (result == null) {
-                // All this is intended to go away as more Gradle-specific metadata is included in the publications and the dependency resolution engine can just figure this stuff out for us
-                // This is intentionally dumb and will improve later
-
-                // Collect the files from anything other than an external component and use these directly in the result
-                // For external components, unzip the headers into a cache, if not already present.
-                ArtifactCollection artifacts = includePathConfig.getIncoming().getArtifacts();
-                Set<File> files = new LinkedHashSet<File>();
-                if (!artifacts.getArtifacts().isEmpty()) {
-                    NativeDependencyCache cache = getNativeDependencyCache();
-                    for (ResolvedArtifactResult artifact : artifacts) {
-                        if (artifact.getId().getComponentIdentifier() instanceof ModuleComponentIdentifier && artifact.getFile().isFile()) {
-                            // Unzip the headers into cache
-                            ModuleComponentIdentifier id = (ModuleComponentIdentifier) artifact.getId().getComponentIdentifier();
-                            File headerDir = cache.getUnpackedHeaders(artifact.getFile(), id.getModule() + "-" + id.getVersion());
-                            files.add(headerDir);
-                        } else {
-                            files.add(artifact.getFile());
-                        }
+        private void unzipTo(File headersZip, File unzipDir) throws IOException {
+            ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
+            try {
+                ZipEntry entry;
+                while ((entry = inputStream.getNextEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    File outFile = new File(unzipDir, entry.getName());
+                    Files.createParentDirs(outFile);
+                    FileOutputStream outputStream = new FileOutputStream(outFile);
+                    try {
+                        IOUtils.copyLarge(inputStream, outputStream);
+                    } finally {
+                        outputStream.close();
                     }
                 }
-                result = files;
+            } finally {
+                inputStream.close();
             }
-            return result;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return includePathConfig.getBuildDependencies();
         }
     }
 }

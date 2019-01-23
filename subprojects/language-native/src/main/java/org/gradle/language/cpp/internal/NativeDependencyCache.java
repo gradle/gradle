@@ -16,26 +16,16 @@
 
 package org.gradle.language.cpp.internal;
 
-import com.google.common.io.Files;
-import org.apache.commons.io.IOUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.nativeplatform.internal.modulemap.ModuleMap;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile.generateFile;
 
@@ -44,34 +34,9 @@ import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile
  */
 public class NativeDependencyCache implements Stoppable {
     private final PersistentCache cache;
-    private final FileHasher fileHasher;
 
-    public NativeDependencyCache(CacheRepository cacheRepository, FileHasher fileHasher) {
+    public NativeDependencyCache(CacheRepository cacheRepository) {
         cache = cacheRepository.cache("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.None)).open();
-        this.fileHasher = fileHasher;
-    }
-
-    /**
-     * Returns the directory containing the unzipped headers from the given zip.
-     */
-    public File getUnpackedHeaders(final File headersZip, final String baseName) {
-        final String hash = HashUtil.compactStringFor(fileHasher.hash(headersZip));
-        return cache.useCache(new Factory<File>() {
-            @Override
-            public File create() {
-                File dir = new File(cache.getBaseDir(), hash + "/" + baseName);
-                if (dir.isDirectory()) {
-                    return dir;
-                }
-                try {
-                    unzipTo(headersZip, dir);
-                } catch (IOException e) {
-                    // Intentionally doesn't clean up on failure
-                    throw new UncheckedIOException("Could not unzip headers from " + headersZip, e);
-                }
-                return dir;
-            }
-        });
     }
 
     public File getModuleMapFile(final ModuleMap moduleMap) {
@@ -87,28 +52,6 @@ public class NativeDependencyCache implements Stoppable {
                 return moduleMapFile;
             }
         });
-    }
-
-    private void unzipTo(File headersZip, File unzipDir) throws IOException {
-        ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
-        try {
-            ZipEntry entry = null;
-            while ((entry = inputStream.getNextEntry()) != null) {
-                if (entry.isDirectory()) {
-                    continue;
-                }
-                File outFile = new File(unzipDir, entry.getName());
-                Files.createParentDirs(outFile);
-                FileOutputStream outputStream = new FileOutputStream(outFile);
-                try {
-                    IOUtils.copyLarge(inputStream, outputStream);
-                } finally {
-                    outputStream.close();
-                }
-            }
-        } finally {
-            inputStream.close();
-        }
     }
 
     @Override
