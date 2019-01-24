@@ -25,6 +25,8 @@ import com.google.common.base.MoreObjects
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget.ProductType
 import org.gradle.test.fixtures.file.TestFile
 
+import javax.annotation.Nullable
+
 class ProjectFile {
     private final TestFile file
     final NSDictionary content
@@ -136,9 +138,12 @@ class ProjectFile {
             this.object = object
         }
 
+        @Nullable
         def getProperty(String name) {
             def value = object.get(name)
-            if (isId(value)) {
+            if (value == null) {
+                return null
+            } else if (isId(value)) {
                 return toPbxObject(toNSString(value).getContent())
             } else if (value instanceof NSArray) {
                 def list = []
@@ -191,6 +196,10 @@ class ProjectFile {
             super(id, object)
         }
 
+        String getName() {
+            return getProperty("name")
+        }
+
         List<PBXObject> getChildren() {
             return getProperty("children")
         }
@@ -200,6 +209,13 @@ class ProjectFile {
             assert children.size() == entries.size()
             assert children*.name.containsAll(entries)
             return true
+        }
+
+        @Override
+        String toString() {
+            MoreObjects.toStringHelper(this)
+                    .add('name', getName())
+                    .toString()
         }
     }
 
@@ -216,6 +232,7 @@ class ProjectFile {
             return getProperty("productName")
         }
 
+        @Nullable
         PBXObject getProductReference() {
             return getProperty("productReference")
         }
@@ -299,9 +316,9 @@ class ProjectFile {
         }
 
         void assertIsIndexerFor(PBXTarget target) {
+            assertIsIndexer()
             assert this.name == "[INDEXING ONLY] ${target.name}"
             this.assertProductNameEquals(target.productName)
-            assertIs(target.getProductType())
             int expectedBuildConfigurationsCount = target.buildConfigurationList.buildConfigurations.size()
             if (target.isUnitTest()) {
                 expectedBuildConfigurationsCount--
@@ -311,6 +328,13 @@ class ProjectFile {
                 assert buildConfiguration.name == target.buildConfigurationList.buildConfigurations[idx].name
                 assert buildConfiguration.buildSettings.ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.ARCHS
                 assert buildConfiguration.buildSettings.VALID_ARCHS == target.buildConfigurationList.buildConfigurations[idx].buildSettings.VALID_ARCHS
+            }
+        }
+
+        void assertIsIndexer() {
+            assertIs(ProductType.INDEXER)
+            assert this.name.startsWith("[INDEXING ONLY] ")
+            this.buildConfigurationList.buildConfigurations.each { buildConfiguration ->
                 ProjectFile.PBXTarget.assertNotUnitTestBuildSettings(buildConfiguration.buildSettings)
             }
         }

@@ -16,6 +16,9 @@
 
 package org.gradle.ide.xcode
 
+import org.gradle.nativeplatform.fixtures.app.SwiftLib
+import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+
 class XcodeSwiftBothLibraryLinkageProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
     @Override
     void makeSingleProject() {
@@ -28,5 +31,10 @@ class XcodeSwiftBothLibraryLinkageProjectIntegrationTest extends AbstractXcodeSw
     @Override
     String getComponentUnderTestDsl() {
         return 'library'
+    }
+
+    @Override
+    protected SwiftSourceElement getComponentUnderTest() {
+        return new SwiftLib()
     }
 }
