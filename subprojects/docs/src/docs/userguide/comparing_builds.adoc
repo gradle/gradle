@@ -38,7 +38,7 @@ By comparing builds in these scenarios you can make an informed decision about t
 The following are the terms used for build comparison and their definitions.
 
 “Build”::
-In the context of build comparison, a build is not necessarily a Gradle build. It can be any invokable “process” that produces observable “outcomes”. At least one of the builds in a comparison will be a Gradle build.
+In the context of build comparison, a build is not necessarily a Gradle build. It can be any invocable “process” that produces observable “outcomes”. At least one of the builds in a comparison will be a Gradle build.
 “Build Outcome”::
 Something that happens in an observable manner during a build, such as the creation of a zip file or test execution. These are the things that are compared.
 “Source Build”::
