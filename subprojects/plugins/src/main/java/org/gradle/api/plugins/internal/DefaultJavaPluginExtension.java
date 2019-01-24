@@ -29,7 +29,6 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
 import java.util.regex.Pattern;
@@ -77,12 +76,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
-        // todo: how to deal with group/name/version changes/set too late?
-        Capability defaultCapability = new ImmutableCapability(
-                notNull("group", project.getGroup()),
-                notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(name),
-                notNull("version", project.getVersion())
-        );
+        Capability defaultCapability = new LazyDefaultFeatureCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
                 validateFeatureName(name),
                 defaultCapability, convention,
@@ -107,5 +101,30 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             throw new InvalidUserDataException(id + " must not be null");
         }
         return o.toString();
+    }
+
+    private static class LazyDefaultFeatureCapability implements Capability {
+        private final Project project;
+        private final String featureName;
+
+        private LazyDefaultFeatureCapability(Project project, String featureName) {
+            this.project = project;
+            this.featureName = featureName;
+        }
+
+        @Override
+        public String getGroup() {
+            return notNull("group", project.getGroup());
+        }
+
+        @Override
+        public String getName() {
+            return notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(featureName);
+        }
+
+        @Override
+        public String getVersion() {
+            return notNull("version", project.getVersion());
+        }
     }
 }

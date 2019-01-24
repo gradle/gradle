@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven
 
+import spock.lang.Unroll
+
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
@@ -75,4 +77,73 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
             }
         }
     }
+
+    @Unroll
+    def "can update #prop after feature has been registered"() {
+        mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
+
+        given:
+        buildFile << """
+            
+            java {
+                registerFeature("feature") {
+                    usingSourceSet(sourceSets.main)
+                }
+            }
+            
+            dependencies {
+                featureImplementation 'org:optionaldep:1.0'
+            }
+            
+            $prop = "$newValue"
+        """
+
+        when:
+        javaLibrary = javaLibrary(mavenRepo.module(group, name, version))
+        run "publish"
+
+        then:
+        javaLibrary.parsedModuleMetadata.variant("api") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtime") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("featureApi") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("featureRuntime") {
+            assert files*.name == ["${name}-${version}.jar"]
+            dependency('org', 'optionaldep', '1.0')
+            noMoreDependencies()
+        }
+        javaLibrary.parsedPom.scope('compile') {
+            assertOptionalDependencies('org:optionaldep:1.0')
+        }
+        javaLibrary.parsedPom.hasNoScope('runtime')
+
+        and:
+        resolveArtifacts(javaLibrary) { expectFiles "${name}-${version}.jar" }
+        resolveApiArtifacts(javaLibrary) { expectFiles "${name}-${version}.jar" }
+        resolveRuntimeArtifacts(javaLibrary) { expectFiles "${name}-${version}.jar" }
+
+        resolveRuntimeArtifacts(javaLibrary) {
+            optionalFeatureCapabilities << "$group:${name}-feature:1.0"
+            withModuleMetadata {
+                expectFiles "${name}-${version}.jar", "optionaldep-1.0.jar"
+            }
+            withoutModuleMetadata {
+                shouldFail {
+                    // documents the current behavior
+                    assertHasCause("Unable to find a variant of $group:$name:$version providing the requested capability $group:${name}-feature:1.0")
+                }
+            }
+        }
+
+        where:
+        prop      | group             | name          | version | newValue
+        'group'   | 'newgroup'        | 'publishTest' | '1.9'   | 'newgroup'
+        'version' | 'org.gradle.test' | 'publishTest' | '2.0'   | '2.0'
+    }
+
 }
