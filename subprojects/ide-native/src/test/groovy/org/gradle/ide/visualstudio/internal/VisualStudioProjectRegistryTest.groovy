@@ -19,15 +19,20 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileResolver = Mock(FileResolver)
     def ideArtifactRegistry = Mock(IdeArtifactRegistry)
-    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP, new DefaultProviderFactory())
+    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP, TestUtil.objectFactory(), new DefaultProviderFactory(), TestFiles.fileOperations(tmpDir.testDirectory))
 
     def "creates a matching visual studio project configuration for target binary"() {
         def executableBinary = targetBinary("vsConfig")

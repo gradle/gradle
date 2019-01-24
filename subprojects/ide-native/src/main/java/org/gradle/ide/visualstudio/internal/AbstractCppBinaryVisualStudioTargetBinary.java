@@ -39,6 +39,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
+    public static final VersionNumber DEFAULT_SDK_VERSION = VersionNumber.parse("8.1");
+    public static final VersionNumber DEFAULT_VISUAL_STUDIO_VERSION = VersionNumber.version(14);
     protected final String projectName;
     private final String projectPath;
     private final CppComponent component;
@@ -91,26 +93,30 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     @Override
     public VersionNumber getVisualStudioVersion() {
         PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
-        CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
-        if (compilerMetadata instanceof VisualCppMetadata) {
-            return ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
+        if (provider.isAvailable()) {
+            CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
+            if (compilerMetadata instanceof VisualCppMetadata) {
+                return ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
+            }
         }
 
         // Assume VS 2015
-        return VersionNumber.version(14);
+        return DEFAULT_VISUAL_STUDIO_VERSION;
     }
 
     @Override
     public VersionNumber getSdkVersion() {
         PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
-        SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
-        if (systemLibraries instanceof WindowsSdkLibraries) {
-            WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
-            return sdkLibraries.getSdkVersion();
+        if (provider.isAvailable()) {
+            SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
+            if (systemLibraries instanceof WindowsSdkLibraries) {
+                WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
+                return sdkLibraries.getSdkVersion();
+            }
         }
 
         // Assume 8.1
-        return VersionNumber.parse("8.1");
+        return DEFAULT_SDK_VERSION;
     }
 
     @Override

@@ -163,6 +163,72 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "help"
     }
 
+    def "can create visual studio project for unbuildable component"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
+
+        and:
+        def projectConfigurations = [] as Set
+        projectFile.assertHasComponentSources(componentUnderTest, "src/main")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+
+        and:
+        solutionFile.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    def "warns about unbuildable components in generated visual studio project"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
+        result.assertOutputContains("'${visualStudioProjectName}' component in project ':' is not buildable.");
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "returns meaningful errors from visual studio when component product is unbuildable"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        useMsbuildTool()
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
+            ${configure}
+        """
+        succeeds "visualStudio"
+
+        when:
+        def result = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withProject(visualStudioProjectName)
+                .succeeds()
+
+        then:
+        result.size() == 1
+        result[0].assertTasksExecuted(getTasksToBuildFromIde("debugX86"))
+        file(getBuildFile(VariantContext.of())).parentFile.assertHasDescendants()
+    }
+
     String getRootProjectName() {
         return "app"
     }
@@ -212,5 +278,18 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         } else {
             return osFamily
         }
+    }
+
+    protected String configureToolChainSupport(String architecture) {
+        return """
+            model {
+                toolChains {
+                    toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                        path "/not/found"
+                        target("host:${architecture}")
+                    }
+                }
+            }
+        """
     }
 }
