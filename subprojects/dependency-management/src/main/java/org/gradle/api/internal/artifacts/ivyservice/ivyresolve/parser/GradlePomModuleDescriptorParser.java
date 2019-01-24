@@ -151,7 +151,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
     private void addDependencies(GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) {
         for (PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
-            mdBuilder.addConstraint(dependencyMgt);
+            if (!isDependencyImportScoped(dependencyMgt)) {
+                mdBuilder.addConstraint(dependencyMgt);
+            }
         }
 
         for (PomDependencyData dependency : pomReader.getDependencies().values()) {
