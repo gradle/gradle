@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.io.NullOutputStream
+
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
@@ -169,8 +171,14 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 private
 inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
-        redirectingOutputTo(messageCollector.log::debug) {
-            return action()
+        val log = messageCollector.log
+        return when {
+            log.isDebugEnabled -> {
+                loggingOutputTo(log::debug) { action() }
+            }
+            else -> {
+                ignoringOutputOf { action() }
+            }
         }
     } catch (ex: CompilationException) {
         messageCollector.report(
@@ -184,27 +192,35 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageC
 
 
 private
-inline fun <T> redirectingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
-    withLoggingOutputStreamFor(System.err, System::setErr, log) {
-        withLoggingOutputStreamFor(System.out, System::setOut, log) {
+inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+    redirectingOutputTo({ LoggingOutputStream(log) }, action)
+
+
+private
+inline fun <T> ignoringOutputOf(action: () -> T): T =
+    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
+
+
+private
+inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
+    redirecting(System.err, System::setErr, outputStream()) {
+        redirecting(System.out, System::setOut, outputStream()) {
             action()
         }
     }
 
 
 private
-inline fun <T> withLoggingOutputStreamFor(
+inline fun <T> redirecting(
     stream: PrintStream,
     set: (PrintStream) -> Unit,
-    noinline log: (String) -> Unit,
+    to: OutputStream,
     action: () -> T
-): T = LoggingOutputStream(log).use {
-    try {
-        set(PrintStream(it, true))
-        action()
-    } finally {
-        set(stream)
-    }
+): T = try {
+    set(PrintStream(to, true))
+    action()
+} finally {
+    set(stream)
 }
 
 

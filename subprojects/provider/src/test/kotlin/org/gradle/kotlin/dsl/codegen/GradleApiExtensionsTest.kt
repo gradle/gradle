@@ -329,6 +329,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
         val logger = mock<Logger> {
             on { isTraceEnabled } doReturn false
+            on { isDebugEnabled } doReturn false
         }
         compileKotlinApiExtensionsTo(
             file("out").also { it.mkdirs() },
@@ -338,6 +339,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         )
         // Assert no warnings were emitted
         verify(logger, atMost(1)).isTraceEnabled
+        verify(logger, atMost(1)).isDebugEnabled
         verifyNoMoreInteractions(logger)
     }
 }
