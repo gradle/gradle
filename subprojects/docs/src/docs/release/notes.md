@@ -40,6 +40,10 @@ We introduced new C++ plugins [last year](https://blog.gradle.org/introducing-th
 
 In this release, we are recommending new C++ projects to use these plugins over [the existing software model plugins](userguide/native_software.html). The new plugins do not currently support C, Objective-C or Objective-C++ out of the box, but they have [a lot of other things to offer](userguide/cpp_plugins.html#cpp:features).
 
+### Build Init can now generate C++ sample projects
+
+If you want to get started quickly with a C++ project, try running `gradle init` and following the instructions to generate a sample C++ application or library.
+
 ### Support for additional Windows native toolchains
 
 In previous versions of Gradle, native builds using GCC with [cygwin64](https://www.cygwin.com/) or [mingw64](https://mingw-w64.org/doku.php) was reported to work, but was not officially supported.
