@@ -147,9 +147,6 @@ allprojects {
     group = "org.gradle"
 
     repositories {
-        //TODO: remove before merging
-        gradlePluginPortal()
-
         maven {
             name = "Gradle libs"
             url = uri("https://repo.gradle.org/gradle/libs")
