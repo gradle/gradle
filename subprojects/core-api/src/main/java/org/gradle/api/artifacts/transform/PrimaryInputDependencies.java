@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Attached to a property that should receive the <em>artifact dependencies</em> of the {@link PrimaryInput} of an artifact transform.
  *
  * The order of the files match that of the dependencies in the source artifact view.
- * The type of the injected dependencies is {@code Iterable<File>}.
+ * The type of the injected dependencies is {@link org.gradle.api.file.FileCollection}.
  *
  * @since 5.3
  */

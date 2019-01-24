@@ -144,7 +144,7 @@ abstract class TestTransform extends ArtifactTransform {
     String transformName
 
     @PrimaryInputDependencies
-    abstract Iterable<File> getPrimaryInputDependencies();
+    abstract FileCollection getPrimaryInputDependencies();
 
     @Inject
     TestTransform(String transformName) {

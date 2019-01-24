@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -74,7 +75,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "transform can receive dependencies via abstract getter"() {
+    @Unroll
+    def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -94,7 +96,7 @@ project(':b') {
 
 abstract class MakeGreen extends ArtifactTransform {
     @PrimaryInputDependencies
-    abstract Iterable<File> getDependencies()
+    abstract ${targetType} getDependencies()
     
     List<File> transform(File input) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
@@ -113,6 +115,9 @@ abstract class MakeGreen extends ArtifactTransform {
         outputContains("received dependencies files [] for processing c.jar")
         outputContains("received dependencies files [c.jar] for processing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        targetType << ["FileCollection", "Iterable<File>"]
     }
 
     def "transform can receive workspace and primary input via abstract getter"() {
@@ -231,7 +236,7 @@ project(':a') {
 
 abstract class MakeGreen extends ArtifactTransform {
     ${annotation}
-    abstract Iterable<File> getDependencies()
+    abstract FileCollection getDependencies()
     
     List<File> transform(File input) {
         dependencies.files
@@ -247,7 +252,7 @@ abstract class MakeGreen extends ArtifactTransform {
         // Documents existing behaviour. Should fail eagerly and with a better error message
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type ${Iterable.name}<${File.name}> available.")
+        failure.assertHasCause("No service of type interface ${FileCollection.name} available.")
 
         where:
         annotation << ["@Workspace", "@PrimaryInput"]

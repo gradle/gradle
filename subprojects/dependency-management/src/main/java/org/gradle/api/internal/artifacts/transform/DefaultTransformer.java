@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.Workspace;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
@@ -140,8 +141,6 @@ public class DefaultTransformer implements Transformer {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        public static final TypeToken<Iterable<File>> PRIMARY_INPUT_DEPENDENCIES_TYPE = new TypeToken<Iterable<File>>() {};
-
         private final File inputFile;
         private final File outputDir;
         private final Object parameters;
@@ -167,7 +166,7 @@ public class DefaultTransformer implements Transformer {
             if (annotatedWith == TransformParameters.class && serviceTypeToken.getRawType().isInstance(parameters)) {
                 return parameters;
             }
-            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(PRIMARY_INPUT_DEPENDENCIES_TYPE)) {
+            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(FileCollection.class)) {
                 return artifactTransformDependencies.getFiles();
             }
             return null;

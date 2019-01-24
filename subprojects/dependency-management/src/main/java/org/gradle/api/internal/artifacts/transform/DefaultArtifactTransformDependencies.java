@@ -20,8 +20,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
-import java.io.File;
-
 public class DefaultArtifactTransformDependencies implements ArtifactTransformDependencies {
     private final FileCollection files;
 
@@ -30,7 +28,7 @@ public class DefaultArtifactTransformDependencies implements ArtifactTransformDe
     }
 
     @Override
-    public Iterable<File> getFiles() {
+    public FileCollection getFiles() {
         return files;
     }
 
