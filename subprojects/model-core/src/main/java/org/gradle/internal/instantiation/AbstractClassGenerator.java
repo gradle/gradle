@@ -784,7 +784,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static class ManagedTypeHandler extends ClassGenerationHandler {
         private final List<PropertyMetaData> mutableProperties = new ArrayList<>();
-        private final List<PropertyMetaData> fileCollectionProperties = new ArrayList<>();
+        private final List<PropertyMetaData> readOnlyProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
@@ -811,7 +811,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (property.setters.isEmpty()) {
                 if (property.getType().equals(ConfigurableFileCollection.class)) {
                     // Read-only file collection property
-                    fileCollectionProperties.add(property);
+                    readOnlyProperties.add(property);
                     return true;
                 }
                 return false;
@@ -827,7 +827,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (!hasFields) {
                 visitor.mixInManaged();
             }
-            if (!fileCollectionProperties.isEmpty()) {
+            if (!readOnlyProperties.isEmpty()) {
                 visitor.mixInServiceInjection();
             }
         }
@@ -843,14 +843,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     visitor.applyManagedStateToSetter(property, setter);
                 }
             }
-            for (PropertyMetaData property : fileCollectionProperties) {
+            for (PropertyMetaData property : readOnlyProperties) {
                 visitor.applyManagedStateToProperty(property);
                 for (Method getter : property.getters) {
                     visitor.applyReadOnlyManagedStateToGetter(property, getter);
                 }
             }
             if (!hasFields) {
-                visitor.addManagedMethods(mutableProperties);
+                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
             }
         }
     }
@@ -1140,7 +1140,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter);
 
-        void addManagedMethods(List<PropertyMetaData> properties);
+        void addManagedMethods(List<PropertyMetaData> properties, List<PropertyMetaData> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetaData property);
 

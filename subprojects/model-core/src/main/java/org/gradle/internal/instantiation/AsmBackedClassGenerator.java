@@ -26,13 +26,13 @@ import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -78,7 +78,6 @@ import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNCHRONIZED;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ANEWARRAY;
 import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.GETFIELD;
@@ -296,7 +295,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type ACTION_TYPE = Type.getType(Action.class);
         private static final Type PROPERTY_INTERNAL_TYPE = Type.getType(PropertyInternal.class);
         private static final Type INSTANTIATOR_TYPE = Type.getType(Instantiator.class);
-        private static final Type PROJECT_LAYOUT_TYPE = Type.getType(ProjectLayout.class);
+        private static final Type OBJECT_FACTORY_TYPE = Type.getType(ObjectFactory.class);
         private static final Type CONFIGURABLE_FILE_COLLECTION_TYPE = Type.getType(ConfigurableFileCollection.class);
         private static final Type MANAGED_TYPE = Type.getType(Managed.class);
 
@@ -325,7 +324,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = Type.getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
-        private static final String RETURN_CONFIGURABLE_FILE_COLLECTION_FROM_OBJECT_ARRAY = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE, OBJECT_ARRAY_TYPE);
+        private static final String RETURN_CONFIGURABLE_FILE_COLLECTION = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -943,20 +942,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
-            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ProjectLayout.class).configurableFiles(); } return <field> }
+            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ObjectFactory.class).fileCollection(); } return <field> }
             Type propType = Type.getType(property.getType());
             addLazyGetter(getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), null, propFieldName(property), propType, methodVisitor -> {
                 // GENERATE services.get(ProjectLayout.class)
                 putServiceRegistryOnStack(methodVisitor);
-                methodVisitor.visitLdcInsn(PROJECT_LAYOUT_TYPE);
+                methodVisitor.visitLdcInsn(OBJECT_FACTORY_TYPE);
                 methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, SERVICE_LOOKUP_TYPE.getInternalName(), "get", RETURN_OBJECT_FROM_TYPE, true);
-                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, PROJECT_LAYOUT_TYPE.getInternalName());
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_FACTORY_TYPE.getInternalName());
 
-                // GENERATE projectLayout.configurableFiles(new Object[0])
-                // TODO - simplify this call
-                methodVisitor.visitLdcInsn(0);
-                methodVisitor.visitTypeInsn(ANEWARRAY, OBJECT_TYPE.getInternalName());
-                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, PROJECT_LAYOUT_TYPE.getInternalName(), "configurableFiles", RETURN_CONFIGURABLE_FILE_COLLECTION_FROM_OBJECT_ARRAY, true);
+                // GENERATE objectFactory.configurableFiles()
+                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileCollection", RETURN_CONFIGURABLE_FILE_COLLECTION, true);
             });
         }
 
@@ -998,7 +994,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetaData> properties) {
+        public void addManagedMethods(List<PropertyMetaData> mutableProperties, List<PropertyMetaData> readOnlyProperties) {
             visitor.visitField(PV_FINAL_STATIC, FACTORY_FIELD, Type.getType(Managed.Factory.class).getDescriptor(), null, null);
 
             // Generate: <init>(Object[] state) { }
@@ -1009,8 +1005,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             } else {
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", RETURN_VOID, false);
             }
-            for (int i = 0; i < properties.size(); i++) {
-                PropertyMetaData propertyMetaData = properties.get(i);
+            for (int i = 0; i < mutableProperties.size(); i++) {
+                PropertyMetaData propertyMetaData = mutableProperties.get(i);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitLdcInsn(i);
@@ -1030,20 +1026,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
-            // Generate: Class immutable() { return <properties.empty> }
+            // Generate: Class immutable() { return <properties.empty> && <read-only-properties.empty> }
             methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(properties.isEmpty());
+            // Could return true if all of the read only properties point to immutable objects, but at this stage there are no such types supported
+            methodVisitor.visitLdcInsn(mutableProperties.isEmpty() && readOnlyProperties.isEmpty());
             methodVisitor.visitInsn(IRETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
             methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(properties.size());
+            methodVisitor.visitLdcInsn(mutableProperties.size());
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
             // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
-            for (int i = 0; i < properties.size(); i++) {
-                PropertyMetaData propertyMetaData = properties.get(i);
+            for (int i = 0; i < mutableProperties.size(); i++) {
+                PropertyMetaData propertyMetaData = mutableProperties.get(i);
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitInsn(DUP);
                 methodVisitor.visitLdcInsn(i);
@@ -1506,7 +1503,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetaData> properties) {
+        public void addManagedMethods(List<PropertyMetaData> properties, List<PropertyMetaData> readOnlyProperties) {
         }
 
         @Override
