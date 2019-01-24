@@ -221,6 +221,7 @@ inline fun <T> redirecting(
     action()
 } finally {
     set(stream)
+    to.flush()
 }
 
 
