@@ -20,7 +20,6 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
@@ -64,64 +63,6 @@ apply plugin: 'swift-application'
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
     }
 
-    def "can create xcode project for Swift application with multiple architecture"() {
-        requireSwiftToolChain()
-
-        given:
-        buildFile << """
-            apply plugin: 'swift-application'
-
-            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
-        """
-
-        def app = new SwiftApp()
-        app.writeToProject(testDirectory)
-
-        when:
-        succeeds("xcode")
-
-        then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
-
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
-        project.sources.assertHasChildren(app.files*.name)
-
-        project.targets.size() == 2
-        project.targets[0].productReference.path == exe("build/install/main/debug/x86-64/lib/App").absolutePath
-        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-
-        project.targets[0].assertIsTool()
-        project.targets[0].name == "App"
-        project.targets[0].assertProductNameEquals("App")
-        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
-        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
-
-        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86-64/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86-64/lib").absolutePath
-
-        project.targets[1].assertIsIndexerFor(project.targets[0])
-
-        project.products.children.size() == 1
-        project.products.children[0].path == exe("build/install/main/debug/x86-64/lib/App").absolutePath
-
-        rootXcodeProject.schemeFiles.size() == 1
-        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
-    }
-
     def "can create xcode project for Swift library"() {
         requireSwiftToolChain()
 
@@ -149,64 +90,6 @@ apply plugin: 'swift-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
-
-        rootXcodeProject.schemeFiles.size() == 1
-        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
-    }
-
-    def "can create xcode project for Swift library with multiple architecture"() {
-        requireSwiftToolChain()
-
-        given:
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
-        """
-
-        def lib = new SwiftLib()
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("xcode")
-
-        then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
-
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
-        project.sources.assertHasChildren(lib.files*.name)
-
-        project.targets.size() == 2
-        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/x86-64/App").absolutePath
-        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-
-        project.targets[0].assertIsDynamicLibrary()
-        project.targets[0].name == "App"
-        project.targets[0].assertProductNameEquals("App")
-        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
-        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
-
-        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86-64").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86/stripped").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86-64/stripped").absolutePath
-
-        project.targets[1].assertIsIndexerFor(project.targets[0])
-
-        project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/main/debug/x86-64/App").absolutePath
 
         rootXcodeProject.schemeFiles.size() == 1
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0

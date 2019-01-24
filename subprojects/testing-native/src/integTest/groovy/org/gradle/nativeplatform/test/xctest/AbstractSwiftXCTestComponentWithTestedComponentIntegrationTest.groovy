@@ -98,20 +98,15 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Override
-    String getTaskNameToAssembleDevelopmentBinary() {
-        return "test"
-    }
-
-    @Override
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return [":compileTestSwift", ":linkTest", ":installTest", ":xcTest"]
     }
 
     @Override
-    protected configureTargetMachines(String targetMachines) {
+    protected configureTargetMachines(String... targetMachines) {
         return """
             ${testedComponentDsl} {
-                targetMachines = [${targetMachines}]
+                targetMachines = [${targetMachines.join(",")}]
             }
         """ + super.configureTargetMachines(targetMachines)
     }

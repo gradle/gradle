@@ -19,12 +19,26 @@ import org.gradle.internal.logging.text.DiagnosticsVisitor
 import spock.lang.Specification
 
 class ToolChainAvailabilityTest extends Specification {
-    def "visits message"() {
+    def "visits message when unavailable"() {
         def visitor = Mock(DiagnosticsVisitor)
 
         given:
         def availability = new ToolChainAvailability()
         availability.unavailable("some reason")
+
+        when:
+        availability.explain(visitor)
+
+        then:
+        1 * visitor.node("some reason")
+    }
+
+    def "visits message when unsupported"() {
+        def visitor = Mock(DiagnosticsVisitor)
+
+        given:
+        def availability = new ToolChainAvailability()
+        availability.unsupported("some reason")
 
         when:
         availability.explain(visitor)

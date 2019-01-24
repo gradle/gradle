@@ -243,17 +243,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
     abstract SourceElement getSwift4Component()
 
-    abstract String getTaskNameToAssembleDevelopmentBinary()
-
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
 
     abstract String getComponentName()
-
-    protected configureTargetMachines(String targetMachines) {
-        return """
-            ${componentUnderTestDsl} {
-                targetMachines = [${targetMachines}]
-            }
-        """
-    }
 }
