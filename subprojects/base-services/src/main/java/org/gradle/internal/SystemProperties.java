@@ -143,21 +143,18 @@ public class SystemProperties {
     }
 
     /**
-     * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
+     * Returns true if the given key is guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.
      */
-    public Set<String> getStandardProperties() {
-        return STANDARD_PROPERTIES;
+    public boolean isStandardProperty(String key) {
+        return STANDARD_PROPERTIES.contains(key);
     }
 
     /**
-     * Returns the names of properties that are not guaranteed to be contained in System.getProperties()
-     * but are usually there and if there should not be adjusted.
-     *
-     * @return the set of keys of {@code System.getProperties()} which should not be adjusted
-     * by client code. This method never returns {@code null}.
+     * Returns true if the key is an important property that is not guaranteed to be contained in System.getProperties().
+     * The property is usually there and should not be adjusted.
      */
-    public Set<String> getNonStandardImportantProperties() {
-        return IMPORTANT_NON_STANDARD_PROPERTIES;
+    public boolean isNonStandardImportantProperty(String key) {
+        return IMPORTANT_NON_STANDARD_PROPERTIES.contains(key);
     }
 }
