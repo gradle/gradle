@@ -22,7 +22,7 @@ import org.gradle.util.DeprecationLogger;
 import java.util.HashSet;
 import java.util.Set;
 
-public class LoggingDeprecable implements Deprecable {
+public class LoggingDeprecatable implements Deprecatable {
 
     private final Set<String> deprecations = new HashSet<String>();
 
@@ -53,7 +53,7 @@ public class LoggingDeprecable implements Deprecable {
             return false;
         }
 
-        LoggingDeprecable that = (LoggingDeprecable) o;
+        LoggingDeprecatable that = (LoggingDeprecatable) o;
 
         return deprecations != null ? deprecations.equals(that.deprecations) : that.deprecations == null;
     }

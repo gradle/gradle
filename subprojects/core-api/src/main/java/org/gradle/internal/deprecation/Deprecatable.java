@@ -19,7 +19,7 @@ package org.gradle.internal.deprecation;
 import java.io.Serializable;
 import java.util.Set;
 
-public interface Deprecable extends Serializable {
+public interface Deprecatable extends Serializable {
 
     /**
      * Adds a deprecation item.
