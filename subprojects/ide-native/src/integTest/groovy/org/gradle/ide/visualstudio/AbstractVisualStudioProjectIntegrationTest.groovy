@@ -218,7 +218,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
                 .fails()
 
         then:
-        result.assertHasDescription("No tool chain is available to build C++")
+        result.assertHasCause("No tool chain is available to build C++")
     }
 
     String getRootProjectName() {
