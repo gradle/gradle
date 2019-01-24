@@ -150,13 +150,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         buildFile << """
             ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
 
-            model {
-                toolChains {
-                    toolChainForFooArchitecture(Gcc) {
-                        target("foo")
-                    }
-                }
-            }
+            ${configureToolChainSupport('foo')}
         """
 
         expect:
@@ -212,7 +206,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         makeSingleProject()
         buildFile << """
             ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
-            ${configure}
+            ${configureToolChainSupport('foo')}
         """
         succeeds "visualStudio"
 

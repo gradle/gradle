@@ -89,9 +89,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def sourceCommon = tmpDir.file("source")
-        def source1 = tmpDir.file("source1")
-        def source2 = tmpDir.file("source2")
+        def sourceCommon = file("source")
+        def source1 = file("source1")
+        def source2 = file("source2")
         def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
         def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
@@ -117,9 +117,14 @@ class VisualStudioProjectRegistryTest extends Specification {
         targetBinary.variantDimensions >> [variant]
         return targetBinary
     }
+
     private FileCollection fileCollection(File... files = []) {
         return Stub(FileCollection) {
             getFiles() >> (files as Set)
         }
+    }
+
+    private File file(Object... path) {
+        return tmpDir.file(path)
     }
 }

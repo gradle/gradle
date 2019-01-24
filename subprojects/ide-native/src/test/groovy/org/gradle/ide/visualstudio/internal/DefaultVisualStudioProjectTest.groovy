@@ -56,22 +56,22 @@ class DefaultVisualStudioProjectTest extends Specification {
 
     def "includes source, resource, and header files from target binary"() {
         when:
-        def sourcefile1 = new File("s1")
-        def sourcefile2 = new File("s2")
-        def sourcefile3 = new File("s3")
-        def resourcefile1 = new File("r1")
-        def resourcefile2 = new File("r2")
-        def headerfile1 = new File("h1")
-        def headerfile2 = new File("h2")
-        def headerfile3 = new File("h3")
+        def sourcefile1 = file("s1")
+        def sourcefile2 = file("s2")
+        def sourcefile3 = file("s3")
+        def resourcefile1 = file("r1")
+        def resourcefile2 = file("r2")
+        def headerfile1 = file("h1")
+        def headerfile2 = file("h2")
+        def headerfile3 = file("h3")
 
         vsProject.addConfiguration(targetBinary([sourcefile1, sourcefile2], [resourcefile1, resourcefile2], [headerfile1, headerfile2, headerfile3]), Mock(VisualStudioProjectConfiguration))
         vsProject.addSourceFile(sourcefile3)
 
         then:
-        vsProject.sourceFiles == [sourcefile1, sourcefile2, sourcefile3] as Set
+        vsProject.sourceFiles.files == [sourcefile1, sourcefile2, sourcefile3] as Set
         vsProject.resourceFiles == [resourcefile1, resourcefile2] as Set
-        vsProject.headerFiles == [headerfile1, headerfile2, headerfile3] as Set
+        vsProject.headerFiles.files == [headerfile1, headerfile2, headerfile3] as Set
     }
 
     def "has consistent uuid for same file"() {
@@ -110,5 +110,9 @@ class DefaultVisualStudioProjectTest extends Specification {
         1 * sourceSet.implicitHeaders >> implicitHeaderSet
         1 * implicitHeaderSet.files >> implicitHeaderFiles
         return sourceSet
+    }
+
+    private File file(Object... path) {
+        return tmpDir.file(path)
     }
 }
