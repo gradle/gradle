@@ -16,12 +16,12 @@ repositories {
 
 // tag::publish-custom-artifact[]
 tasks.register<Jar>("sourcesJar") {
-    classifier = "sources"
+    archiveClassifier.set("sources")
     from(sourceSets.main.get().allJava)
 }
 
 tasks.register<Jar>("javadocJar") {
-    classifier = "javadoc"
+    archiveClassifier.set("javadoc")
     from(tasks.javadoc.get().destinationDir)
 }
 
