@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -85,12 +84,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
             }
             return allHeadersFromBinaries;
         }));
-    }
-
-    public DefaultVisualStudioProject(String name, String componentName, Provider<VersionNumber> visualStudioVersion, Provider<VersionNumber> sdkVersion, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory, FileOperations fileOperations) {
-        this(name, componentName, fileResolver, objectFactory, providerFactory, fileOperations);
-        this.visualStudioVersion.set(visualStudioVersion);
-        this.sdkVersion.set(sdkVersion);
     }
 
     @Override

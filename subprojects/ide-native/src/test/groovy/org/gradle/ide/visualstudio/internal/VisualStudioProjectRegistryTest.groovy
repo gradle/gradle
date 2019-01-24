@@ -101,7 +101,7 @@ class VisualStudioProjectRegistryTest extends Specification {
 
         then:
         def vsProject = registry.getProjectConfiguration(executableBinary1).project
-        vsProject.sourceFiles == [sourceCommon, source1, source2] as Set
+        vsProject.sourceFiles.files == [sourceCommon, source1, source2] as Set
     }
 
     private VisualStudioTargetBinary targetBinary(String variant, File... sources) {

@@ -19,22 +19,26 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID
 
 class DefaultVisualStudioProjectTest extends Specification {
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(vsProjectName, component.getName(), null, null, fileResolver, instantiator)
+        new DefaultVisualStudioProject(vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory(), TestFiles.fileOperations(tmpDir.testDirectory))
     }
 
     def "names"() {
