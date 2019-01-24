@@ -64,7 +64,10 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 
 
 internal
@@ -164,9 +167,11 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 
 
 private
-inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
-        return action()
+        redirectingOutputTo(messageCollector.log::debug) {
+            return action()
+        }
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -174,6 +179,57 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollecto
             MessageUtil.psiElementToMessageLocation(ex.element))
 
         throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
+    }
+}
+
+
+private
+inline fun <T> redirectingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+    withLoggingOutputStreamFor(System.err, System::setErr, log) {
+        withLoggingOutputStreamFor(System.out, System::setOut, log) {
+            action()
+        }
+    }
+
+
+private
+inline fun <T> withLoggingOutputStreamFor(
+    stream: PrintStream,
+    set: (PrintStream) -> Unit,
+    noinline log: (String) -> Unit,
+    action: () -> T
+): T = LoggingOutputStream(log).use {
+    try {
+        set(PrintStream(it, true))
+        action()
+    } finally {
+        set(stream)
+    }
+}
+
+
+private
+class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+    private
+    val buffer = ByteArrayOutputStream()
+
+    override fun write(b: Int) = buffer.write(b)
+
+    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+    override fun flush() {
+        buffer.run {
+            val string = toString("utf8")
+            if (string.isNotBlank()) {
+                log(string)
+            }
+            reset()
+        }
+    }
+
+    override fun close() {
+        flush()
     }
 }
 
@@ -288,7 +344,7 @@ const val indent = "  "
 
 internal
 class LoggingMessageCollector(
-    private val log: Logger,
+    internal val log: Logger,
     private val pathTranslation: (String) -> String
 ) : MessageCollector {
 
