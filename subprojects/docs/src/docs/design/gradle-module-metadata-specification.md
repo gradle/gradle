@@ -2,6 +2,14 @@
 
 _Note: this format is not yet stable and may change at any time. Gradle does not guarantee to offer any long term support for this version of the format. Any version before 1.0 is intentionally assumed not backwards compatible, and the parsers are not required to support pre 1.0 releases._
 
+Support for Gradle metadata can be enabled in Gradle settings file (`settings.gradle`):
+
+```
+enableFeaturePreview("GRADLE_METADATA")
+```
+
+## Goal
+
 This document describes version 0.4 of the Gradle module metadata file. A module metadata file describes the contents of a _module_, which is the unit of publication for a particular repository format, such as a module in a Maven repository. This is often called a "package" in many repository formats.
 
 The module metadata file is a JSON file published alongside the existing repository specific metadata files, such as a Maven POM or Ivy descriptor. It adds additional metadata that can be used by Gradle versions and other tooling that understand the format. This allows the rich Gradle model to be mapped to and "tunnelled" through existing repository formats, while continuing to support existing Gradle versions and tooling that does not understand the format. 
