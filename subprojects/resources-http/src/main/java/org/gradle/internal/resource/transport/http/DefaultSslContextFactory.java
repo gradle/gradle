@@ -21,8 +21,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import org.apache.http.ssl.SSLInitializationException;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -58,12 +60,18 @@ public class DefaultSslContextFactory implements SslContextFactory {
     }
 
     private Map<String, String> getCurrentProperties() {
-        Map<String, String> currentProperties = new TreeMap<String, String>();
-        for (String prop : SSL_SYSTEM_PROPERTIES) {
-            currentProperties.put(prop, System.getProperty(prop));
-        }
-        currentProperties.put("java.home", SystemProperties.getInstance().getJavaHomeDir().getPath());
-        return currentProperties;
+        return SystemProperties.getInstance().withSystemProperties(new Factory<Map<String, String>>() {
+            @Nullable
+            @Override
+            public Map<String, String> create() {
+                Map<String, String> currentProperties = new TreeMap<String, String>();
+                for (String prop : SSL_SYSTEM_PROPERTIES) {
+                    currentProperties.put(prop, System.getProperty(prop));
+                }
+                currentProperties.put("java.home", SystemProperties.getInstance().getJavaHomeDir().getPath());
+                return currentProperties;
+            }
+        });
     }
 
     private static class SslContextCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
