@@ -68,6 +68,7 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
+        executedTasks == []
         failure.assertHasCause("No tool chain has support to build")
     }
 
