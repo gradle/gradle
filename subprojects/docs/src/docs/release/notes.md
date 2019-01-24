@@ -8,7 +8,8 @@ We would like to thank the following community contributors to this release of G
 [Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker),
 [Josh Soref](https://github.com/jsoref), [Andrew Nessin](https://github.com/andrewnessinjim), [NFM](https://github.com/not-for-me),
 [Jean-Michel Fayard](https://github.com/jmfayard), [Arun Ponniah Sethuramalingam](https://github.com/saponniah), [Victor Jacobs](https://github.com/victorjacobs),
-[Theodore Ni](https://github.com/tjni), [Sam Holmes](https://github.com/sbholmes),
+[Theodore Ni](https://github.com/tjni), [Sam Holmes](https://github.com/sbholmes), [Artem Zinnatullin ](https://github.com/artem-zinnatullin),
+[Ronald Brindl](https://github.com/rbrindl),
 and [Richard Newton](https://github.com/ricnewton).
 
 ## Upgrade Instructions
