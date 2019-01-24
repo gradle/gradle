@@ -18,7 +18,6 @@ package org.gradle.internal;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -70,11 +69,6 @@ public class SystemProperties {
     }
 
     private SystemProperties() {
-    }
-
-    @SuppressWarnings("unchecked")
-    public synchronized Map<String, String> asMap() {
-        return (Map) System.getProperties();
     }
 
     public synchronized String getLineSeparator() {
