@@ -106,6 +106,8 @@ public abstract class PBXTarget extends PBXProjectItem {
     }
 
     public enum ProductType {
+        INDEXER("org.gradle.product-type.indexer"),
+
         STATIC_LIBRARY("com.apple.product-type.library.static"),
         DYNAMIC_LIBRARY("com.apple.product-type.library.dynamic"),
         TOOL("com.apple.product-type.tool"),

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest
+package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTest
+import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 
-class SwiftXCTestComponentWithoutComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
-    @Override
-    protected void makeSingleProject() {
-        buildFile << """
-            apply plugin: 'xctest'
-        """
+public class UnsupportedPlatformToolProvider extends UnavailablePlatformToolProvider {
+    public UnsupportedPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, String failure) {
+        super(targetOperatingSystem, new ToolChainAvailability().unsupported(failure));
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
-        return new SwiftXCTest('project')
+    public boolean isSupported() {
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,24 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
-import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+import org.gradle.nativeplatform.fixtures.app.CppLib
+import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 
-class XcodeSwiftApplicationWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftWithXCTestProjectIntegrationTest {
+class XcodeCppSharedLibraryLinkageProjectIntegrationTest extends AbstractXcodeCppProjectIntegrationTest {
     @Override
-    void makeSingleProject() {
+    protected void makeSingleProject() {
         buildFile << """
-            apply plugin: 'swift-application'
-            apply plugin: 'xctest'
+            apply plugin: 'cpp-library'
         """
     }
 
     @Override
-    String getTestedComponentDsl() {
-        return "application"
+    protected String getComponentUnderTestDsl() {
+        return 'library'
     }
 
     @Override
-    protected SwiftSourceElement getComponentUnderTest() {
-        return new SwiftAppWithXCTest()
+    protected CppSourceElement getComponentUnderTest() {
+        return new CppLib()
     }
 }

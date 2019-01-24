@@ -45,6 +45,14 @@ public class ToolChainAvailability implements ToolSearchResult {
         return this;
     }
 
+    public ToolChainAvailability unsupported(String unsupportedMessage) {
+        if (reason == null) {
+            reason = new FixedMessageToolSearchResult(unsupportedMessage);
+        }
+
+        return this;
+    }
+
     public ToolChainAvailability mustBeAvailable(ToolSearchResult tool) {
         if (!tool.isAvailable() && reason == null) {
             reason = tool;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.test.xctest
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.nativeplatform.fixtures.app.SwiftXCTest
-
-class SwiftXCTestComponentWithoutComponentIntegrationTest extends AbstractSwiftXCTestComponentIntegrationTest {
-    @Override
-    protected void makeSingleProject() {
-        buildFile << """
-            apply plugin: 'xctest'
-        """
+class SwiftXCTest extends XCTestSourceElement {
+    SwiftXCTest(String projectName) {
+        super(projectName)
     }
 
     @Override
-    protected SourceElement getComponentUnderTest() {
-        return new SwiftXCTest('project')
+    List<XCTestSourceFileElement> getTestSuites() {
+        return [new XCTestSourceFileElement("SwiftTest") {
+            @Override
+            List<XCTestCaseElement> getTestCases() {
+                return [testCase("testSucceed","XCTAssertTrue(true)")]
+            }
+        }]
     }
 }

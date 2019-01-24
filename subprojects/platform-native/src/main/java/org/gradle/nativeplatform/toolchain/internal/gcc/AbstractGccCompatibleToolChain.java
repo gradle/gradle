@@ -37,6 +37,7 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.SymbolExtractorOsConfig;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnsupportedPlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDiscovery;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
@@ -164,6 +165,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         PlatformToolProvider toolProvider = getProviderForPlatform(targetMachine);
         switch (sourceLanguage) {
             case CPP:
+                if (toolProvider instanceof UnsupportedPlatformToolProvider) {
+                    return toolProvider;
+                }
                 ToolSearchResult cppCompiler = toolProvider.locateTool(ToolType.CPP_COMPILER);
                 if (cppCompiler.isAvailable()) {
                     return toolProvider;
@@ -171,6 +175,9 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                 // No C++ compiler, complain about it
                 return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cppCompiler);
             case ANY:
+                if (toolProvider instanceof UnsupportedPlatformToolProvider) {
+                    return toolProvider;
+                }
                 ToolSearchResult cCompiler = toolProvider.locateTool(ToolType.C_COMPILER);
                 if (cCompiler.isAvailable()) {
                     return toolProvider;
@@ -190,14 +197,14 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
                 // No compilers available, complain about the missing C compiler
                 return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), cCompiler);
             default:
-                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+                return new UnsupportedPlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
         }
     }
 
     private PlatformToolProvider createPlatformToolProvider(NativePlatformInternal targetPlatform) {
         TargetPlatformConfiguration targetPlatformConfigurationConfiguration = getPlatformConfiguration(targetPlatform);
         if (targetPlatformConfigurationConfiguration == null) {
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
+            return new UnsupportedPlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
 
         DefaultGccPlatformToolChain configurableToolChain = instantiator.newInstance(DefaultGccPlatformToolChain.class, targetPlatform);

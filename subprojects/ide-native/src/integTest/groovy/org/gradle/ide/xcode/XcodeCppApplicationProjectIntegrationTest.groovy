@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,35 @@
 
 package org.gradle.ide.xcode
 
-import groovy.transform.NotYetImplemented
-import org.gradle.nativeplatform.fixtures.app.SwiftApp
-import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
-import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
+
+import org.gradle.nativeplatform.fixtures.app.CppApp
+import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
+import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Issue
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
+class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectIntegrationTest {
     @Override
-    void makeSingleProject() {
+    protected void makeSingleProject() {
         buildFile << """
-            apply plugin: 'swift-application'
+            apply plugin: 'cpp-application'
         """
     }
 
     @Override
-    String getComponentUnderTestDsl() {
+    protected String getComponentUnderTestDsl() {
         return 'application'
     }
 
     @Override
-    protected SwiftSourceElement getComponentUnderTest() {
-        return new SwiftApp()
+    protected CppSourceElement getComponentUnderTest() {
+        return new CppApp()
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can create xcode project for unbuildable Swift application with library"() {
+    def "can create xcode project for unbuildable C++ application with library"() {
         useXcodebuildTool()
 
         given:
@@ -55,7 +54,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
 
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-application'
+                apply plugin: 'cpp-application'
 
                 application {
                     targetMachines = [machines.os('os-family')]
@@ -65,12 +64,12 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 }
             }
             project(':greeter') {
-                apply plugin: 'swift-library'
+                apply plugin: 'cpp-library'
             }
         """
-        def app = new SwiftAppWithLibrary()
-        app.library.writeToProject(file('greeter'))
-        app.executable.writeToProject(file('app'))
+        def app = new CppAppWithLibrary()
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
 
         when:
         succeeds("xcode")
@@ -84,8 +83,8 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
-        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == null
-        // TODO: SWIFT_INCLUDE_PATHS should contains ("greeter/build/modules/main/debug")
+        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"))
+        // TODO: HEADER_SEARCH_PATHS should contains file("greeter/src/main/public")
 
         when:
         def resultApp = xcodebuild
@@ -103,13 +102,11 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 .succeeds()
 
         then:
-        resultLib.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
+        resultLib.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
     }
 
-    @NotYetImplemented
-    @Issue("https://github.com/gradle/gradle-native/issues/130")
     @Requires(TestPrecondition.XCODE)
-    def "can create xcode project for Swift application with unbuildable library"() {
+    def "can create xcode project for C++ application with unbuildable library"() {
         useXcodebuildTool()
 
         given:
@@ -119,7 +116,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
 
         buildFile << """
             project(':app') {
-                apply plugin: 'swift-application'
+                apply plugin: 'cpp-application'
 
                 application {
                     dependencies {
@@ -128,14 +125,14 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 }
             }
             project(':greeter') {
-                apply plugin: 'swift-library'
+                apply plugin: 'cpp-library'
 
                 library.targetMachines = [machines.os('os-family')]
             }
         """
-        def app = new SwiftAppWithLibrary()
-        app.library.writeToProject(file('greeter'))
-        app.executable.writeToProject(file('app'))
+        def app = new CppAppWithLibrary()
+        app.greeter.writeToProject(file('greeter'))
+        app.main.writeToProject(file('app'))
 
         when:
         succeeds("xcode")
@@ -149,7 +146,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
                 .assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
 
         def project = xcodeProject("app/app.xcodeproj").projectFile
-        project.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file("greeter/build/modules/main/debug"))
+        project.indexTarget.getBuildSettings().HEADER_SEARCH_PATHS == toSpaceSeparatedList(file("app/src/main/headers"), file("greeter/src/main/public"))
 
         when:
         def resultApp = xcodebuild

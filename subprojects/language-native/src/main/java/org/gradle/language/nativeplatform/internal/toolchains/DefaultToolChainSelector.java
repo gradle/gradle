@@ -26,6 +26,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
+import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
@@ -63,8 +64,8 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
         NativeLanguage sourceLanguage = NativeLanguage.CPP;
-        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
-        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        NativeToolChainInternal toolChain = getToolChain(sourceLanguage, targetNativePlatform);
+
         // TODO - don't select again here, as the selection is already performed to select the toolchain
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
 
@@ -78,8 +79,8 @@ public class DefaultToolChainSelector implements ToolChainSelector {
         // TODO - push all this stuff down to the tool chain and let it create the specific platform and provider
 
         NativeLanguage sourceLanguage = NativeLanguage.SWIFT;
-        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
-        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        NativeToolChainInternal toolChain = getToolChain(sourceLanguage, targetNativePlatform);
+
         // TODO - don't select again here, as the selection is already performed to select the toolchain
         PlatformToolProvider toolProvider = toolChain.select(sourceLanguage, targetNativePlatform);
 
@@ -93,6 +94,14 @@ public class DefaultToolChainSelector implements ToolChainSelector {
 
     private DefaultNativePlatform newNativePlatform(TargetMachine targetMachine) {
         return host.withArchitecture(Architectures.forInput(targetMachine.getArchitecture().getName()));
+    }
+
+    private NativeToolChainInternal getToolChain(NativeLanguage sourceLanguage, NativePlatformInternal targetNativePlatform) {
+        NativeToolChainRegistryInternal registry = modelRegistry.realize("toolChains", NativeToolChainRegistryInternal.class);
+        NativeToolChainInternal toolChain = registry.getForPlatform(sourceLanguage, targetNativePlatform);
+        toolChain.assertSupported();
+
+        return toolChain;
     }
 
     static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {

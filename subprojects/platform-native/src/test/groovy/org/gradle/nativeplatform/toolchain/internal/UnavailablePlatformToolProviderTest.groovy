@@ -18,12 +18,13 @@ package org.gradle.nativeplatform.toolchain.internal
 
 import org.gradle.internal.logging.text.TreeFormatter
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
+import org.gradle.platform.base.internal.toolchain.ToolChainAvailability
 import spock.lang.Specification
 
 
 class UnavailablePlatformToolProviderTest extends Specification {
     def "can construct with failure message"() {
-        def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), "don't know how to build this thing")
+        def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), new ToolChainAvailability().unavailable("don't know how to build this thing"))
 
         expect:
         def formatter = new TreeFormatter()
@@ -32,7 +33,7 @@ class UnavailablePlatformToolProviderTest extends Specification {
     }
 
     def "tool lookup returns same failure"() {
-        def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), "don't know how to build this thing")
+        def provider = new UnavailablePlatformToolProvider(Stub(OperatingSystemInternal), new ToolChainAvailability().unavailable("don't know how to build this thing"))
 
         expect:
         def toolResult = provider.locateTool(ToolType.C_COMPILER)
