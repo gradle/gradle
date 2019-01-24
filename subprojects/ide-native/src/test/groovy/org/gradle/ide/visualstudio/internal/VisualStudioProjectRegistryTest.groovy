@@ -89,9 +89,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def sourceCommon = new File("source")
-        def source1 = new File("source1")
-        def source2 = new File("source2")
+        def sourceCommon = tmpDir.file("source")
+        def source1 = tmpDir.file("source1")
+        def source2 = tmpDir.file("source2")
         def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
         def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
