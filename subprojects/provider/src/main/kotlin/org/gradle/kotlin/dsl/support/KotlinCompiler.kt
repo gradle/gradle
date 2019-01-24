@@ -64,7 +64,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 
 
 internal
@@ -164,9 +166,48 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 
 
 private
-inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+data class CapturedOutput(val stdout: String, val stderr: String)
+
+
+private
+inline fun <T> capturingOutputOf(action: () -> T): Pair<CapturedOutput, T> =
+    capturingOutputOf(System.out, System::setOut) {
+        capturingOutputOf(System.err, System::setErr) {
+            action()
+        }
+    }.let { (stdout, stderrT) ->
+        val (stderr, t) = stderrT
+        CapturedOutput(stdout, stderr) to t
+    }
+
+
+private
+inline fun <T> capturingOutputOf(
+    stream: PrintStream,
+    set: (PrintStream) -> Unit,
+    action: () -> T
+): Pair<String, T> =
+    ByteArrayOutputStream().run {
+        val result =
+            try {
+                set(PrintStream(this, true))
+                action()
+            } finally {
+                set(stream)
+            }
+        toString("utf8") to result
+    }
+
+
+private
+inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
-        return action()
+        val (output, result) = capturingOutputOf { action() }
+        messageCollector.run {
+            debugIfNotBlank(output.stderr)
+            debugIfNotBlank(output.stdout)
+        }
+        return result
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -175,6 +216,12 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollecto
 
         throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
     }
+}
+
+
+private
+fun LoggingMessageCollector.debugIfNotBlank(message: String) {
+    if (message.isNotBlank()) log.debug(message)
 }
 
 
@@ -288,7 +335,7 @@ const val indent = "  "
 
 internal
 class LoggingMessageCollector(
-    private val log: Logger,
+    internal val log: Logger,
     private val pathTranslation: (String) -> String
 ) : MessageCollector {
 
