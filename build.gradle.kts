@@ -21,7 +21,7 @@ plugins {
 
 allprojects {
     group = "org.gradle"
-    version = "1.1.3"
+    version = "1.2.0-SNAPSHOT"
 }
 
 val publishedPluginsVersion by extra { "1.1.3" }
