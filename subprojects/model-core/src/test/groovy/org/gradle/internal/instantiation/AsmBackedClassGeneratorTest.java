@@ -540,6 +540,20 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
+    public void canUnpackAndRecreateInterfaceWithFileCollectionGetter() throws Exception {
+        TestFile projectDir = tmpDir.getTestDirectory();
+        InterfaceFileCollectionBean bean = newInstance(InterfaceFileCollectionBean.class, TestUtil.createRootProject(projectDir).getServices());
+        assertThat(bean, instanceOf(Managed.class));
+
+        Managed managed = (Managed) bean;
+        assertEquals(InterfaceFileCollectionBean.class, managed.publicType());
+        assertFalse(managed.immutable());
+        Object[] state = (Object[]) managed.unpackState();
+
+        // TODO - implement the rest of this
+    }
+
+    @Test
     public void canConstructInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
 

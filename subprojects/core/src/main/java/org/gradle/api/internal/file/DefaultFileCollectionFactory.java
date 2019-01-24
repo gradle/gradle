@@ -37,6 +37,13 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Nullable
     private final TaskResolver taskResolver;
 
+    // Used by the Kotlin-dsl base plugin
+    // TODO - remove this
+    @Deprecated
+    public DefaultFileCollectionFactory() {
+        this(new IdentityFileResolver(), null);
+    }
+
     public DefaultFileCollectionFactory(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
