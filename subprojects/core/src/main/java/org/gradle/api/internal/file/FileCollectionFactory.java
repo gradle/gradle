@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
@@ -54,4 +55,9 @@ public interface FileCollectionFactory {
      * The collection is not live. The provided {@link Iterable} is queried on construction and discarded.
      */
     FileCollection fixed(String displayName, Collection<File> files);
+
+    /**
+     * Creates an empty {@link ConfigurableFileCollection} instance.
+     */
+    ConfigurableFileCollection configurableFiles();
 }

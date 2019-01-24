@@ -39,7 +39,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
@@ -70,6 +69,7 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -174,7 +174,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock = Stub(ServiceRegistry)
 
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
-        serviceRegistryMock.newInstance(TaskContainerInternal) >> taskContainerMock
+        serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
