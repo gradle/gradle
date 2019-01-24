@@ -198,7 +198,7 @@ inline fun <T> withLoggingOutputStreamFor(
     set: (PrintStream) -> Unit,
     noinline log: (String) -> Unit,
     action: () -> T
-): T = LoggingOutputStream(log).let {
+): T = LoggingOutputStream(log).use {
     try {
         set(PrintStream(it, true))
         action()
@@ -226,6 +226,10 @@ class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
             }
             reset()
         }
+    }
+
+    override fun close() {
+        flush()
     }
 }
 
