@@ -66,6 +66,7 @@ import org.slf4j.Logger
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.io.PrintStream
 
 
@@ -166,48 +167,11 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 
 
 private
-data class CapturedOutput(val stdout: String, val stderr: String)
-
-
-private
-inline fun <T> capturingOutputOf(action: () -> T): Pair<CapturedOutput, T> =
-    capturingOutputOf(System.out, System::setOut) {
-        capturingOutputOf(System.err, System::setErr) {
-            action()
-        }
-    }.let { (stdout, stderrT) ->
-        val (stderr, t) = stderrT
-        CapturedOutput(stdout, stderr) to t
-    }
-
-
-private
-inline fun <T> capturingOutputOf(
-    stream: PrintStream,
-    set: (PrintStream) -> Unit,
-    action: () -> T
-): Pair<String, T> =
-    ByteArrayOutputStream().run {
-        val result =
-            try {
-                set(PrintStream(this, true))
-                action()
-            } finally {
-                set(stream)
-            }
-        toString("utf8") to result
-    }
-
-
-private
 inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
-        val (output, result) = capturingOutputOf { action() }
-        messageCollector.run {
-            debugIfNotBlank(output.stderr)
-            debugIfNotBlank(output.stdout)
+        redirectingOutputTo(messageCollector.log::debug) {
+            return action()
         }
-        return result
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -220,8 +184,49 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageC
 
 
 private
-fun LoggingMessageCollector.debugIfNotBlank(message: String) {
-    if (message.isNotBlank()) log.debug(message)
+inline fun <T> redirectingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+    withLoggingOutputStreamFor(System.err, System::setErr, log) {
+        withLoggingOutputStreamFor(System.out, System::setOut, log) {
+            action()
+        }
+    }
+
+
+private
+inline fun <T> withLoggingOutputStreamFor(
+    stream: PrintStream,
+    set: (PrintStream) -> Unit,
+    noinline log: (String) -> Unit,
+    action: () -> T
+): T = LoggingOutputStream(log).let {
+    try {
+        set(PrintStream(it, true))
+        action()
+    } finally {
+        set(stream)
+    }
+}
+
+
+private
+class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+    private
+    val buffer = ByteArrayOutputStream()
+
+    override fun write(b: Int) = buffer.write(b)
+
+    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+    override fun flush() {
+        buffer.run {
+            val string = toString("utf8")
+            if (string.isNotBlank()) {
+                log(string)
+            }
+            reset()
+        }
+    }
 }
 
 
