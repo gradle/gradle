@@ -16,21 +16,32 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSortedMap;
+import groovy.lang.GString;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Map;
 
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
@@ -38,7 +49,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
     private final ImmutableAttributes to;
     private final TransformationStep transformationStep;
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, @Nullable Object config, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker) {
+    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, @Nullable Object parameterObject, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
         Hasher hasher = Hashing.newHasher();
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
@@ -50,13 +61,49 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
-        Isolatable<?> configSnapshot = isolatableFactory.isolate(config);
+        Isolatable<?> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
         paramsSnapshot.appendToHasher(hasher);
-        configSnapshot.appendToHasher(hasher);
+        fingerprintParameters(implementation, parameterObject, params, valueSnapshotter, propertyWalker, hasher, isolatedParameterObject);
 
-        Transformer transformer = new DefaultTransformer(implementation, configSnapshot, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new DefaultTransformer(implementation, isolatedParameterObject, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+    }
+
+    private static void fingerprintParameters(Class<? extends ArtifactTransform> implementation, @Nullable Object parameterObject, Object[] params, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, Hasher hasher, Isolatable<?> isolatedParameterObject) {
+        if (parameterObject != null) {
+            ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertyFingerprints = ImmutableSortedMap.naturalOrder();
+            propertyWalker.visitProperties(isolatedParameterObject.isolate(), new PropertyVisitor.Adapter() {
+                @Override
+                public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                    try {
+                        Object unpacked = DeferredUtil.unpack(value);
+                        Object finalizedValue = finalizeValue(unpacked);
+                        inputPropertyFingerprints.put(propertyName, valueSnapshotter.snapshot(finalizedValue));
+                    } catch (Throwable ex) {
+                        throw new InvalidUserDataException(String.format(
+                            "Error while evaluating property '%s' of %s",
+                            propertyName,
+                            ModelType.of(implementation).getDisplayName(), Arrays.asList(params)
+                        ), ex);
+                    }
+                }
+            });
+            for (Map.Entry<String, ValueSnapshot> entry : inputPropertyFingerprints.build().entrySet()) {
+                hasher.putString(entry.getKey());
+                entry.getValue().appendToHasher(hasher);
+            }
+        }
+    }
+
+    private static Object finalizeValue(Object unpacked) {
+        if (unpacked instanceof FileCollection) {
+            return ((FileCollection) unpacked).getFiles();
+        }
+        if (unpacked instanceof GString) {
+            return unpacked.toString();
+        }
+        return unpacked;
     }
 
     public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {

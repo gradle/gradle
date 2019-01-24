@@ -42,7 +42,9 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
@@ -360,6 +362,10 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     TypeMetadataStore createTypeMetadataStore(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTypeMetadataStore(annotationHandlers, cacheFactory);
+    }
+
+    PropertyWalker createPropertyWalker(TypeMetadataStore typeMetadataStore) {
+        return new DefaultPropertyWalker(typeMetadataStore);
     }
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {

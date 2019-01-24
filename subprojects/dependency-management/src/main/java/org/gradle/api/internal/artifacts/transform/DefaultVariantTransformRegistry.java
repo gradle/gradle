@@ -30,9 +30,11 @@ import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -45,13 +47,17 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final InstantiatorFactory instantiatorFactory;
     private final TransformerInvoker transformerInvoker;
+    private final ValueSnapshotter valueSnapshotter;
+    private final PropertyWalker propertyWalker;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformerInvoker = transformerInvoker;
+        this.valueSnapshotter = valueSnapshotter;
+        this.propertyWalker = propertyWalker;
     }
 
     @Override
@@ -89,7 +95,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         Object[] parameters = registration.getTransformParameters();
         Object config = registration.getParameterObject();
 
-        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, config, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
+        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, config, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
         transforms.add(finalizedRegistration);
     }
 
