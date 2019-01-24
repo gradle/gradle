@@ -57,7 +57,7 @@ If we do so, a consumer would then have to declare two dependencies:
 
 [NOTE]
 ====
-While the engine supports feature variants independently of the the ecosystem, this feature is currently only available using the Java plugins.
+While the engine supports feature variants independently of the the ecosystem, this feature is currently only available using the Java plugins and is incubating.
 ====
 
 [[sec::declare_feature_variants]]
@@ -151,11 +151,20 @@ include::sample[dir="java-feature-variant/requiring-features/kotlin/producer",fi
 
 Then the consumer can declare a dependency on the MySQL support feature by doing this:
 
-.Consuming specific features
+.Consuming specific features in a multi-project build
 ====
 include::sample[dir="java-feature-variant/requiring-features/groovy/consumer",files="build.gradle[tags=consumer]"]
 include::sample[dir="java-feature-variant/requiring-features/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
 ====
+
+Similarly, if the experimental Gradle metadata feature is enabled, it is possible to depend on an external dependency providing feature variants:
+
+.Consuming specific features from an external repository
+====
+include::sample[dir="java-feature-variant/requiring-features-external/groovy",files="build.gradle[tags=consumer]"]
+include::sample[dir="java-feature-variant/requiring-features-external/kotlin",files="build.gradle.kts[tags=consumer]"]
+====
+
 
 [[sec::incompatible_variants]]
 == Handling mutually exclusive variants
