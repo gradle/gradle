@@ -125,7 +125,7 @@ public class SystemProperties {
      * @param value The value to temporarily set the property to
      * @param factory Instance created by the Factory implementation
      */
-    public synchronized  <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
+    public synchronized <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
         String originalValue = System.getProperty(propertyName);
         System.setProperty(propertyName, value);
 
@@ -144,7 +144,7 @@ public class SystemProperties {
      * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
      * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
      */
-    public synchronized  <T> T withSystemProperties(Factory<T> factory) {
+    public synchronized <T> T withSystemProperties(Factory<T> factory) {
         return factory.create();
     }
 
@@ -161,7 +161,7 @@ public class SystemProperties {
      * but are usually there and if there should not be adjusted.
      *
      * @return the set of keys of {@code System.getProperties()} which should not be adjusted
-     *   by client code. This method never returns {@code null}.
+     * by client code. This method never returns {@code null}.
      */
     public Set<String> getNonStandardImportantProperties() {
         return IMPORTANT_NON_STANDARD_PROPERTIES;
