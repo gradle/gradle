@@ -24,7 +24,6 @@ import org.apache.http.ssl.SSLInitializationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 
-import javax.annotation.Nullable;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
