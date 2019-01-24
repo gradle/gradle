@@ -29,7 +29,7 @@ public class TaskPropertyUtils {
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
     public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, PropertyVisitor visitor) {
-        propertyWalker.visitProperties(visitor, task);
+        propertyWalker.visitProperties(task, visitor);
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);
         }

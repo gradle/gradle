@@ -224,6 +224,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task)
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, visitor)
     }
 }
