@@ -113,6 +113,9 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
                  
                 @OutputDirectory
                 File dir = project.file("build/dir")
+                
+                @OutputDirectory
+                File otherDir = project.file("build/otherDir")
 
                 @TaskAction
                 void generate() {
@@ -145,7 +148,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
         packOp.details.cacheKey != null
         packOp.result.archiveSize == localCache.cacheArtifact(packOp.details.cacheKey.toString()).length()
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
 
         when:
         succeeds("clean", "t")
@@ -162,7 +165,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def sizeDiff = cacheArtifact.length() - unpackOp.details.archiveSize.toLong()
         sizeDiff > -100 && sizeDiff < 100
 
-        unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.archiveEntryCount == 5
     }
 
     @Unroll
@@ -278,7 +281,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             assert !localCacheArtifact.exists()
         }
 
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
         remoteStoreOp.details.archiveSize == packOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
@@ -336,7 +339,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
             assert !localCacheArtifact.exists()
         }
 
-        unpackOp.result.archiveEntryCount == 4
+        unpackOp.result.archiveEntryCount == 5
         unpackOp.details.archiveSize == remoteHitLoadOp.result.archiveSize
 
         operations.orderedSerialSiblings(remoteHitLoadOp, unpackOp)
@@ -382,7 +385,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def localCacheArtifact = localCache.cacheArtifact(packOp.details.cacheKey.toString())
         !localCacheArtifact.exists()
 
-        packOp.result.archiveEntryCount == 4
+        packOp.result.archiveEntryCount == 5
 
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp)
     }
