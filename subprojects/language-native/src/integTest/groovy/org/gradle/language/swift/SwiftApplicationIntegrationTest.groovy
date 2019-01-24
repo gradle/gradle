@@ -468,6 +468,39 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation.assertIncludesLibraries("Greeter")
     }
 
+    def "fails when dependency library does not specify the same target machines"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new SwiftAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'swift-application'
+                application {
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
+                    dependencies {
+                        implementation project(':greeter')
+                    }
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'swift-library'
+                library {
+                    targetMachines = [machines.os('os-family')]
+                }
+            }
+        """
+        app.library.writeToProject(file("greeter"))
+        app.executable.writeToProject(file("app"))
+
+        expect:
+        fails ":app:assemble"
+
+        and:
+        failure.assertHasCause("Could not resolve project :greeter.")
+        failure.assertHasCause("Unable to find a matching configuration of project :greeter")
+    }
+
     def "can compile and link against a static library"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
