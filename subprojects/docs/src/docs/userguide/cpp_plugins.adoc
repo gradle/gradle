@@ -23,7 +23,7 @@ Please be aware that the DSL and APIs may change in later Gradle versions as we 
 
 ====
 
-Gradle's C++ plugins add support for building applications and libraries written in C++. These plugins were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend new projects to use these plugins over <<<native_software.adoc#native_binaries,the older Native plugins>>. This chapter makes heavy use of a https://github.com/gradle/native-samples[large collection of samples].
+Gradle's C++ plugins add support for building applications and libraries written in C++. These plugins were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend new projects to use these plugins over <<native_software.adoc#native_binaries,the older Native plugins>>. This chapter makes heavy use of a https://github.com/gradle/native-samples[large collection of samples].
 
 [[cpp:features]]
 == Features
@@ -43,6 +43,166 @@ The C++ plugins provide:
 * Integration with various IDEs (Xcode, Visual Studio, CLion).
 * Automatic discovery of popular tool chains (Visual C++, GCC, Clang).
 * Integration with https://gradle.com/build-scans/[build scans].
+
+[[cpp:overview]]
+== Plugin overview
+
+Unlike the <<native_software.adoc#native_binaries,software model native plugins>>, the new C++ plugins rely on a familiar DSL and configuration model. 
+
+When the C++ plugin is applied to the project, Gradle registers an extension for the type of project (application or library). All configuration is done through this extension or the tasks registered by the plugin.
+
+[[cpp:incremental_compilation]]
+== Incremental Compilation
+
+Before invoking the compiler, Gradle analyzes the dependencies between source and header files. When a file changes, Gradle uses this dependency information to select which files need to be recompiled. When macros or compiler arguments change, Gradle must recompile all source files.
+
+Gradle tracks the contents of files, so changes to just the timestamp of a header file (i.e., touching a header file) will not cause Gradle to recompile the affected source files.
+
+If Gradle is unable to determine the relationship between source files and header files, it will fall back to compiling everything to be safe.
+
+[[cpp:parallel_compilation]]
+== Parallel Compilation
+
+Gradle uses a single build worker pool to concurrently compile and link C++ binaries by default. No special configuration is required to enable parallel compilation.
+
+The worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
+
+This build worker pool is shared across all tasks. This means that when using <<multi_project_builds.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only try to compile 4 files at a time and not 40.
+
+[[cpp:cached_compilation]]
+== Cached Compilation
+
+Gradle uses the inputs to a compilation task to calculate a build cache key. This key uniquely identifies the output of the compilation task. When the <<build_cache.adoc#build_cache,build cache>> is enabled, Gradle will first check for a match of the build cache key in a local or remote cache. When there is a hit, Gradle extracts the compilation output into the expected location. 
+
+The build cache key takes into consideration:
+
+* Version and type of the compiler
+* Any macros or compiler arguments
+* Contents of the source files
+* Contents of the header files
+* Transitive headers _used_ by the source or header files 
+* Version of Gradle 
+
+[[cpp:building_an_application]]
+== Building an application
+
+Apply the `cpp-application` plugin. 
+You can configure a link:{javadocPath}/org/gradle/language/cpp/CppApplication.html[CppApplication] in a `application` block.
+
+By default, when building a C++ application, the project name will be used as the name of the executable. For Windows, `.exe` will be added.
+
+https://github.com/gradle/native-samples/tree/master/cpp/application[See a sample].
+
+[[cpp:building_a_library]]
+== Building a library
+
+Apply the `cpp-library` plugin. 
+You can configure a link:{javadocPath}/org/gradle/language/cpp/CppLibrary.html[CppLibrary] in a `library` block. 
+
+By default, when building a C++ library, the project name will be used as the name of the library. Depending on the operating system, Gradle will add `.so`, `.dylib` or `.dll` for shared libraries or `.a` or `.lib` for static libraries. Gradle will assume you only want a shared library unless otherwise configured.
+
+https://github.com/gradle/native-samples/tree/master/cpp/simple-library[See a sample]. 
+
+If you only want static libraries, https://github.com/gradle/native-samples/tree/master/cpp/static-library[you can do that too].
+
+[[cpp:cpp_sources]]
+== C++ source layout
+
+By default, Gradle assumes a C++ library or application's sources are in `src/main/cpp`. 
+
+For a library, Gradle assumes its public headers are in `src/main/public`. Header files can be mixed into `src/main/cpp`, but these headers will be treated as private and not exposed to downstream consumers.
+
+Gradle assumes C++ source files end in `.cpp`, `.c+\+` or `.cc`. 
+
+[[cpp:declaring_dependencies]]
+== Declaring dependencies
+
+Dependencies can be declared in a similar way to other Gradle plugins, like Java, with the main difference being that the `dependencies` block is inside the `application` or `library` block.
+
+C++ applications only have `implementation` level dependencies.
+C++ libraries have `api` and `implementation` dependencies. 
+
+Dependencies that are `implementation` only are not shared with downstream consumers. `api` dependencies form a part of the public API for a library. 
+
+Gradle automatically knows when to use the headers, link time or runtime usage of a dependency.
+
+[[cpp:project_dependencies]]
+=== Project Dependencies
+
+Project dependencies are just like project dependencies in Java projects.  Gradle will export public header paths to downstream consumers and build libraries when required.
+
+https://github.com/gradle/native-samples/tree/master/cpp/transitive-dependencies[See a sample].
+
+[[cpp:external_dependencies]]
+=== External Dependencies
+
+External dependencies are like external dependencies in Java projects.  Gradle will automatically fetch a dependency's headers and link/runtime files. The compile and link tasks will be configured to search for headers or libraries in Gradle's dependency cache.
+
+https://github.com/gradle/native-samples/tree/master/cpp/binary-dependencies[See a sample].
+
+[[cpp:publishing]]
+=== Publishing 
+
+[NOTE]
+====
+
+The Gradle metadata format is unstable and likely to change in incompatible ways. This will cause previously published artifacts to no longer be resolved properly. We will announce when this format is stable.
+
+====
+
+For C++ applications, Gradle will publish the executable.
+
+For C++ libraries, Gradle will publish a header zip and any supporting binaries (shared or static).
+
+Gradle also publishes additional information about the artifacts (a "Gradle metadata" file) that will be used when resolving dependencies.  Gradle needs the additional metadata to select the appropriate variant (e.g., macOS vs Windows).
+
+https://github.com/gradle/native-samples/tree/master/cpp/simple-library[See a sample].
+
+[[cpp:variants]]
+== Configure for different targets
+
+From a C++ library or application, Gradle generates what we call a binary.  This binary is a variant of a component which has been assigned a particular build type (e.g., debug) and target machine (e.g., 32-bit Windows). Only binaries that may be built on the current host are generated by Gradle.
+
+You can configure https://github.com/gradle/native-samples/tree/master/cpp/operating-system-specific-dependencies[variant specific things], such as dependencies. 
+
+[[cpp:build_type]]
+=== Debug and Release
+
+Gradle creates two build types:
+
+* Debug - variants of this type are debuggable and not optimized
+* Release - variant of this type are debuggable and optimized
+
+Under the covers, Gradle passes the appropriate compiler arguments for these build types.
+
+Debugging symbols are extracted and stored in a separate file for the release build type, if necessary. 
+
+[[cpp:target_machine]]
+=== Target Machine
+
+Gradle assumes the C++ application or library only targets the current host unless told otherwise. When building for multiple target machines, you need to declare this in the build configuration so the published metadata is created correctly.
+
+https://github.com/gradle/native-samples/tree/master/cpp/multiple-target-machines[See a sample].
+
+[[cpp:ide]]
+== IDE integration
+
+Gradle provides plugins for Visual Studio and Xcode. 
+
+When used with the C++ plugins, Gradle will generate metadata files used by these IDEs. As much as possible, we've tried to make the IDE delegate to Gradle when compiling and linking C++ applications and libraries. 
+
+JetBrains maintains a separate integration with CLion.
+
+https://github.com/gradle/native-samples/tree/master/cpp[Try generating a project with one of our samples!]
+
+[[cpp:unit_test]]
+== Unit Testing support
+
+Unit testing support is very limited right now. Gradle makes no assumptions about the type of unit testing framework being used. Gradle automatically links the test executable with the object files produced for the development binary.  If the binary is an executable, Gradle will relocate the `main` symbol so you can test code in an application without conflicting with the test executable's `main` symbol.
+
+In the future, Gradle make come with support out-of-the-box for a particular testing framework or make it easier to integrate your own.
+
+https://github.com/gradle/native-samples/tree/master/cpp/library-with-tests[See a sample].
 
 [[cpp:tool-chain-support]]
 == Tool chain support
@@ -82,185 +242,25 @@ The following tool chains are supported:
 
 
 [[cpp:tool_chain_installation]]
-== Tool chain installation
+=== Tool chain installation
 
 To build C++ projects, you will need to have a compatible tool chain installed:
 
-=== Windows
+==== Windows
 
 To build on Windows, install a compatible version of Visual Studio. The C++ plugins will discover the Visual Studio installations and select the latest version. There is no need to mess around with environment variables or batch scripts. This works fine from a Cygwin shell or the Windows command-line.
 
 Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not supported.
 
-=== macOS
+==== macOS
 
 To build on macOS, you should install XCode. The C++ plugins will discover the XCode installation using the system PATH.
 
 The native plugins also work with GCC and Clang bundled with Macports. To use one of the Macports tool chains, you will need to make the tool chain the default using the `port select` command and add Macports to the system PATH.
 
-=== Linux
+==== Linux
 
 To build on Linux, install a compatible version of GCC or Clang. The C++ plugins will discover GCC or Clang using the system PATH.
-
-[[cpp:component_and_binaries]]
-== C++ components and binaries
-
-Unlike the <<<native_software.adoc#native_binaries,software model C++ plugins>>, the new C++ plugins rely on a familiar DSL and configuration model. 
-
-When the C++ plugin is applied to the project, 
-
-[[cpp:incremental_compilation]]
-== Incremental Compilation
-
-Before invoking the compiler, Gradle analyzes the dependencies between source and header files. When a file changes, Gradle uses this dependency information to select which files need to be recompiled. When macros or compiler arguments change, Gradle must recompile all source files.
-
-Gradle tracks the contents of files, so changes to just the timestamp of a header file (i.e., touching a header file) will not cause Gradle to recompile the affected source files.
-
-If Gradle is unable to determine the relationship between source files and header files, it will fall back to compiling everything to be safe.
-
-[[cpp:parallel_compilation]]
-== Parallel Compilation
-
-Gradle uses a single build worker pool to concurrently compile and link C++ binaries by default. No special configuration is required to enable parallel compilation.
-
-The worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
-
-This build worker pool is shared across all tasks. This means that when using <<multi_project_builds.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only try to compile 4 files at a time and not 40.
-
-[[cpp:cached_compilation]]
-== Cached Compilation
-
-Gradle uses the inputs to a compilation task to calculate a build cache key. This key uniquely identifies the output of the compilation task. When the <<build_cache.adoc#build_cache,build cache>> is enabled, Gradle will first check for a match of the build cache key in a local or remote cache. When there is a hit, Gradle extracts the compilation output into the expected location. 
-
-The build cache key takes into consideration:
-* Version and type of the compiler
-* Any macros or compiler arguments
-* Contents of the source files
-* Contents of the header files
-* Transitive headers _used_ by the source or header files 
-* Version of Gradle 
-
-[[cpp:building_an_application]]
-== Building an application
-
-Apply the `cpp-application` plugin.
-
-By default, when building a C++ application, the project name will be used as the name of the executable. For Windows, `.exe` will be added.
-
-You can configure a link:{javadocPath}/org/gradle/language/cpp/CppApplication.html[CppApplication] in a `application` block.
-
-https://github.com/gradle/native-samples/tree/master/cpp/application[See a sample].
-
-[[cpp:building_a_library]]
-== Building a library
-
-Apply the `cpp-library` plugin.
-
-By default, when building a C++ library, the project name will be used as the name of the library. Depending on the operating system, Gradle will add `.so`, `.dylib` or `.dll` for shared libraries or `.a` or `.lib` for static libraries. Gradle will assume you only want a shared library unless otherwise configured.
-
-You can configure a link:{javadocPath}/org/gradle/language/cpp/CppLibrary.html[CppLibrary] in a `library` block. 
-
-https://github.com/gradle/native-samples/tree/master/cpp/simple-library[See a sample]. 
-
-If you only want static libraries, https://github.com/gradle/native-samples/tree/master/cpp/static-library[you can do that too].
-
-[[cpp:cpp_sources]]
-=== C++ sources
-
-By default, Gradle assumes a C++ library or application's sources are in `src/main/cpp`. 
-
-For a library, Gradle assumes its public headers are in `src/main/public`. Header files can be mixed into `src/main/cpp`, but these headers will be treated as private and not exposed to downstream consumers.
-
-Gradle assumes C++ source files end in `.cpp`, `.c++` or `.cc`. 
-
-[[cpp:declaring_dependencies]]
-== Declaring dependencies
-
-Dependencies can be declared in a similar way to other Gradle plugins, like Java, with the main difference being that the `dependencies` block is inside the `application` or `library` block.
-
-C++ applications only have `implementation` level dependencies.
-C++ libraries have `api` and `implementation` dependencies. 
-
-Dependencies that are `implementation` only are not shared with downstream consumers. `api` dependencies form a part of the public API for a library. 
-
-Gradle automatically knows when to use the headers, link time or runtime usage of a dependency.
-
-[[cpp:project_dependencies]]
-=== Project Dependencies
-
-Project dependencies are just like project dependencies in Java projects.  Gradle will export public header paths to downstream consumers and build libraries when required.
-
-https://github.com/gradle/native-samples/tree/master/cpp/transitive-dependencies[See a sample].
-
-[[cpp:external_dependencies]]
-=== External Dependencies
-
-External dependencies are like external dependencies in Java projects.  Gradle will automatically fetch a dependency's headers and link/runtime files. The compile and link tasks will be configured to search for headers or libraries in Gradle's dependency cache.
-
-https://github.com/gradle/native-samples/tree/master/cpp/binary-dependencies[See a sample].
-
-[[cpp:external_dependencies]]
-=== Publishing 
-
-[NOTE]
-====
-
-The Gradle metadata format is unstable and likely to change in incompatible ways. This will cause previously published artifacts to no longer be resolved properly. We will announce when this format is stable.
-
-====
-
-For C++ applications, Gradle will publish the executable.
-
-For C++ libraries, Gradle will publish a header zip and any supporting binaries (shared or static).
-
-Gradle also publishes additional information about the artifacts (a "Gradle metadata" file) that will be used when resolving dependencies.  Gradle needs the additional metadata to select the appropriate variant (e.g., macOS vs Windows).
-
-https://github.com/gradle/native-samples/tree/master/cpp/simple-library[See a sample].
-
-[[cpp:variants]]
-== C++ Binary Variants
-
-From a C++ library or application, Gradle generates what we call a binary.  This binary is a variant of a component which has been assigned a particular build type (e.g., debug) and target machine (e.g., 32-bit Windows). Only binaries that may be built on the current host are generated by Gradle.
-
-You can configure https://github.com/gradle/native-samples/tree/master/cpp/operating-system-specific-dependencies[variant specific things], such as dependencies. 
-
-[[cpp:build_type]]
-=== Debug and Release
-
-Gradle creates two build types:
-* Debug - variants of this type are debuggable and not optimized
-* Release - variant of this type are debuggable and optimized
-
-Under the covers, Gradle passes the appropriate compiler arguments for these build types.
-
-Debugging symbols are extracted and stored in a separate file for the release build type, if necessary. 
-
-[[cpp:target_machine]]
-=== Target Machine
-
-Gradle assumes the C++ application or library only targets the current host unless told otherwise. When building for multiple target machines, you need to declare this in the build configuration so the published metadata is created correctly.
-
-https://github.com/gradle/native-samples/tree/master/cpp/multiple-target-machines[See a sample].
-
-[[cpp:ide]]
-== IDE integration
-
-Gradle provides plugins for Visual Studio and Xcode. 
-
-When used with the C++ plugins, Gradle will generate metadata files used by these IDEs. As much as possible, we've tried to make the IDE delegate to Gradle when compiling and linking C++ applications and libraries. 
-
-JetBrains maintains a separate integration with CLion.
-
-https://github.com/gradle/native-samples/tree/master/cpp[Try generating a project with one of our samples!]
-
-[[cpp:unit_test]]
-== Unit Testing support
-
-Unit testing support is very limited right now. Gradle makes no assumptions about the type of unit testing framework being used. 
-
-In the future, Gradle make come with support out-of-the-box for a particular testing framework or make it easier to integrate your own.
-
-https://github.com/gradle/native-samples/tree/master/cpp/library-with-tests[See a sample].
 
 [[cpp:limitations]]
 == Limitations
