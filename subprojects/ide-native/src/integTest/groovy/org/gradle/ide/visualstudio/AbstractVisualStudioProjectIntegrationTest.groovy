@@ -199,7 +199,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
-        result.assertOutputContains("'${visualStudioProjectName}' component in project ':' is not buildable.");
+        outputContains("'${visualStudioProjectName}' component in project ':' is not buildable.");
     }
 
     @Requires(TestPrecondition.MSBUILD)
