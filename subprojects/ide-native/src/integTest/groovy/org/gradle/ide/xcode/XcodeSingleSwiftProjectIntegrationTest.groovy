@@ -460,20 +460,21 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift application from xcode with multiple architecture"() {
+    def "can build Swift application from xcode with multiple operating systems"() {
         useXcodebuildTool()
         def app = new SwiftApp()
-        def debugBinary = exe("build/exe/main/debug/x86-64/App")
-        def releaseBinary = exe("build/exe/main/release/x86-64/App")
+        def debugBinary = exe("build/exe/main/debug/macos/App")
+        def releaseBinary = exe("build/exe/main/release/macos/App")
 
         given:
         buildFile << """
             apply plugin: 'swift-application'
 
-            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+            application.targetMachines = [machines.macOS, machines.linux]
         """
 
         app.writeToProject(testDirectory)
+        //executer.startBuildProcessInDebugger(true)
         succeeds("xcode")
 
         when:
@@ -481,12 +482,12 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultDebug = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("DebugX86-64")
+                .withConfiguration("DebugMacos")
                 .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugX86-64Swift', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Swift', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
+        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -495,12 +496,12 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultRelease = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
+                .withConfiguration("ReleaseMacos")
                 .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
+        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
@@ -603,17 +604,17 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift library from xcode with multiple architecture"() {
+    def "can build Swift library from xcode with multiple operating systems"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
-        def debugBinary = sharedLib("build/lib/main/debug/x86-64/App")
-        def releaseBinary = sharedLib("build/lib/main/release/x86-64/App")
+        def debugBinary = sharedLib("build/lib/main/debug/macos/App")
+        def releaseBinary = sharedLib("build/lib/main/release/macos/App")
 
         given:
         buildFile << """
             apply plugin: 'swift-library'
 
-            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+            library.targetMachines = [machines.macOS, machines.linux]
         """
 
         lib.writeToProject(testDirectory)
@@ -624,12 +625,12 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultDebug = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("DebugX86-64")
+                .withConfiguration("DebugMacos")
                 .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugX86-64Swift', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Swift', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
+        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
@@ -638,12 +639,12 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def resultRelease = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
+                .withConfiguration("ReleaseMacos")
                 .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
+        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
