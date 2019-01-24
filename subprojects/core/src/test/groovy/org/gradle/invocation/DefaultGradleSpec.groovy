@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -42,6 +41,7 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scan.config.BuildScanConfigInit
@@ -73,7 +73,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
         _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
-        _ * serviceRegistry.newInstance(TaskContainerInternal) >> Mock(TaskContainerInternal)
+        _ * serviceRegistry.get(TaskContainerInternal) >> Mock(TaskContainerInternal)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
         _ * serviceRegistry.get(InstantiatorFactory) >> Mock(InstantiatorFactory)
         _ * serviceRegistry.get(ListenerManager) >> listenerManager

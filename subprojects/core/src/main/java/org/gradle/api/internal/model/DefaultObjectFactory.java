@@ -17,12 +17,14 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.Named;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -53,13 +55,15 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FilePropertyFactory filePropertyFactory;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory) {
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.filePropertyFactory = filePropertyFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -70,6 +74,11 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
         return instantiator.newInstance(type, parameters);
+    }
+
+    @Override
+    public ConfigurableFileCollection fileCollection() {
+        return fileCollectionFactory.configurableFiles();
     }
 
     @Override

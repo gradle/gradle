@@ -18,11 +18,13 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.file.PathToFileResolver
 import spock.lang.Specification
 
 class DefaultFileCollectionFactoryTest extends Specification {
-    def factory = new DefaultFileCollectionFactory()
+    def factory = new DefaultFileCollectionFactory(Stub(PathToFileResolver), Stub(TaskResolver))
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
