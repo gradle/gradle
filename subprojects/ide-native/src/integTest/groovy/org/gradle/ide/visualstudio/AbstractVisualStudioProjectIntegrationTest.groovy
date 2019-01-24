@@ -215,11 +215,10 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
                 .withWorkingDir(testDirectory)
                 .withSolution(solutionFile)
                 .withProject(visualStudioProjectName)
-                .succeeds()
+                .fails()
 
         then:
-        result.size() == 1
-        result[0].assertTasksExecuted(getTasksToBuildFromIde("debugX86"))
+        result.assertTasksExecuted(getTasksToBuildFromIde("debug"))
         file(getBuildFile(VariantContext.of())).parentFile.assertHasDescendants()
     }
 
