@@ -87,7 +87,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
             candidates.put(toolChain.getDisplayName(), toolChain.select(sourceLanguage, targetMachine));
         }
 
-        if (!NativeLanguage.ANY.equals(sourceLanguage) && candidates.values().stream().allMatch(UnsupportedPlatformToolProvider.class::isInstance)) {
+        if (!NativeLanguage.ANY.equals(sourceLanguage) && !candidates.values().stream().allMatch(PlatformToolProvider::isSupported)) {
             return new UnsupportedNativeToolChain(new UnsupportedToolChainDescription(sourceLanguage, targetMachine, candidates));
         }
         return new UnavailableNativeToolChain(new UnavailableToolChainDescription(sourceLanguage, targetMachine, candidates));

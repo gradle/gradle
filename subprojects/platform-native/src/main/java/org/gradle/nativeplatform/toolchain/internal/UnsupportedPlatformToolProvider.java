@@ -23,4 +23,9 @@ public class UnsupportedPlatformToolProvider extends UnavailablePlatformToolProv
     public UnsupportedPlatformToolProvider(OperatingSystemInternal targetOperatingSystem, String failure) {
         super(targetOperatingSystem, new ToolChainAvailability().unsupported(failure));
     }
+
+    @Override
+    public boolean isSupported() {
+        return false;
+    }
 }

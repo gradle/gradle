@@ -45,6 +45,11 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
     }
 
     @Override
+    public boolean isSupported() {
+        return true;
+    }
+
+    @Override
     public void explain(DiagnosticsVisitor visitor) {
         failure.explain(visitor);
     }
