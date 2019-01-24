@@ -1,0 +1,4 @@
+- Define sets of dependencies that work together with Java Platform plugin
+- New C++ plugins with dependency management built-in
+- New C++ project types for gradle init
+- Service injection into plugins and project extensions
