@@ -22,6 +22,25 @@ Switch your build to use Gradle 5.3 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
+## Feature variants, aka optional dependencies
+
+Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html) :
+
+```groovy
+java {
+   // declare an "optional feature"
+   registerFeature("mysqlSupport") {
+       usingSourceSet(sourceSets.main)
+   }
+}
+dependencies {
+   // declare dependencies specific to the "optional feature"
+   mysqlSupportImplementation "mysql:mysql-connector-java:8.0.14"
+}
+```
+
+Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
