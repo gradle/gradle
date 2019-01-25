@@ -411,14 +411,14 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         when:
         def resultUnbuildableSolution = msbuild
                 .withSolution(solutionFile('app.sln'))
-                .withConfiguration('debug')
+                .withConfiguration('unbuildable')
                 .succeeds()
 
         then:
         resultUnbuildableSolution.size() == 1
         resultUnbuildableSolution[0].executedTasks == []
-        resultUnbuildableSolution[0].assertOutputContains("Skipped Build: Project: app, Configuration: unbuildable Win32")
-        resultUnbuildableSolution[0].assertOutputContains("Skipped Build: Project: libLib, Configuration: unbuildable Win32")
+        resultUnbuildableSolution[0].assertOutputContains('The project "app" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultUnbuildableSolution[0].assertOutputContains('The project "libLib" is not selected for building in solution configuration "unbuildable|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
 
         when:
@@ -429,7 +429,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         then:
         resultDebug.assertHasCause("Could not determine the dependencies of task ':app:installDebug'.")
-        resultDebug.assertOutputContains("Skipped Build: Project: libLib, Configuration: unbuildable Win32")
+        resultDebug.assertOutputContains('The project "libLib" is not selected for building in solution configuration "debug|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
     }
 
