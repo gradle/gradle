@@ -26,6 +26,7 @@ import org.gradle.launcher.cli.CommandLineActionFactory.WelcomeMessageAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -65,7 +66,7 @@ class WelcomeMessageActionTest extends Specification {
         action.execute(log)
 
         then:
-        def output = log.toString()
+        def output = TextUtil.normaliseLineSeparators(log.toString());
         output.contains('''Welcome to Gradle 42.0!
 
 Here are the highlights of this release:
