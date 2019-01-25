@@ -66,10 +66,13 @@ class WelcomeMessageActionTest extends Specification {
 
         then:
         def output = log.toString()
-        output.contains("Welcome to Gradle 42.0!")
-        output.contains("Here are the highlights of this release:")
-        output.contains(" - foo")
-        output.contains(" - bar")
+        output.contains('''Welcome to Gradle 42.0!
+
+Here are the highlights of this release:
+ - foo
+ - bar
+
+For more details see https://docs.gradle.org/42.0/release-notes.html''')
     }
 
     def "omits highlights when file contains only whitespace"() {

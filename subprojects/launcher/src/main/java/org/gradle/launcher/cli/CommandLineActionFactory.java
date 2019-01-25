@@ -160,9 +160,8 @@ public class CommandLineActionFactory {
 
                     if (StringUtils.isNotBlank(featureList)) {
                         logger.lifecycle("");
-                        logger.lifecycle("");
                         logger.lifecycle("Here are the highlights of this release:");
-                        logger.lifecycle(StringUtils.stripEnd(featureList, "\n\r"));
+                        logger.lifecycle(StringUtils.stripEnd(featureList, " \n\r"));
                     }
 
                     if (!gradleVersion.isSnapshot()) {
