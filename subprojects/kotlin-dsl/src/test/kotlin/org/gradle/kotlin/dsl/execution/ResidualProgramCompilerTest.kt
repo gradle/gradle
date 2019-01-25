@@ -182,8 +182,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 sourceHash,
                 null)
 
-            verify(programHost).compileSecondStageScript(
-                source.text,
+            verify(programHost).compileSecondStageOf(
+                program,
                 scriptHost,
                 stage2SettingsTemplateId,
                 sourceHash,
@@ -464,6 +464,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash, accessorsClassPath)
             }
 
+            assertThat(
+                program.secondStageScriptText,
+                equalTo(stagedProgram.source.text)
+            )
+
             inOrder(programHost) {
 
                 verify(programHost).applyPluginsTo(
@@ -479,8 +484,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     sourceHash = sourceHash,
                     accessorsClassPath = accessorsClassPath)
 
-                verify(programHost).compileSecondStageScript(
-                    stagedProgram.source.text,
+                verify(programHost).compileSecondStageOf(
+                    program,
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
@@ -503,7 +508,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
 
     private
-    fun withExecutableProgramFor(
+    inline fun withExecutableProgramFor(
         program: ResidualProgram,
         sourceHash: HashCode = HashCode.fromInt(0),
         programKind: ProgramKind = ProgramKind.TopLevel,

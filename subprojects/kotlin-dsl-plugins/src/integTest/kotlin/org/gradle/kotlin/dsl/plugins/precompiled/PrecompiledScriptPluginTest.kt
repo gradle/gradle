@@ -31,17 +31,11 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Before
 import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setup() {
-        executer.expectDeprecationWarning()
-    }
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {

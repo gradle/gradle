@@ -123,8 +123,6 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
-
         println(
             build("test").output)
     }

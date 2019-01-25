@@ -11,8 +11,40 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
 
+import java.io.StringWriter
+
 
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @Test
+    fun `scripts larger than 64KB are supported`() {
+
+        withBuildScriptLargerThan64KB("""
+            tasks.register("run") {
+                doLast { println("*42*") }
+            }
+        """)
+
+        assertThat(
+            build("run").output,
+            containsString("*42*")
+        )
+    }
+
+    private
+    fun withBuildScriptLargerThan64KB(suffix: String) =
+        withBuildScript(StringWriter().run {
+            var bytesWritten = 0
+            var i = 0
+            while (bytesWritten < 64 * 1024) {
+                val stmt = "val v$i = $i\n"
+                write(stmt)
+                i += 1
+                bytesWritten += stmt.toByteArray().size
+            }
+            write(suffix)
+            toString()
+        })
 
     @Test
     fun `can use Kotlin 1 dot 3 language features`() {

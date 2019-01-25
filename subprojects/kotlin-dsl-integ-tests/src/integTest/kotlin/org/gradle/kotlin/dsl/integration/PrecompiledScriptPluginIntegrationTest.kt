@@ -3,6 +3,8 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 
@@ -27,10 +29,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             package plugins
         """)
 
-        executer.expectDeprecationWarning()
         build("generateScriptPluginAdapters")
 
-        executer.expectDeprecationWarnings(2)
+        executer.expectDeprecationWarning()
         build("ktlintC")
     }
 
@@ -69,19 +70,37 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         val generationTask = ":generateScriptPluginAdapters"
 
-        executer.expectDeprecationWarning()
         build(firstDir, "classes", "--build-cache").apply {
             assertTaskExecuted(generationTask)
         }
 
-        executer.expectDeprecationWarning()
         build(firstDir, "classes", "--build-cache").apply {
             assertOutputContains("$generationTask UP-TO-DATE")
         }
 
-        executer.expectDeprecationWarning()
         build(secondDir, "classes", "--build-cache").apply {
             assertOutputContains("$generationTask FROM-CACHE")
         }
+    }
+
+    @Test
+    fun `precompiled script plugins adapters generation clean stale outputs`() {
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins { `kotlin-dsl` }
+            repositories { jcenter() }
+        """)
+
+        val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
+
+        build("generateScriptPluginAdapters")
+        assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").isFile)
+
+        fooScript.renameTo(fooScript.parentFile.resolve("bar.gradle.kts"))
+
+        build("generateScriptPluginAdapters")
+        assertFalse(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").exists())
+        assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/BarPlugin.kt").isFile)
     }
 }

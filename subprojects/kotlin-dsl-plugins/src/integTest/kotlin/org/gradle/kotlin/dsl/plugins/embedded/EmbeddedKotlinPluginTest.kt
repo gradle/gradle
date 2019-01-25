@@ -28,16 +28,10 @@ import com.nhaarman.mockito_kotlin.mock
 import org.hamcrest.CoreMatchers.containsString
 
 import org.junit.Assert.assertThat
-import org.junit.Before
 import org.junit.Test
 
 
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setup() {
-        executer.expectDeprecationWarning()
-    }
 
     @Test
     fun `applies the kotlin plugin`() {

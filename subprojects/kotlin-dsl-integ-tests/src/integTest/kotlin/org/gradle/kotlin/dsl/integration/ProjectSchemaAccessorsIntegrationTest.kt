@@ -26,6 +26,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -388,7 +389,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """)
         }
 
-        executer.expectDeprecationWarning()
         build("tasks")
     }
 
@@ -425,10 +425,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             withDefaultSettings()
         }
 
-        executer.expectDeprecationWarning()
         build("tasks", "-Pmy=lib")
 
-        executer.expectDeprecationWarning()
         build("tasks", "-Pmy=app")
     }
 
@@ -537,7 +535,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         """)
 
-        executer.expectDeprecationWarning()
         assertThat(
             build("books").output,
             containsString("quickStart, userGuide")
@@ -723,6 +720,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Ignore("TODO: change this test not to be dependent on an old version of the build-scan plugin")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
@@ -809,7 +807,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
         val result = build("help")
         assertThat(result.output, containsString("Type of `mine` receiver is Any"))
     }
@@ -914,7 +911,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
         build("help")
     }
 
@@ -977,7 +973,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is Any"))
@@ -996,7 +991,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
         assertThat(
             build("help").output,
             containsString("Type of `myConvention` receiver is MyConvention"))
@@ -1142,7 +1136,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """.trimIndent())
 
-        executer.expectDeprecationWarning()
         build("help").apply {
             assertThat(output, containsString("42"))
         }

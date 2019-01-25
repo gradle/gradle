@@ -12,17 +12,11 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 
 import org.junit.Assert.assertThat
-import org.junit.Before
 import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setup() {
-        executer.expectDeprecationWarning()
-    }
 
     @Test
     fun `gradle kotlin dsl api dependency is added`() {

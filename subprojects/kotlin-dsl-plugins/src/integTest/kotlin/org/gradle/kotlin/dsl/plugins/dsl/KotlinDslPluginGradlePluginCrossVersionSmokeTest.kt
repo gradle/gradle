@@ -55,6 +55,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         if (kotlinVersion == "1.2.20") {
             assumeJavaLessThan11()
         }
+        executer.noDeprecationChecks()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
@@ -97,8 +98,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             println("root build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
         """)
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
-
-        executer.expectDeprecationWarning()
 
         buildWithPlugin("classes").apply {
             assertThat(

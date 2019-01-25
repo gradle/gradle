@@ -186,8 +186,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        executer.expectDeprecationWarning()
-
         build("foo")
     }
 

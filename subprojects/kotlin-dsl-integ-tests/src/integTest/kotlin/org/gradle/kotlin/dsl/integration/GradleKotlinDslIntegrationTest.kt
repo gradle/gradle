@@ -173,8 +173,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             apply<build.DeepThoughtPlugin>()
         """)
 
-        executer.expectDeprecationWarning()
-
         val output = build("compute").output
         assert(output.contains("buildscript: 42"))
         assert(output.contains("*42*"))
@@ -843,8 +841,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             }
             require(the<NamedDomainObjectContainer<my.Book>>().size == 1)
         """)
-
-        executer.expectDeprecationWarning()
 
         build("help")
     }

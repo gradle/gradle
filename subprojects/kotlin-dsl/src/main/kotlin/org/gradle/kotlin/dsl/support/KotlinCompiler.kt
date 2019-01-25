@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.io.NullOutputStream
+
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
@@ -38,7 +40,7 @@ import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
-import org.jetbrains.kotlin.config.AnalysisFlag
+import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
@@ -64,7 +66,10 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import org.slf4j.Logger
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
+import java.io.PrintStream
 
 
 internal
@@ -165,9 +170,17 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
 
 
 private
-inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollector, action: () -> T): T {
+inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageCollector, action: () -> T): T {
     try {
-        return action()
+        val log = messageCollector.log
+        return when {
+            log.isDebugEnabled -> {
+                loggingOutputTo(log::debug) { action() }
+            }
+            else -> {
+                ignoringOutputOf { action() }
+            }
+        }
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -175,6 +188,66 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: MessageCollecto
             MessageUtil.psiElementToMessageLocation(ex.element))
 
         throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
+    }
+}
+
+
+private
+inline fun <T> loggingOutputTo(noinline log: (String) -> Unit, action: () -> T): T =
+    redirectingOutputTo({ LoggingOutputStream(log) }, action)
+
+
+private
+inline fun <T> ignoringOutputOf(action: () -> T): T =
+    redirectingOutputTo({ NullOutputStream.INSTANCE }, action)
+
+
+private
+inline fun <T> redirectingOutputTo(noinline outputStream: () -> OutputStream, action: () -> T): T =
+    redirecting(System.err, System::setErr, outputStream()) {
+        redirecting(System.out, System::setOut, outputStream()) {
+            action()
+        }
+    }
+
+
+private
+inline fun <T> redirecting(
+    stream: PrintStream,
+    set: (PrintStream) -> Unit,
+    to: OutputStream,
+    action: () -> T
+): T = try {
+    set(PrintStream(to, true))
+    action()
+} finally {
+    set(stream)
+    to.flush()
+}
+
+
+private
+class LoggingOutputStream(val log: (String) -> Unit) : OutputStream() {
+
+    private
+    val buffer = ByteArrayOutputStream()
+
+    override fun write(b: Int) = buffer.write(b)
+
+    override fun write(b: ByteArray, off: Int, len: Int) = buffer.write(b, off, len)
+
+    override fun flush() {
+        buffer.run {
+            val string = toString("utf8")
+            if (string.isNotBlank()) {
+                log(string)
+            }
+            reset()
+        }
+    }
+
+    override fun close() {
+        flush()
     }
 }
 
@@ -196,7 +269,7 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
         LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
     ),
     analysisFlags = mapOf(
-        AnalysisFlag.skipMetadataVersionCheck to true
+        AnalysisFlags.skipMetadataVersionCheck to true
     )
 )
 
@@ -289,7 +362,7 @@ const val indent = "  "
 
 internal
 class LoggingMessageCollector(
-    private val log: Logger,
+    internal val log: Logger,
     private val pathTranslation: (String) -> String
 ) : MessageCollector {
 

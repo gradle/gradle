@@ -77,7 +77,7 @@ sourceSets.main {
     }
 }
 
-val publishedPluginsVersion: String by rootProject.extra("1.1.1") // TODO:kotlin-dsl
+val publishedPluginsVersion: String by rootProject.extra("1.1.3") // TODO:kotlin-dsl
 
 tasks {
 

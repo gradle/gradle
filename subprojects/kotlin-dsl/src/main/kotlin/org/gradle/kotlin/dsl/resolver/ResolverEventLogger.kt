@@ -215,7 +215,7 @@ fun prettyPrint(properties: Sequence<Pair<String, Any?>>, indentation: Int?) =
 
 
 private
-fun stringForExceptions(exceptions: List<Exception>, indentation: Int?) =
+fun stringForExceptions(exceptions: List<String>, indentation: Int?) =
     if (exceptions.isNotEmpty())
         indentationStringFor(indentation).let {
             exceptions.joinToString(prefix = "[\n$it\t", separator = ",\n$it\t", postfix = "]") { exception ->
@@ -227,9 +227,16 @@ fun stringForExceptions(exceptions: List<Exception>, indentation: Int?) =
 
 private
 fun stringForException(exception: Exception, indentation: Int?) =
+    stringForException(
+        StringWriter().also { exception.printStackTrace(PrintWriter(it)) }.toString(),
+        indentation
+    )
+
+
+private
+fun stringForException(exception: String, indentation: Int?) =
     indentationStringFor(indentation).let {
-        StringWriter().also { writer -> exception.printStackTrace(PrintWriter(writer)) }.toString()
-            .prependIndent(it)
+        exception.prependIndent(it)
     }
 
 
