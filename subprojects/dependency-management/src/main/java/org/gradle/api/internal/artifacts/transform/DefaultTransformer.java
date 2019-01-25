@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
@@ -141,33 +142,30 @@ public class DefaultTransformer implements Transformer {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        private final File inputFile;
-        private final File outputDir;
-        private final Object parameters;
-        private final ArtifactTransformDependencies artifactTransformDependencies;
+        private final ImmutableList<InjectionPoint> injectionPoints;
 
         public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
-            this.inputFile = inputFile;
-            this.outputDir = outputDir;
-            this.parameters = parameters;
-            this.artifactTransformDependencies = artifactTransformDependencies;
+            ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
+            builder
+                .add(new InjectionPoint(Workspace.class, File.class, outputDir))
+                .add(new InjectionPoint(PrimaryInput.class, File.class, inputFile));
+            if (parameters != null) {
+                builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
+            }
+            if (artifactTransformDependencies != null) {
+                builder.add(new InjectionPoint(PrimaryInputDependencies.class, FileCollection.class, artifactTransformDependencies.getFiles()));
+            }
+            this.injectionPoints = builder.build();
         }
 
         @Nullable
         private
         Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
-            if (annotatedWith == Workspace.class && serviceTypeToken.isSupertypeOf(File.class)) {
-                return outputDir;
-            }
-            if (annotatedWith == PrimaryInput.class && serviceTypeToken.isSupertypeOf(File.class)) {
-                return inputFile;
-            }
-            if (annotatedWith == TransformParameters.class && serviceTypeToken.getRawType().isInstance(parameters)) {
-                return parameters;
-            }
-            if (artifactTransformDependencies != null && annotatedWith == PrimaryInputDependencies.class && serviceTypeToken.isSupertypeOf(FileCollection.class)) {
-                return artifactTransformDependencies.getFiles();
+            for (InjectionPoint injectionPoint : injectionPoints) {
+                if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
+                    return injectionPoint.getValueToInject();
+                }
             }
             return null;
         }
@@ -194,6 +192,30 @@ public class DefaultTransformer implements Transformer {
                 throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
             }
             return result;
+        }
+
+        private static class InjectionPoint {
+            private final Class<? extends Annotation> annotation;
+            private final Class<?> injectedType;
+            private final Object valueToInject;
+
+            public InjectionPoint(Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
+                this.annotation = annotation;
+                this.injectedType = injectedType;
+                this.valueToInject = valueToInject;
+            }
+
+            public Class<? extends Annotation> getAnnotation() {
+                return annotation;
+            }
+
+            public Class<?> getInjectedType() {
+                return injectedType;
+            }
+
+            public Object getValueToInject() {
+                return valueToInject;
+            }
         }
     }
 }
