@@ -133,9 +133,9 @@ include::sample[dir="java-feature-variant/producer-separate-sourceset/kotlin",fi
 ====
 Depending on the metadata file format, publishing feature variants may be lossy:
 
-- using {metadata-file-spec}[Gradle metadata], everything is published and consumers will get the full benefit of feature variants
 - using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_
 - using Ivy metadata, feature variants are lost
+- using {metadata-file-spec}[experimental Gradle metadata], everything is published and consumers will get the full benefit of feature variants
 ====
 
 Publishing feature variants is supported using the `maven-publish` plugin only.
@@ -154,6 +154,7 @@ include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.k
 ====
 As mentioned earlier, feature variants can be lossy when published.
 As a consequence, a consumer can depend on a feature variant only in two cases:
+
 - with a project dependency (in a multi-project build)
 - with Gradle metadata enabled (the publisher MUST have published using Gradle metadata)
 ====
@@ -175,6 +176,9 @@ include::sample[dir="java-feature-variant/requiring-features/groovy/consumer",fi
 include::sample[dir="java-feature-variant/requiring-features/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
 ====
 
+This will automatically bring the `mysql-connector-java` dependency on runtime classpath.
+If there were more than one dependencies, all of them would be brought, meaning that a feature can be used to group dependencies which contribute to a feature together.
+
 Similarly, if the experimental Gradle metadata feature is enabled, it is possible to depend on an external dependency providing feature variants:
 
 .Consuming specific features from an external repository
@@ -188,7 +192,9 @@ include::sample[dir="java-feature-variant/requiring-features-external/kotlin",fi
 == Handling mutually exclusive variants
 
 The main advantage of using _capabilities_ as a way to handle features is that you can precisely handle compatibility of variants.
-The rule is simple: it's not allowed to have two variants of components that provide the same capability in a dependency graph.
+The rule is simple:
+
+> It's not allowed to have two variants of components that provide the same capability in a single dependency graph.
 
 We can leverage that to ask Gradle to fail whenever the user mis-configures dependencies.
 Imagine, for example, that your library supports MySQL, Postgres and MongoDB, but that it's only allowed to choose _one_ of those at the same time.
@@ -214,7 +220,7 @@ include::sample[dir="java-feature-variant/incompatible-variants/groovy/consumer"
 include::sample[dir="java-feature-variant/incompatible-variants/kotlin/consumer",files="build.gradle.kts[tags=consumer]"]
 ====
 
-trying to resolve would lead to an error:
+Dependency resolution would fail with the following error:
 
 ```
 Cannot choose between
@@ -222,5 +228,3 @@ Cannot choose between
    org.gradle.demo:producer:1.0 variant postgresSupportRuntimeElements
    because they provide the same capability: org.gradle.demo:producer-db-support:1.0
 ```
-
-Because both variants provide the same capability.
