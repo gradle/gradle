@@ -197,7 +197,31 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    def "returns meaningful errors from visual studio when component product is unbuildable"() {
+    def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        useMsbuildTool()
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        succeeds "visualStudio"
+
+        when:
+        def result = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withProject(visualStudioProjectName)
+                .fails()
+
+        then:
+        result.assertHasCause("No tool chain is available to build C++")
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
 
