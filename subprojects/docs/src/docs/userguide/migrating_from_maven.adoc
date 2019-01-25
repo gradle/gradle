@@ -319,9 +319,7 @@ There are two sides to optional dependencies:
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.
 
-As for publishing dependencies as optional, Gradle has no built-in support at this time.
-However, you can use the https://plugins.gradle.org/plugin/nebula.optional-base[Nebula Optional Base Plugin] to get the required behavior.
-Alternatively, you can use the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPom.html#org.gradle.api.publish.maven.MavenPom:withXml(org.gradle.api.Action)[MavenPom.withXML()] method to customize the generated POM.
+As for publishing dependencies as optional, Gradle provides a richer model called <<feature_variants#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
 
 [[migmvn:using_boms]]
 == Using bills of materials (BOMs)
