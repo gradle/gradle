@@ -85,7 +85,7 @@ Global
             def configurations = configurationNames.collect { String configurationName ->
                 def result = []
                 def configuration = projectConfigurations[projectFile].find({ configurationName == it.name })
-                def lastConfiguration = projectConfigurations[projectFile].last()
+                def lastConfiguration = projectConfigurations[projectFile].sort({ a, b -> a.name <=> b.name }).last()
                 if (configuration == null) {
                     result.add("${configurationName}.ActiveCfg = ${lastConfiguration.name}")
                 } else {

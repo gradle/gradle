@@ -109,8 +109,10 @@ Global
 		${getUUID(project1.file)}.config1|Win32.Build.0 = config1|Win32
 		${getUUID(project1.file)}.config2|Win32.ActiveCfg = config2|Win32
 		${getUUID(project1.file)}.config2|Win32.Build.0 = config2|Win32
+		${getUUID(project1.file)}.configA|Win32.ActiveCfg = config2|Win32
 		${getUUID(project2.file)}.config1|Win32.ActiveCfg = config1|Win32
 		${getUUID(project2.file)}.config1|Win32.Build.0 = config1|Win32
+		${getUUID(project2.file)}.config2|Win32.ActiveCfg = configA|Win32
 		${getUUID(project2.file)}.configA|Win32.ActiveCfg = configA|Win32
 		${getUUID(project2.file)}.configA|Win32.Build.0 = configA|Win32
 	EndGlobalSection
