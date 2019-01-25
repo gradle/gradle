@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -151,6 +152,22 @@ public interface MavenPom {
      */
     @Incubating
     void mailingLists(Action<? super MavenPomMailingListSpec> action);
+
+    /**
+     * Configures the properties for the publication represented by this POM.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    void setProperties(MapProperty<String, String> properties);
+
+    /**
+     * Returns the properties for the publication represented by this POM.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    MapProperty<String, String> getProperties();
 
     /**
      * Allows configuration of the POM, after it has been generated according to the input data.
