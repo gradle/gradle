@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle 5.2.
 
-This release features a new [Java Platform plugin](#the-java-platform-plugin), [improved C++ plugins](userguide/cpp_plugins.html), [new C++ project types for `gradle init`](userguide/build_init_plugin.html#sec:cppapplication_), [service injection into plugins and project extensions](#service-injection-into-plugins-and-project-extensions) and more.
+This release features a new [Java Platform plugin](#the-java-platform-plugin), [improved C++ plugins](userguide/cpp_plugins.html), [new C++ project types for `gradle init`](userguide/build_init_plugin.html#sec:cppapplication_), [service injection into plugins and project extensions](#service-injection-into-plugins-and-project-extensions), [Kotlin DSL 1.1.3](https://github.com/gradle/kotlin-dsl/releases/tag/v1.1.3) and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
