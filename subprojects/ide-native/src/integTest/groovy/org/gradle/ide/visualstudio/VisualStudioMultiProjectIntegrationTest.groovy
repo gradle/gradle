@@ -379,6 +379,48 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
+    @Requires(TestPrecondition.MSBUILD)
+    def "skip unbuildable static library project when building solution from visual studio"() {
+        useMsbuildTool()
+        def app = new CppAppWithLibrary()
+
+        given:
+        app.greeter.writeToProject(file("lib"))
+        app.main.writeToProject(file("exe"))
+
+        settingsFile << """
+            include ':exe', ':lib'
+        """
+        file("exe", "build.gradle") << """
+            apply plugin: 'cpp-application'
+
+            dependencies {
+                implementation project(':lib')
+            }
+        """
+        file("lib", "build.gradle") << """
+            apply plugin: 'cpp-library'
+
+            library {
+                linkage = [Linkage.STATIC]
+                targetMachines = [machines.os('os-family')]
+            }
+        """
+        succeeds ":visualStudio"
+
+        when:
+        def resultDebug = msbuild
+                .withSolution(solutionFile('app.sln'))
+                .withConfiguration('debug')
+                .succeeds()
+
+        then:
+        resultDebug.size() == 1
+        resultDebug[0].assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug')
+        resultDebug[0].assertOutputContains("Skipped Build: Project: libLib, Configuration: unbuildable Win32")
+        installation('exe/build/install/main/debug').assertInstalled()
+    }
+
     @NotYetImplemented
     def "create visual studio solution where multiple projects have same name"() {
         given:

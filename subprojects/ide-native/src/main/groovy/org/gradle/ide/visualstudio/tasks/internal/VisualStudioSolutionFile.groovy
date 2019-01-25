@@ -82,11 +82,23 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
         projects.each { File projectFile, String projectName ->
-            projectConfigurations[projectFile].sort({ a, b -> a.name <=> b.name }).each { configuration ->
-                builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.ActiveCfg = ${configuration.name}"""
-                if (configuration.buildable) {
-                    builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.Build.0 = ${configuration.name}"""
+            def configurations = configurationNames.collect { String configurationName ->
+                def result = []
+                def configuration = projectConfigurations[projectFile].find({ configurationName == it.name })
+                def lastConfiguration = projectConfigurations[projectFile].last()
+                if (configuration == null) {
+                    result.add("${configurationName}.ActiveCfg = ${lastConfiguration.name}")
+                } else {
+                    result.add("${configurationName}.ActiveCfg = ${configuration.name}")
+                    if (configuration.buildable) {
+                        result.add("${configurationName}.Build.0 = ${configuration.name}")
+                    }
                 }
+                return result
+            }
+
+            configurations.flatten().sort().each { String configuration ->
+                builder << "\n\t\t${getUUID(projectFile)}.${configuration}"
             }
         }
 
