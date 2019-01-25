@@ -18,15 +18,14 @@
 [[feature_variants]]
 = Feature variants and optional dependencies
 
-Gradle supports the concept of _feature variants_:
-When building a library, it's often the case that some features are only available when some dependencies are present, or when special artifacts are used.
+Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only available when some dependencies are present, or when special artifacts are used.
 
-Feature variants will let consumers choose what _features_ they need, and the dependency management engine is going to select the right artifacts and dependencies based on those requirements.
+Feature variants let consumers choose what _features_ of a library they need: the dependency management engine will select the right artifacts and dependencies.
 
 This allows a number of different scenarios (list is non exhaustive):
 
 - a (better) substitute to {maven-optional-deps}
-- a _main_ library is built with support for different runtime features, and the user has to choose between one of them
+- a _main_ library is built with support for different runtime features, and the <<sec::incompatible_variants,user has to choose between one of them>>
 - a _main_ library is built with support for different runtime features, each of them requiring a different set of dependencies
 - a _main_ library comes with secondary variants like _test fixtures_
 - a _main_ library comes with a main artifact, and enabling an additional feature requires additional artifacts
@@ -37,15 +36,28 @@ This allows a number of different scenarios (list is non exhaustive):
 Declaring a dependency on a component is usually done by providing a set of coordinates (group, artifact, version also known as GAV coordinates).
 This allows the engine to determine the _component_ we're looking for, but such a component may provide different _variants_.
 A _variant_ is typically chosen based on the usage. For example, we might choose a different variant for compiling against a component (in which case we need the API of the component) or when executing code (in which case we need the runtime of the component).
-All variants of a component provide a number of _capabilities_, which are denoted similarly using GAV coordinates.
+All variants of a component provide a number of <<managing_transitive_dependencies#introduction_to_capabilities, capabilities>>, which are denoted similarly using GAV coordinates.
+
+[NOTE]
+====
+A capability is denoted by GAV coordinates, but you must think of it as feature description:
+
+- "I provide an SLF4J binding"
+- "I provide runtime support for MySQL"
+- "I provide a Groovy runtime"
+
+And in general, having two component that provide the _same thing_ in the graph is a problem (they conflict).
+====
+
 This is an important concept because:
 
 - by default a variant provides a capability corresponding to the GAV coordinates of its component
 - it is not allowed to have different components or different variants of a component in a dependency graph if they provide the same capability
 - it is allowed to select two variants of the same component, as long as they provide _different capabilities_
 
-A typical component will *only* provide variants with the default capability. A Java library, for example, exposes two variants (API and runtime) which provide the _same capability_.
-As a consequence, it is an error to have both the API and runtime of a single component in a dependency graph.
+A typical component will *only* provide variants with the default capability.
+A Java library, for example, exposes two variants (API and runtime) which provide the _same capability_.
+As a consequence, it is an error to have both the _API_ and _runtime_ of a single component in a dependency graph.
 
 However, imagine that you need the _runtime_ and the _test fixtures_ of a component.
 Then it is allowed as long as the _runtime_ and _test fixtures_ variant of the library declare different capabilities.
@@ -64,7 +76,7 @@ While the engine supports feature variants independently of the the ecosystem, t
 == Declaring feature variants
 
 Feature variants can be declared by applying the `java` or `java-library` plugins.
-The following code illustrates how to declare a feature named "mongodbSupport":
+The following code illustrates how to declare a feature named `mongodbSupport`:
 
 .Declaring a feature variant
 ====
@@ -72,7 +84,7 @@ include::sample[dir="java-feature-variant/producer/groovy",files="build.gradle[t
 include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=register_variant]"]
 ====
 
-This will automatically setup a number of things for you, in a very similar way to what the <<java_library_plugin.adoc,_Java Library Plugin>> defines configurations:
+Gradle will automatically setup a number of things for you, in a very similar way to how the <<java_library_plugin#java_library_plugin,Java Library Plugin>> sets up configurations:
 
 - the configuration `mongodbSupportApi`, used to _declare API dependencies_ for this feature
 - the configuration `mongodbSupportImplementation`, used to _declare implementation dependencies_ for this feature
@@ -87,8 +99,14 @@ include::sample[dir="java-feature-variant/producer/groovy",files="build.gradle[t
 include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=variant_dependencies]"]
 ====
 
+[NOTE]
+====
 By convention, Gradle will map the feature name to a capability which group is the same as the group and version as the main component, but a name composed of the main component name and the kebab-cased feature name.
-For example, here the group is `org.gradle.demo`, the name of the main component is `provider`, version is `1.0` and the feature is named `mongodbSupport`, so the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
+
+For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, so the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
+
+If you choose the capability name yourself or add more capabilities to a variant, it is recommended to follow the same convention.
+====
 
 [[sec:feature_variant_source_set]]
 === Feature variant source set
@@ -121,7 +139,7 @@ Depending on the metadata file format, publishing feature variants may be lossy:
 ====
 
 Publishing feature variants is supported using the `maven-publish` plugin only.
-The Java Plugin will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
+The Java Plugin (or Java Library Plugin) will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
 
 .Publishing a component with feature variants
 ====
