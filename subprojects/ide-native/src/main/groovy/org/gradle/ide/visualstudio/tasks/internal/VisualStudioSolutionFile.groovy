@@ -82,7 +82,7 @@ Global
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
         projects.each { File projectFile, String projectName ->
-            projectConfigurations[projectFile].sort().each { configuration ->
+            projectConfigurations[projectFile].sort({ a, b -> a.name <=> b.name }).each { configuration ->
                 builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.ActiveCfg = ${configuration.name}"""
                 if (configuration.buildable) {
                     builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.Build.0 = ${configuration.name}"""

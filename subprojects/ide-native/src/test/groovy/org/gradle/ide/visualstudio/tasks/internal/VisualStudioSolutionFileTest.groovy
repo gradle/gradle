@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMetadata
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,7 +70,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project1", "${project.file.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		projectConfig|Win32=projectConfig|Win32
+		projectConfig|Win32 = projectConfig|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		${getUUID(project.file)}.projectConfig|Win32.ActiveCfg = projectConfig|Win32
@@ -99,9 +100,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "project2", "${project2.file
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		config1|Win32=config1|Win32
-		config2|Win32=config2|Win32
-		configA|Win32=configA|Win32
+		config1|Win32 = config1|Win32
+		config2|Win32 = config2|Win32
+		configA|Win32 = configA|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		${getUUID(project1.file)}.config1|Win32.ActiveCfg = config1|Win32
@@ -151,7 +152,12 @@ EndGlobal
         def metadata = Stub(VisualStudioProjectMetadata)
         metadata.file >> project1File
         metadata.name >> projectName
-        metadata.configurations >> configNames.collect { "$it|Win32" }
+        metadata.configurations >> configNames.collect {
+            def configurationMetadata = Stub(VisualStudioProjectConfigurationMetadata)
+            configurationMetadata.name >> "$it|Win32"
+            configurationMetadata.buildable >> true
+            return configurationMetadata
+        }
         return metadata
     }
 

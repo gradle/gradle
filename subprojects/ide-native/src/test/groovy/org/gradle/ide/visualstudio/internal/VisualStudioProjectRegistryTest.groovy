@@ -59,7 +59,8 @@ class VisualStudioProjectRegistryTest extends Specification {
             metadata = m
         }
         metadata.name == "mainExe"
-        metadata.configurations == ["vsConfig|Win32"]
+        metadata.configurations*.name == ["vsConfig|Win32"]
+        metadata.configurations*.buildable == [true]
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {

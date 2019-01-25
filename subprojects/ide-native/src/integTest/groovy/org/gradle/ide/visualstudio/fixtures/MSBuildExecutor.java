@@ -123,14 +123,18 @@ public class MSBuildExecutor {
         ExecOutput result = findMSBuild().execute(args, buildEnvironment(workingDir));
 
         System.out.println(result.getOut());
-        for (ExecutionOutput output : getOutputFiles()) {
-            String gradleStdout = fileContents(output.stdout);
-            String gradleStderr = fileContents(output.stderr);
+        if (getOutputFiles().isEmpty()) {
+            results.add(OutputScrapingExecutionResult.from(trimLines(result.getOut()), trimLines(result.getError())));
+        } else {
+            for (ExecutionOutput output : getOutputFiles()) {
+                String gradleStdout = fileContents(output.stdout);
+                String gradleStderr = fileContents(output.stderr);
 
-            System.out.println(gradleStdout);
-            System.out.println(gradleStderr);
+                System.out.println(gradleStdout);
+                System.out.println(gradleStderr);
 
-            results.add(OutputScrapingExecutionResult.from(trimLines(gradleStdout), trimLines(gradleStderr)));
+                results.add(OutputScrapingExecutionResult.from(trimLines(gradleStdout), trimLines(gradleStderr)));
+            }
         }
         System.out.println(result.getError());
 
