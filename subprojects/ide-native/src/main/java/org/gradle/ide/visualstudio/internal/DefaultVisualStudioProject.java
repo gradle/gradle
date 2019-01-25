@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
@@ -161,6 +162,9 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
 
     @Nested
     public List<VisualStudioProjectConfiguration> getConfigurations() {
+        if (configurations.isEmpty()) {
+            return ImmutableList.of(new VisualStudioProjectConfiguration(this, "unbuildable", null));
+        }
         return CollectionUtils.toList(configurations.values());
     }
 

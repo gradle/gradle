@@ -172,7 +172,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
 
         and:
-        def projectConfigurations = [] as Set
+        def projectConfigurations = ["unbuildable"] as Set
         projectFile.assertHasComponentSources(componentUnderTest, "src/main")
         projectFile.projectConfigurations.keySet() == projectConfigurations
 
@@ -193,7 +193,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
-        outputContains("'${visualStudioProjectName}' component in project ':' is not buildable.");
+        outputContains("'main' component in project ':' is not buildable.");
     }
 
     @Requires(TestPrecondition.MSBUILD)
@@ -210,14 +210,25 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "visualStudio"
 
         when:
-        def result = msbuild
+        def resultSolution = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .succeeds()
+
+        then:
+        resultSolution.size() == 1
+        resultSolution[0].assertOutputContains('The project "listDll" is not selected for building in solution configuration "unbuildable|Win32".')
+
+        when:
+        def resultProject = msbuild
                 .withWorkingDir(testDirectory)
                 .withSolution(solutionFile)
                 .withProject(visualStudioProjectName)
-                .fails()
+                .succeeds()
 
         then:
-        result.assertHasCause("No tool chain is available to build C++")
+        resultProject.size() == 1
+        resultProject[0].assertOutputContains('The project "listDll" is not selected for building in solution configuration "unbuildable|Win32".')
     }
 
     @Requires(TestPrecondition.MSBUILD)

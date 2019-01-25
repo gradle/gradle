@@ -122,12 +122,11 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
             projectFile.addHeaderFile(headerFile);
         }
 
-        if (vsProject.getConfigurations().isEmpty()) {
-            getLogger().warn("'" + vsProject.getName() + "' component in project '" + getProject().getPath() + "' is not buildable.");
-        } else {
-            for (VisualStudioProjectConfiguration configuration : vsProject.getConfigurations()) {
-                projectFile.addConfiguration(configuration);
-            }
+        if (vsProject.getConfigurations().stream().noneMatch(it -> it.isBuildable())) {
+            getLogger().warn("'" + vsProject.getComponentName() + "' component in project '" + getProject().getPath() + "' is not buildable.");
+        }
+        for (VisualStudioProjectConfiguration configuration : vsProject.getConfigurations()) {
+            projectFile.addConfiguration(configuration);
         }
 
         for (Action<? super XmlProvider> xmlAction : vsProject.getProjectFile().getXmlActions()) {

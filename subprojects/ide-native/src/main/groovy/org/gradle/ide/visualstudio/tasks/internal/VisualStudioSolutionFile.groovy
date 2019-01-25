@@ -20,6 +20,7 @@ import com.google.common.collect.Maps
 import com.google.common.collect.Sets
 import org.gradle.api.Action
 import org.gradle.ide.visualstudio.TextProvider
+import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfigurationMetadata
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectMetadata
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject
 import org.gradle.util.TextUtil
@@ -29,7 +30,7 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
     List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();
     private Map<File, String> projects = Maps.newLinkedHashMap()
-    private Map<File, Set<String>> projectConfigurations = Maps.newLinkedHashMap()
+    private Map<File, Set<VisualStudioProjectConfigurationMetadata>> projectConfigurations = Maps.newLinkedHashMap()
     private baseText
 
     protected String getDefaultResourceName() {
@@ -42,7 +43,7 @@ class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
             if (!this.projectConfigurations.containsKey(project.file)) {
                 this.projectConfigurations[project.file] = Sets.newHashSet();
             }
-            project.configurations.each { String configuration ->
+            project.configurations.each { configuration ->
                 this.projectConfigurations[project.file].add(configuration)
             }
         }
@@ -73,17 +74,19 @@ EndProject"""
         builder << """
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution"""
-        Set<String> configurationNames = Sets.newLinkedHashSet(projectConfigurations.values().flatten().sort())
+        Set<String> configurationNames = Sets.newLinkedHashSet(projectConfigurations.values().flatten().collect({ it.name }).sort())
         configurationNames.each { String configurationName ->
-            builder << """\n\t\t${configurationName}=${configurationName}"""
+            builder << """\n\t\t${configurationName} = ${configurationName}"""
         }
         builder << """
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution"""
         projects.each { File projectFile, String projectName ->
-            projectConfigurations[projectFile].sort().each { String configurationName ->
-                builder << """\n\t\t${getUUID(projectFile)}.${configurationName}.ActiveCfg = ${configurationName}"""
-                builder << """\n\t\t${getUUID(projectFile)}.${configurationName}.Build.0 = ${configurationName}"""
+            projectConfigurations[projectFile].sort().each { configuration ->
+                builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.ActiveCfg = ${configuration.name}"""
+                if (configuration.buildable) {
+                    builder << """\n\t\t${getUUID(projectFile)}.${configuration.name}.Build.0 = ${configuration.name}"""
+                }
             }
         }
 
