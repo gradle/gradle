@@ -154,14 +154,6 @@ public interface MavenPom {
     void mailingLists(Action<? super MavenPomMailingListSpec> action);
 
     /**
-     * Configures the properties for the publication represented by this POM.
-     *
-     * @since 5.3
-     */
-    @Incubating
-    void setProperties(MapProperty<String, String> properties);
-
-    /**
      * Returns the properties for the publication represented by this POM.
      *
      * @since 5.3

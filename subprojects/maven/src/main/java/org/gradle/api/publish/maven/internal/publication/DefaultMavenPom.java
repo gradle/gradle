@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.internal.publication;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
-import org.gradle.api.internal.provider.DefaultMapProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -67,7 +66,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     private MavenPomCiManagement ciManagement;
     private MavenPomDistributionManagementInternal distributionManagement;
     private final List<MavenPomMailingList> mailingLists = new ArrayList<MavenPomMailingList>();
-    private MapProperty<String, String> properties = new DefaultMapProperty<>(String.class, String.class);
+    private MapProperty<String, String> properties;
 
     public DefaultMavenPom(MavenPublicationInternal mavenPublication, Instantiator instantiator, ObjectFactory objectFactory) {
         this.mavenPublication = mavenPublication;
@@ -77,6 +76,7 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         this.description = objectFactory.property(String.class);
         this.url = objectFactory.property(String.class);
         this.inceptionYear = objectFactory.property(String.class);
+        this.properties = objectFactory.mapProperty(String.class, String.class);
     }
 
     public void withXml(Action<? super XmlProvider> action) {
@@ -246,11 +246,6 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
     @Override
     public List<MavenPomMailingList> getMailingLists() {
         return mailingLists;
-    }
-
-    @Override
-    public void setProperties(MapProperty<String, String> properties) {
-        this.properties = properties;
     }
 
     @Override
