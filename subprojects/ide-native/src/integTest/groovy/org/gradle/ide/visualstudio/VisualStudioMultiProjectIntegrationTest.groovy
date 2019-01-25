@@ -417,7 +417,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         then:
         resultUnbuildableSolution.size() == 1
         resultUnbuildableSolution[0].executedTasks == []
-        resultUnbuildableSolution[0].assertOutputContains('The project "app" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultUnbuildableSolution[0].assertOutputContains('The project "exe" is not selected for building in solution configuration "unbuildable|Win32".')
         resultUnbuildableSolution[0].assertOutputContains('The project "libLib" is not selected for building in solution configuration "unbuildable|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
 
