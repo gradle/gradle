@@ -78,6 +78,7 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> virtualEdges;
     private boolean queued;
     private boolean evicted;
+    private List<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -207,6 +208,9 @@ public class NodeState implements DependencyGraphNode {
 
         // Check if the was previously traversed with the same net exclusion
         if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
+            if (upcomingNoLongerPendingConstraints != null && !upcomingNoLongerPendingConstraints.isEmpty()) {
+                visitAdditionalConstraints(discoveredEdges);
+            }
             // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
             // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
             LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
@@ -256,10 +260,7 @@ public class NodeState implements DependencyGraphNode {
                 }
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
-                    EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
-                    outgoingEdges.add(dependencyEdge);
-                    discoveredEdges.add(dependencyEdge);
-                    dependencyEdge.getSelector().use();
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter);
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -269,6 +270,31 @@ public class NodeState implements DependencyGraphNode {
             // This way, all edges of the node will be re-processed.
             pendingDepsVisitor.complete();
         }
+    }
+
+    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ModuleExclusion resolutionFilter) {
+        EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
+        outgoingEdges.add(dependencyEdge);
+        discoveredEdges.add(dependencyEdge);
+        dependencyEdge.getSelector().use();
+    }
+
+    /**
+     * Iterate over the dependencies originating in this node, adding only the constraints listed
+     * in upcomingNoLongerPendingConstraints
+     * @param discoveredEdges
+     */
+    private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
+        for (DependencyMetadata dependency : metaData.getDependencies()) {
+            if (dependency.isConstraint()) {
+                DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
+                if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
+                    dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions);
+                }
+            }
+        }
+        upcomingNoLongerPendingConstraints.clear();
     }
 
     /**
@@ -457,6 +483,9 @@ public class NodeState implements DependencyGraphNode {
         }
         virtualEdges = null;
         previousTraversalExclusions = null;
+        if (upcomingNoLongerPendingConstraints != null) {
+            upcomingNoLongerPendingConstraints.clear();
+        }
     }
 
     public void restart(ComponentState selected) {
@@ -488,6 +517,15 @@ public class NodeState implements DependencyGraphNode {
 
     public void deselect() {
         removeOutgoingEdges();
+    }
+
+    void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
+        if (upcomingNoLongerPendingConstraints == null) {
+            upcomingNoLongerPendingConstraints = Lists.newArrayList();
+        }
+        upcomingNoLongerPendingConstraints.add(moduleIdentifier);
+        // Trigger a replay on this node, to add new constraints to graph
+        resolveState.onFewerSelected(this);
     }
 
     void resetSelectionState() {
