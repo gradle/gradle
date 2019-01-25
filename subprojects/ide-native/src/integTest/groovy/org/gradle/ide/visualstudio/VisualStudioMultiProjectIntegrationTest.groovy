@@ -428,9 +428,9 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                 .fails()
 
         then:
+        resultDebug.executedTasks == []
         resultDebug.assertHasCause("Could not resolve all task dependencies for configuration ':exe:nativeRuntimeDebug'.")
         resultDebug.assertHasCause("Could not resolve project :lib.")
-        resultDebug.assertOutputContains('The project "libLib" is not selected for building in solution configuration "debug|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
     }
 
