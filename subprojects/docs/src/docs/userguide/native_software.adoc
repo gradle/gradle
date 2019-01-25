@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-Support for building native software is currently <<feature_lifecycle.adoc#feature_lifecycle,incubating>>. Please be aware that the DSL, APIs and other configuration may change in later Gradle versions.
+The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed. We recommend new projects looking to build C++ applications and libraries use the newer <<cpp_plugins.adoc#cpp_plugins,C++ plugins>>.
 
 ====
 

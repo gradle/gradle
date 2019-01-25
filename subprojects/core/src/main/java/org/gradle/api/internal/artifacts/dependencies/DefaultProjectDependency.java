@@ -159,6 +159,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!Objects.equal(getAttributes(), that.getAttributes())) {
             return false;
         }
+        if (!Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities())) {
+            return false;
+        }
         return true;
     }
 

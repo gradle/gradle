@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -36,41 +37,46 @@ public class DefaultDependencyFactory implements DependencyFactory {
     private final NotationParser<Object, Dependency> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
+    private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ProjectDependencyFactory projectDependencyFactory;
     private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultDependencyFactory(NotationParser<Object, Dependency> dependencyNotationParser,
                                     NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser,
                                     NotationParser<Object, ClientModule> clientModuleNotationParser,
+                                    NotationParser<Object, Capability> capabilityNotationParser,
                                     ProjectDependencyFactory projectDependencyFactory,
                                     ImmutableAttributesFactory attributesFactory) {
         this.dependencyNotationParser = dependencyNotationParser;
         this.dependencyConstraintNotationParser = dependencyConstraintNotationParser;
         this.clientModuleNotationParser = clientModuleNotationParser;
+        this.capabilityNotationParser = capabilityNotationParser;
         this.projectDependencyFactory = projectDependencyFactory;
         this.attributesFactory = attributesFactory;
     }
 
     public Dependency createDependency(Object dependencyNotation) {
         Dependency dependency = dependencyNotationParser.parseNotation(dependencyNotation);
-        injectAttributesFactory(dependency);
+        injectServices(dependency);
         return dependency;
     }
 
-    private void injectAttributesFactory(Dependency dependency) {
+    private void injectServices(Dependency dependency) {
         if (dependency instanceof AbstractModuleDependency) {
-            ((AbstractModuleDependency) dependency).setAttributesFactory(attributesFactory);
+            AbstractModuleDependency moduleDependency = (AbstractModuleDependency) dependency;
+            moduleDependency.setAttributesFactory(attributesFactory);
+            moduleDependency.setCapabilityNotationParser(capabilityNotationParser);
         }
     }
 
     @Override
     public DependencyConstraint createDependencyConstraint(Object dependencyNotation) {
         DependencyConstraint dependencyConstraint = dependencyConstraintNotationParser.parseNotation(dependencyNotation);
-        injectAttributesFactory(dependencyConstraint);
+        injectServices(dependencyConstraint);
         return dependencyConstraint;
     }
 
-    private void injectAttributesFactory(DependencyConstraint dependency) {
+    private void injectServices(DependencyConstraint dependency) {
         if (dependency instanceof DefaultDependencyConstraint) {
             ((DefaultDependencyConstraint) dependency).setAttributesFactory(attributesFactory);
         }

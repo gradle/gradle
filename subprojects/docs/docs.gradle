@@ -323,11 +323,16 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
 
     if (BuildEnvironment.javaVersion.isJava11Compatible()) {
         options.addBooleanOption('html4', true)
+        options.addBooleanOption('-no-module-directories', true)
         doLast {
             // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
             // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
             // Here we generate this file manually
             new File(destinationDir, 'package-list').text = new File(destinationDir, 'element-list').text
+
+            // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856) fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
+            // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
+            new File(destinationDir, 'script.js').text = new File(srcDocsDir, 'js/javadoc/script.js').text
         }
     }
 }

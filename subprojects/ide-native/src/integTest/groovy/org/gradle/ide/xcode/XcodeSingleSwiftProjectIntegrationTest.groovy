@@ -20,12 +20,10 @@ import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibWithXCTest
-import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -36,8 +34,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         def app = new SwiftApp()
         app.writeToProject(testDirectory)
@@ -64,71 +62,13 @@ apply plugin: 'swift-application'
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
     }
 
-    def "can create xcode project for Swift application with multiple architecture"() {
-        requireSwiftToolChain()
-
-        given:
-        buildFile << """
-            apply plugin: 'swift-application'
-
-            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
-        """
-
-        def app = new SwiftApp()
-        app.writeToProject(testDirectory)
-
-        when:
-        succeeds("xcode")
-
-        then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
-
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
-        project.sources.assertHasChildren(app.files*.name)
-
-        project.targets.size() == 2
-        project.targets[0].productReference.path == exe("build/install/main/debug/x86-64/lib/App").absolutePath
-        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-
-        project.targets[0].assertIsTool()
-        project.targets[0].name == "App"
-        project.targets[0].assertProductNameEquals("App")
-        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
-        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
-
-        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/debug/x86-64/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86/lib").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/install/main/release/x86-64/lib").absolutePath
-
-        project.targets[1].assertIsIndexerFor(project.targets[0])
-
-        project.products.children.size() == 1
-        project.products.children[0].path == exe("build/install/main/debug/x86-64/lib/App").absolutePath
-
-        rootXcodeProject.schemeFiles.size() == 1
-        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 1
-    }
-
     def "can create xcode project for Swift library"() {
         requireSwiftToolChain()
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
 
@@ -149,64 +89,6 @@ apply plugin: 'swift-library'
 
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("build/lib/main/debug/App").absolutePath
-
-        rootXcodeProject.schemeFiles.size() == 1
-        rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
-    }
-
-    def "can create xcode project for Swift library with multiple architecture"() {
-        requireSwiftToolChain()
-
-        given:
-        buildFile << """
-            apply plugin: 'swift-library'
-
-            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
-        """
-
-        def lib = new SwiftLib()
-        lib.writeToProject(testDirectory)
-
-        when:
-        succeeds("xcode")
-
-        then:
-        executedAndNotSkipped(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
-
-        def project = rootXcodeProject.projectFile
-        project.mainGroup.assertHasChildren(['Products', 'build.gradle', 'Sources'])
-        project.sources.assertHasChildren(lib.files*.name)
-
-        project.targets.size() == 2
-        project.targets[0].productReference.path == sharedLib("build/lib/main/debug/x86-64/App").absolutePath
-        project.targets[0].buildArgumentsString == '-Porg.gradle.internal.xcode.bridge.ACTION="${ACTION}" -Porg.gradle.internal.xcode.bridge.PRODUCT_NAME="${PRODUCT_NAME}" -Porg.gradle.internal.xcode.bridge.CONFIGURATION="${CONFIGURATION}" -Porg.gradle.internal.xcode.bridge.BUILT_PRODUCTS_DIR="${BUILT_PRODUCTS_DIR}" :_xcode__${ACTION}_${PRODUCT_NAME}_${CONFIGURATION}'
-
-        project.targets[0].assertIsDynamicLibrary()
-        project.targets[0].name == "App"
-        project.targets[0].assertProductNameEquals("App")
-        project.targets[0].assertSupportedArchitectures(MachineArchitecture.X86, MachineArchitecture.X86_64)
-        project.targets[0].buildConfigurationList.buildConfigurations.size() == 4
-
-        project.targets[0].buildConfigurationList.buildConfigurations[0].name == "${DefaultXcodeProject.BUILD_DEBUG}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[0].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[1].name == "${DefaultXcodeProject.BUILD_DEBUG}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[1].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/debug/x86-64").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[2].name == "${DefaultXcodeProject.BUILD_RELEASE}X86"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.ARCHS == "i386"
-        project.targets[0].buildConfigurationList.buildConfigurations[2].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86/stripped").absolutePath
-
-        project.targets[0].buildConfigurationList.buildConfigurations[3].name == "${DefaultXcodeProject.BUILD_RELEASE}X86-64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.ARCHS == "x86_64"
-        project.targets[0].buildConfigurationList.buildConfigurations[3].buildSettings.CONFIGURATION_BUILD_DIR == file("build/lib/main/release/x86-64/stripped").absolutePath
-
-        project.targets[1].assertIsIndexerFor(project.targets[0])
-
-        project.products.children.size() == 1
-        project.products.children[0].path == sharedLib("build/lib/main/debug/x86-64/App").absolutePath
 
         rootXcodeProject.schemeFiles.size() == 1
         rootXcodeProject.schemeFiles[0].schemeXml.LaunchAction.BuildableProductRunnable.size() == 0
@@ -292,9 +174,9 @@ apply plugin: 'swift-library'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-application'
+            apply plugin: 'xctest'
+        """
 
         def app = new SwiftAppWithXCTest()
         app.writeToProject(testDirectory)
@@ -329,9 +211,9 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-library'
+            apply plugin: 'xctest'
+        """
         def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
 
@@ -366,8 +248,8 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
@@ -409,8 +291,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
@@ -443,8 +325,8 @@ apply plugin: 'swift-library'
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         def lib = new SwiftLibWithXCTest()
         lib.writeToProject(testDirectory)
@@ -482,9 +364,9 @@ apply plugin: 'swift-library'
         given:
         settingsFile.text = "rootProject.name = 'greeter'"
         buildFile << """
-apply plugin: 'swift-library'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-library'
+            apply plugin: 'xctest'
+        """
 
         lib.writeToProject(testDirectory)
         succeeds("xcode")
@@ -510,12 +392,12 @@ apply plugin: 'xctest'
 
         given:
         settingsFile.text = """
-rootProject.name = 'app'
-"""
+            rootProject.name = 'app'
+        """
         buildFile << """
-apply plugin: 'swift-application'
-apply plugin: 'xctest'
-"""
+            apply plugin: 'swift-application'
+            apply plugin: 'xctest'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -543,8 +425,8 @@ apply plugin: 'xctest'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -578,20 +460,21 @@ apply plugin: 'swift-application'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift application from xcode with multiple architecture"() {
+    def "can build Swift application from xcode with multiple operating systems"() {
         useXcodebuildTool()
         def app = new SwiftApp()
-        def debugBinary = exe("build/exe/main/debug/x86-64/App")
-        def releaseBinary = exe("build/exe/main/release/x86-64/App")
+        def debugBinary = exe("build/exe/main/debug/macos/App")
+        def releaseBinary = exe("build/exe/main/release/macos/App")
 
         given:
         buildFile << """
             apply plugin: 'swift-application'
 
-            application.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+            application.targetMachines = [machines.macOS, machines.linux]
         """
 
         app.writeToProject(testDirectory)
+        //executer.startBuildProcessInDebugger(true)
         succeeds("xcode")
 
         when:
@@ -599,12 +482,12 @@ apply plugin: 'swift-application'
         def resultDebug = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("DebugX86-64")
+                .withConfiguration("DebugMacos")
                 .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugX86-64Swift', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Swift', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
+        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -613,12 +496,12 @@ apply plugin: 'swift-application'
         def resultRelease = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
+                .withConfiguration("ReleaseMacos")
                 .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
+        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
@@ -630,8 +513,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -653,8 +536,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         app.writeToProject(testDirectory)
         succeeds("xcode")
@@ -686,8 +569,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-"""
+            apply plugin: 'swift-library'
+        """
 
         lib.writeToProject(testDirectory)
         succeeds("xcode")
@@ -721,17 +604,17 @@ apply plugin: 'swift-library'
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "can build Swift library from xcode with multiple architecture"() {
+    def "can build Swift library from xcode with multiple operating systems"() {
         useXcodebuildTool()
         def lib = new SwiftLib()
-        def debugBinary = sharedLib("build/lib/main/debug/x86-64/App")
-        def releaseBinary = sharedLib("build/lib/main/release/x86-64/App")
+        def debugBinary = sharedLib("build/lib/main/debug/macos/App")
+        def releaseBinary = sharedLib("build/lib/main/release/macos/App")
 
         given:
         buildFile << """
             apply plugin: 'swift-library'
 
-            library.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+            library.targetMachines = [machines.macOS, machines.linux]
         """
 
         lib.writeToProject(testDirectory)
@@ -742,12 +625,12 @@ apply plugin: 'swift-library'
         def resultDebug = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("DebugX86-64")
+                .withConfiguration("DebugMacos")
                 .succeeds()
 
         then:
-        resultDebug.assertTasksExecuted(':compileDebugX86-64Swift', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Swift', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
+        resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
+        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
@@ -756,12 +639,12 @@ apply plugin: 'swift-library'
         def resultRelease = xcodebuild
                 .withProject(rootXcodeProject)
                 .withScheme('App')
-                .withConfiguration("ReleaseX86-64")
+                .withConfiguration("ReleaseMacos")
                 .succeeds()
 
         then:
-        resultRelease.assertTasksExecuted(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Swift', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
+        resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
+        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
@@ -771,8 +654,8 @@ apply plugin: 'swift-library'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         when:
         def lib = new SwiftLib()
@@ -796,8 +679,8 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-"""
+            apply plugin: 'swift-application'
+        """
 
         when:
         def app = new SwiftApp()
@@ -822,12 +705,12 @@ apply plugin: 'swift-application'
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
+            apply plugin: 'swift-application'
 
-application {
-    source.from 'Sources'
-}
-"""
+            application {
+                source.from 'Sources'
+            }
+        """
 
         when:
         def app = new SwiftApp()
@@ -844,12 +727,12 @@ application {
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
+            apply plugin: 'swift-library'
 
-library {
-    source.from 'Sources'
-}
-"""
+            library {
+                source.from 'Sources'
+            }
+        """
 
         when:
         def lib = new SwiftLib()
@@ -866,10 +749,10 @@ library {
 
         given:
         buildFile << """
-apply plugin: 'swift-application'
-buildDir = 'output'
-application.module = 'TestApp'
-"""
+            apply plugin: 'swift-application'
+            buildDir = 'output'
+            application.module = 'TestApp'
+        """
 
         def app = new SwiftApp()
         app.writeToProject(testDirectory)
@@ -897,10 +780,10 @@ application.module = 'TestApp'
 
         given:
         buildFile << """
-apply plugin: 'swift-library'
-buildDir = 'output'
-library.module = 'TestLib'
-"""
+            apply plugin: 'swift-library'
+            buildDir = 'output'
+            library.module = 'TestLib'
+        """
         def lib = new SwiftLib()
         lib.writeToProject(testDirectory)
 
@@ -920,9 +803,5 @@ library.module = 'TestLib'
         project.targets[1].name == '[INDEXING ONLY] TestLib'
         project.products.children.size() == 1
         project.products.children[0].path == sharedLib("output/lib/main/debug/TestLib").absolutePath
-    }
-
-    protected String getCurrentOsFamilyName() {
-        DefaultNativePlatform.currentOperatingSystem.toFamilyName()
     }
 }

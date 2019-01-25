@@ -86,7 +86,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
@@ -148,7 +147,7 @@ public class GradleUserHomeScopeServices {
         return new CrossBuildInMemoryCachingScriptClassCache(cacheFactory);
     }
 
-    ValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         return new DefaultValueSnapshotter(classLoaderHierarchyHasher, NamedObjectInstantiator.INSTANCE);
     }
 

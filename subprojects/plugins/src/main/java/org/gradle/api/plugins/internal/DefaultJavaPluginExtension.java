@@ -16,15 +16,42 @@
 
 package org.gradle.api.plugins.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.util.TextUtil;
+
+import java.util.regex.Pattern;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
+    private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
     private final JavaPluginConvention convention;
+    private final ConfigurationContainer configurations;
+    private final ObjectFactory objectFactory;
+    private final PluginManager pluginManager;
+    private final SoftwareComponentContainer components;
+    private final TaskContainer tasks;
+    private final Project project;
 
-    public DefaultJavaPluginExtension(JavaPluginConvention convention) {
+    public DefaultJavaPluginExtension(JavaPluginConvention convention,
+                                      Project project) {
         this.convention = convention;
+        this.configurations = project.getConfigurations();
+        this.objectFactory = project.getObjects();
+        this.pluginManager = project.getPluginManager();
+        this.components = project.getComponents();
+        this.tasks = project.getTasks();
+        this.project = project;
     }
 
     @Override
@@ -45,5 +72,59 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     @Override
     public void setTargetCompatibility(JavaVersion value) {
         convention.setTargetCompatibility(value);
+    }
+
+    @Override
+    public void registerFeature(String name, Action<? super FeatureSpec> configureAction) {
+        Capability defaultCapability = new LazyDefaultFeatureCapability(project, name);
+        DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
+                validateFeatureName(name),
+                defaultCapability, convention,
+                configurations,
+                objectFactory,
+                pluginManager,
+                components,
+                tasks);
+        configureAction.execute(spec);
+        spec.create();
+    }
+
+    private static String validateFeatureName(String name) {
+        if (!VALID_FEATURE_NAME.matcher(name).matches()) {
+            throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());
+        }
+        return name;
+    }
+
+    private static String notNull(String id, Object o) {
+        if (o == null) {
+            throw new InvalidUserDataException(id + " must not be null");
+        }
+        return o.toString();
+    }
+
+    private static class LazyDefaultFeatureCapability implements Capability {
+        private final Project project;
+        private final String featureName;
+
+        private LazyDefaultFeatureCapability(Project project, String featureName) {
+            this.project = project;
+            this.featureName = featureName;
+        }
+
+        @Override
+        public String getGroup() {
+            return notNull("group", project.getGroup());
+        }
+
+        @Override
+        public String getName() {
+            return notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(featureName);
+        }
+
+        @Override
+        public String getVersion() {
+            return notNull("version", project.getVersion());
+        }
     }
 }

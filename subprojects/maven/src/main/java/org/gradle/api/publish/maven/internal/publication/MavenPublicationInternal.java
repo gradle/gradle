@@ -55,6 +55,8 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
 
     Set<MavenDependencyInternal> getRuntimeDependencies();
 
+    Set<MavenDependencyInternal> getOptionalDependencies();
+
     MavenNormalizedPublication asNormalisedPublication();
 
     // TODO Remove this attempt to guess packaging from artifacts. Packaging should come from component, or be explicitly set.

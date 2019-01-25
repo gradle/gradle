@@ -33,6 +33,13 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_5.2]]
+== Upgrading from 5.1 and earlier
+
+=== Potential breaking changes
+
+none
+
 [[changes_5.1]]
 == Upgrading from 5.0 and earlier
 

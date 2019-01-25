@@ -100,14 +100,14 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Override
     public ResolvedVariantResult getVariant() {
         if (variants.isEmpty()) {
-            return new DefaultResolvedVariantResult(Describables.of("<empty>"), ImmutableAttributes.EMPTY);
+            return new DefaultResolvedVariantResult(Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList());
         }
         // Returns an approximation of a composite variant
         List<String> parts = variants.stream()
                 .map(ResolvedVariantResult::getDisplayName)
                 .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
-        return new DefaultResolvedVariantResult(variantName, variants.get(0).getAttributes());
+        return new DefaultResolvedVariantResult(variantName, variants.get(0).getAttributes(), variants.get(0).getCapabilities());
     }
 
     @Override

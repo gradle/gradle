@@ -8,17 +8,11 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-<!-- 
-## 1
+## Improvements for plugin authors
 
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
+TBD - Abstract service injection getter methods
+TBD - Abstract mutable property
+TBD - Use an interface for Gradle instantiated types
 
 ## Upgrade Instructions
 

@@ -21,6 +21,7 @@ import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -64,6 +65,7 @@ public class XcodeTarget implements Named {
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.defaultConfigurationName = objectFactory.property(String.class);
         this.defaultConfigurationName.set(BUILD_DEBUG);
+        this.debugOutputFile = Providers.notDefined();
     }
 
     public String getId() {
@@ -172,5 +174,9 @@ public class XcodeTarget implements Named {
 
     public Property<String> getDefaultConfigurationName() {
         return defaultConfigurationName;
+    }
+
+    public boolean isBuildable() {
+         return !binaries.isEmpty();
     }
 }

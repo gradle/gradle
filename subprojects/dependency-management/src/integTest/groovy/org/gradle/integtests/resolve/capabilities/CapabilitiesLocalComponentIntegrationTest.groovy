@@ -42,6 +42,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
             apply plugin: 'java-library'
             
             configurations.api.outgoing {
+                capability 'test:b:unspecified'
                 capability group:'org', name:'capability', version:'1.0'
             }
         """

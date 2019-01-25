@@ -52,7 +52,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.of(new DefaultUsageContext(name, usage, artifacts, dependencies));
+        return ImmutableSet.of(new DefaultUsageContext(name, artifacts, dependencies));
     }
 
     @Override

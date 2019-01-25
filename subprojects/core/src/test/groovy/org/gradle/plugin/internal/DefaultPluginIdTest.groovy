@@ -64,7 +64,7 @@ class DefaultPluginIdTest extends Specification {
         new DefaultPluginId("foo").withNamespace("bar").toString() == "bar.foo"
     }
 
-    def "throws excpetion when trying to add multiple namespaces"() {
+    def "throws exception when trying to add multiple namespaces"() {
         when:
         new DefaultPluginId("foo.bar").withNamespace("bar")
         then:

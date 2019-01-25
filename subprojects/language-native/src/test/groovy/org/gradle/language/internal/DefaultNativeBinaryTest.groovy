@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.language.nativeplatform.internal.Names
-import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -76,7 +76,7 @@ class DefaultNativeBinaryTest extends Specification {
         }
 
         @Override
-        NativePlatform getTargetPlatform() {
+        TargetMachine getTargetMachine() {
             throw new UnsupportedOperationException()
         }
 

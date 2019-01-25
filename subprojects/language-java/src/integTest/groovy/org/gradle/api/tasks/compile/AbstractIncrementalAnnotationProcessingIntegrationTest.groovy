@@ -114,4 +114,40 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         outputs.recompiledClasses("A", "B")
     }
 
+    def "recompiles when a resource is removed"() {
+        given:
+        buildFile << """
+            compileJava.inputs.dir 'src/main/resources'
+        """
+        java("class A {}")
+        java("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        resource.delete()
+
+        then:
+        succeeds 'compileJava'
+        outputs.recompiledClasses("A", "B")
+    }
+
+    def "compilation is incremental when an empty directory is added"() {
+        given:
+        def a = java("class A {}")
+        java("class B {}")
+
+        outputs.snapshot { succeeds 'compileJava' }
+
+        when:
+        a.text = "class A { /*change*/ }"
+        file('src/main/java/different').createDir()
+
+        then:
+        succeeds 'compileJava'
+        outputs.recompiledClasses("A")
+    }
+
 }

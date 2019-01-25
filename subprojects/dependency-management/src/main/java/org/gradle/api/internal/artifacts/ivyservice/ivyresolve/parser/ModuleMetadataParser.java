@@ -23,6 +23,7 @@ import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -177,7 +178,7 @@ public class ModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes);
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.requestedCapabilities);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason, dependencyConstraint.attributes);
@@ -205,7 +206,7 @@ public class ModuleMetadataParser {
             }
         }
         reader.endObject();
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null, ImmutableAttributes.EMPTY));
+        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.<ExcludeMetadata>of(), null, ImmutableAttributes.EMPTY, Collections.emptyList()));
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -219,6 +220,7 @@ public class ModuleMetadataParser {
             ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
             VersionConstraint version = DefaultImmutableVersionConstraint.of();
             ImmutableList<ExcludeMetadata> excludes = ImmutableList.of();
+            List<VariantCapability> requestedCapabilities = ImmutableList.of();
             while (reader.peek() != END_OBJECT) {
                 String name = reader.nextName();
                 if (name.equals("group")) {
@@ -233,11 +235,13 @@ public class ModuleMetadataParser {
                     reason = reader.nextString();
                 } else if (name.equals("attributes")) {
                     attributes = consumeAttributes(reader);
+                } else if (name.equals("requestedCapabilities")) {
+                    requestedCapabilities = consumeCapabilities(reader);
                 } else {
                     consumeAny(reader);
                 }
             }
-            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes));
+            dependencies.add(new ModuleDependency(group, module, version, excludes, reason, attributes, requestedCapabilities));
             reader.endObject();
         }
         reader.endArray();
@@ -416,14 +420,16 @@ public class ModuleMetadataParser {
         final ImmutableList<ExcludeMetadata> excludes;
         final String reason;
         final ImmutableAttributes attributes;
+        final List<? extends Capability> requestedCapabilities;
 
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes) {
+        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
             this.excludes = excludes;
             this.reason = reason;
             this.attributes = attributes;
+            this.requestedCapabilities = requestedCapabilities;
         }
     }
 
@@ -443,7 +449,7 @@ public class ModuleMetadataParser {
         }
     }
 
-    private static class VariantCapability {
+    private static class VariantCapability implements Capability {
         final String group;
         final String name;
         final String version;
@@ -452,6 +458,21 @@ public class ModuleMetadataParser {
             this.group = group;
             this.name = name;
             this.version = version;
+        }
+
+        @Override
+        public String getGroup() {
+            return group;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getVersion() {
+            return version;
         }
     }
 }

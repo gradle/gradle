@@ -87,9 +87,9 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         failure.assertHasCause("""Unable to find a matching variant of project :dep:
-  - Variant 'blueVariant':
+  - Variant 'blueVariant' capability test:dep:unspecified:
       - Required color 'green' and found incompatible value 'blue'.
-  - Variant 'redVariant':
+  - Variant 'redVariant' capability test:dep:unspecified:
       - Required color 'green' and found incompatible value 'red'.""")
     }
 

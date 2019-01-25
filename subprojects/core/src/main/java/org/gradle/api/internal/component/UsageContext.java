@@ -28,7 +28,8 @@ import org.gradle.api.capabilities.Capability;
 import java.util.Set;
 
 public interface UsageContext extends HasAttributes, Named {
-    Usage getUsage();
+    @Deprecated
+    Usage getUsage(); // kept for backwards compatibility of plugins using internal APIs
     Set<? extends PublishArtifact> getArtifacts();
     Set<? extends ModuleDependency> getDependencies();
     Set<? extends DependencyConstraint> getDependencyConstraints();

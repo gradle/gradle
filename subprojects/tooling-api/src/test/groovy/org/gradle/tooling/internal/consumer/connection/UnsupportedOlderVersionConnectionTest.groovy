@@ -48,7 +48,7 @@ class UnsupportedOlderVersionConnectionTest extends Specification {
         e != null
     }
 
-    def "partial BuildEnvirnment"() {
+    def "partial BuildEnvironment"() {
         def connection = new UnsupportedOlderVersionConnection(connection, adapter)
 
         when:

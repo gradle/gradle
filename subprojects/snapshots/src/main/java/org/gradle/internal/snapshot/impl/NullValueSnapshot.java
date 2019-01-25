@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -31,7 +30,7 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     }
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+    public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
         if (value == null) {
             return this;
         }
@@ -44,13 +43,18 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     }
 
     @Override
+    public ValueSnapshot asSnapshot() {
+        return this;
+    }
+
+    @Override
     public Object isolate() {
         return null;
     }
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
-        return Cast.uncheckedCast(this);
+    public <S> S coerce(Class<S> type) {
+        return null;
     }
 }

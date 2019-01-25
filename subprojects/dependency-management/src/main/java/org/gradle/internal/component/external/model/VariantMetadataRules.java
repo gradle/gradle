@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
@@ -39,6 +40,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,9 +50,11 @@ public class VariantMetadataRules {
     private VariantAttributesRules variantAttributesRules;
     private CapabilitiesRules capabilitiesRules;
     private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
+    private final ModuleVersionIdentifier moduleVersionId;
 
-    public VariantMetadataRules(ImmutableAttributesFactory attributesFactory) {
+    public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
         this.attributesFactory = attributesFactory;
+        this.moduleVersionId = moduleVersionId;
     }
 
     public VariantDerivationStrategy getVariantDerivationStrategy() {
@@ -70,7 +74,13 @@ public class VariantMetadataRules {
 
     public CapabilitiesMetadata applyCapabilitiesRules(VariantResolveMetadata variant, CapabilitiesMetadata capabilities) {
         if (capabilitiesRules != null) {
-            MutableCapabilities mutableCapabilities = new MutableCapabilities(Lists.newArrayList(capabilities.getCapabilities()));
+            ArrayList<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
+            if (descriptors.isEmpty()) {
+                // we must add the implicit capability here because it is assumed that if there's a rule
+                // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
+                descriptors.add(new ImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
+            }
+            MutableCapabilities mutableCapabilities = new MutableCapabilities(descriptors);
             return capabilitiesRules.execute(variant, mutableCapabilities);
         }
         return capabilities;
@@ -145,7 +155,7 @@ public class VariantMetadataRules {
         private final static ImmutableRules INSTANCE = new ImmutableRules();
 
         private ImmutableRules() {
-            super(null);
+            super(null, null);
         }
 
         @Override

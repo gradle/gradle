@@ -64,6 +64,7 @@ import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
@@ -74,6 +75,7 @@ import static org.gradle.util.TestUtil.call;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -435,17 +437,122 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void canConstructInstanceOfInterfaceWithPropertyGetterAndSetter() throws Exception {
-        InterfaceBean bean = newInstance(InterfaceBean.class);
+    public void canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() throws Exception {
+        BeanWithAbstractProperty bean = newInstance(BeanWithAbstractProperty.class);
+
         assertThat(bean.getName(), nullValue());
         bean.setName("name");
         assertThat(bean.getName(), equalTo("name"));
     }
 
     @Test
+    public void canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() throws Exception {
+        BeanWithAbstractProperty bean = newInstance(BeanWithAbstractProperty.class);
+        assertThat(bean, instanceOf(Managed.class));
+
+        Managed managed = (Managed) bean;
+        assertEquals(BeanWithAbstractProperty.class, managed.publicType());
+        assertFalse(managed.immutable());
+        Object[] state = (Object[]) managed.unpackState();
+        assertThat(state.length, equalTo(1));
+        assertThat(state[0], equalTo(null));
+
+        BeanWithAbstractProperty copy = managed.managedFactory().fromState(BeanWithAbstractProperty.class, state);
+        assertThat(copy, not(sameInstance(bean)));
+        assertThat(copy.getName(), nullValue());
+
+        bean.setName("name");
+
+        state = (Object[]) managed.unpackState();
+        assertThat(state.length, equalTo(1));
+        assertThat(state[0], equalTo("name"));
+
+        copy = managed.managedFactory().fromState(BeanWithAbstractProperty.class, state);
+        assertThat(copy, not(sameInstance(bean)));
+        assertThat(copy.getName(), equalTo("name"));
+    }
+
+    @Test
+    public void canConstructInstanceOfInterfaceWithPropertyGetterAndSetter() throws Exception {
+        InterfaceBean bean = newInstance(InterfaceBean.class);
+
+        assertThat(bean.getName(), nullValue());
+        bean.setName("name");
+        assertThat(bean.getName(), equalTo("name"));
+
+        assertThat(bean.getNumbers(), nullValue());
+        bean.setNumbers(Collections.singleton(12));
+        assertThat(bean.getNumbers(), equalTo(Collections.singleton(12)));
+    }
+
+    @Test
+    public void canUnpackAndRecreateInstanceOfInterface() throws Exception {
+        InterfaceBean bean = newInstance(InterfaceBean.class);
+        assertThat(bean, instanceOf(Managed.class));
+
+        Managed managed = (Managed) bean;
+        assertEquals(InterfaceBean.class, managed.publicType());
+        assertFalse(managed.immutable());
+        Object[] state = (Object[]) managed.unpackState();
+        assertThat(state.length, equalTo(2));
+        assertThat(state[0], equalTo(null));
+        assertThat(state[1], equalTo(null));
+
+        InterfaceBean copy = managed.managedFactory().fromState(InterfaceBean.class, state);
+        assertThat(copy.getName(), nullValue());
+        assertThat(copy.getNumbers(), nullValue());
+
+        bean.setName("name");
+        bean.setNumbers(Collections.singleton(12));
+
+        state = (Object[]) managed.unpackState();
+        assertThat(state.length, equalTo(2));
+        assertThat(state[0], equalTo("name"));
+        assertThat(state[1], equalTo(Collections.singleton(12)));
+
+        copy = managed.managedFactory().fromState(InterfaceBean.class, state);
+        assertThat(copy.getName(), equalTo("name"));
+        assertThat(copy.getNumbers(), equalTo(Collections.singleton(12)));
+    }
+
+    @Test
     public void canConstructInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+
         assertThat(bean.getName(), equalTo("name"));
+    }
+
+    @Test
+    public void canUnpackAndRecreateInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertThat(bean, instanceOf(Managed.class));
+
+        Managed managed = (Managed) bean;
+        assertEquals(InterfaceWithDefaultMethods.class, managed.publicType());
+        assertTrue(managed.immutable()); // no properties
+        Object[] state = (Object[]) managed.unpackState();
+        assertThat(state.length, equalTo(0));
+
+        InterfaceWithDefaultMethods copy = managed.managedFactory().fromState(InterfaceWithDefaultMethods.class, state);
+        assertThat(copy, not(nullValue()));
+    }
+
+    @Test
+    public void doesNotMixManagedIntoClassWithFields() throws Exception {
+        Bean bean = newInstance(Bean.class);
+        assertThat(bean, not(instanceOf(Managed.class)));
+    }
+
+    @Test
+    public void doesNotMixManagedIntoAbstractClassWithFields() throws Exception {
+        AbstractBean bean = newInstance(AbstractBean.class, "value");
+        assertThat(bean, not(instanceOf(Managed.class)));
+    }
+
+    @Test
+    public void doesNotMixManagedIntoClassWithInheritedFields() throws Exception {
+        AbstractBeanWithInheritedFields bean = newInstance(AbstractBeanWithInheritedFields.class, "value");
+        assertThat(bean, not(instanceOf(Managed.class)));
     }
 
     @Test
@@ -1177,6 +1284,8 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class BeanWithComplexConstructor {
+        private String prop;
+
         public <T extends IOException, S extends Callable<String>, V> BeanWithComplexConstructor(
             Callable rawValue,
             Callable<String> value,
@@ -1195,6 +1304,8 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static class BeanWithAnnotatedConstructor {
+        private String prop;
+
         @Inject
         public BeanWithAnnotatedConstructor() {
         }
@@ -1678,6 +1789,12 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class AbstractBeanWithInheritedFields extends AbstractBean {
+        public AbstractBeanWithInheritedFields(String a) {
+            super(a);
+        }
+    }
+
     public static class BeanWithServiceGetters {
         String getCalculated() {
             return "[" + getSomeValue() + "]";
@@ -1710,12 +1827,29 @@ public class AsmBackedClassGeneratorTest {
         String getName();
 
         void setName(String value);
+
+        Set<Number> getNumbers();
+
+        void setNumbers(Set<Number> values);
     }
 
     public interface InterfaceWithDefaultMethods {
         default
         String getName() {
             return "name";
+        }
+
+        default
+        void thing() {}
+    }
+
+    public static abstract class BeanWithAbstractProperty {
+        abstract String getName();
+
+        abstract void setName(String value);
+
+        void thing() {
+            setName("thing");
         }
     }
 }

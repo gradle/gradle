@@ -18,9 +18,12 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+
+import java.util.List;
 
 /**
  * An _immutable_ view of the variant of a component.
@@ -48,6 +51,8 @@ public interface ComponentVariant extends VariantResolveMetadata {
         String getReason();
 
         ImmutableAttributes getAttributes();
+
+        List<Capability> getRequestedCapabilities();
     }
 
     interface DependencyConstraint {

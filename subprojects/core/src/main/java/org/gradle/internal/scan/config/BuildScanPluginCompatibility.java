@@ -30,20 +30,15 @@ class BuildScanPluginCompatibility {
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Build scan support disabled by secret toggle";
 
-    String unsupportedReason(VersionNumber pluginVersion) {
-        if (isEarlierThan(pluginVersion, MIN_SUPPORTED_VERSION)) {
-            return UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
-        }
-
+    String unsupportedReason() {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         }
-
         return null;
     }
 
-    private static boolean isEarlierThan(VersionNumber pluginVersion, VersionNumber minSupportedVersion) {
-        return pluginVersion.compareTo(minSupportedVersion) < 0;
+    static boolean isNotSupported(VersionNumber pluginVersion) {
+        return pluginVersion.compareTo(BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) < 0;
     }
 
 }

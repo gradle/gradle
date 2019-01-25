@@ -358,6 +358,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             'asm:asm:3.0'()
             'org.ow2.asm:asm:4.0' {
                 variant('runtime') {
+                    capability('org.ow2.asm', 'asm', '4.0') // explicitly declare capability
                     capability('asm', 'asm', '4.0') // upgrades the asm capability
                 }
             }
@@ -424,11 +425,13 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
         repository {
             'org:testA:1.0' {
                 variant('runtime') {
+                    capability('org', 'testA', '1.0')
                     capability('cap')
                 }
             }
             'org:testB:1.0' {
                 variant('runtime') {
+                    capability('org', 'testB', '1.0')
                     capability('cap')
                 }
             }

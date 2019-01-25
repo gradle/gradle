@@ -16,8 +16,8 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -32,15 +32,20 @@ public abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarVal
     }
 
     @Override
+    public ValueSnapshot asSnapshot() {
+        return this;
+    }
+
+    @Override
     public T isolate() {
         return getValue();
     }
 
     @Nullable
     @Override
-    public <S> Isolatable<S> coerce(Class<S> type) {
+    public <S> S coerce(Class<S> type) {
         if (type.isInstance(getValue())) {
-            return Cast.uncheckedCast(this);
+            return type.cast(getValue());
         }
         return null;
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 
@@ -49,4 +50,13 @@ public interface JavaPluginExtension {
      * @param value The value for the target compatibility
      */
     void setTargetCompatibility(JavaVersion value);
+
+    /**
+     * Registers a feature.
+     * @param name the name of the feature
+     * @param configureAction the configuration for the feature
+     *
+     * @since 5.3
+     */
+    void registerFeature(String name, Action<? super FeatureSpec> configureAction);
 }

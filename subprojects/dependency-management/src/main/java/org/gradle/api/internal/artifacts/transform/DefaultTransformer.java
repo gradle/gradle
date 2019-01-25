@@ -40,14 +40,14 @@ import java.util.List;
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
-    private final Isolatable<Object> config;
+    private final Isolatable<?> config;
     private final boolean requiresDependencies;
     private final Isolatable<Object[]> parameters;
     private final InstanceFactory<? extends ArtifactTransform> instanceFactory;
     private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<?> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
         this.config = config;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class)).forType(implementationClass);

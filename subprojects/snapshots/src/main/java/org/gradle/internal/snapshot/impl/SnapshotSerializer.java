@@ -15,16 +15,15 @@
  */
 package org.gradle.internal.snapshot.impl;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshot;
-
-import java.util.Map;
 
 public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int NULL_SNAPSHOT = 0;
@@ -43,9 +42,10 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int SET_SNAPSHOT = 13;
     private static final int MAP_SNAPSHOT = 14;
     private static final int PROVIDER_SNAPSHOT = 15;
-    private static final int MANAGED_NAMED_SNAPSHOT = 16;
-    private static final int IMPLEMENTATION_SNAPSHOT = 17;
-    private static final int DEFAULT_SNAPSHOT = 18;
+    private static final int MANAGED_SNAPSHOT = 16;
+    private static final int IMMUTABLE_MANAGED_SNAPSHOT = 17;
+    private static final int IMPLEMENTATION_SNAPSHOT = 18;
+    private static final int DEFAULT_SNAPSHOT = 19;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
@@ -54,7 +54,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     public ValueSnapshot read(Decoder decoder) throws Exception {
         int type = decoder.readSmallInt();
         int size;
-        ValueSnapshot[] elements;
+        String className;
         switch (type) {
             case NULL_SNAPSHOT:
                 return NullValueSnapshot.INSTANCE;
@@ -78,20 +78,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return ArrayValueSnapshot.EMPTY;
             case ARRAY_SNAPSHOT:
                 size = decoder.readSmallInt();
-                elements = new ValueSnapshot[size];
-                for (int i = 0; i < size; i++) {
-                    elements[i] = read(decoder);
-                }
-                return new ArrayValueSnapshot(elements);
+                ImmutableList<ValueSnapshot> arrayElements = readList(decoder, size);
+                return new ArrayValueSnapshot(arrayElements);
             case EMPTY_LIST_SNAPSHOT:
                 return ListValueSnapshot.EMPTY;
             case LIST_SNAPSHOT:
                 size = decoder.readSmallInt();
-                elements = new ValueSnapshot[size];
-                for (int i = 0; i < size; i++) {
-                    elements[i] = read(decoder);
-                }
-                return new ListValueSnapshot(elements);
+                ImmutableList<ValueSnapshot> listElements = readList(decoder, size);
+                return new ListValueSnapshot(listElements);
             case SET_SNAPSHOT:
                 size = decoder.readSmallInt();
                 ImmutableSet.Builder<ValueSnapshot> setBuilder = ImmutableSet.builder();
@@ -101,15 +95,21 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                 return new SetValueSnapshot(setBuilder.build());
             case MAP_SNAPSHOT:
                 size = decoder.readSmallInt();
-                ImmutableMap.Builder<ValueSnapshot, ValueSnapshot> mapBuilder = ImmutableMap.builder();
+                ImmutableList.Builder<Pair<ValueSnapshot, ValueSnapshot>> mapBuilder = ImmutableList.builderWithExpectedSize(size);
                 for (int i = 0; i < size; i++) {
-                    mapBuilder.put(read(decoder), read(decoder));
+                    mapBuilder.add(Pair.of(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
             case PROVIDER_SNAPSHOT:
                 return new ProviderSnapshot(read(decoder));
-            case MANAGED_NAMED_SNAPSHOT:
-                return new ManagedNamedTypeSnapshot(decoder.readString(), decoder.readString());
+            case MANAGED_SNAPSHOT:
+                className = decoder.readString();
+                ValueSnapshot state = read(decoder);
+                return new ManagedTypeSnapshot(className, state);
+            case IMMUTABLE_MANAGED_SNAPSHOT:
+                className = decoder.readString();
+                String value = decoder.readString();
+                return new ImmutableManagedValueSnapshot(className, value);
             case IMPLEMENTATION_SNAPSHOT:
                 return implementationSnapshotSerializer.read(decoder);
             case DEFAULT_SNAPSHOT:
@@ -117,6 +117,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize a snapshot with type tag " + type);
         }
+    }
+
+    private ImmutableList<ValueSnapshot> readList(Decoder decoder, int size) throws Exception {
+        ImmutableList.Builder<ValueSnapshot> arrayElements = ImmutableList.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            arrayElements.add(read(decoder));
+        }
+        return arrayElements.build();
     }
 
     @Override
@@ -129,11 +137,11 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             encoder.writeString(stringSnapshot.getValue());
         } else if (snapshot instanceof ListValueSnapshot) {
             ListValueSnapshot listSnapshot = (ListValueSnapshot) snapshot;
-            if (listSnapshot.getElements().length == 0) {
+            if (listSnapshot.getElements().isEmpty()) {
                 encoder.writeSmallInt(EMPTY_LIST_SNAPSHOT);
             } else {
                 encoder.writeSmallInt(LIST_SNAPSHOT);
-                encoder.writeSmallInt(listSnapshot.getElements().length);
+                encoder.writeSmallInt(listSnapshot.getElements().size());
                 for (ValueSnapshot valueSnapshot : listSnapshot.getElements()) {
                     write(encoder, valueSnapshot);
                 }
@@ -188,17 +196,17 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             MapValueSnapshot mapSnapshot = (MapValueSnapshot) snapshot;
             encoder.writeSmallInt(MAP_SNAPSHOT);
             encoder.writeSmallInt(mapSnapshot.getEntries().size());
-            for (Map.Entry<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries().entrySet()) {
-                write(encoder, entry.getKey());
-                write(encoder, entry.getValue());
+            for (Pair<ValueSnapshot, ValueSnapshot> entry : mapSnapshot.getEntries()) {
+                write(encoder, entry.left);
+                write(encoder, entry.right);
             }
         } else if (snapshot instanceof ArrayValueSnapshot) {
             ArrayValueSnapshot arraySnapshot = (ArrayValueSnapshot) snapshot;
-            if (arraySnapshot.getElements().length == 0) {
+            if (arraySnapshot.getElements().isEmpty()) {
                 encoder.writeSmallInt(EMPTY_ARRAY_SNAPSHOT);
             } else {
                 encoder.writeSmallInt(ARRAY_SNAPSHOT);
-                encoder.writeSmallInt(arraySnapshot.getElements().length);
+                encoder.writeSmallInt(arraySnapshot.getElements().size());
                 for (ValueSnapshot valueSnapshot : arraySnapshot.getElements()) {
                     write(encoder, valueSnapshot);
                 }
@@ -207,11 +215,16 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             encoder.writeSmallInt(PROVIDER_SNAPSHOT);
             ProviderSnapshot providerSnapshot = (ProviderSnapshot) snapshot;
             write(encoder, providerSnapshot.getValue());
-        } else if (snapshot instanceof ManagedNamedTypeSnapshot) {
-            encoder.writeSmallInt(MANAGED_NAMED_SNAPSHOT);
-            ManagedNamedTypeSnapshot namedSnapshot = (ManagedNamedTypeSnapshot) snapshot;
-            encoder.writeString(namedSnapshot.getClassName());
-            encoder.writeString(namedSnapshot.getName());
+        } else if (snapshot instanceof ImmutableManagedValueSnapshot) {
+            encoder.writeSmallInt(IMMUTABLE_MANAGED_SNAPSHOT);
+            ImmutableManagedValueSnapshot valueSnapshot = (ImmutableManagedValueSnapshot) snapshot;
+            encoder.writeString(valueSnapshot.getClassName());
+            encoder.writeString(valueSnapshot.getValue());
+        } else if (snapshot instanceof ManagedTypeSnapshot) {
+            encoder.writeSmallInt(MANAGED_SNAPSHOT);
+            ManagedTypeSnapshot managedTypeSnapshot = (ManagedTypeSnapshot) snapshot;
+            encoder.writeString(managedTypeSnapshot.getClassName());
+            write(encoder, managedTypeSnapshot.getState());
         } else {
             throw new IllegalArgumentException("Don't know how to serialize a value of type " + snapshot.getClass().getSimpleName());
         }

@@ -17,6 +17,7 @@
 package org.gradle.internal.isolation;
 
 import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
@@ -29,9 +30,14 @@ public class TestIsolatableFactory implements IsolatableFactory {
                 return value;
             }
 
+            @Override
+            public ValueSnapshot asSnapshot() {
+                throw new UnsupportedOperationException();
+            }
+
             @Nullable
             @Override
-            public <S> Isolatable<S> coerce(Class<S> type) {
+            public <S> S coerce(Class<S> type) {
                 throw new UnsupportedOperationException();
             }
 

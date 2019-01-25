@@ -432,7 +432,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     def "fails when dependency library does not specify the same target machines"() {
-        settingsFile << "include 'app', 'hello'"
+        settingsFile << "include 'app', 'greeter'"
         def app = new CppAppWithLibrary()
 
         given:
@@ -441,26 +441,60 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-application'
                 application {
                     targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
-                }
-                dependencies {
-                    implementation project(':hello')
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
-            project(':hello') {
+            project(':greeter') {
                 apply plugin: 'cpp-library'
                 library {
-                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
+                    targetMachines = [machines.os('os-family')]
                 }
             }
         """
-        app.greeter.writeToProject(file("hello"))
+        app.greeter.writeToProject(file("greeter"))
         app.main.writeToProject(file("app"))
 
         expect:
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :hello")
+        failure.assertHasCause("Could not resolve project :greeter")
+        failure.assertHasCause("Unable to find a matching variant of project :greeter")
+    }
+
+    def "fails when dependency library does not specify the same target architecture"() {
+        settingsFile << "include 'app', 'greeter'"
+        def app = new CppAppWithLibrary()
+
+        given:
+        buildFile << """
+            project(':app') {
+                apply plugin: 'cpp-application'
+                application {
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
+                    dependencies {
+                        implementation project(':greeter')
+                    }
+                }
+            }
+            project(':greeter') {
+                apply plugin: 'cpp-library'
+                library {
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
+                }
+                ${configureToolChainSupport('foo')}
+            }
+        """
+        app.greeter.writeToProject(file("greeter"))
+        app.main.writeToProject(file("app"))
+
+        expect:
+        fails ":app:assemble"
+
+        and:
+        failure.assertHasCause("Could not resolve project :greeter")
         failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
     }
 
@@ -541,7 +575,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     def "fails compile and link against a library with different operating system family support"() {
-        settingsFile << "include 'app', 'hello'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'app', 'hello'
+        """
         def app = new CppAppWithLibrary()
 
         given:
@@ -569,7 +606,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         failure.assertHasCause """Unable to find a matching variant of project :hello:
-  - Variant 'cppApiElements':
+  - Variant 'cppApiElements' capability test:hello:unspecified:
       - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
       - Required org.gradle.native.debuggable 'true' but no value provided.
       - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.

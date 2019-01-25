@@ -86,6 +86,15 @@ class BuildScanConfigManagerTest extends Specification {
         }
     }
 
+    def "fails if plugin version is not supported"() {
+        when:
+        // 1.16 is older than BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION, hence not supported
+        config("1.16")
+
+        then:
+        thrown(UnsupportedBuildScanPluginVersionException)
+    }
+
     BuildScanConfigManager manager() {
         def startParameter = Mock(StartParameter) {
             isBuildScan() >> scanEnabled

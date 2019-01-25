@@ -31,7 +31,11 @@ class MavenPom {
             pom.dependencies.dependency.each { dep ->
                 def scope = createScope(dep.scope)
                 MavenDependency mavenDependency = createDependency(dep)
-                scope.dependencies[mavenDependency.getKey()] = mavenDependency
+                if (mavenDependency.optional) {
+                    scope.optionalDependencies[mavenDependency.getKey()] = mavenDependency
+                } else {
+                    scope.dependencies[mavenDependency.getKey()] = mavenDependency
+                }
                 scopesByDependency.put(mavenDependency.getKey(), scope.name)
             }
 
@@ -121,6 +125,10 @@ class MavenPom {
 
     private MavenDependency createDependency(def dep) {
         def exclusions = []
+        boolean optional = false
+        if (dep.optional) {
+            optional = "true"==dep.optional.text()
+        }
         if (dep.exclusions) {
             dep.exclusions.exclusion.each { excl ->
                 MavenDependencyExclusion exclusion = new MavenDependencyExclusion(
@@ -138,6 +146,7 @@ class MavenPom {
             classifier: dep.classifier ? dep.classifier.text() : null,
             type: dep.type ? dep.type.text() : null,
             exclusions: exclusions,
+            optional: optional
         )
     }
 

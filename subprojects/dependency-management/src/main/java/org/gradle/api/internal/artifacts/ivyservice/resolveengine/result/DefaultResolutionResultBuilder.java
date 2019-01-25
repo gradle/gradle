@@ -69,7 +69,7 @@ public class DefaultResolutionResultBuilder {
         List<ResolvedVariantDetails> resolvedVariants = component.getResolvedVariants();
         ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(resolvedVariants.size());
         for (ResolvedVariantDetails resolvedVariant : resolvedVariants) {
-            builder.add(new DefaultResolvedVariantResult(resolvedVariant.getVariantName(), resolvedVariant.getVariantAttributes()));
+            builder.add(new DefaultResolvedVariantResult(resolvedVariant.getVariantName(), resolvedVariant.getVariantAttributes(), resolvedVariant.getCapabilities()));
         }
         return builder.build();
     }

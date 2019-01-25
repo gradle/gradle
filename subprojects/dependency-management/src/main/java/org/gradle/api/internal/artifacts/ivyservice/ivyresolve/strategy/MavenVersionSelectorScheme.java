@@ -23,6 +23,16 @@ public class MavenVersionSelectorScheme implements VersionSelectorScheme {
     private static final String LATEST_INTEGRATION = "latest.integration";
     private static final String LATEST_RELEASE = "latest.release";
 
+    public static boolean isSubstituableLatest(String version) {
+        if (version.equals(LATEST_INTEGRATION) || version.equals(LATEST_RELEASE)) {
+            return true;
+        }
+        if (!version.contains("latest")) {
+            throw new IllegalArgumentException("The provided version does not contain 'latest'");
+        }
+        return false;
+    }
+
     private final VersionSelectorScheme defaultVersionSelectorScheme;
 
     public MavenVersionSelectorScheme(VersionSelectorScheme defaultVersionSelectorScheme) {

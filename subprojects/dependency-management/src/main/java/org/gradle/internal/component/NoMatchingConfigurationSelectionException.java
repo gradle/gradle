@@ -54,7 +54,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, fromConfigurationAttributes, attributeMatcher, configuration, variantAware);
+                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware);
             }
         }
         formatter.endChildren();

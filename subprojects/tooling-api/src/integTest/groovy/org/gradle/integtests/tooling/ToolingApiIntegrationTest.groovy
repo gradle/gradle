@@ -168,7 +168,7 @@ allprojects {
 
             repositories {
                 maven { url "${buildContext.libsRepo.toURI()}" }
-                ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
+                ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
             }
 
             dependencies {

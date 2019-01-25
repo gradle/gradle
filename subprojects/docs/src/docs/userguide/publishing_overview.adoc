@@ -159,7 +159,7 @@ The `groupId` and `artifactId` properties are specific to Maven publications. Se
 [[publishing_maven:signing]]
 == Signing artifacts
 
-The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module desciptors. In order to use it:
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
 
  1. Apply the Signing Plugin
  2. Configure the <<signing_plugin.adoc#sec:signatory_credentials,signatory credentials>> — follow the link to see how

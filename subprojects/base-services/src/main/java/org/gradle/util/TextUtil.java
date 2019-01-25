@@ -16,14 +16,26 @@
 
 package org.gradle.util;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
+    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
+    private static final Joiner KEBAB_JOINER = Joiner.on("-");
+    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+            return input.toLowerCase();
+        }
+    };
 
     /**
      * Returns the line separator for Windows.
@@ -146,5 +158,9 @@ public class TextUtil {
 
     public static String normaliseFileAndLineSeparators(String in) {
         return normaliseLineSeparators(normaliseFileSeparators(in));
+    }
+
+    public static String camelToKebabCase(String camelCase) {
+        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
     }
 }

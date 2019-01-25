@@ -325,7 +325,8 @@ include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defin
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 ====
 
-See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you. And note that you need to use `classifier` rather than `appendix` here for correct publication of the JAR.
+See link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar] for more details on the configuration options available to you.
+And note that you need to use `archiveClassifier` rather than `archiveAppendix` here for correct publication of the JAR.
 
 
 If you instead want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
@@ -459,3 +460,12 @@ There is no core support for running your web application directly from the buil
 == Building Java EE applications
 
 Java enterprise systems have changed a lot over the years, but if you're still deploying to JEE application servers, you can make use of the <<ear_plugin.adoc#ear_plugin,Ear Plugin>>. This adds conventions and a task for building EAR files. The plugin's chapter has more details.
+
+[[sec:building_java_platform]]
+== Building Java Platforms
+
+A Java platform represents a set of dependency declarations and constraints that form a cohesive unit to be applied on consuming projects.
+The platform has no source and no artifact of its own.
+It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
+
+The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.
