@@ -69,4 +69,11 @@ public class CompositePropertyVisitor implements PropertyVisitor {
             visitor.visitLocalStateProperty(value);
         }
     }
+
+    @Override
+    public void visitValidationMessage(String propertyName, String validationMessage) {
+        for (PropertyVisitor visitor : visitors) {
+            visitor.visitValidationMessage(propertyName, validationMessage);
+        }
+    }
 }

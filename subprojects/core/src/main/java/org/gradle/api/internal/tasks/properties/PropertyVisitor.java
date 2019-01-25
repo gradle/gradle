@@ -43,6 +43,8 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
+    void visitValidationMessage(String propertyName, String validationMessage);
+
     class Adapter implements PropertyVisitor {
         @Override
         public boolean visitOutputFilePropertiesOnly() {
@@ -67,6 +69,10 @@ public interface PropertyVisitor {
 
         @Override
         public void visitLocalStateProperty(Object value) {
+        }
+
+        @Override
+        public void visitValidationMessage(String propertyName, String validationMessage) {
         }
     }
 }

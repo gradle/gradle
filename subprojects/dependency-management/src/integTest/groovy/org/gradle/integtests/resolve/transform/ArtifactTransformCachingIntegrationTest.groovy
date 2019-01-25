@@ -1069,7 +1069,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1094,7 +1094,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'") << withClassesSizeTransform()
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue:  "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1111,9 +1111,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        useParameterObject << [true, false]
     }
 
-    def "transform is supplied with a different output directory when configuration parameters change"() {
+    def "transform is supplied with a different output directory when parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
@@ -1121,7 +1124,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         buildFile << """
             apply from: 'other.gradle'
-        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value") << withClassesSizeTransform()
+        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1161,6 +1164,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
+
+        where:
+        useParameterObject << [true, false]
     }
 
     def "transform is supplied with a different output directory when external dependency changes"() {
@@ -1434,16 +1440,97 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
+        def useParameterObject = options.parameterObject ?: false
 
         """
             ext.paramValue = $paramValue
 
+${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registerFileSizerWithConstructorParams(fileValue)}
+    
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                }
+            }
+        """
+    }
+
+    String registerFileSizerWithConstructorParams(String fileValue) {
+        """
             class FileSizer extends ArtifactTransform {
                 @javax.inject.Inject
                 FileSizer(Number value) {
                 }
 
                 List<File> transform(File input) {
+${getFileSizerBody(fileValue)}
+                }
+            }
+    
+            allprojects {
+                dependencies {
+                    registerTransform {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        artifactTransform(FileSizer) { params(paramValue) }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                }
+            }
+            """
+    }
+
+    String registerFileSizerWithParameterObject(String fileValue) {
+        """                 
+            @TransformAction(FileSizerAction)
+            interface FileSizer {
+                @Input
+                Number getValue()
+                void setValue(Number value)
+            }
+            abstract class FileSizerAction extends ArtifactTransform {
+                @TransformParameters
+                abstract FileSizer getParameters()
+
+                @PrimaryInput
+                abstract File getInput()
+
+                List<File> transform(File ignored) {
+${getFileSizerBody(fileValue)}
+                }
+            }
+    
+            allprojects {
+                dependencies {
+                    registerTransform(FileSizer) {
+                        from.attribute(artifactType, "jar")
+                        to.attribute(artifactType, "size")
+                        parameters {
+                            value = paramValue
+                        }
+                    }
+                }
+                task resolve(type: Resolve) {
+                    artifacts = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'size') }
+                    }.artifacts
+                }
+            }
+            """
+    }
+
+    String getFileSizerBody(String fileValue) {
+        """
                     assert outputDirectory.directory && outputDirectory.list().length == 0
 
                     assert input.exists()
@@ -1465,35 +1552,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     }
 
                     return [output]
-                }
-            }
-    
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(paramValue) }
-                    }
-                }
-                task resolve(type: Resolve) {
-                    artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                }
-            }
-    
-            project(':util') {
-                dependencies {
-                    compile project(':lib')
-                }
-            }
-    
-            project(':app') {
-                dependencies {
-                    compile project(':util')
-                }
-            }
         """
     }
 
@@ -1517,14 +1575,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    def withClassesSizeTransform() {
+    def withClassesSizeTransform(boolean useParameterObject = false) {
         """
             allprojects {
                 dependencies {
-                    registerTransform {
+                    registerTransform${useParameterObject ? "(FileSizer)" : ""} {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(paramValue) }
+                        ${useParameterObject ? "parameters { value = paramValue }" : "artifactTransform(FileSizer) { params(paramValue) }"}
                     }
                 }
             }

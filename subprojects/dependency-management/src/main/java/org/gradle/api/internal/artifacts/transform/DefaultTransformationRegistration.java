@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
@@ -25,10 +26,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -42,6 +45,7 @@ import org.gradle.util.DeferredUtil;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
@@ -64,39 +68,75 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         Isolatable<?> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
         paramsSnapshot.appendToHasher(hasher);
-        fingerprintParameters(implementation, parameterObject, params, valueSnapshotter, propertyWalker, hasher, isolatedParameterObject);
+        if (parameterObject != null) {
+            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatedParameterObject);
+        }
 
         Transformer transformer = new DefaultTransformer(implementation, isolatedParameterObject, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
-    private static void fingerprintParameters(Class<? extends ArtifactTransform> implementation, @Nullable Object parameterObject, Object[] params, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, Hasher hasher, Isolatable<?> isolatedParameterObject) {
-        if (parameterObject != null) {
-            ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertyFingerprints = ImmutableSortedMap.naturalOrder();
-            propertyWalker.visitProperties(isolatedParameterObject.isolate(), new PropertyVisitor.Adapter() {
-                @Override
-                public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
-                    try {
-                        Object unpacked = DeferredUtil.unpack(value);
-                        Object finalizedValue = finalizeValue(unpacked);
-                        inputPropertyFingerprints.put(propertyName, valueSnapshotter.snapshot(finalizedValue));
-                    } catch (Throwable ex) {
-                        throw new InvalidUserDataException(String.format(
-                            "Error while evaluating property '%s' of %s",
-                            propertyName,
-                            ModelType.of(implementation).getDisplayName(), Arrays.asList(params)
-                        ), ex);
+    private static void fingerprintParameters(
+        ValueSnapshotter valueSnapshotter,
+        PropertyWalker propertyWalker,
+        Hasher hasher,
+        Isolatable<?> isolatedParameterObject
+    ) {
+        ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableList.Builder<String> validationMessagesBuilder = ImmutableList.builder();
+        Object parameterObject = isolatedParameterObject.isolate();
+        propertyWalker.visitProperties(parameterObject, new PropertyVisitor.Adapter() {
+            @Override
+            public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
+                try {
+                    Object unpacked = DeferredUtil.unpack(value);
+                    Object finalizedValue = finalizeValue(unpacked);
+
+                    if (finalizedValue == null && !optional) {
+                        visitValidationMessage(propertyName, "does not have a value specified");
                     }
+
+                    inputPropertyFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(finalizedValue));
+                } catch (Throwable ex) {
+                    throw new InvalidUserDataException(String.format(
+                        "Error while evaluating property '%s' of %s",
+                        propertyName,
+                        ModelType.of(parameterObject.getClass()).getDisplayName()
+                    ), ex);
                 }
-            });
-            for (Map.Entry<String, ValueSnapshot> entry : inputPropertyFingerprints.build().entrySet()) {
-                hasher.putString(entry.getKey());
-                entry.getValue().appendToHasher(hasher);
             }
+
+            @Override
+            public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+                visitValidationMessage(propertyName, "is annotated with an output annotation");
+            }
+
+            @Override
+            public void visitValidationMessage(String propertyName, String validationMessage) {
+                validationMessagesBuilder.add(propertyValidationMessage(propertyName, validationMessage));
+            }
+        });
+
+        ImmutableList<String> validationMessages = validationMessagesBuilder.build();
+        if (!validationMessages.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(parameterObject.getClass()).getDisplayName()),
+                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList())
+            );
+        }
+
+        for (Map.Entry<String, ValueSnapshot> entry : inputPropertyFingerprintsBuilder.build().entrySet()) {
+            hasher.putString(entry.getKey());
+            entry.getValue().appendToHasher(hasher);
         }
     }
 
-    private static Object finalizeValue(Object unpacked) {
+    private static String propertyValidationMessage(String qualifiedPropertyName, String validationMessage) {
+        return String.format("property '%s' %s.", qualifiedPropertyName, validationMessage);
+    }
+
+    @Nullable
+    private static Object finalizeValue(@Nullable Object unpacked) {
         if (unpacked instanceof FileCollection) {
             return ((FileCollection) unpacked).getFiles();
         }

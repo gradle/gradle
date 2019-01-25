@@ -47,8 +47,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
-            if (annotationHandler != null && annotationHandler.shouldVisit(visitor)) {
-                String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+            String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+            if (annotationHandler == null) {
+                visitor.visitValidationMessage(propertyName, "is not annotated with an input or output annotation");
+            } else if (annotationHandler.shouldVisit(visitor)) {
                 PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
                 annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
                     @Override
@@ -56,6 +58,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                         queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
                     }
                 });
+                for (String validationMessage : propertyMetadata.getValidationMessages()) {
+                    visitor.visitValidationMessage(propertyName, validationMessage);
+                }
+
             }
         }
     }
