@@ -44,6 +44,10 @@ publishing {
                 name.set("My Library")
                 description.set("A concise description of my library")
                 url.set("http://www.example.com/library")
+                properties.set(mapOf(
+                    "myProp" to "value",
+                    "prop.with.dots" to "anotherValue"
+                ))
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
