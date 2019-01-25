@@ -119,6 +119,8 @@ include::managing_dependency_configurations.adoc[leveloffset=+2]
 
 include::managing_transitive_dependencies.adoc[leveloffset=+2]
 
+include::feature_variants.adoc[leveloffset=+2]
+
 include::dependency_locking.adoc[leveloffset=+2]
 
 include::troubleshooting_dependency_resolution.adoc[leveloffset=+2]
