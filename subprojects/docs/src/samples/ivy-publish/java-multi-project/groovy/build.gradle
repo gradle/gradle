@@ -12,7 +12,7 @@ subprojects {
     // tag::publish-custom-artifact[]
     task sourcesJar(type: Jar) {
         from sourceSets.main.java
-        classifier = 'sources'
+        archiveClassifier = 'sources'
     }
     // end::publish-custom-artifact[]
 }

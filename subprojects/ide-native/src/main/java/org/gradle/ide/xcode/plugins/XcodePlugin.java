@@ -53,6 +53,7 @@ import org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask;
 import org.gradle.internal.Actions;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppExecutable;
+import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
 import org.gradle.language.cpp.ProductionCppComponent;
@@ -220,11 +221,14 @@ public class XcodePlugin extends IdePlugin {
 
                 String targetName = component.getModule().get();
                 final XcodeTarget target = newTarget(targetName, component.getModule().get(), toGradleCommand(project), getBridgeTaskPath(project), sources);
-                target.addBinary(DefaultXcodeProject.BUILD_DEBUG, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
-                target.addBinary(DefaultXcodeProject.BUILD_RELEASE, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
-                target.setProductType(PBXTarget.ProductType.UNIT_TEST);
-                target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
-                target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                target.getSwiftSourceCompatibility().convention(component.getSourceCompatibility());
+                if (component.getTestBinary().isPresent()) {
+                    target.addBinary(DefaultXcodeProject.BUILD_DEBUG, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
+                    target.addBinary(DefaultXcodeProject.BUILD_RELEASE, component.getTestBinary().get().getInstallDirectory(), component.getTestBinary().get().getTargetMachine().getArchitecture().getName());
+                    target.setProductType(PBXTarget.ProductType.UNIT_TEST);
+                    target.getCompileModules().from(component.getTestBinary().get().getCompileModules());
+                    target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getTestBinary().get()).getImportPathConfiguration()).getBuildDependencies());
+                }
                 component.getBinaries().whenElementFinalized(new Action<SwiftBinary>() {
                     @Override
                     public void execute(SwiftBinary swiftBinary) {
@@ -272,12 +276,12 @@ public class XcodePlugin extends IdePlugin {
                         if (swiftBinary == component.getDevelopmentBinary().get()) {
                             target.getCompileModules().from(component.getDevelopmentBinary().get().getCompileModules());
                             target.addTaskDependency(filterArtifactsFromImplicitBuilds(((DefaultSwiftBinary) component.getDevelopmentBinary().get()).getImportPathConfiguration()).getBuildDependencies());
-                            xcodeProject.addTarget(target);
 
                             createSchemeTask(project.getTasks(), targetName, xcodeProject);
                         }
                     }
                 });
+                xcodeProject.addTarget(target);
             }
         });
     }
@@ -342,12 +346,16 @@ public class XcodePlugin extends IdePlugin {
                         if (cppBinary == component.getDevelopmentBinary().get()) {
                             target.getHeaderSearchPaths().from(component.getDevelopmentBinary().get().getCompileIncludePath());
                             target.getTaskDependencies().add(filterArtifactsFromImplicitBuilds(((DefaultCppBinary) component.getDevelopmentBinary().get()).getIncludePathConfiguration()).getBuildDependencies());
-                            xcodeProject.addTarget(target);
 
                             createSchemeTask(project.getTasks(), targetName, xcodeProject);
                         }
                     }
                 });
+                target.getHeaderSearchPaths().from(component.getPrivateHeaderDirs());
+                if (component instanceof CppLibrary) {
+                    target.getHeaderSearchPaths().from(((CppLibrary) component).getPublicHeaderDirs());
+                }
+                xcodeProject.addTarget(target);
             }
         });
     }

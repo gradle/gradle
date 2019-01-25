@@ -42,7 +42,7 @@ dependencies {
 // Include a javadoc zip
 
 task javadocZip(type: Zip, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc
 }
 

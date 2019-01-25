@@ -10,12 +10,12 @@ version = "1.0"
 
 tasks.register<Jar>("sourcesJar") {
     from(sourceSets.main.get().allJava)
-    classifier = "sources"
+    archiveClassifier.set("sources")
 }
 
 tasks.register<Jar>("javadocJar") {
     from(tasks.javadoc)
-    classifier = "javadoc"
+    archiveClassifier.set("javadoc")
 }
 
 // tag::pom-customization[]

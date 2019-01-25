@@ -148,14 +148,9 @@ You'll find that the new Gradle build includes the following:
 
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
- * The appropriate plugins to build the project (limited to one or more of the <<maven_plugin#maven_plugin,Maven>>, <<java_plugin#java_plugin,Java>> and <<war_plugin#war_plugin,War>> Plugins)
+ * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
  
 See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
-
-[NOTE]
-====
-You should replace the Maven Plugin (`id 'maven'`) in the build script (`build.gradle`) with the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
-====
 
 One thing to bear in mind is that assemblies are not automatically converted.
 They aren't necessarily problematic to convert, but you will need to do some manual work.
