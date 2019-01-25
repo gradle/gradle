@@ -217,7 +217,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultSolution.size() == 1
-        resultSolution[0].assertOutputContains('The project "listDll" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultSolution[0].assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
 
         when:
         def resultProject = msbuild
@@ -228,7 +228,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultProject.size() == 1
-        resultProject[0].assertOutputContains('The project "listDll" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultProject[0].assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
     }
 
     @Requires(TestPrecondition.MSBUILD)
