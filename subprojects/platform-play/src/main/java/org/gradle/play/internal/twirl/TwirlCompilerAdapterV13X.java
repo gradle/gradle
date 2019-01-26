@@ -16,6 +16,8 @@
 
 package org.gradle.play.internal.twirl;
 
+import com.google.common.collect.Lists;
+
 import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaCodecMapper;
@@ -73,6 +75,11 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
 
     @Override
     public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultPlayImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        return  createCompileParameters(cl, file, sourceDirectory, destinationDirectory, defaultPlayImports, templateFormat, additionalImports, Lists.<String>newArrayList());
+    }
+
+    @Override
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultPlayImports, TwirlTemplateFormat templateFormat, List<String> additionalImports, List<String> constructorAnnotations) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         final List<String> defaultImports = new ArrayList<String>(DEFAULT_TEMPLATE_IMPORTS);
         defaultImports.addAll(playTwirlAdapter.getDefaultImports(defaultPlayImports));
         return new Object[]{
@@ -81,7 +88,7 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
             destinationDirectory,
             templateFormat.getFormatType(),
             toScalaSeq(CollectionUtils.flattenCollections(defaultImports, additionalImports, templateFormat.getTemplateImports()), cl),
-            toScalaSeq(Collections.emptyList(), cl),
+            toScalaSeq(constructorAnnotations, cl),
             ScalaCodecMapper.create(cl, "UTF-8"),
             isInclusiveDots(),
         };

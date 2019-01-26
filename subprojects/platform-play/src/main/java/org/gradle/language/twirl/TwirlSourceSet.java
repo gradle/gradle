@@ -97,4 +97,16 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      * @since 4.2
      */
     void setAdditionalImports(List<String> additionalImports);
+
+    /**
+     * Gets the construtor annotations to support dependency injection
+     * @return
+     */
+    List<String> getConstuctorAnnotations();
+
+    /**
+     * Sets the construtor annotations to support dependency injection
+     * @param constructorAnnotations
+     */
+    void setConstructorAnnotations(List<String> constructorAnnotations);
 }

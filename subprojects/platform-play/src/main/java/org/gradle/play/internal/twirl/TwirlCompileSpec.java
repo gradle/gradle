@@ -33,4 +33,6 @@ public interface TwirlCompileSpec extends PlayCompileSpec, Serializable {
     Collection<TwirlTemplateFormat> getUserTemplateFormats();
 
     List<String> getAdditionalImports();
+
+    List<String> getConstructorAnnotations();
 }

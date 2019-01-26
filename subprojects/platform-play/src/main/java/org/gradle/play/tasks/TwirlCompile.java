@@ -76,6 +76,7 @@ public class TwirlCompile extends SourceTask {
     private PlayPlatform platform;
     private List<TwirlTemplateFormat> userTemplateFormats = Lists.newArrayList();
     private List<String> additionalImports = Lists.newArrayList();
+    private List<String> constructorAnnotations = Lists.newArrayList();
 
     /**
      * {@inheritDoc}
@@ -142,7 +143,7 @@ public class TwirlCompile extends SourceTask {
     void compile(IncrementalTaskInputs inputs) {
         RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
         getSource().visit(relativeFileCollector);
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports);
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports, constructorAnnotations);
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
@@ -252,6 +253,17 @@ public class TwirlCompile extends SourceTask {
     public void setAdditionalImports(List<String> additionalImports) {
         this.additionalImports = additionalImports;
     }
+
+
+    @Input
+    public List<String> getConstructorAnnotations() {
+        return constructorAnnotations;
+    }
+
+    public void setConstructorAnnotations(List<String> constructorAnnotations) {
+        this.constructorAnnotations = constructorAnnotations;
+    }
+
 
     private static class TwirlStaleOutputCleaner {
         private final File destinationDir;

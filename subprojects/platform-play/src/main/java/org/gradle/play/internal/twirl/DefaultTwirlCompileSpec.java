@@ -32,14 +32,16 @@ public class DefaultTwirlCompileSpec implements TwirlCompileSpec {
     private final List<String> additionalImports;
     private BaseForkOptions forkOptions;
     private TwirlImports defaultImports;
+    private List<String> constructorAnnotations;
 
-    public DefaultTwirlCompileSpec(Iterable<RelativeFile> sources, File destinationDir, BaseForkOptions forkOptions, TwirlImports defaultImports, Collection<TwirlTemplateFormat> userTemplateFormats, List<String> additionalImports) {
+    public DefaultTwirlCompileSpec(Iterable<RelativeFile> sources, File destinationDir, BaseForkOptions forkOptions, TwirlImports defaultImports, Collection<TwirlTemplateFormat> userTemplateFormats, List<String> additionalImports, List<String> constructorAnnotations) {
         this.sources = sources;
         this.destinationDir = destinationDir;
         this.forkOptions = forkOptions;
         this.defaultImports = defaultImports;
         this.userTemplateFormats = userTemplateFormats;
         this.additionalImports = additionalImports;
+        this.constructorAnnotations = constructorAnnotations;
     }
 
     @Override
@@ -71,4 +73,7 @@ public class DefaultTwirlCompileSpec implements TwirlCompileSpec {
     public List<String> getAdditionalImports() {
         return additionalImports;
     }
+
+    @Override
+    public List<String> getConstructorAnnotations() { return constructorAnnotations; }
 }

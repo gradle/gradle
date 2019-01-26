@@ -78,7 +78,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
 
     private Object[] buildCompileArguments(TwirlCompileSpec spec, ClassLoader cl, RelativeFile sourceFile, TwirlTemplateFormat format) {
         try {
-            return adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format, spec.getAdditionalImports());
+            return adapter.createCompileParameters(cl, sourceFile.getFile(), sourceFile.getBaseDir(), spec.getDestinationDir(), spec.getDefaultImports(), format, spec.getAdditionalImports(), spec.getConstructorAnnotations());
         } catch (Exception e) {
             throw new RuntimeException("Error invoking Play Twirl template compiler.", e);
         }

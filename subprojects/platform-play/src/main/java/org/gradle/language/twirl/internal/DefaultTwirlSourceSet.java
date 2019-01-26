@@ -32,6 +32,7 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     private TwirlImports defaultImports = TwirlImports.SCALA;
     private List<TwirlTemplateFormat> userTemplateFormats = Lists.newArrayList();
     private List<String> additionalImports = Lists.newArrayList();
+    private List<String> constructorAnnotations = Lists.newArrayList();
 
     @Override
     protected String getLanguageName() {
@@ -71,5 +72,15 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     @Override
     public void setAdditionalImports(List<String> additionalImports) {
         this.additionalImports = additionalImports;
+    }
+
+    @Override
+    public List<String> getConstuctorAnnotations() {
+        return constructorAnnotations;
+    }
+
+    @Override
+    public void setConstructorAnnotations(List<String> constructorAnnotations) {
+        this.constructorAnnotations = constructorAnnotations;
     }
 }

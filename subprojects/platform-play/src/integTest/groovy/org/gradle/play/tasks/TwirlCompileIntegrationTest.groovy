@@ -158,6 +158,58 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         generatedFile.assertContents(containsString("import my.pkg.MyClass"))
     }
 
+    def "can specify constructor annotations for a Twirl template"() {
+        given:
+        buildFile << """
+            model {
+                components {
+                    play {
+                        sources {
+                            twirlTemplates {
+                                constructorAnnotations = [ '@javax.inject.Inject()']
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("app/views/IndexTemplate.scala.html") << """
+            @this(summarizer: models.Summarizer)
+            @(item: String)
+
+            @{summarizer.summarize(item)}
+        """
+        file("app/models/Summarizer.scala") << """
+            package models
+            trait Summarizer {
+                /** Provide short form of string if over a certain length */
+                def summarize(item: String)
+            }
+        """
+
+        file("app/controllers/MyController.scala") << """
+
+            import play.api.mvc.{AbstractController, Action, BaseController, ControllerComponents}
+            import play.mvc.Results._
+            import javax.inject.Inject
+            
+            class MyController @Inject()(template: views.html.IndexTemplate, cc: ControllerComponents) extends AbstractController(cc) {
+  
+                def index = Action { implicit request =>
+                    val item = "some extremely long text"
+                    Ok(template(item))
+                }
+            }
+        """
+
+        when:
+        succeeds("compilePlayBinaryScala")
+        then:
+        def generatedFile = destinationDir.file("html/IndexTemplate.template.scala")
+        generatedFile.assertIsFile()
+        generatedFile.assertContents(containsString("class IndexTemplate @javax.inject.Inject()"))
+    }
+
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")

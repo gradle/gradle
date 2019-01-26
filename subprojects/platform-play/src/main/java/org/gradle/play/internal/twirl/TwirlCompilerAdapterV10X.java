@@ -76,6 +76,11 @@ class TwirlCompilerAdapterV10X extends VersionedTwirlCompilerAdapter {
         };
     }
 
+    @Override
+    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports, List<String> constructorAnnotations) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        throw new UnsupportedOperationException("Unsupported operation for TwirlCompiler v1.0.x");
+    }
+
     protected boolean isInclusiveDots() {
         return false;
     }
