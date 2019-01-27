@@ -54,12 +54,16 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
 
     @Override
     public ImmutableAttributes mapAttributesFor(File file) {
-        String extension = Files.getFileExtension(file.getName());
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
-        if (artifactTypeDefinitions != null) {
-            attributes = applyForExtension(attributes, extension);
+        if (file.isDirectory()) {
+            attributes = attributesFactory.of(ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY);
+        } else {
+            String extension = Files.getFileExtension(file.getName());
+            if (artifactTypeDefinitions != null) {
+                attributes = applyForExtension(attributes, extension);
+            }
+            attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, extension), attributes);
         }
-        attributes = attributesFactory.concat(attributesFactory.of(ARTIFACT_FORMAT, extension), attributes);
         return attributes;
     }
 

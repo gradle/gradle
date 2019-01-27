@@ -16,14 +16,21 @@
 
 package org.gradle.language.plugins;
 
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
+import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.PublishableComponent;
 import org.gradle.api.component.SoftwareComponent;
@@ -31,6 +38,8 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -40,6 +49,7 @@ import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdenti
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
 import org.gradle.language.ComponentWithBinaries;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.ComponentWithTargetMachines;
@@ -69,10 +79,22 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import static org.apache.commons.io.FilenameUtils.removeExtension;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.C_PLUS_PLUS_API_DIRECTORY;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.C_PLUS_PLUS_API_ZIP_TYPE;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
@@ -131,6 +153,12 @@ public class NativeBasePlugin implements Plugin<Project> {
         addTasksForComponentWithExecutable(tasks, buildDirectory, components);
         addTasksForComponentWithSharedLibrary(tasks, buildDirectory, components);
         addTasksForComponentWithStaticLibrary(tasks, buildDirectory, components);
+
+        // Add incoming artifact transforms
+        final DependencyHandler dependencyHandler = project.getDependencies();
+        final ObjectFactory objects = project.getObjects();
+
+        addHeaderZipTransform(dependencyHandler, objects);
 
         // Add outgoing configurations and publications
         final ConfigurationContainer configurations = project.getConfigurations();
@@ -421,11 +449,71 @@ public class NativeBasePlugin implements Plugin<Project> {
         });
     }
 
+    private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
+        dependencyHandler.registerTransform(variantTransform -> {
+            variantTransform.artifactTransform(UnzipTransform.class);
+            variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, C_PLUS_PLUS_API_ZIP_TYPE);
+            variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, C_PLUS_PLUS_API_DIRECTORY);
+            variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+        });
+        dependencyHandler.getAttributesSchema().attribute(ArtifactAttributes.ARTIFACT_FORMAT).getCompatibilityRules().add(HeaderDirectoryCompatibilityRule.class);
+    }
+
     static class LinkageSelectionRule implements AttributeDisambiguationRule<Linkage> {
         @Override
         public void execute(MultipleCandidatesDetails<Linkage> details) {
             if (details.getCandidateValues().contains(Linkage.SHARED)) {
                 details.closestMatch(Linkage.SHARED);
+            }
+        }
+    }
+
+    static class HeaderDirectoryCompatibilityRule implements AttributeCompatibilityRule<String> {
+        @Override
+        public void execute(CompatibilityCheckDetails<String> details) {
+            if (C_PLUS_PLUS_API_DIRECTORY.equals(details.getConsumerValue())
+                    && DIRECTORY.equals(details.getProducerValue())) {
+                details.compatible();
+            }
+        }
+    }
+
+    private static class UnzipTransform extends ArtifactTransform {
+        @Inject
+        UnzipTransform() { }
+
+        @Override
+        public List<File> transform(File zippedFile) {
+            String unzippedDirName = removeExtension(zippedFile.getName());
+            File unzipDir = new File(getOutputDirectory(), unzippedDirName);
+            try {
+                unzipTo(zippedFile, unzipDir);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+            return Collections.singletonList(unzipDir);
+        }
+
+        private void unzipTo(File headersZip, File unzipDir) throws IOException {
+            ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
+            try {
+                ZipEntry entry;
+                while ((entry = inputStream.getNextEntry()) != null) {
+                    if (entry.isDirectory()) {
+                        continue;
+                    }
+                    File outFile = new File(unzipDir, entry.getName());
+                    Files.createParentDirs(outFile);
+                    FileOutputStream outputStream = new FileOutputStream(outFile);
+                    try {
+                        IOUtils.copyLarge(inputStream, outputStream);
+                    } finally {
+                        outputStream.close();
+                    }
+                }
+            } finally {
+                inputStream.close();
             }
         }
     }

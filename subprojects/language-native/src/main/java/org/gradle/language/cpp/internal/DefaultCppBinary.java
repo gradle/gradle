@@ -16,21 +16,19 @@
 
 package org.gradle.language.cpp.internal;
 
-import com.google.common.io.Files;
-import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.UncheckedException;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppPlatform;
 import org.gradle.language.cpp.tasks.CppCompile;
@@ -44,21 +42,8 @@ import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
-    private final static String C_PLUS_PLUS_API_DIRS = "cplusplus-api-dirs";
-
     private final Provider<String> baseName;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
@@ -83,14 +68,14 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
         // TODO - reduce duplication with Swift binary
 
-        Configuration includePathConfig = configurations.create(names.withPrefix("cppCompile"));
-        includePathConfig.setCanBeConsumed(false);
-        includePathConfig.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-        includePathConfig.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
-        includePathConfig.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
-        includePathConfig.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
-        includePathConfig.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
-        includePathConfig.extendsFrom(getImplementationDependencies());
+        includePathConfiguration = configurations.create(names.withPrefix("cppCompile"));
+        includePathConfiguration.setCanBeConsumed(false);
+        includePathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+        includePathConfiguration.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, identity.isDebuggable());
+        includePathConfiguration.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, identity.isOptimized());
+        includePathConfiguration.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, identity.getTargetMachine().getOperatingSystemFamily());
+        includePathConfiguration.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
+        includePathConfiguration.extendsFrom(getImplementationDependencies());
 
         Configuration nativeLink = configurations.create(names.withPrefix("nativeLink"));
         nativeLink.setCanBeConsumed(false);
@@ -110,15 +95,10 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         nativeRuntime.getAttributes().attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, identity.getTargetMachine().getArchitecture());
         nativeRuntime.extendsFrom(getImplementationDependencies());
 
-        includePathConfiguration = includePathConfig;
-        dependencyHandler.registerTransform(variantTransform -> {
-            variantTransform.artifactTransform(UnzipTransform.class);
-            variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-            variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, C_PLUS_PLUS_API_DIRS));
-        });
-        ArtifactView includeDirs = includePathConfig.getIncoming().artifactView(viewConfiguration -> {
+        ArtifactView includeDirs = includePathConfiguration.getIncoming().artifactView(viewConfiguration -> {
            viewConfiguration.attributes(attributeContainer -> {
-               attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, C_PLUS_PLUS_API_DIRS));
+               attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+               attributeContainer.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.C_PLUS_PLUS_API_DIRECTORY);
            });
         });
         includePath = componentHeaderDirs.plus(includeDirs.getFiles());
@@ -214,48 +194,5 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
 
     public NativeVariantIdentity getIdentity() {
         return identity;
-    }
-
-    private static class UnzipTransform extends ArtifactTransform {
-        @Inject
-        UnzipTransform() { }
-
-        @Override
-        public List<File> transform(File zippedFile) {
-            if (zippedFile.isDirectory()) {
-                return Collections.singletonList(zippedFile);
-            } else {
-                String unzippedDirName = removeExtension(zippedFile.getName());
-                File unzipDir = new File(getOutputDirectory(), unzippedDirName);
-                try {
-                    unzipTo(zippedFile, unzipDir);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-                return Collections.singletonList(unzipDir);
-            }
-        }
-
-        private void unzipTo(File headersZip, File unzipDir) throws IOException {
-            ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
-            try {
-                ZipEntry entry;
-                while ((entry = inputStream.getNextEntry()) != null) {
-                    if (entry.isDirectory()) {
-                        continue;
-                    }
-                    File outFile = new File(unzipDir, entry.getName());
-                    Files.createParentDirs(outFile);
-                    FileOutputStream outputStream = new FileOutputStream(outFile);
-                    try {
-                        IOUtils.copyLarge(inputStream, outputStream);
-                    } finally {
-                        outputStream.close();
-                    }
-                }
-            } finally {
-                inputStream.close();
-            }
-        }
     }
 }
