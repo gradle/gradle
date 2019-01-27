@@ -103,7 +103,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     // Used by generated code
     @SuppressWarnings("unused")
     public static Instantiator getInstantiatorForNext() {
-        return SERVICES_FOR_NEXT_OBJECT.get().instantiator;
+        return createExtensionInstantiator(getServicesForNext(), SERVICES_FOR_NEXT_OBJECT.get().instantiator);
+    }
+
+    private static Instantiator createExtensionInstantiator(ServiceLookup services, Instantiator nested) {
+        // The instantiator provided to the generated class is used for implementing `Convention`.
+        // To maintain backward compatibility, create a 'lenient' instantiator for this purpose, where possible.
+        InstantiatorFactory instantiatorFactory = (InstantiatorFactory) services.find(InstantiatorFactory.class);
+        if (instantiatorFactory != null) {
+            return instantiatorFactory.injectAndDecorateLenient(services);
+        }
+        return nested;
     }
 
     private AsmBackedClassGenerator(boolean decorate, String suffix, Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations) {
@@ -138,6 +148,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @Override
     protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
         ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
+
         SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services));
         try {
             constructor.setAccessible(true);
