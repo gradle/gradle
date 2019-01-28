@@ -255,11 +255,23 @@ public class TwirlCompile extends SourceTask {
     }
 
 
+    /**
+     * Returns the list of constructor annotations to add to the generated Scala code.
+     *
+     * @since 5.3
+     */
     @Input
     public List<String> getConstructorAnnotations() {
         return constructorAnnotations;
     }
 
+    /**
+     * Sets the construtor annotations to add to the generated Scala code.
+     *
+     * @param constructorAnnotations constructor annotations
+     *
+     * @since 5.3
+     */
     public void setConstructorAnnotations(List<String> constructorAnnotations) {
         this.constructorAnnotations = constructorAnnotations;
     }

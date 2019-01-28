@@ -75,5 +75,7 @@ public class DefaultTwirlCompileSpec implements TwirlCompileSpec {
     }
 
     @Override
-    public List<String> getConstructorAnnotations() { return constructorAnnotations; }
+    public List<String> getConstructorAnnotations() {
+        return constructorAnnotations;
+    }
 }
