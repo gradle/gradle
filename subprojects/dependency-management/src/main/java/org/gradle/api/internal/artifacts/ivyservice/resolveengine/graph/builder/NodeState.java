@@ -79,6 +79,7 @@ public class NodeState implements DependencyGraphNode {
     private boolean queued;
     private boolean evicted;
     private List<ModuleIdentifier> upcomingNoLongerPendingConstraints;
+    private boolean virtualPlatformNeedsRefresh;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -206,16 +207,21 @@ public class NodeState implements DependencyGraphNode {
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
         ModuleExclusion resolutionFilter = getModuleResolutionFilter(incomingEdges);
 
-        // Check if the was previously traversed with the same net exclusion
-        if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
-            if (upcomingNoLongerPendingConstraints != null && !upcomingNoLongerPendingConstraints.isEmpty()) {
-                visitAdditionalConstraints(discoveredEdges);
+        // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
+        if (!isVirtualPlatformNeedsRefresh()) {
+            // Check if node was previously traversed with the same net exclusion when not a virtual platform
+            if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
+                if (hasNewConstraints()) {
+                    // Previously traversed but new constraints no longer pending, so partial traversing
+                    visitAdditionalConstraints(discoveredEdges);
+                } else {
+                    // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
+                    // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
+                    LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
+                }
+                previousTraversalExclusions = resolutionFilter;
+                return;
             }
-            // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
-            // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
-            LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
-            previousTraversalExclusions = resolutionFilter;
-            return;
         }
 
         // Clear previous traversal state, if any
@@ -225,6 +231,14 @@ public class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    private boolean hasNewConstraints() {
+        return upcomingNoLongerPendingConstraints != null && !upcomingNoLongerPendingConstraints.isEmpty();
+    }
+
+    private boolean isVirtualPlatformNeedsRefresh() {
+        return virtualPlatformNeedsRefresh;
     }
 
     /**
@@ -486,6 +500,7 @@ public class NodeState implements DependencyGraphNode {
         if (upcomingNoLongerPendingConstraints != null) {
             upcomingNoLongerPendingConstraints.clear();
         }
+        virtualPlatformNeedsRefresh = false;
     }
 
     public void restart(ComponentState selected) {
@@ -528,13 +543,10 @@ public class NodeState implements DependencyGraphNode {
         resolveState.onFewerSelected(this);
     }
 
-    void resetSelectionState() {
-        if (previousTraversalExclusions != null) {
-            previousTraversalExclusions = null;
-            outgoingEdges.clear();
-            virtualEdges = null;
-            resolveState.onFewerSelected(this);
-        }
+    void markForVirtualPlatformRefresh() {
+        assert component.getModule().isVirtualPlatform();
+        virtualPlatformNeedsRefresh = true;
+        resolveState.onFewerSelected(this);
     }
 
     public ImmutableAttributesFactory getAttributesFactory() {
