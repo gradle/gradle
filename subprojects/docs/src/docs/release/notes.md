@@ -8,6 +8,10 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
+### Default JaCoCo version upgraded to 0.8.3
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
+
 ## Improvements for plugin authors
 
 TBD - Abstract service injection getter methods
