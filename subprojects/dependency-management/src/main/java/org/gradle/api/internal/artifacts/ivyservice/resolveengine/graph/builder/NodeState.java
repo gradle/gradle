@@ -234,7 +234,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private boolean hasNewConstraints() {
-        return upcomingNoLongerPendingConstraints != null && !upcomingNoLongerPendingConstraints.isEmpty();
+        return upcomingNoLongerPendingConstraints != null;
     }
 
     private boolean isVirtualPlatformNeedsRefresh() {
@@ -308,7 +308,7 @@ public class NodeState implements DependencyGraphNode {
                 }
             }
         }
-        upcomingNoLongerPendingConstraints.clear();
+        upcomingNoLongerPendingConstraints = null;
     }
 
     /**
@@ -497,9 +497,7 @@ public class NodeState implements DependencyGraphNode {
         }
         virtualEdges = null;
         previousTraversalExclusions = null;
-        if (upcomingNoLongerPendingConstraints != null) {
-            upcomingNoLongerPendingConstraints.clear();
-        }
+        upcomingNoLongerPendingConstraints = null;
         virtualPlatformNeedsRefresh = false;
     }
 
