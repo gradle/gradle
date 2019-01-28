@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -40,12 +39,15 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
 
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
@@ -80,44 +82,38 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         ValueSnapshotter valueSnapshotter,
         PropertyWalker propertyWalker,
         Hasher hasher,
-        Isolatable<?> isolatedParameterObject
+        Isolatable<?> isolatableParameterObject
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        ImmutableList.Builder<String> validationMessagesBuilder = ImmutableList.builder();
-        Object parameterObject = isolatedParameterObject.isolate();
-        propertyWalker.visitProperties(parameterObject, new PropertyVisitor.Adapter() {
+        Object parameterObject = isolatableParameterObject.isolate();
+        List<String> validationMessages = new ArrayList<>();
+        DefaultParameterValidationContext validationContext = new DefaultParameterValidationContext(validationMessages);
+        propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
                 try {
-                    Object unpacked = DeferredUtil.unpack(value);
-                    Object finalizedValue = finalizeValue(unpacked);
+                    Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
-                    if (finalizedValue == null && !optional) {
-                        visitValidationMessage(propertyName, "does not have a value specified");
+                    if (preparedValue == null && !optional) {
+                        validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "does not have a value specified"));
                     }
 
-                    inputPropertyFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(finalizedValue));
-                } catch (Throwable ex) {
+                    inputPropertyFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
+                } catch (Throwable e) {
                     throw new InvalidUserDataException(String.format(
                         "Error while evaluating property '%s' of %s",
                         propertyName,
                         ModelType.of(parameterObject.getClass()).getDisplayName()
-                    ), ex);
+                    ), e);
                 }
             }
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                visitValidationMessage(propertyName, "is annotated with an output annotation");
-            }
-
-            @Override
-            public void visitValidationMessage(String propertyName, String validationMessage) {
-                validationMessagesBuilder.add(propertyValidationMessage(propertyName, validationMessage));
+                validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "is annotated with an output annotation"));
             }
         });
 
-        ImmutableList<String> validationMessages = validationMessagesBuilder.build();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(parameterObject.getClass()).getDisplayName()),
@@ -129,21 +125,6 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
             hasher.putString(entry.getKey());
             entry.getValue().appendToHasher(hasher);
         }
-    }
-
-    private static String propertyValidationMessage(String qualifiedPropertyName, String validationMessage) {
-        return String.format("property '%s' %s.", qualifiedPropertyName, validationMessage);
-    }
-
-    @Nullable
-    private static Object finalizeValue(@Nullable Object unpacked) {
-        if (unpacked instanceof FileCollection) {
-            return ((FileCollection) unpacked).getFiles();
-        }
-        if (unpacked instanceof GString) {
-            return unpacked.toString();
-        }
-        return unpacked;
     }
 
     public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {

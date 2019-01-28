@@ -67,7 +67,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * task.getDestroyables() >> destroyables
         1 * task.getLocalState() >> localState
         1 * outputs.setPreviousOutputFiles(_)
-        1 * propertyWalker.visitProperties(task, _)
+        1 * propertyWalker.visitProperties(task, _, _)
         1 * inputs.visitRegisteredProperties(_)
         1 * outputs.visitRegisteredProperties(_)
 

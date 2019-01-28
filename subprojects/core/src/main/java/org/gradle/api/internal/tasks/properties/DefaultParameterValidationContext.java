@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
-
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+package org.gradle.api.internal.tasks.properties;
 
 import java.util.Collection;
 
-public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
-    private final FileResolver resolver;
+public class DefaultParameterValidationContext implements ParameterValidationContext {
 
-    public DefaultTaskValidationContext(FileResolver resolver, Collection<String> messages) {
-        super(messages);
-        this.resolver = resolver;
+    public static String propertyValidationMessage(String propertyName, String validationMessage) {
+        return String.format("Property '%s' %s.", propertyName, validationMessage);
+    }
+
+    private final Collection<String> messages;
+
+    public DefaultParameterValidationContext(Collection<String> messages) {
+        this.messages = messages;
     }
 
     @Override
-    public FileResolver getResolver() {
-        return resolver;
+    public void recordValidationMessage(String message) {
+        messages.add(message);
     }
 }

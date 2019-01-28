@@ -82,10 +82,6 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitValidationMessage(String propertyName, String validationMessage) {
-        }
-
-        @Override
         public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
             value.attachProducer(task);
         }

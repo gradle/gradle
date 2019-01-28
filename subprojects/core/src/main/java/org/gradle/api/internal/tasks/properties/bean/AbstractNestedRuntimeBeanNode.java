@@ -23,6 +23,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProducerAwareProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.ParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
@@ -38,18 +39,20 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Queue;
 
+import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
+
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
     protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
     }
 
-    public void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory) {
+    public void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory, ParameterValidationContext validationContext) {
         TypeMetadata typeMetadata = getTypeMetadata();
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
             if (annotationHandler == null) {
-                visitor.visitValidationMessage(propertyName, "is not annotated with an input or output annotation");
+                validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "is not annotated with an input or output annotation"));
             } else if (annotationHandler.shouldVisit(visitor)) {
                 PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
                 annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
@@ -59,7 +62,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     }
                 });
                 for (String validationMessage : propertyMetadata.getValidationMessages()) {
-                    visitor.visitValidationMessage(propertyName, validationMessage);
+                    validationContext.recordValidationMessage(propertyValidationMessage(propertyName, validationMessage));
                 }
 
             }
