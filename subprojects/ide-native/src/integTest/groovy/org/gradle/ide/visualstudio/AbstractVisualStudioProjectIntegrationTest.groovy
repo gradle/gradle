@@ -224,11 +224,10 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
                 .withWorkingDir(testDirectory)
                 .withSolution(solutionFile)
                 .withProject(visualStudioProjectName)
-                .succeeds()
+                .run()
 
         then:
-        resultProject.size() == 1
-        resultProject[0].assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
+        resultProject.assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
     }
 
     @Requires(TestPrecondition.MSBUILD)

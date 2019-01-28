@@ -78,6 +78,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         given:
         def services = Stub(ServiceLookup)
         _ * services.find(String) >> "string"
+        _ * services.find(_) >> null
 
         when:
         def factory = instantiator.factoryFor(HasInjectConstructor)
@@ -92,6 +93,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         given:
         def services = Stub(ServiceLookup)
         _ * services.get(String) >> "string"
+        _ * services.find(_) >> null
 
         when:
         def factory = instantiator.factoryFor(HasGetterInjection)
