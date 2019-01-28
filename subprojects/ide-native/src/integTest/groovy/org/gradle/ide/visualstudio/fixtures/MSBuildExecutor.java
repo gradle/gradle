@@ -175,8 +175,12 @@ public class MSBuildExecutor {
         ExecOutput result = new TestFileHelper(findMSBuild()).execute(args, buildEnvironment(workingDir));
 
         List<ExecutionOutput> outputs = getOutputFiles();
-        String gradleStdout = fileContents(outputs.get(0).stdout);
-        String gradleStderr = fileContents(outputs.get(0).stderr);
+        String gradleStdout = result.getOut();
+        String gradleStderr = result.getError();
+        if (!outputs.isEmpty()) {
+            gradleStdout = fileContents(outputs.get(0).stdout);
+            gradleStderr = fileContents(outputs.get(0).stderr);
+        }
         System.out.println(result.getOut());
         System.out.println(gradleStdout);
         System.out.println(gradleStderr);
