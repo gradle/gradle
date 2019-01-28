@@ -175,7 +175,6 @@ public class MSBuildExecutor {
         ExecOutput result = new TestFileHelper(findMSBuild()).execute(args, buildEnvironment(workingDir));
 
         List<ExecutionOutput> outputs = getOutputFiles();
-        assert outputs.size() == 1;
         String gradleStdout = fileContents(outputs.get(0).stdout);
         String gradleStderr = fileContents(outputs.get(0).stderr);
         System.out.println(result.getOut());
