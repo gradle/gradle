@@ -44,6 +44,10 @@ publishing {
                 name = 'My Library'
                 description = 'A concise description of my library'
                 url = 'http://www.example.com/library'
+                properties = [
+                    myProp: "value",
+                    "prop.with.dots": "anotherValue"
+                ]
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'

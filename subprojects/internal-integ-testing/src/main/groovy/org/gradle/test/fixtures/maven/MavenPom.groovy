@@ -123,6 +123,10 @@ class MavenPom {
         return pom?.mailingLists?.mailingList
     }
 
+    Node getProperties() {
+        return pom?.properties[0]
+    }
+
     private MavenDependency createDependency(def dep) {
         def exclusions = []
         boolean optional = false

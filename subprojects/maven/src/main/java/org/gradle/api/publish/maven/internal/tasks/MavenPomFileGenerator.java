@@ -125,6 +125,9 @@ public class MavenPomFileGenerator {
         for (MavenPomMailingList mailingList : pom.getMailingLists()) {
             model.addMailingList(convertMailingList(mailingList));
         }
+        for (Map.Entry<String, String> property : pom.getProperties().get().entrySet()) {
+            model.addProperty(property.getKey(), property.getValue());
+        }
         return this;
     }
 
