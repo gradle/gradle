@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,7 +79,7 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> virtualEdges;
     private boolean queued;
     private boolean evicted;
-    private List<ModuleIdentifier> upcomingNoLongerPendingConstraints;
+    private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
     private boolean virtualPlatformNeedsRefresh;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
@@ -534,7 +535,7 @@ public class NodeState implements DependencyGraphNode {
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
         if (upcomingNoLongerPendingConstraints == null) {
-            upcomingNoLongerPendingConstraints = Lists.newArrayList();
+            upcomingNoLongerPendingConstraints = Sets.newHashSet();
         }
         upcomingNoLongerPendingConstraints.add(moduleIdentifier);
         // Trigger a replay on this node, to add new constraints to graph
