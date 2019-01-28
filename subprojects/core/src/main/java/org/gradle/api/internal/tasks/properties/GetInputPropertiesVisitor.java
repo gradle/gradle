@@ -20,15 +20,13 @@ import groovy.lang.GString;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.Factory;
+import org.gradle.util.DeferredUtil;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
     private final String beanName;
@@ -65,21 +63,18 @@ public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
 
     @Nullable
     private static Object prepareValue(@Nullable Object value) {
-        while (true) {
-            if (value instanceof Callable) {
-                Callable callable = (Callable) value;
-                value = uncheckedCall(callable);
-            } else if (value instanceof FileCollection) {
-                FileCollection fileCollection = (FileCollection) value;
-                return fileCollection.getFiles();
-            } else {
-                return avoidGString(value);
-            }
-        }
+        Object unpacked = DeferredUtil.unpack(value);
+        return finalizeValue(unpacked);
     }
 
     @Nullable
-    private static Object avoidGString(@Nullable Object value) {
-        return (value instanceof GString) ? value.toString() : value;
+    private static Object finalizeValue(@Nullable Object unpacked) {
+        if (unpacked instanceof GString) {
+            return unpacked.toString();
+        }
+        if (unpacked instanceof FileCollection) {
+            return ((FileCollection) unpacked).getFiles();
+        }
+        return unpacked;
     }
 }
