@@ -739,7 +739,7 @@ enableFeaturePreview("STABLE_PUBLISHING")
 
 We recommend doing a test run with a local repository to see whether all artifacts still have the expected coordinates. In most cases everything should work as before and you are done. However, your publishing block may rely on the implicit deferred configuration, particularly if it relies on values that may change during the configuration phase of the build.
 
-For example, under the new behavior, the following logic assumes that `jar.baseName` doesn't change after `artifactId` is set:
+For example, under the new behavior, the following logic assumes that `jar.archiveBaseName` doesn't change after `artifactId` is set:
 
 ====
 [.multi-language-sample]
@@ -752,7 +752,7 @@ subprojects {
         publications {
             mavenJava {
                 from components.java
-                artifactId = jar.baseName
+                artifactId = jar.archiveBaseName
             }
         }
     }
@@ -769,7 +769,7 @@ subprojects {
         publications {
             named<MavenPublication>("mavenJava") {
                 from(components["java"])
-                artifactId = tasks.jar.get().baseName
+                artifactId = tasks.jar.get().archiveBaseName.get()
             }
         }
     }
@@ -792,7 +792,7 @@ subprojects {
             mavenJava {
                 from components.java
                 afterEvaluate {
-                    artifactId = jar.baseName
+                    artifactId = jar.archiveBaseName
                 }
             }
         }
@@ -811,7 +811,7 @@ subprojects {
             named<MavenPublication>("mavenJava") {
                 from(components["java"])
                 afterEvaluate {
-                    artifactId = tasks.jar.get().baseName
+                    artifactId = tasks.jar.get().archiveBbaseName.get()
                 }
             }
         }

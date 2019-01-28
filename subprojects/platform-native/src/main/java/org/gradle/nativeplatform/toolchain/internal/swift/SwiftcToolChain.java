@@ -33,6 +33,7 @@ import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 import org.gradle.nativeplatform.toolchain.internal.UnavailablePlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnsupportedPlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProvider;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolSearchResult;
@@ -91,7 +92,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
 
         // TODO: this is an approximation as we know swift currently supports only 64-bit runtimes - eventually, we'll want to query for this
         if (!isCurrentArchitecture(targetPlatform)) {
-            return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
+            return new UnsupportedPlatformToolProvider(targetPlatform.getOperatingSystem(), String.format("Don't know how to build for %s.", targetPlatform.getDisplayName()));
         }
 
         CommandLineToolSearchResult compiler = toolSearchPath.locate(ToolType.SWIFT_COMPILER, "swiftc");
@@ -120,7 +121,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
             case ANY:
                 return select(targetMachine);
             default:
-                return new UnavailablePlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
+                return new UnsupportedPlatformToolProvider(targetMachine.getOperatingSystem(), String.format("Don't know how to compile language %s.", sourceLanguage));
         }
     }
 

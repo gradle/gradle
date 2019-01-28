@@ -22,6 +22,7 @@ class MavenDependency {
     String version
     String classifier
     String type
+    boolean optional
     Collection<MavenDependencyExclusion> exclusions = []
 
     MavenDependency hasType(def type) {

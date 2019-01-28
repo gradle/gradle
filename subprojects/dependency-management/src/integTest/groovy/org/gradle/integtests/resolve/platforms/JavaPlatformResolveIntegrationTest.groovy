@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Issue
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -261,6 +262,50 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
             }
         }
+    }
+
+    @Issue("gradle/gradle#8312")
+    def "can resolve a platform with a constraint to determine the platform version"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0")
+                .hasType("pom")
+                .allowAll()
+                .publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                api platform("org:platform") // no version, will select the "platform" component
+                constraints {
+                   api "org:platform:1.0"
+                }
+            }
+        """
+        checkConfiguration("compileClasspath")
+
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge("org:platform", "org:platform:1.0") {
+                    variant("platform-compile", [
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.component.category': 'platform',
+                            'org.gradle.status': 'release',
+                    ])
+                    byConstraint()
+                    noArtifacts()
+                }
+                constraint("org:platform:1.0", "org:platform:1.0") {
+                    variant("platform-compile", [
+                            'org.gradle.usage': 'java-api',
+                            'org.gradle.component.category': 'platform',
+                            'org.gradle.status': 'release',
+                    ])
+                }
+            }
+        }
+
     }
 
 

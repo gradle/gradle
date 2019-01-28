@@ -2297,7 +2297,7 @@ org:foo:[1.1,1.3] -> 1.3
 """
     }
 
-    def "does't mix rejected versions on different constraints"() {
+    def "doesn't mix rejected versions on different constraints"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()

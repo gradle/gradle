@@ -16,11 +16,11 @@
 
 package org.gradle.ide.visualstudio.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
@@ -37,6 +37,7 @@ import org.gradle.ide.visualstudio.internal.DefaultVisualStudioRootExtension;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectInternal;
 import org.gradle.ide.visualstudio.internal.VisualStudioSolutionInternal;
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
 import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
 import org.gradle.ide.visualstudio.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
@@ -51,6 +52,7 @@ import org.gradle.language.cpp.CppExecutable;
 import org.gradle.language.cpp.CppLibrary;
 import org.gradle.language.cpp.CppSharedLibrary;
 import org.gradle.language.cpp.CppStaticLibrary;
+import org.gradle.nativeplatform.Linkage;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 
@@ -68,13 +70,15 @@ public class VisualStudioPlugin extends IdePlugin {
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry artifactRegistry;
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final FileOperations fileOperations;
 
     @Inject
-    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, FileOperations fileOperations) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.artifactRegistry = artifactRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+        this.fileOperations = fileOperations;
     }
 
     @Override
@@ -89,23 +93,13 @@ public class VisualStudioPlugin extends IdePlugin {
         // Create Visual Studio project extensions
         final VisualStudioExtensionInternal extension;
         if (isRoot()) {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry, collectionCallbackActionDecorator);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders(), fileOperations);
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
-            getLifecycleTask().configure(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    task.dependsOn(solution);
-                }
-            });
+            getLifecycleTask().configure(it -> it.dependsOn(solution));
             addWorkspace(solution);
         } else {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry, collectionCallbackActionDecorator);
-            getLifecycleTask().configure(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    task.dependsOn(extension.getProjects());
-                }
-            });
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders(), fileOperations);
+            getLifecycleTask().configure(it -> it.dependsOn(extension.getProjects()));
         }
         includeBuildFileInProject(extension);
 
@@ -120,33 +114,32 @@ public class VisualStudioPlugin extends IdePlugin {
     }
 
     private void applyVisualStudioCurrentModelRules(final VisualStudioExtensionInternal extension) {
-        project.getComponents().withType(CppApplication.class).all(new Action<CppApplication>() {
-            @Override
-            public void execute(final CppApplication cppApplication) {
-                cppApplication.getBinaries().whenElementFinalized(CppExecutable.class, new Action<CppExecutable>() {
-                    @Override
-                    public void execute(CppExecutable executable) {
-                        extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, executable));
-                    }
-                });
-            }
+        project.getComponents().withType(CppApplication.class).all(cppApplication -> {
+            DefaultVisualStudioProject vsProject = extension.getProjectRegistry().createProject(project.getName(), cppApplication.getName());
+            vsProject.getSourceFiles().from(cppApplication.getCppSource());
+            vsProject.getHeaderFiles().from(cppApplication.getHeaderFiles());
+            cppApplication.getBinaries().whenElementFinalized(CppExecutable.class, executable -> {
+                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, executable));
+            });
         });
-        project.getComponents().withType(CppLibrary.class).all(new Action<CppLibrary>() {
-            @Override
-            public void execute(final CppLibrary cppLibrary) {
-                cppLibrary.getBinaries().whenElementFinalized(CppSharedLibrary.class, new Action<CppSharedLibrary>() {
-                    @Override
-                    public void execute(CppSharedLibrary library) {
-                        extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
+        project.afterEvaluate(proj -> {
+            project.getComponents().withType(CppLibrary.class).all(cppLibrary -> {
+                for (Linkage linkage : cppLibrary.getLinkage().get()) {
+                    VisualStudioTargetBinary.ProjectType projectType = VisualStudioTargetBinary.ProjectType.DLL;
+                    if (Linkage.STATIC.equals(linkage)) {
+                        projectType = VisualStudioTargetBinary.ProjectType.LIB;
                     }
+                    DefaultVisualStudioProject vsProject = extension.getProjectRegistry().createProject(project.getName() + projectType.getSuffix(), cppLibrary.getName());
+                    vsProject.getSourceFiles().from(cppLibrary.getCppSource());
+                    vsProject.getHeaderFiles().from(cppLibrary.getHeaderFiles());
+                }
+                cppLibrary.getBinaries().whenElementFinalized(CppSharedLibrary.class, library -> {
+                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
                 });
-                cppLibrary.getBinaries().whenElementFinalized(CppStaticLibrary.class, new Action<CppStaticLibrary>() {
-                    @Override
-                    public void execute(CppStaticLibrary library) {
-                        extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
-                    }
+                cppLibrary.getBinaries().whenElementFinalized(CppStaticLibrary.class, library -> {
+                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
                 });
-            }
+            });
         });
     }
 
@@ -157,32 +150,19 @@ public class VisualStudioPlugin extends IdePlugin {
             project.getPluginManager().apply(VisualStudioPluginRootRules.class);
         }
 
-        project.getPlugins().withType(ComponentModelBasePlugin.class).all(new Action<ComponentModelBasePlugin>() {
-            @Override
-            public void execute(ComponentModelBasePlugin componentModelBasePlugin) {
-                project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
-            }
-        });
+        project.getPlugins().withType(ComponentModelBasePlugin.class).all(it -> project.getPluginManager().apply(VisualStudioPluginProjectRules.class));
     }
 
     private void includeBuildFileInProject(VisualStudioExtensionInternal extension) {
-        extension.getProjectRegistry().all(new Action<DefaultVisualStudioProject>() {
-            @Override
-            public void execute(DefaultVisualStudioProject vsProject) {
-                if (project.getBuildFile() != null) {
-                    vsProject.addSourceFile(project.getBuildFile());
-                }
+        extension.getProjectRegistry().all(vsProject -> {
+            if (project.getBuildFile() != null) {
+                vsProject.addSourceFile(project.getBuildFile());
             }
         });
     }
 
     private void createTasksForVisualStudio(VisualStudioExtensionInternal extension) {
-        extension.getProjectRegistry().all(new Action<DefaultVisualStudioProject>() {
-            @Override
-            public void execute(DefaultVisualStudioProject vsProject) {
-                addTasksForVisualStudioProject(vsProject);
-            }
-        });
+        extension.getProjectRegistry().all(vsProject -> addTasksForVisualStudioProject(vsProject));
 
         if (isRoot()) {
             VisualStudioRootExtension rootExtension = (VisualStudioRootExtension) extension;
@@ -204,13 +184,10 @@ public class VisualStudioPlugin extends IdePlugin {
     private void configureCleanTask() {
         final TaskProvider<Delete> cleanTask = (TaskProvider<Delete>) getCleanTask();
 
-        cleanTask.configure(new Action<Delete>() {
-            @Override
-            public void execute(Delete cleanTask) {
-                cleanTask.delete(project.getTasks().withType(GenerateSolutionFileTask.class));
-                cleanTask.delete(project.getTasks().withType(GenerateFiltersFileTask.class));
-                cleanTask.delete(project.getTasks().withType(GenerateProjectFileTask.class));
-            }
+        cleanTask.configure(it -> {
+            it.delete(project.getTasks().withType(GenerateSolutionFileTask.class));
+            it.delete(project.getTasks().withType(GenerateFiltersFileTask.class));
+            it.delete(project.getTasks().withType(GenerateProjectFileTask.class));
         });
     }
 

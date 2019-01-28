@@ -39,32 +39,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 abstract public class AbstractCppBinaryVisualStudioTargetBinary implements VisualStudioTargetBinary {
+    public static final VersionNumber DEFAULT_SDK_VERSION = VersionNumber.parse("8.1");
+    public static final VersionNumber DEFAULT_VISUAL_STUDIO_VERSION = VersionNumber.version(14);
     protected final String projectName;
     private final String projectPath;
     private final CppComponent component;
-    private final VersionNumber visualStudioVersion;
-    private final VersionNumber windowsSdkVersion;
 
-    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppBinary binary) {
+    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component) {
         this.projectName = projectName;
         this.projectPath = projectPath;
         this.component = component;
-        PlatformToolProvider provider = ((DefaultCppBinary) binary).getPlatformToolProvider();
-        CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
-        if (compilerMetadata instanceof VisualCppMetadata) {
-            visualStudioVersion = ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
-        } else {
-            // Assume VS 2015
-            visualStudioVersion = VersionNumber.version(14);
-        }
-        SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
-        if (systemLibraries instanceof WindowsSdkLibraries) {
-            WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
-            windowsSdkVersion = sdkLibraries.getSdkVersion();
-        } else {
-            // Assume 8.1
-            windowsSdkVersion = VersionNumber.parse("8.1");
-        }
     }
 
     abstract CppBinary getBinary();
@@ -108,12 +92,31 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public VersionNumber getVisualStudioVersion() {
-        return visualStudioVersion;
+        PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
+        if (provider.isAvailable()) {
+            CompilerMetadata compilerMetadata = provider.getCompilerMetadata(ToolType.CPP_COMPILER);
+            if (compilerMetadata instanceof VisualCppMetadata) {
+                return ((VisualCppMetadata) compilerMetadata).getVisualStudioVersion();
+            }
+        }
+
+        // Assume VS 2015
+        return DEFAULT_VISUAL_STUDIO_VERSION;
     }
 
     @Override
     public VersionNumber getSdkVersion() {
-        return windowsSdkVersion;
+        PlatformToolProvider provider = ((DefaultCppBinary) getBinary()).getPlatformToolProvider();
+        if (provider.isAvailable()) {
+            SystemLibraries systemLibraries = provider.getSystemLibraries(ToolType.CPP_COMPILER);
+            if (systemLibraries instanceof WindowsSdkLibraries) {
+                WindowsSdkLibraries sdkLibraries = (WindowsSdkLibraries) systemLibraries;
+                return sdkLibraries.getSdkVersion();
+            }
+        }
+
+        // Assume 8.1
+        return DEFAULT_SDK_VERSION;
     }
 
     @Override

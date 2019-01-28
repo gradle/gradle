@@ -59,7 +59,7 @@ public class S3Client {
     }
 
     /**
-     * Constructor without privided credentials to deleguate to the default provider chain.
+     * Constructor without privided credentials to delegate to the default provider chain.
      * @since 3.1
      */
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {

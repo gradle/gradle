@@ -84,44 +84,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
-        failure.assertHasCause("No tool chain is available to build Swift")
-    }
-
-    // TODO Move this to AbstractSwiftComponentIntegrationTest when xcode test works properly with architecture
-    def "fails when custom non-host architecture is specified"() {
-        given:
-        makeSingleProject()
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.os('${currentOsFamilyName}').architecture('foo')]
-            }
-        """
-
-        expect:
-        fails taskNameToAssembleDevelopmentBinary
-        failure.assertHasCause("No tool chain is available to build Swift")
-    }
-
-    // TODO Move this to AbstractSwiftComponentIntegrationTest when xcode test works properly with architecture
-    def "can build current architecture when other, non-buildable architectures are specified"() {
-        given:
-        makeSingleProject()
-        settingsFile << "rootProject.name = '${componentUnderTest.projectName}'"
-        componentUnderTest.writeToProject(testDirectory)
-
-        and:
-        buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.host()]
-            }
-        """
-
-        expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        failure.assertHasCause("No tool chain has support to build Swift")
     }
 
     // TODO Move this to AbstractCppComponentIntegrationTest when unit test works properly with architecture
@@ -132,15 +95,18 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         componentUnderTest.writeToProject(testDirectory)
 
         and:
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}", "machines.${currentHostOperatingSystemFamilyDsl}")
         buildFile << """
-            ${componentUnderTestDsl} {
-                targetMachines = [machines.os('${currentOsFamilyName}').architecture('foo'), machines.os('${currentOsFamilyName}'), machines.os('${currentOsFamilyName}')]
+            task verifyTargetMachines {
+                doLast {
+                    assert ${componentUnderTestDsl}.targetMachines.get().size() == 1
+                    assert ${componentUnderTestDsl}.targetMachines.get() == [machines.${currentHostOperatingSystemFamilyDsl}] as Set
+                }
             }
         """
 
         expect:
-        succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        succeeds "verifyTargetMachines"
     }
 
     protected abstract List<String> getTasksToAssembleDevelopmentBinary(String variant = "")
@@ -174,6 +140,4 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest() {
         return getTasksToAssembleDevelopmentBinary()
     }
-
-    protected abstract SourceElement getComponentUnderTest()
 }

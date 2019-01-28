@@ -108,7 +108,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.buildOperationExecutor = buildOperationExecutor;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.artifactNotationParser = new PublishArtifactNotationParserFactory(instantiator, dependencyMetaDataProvider, taskResolver).create();
-        this.capabilityNotationParser = new CapabilityNotationParserFactory().create();
+        this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.documentationRegistry = documentationRegistry;

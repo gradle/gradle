@@ -18,8 +18,8 @@ ext {
 }
 
 task packageClasses(type: Zip) {
-    appendix = "classes"
-    destinationDir = file(archivesDirPath)
+    archiveAppendix = "classes"
+    destinationDirectory = file(archivesDirPath)
 
     from compileJava
 }

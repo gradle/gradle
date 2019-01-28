@@ -33,7 +33,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibrary;
@@ -41,6 +40,7 @@ import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.JavaPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
@@ -51,12 +51,10 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -336,7 +334,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         NamedDomainObjectContainer<ConfigurationVariant> runtimeVariants = publications.getVariants();
         ConfigurationVariant classesVariant = runtimeVariants.create("classes");
         classesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
-        classesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
+        classesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
             @Override
             public File getFile() {
                 return javaCompile.get().getDestinationDir();
@@ -344,7 +342,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
         ConfigurationVariant resourcesVariant = runtimeVariants.create("resources");
         resourcesVariant.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
-        resourcesVariant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
+        resourcesVariant.artifact(new JavaPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
             @Override
             public File getFile() {
                 return processResources.get().getDestinationDir();
@@ -480,45 +478,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         public Configuration getCompileDependencies() {
             return convention.getProject().getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
-        }
-    }
-
-    /**
-     * A custom artifact type which allows the getFile call to be done lazily only when the
-     * artifact is actually needed.
-     */
-    abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
-        private final String type;
-
-        IntermediateJavaArtifact(String type, Object task) {
-            super(task);
-            this.type = type;
-        }
-
-        @Override
-        public String getName() {
-            return getFile().getName();
-        }
-
-        @Override
-        public String getExtension() {
-            return "";
-        }
-
-        @Override
-        public String getType() {
-            return type;
-        }
-
-        @Nullable
-        @Override
-        public String getClassifier() {
-            return null;
-        }
-
-        @Override
-        public Date getDate() {
-            return null;
         }
     }
 

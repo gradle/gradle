@@ -323,6 +323,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
 
     if (BuildEnvironment.javaVersion.isJava11Compatible()) {
         options.addBooleanOption('html4', true)
+        options.addBooleanOption('-no-module-directories', true)
         doLast {
             // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK's side
             // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it

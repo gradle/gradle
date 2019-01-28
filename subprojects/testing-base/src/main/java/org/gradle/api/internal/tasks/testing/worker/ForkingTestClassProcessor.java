@@ -163,7 +163,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                     + documentationRegistry.getDocumentationFor("java_testing", "sec:test_execution"), e.getCause());
             }
         } finally {
-            completion.leaseFinish();
+            if (completion!=null) {
+                completion.leaseFinish();
+            }
         }
     }
 

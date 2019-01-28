@@ -119,8 +119,8 @@ class DefaultPlayToolChainTest extends Specification {
         "closure-compiler"     | _
     }
 
-    private void dependencyAvailableIfNotFailed(String dependency, String failedDepenency) {
-        if (dependency == failedDepenency) {
+    private void dependencyAvailableIfNotFailed(String dependency, String failedDependency) {
+        if (dependency == failedDependency) {
             dependencyNotAvailable(dependency)
         } else {
             dependencyAvailable(dependency)

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils
 
 class MavenScope {
     String name
+    Map<String, MavenDependency> optionalDependencies = [:]
     Map<String, MavenDependency> dependencies = [:]
     Map<String, MavenDependency> dependencyManagement = [:]
 
@@ -34,10 +35,14 @@ class MavenScope {
     }
 
     void assertDependsOn(String... expected) {
+        assertDependencies(dependencies, expected)
+    }
+
+    private void assertDependencies(Map<String, MavenDependency> dependencies, String... expected) {
         assert dependencies.size() == expected.length
         expected.each {
             String key = StringUtils.substringBefore(it, "@")
-            def dependency = expectDependency(key)
+            def dependency = expectDependency(key, dependencies)
 
             String type = null
             if (it != key) {
@@ -45,6 +50,10 @@ class MavenScope {
             }
             assert dependency.hasType(type)
         }
+    }
+
+    void assertOptionalDependencies(String... expected) {
+        assertDependencies(optionalDependencies, expected)
     }
 
     void assertDependencyManagement(String... expected) {
@@ -66,10 +75,10 @@ class MavenScope {
         dep.exclusions.contains(exclusion)
     }
 
-    MavenDependency expectDependency(String key) {
-        final dependency = dependencies[key]
+    MavenDependency expectDependency(String key, Map<String, MavenDependency> lookup = dependencies) {
+        final dependency = lookup[key]
         if (dependency == null) {
-            throw new AssertionError("Could not find expected dependency $key. Actual: ${dependencies.values()}")
+            throw new AssertionError("Could not find expected dependency $key. Actual: ${lookup.values()}")
         }
         return dependency
     }

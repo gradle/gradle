@@ -95,11 +95,11 @@ public class DefaultNativePlatform implements NativePlatformInternal {
 
     private static class HostPlatform extends DefaultNativePlatform {
         HostPlatform() {
-            super("host", DefaultNativePlatform.getCurrentOperatingSystem(), DefaultNativePlatform.getCurrentArchitecture());
+            super("host:" + DefaultNativePlatform.getCurrentArchitecture().getName(), DefaultNativePlatform.getCurrentOperatingSystem(), DefaultNativePlatform.getCurrentArchitecture());
         }
 
         HostPlatform(ArchitectureInternal architecture) {
-            super("host", DefaultNativePlatform.getCurrentOperatingSystem(), architecture);
+            super("host:" + architecture.getName(), DefaultNativePlatform.getCurrentOperatingSystem(), architecture);
         }
 
         @Override

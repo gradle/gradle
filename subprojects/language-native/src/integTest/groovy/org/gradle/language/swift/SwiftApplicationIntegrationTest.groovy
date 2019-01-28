@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -475,17 +476,17 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         buildFile << """
             project(':app') {
                 apply plugin: 'swift-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
-                    targetMachines = [machines.macOS, machines.linux]
+                    targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}]
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                 }
             }
             project(':greeter') {
                 apply plugin: 'swift-library'
                 library {
-                    targetMachines = [machines.host().architecture('foo')]
+                    targetMachines = [machines.os('os-family')]
                 }
             }
         """
@@ -497,7 +498,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         and:
         failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
+        failure.assertHasCause("Unable to find a matching configuration of project :greeter")
     }
 
     def "can compile and link against a static library"() {

@@ -39,7 +39,7 @@ abstract class AbstractCppPublishingIntegrationTest extends AbstractInstalledToo
         mainModule.assertArtifactsPublished(getMainModuleArtifacts(module, version))
         assert mainModule.parsedPom.scopes.size() == apiDependencies.isEmpty() ? 0 : 1
         if (!apiDependencies.isEmpty()) {
-            mainModule.parsedPom.scopes.runtime.assertDependsOn(apiDependencies as String[])
+            mainModule.parsedPom.scopes.compile.assertDependsOn(apiDependencies as String[])
         }
 
         def mainMetadata = mainModule.parsedModuleMetadata

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -27,32 +26,20 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
-public class ConfigurationUsageContext extends AbstractUsageContext {
-    private final String name;
-    private final String configurationName;
-    private final ConfigurationContainer configurations;
+public abstract class AbstractConfigurationUsageContext extends AbstractUsageContext {
+    protected final String name;
     private DomainObjectSet<ModuleDependency> dependencies;
     private DomainObjectSet<DependencyConstraint> dependencyConstraints;
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-
-    public ConfigurationUsageContext(String usageName,
-                                     String name,
-                                     String configurationName,
-                                     Set<PublishArtifact> artifacts,
-                                     ConfigurationContainer configurations,
-                                     ObjectFactory objectFactory,
-                                     ImmutableAttributesFactory attributesFactory) {
-        super(usageName, artifacts, objectFactory, attributesFactory);
+    AbstractConfigurationUsageContext(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
+        super(attributes, artifacts);
         this.name = name;
-        this.configurationName = configurationName;
-        this.configurations = configurations;
     }
 
     @Override
@@ -94,7 +81,5 @@ public class ConfigurationUsageContext extends AbstractUsageContext {
         return excludeRules;
     }
 
-    private Configuration getConfiguration() {
-        return configurations.getByName(configurationName);
-    }
+    protected abstract Configuration getConfiguration();
 }

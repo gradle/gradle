@@ -81,7 +81,7 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    def "uses substituted dependency when same root build dependency is resolved at both configuration and executiong time"() {
+    def "uses substituted dependency when same root build dependency is resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:buildB:1.0'
 

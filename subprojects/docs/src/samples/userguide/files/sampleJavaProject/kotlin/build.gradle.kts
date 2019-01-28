@@ -16,8 +16,8 @@ dependencies {
 val archivesDirPath by extra { "$buildDir/archives" }
 
 tasks.register<Zip>("packageClasses") {
-    appendix = "classes"
-    destinationDir = file(archivesDirPath)
+    archiveAppendix.set("classes")
+    destinationDirectory.set(file(archivesDirPath))
 
     from(tasks.compileJava)
 }

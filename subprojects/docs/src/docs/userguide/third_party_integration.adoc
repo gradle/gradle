@@ -34,7 +34,13 @@ NetBeans::
 Add the http://plugins.netbeans.org/plugin/44510/gradle-support[Gradle Support] plugin to NetBeans in order to import and run projects with Gradle builds.
 
 Visual Studio::
-Gradle comes with a <<native_software.adoc#native_binaries:visual_studio,Visual Studio plugin>> that will generate link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioProject.html[VisualStudioProject] and link:{groovyDslPath}/org.gradle.ide.visualstudio.VisualStudioSolution.html[VisualStudioSolution] files for your native projects.
+For developing C++ projects, Gradle comes with a <<cpp_plugins.adoc#cpp:ide,Visual Studio plugin>>.
+
+Xcode::
+For developing C++ projects, Gradle comes with a <<cpp_plugins.adoc#cpp:ide,Xcode plugin>>.
+
+CLion::
+JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/[C++ projects with Gradle].
 
 == Continuous integration
 

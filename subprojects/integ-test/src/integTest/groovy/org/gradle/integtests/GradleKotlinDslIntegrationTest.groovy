@@ -197,4 +197,45 @@ task("dumpKotlinBuildScriptModelClassPath") {
         outputContains 'cathedral'
         outputContains '[foo, bar, baz, bazar]'
     }
+
+    def 'can use Kotlin lambda as input property'() {
+        given:
+        buildFile << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+            import javax.inject.Inject
+
+            open class PrintInputToFile @Inject constructor(objects: ObjectFactory): DefaultTask() {
+                @get:Input
+                val input = { project.property("inputString") }
+                @get:OutputFile
+                val outputFile: RegularFileProperty = objects.fileProperty() 
+
+                @TaskAction fun run() {
+                    outputFile.get().asFile.writeText(input() as String)
+                }
+            }
+
+            task<PrintInputToFile>("writeInputToFile") {
+                outputFile.set(project.layout.buildDirectory.file("output.txt"))
+            }
+            
+        """
+        def taskName = ":writeInputToFile"
+
+        when:
+        run taskName, '-PinputString=string1'
+        then:
+        executedAndNotSkipped(taskName)
+
+        when:
+        run taskName, '-PinputString=string1'
+        then:
+        skipped(taskName)
+
+        when:
+        run taskName, '-PinputString=string2'
+        then:
+        executedAndNotSkipped(taskName)
+    }
 }

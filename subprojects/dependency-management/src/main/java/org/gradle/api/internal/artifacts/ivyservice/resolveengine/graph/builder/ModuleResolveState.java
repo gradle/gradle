@@ -65,6 +65,13 @@ class ModuleResolveState implements CandidateModule {
     private final PendingDependencies pendingDependencies;
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
+
+    // This field caches an arbitrary edge attributes, used when computing the attributes
+    // of selection of a constraint, in order to make sure we choose a "variant of the constraint"
+    // which is compatible with edges. In theory we shouldn't select a variant for constraints, but
+    // since they are represented as node states, it's required
+    private ImmutableAttributes nonConstraintAttributes = null;
+
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
@@ -85,7 +92,7 @@ class ModuleResolveState implements CandidateModule {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.resolveOptimizations = resolveOptimizations;
-        this.pendingDependencies = new PendingDependencies();
+        this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
     }
 
@@ -278,6 +285,7 @@ class ModuleResolveState implements CandidateModule {
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
+        nonConstraintAttributes = null;
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
@@ -302,13 +310,25 @@ class ModuleResolveState implements CandidateModule {
         return attributesFactory.concat(mergedConstraintAttributes, attributes);
     }
 
+    ImmutableAttributes mergeConstraintAttributesWithHardDependencyAttributes(ImmutableAttributes constraintAttributes) {
+        if (nonConstraintAttributes != null) {
+            return attributesFactory.concat(nonConstraintAttributes, constraintAttributes);
+        }
+        return constraintAttributes;
+    }
+
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
             DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
-            if (dependencyMetadata.isConstraint()) {
-                ComponentSelector selector = dependencyMetadata.getSelector();
-                ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
-                dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
+            boolean constraint = dependencyMetadata.isConstraint();
+            if (nonConstraintAttributes == null && !constraint) {
+                nonConstraintAttributes = ((AttributeContainerInternal) selectorState.getRequested().getAttributes()).asImmutable();
+            } else {
+                if (constraint) {
+                    ComponentSelector selector = dependencyMetadata.getSelector();
+                    ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
+                    dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
+                }
             }
         } catch (AttributeMergingException e) {
             attributeMergingError = e;

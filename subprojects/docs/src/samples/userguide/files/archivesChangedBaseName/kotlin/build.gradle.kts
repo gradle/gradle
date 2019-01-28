@@ -10,15 +10,15 @@ val myZip by tasks.registering(Zip::class) {
 }
 
 val myOtherZip by tasks.registering(Zip::class) {
-    appendix = "wrapper"
-    classifier = "src"
+    archiveAppendix.set("wrapper")
+    archiveClassifier.set("src")
     from("somedir")
 }
 
 tasks.register("echoNames") {
     doLast {
         println("Project name: ${project.name}")
-        println(myZip.get().archiveName)
-        println(myOtherZip.get().archiveName)
+        println(myZip.get().archiveFileName.get())
+        println(myOtherZip.get().archiveFileName.get())
     }
 }

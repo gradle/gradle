@@ -42,7 +42,7 @@ public class CachingDirectedGraphWalker<N, T> {
     private final Map<N, Set<T>> cachedNodeValues = new HashMap<N, Set<T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
-        this.graph = new GraphWithEmpyEdges<N, T>(graph);
+        this.graph = new GraphWithEmptyEdges<N, T>(graph);
     }
 
     public CachingDirectedGraphWalker(DirectedGraphWithEdgeValues<N, T> graph) {
@@ -197,10 +197,10 @@ public class CachingDirectedGraphWalker<N, T> {
         }
     }
 
-    private static class GraphWithEmpyEdges<N, T> implements DirectedGraphWithEdgeValues<N, T> {
+    private static class GraphWithEmptyEdges<N, T> implements DirectedGraphWithEdgeValues<N, T> {
         private final DirectedGraph<N, T> graph;
 
-        public GraphWithEmpyEdges(DirectedGraph<N, T> graph) {
+        public GraphWithEmptyEdges(DirectedGraph<N, T> graph) {
             this.graph = graph;
         }
 

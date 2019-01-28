@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.DefaultResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.tasks.FinalizeAction;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -151,7 +151,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact, ResolvableArti
 
     @Override
     public boolean isResolveSynchronously() {
-        if (artifactId instanceof LocalComponentArtifactMetadata) {
+        if (artifactId.getComponentIdentifier() instanceof ProjectComponentIdentifier) {
             // Don't bother resolving local components asynchronously
             return true;
         }

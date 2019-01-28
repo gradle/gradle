@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -78,6 +79,8 @@ public class NodeState implements DependencyGraphNode {
     private List<EdgeState> virtualEdges;
     private boolean queued;
     private boolean evicted;
+    private Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
+    private boolean virtualPlatformNeedsRefresh;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -205,13 +208,21 @@ public class NodeState implements DependencyGraphNode {
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
         ModuleExclusion resolutionFilter = getModuleResolutionFilter(incomingEdges);
 
-        // Check if the was previously traversed with the same net exclusion
-        if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
-            // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
-            // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
-            LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
-            previousTraversalExclusions = resolutionFilter;
-            return;
+        // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
+        if (!isVirtualPlatformNeedsRefresh()) {
+            // Check if node was previously traversed with the same net exclusion when not a virtual platform
+            if (previousTraversalExclusions != null && previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
+                if (hasNewConstraints()) {
+                    // Previously traversed but new constraints no longer pending, so partial traversing
+                    visitAdditionalConstraints(discoveredEdges);
+                } else {
+                    // Was previously traversed, and no change to the set of modules that are linked by outgoing edges.
+                    // Don't need to traverse again, but hang on to the new filter since it may change the set of excluded artifacts.
+                    LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
+                }
+                previousTraversalExclusions = resolutionFilter;
+                return;
+            }
         }
 
         // Clear previous traversal state, if any
@@ -221,6 +232,14 @@ public class NodeState implements DependencyGraphNode {
 
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
+    }
+
+    private boolean hasNewConstraints() {
+        return upcomingNoLongerPendingConstraints != null;
+    }
+
+    private boolean isVirtualPlatformNeedsRefresh() {
+        return virtualPlatformNeedsRefresh;
     }
 
     /**
@@ -256,10 +275,7 @@ public class NodeState implements DependencyGraphNode {
                 }
                 dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                 if (!pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState)) {
-                    EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
-                    outgoingEdges.add(dependencyEdge);
-                    discoveredEdges.add(dependencyEdge);
-                    dependencyEdge.getSelector().use();
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter);
                 }
             }
             previousTraversalExclusions = resolutionFilter;
@@ -269,6 +285,31 @@ public class NodeState implements DependencyGraphNode {
             // This way, all edges of the node will be re-processed.
             pendingDepsVisitor.complete();
         }
+    }
+
+    private void createAndLinkEdgeState(DependencyState dependencyState, Collection<EdgeState> discoveredEdges, ModuleExclusion resolutionFilter) {
+        EdgeState dependencyEdge = new EdgeState(this, dependencyState, resolutionFilter, resolveState);
+        outgoingEdges.add(dependencyEdge);
+        discoveredEdges.add(dependencyEdge);
+        dependencyEdge.getSelector().use();
+    }
+
+    /**
+     * Iterate over the dependencies originating in this node, adding only the constraints listed
+     * in upcomingNoLongerPendingConstraints
+     * @param discoveredEdges
+     */
+    private void visitAdditionalConstraints(Collection<EdgeState> discoveredEdges) {
+        for (DependencyMetadata dependency : metaData.getDependencies()) {
+            if (dependency.isConstraint()) {
+                DependencyState dependencyState = new DependencyState(dependency, resolveState.getComponentSelectorConverter());
+                if (upcomingNoLongerPendingConstraints.contains(dependencyState.getModuleIdentifier())) {
+                    dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+                    createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions);
+                }
+            }
+        }
+        upcomingNoLongerPendingConstraints = null;
     }
 
     /**
@@ -457,6 +498,8 @@ public class NodeState implements DependencyGraphNode {
         }
         virtualEdges = null;
         previousTraversalExclusions = null;
+        upcomingNoLongerPendingConstraints = null;
+        virtualPlatformNeedsRefresh = false;
     }
 
     public void restart(ComponentState selected) {
@@ -490,13 +533,19 @@ public class NodeState implements DependencyGraphNode {
         removeOutgoingEdges();
     }
 
-    void resetSelectionState() {
-        if (previousTraversalExclusions != null) {
-            previousTraversalExclusions = null;
-            outgoingEdges.clear();
-            virtualEdges = null;
-            resolveState.onFewerSelected(this);
+    void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
+        if (upcomingNoLongerPendingConstraints == null) {
+            upcomingNoLongerPendingConstraints = Sets.newHashSet();
         }
+        upcomingNoLongerPendingConstraints.add(moduleIdentifier);
+        // Trigger a replay on this node, to add new constraints to graph
+        resolveState.onFewerSelected(this);
+    }
+
+    void markForVirtualPlatformRefresh() {
+        assert component.getModule().isVirtualPlatform();
+        virtualPlatformNeedsRefresh = true;
+        resolveState.onFewerSelected(this);
     }
 
     public ImmutableAttributesFactory getAttributesFactory() {

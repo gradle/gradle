@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.attributes
+package org.gradle.integtests.resolve.optional
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -24,7 +24,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTest {
+class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can select a variant providing a different capability"() {
         given:
@@ -50,7 +50,7 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapability('org:feature-1:1.0')
+                        requireCapability('org:feature-1')
                     }
                 }
             }
@@ -104,7 +104,7 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapability('org:feature-3:1.0')
+                        requireCapability('org:feature-3')
                     }
                 }
             }
@@ -119,7 +119,7 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a variant of org:foo:1.0 providing the requested capability org:feature-3:1.0:
+        failure.assertHasCause("""Unable to find a variant of org:foo:1.0 providing the requested capability org:feature-3:
    - Variant api provides org:foo:1.0
    - Variant runtime provides org:foo:1.0
    - Variant feature1 provides org:feature-1:1.0
@@ -154,7 +154,7 @@ class OptionalFeaturesIntegrationTest extends AbstractModuleDependencyResolveTes
                 conf('org:foo:1.0')
                 conf('org:foo:1.0') {
                     capabilities {
-                        requireCapabilities('org:feature-1:1.0', 'org:feature-3:1.0')
+                        requireCapabilities('org:feature-1', 'org:feature-3')
                     }
                 }
             }

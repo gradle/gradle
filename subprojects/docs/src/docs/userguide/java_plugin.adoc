@@ -543,7 +543,7 @@ To help you understand how incremental compilation works, the following provides
 * Since constants can be inlined, any change to a constant will result in Gradle recompiling all source files.
     For that reason, you should try to minimize the use of constants in your source code and replace them with static methods where possible.
 * Since source-retention annotations are not visible in bytecode, changes to a source-retention annotation will result in full recompilation.
-* You can improve incremental compilation performance by applying good software desing principles like loose coupling.
+* You can improve incremental compilation performance by applying good software design principles like loose coupling.
     For instance, if you put an interface between a concrete class and its dependents, the dependent classes are only recompiled when the interface changes, but not when the implementation changes.
 * The class analysis is cached in the project directory, so the first build after a clean checkout can be slower. Consider turning off the incremental compiler on your build server.
 

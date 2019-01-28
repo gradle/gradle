@@ -10,15 +10,15 @@ task myZip(type: Zip) {
 }
 
 task myOtherZip(type: Zip) {
-    appendix = 'wrapper'
-    classifier = 'src'
+    archiveAppendix = 'wrapper'
+    archiveClassifier = 'src'
     from 'somedir'
 }
 
 task echoNames {
     doLast {
         println "Project name: ${project.name}"
-        println myZip.archiveName
-        println myOtherZip.archiveName
+        println myZip.archiveFileName.get()
+        println myOtherZip.archiveFileName.get()
     }
 }

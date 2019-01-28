@@ -30,11 +30,11 @@ ext {
 
 task javadocJar(type: Jar) {
     from javadoc  // <1>
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
 }
 
 task unpackJavadocs(type: Copy) {
-    from zipTree(javadocJar.archivePath)  // <2>
+    from zipTree(javadocJar.archiveFile)  // <2>
     into tmpDistDir  // <3>
 }
 // end::properties[]
