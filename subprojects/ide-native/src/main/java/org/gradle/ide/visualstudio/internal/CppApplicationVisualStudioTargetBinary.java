@@ -26,7 +26,7 @@ public class CppApplicationVisualStudioTargetBinary extends AbstractCppBinaryVis
     private final CppExecutable binary;
 
     public CppApplicationVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppExecutable binary) {
-        super(projectName, projectPath, component, binary);
+        super(projectName, projectPath, component);
         this.binary = binary;
     }
 

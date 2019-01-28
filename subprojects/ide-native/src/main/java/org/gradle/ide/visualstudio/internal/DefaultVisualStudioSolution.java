@@ -37,10 +37,10 @@ import org.gradle.util.CollectionUtils;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal {
     private final String name;
@@ -106,11 +106,9 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
 
     @Input
     public Set<String> getConfigurationNames() {
-        Set<String> configurations = new LinkedHashSet<String>();
-        for (VisualStudioProjectMetadata projectMetadata : getProjects()) {
-            configurations.addAll(projectMetadata.getConfigurations());
-        }
-        return configurations;
+        return getProjects().stream()
+                .flatMap(it -> it.getConfigurations().stream().map(VisualStudioProjectConfigurationMetadata::getName))
+                .collect(Collectors.toSet());
     }
 
     @Nested

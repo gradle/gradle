@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode
 
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override
@@ -29,4 +31,39 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
 
     @Override
     protected abstract CppSourceElement getComponentUnderTest()
+
+    @Requires(TestPrecondition.XCODE)
+    def "returns meaningful errors from xcode when component product is unbuildable due architecture"() {
+        useXcodebuildTool()
+
+        given:
+        makeSingleProject()
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')")
+        buildFile << configureToolChainSupport('foo')
+
+        componentUnderTest.writeToProject(testDirectory)
+        succeeds("xcode")
+
+        when:
+        def result = xcodebuild
+                .withProject(rootXcodeProject)
+                .withScheme("App")
+                .fails()
+
+        then:
+        result.assertHasCause('No tool chain is available to build C++')
+    }
+
+    protected String configureToolChainSupport(String architecture) {
+        return """
+            model {
+                toolChains {
+                    toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                        path "/not/found"
+                        target("host:${architecture}")
+                    }
+                }
+            }
+        """
+    }
 }

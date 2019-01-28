@@ -53,7 +53,7 @@ public class VirtualPlatformState {
                 // of the platform was discovered. In this case, we need to restart the selection,
                 // or some members will not be upgraded
                 for (NodeState nodeState : selected.getNodes()) {
-                    nodeState.resetSelectionState();
+                    nodeState.markForVirtualPlatformRefresh();
                 }
             }
             hasForcedParticipatingModule |= isParticipatingModuleForced(state);
