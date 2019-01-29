@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.reflect;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.reflect.InjectionPointQualifier;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -26,14 +25,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a property that should receive the <em>parameter object</em> of the artifact transform.
+ * The annotated annotation can be used to inject elements of the supported types.
+ *
+ * <p>If no {@code supportedTypes} are supplied, all types are supported.</p>
  *
  * @since 5.3
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.ANNOTATION_TYPE})
 @Documented
-@InjectionPointQualifier
-public @interface TransformParameters {
+public @interface InjectionPointQualifier {
+    Class<?>[] supportedTypes() default {};
 }

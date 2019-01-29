@@ -25,8 +25,8 @@ import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.Workspace;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -147,13 +147,13 @@ public class DefaultTransformer implements Transformer {
         public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder
-                .add(new InjectionPoint(Workspace.class, File.class, outputDir))
-                .add(new InjectionPoint(PrimaryInput.class, File.class, inputFile));
+                .add(new InjectionPoint(Workspace.class, outputDir))
+                .add(new InjectionPoint(PrimaryInput.class, inputFile));
             if (parameters != null) {
                 builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(new InjectionPoint(PrimaryInputDependencies.class, FileCollection.class, artifactTransformDependencies.getFiles()));
+                builder.add(new InjectionPoint(PrimaryInputDependencies.class, artifactTransformDependencies.getFiles()));
             }
             this.injectionPoints = builder.build();
         }
@@ -203,6 +203,18 @@ public class DefaultTransformer implements Transformer {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
+            }
+
+            public InjectionPoint(Class<? extends Annotation> annotation, Object valueToInject) {
+                this(annotation, determineTypeFromAnnotation(annotation), valueToInject);
+            }
+
+            private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
+                Class<?>[] supportedTypes = annotation.getAnnotation(InjectionPointQualifier.class).supportedTypes();
+                if (supportedTypes.length != 1) {
+                    throw new IllegalArgumentException("Cannot determine supported type for annotation " + annotation.getName());
+                }
+                return supportedTypes[0];
             }
 
             public Class<? extends Annotation> getAnnotation() {

@@ -17,6 +17,8 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.reflect.InjectionPointQualifier;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -36,5 +38,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
+@InjectionPointQualifier(supportedTypes = FileCollection.class)
 public @interface PrimaryInputDependencies {
 }
