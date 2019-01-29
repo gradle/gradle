@@ -31,6 +31,8 @@ withCompileOnlyGradleApiModulesWithParameterNames(":plugins")
 
 dependencies {
 
+    api(project(":distributionsDependencies"))
+
     compile(project(":kotlinDsl"))
 
     testImplementation(project(":kotlinDslTestFixtures"))

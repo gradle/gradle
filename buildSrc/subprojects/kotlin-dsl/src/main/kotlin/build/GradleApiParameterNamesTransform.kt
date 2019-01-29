@@ -58,7 +58,6 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
     val jarWithGradleApiParameterNames = "jar-with-gradle-api-parameter-names"
 
     val gradleApiWithParameterNames by configurations.registering {
-        exclude(module = "sisu-inject-plexus")
         attributes {
             attribute(artifactType, jarWithGradleApiParameterNames)
         }

@@ -35,6 +35,8 @@ withCompileOnlyGradleApiModulesWithParameterNames(":toolingApi")
 
 dependencies {
 
+    api(project(":distributionsDependencies"))
+
     compile(project(":kotlinDslToolingModels"))
 
     compile(futureKotlin("stdlib-jdk8"))
