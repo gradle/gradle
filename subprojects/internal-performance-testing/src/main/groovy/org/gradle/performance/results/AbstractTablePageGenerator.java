@@ -43,7 +43,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
     protected final Set<ScenarioBuildResultData> scenarios;
     protected final ResultsStore resultsStore;
-    private final String commitId = Git.current().getCommitId();
+    protected final String commitId = Git.current().getCommitId();
 
     public AbstractTablePageGenerator(ResultsStore resultsStore, File resultJson) {
         this.resultsStore = resultsStore;

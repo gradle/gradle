@@ -160,9 +160,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             scenarios.each {
                 schedule(it, coordinatorBuild?.lastChangeId)
             }
+            waitForTestsCompletion()
         }
-
-        waitForTestsCompletion()
 
         checkForErrors()
     }

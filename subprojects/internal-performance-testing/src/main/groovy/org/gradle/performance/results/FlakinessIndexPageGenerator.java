@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Sets;
-import org.gradle.performance.util.Git;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +39,6 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(comparing(ScenarioBuildResultData::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
-    private final String commitId = Git.current().getCommitId();
 
     public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
         super(resultsStore, resultJson);
