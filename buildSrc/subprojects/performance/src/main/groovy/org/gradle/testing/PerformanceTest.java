@@ -55,7 +55,7 @@ public class PerformanceTest extends DistributionTest {
     private String runs;
     private String checks;
     private String channel;
-    private String resultStoreClass = "org.gradle.performance.results.AllResultsStore";
+    private String reportGeneratorClass = "org.gradle.performance.results.AllResultsStore";
     private boolean flamegraphs;
 
     private final Map<String, String> databaseParameters = new HashMap<>();
@@ -159,15 +159,15 @@ public class PerformanceTest extends DistributionTest {
         return channel;
     }
 
-    public void setResultStoreClass(String resultStoreClass) {
-        this.resultStoreClass = resultStoreClass;
+    public void setReportGeneratorClass(String reportGeneratorClass) {
+        this.reportGeneratorClass = reportGeneratorClass;
     }
 
     @Nullable
     @Optional
     @Input
-    public String getResultStoreClass() {
-        return resultStoreClass;
+    public String getReportGeneratorClass() {
+        return reportGeneratorClass;
     }
 
     @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")

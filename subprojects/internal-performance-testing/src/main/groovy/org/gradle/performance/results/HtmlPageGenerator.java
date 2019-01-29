@@ -79,7 +79,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             .end();
     }
 
-    protected void footer(Html html) {
+    protected static void footer(Html html) {
         html.div()
             .id("footer")
             .text(String.format("Generated at %s by %s", executionTimestamp(), GradleVersion.current()))

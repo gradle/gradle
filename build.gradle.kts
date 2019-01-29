@@ -97,7 +97,7 @@ buildTypes {
     }
 
     create("distributedPerformanceTests") {
-        tasks("performance:distributedPerformanceTest")
+        tasks("performance:distributedFlakinessDetection")
     }
 
     create("distributedPerformanceExperiments") {

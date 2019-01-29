@@ -21,7 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheMetadata
 import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
+@Ignore
 @IgnoreVersions({ it.artifactCacheLayoutVersion != DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION })
 class SameCacheUsageCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
     def "incurs zero remote requests when cache version not upgraded"() {

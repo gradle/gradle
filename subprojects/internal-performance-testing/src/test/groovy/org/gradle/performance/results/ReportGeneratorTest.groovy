@@ -22,9 +22,10 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class ReportGeneratorTest extends ResultSpecification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
-    final ReportGenerator generator = new ReportGenerator()
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
     final dbFile = tmpDir.file("results")
     final reportDir = tmpDir.file("report")
     final resultsJson = tmpDir.file('results.json')
@@ -36,13 +37,19 @@ class ReportGeneratorTest extends ResultSpecification {
     def "generates report"() {
         setup:
         def store = new CrossVersionResultsStore(dbFile.name)
+        def generator = new DefaultReportGenerator() {
+            @Override
+            ResultsStore getResultsStore() {
+                return store
+            }
+        }
         def result2 = crossVersionResults()
         result2.current << operation()
         result2.current << operation()
         store.report(result2)
 
         when:
-        generator.generate(store, reportDir, resultsJson, 'testProject')
+        generator.generate(reportDir, resultsJson, 'testProject')
 
         then:
         reportDir.file("index.html").isFile()

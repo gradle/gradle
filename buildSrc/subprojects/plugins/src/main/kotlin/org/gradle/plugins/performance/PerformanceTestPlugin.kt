@@ -250,7 +250,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ) {
 
-        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
+        fun create(name: String, configure: DistributedPerformanceTest.() -> Unit = {}) {
             createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
@@ -266,6 +266,14 @@ class PerformanceTestPlugin : Plugin<Project> {
             setBaselines(Config.baseLineList)
             checks = "none"
             channel = "historical"
+        }
+        create("distributedFlakinessDetection") {
+            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            setBaselines("nightly")
+            reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
+            repeat = 2
+            checks = "none"
+            channel = "flakiness-detection"
         }
     }
 
