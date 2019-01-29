@@ -23,16 +23,14 @@ import build.ParameterNamesIndex
 import org.gradle.gradlebuild.PublicApi
 
 
-val main by sourceSets.existing
+val main by sourceSets
 
 val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
-    sources.from(main.map {
-        it.allJava.matching {
-            include(PublicApi.includes)
-            exclude(PublicApi.excludes)
-        }
+    sources.from(main.allJava.matching {
+        include(PublicApi.includes)
+        exclude(PublicApi.excludes)
     })
-    classpath.from(main.map { it.compileClasspath })
+    classpath.from(main.compileClasspath)
     classpath.from(tasks.named<JavaCompile>("compileJava"))
     if (file("src/main/groovy").isDirectory) {
         classpath.from(tasks.named<GroovyCompile>("compileGroovy"))
@@ -40,6 +38,4 @@ val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
     destinationFile.set(gradlebuildJava.generatedResourcesDir.resolve("${base.archivesBaseName}-parameter-names.properties"))
 }
 
-main {
-    output.dir(gradlebuildJava.generatedResourcesDir, "builtBy" to parameterNamesIndex)
-}
+main.output.dir(gradlebuildJava.generatedResourcesDir, "builtBy" to parameterNamesIndex)
