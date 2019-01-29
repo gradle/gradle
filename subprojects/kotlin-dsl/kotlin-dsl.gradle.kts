@@ -79,14 +79,14 @@ sourceSets.main {
     }
 }
 
-val publishedPluginsVersion: String by rootProject.extra("1.1.3") // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion ="1.1.3" // TODO:kotlin-dsl
 
 tasks {
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
         embeddedKotlinVersion = kotlinVersion
-        kotlinDslPluginsVersion = publishedPluginsVersion
+        kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
     }
 
     val generateExtensions by registering {
