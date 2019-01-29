@@ -22,7 +22,7 @@ Users who simply want to understand what configuration attributes are will also 
 == Different kinds of configurations
 
 Historically, <<managing_dependency_configurations.adoc#sub:what_is_a_configuration,configurations>>  have been at the root of dependency resolution in Gradle.
-In the end, what we want to make a diffence is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
+In the end, what we want to make a difference is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
 
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files

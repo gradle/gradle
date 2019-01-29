@@ -131,7 +131,7 @@ function initializeProjectPage(report) {
             $insightDiv.fadeIn();
         }
 
-        // generates the configuration dependeny trees
+        // generates the configuration dependency trees
         var $dependencies = $('#dependencies');
         var project = report.project;
 

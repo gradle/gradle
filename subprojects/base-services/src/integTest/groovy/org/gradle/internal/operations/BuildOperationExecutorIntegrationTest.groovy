@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
 
-    def "produces sensible error when there are failures both enqueueing and running operations" () {
+    def "produces sensible error when there are failures both enqueuing and running operations" () {
         buildFile << """
             import org.gradle.internal.operations.BuildOperationExecutor
             import org.gradle.internal.operations.RunnableBuildOperation

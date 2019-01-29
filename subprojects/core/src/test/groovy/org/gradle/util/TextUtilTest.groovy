@@ -94,4 +94,23 @@ class TextUtilTest extends Specification {
         TextUtil.shorterOf("", "bb") == ""
         TextUtil.shorterOf("", "") == ""
     }
+
+    @Unroll("#camelCase to kebab = #kebabCase")
+    def kebabCase() {
+        expect:
+        TextUtil.camelToKebabCase(camelCase) == kebabCase
+
+        where:
+        camelCase   | kebabCase
+        ""          | ""
+        "foo"       | "foo"
+        "fooBar"    | "foo-bar"
+        "Foo"       | "foo"
+        "fooBarBaz" | "foo-bar-baz"
+        "ABC"       | "a-b-c"
+        "someT"     | "some-t"
+        "sT"        | "s-t"
+        "aBc"       | "a-bc"
+        "aBec"      | "a-bec"
+    }
 }

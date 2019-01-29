@@ -116,7 +116,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator, collectionCallbackActionDecorator);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention);
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
         return javaConvention;
     }
 

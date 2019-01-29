@@ -20,6 +20,8 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Specification
 
 import java.lang.annotation.Annotation
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
 
 
 class DefaultInstantiatorFactoryTest extends Specification {
@@ -58,13 +60,45 @@ class DefaultInstantiatorFactoryTest extends Specification {
         handler.annotation >> annotation
         return handler
     }
+
+    def "detects properties injected by annotation"() {
+        def scheme = instantiatorFactory.injectScheme([Annotation1, Annotation2])
+        when:
+        def instanceFactory = scheme.forType(UsesAnnotation1ForInjection)
+        then:
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1)
+        !instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
+
+        when:
+        instanceFactory = scheme.forType(UsesAnnotationsForInjection)
+        then:
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1)
+        instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
+    }
 }
 
+@Retention(RetentionPolicy.RUNTIME)
 @interface Annotation1 {
 }
 
+@Retention(RetentionPolicy.RUNTIME)
 @interface Annotation2 {
 }
 
+@Retention(RetentionPolicy.RUNTIME)
 @interface Annotation3 {
+}
+
+interface UsesAnnotation1ForInjection {
+    @Annotation1
+    String getPropertyOne()
+    @Annotation1
+    Integer getPropertyTwo()
+}
+
+interface UsesAnnotationsForInjection {
+    @Annotation1
+    String getPropertyOne()
+    @Annotation2
+    Integer getPropertyTwo()
 }

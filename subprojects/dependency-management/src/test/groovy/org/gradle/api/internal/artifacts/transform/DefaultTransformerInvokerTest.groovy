@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -77,7 +76,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         findProject(_, _) >> childProject
     }
 
-    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+    def dependencies = Stub(ArtifactTransformDependencies) {
         getFiles() >> []
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }

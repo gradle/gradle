@@ -23,18 +23,18 @@ import java.util.Arrays;
 
 public class CopyActionExecuterUtil {
 
-    public static WorkResult visit(CopyAction visitor, final Iterable<FileCopyDetailsInternal> detailses) {
+    public static WorkResult visit(CopyAction visitor, final Iterable<FileCopyDetailsInternal> details) {
         return visitor.execute(new CopyActionProcessingStream() {
             public void process(CopyActionProcessingStreamAction action) {
-                for (FileCopyDetailsInternal detailsInternal : detailses) {
+                for (FileCopyDetailsInternal detailsInternal : details) {
                     action.processFile(detailsInternal);
                 }
             }
         });
     }
 
-    public static WorkResult visit(CopyAction visitor, final FileCopyDetailsInternal... detailses) {
-        return visit(visitor, Arrays.asList(detailses));
+    public static WorkResult visit(CopyAction visitor, final FileCopyDetailsInternal... details) {
+        return visit(visitor, Arrays.asList(details));
     }
 
 }

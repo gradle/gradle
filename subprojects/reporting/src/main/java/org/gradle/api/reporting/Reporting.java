@@ -61,7 +61,7 @@ public interface Reporting<T extends ReportContainer> {
     /**
      * A {@link ReportContainer} instance.
      * <p>
-     * Implementors specify a specific implementation of {@link ReportContainer} that describes the types of reports that
+     * Implementers specify a specific implementation of {@link ReportContainer} that describes the types of reports that
      * are available.
      *
      * @return The report container

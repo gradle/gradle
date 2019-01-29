@@ -817,6 +817,23 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
+    def "fails when a -J (compiler JVM) flag is set on compilerArgs"() {
+        buildFile << '''
+            apply plugin: 'java'
+
+            compileJava {
+                options.compilerArgs = ['-J-Xdiag']
+            }
+        '''
+        file('src/main/java/Square.java') << 'public class Square extends Rectangle {}'
+
+        when:
+        fails 'compileJava'
+
+        then:
+        failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
+    }
+
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()

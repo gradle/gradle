@@ -173,10 +173,10 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         "should complain that there's no '-all' option"
 
         when:
-        run 'tasks', '-refresh-dependenciess'
+        run 'tasks', '-refresh-dependencies'
 
         then:
-        "should fail in a consistent way as with '--refresh-dependenciess'"
+        "should fail in a consistent way as with '--refresh-dependencies'"
     }
 
     def "cannot declare option for task dependency of another task"() {

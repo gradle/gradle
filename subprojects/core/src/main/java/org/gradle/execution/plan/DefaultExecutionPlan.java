@@ -86,7 +86,6 @@ import java.util.function.Consumer;
  */
 @NonNullApi
 public class DefaultExecutionPlan implements ExecutionPlan {
-    private final Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
     private final Set<TaskNode> entryTasks = new LinkedHashSet<TaskNode>();
     private final NodeMapping nodeMapping = new NodeMapping();
     private final List<Node> executionQueue = Lists.newLinkedList();
@@ -132,6 +131,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     public void addEntryTasks(Collection<? extends Task> tasks) {
         final Deque<Node> queue = new ArrayDeque<Node>();
+        Set<Node> nodesInUnknownState = Sets.newLinkedHashSet();
 
         List<Task> sortedTasks = new ArrayList<Task>(tasks);
         Collections.sort(sortedTasks);
@@ -195,7 +195,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.dependenciesProcessed();
             }
         }
-        resolveNodesInUnknownState();
+        resolveNodesInUnknownState(nodesInUnknownState);
     }
 
     private boolean nodeSatisfiesTaskFilter(Node successor) {
@@ -205,7 +205,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         return true;
     }
 
-    private void resolveNodesInUnknownState() {
+    private void resolveNodesInUnknownState(Set<Node> nodesInUnknownState) {
         List<Node> queue = Lists.newArrayList(nodesInUnknownState);
         Set<Node> visiting = Sets.newHashSet();
 
@@ -528,8 +528,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.filter = filter;
     }
 
-    public void setContinueOnFailure(boolean continueOnFailre) {
-        this.continueOnFailure = continueOnFailre;
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        this.continueOnFailure = continueOnFailure;
     }
 
     @Override

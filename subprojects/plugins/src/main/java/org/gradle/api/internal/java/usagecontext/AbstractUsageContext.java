@@ -19,31 +19,27 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.model.ObjectFactory;
 
 import java.util.Set;
 
 public abstract class AbstractUsageContext implements UsageContext {
-    private final Usage usage;
     private final ImmutableAttributes attributes;
     private final Set<PublishArtifact> artifacts;
 
-    AbstractUsageContext(String usageName, Set<PublishArtifact> artifacts, ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
-        this.usage = objectFactory.named(Usage.class, usageName);
-        this.attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, usage);
+    public AbstractUsageContext(ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
+        this.attributes = attributes;
         this.artifacts = artifacts;
+    }
+
+    @Override
+    public Usage getUsage() {
+        throw new UnsupportedOperationException("This method has been deprecated, should never be called");
     }
 
     @Override
     public AttributeContainer getAttributes() {
         return attributes;
-    }
-
-    @Override
-    public Usage getUsage() {
-        return usage;
     }
 
     public Set<PublishArtifact> getArtifacts() {

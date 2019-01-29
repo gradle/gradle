@@ -93,6 +93,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.deletedClasses("AThing")
 
         and:
-        output.contains("Annotation processor path changed")
+        output.contains("Annotation processor path has been changed")
     }
 }

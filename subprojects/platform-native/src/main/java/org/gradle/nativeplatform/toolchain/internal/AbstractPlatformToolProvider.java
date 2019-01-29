@@ -55,6 +55,11 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
+    public boolean isSupported() {
+        return true;
+    }
+
+    @Override
     public void explain(DiagnosticsVisitor visitor) {
     }
 

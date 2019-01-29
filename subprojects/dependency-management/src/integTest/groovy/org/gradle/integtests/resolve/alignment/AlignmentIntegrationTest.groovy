@@ -713,7 +713,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'
@@ -795,7 +795,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'

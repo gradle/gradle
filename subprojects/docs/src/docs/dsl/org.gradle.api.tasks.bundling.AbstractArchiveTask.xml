@@ -9,12 +9,24 @@
                 </tr>
             </thead>
             <tr>
+                <td>archiveFileName</td>
+                <td><literal><replaceable>${archiveBaseName}</replaceable>-<replaceable>${archiveAppendix}</replaceable>-<replaceable>${archiveVersion}</replaceable>-<replaceable>${archiveClassifier}</replaceable>.<replaceable>${archiveExtension}</replaceable></literal></td>
+            </tr>
+            <tr>
                 <td>archiveName</td>
-                <td><literal><replaceable>${baseName}</replaceable>-<replaceable>${appendix}</replaceable>-<replaceable>${version}</replaceable>-<replaceable>${classifier}</replaceable>.<replaceable>${extension}</replaceable></literal></td>
+                <td><literal><replaceable>${archiveBaseName}</replaceable>-<replaceable>${archiveAppendix}</replaceable>-<replaceable>${archiveVersion}</replaceable>-<replaceable>${archiveClassifier}</replaceable>.<replaceable>${archiveExtension}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>archiveFile</td>
+                <td><literal><replaceable>${destinationDirectory}</replaceable>/<replaceable>${archiveFileName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>archivePath</td>
-                <td><literal><replaceable>${destinationDir}</replaceable>/<replaceable>${archiveName}</replaceable></literal></td>
+                <td><literal><replaceable>${destinationDirectory}</replaceable>/<replaceable>${archiveFileName}</replaceable></literal></td>
+            </tr>
+            <tr>
+                <td>archiveAppendix</td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>appendix</td>
@@ -26,7 +38,7 @@
             </tr>
             <tr>
                 <td>archiveBaseName</td>
-                <td/>
+                <td><literal>project.archivesBaseName</literal></td>
             </tr>
             <tr>
                 <td>version</td>
@@ -34,7 +46,7 @@
             </tr>
             <tr>
                 <td>archiveVersion</td>
-                <td/>
+                <td><literal>project.version</literal></td>
             </tr>
             <tr>
                 <td>extension</td>
@@ -43,6 +55,10 @@
             <tr>
                 <td>archiveExtension</td>
                 <td/>
+            </tr>
+            <tr>
+                <td>archiveClassifier</td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>classifier</td>
@@ -54,7 +70,7 @@
             </tr>
             <tr>
                 <td>destinationDirectory</td>
-                <td/>
+                <td><literal>project.distsDir</literal></td>
             </tr>
             <tr>
                 <td>preserveFileTimestamps</td>

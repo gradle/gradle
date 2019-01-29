@@ -65,7 +65,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
                     }
                     capabilities {
-                        requireCapability('org:lib-fixtures:1.0')
+                        requireCapability('org:lib-fixtures')
                     }
                 }
             }

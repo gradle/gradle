@@ -39,6 +39,8 @@ import org.gradle.language.internal.DefaultNativeBinary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.nativeplatform.TargetMachine;
+import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
@@ -164,8 +166,17 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     }
 
     @Override
+    public TargetMachine getTargetMachine() {
+        return targetPlatform.getTargetMachine();
+    }
+
+    @Override
     public CppPlatform getTargetPlatform() {
         return targetPlatform;
+    }
+
+    public NativePlatform getNativePlatform() {
+        return ((DefaultCppPlatform) targetPlatform).getNativePlatform();
     }
 
     @Override

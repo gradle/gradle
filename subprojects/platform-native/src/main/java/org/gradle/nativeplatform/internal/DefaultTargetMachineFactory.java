@@ -17,13 +17,12 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.nativeplatform.TargetMachineBuilder;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachine;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-
-import java.util.Objects;
 
 public class DefaultTargetMachineFactory implements TargetMachineFactory {
     private final ObjectFactory objectFactory;
@@ -43,22 +42,22 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
     }
 
     @Override
-    public TargetMachine getWindows() {
+    public TargetMachineBuilder getWindows() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.WINDOWS), getDefaultArchitecture());
     }
 
     @Override
-    public TargetMachine getLinux() {
+    public TargetMachineBuilder getLinux() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.LINUX), getDefaultArchitecture());
     }
 
     @Override
-    public TargetMachine getMacOS() {
+    public TargetMachineBuilder getMacOS() {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, OperatingSystemFamily.MACOS), getDefaultArchitecture());
     }
 
     @Override
-    public TargetMachine os(String operatingSystemFamily) {
+    public TargetMachineBuilder os(String operatingSystemFamily) {
         return new TargetMachineImpl(objectFactory.named(OperatingSystemFamily.class, operatingSystemFamily), getDefaultArchitecture());
     }
 
@@ -66,61 +65,24 @@ public class DefaultTargetMachineFactory implements TargetMachineFactory {
         return objectFactory.named(MachineArchitecture.class, DefaultNativePlatform.host().getArchitecture().getName());
     }
 
-    private class TargetMachineImpl implements TargetMachine {
-        private final OperatingSystemFamily operatingSystemFamily;
-        private final MachineArchitecture architecture;
-
+    private class TargetMachineImpl extends DefaultTargetMachine implements TargetMachineBuilder {
         public TargetMachineImpl(OperatingSystemFamily operatingSystemFamily, MachineArchitecture architecture) {
-            this.operatingSystemFamily = operatingSystemFamily;
-            this.architecture = architecture;
-        }
-
-        @Override
-        public OperatingSystemFamily getOperatingSystemFamily() {
-            return operatingSystemFamily;
-        }
-
-        @Override
-        public MachineArchitecture getArchitecture() {
-            return architecture;
+            super(operatingSystemFamily, architecture);
         }
 
         @Override
         public TargetMachine getX86() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86));
+            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86));
         }
 
         @Override
         public TargetMachine getX86_64() {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86_64));
+            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, MachineArchitecture.X86_64));
         }
 
         @Override
         public TargetMachine architecture(String architecture) {
-            return new TargetMachineImpl(operatingSystemFamily, objectFactory.named(MachineArchitecture.class, architecture));
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            TargetMachineImpl that = (TargetMachineImpl) o;
-            return Objects.equals(operatingSystemFamily, that.operatingSystemFamily) &&
-                    Objects.equals(architecture, that.architecture);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(operatingSystemFamily, architecture);
-        }
-
-        @Override
-        public String toString() {
-            return operatingSystemFamily.getName() + ":" + architecture.getName();
+            return new TargetMachineImpl(getOperatingSystemFamily(), objectFactory.named(MachineArchitecture.class, architecture));
         }
     }
 }

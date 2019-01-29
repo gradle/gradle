@@ -322,7 +322,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
     def "can execute multiple test classes passed by name"() {
-        setup: "add testcase that should not be exeucted"
+        setup: "add testcase that should not be executed"
         withFailingTest()
 
         when:

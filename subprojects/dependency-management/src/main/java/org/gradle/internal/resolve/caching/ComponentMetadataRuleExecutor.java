@@ -32,8 +32,8 @@ import java.io.Serializable;
 
 public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor<ModuleComponentResolveMetadata, ComponentMetadataContext, ModuleComponentResolveMetadata> {
 
-    private static Transformer<Serializable, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
-        return new Transformer<Serializable, ModuleComponentResolveMetadata>() {
+    private static Transformer<Object, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
+        return new Transformer<Object, ModuleComponentResolveMetadata>() {
             @Override
             public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
                 return moduleMetadata.getOriginalContentHash().asHexString();

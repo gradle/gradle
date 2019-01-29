@@ -145,6 +145,9 @@ public class GenerateMavenPom extends DefaultTask {
         for (MavenDependencyInternal runtimeDependency : pomInternal.getRuntimeDependencies()) {
             pomGenerator.addRuntimeDependency(runtimeDependency);
         }
+        for (MavenDependencyInternal optionalDependency : pomInternal.getOptionalDependencies()) {
+            pomGenerator.addOptionalDependency(optionalDependency);
+        }
 
         pomGenerator.withXml(pomInternal.getXmlAction());
 

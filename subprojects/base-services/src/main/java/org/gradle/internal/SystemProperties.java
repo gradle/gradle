@@ -18,7 +18,6 @@ package org.gradle.internal;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -72,36 +71,31 @@ public class SystemProperties {
     private SystemProperties() {
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, String> asMap() {
-        return (Map) System.getProperties();
-    }
-
-    public String getLineSeparator() {
+    public synchronized String getLineSeparator() {
         return System.getProperty("line.separator");
     }
 
-    public String getJavaIoTmpDir() {
+    public synchronized String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }
 
-    public String getUserHome() {
+    public synchronized String getUserHome() {
         return System.getProperty("user.home");
     }
 
-    public String getUserName() {
+    public synchronized String getUserName() {
         return System.getProperty("user.name");
     }
 
-    public String getJavaVersion() {
+    public synchronized String getJavaVersion() {
         return System.getProperty("java.version");
     }
 
-    public File getCurrentDir() {
+    public synchronized File getCurrentDir() {
         return new File(System.getProperty("user.dir"));
     }
 
-    public File getJavaHomeDir() {
+    public synchronized File getJavaHomeDir() {
         return new File(System.getProperty("java.home"));
     }
 
@@ -125,7 +119,7 @@ public class SystemProperties {
      * @param value The value to temporarily set the property to
      * @param factory Instance created by the Factory implementation
      */
-    public synchronized  <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
+    public synchronized <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
         String originalValue = System.getProperty(propertyName);
         System.setProperty(propertyName, value);
 
@@ -144,26 +138,23 @@ public class SystemProperties {
      * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
      * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
      */
-    public synchronized  <T> T withSystemProperties(Factory<T> factory) {
+    public synchronized <T> T withSystemProperties(Factory<T> factory) {
         return factory.create();
     }
 
     /**
-     * Returns the keys that are guaranteed to be contained in System.getProperties() by default,
+     * Returns true if the given key is guaranteed to be contained in System.getProperties() by default,
      * as specified in the Javadoc for that method.
      */
-    public Set<String> getStandardProperties() {
-        return STANDARD_PROPERTIES;
+    public boolean isStandardProperty(String key) {
+        return STANDARD_PROPERTIES.contains(key);
     }
 
     /**
-     * Returns the names of properties that are not guaranteed to be contained in System.getProperties()
-     * but are usually there and if there should not be adjusted.
-     *
-     * @return the set of keys of {@code System.getProperties()} which should not be adjusted
-     *   by client code. This method never returns {@code null}.
+     * Returns true if the key is an important property that is not guaranteed to be contained in System.getProperties().
+     * The property is usually there and should not be adjusted.
      */
-    public Set<String> getNonStandardImportantProperties() {
-        return IMPORTANT_NON_STANDARD_PROPERTIES;
+    public boolean isNonStandardImportantProperty(String key) {
+        return IMPORTANT_NON_STANDARD_PROPERTIES.contains(key);
     }
 }

@@ -56,11 +56,11 @@ public class IncrementalCompileFilesFactory {
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
-    public IncementalCompileSourceProcessor files(CompilationState previousCompileState) {
-        return new DefaultIncementalCompileSourceProcessor(previousCompileState);
+    public IncrementalCompileSourceProcessor files(CompilationState previousCompileState) {
+        return new DefaultIncrementalCompileSourceProcessor(previousCompileState);
     }
 
-    private class DefaultIncementalCompileSourceProcessor implements IncementalCompileSourceProcessor {
+    private class DefaultIncrementalCompileSourceProcessor implements IncrementalCompileSourceProcessor {
         private final CompilationState previous;
         private final BuildableCompilationState current = new BuildableCompilationState();
         private final List<File> toRecompile = new ArrayList<File>();
@@ -68,7 +68,7 @@ public class IncrementalCompileFilesFactory {
         private final Map<File, FileDetails> visitedFiles = new HashMap<File, FileDetails>();
         private boolean hasUnresolvedHeaders;
 
-        DefaultIncementalCompileSourceProcessor(CompilationState previousCompileState) {
+        DefaultIncrementalCompileSourceProcessor(CompilationState previousCompileState) {
             this.previous = previousCompileState == null ? new CompilationState() : previousCompileState;
         }
 

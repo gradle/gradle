@@ -166,7 +166,7 @@ typedef CU_Suite* CU_pSuite;          /**< Pointer to a CUnit suite. */
  *  holds a pointer to the head of the linked list of CU_Suite objects.
  *  <br /><br />
  *
- *  With this structure, the user will normally add suites implictly to 
+ *  With this structure, the user will normally add suites implicitly to 
  *  the internal test registry using CU_add_suite(), and then add tests 
  *  to each suite using CU_add_test().  Test runs are then initiated 
  *  using one of the appropriate functions in TestRun.c via one of the 
@@ -494,7 +494,7 @@ CU_ErrorCode CU_set_test_active(CU_pTest pTest, CU_BOOL fNewActive);
 /**<
  *  Activates or deactivates a specific test.
  *  Only activated tests can be executed during a test run.  
- *  By default a test is active upon creation, but can be deactvated
+ *  By default a test is active upon creation, but can be deactivated
  *  by passing it along with CU_FALSE to this function.  The test
  *  can be reactivated by passing it along with CU_TRUE.  
  *  The current value of the active flag is available as pTest->fActive.

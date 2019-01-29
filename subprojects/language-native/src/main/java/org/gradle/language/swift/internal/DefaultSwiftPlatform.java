@@ -17,21 +17,36 @@
 package org.gradle.language.swift.internal;
 
 import org.gradle.language.swift.SwiftPlatform;
-import org.gradle.nativeplatform.OperatingSystemFamily;
+import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.TargetMachine;
-import org.gradle.nativeplatform.platform.internal.ImmutableDefaultNativePlatform;
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
+import org.gradle.nativeplatform.platform.NativePlatform;
 
-public class DefaultSwiftPlatform extends ImmutableDefaultNativePlatform implements SwiftPlatform {
-    private final OperatingSystemFamily operatingSystemFamily;
+public class DefaultSwiftPlatform implements SwiftPlatform {
+    private final TargetMachine targetMachine;
+    private final NativePlatform nativePlatform;
+    private final SwiftVersion sourceCompatibility;
 
-    public DefaultSwiftPlatform(String name, TargetMachine targetMachine, NativePlatformInternal targetNativePlatform) {
-        super(name, targetNativePlatform.getOperatingSystem(), targetNativePlatform.getArchitecture());
-        this.operatingSystemFamily = targetMachine.getOperatingSystemFamily();
+    public DefaultSwiftPlatform(TargetMachine targetMachine, SwiftVersion sourceCompatibility) {
+        this(targetMachine, sourceCompatibility, null);
+    }
+
+    public DefaultSwiftPlatform(TargetMachine targetMachine, SwiftVersion sourceCompatibility, NativePlatform nativePlatform) {
+        this.targetMachine = targetMachine;
+        this.nativePlatform = nativePlatform;
+        this.sourceCompatibility = sourceCompatibility;
     }
 
     @Override
-    public OperatingSystemFamily getOperatingSystemFamily() {
-        return operatingSystemFamily;
+    public TargetMachine getTargetMachine() {
+        return targetMachine;
+    }
+
+    @Override
+    public SwiftVersion getSourceCompatibility() {
+        return sourceCompatibility;
+    }
+
+    public NativePlatform getNativePlatform() {
+        return nativePlatform;
     }
 }

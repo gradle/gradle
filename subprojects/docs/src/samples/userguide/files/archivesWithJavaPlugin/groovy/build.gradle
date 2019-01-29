@@ -14,7 +14,7 @@ dependencies {
 }
 
 task uberJar(type: Jar) {
-    appendix = 'uber'
+    archiveClassifier = 'uber'
 
     from sourceSets.main.output
 

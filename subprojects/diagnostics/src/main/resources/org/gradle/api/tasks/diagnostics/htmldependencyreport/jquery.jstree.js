@@ -3706,7 +3706,7 @@
 						}
 					}, this))
 				.bind("destroy.jstree", $.proxy(function () {
-						// TODO: move this to descruct method
+						// TODO: move this to destructor method
 						if(this.data.contextmenu) {
 							$.vakata.context.hide();
 						}

@@ -141,6 +141,120 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
     }
 
+    def "can configure project when plugin applied containing unbuildable architecture"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo'), machines.${currentHostOperatingSystemFamilyDsl}.x86, machines.${currentHostOperatingSystemFamilyDsl}.x86_64]
+
+            ${configureToolChainSupport('foo')}
+        """
+
+        expect:
+        succeeds "help"
+    }
+
+    def "can create visual studio project for unbuildable component"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
+
+        and:
+        def projectConfigurations = ["unbuildable"] as Set
+        projectFile.assertHasComponentSources(componentUnderTest, "src/main")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+
+        and:
+        solutionFile.assertReferencesProject(projectFile, projectConfigurations)
+    }
+
+    def "warns about unbuildable components in generated visual studio project"() {
+        given:
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        componentUnderTest.writeToProject(testDirectory)
+
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped(":visualStudio", ":appVisualStudioSolution", *projectTasks)
+        outputContains("'main' component in project ':' is not buildable.");
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        useMsbuildTool()
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.os('os-family')]
+        """
+        succeeds "visualStudio"
+
+        when:
+        def resultSolution = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .succeeds()
+
+        then:
+        resultSolution.size() == 1
+        resultSolution[0].assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
+
+        when:
+        def resultProject = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withProject(visualStudioProjectName)
+                .run()
+
+        then:
+        resultProject.assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
+    }
+
+    @Requires(TestPrecondition.MSBUILD)
+    def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
+        assumeFalse(toolChain.meets(WINDOWS_GCC))
+        useMsbuildTool()
+
+        given:
+        componentUnderTest.writeToProject(testDirectory)
+        makeSingleProject()
+        buildFile << """
+            ${componentUnderTestDsl}.targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}.architecture('foo')]
+            ${configureToolChainSupport('foo')}
+        """
+        succeeds "visualStudio"
+
+        when:
+        def result = msbuild
+                .withWorkingDir(testDirectory)
+                .withSolution(solutionFile)
+                .withProject(visualStudioProjectName)
+                .fails()
+
+        then:
+        result.assertHasCause("No tool chain is available to build C++")
+    }
+
     String getRootProjectName() {
         return "app"
     }
@@ -190,5 +304,18 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         } else {
             return osFamily
         }
+    }
+
+    protected String configureToolChainSupport(String architecture) {
+        return """
+            model {
+                toolChains {
+                    toolChainFor${architecture.capitalize()}Architecture(Gcc) {
+                        path "/not/found"
+                        target("host:${architecture}")
+                    }
+                }
+            }
+        """
     }
 }

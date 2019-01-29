@@ -51,7 +51,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
 """
 
         when:
-        def chosenModule = setupInterations(selector, chosenVersion, downloadedMetadata)
+        def chosenModule = setupInteractions(selector, chosenVersion, downloadedMetadata)
 
         then:
         checkDependencies {
@@ -85,7 +85,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
         "1.1"                | "select branch" | "1.1"         | '["1.1"]'        | ['1.1']            | false           | false            | []
     }
 
-    private String setupInterations(String selector, String chosenVersion, List<String> downloadedMetadata, Closure<Void> more = {}) {
+    private String setupInteractions(String selector, String chosenVersion, List<String> downloadedMetadata, Closure<Void> more = {}) {
         def chosenModule = chosenVersion ? (chosenVersion.contains('-lib') ? 'lib' : 'api') : null
         repositoryInteractions {
             'org.utils:api' {
@@ -143,7 +143,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
 """
 
         when:
-        setupInterations(selector, null, downloadedMetadata)
+        setupInteractions(selector, null, downloadedMetadata)
 
         then:
         checkDependencies(':checkLenient')
@@ -204,7 +204,7 @@ class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractCompone
 """
 
         when:
-        setupInterations('1.+', null, ['1.2', '1.1', '1.0'])
+        setupInteractions('1.+', null, ['1.2', '1.1', '1.0'])
 
         then:
         fails ':checkDeps'
@@ -281,7 +281,7 @@ Required by:
 """
 
         when:
-        setupInterations(selector, null, downloadedMetadata)
+        setupInteractions(selector, null, downloadedMetadata)
 
         then:
         checkDependencies(':checkLenient')
@@ -406,7 +406,7 @@ Required by:
         """
 
         when:
-        setupInterations(selector, chosen, downloadedMetadata) {
+        setupInteractions(selector, chosen, downloadedMetadata) {
             'org.utils:lib' {
                 expectVersionListing()
             }

@@ -64,6 +64,11 @@ class IdentityClassGenerator implements ClassGenerator {
                         }
 
                         @Override
+                        public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                            return false;
+                        }
+
+                        @Override
                         public Class<?>[] getParameterTypes() {
                             return constructor.getParameterTypes();
                         }

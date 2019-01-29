@@ -30,8 +30,8 @@ import org.gradle.language.swift.internal.DefaultSwiftBinary
 import org.gradle.language.swift.internal.DefaultSwiftExecutable
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary
 import org.gradle.language.swift.tasks.SwiftCompile
+import org.gradle.nativeplatform.TargetMachine
 import org.gradle.nativeplatform.platform.internal.DefaultOperatingSystem
-import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
@@ -43,13 +43,8 @@ import org.gradle.swiftpm.internal.NativeProjectPublication
 import org.gradle.swiftpm.internal.SwiftPmTarget
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
-
-import static org.gradle.language.swift.SwiftVersion.SWIFT3
-import static org.gradle.language.swift.SwiftVersion.SWIFT4
 
 class SwiftBasePluginTest extends Specification {
     @Rule
@@ -62,7 +57,8 @@ class SwiftBasePluginTest extends Specification {
         binary.name >> name
         binary.names >> Names.of(name)
         binary.module >> project.objects.property(String)
-        binary.targetPlatform >> Stub(SwiftPlatformInternal)
+        binary.targetMachine >> Stub(TargetMachine)
+        binary.targetPlatform >> Stub(SwiftPlatform)
         binary.sourceCompatibility >> project.objects.property(SwiftVersion)
 
         when:
@@ -90,7 +86,7 @@ class SwiftBasePluginTest extends Specification {
         executable.module >> Providers.of("TestApp")
         executable.baseName >> Providers.of("test_app")
         executable.executableFile >> executableFile
-        executable.targetPlatform >> Stub(SwiftPlatformInternal)
+        executable.targetMachine >> Stub(SwiftPlatform)
         executable.sourceCompatibility >> project.objects.property(SwiftVersion)
         executable.platformToolProvider >> new TestPlatformToolProvider()
         executable.implementationDependencies >> Stub(ConfigurationInternal)
@@ -122,7 +118,7 @@ class SwiftBasePluginTest extends Specification {
         library.names >> Names.of(name)
         library.module >> Providers.of("TestLib")
         library.baseName >> Providers.of("test_lib")
-        library.targetPlatform >> Stub(SwiftPlatformInternal)
+        library.targetMachine >> Stub(SwiftPlatform)
         library.sourceCompatibility >> Stub(PropertyInternal) { getType() >> null }
         library.platformToolProvider >> new TestPlatformToolProvider()
         library.linkFile >> project.objects.fileProperty()
@@ -145,33 +141,6 @@ class SwiftBasePluginTest extends Specification {
         "testDebug" | "linkTestDebug" | "test/debug/"
     }
 
-    @Unroll
-    def "can associate the compiler version #compilerVersion to #languageVersion language version"() {
-        expect:
-        SwiftBasePlugin.toSwiftVersion(VersionNumber.parse(compilerVersion)) == languageVersion
-
-        where:
-        // See https://swift.org/download
-        compilerVersion | languageVersion
-        '4.0.3'         | SWIFT4
-        '4.0.2'         | SWIFT4
-        '4.0'           | SWIFT4
-        '3.1.1'         | SWIFT3
-        '3.1'           | SWIFT3
-        '3.0.2'         | SWIFT3
-        '3.0.1'         | SWIFT3
-        '3.0'           | SWIFT3
-    }
-
-    def "throws exception when Swift language is unknown for specified compiler version"() {
-        when:
-        SwiftBasePlugin.toSwiftVersion(VersionNumber.parse("99.0.1"))
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == 'Swift language version is unknown for the specified Swift compiler version (99.0.1)'
-    }
-
     def "registers a Swift PM publication for each production component"() {
         def component = Stub(DefaultSwiftApplication)
         def prop = Stub(Property)
@@ -188,8 +157,6 @@ class SwiftBasePluginTest extends Specification {
         publications.size() == 1
         publications.first().getCoordinates(SwiftPmTarget).targetName == "SomeApp"
     }
-
-    interface SwiftPlatformInternal extends SwiftPlatform, NativePlatformInternal {}
 
     class TestPlatformToolProvider extends AbstractPlatformToolProvider {
         TestPlatformToolProvider() {

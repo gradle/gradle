@@ -22,10 +22,11 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.ConfigurationUsageContext;
+import org.gradle.api.internal.java.usagecontext.LazyConfigurationUsageContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlatformPlugin;
 
@@ -60,26 +61,31 @@ public class JavaPlatform implements SoftwareComponentInternal {
     }
 
     private UsageContext createRuntimeUsageContext() {
-        return new JavaPlatformUsageContext(Usage.JAVA_RUNTIME, "runtime", JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
+        ImmutableAttributes attributes = buildAttributes(Usage.JAVA_RUNTIME);
+        return new JavaPlatformUsageContext("runtime", JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME, configurations, attributes);
     }
 
     private UsageContext createApiUsageContext() {
-        return new JavaPlatformUsageContext(Usage.JAVA_API, "api", JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME, configurations, objectFactory, attributesFactory);
+        ImmutableAttributes attributes = buildAttributes(Usage.JAVA_API);
+        return new JavaPlatformUsageContext("api", JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME, configurations, attributes);
     }
 
-    private final static class JavaPlatformUsageContext extends ConfigurationUsageContext {
+    private ImmutableAttributes buildAttributes(String usage) {
+        return ((AttributeContainerInternal) attributesFactory.mutable()
+                .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage))
+                .attribute(PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.REGULAR_PLATFORM)
+        ).asImmutable();
+    }
+
+    private final static class JavaPlatformUsageContext extends LazyConfigurationUsageContext {
         private final AttributeContainer attributes;
 
-        private JavaPlatformUsageContext(String usageName,
-                                         String name,
+        private JavaPlatformUsageContext(String name,
                                          String configurationName,
                                          ConfigurationContainer configurations,
-                                         ObjectFactory objectFactory,
-                                         ImmutableAttributesFactory attributesFactory) {
-            super(usageName, name, configurationName, Collections.<PublishArtifact>emptySet(), configurations, objectFactory, attributesFactory);
-            AttributeContainerInternal attributes = (AttributeContainerInternal) super.getAttributes();
-            // Currently, "enforced" platforms are handled through special casing, so we don't need to publish the enforced version
-            this.attributes = attributesFactory.concat(attributes.asImmutable(), PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.REGULAR_PLATFORM);
+                                         ImmutableAttributes attributes) {
+            super(name, configurationName, Collections.<PublishArtifact>emptySet(), configurations, attributes);
+            this.attributes = attributes;
         }
 
         @Override

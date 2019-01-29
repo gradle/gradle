@@ -65,7 +65,7 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
             dependencies {
                 api("com.acme.external:external:1.0") {
                     capabilities {
-                        requireCapability("org:$capability:1.0")
+                        requireCapability("org:$capability")
                     }
                 }
             }

@@ -119,7 +119,11 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public void require() {
-        state = ExecutionState.SHOULD_RUN;
+        if (state != ExecutionState.SHOULD_RUN) {
+            // When the state changes to `SHOULD_RUN`, the dependencies need to be reprocessed since they also may be required now.
+            dependenciesProcessed = false;
+            state = ExecutionState.SHOULD_RUN;
+        }
     }
 
     public void doNotRequire() {

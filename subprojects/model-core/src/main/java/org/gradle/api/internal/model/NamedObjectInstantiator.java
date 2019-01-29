@@ -24,9 +24,11 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.instantiation.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
@@ -42,20 +44,27 @@ import java.lang.reflect.Modifier;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.V1_5;
 
-public class NamedObjectInstantiator {
+public class NamedObjectInstantiator implements Managed.Factory {
     public static final NamedObjectInstantiator INSTANCE = new NamedObjectInstantiator();
     private static final Type OBJECT = Type.getType(Object.class);
     private static final Type STRING = Type.getType(String.class);
+    private static final Type NAMED_OBJECT_INSTANTIATOR = Type.getType(NamedObjectInstantiator.class);
     private static final Type CLASS_GENERATING_LOADER = Type.getType(ClassGeneratingLoader.class);
     private static final Type MANAGED = Type.getType(Managed.class);
     private static final String[] INTERFACES_FOR_ABSTRACT_CLASS = {MANAGED.getInternalName()};
     private static final String RETURN_VOID = Type.getMethodDescriptor(Type.VOID_TYPE);
     private static final String RETURN_STRING = Type.getMethodDescriptor(STRING);
+    private static final String RETURN_CLASS = Type.getMethodDescriptor(Type.getType(Class.class));
+    private static final String RETURN_BOOLEAN = Type.getMethodDescriptor(Type.BOOLEAN_TYPE);
+    private static final String RETURN_OBJECT = Type.getMethodDescriptor(OBJECT);
+    private static final String RETURN_MANAGED_FACTORY = Type.getMethodDescriptor(Type.getType(Managed.Factory.class));
     private static final String RETURN_VOID_FROM_STRING = Type.getMethodDescriptor(Type.VOID_TYPE, STRING);
     private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT, STRING);
-    private static final String NAME_FIELD = "__name__";
+    private static final String NAME_FIELD = "_gr_name_";
     private static final String[] EMPTY_STRINGS = new String[0];
     private static final String CONSTRUCTOR_NAME = "<init>";
 
@@ -93,6 +102,11 @@ public class NamedObjectInstantiator {
         } catch (UncheckedExecutionException e) {
             throw new ObjectInstantiationException(type, e.getCause());
         }
+    }
+
+    @Override
+    public <T> T fromState(Class<T> type, Object state) {
+        return named(Cast.uncheckedCast(type), (String) state);
     }
 
     private ClassGeneratingLoader loaderFor(Class<?> publicClass) {
@@ -174,6 +188,48 @@ public class NamedObjectInstantiator {
         methodVisitor.visitEnd();
 
         visitor.visitEnd();
+
+        //
+        // Add `Object unpackState() { return name }`
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS);
+        methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+        methodVisitor.visitFieldInsn(Opcodes.GETFIELD, implementationType.getInternalName(), NAME_FIELD, STRING.getDescriptor());
+        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
+        //
+        // Add `publicType`
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "publicType", RETURN_CLASS, null, EMPTY_STRINGS);
+        methodVisitor.visitLdcInsn(publicType);
+        methodVisitor.visitInsn(ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
+        //
+        // Add `boolean immutable() { return true }`
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+        methodVisitor.visitLdcInsn(true);
+        methodVisitor.visitInsn(IRETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
+        //
+        // Add `managedFactory()`
+        //
+
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "managedFactory", RETURN_MANAGED_FACTORY, null, EMPTY_STRINGS);
+        methodVisitor.visitFieldInsn(Opcodes.GETSTATIC, NAMED_OBJECT_INSTANTIATOR.getInternalName(), "INSTANCE", NAMED_OBJECT_INSTANTIATOR.getDescriptor());
+        methodVisitor.visitInsn(Opcodes.ARETURN);
+        methodVisitor.visitMaxs(0, 0);
+        methodVisitor.visitEnd();
+
         generator.define();
 
         //
@@ -238,12 +294,6 @@ public class NamedObjectInstantiator {
             }
             collector.add(field, "A Named implementation class must not define any instance fields.");
         }
-    }
-
-    /**
-     * Mixed into each generated class, to mark it as managed.
-     */
-    public interface Managed {
     }
 
     protected abstract static class ClassGeneratingLoader extends CacheLoader<String, Object> {

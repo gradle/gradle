@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
@@ -117,6 +118,7 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.DefaultUriTextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
@@ -146,16 +148,16 @@ class DependencyManagementBuildScopeServices {
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
         SimpleMapInterner stringInterner) {
+        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
-
+            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
                 DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
                 new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-                new CapabilityNotationParserFactory().create(), projectDependencyFactory,
+                capabilityNotationParser, projectDependencyFactory,
             attributesFactory);
     }
 

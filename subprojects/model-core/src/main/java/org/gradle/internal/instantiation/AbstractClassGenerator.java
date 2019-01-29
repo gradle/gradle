@@ -48,6 +48,7 @@ import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -119,10 +120,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
+        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<CustomInjectAnnotationPropertyHandler>(enabledAnnotations.size());
+
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
-        AbstractPropertyHandler abstractPropertyHandler = new AbstractPropertyHandler();
+        ManagedTypeHandler managedTypeHandler = new ManagedTypeHandler();
         ExtensibleTypePropertyHandler extensibleTypeHandler = new ExtensibleTypePropertyHandler();
         DslMixInPropertyType dslMixInHandler = new DslMixInPropertyType(extensibleTypeHandler);
 
@@ -132,10 +135,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(dslMixInHandler);
         handlers.add(propertyTypedHandler);
         handlers.add(servicesHandler);
-        handlers.add(abstractPropertyHandler);
+        handlers.add(managedTypeHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
-            handlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
+            customAnnotationPropertyHandlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
+        handlers.addAll(customAnnotationPropertyHandlers);
         handlers.add(injectionHandler);
 
         // Order is significant
@@ -179,8 +183,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new ClassGenerationException(formatter.toString(), e);
         }
 
-        List<Class<?>> injectedServices = injectionHandler.getInjectedServices();
-        CachedClass cachedClass = new CachedClass(subclass, injectedServices);
+        ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection = ImmutableList.builder();
+        for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
+            if (handler.isUsed()) {
+                annotationsTriggeringServiceInjection.add(handler.getAnnotation());
+            }
+        }
+        CachedClass cachedClass = new CachedClass(type, subclass, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
         cache.put(type, cachedClass);
         cache.put(subclass, cachedClass);
         return cachedClass.asWrapper();
@@ -195,13 +204,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, Instantiator nested, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
 
-    private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> propertyHandlers, UnclaimedPropertyHandler unclaimedHandler) {
+    private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
         ClassMetaData classMetaData = new ClassMetaData();
         assembleProperties(classDetails, classMetaData);
 
-        for (ClassGenerationHandler propertyHandler : propertyHandlers) {
-            propertyHandler.startType(type);
+        for (ClassGenerationHandler handler : generationHandlers) {
+            handler.startType(type);
         }
 
         for (Method method : classDetails.getAllMethods()) {
@@ -212,19 +221,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         for (PropertyDetails property : classDetails.getProperties()) {
             PropertyMetaData propertyMetaData = classMetaData.property(property.getName());
-            for (ClassGenerationHandler propertyHandler : propertyHandlers) {
-                propertyHandler.visitProperty(propertyMetaData);
+            for (ClassGenerationHandler handler : generationHandlers) {
+                handler.visitProperty(propertyMetaData);
             }
 
             ClassGenerationHandler claimedBy = null;
-            for (ClassGenerationHandler propertyHandler : propertyHandlers) {
-                if (!propertyHandler.claimProperty(propertyMetaData)) {
+            for (ClassGenerationHandler handler : generationHandlers) {
+                if (!handler.claimProperty(propertyMetaData)) {
                     continue;
                 }
                 if (claimedBy == null) {
-                    claimedBy = propertyHandler;
+                    claimedBy = handler;
                 } else {
-                    propertyHandler.ambiguous(propertyMetaData);
+                    handler.ambiguous(propertyMetaData);
                     break;
                 }
             }
@@ -246,9 +255,25 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         for (Method method : classDetails.getInstanceMethods()) {
             assertNotAbstract(type, method);
-            for (ClassGenerationHandler propertyHandler : propertyHandlers) {
-                propertyHandler.visitInstanceMethod(method);
+            for (ClassGenerationHandler handler : generationHandlers) {
+                handler.visitInstanceMethod(method);
             }
+        }
+
+        visitFields(type, generationHandlers);
+    }
+
+    private void visitFields(Class<?> type, List<ClassGenerationHandler> generationHandlers) {
+        for (Field field : type.getDeclaredFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                for (ClassGenerationHandler handler : generationHandlers) {
+                    handler.hasFields();
+                }
+                return;
+            }
+        }
+        if (type.getSuperclass() != null && type.getSuperclass() != Object.class) {
+            visitFields(type.getSuperclass(), generationHandlers);
         }
     }
 
@@ -288,15 +313,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
         private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices) {
+        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = generatedClass;
             this.outerType = outerType;
             this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
-                builder.add(new GeneratedConstructorImpl(constructor));
+                if (!constructor.isSynthetic()) {
+                    builder.add(new GeneratedConstructorImpl(constructor));
+                }
             }
             this.constructors = builder.build();
         }
@@ -345,6 +374,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
+            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
+            }
+
+            @Override
             public Class<?>[] getParameterTypes() {
                 return constructor.getParameterTypes();
             }
@@ -373,14 +407,16 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final WeakReference<Class<?>> outerType;
         // This should be a list of weak references. For now, assume that all services are Gradle core services and are never collected
         private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
 
-        CachedClass(Class<?> generatedClass, List<Class<?>> injectedServices) {
+        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = new WeakReference<Class<?>>(generatedClass);
             this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
 
             // This is expensive to calculate, so cache the result
-            Class<?> enclosingClass = generatedClass.getSuperclass().getEnclosingClass();
-            if (enclosingClass != null && !Modifier.isStatic(generatedClass.getSuperclass().getModifiers())) {
+            Class<?> enclosingClass = type.getEnclosingClass();
+            if (enclosingClass != null && !Modifier.isStatic(type.getModifiers())) {
                 outerType = new WeakReference<Class<?>>(enclosingClass);
             } else {
                 outerType = null;
@@ -394,7 +430,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (generatedClass == null) {
                 return null;
             }
-            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices);
+            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices, annotationsTriggeringServiceInjection);
         }
     }
 
@@ -511,6 +547,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Collect information about a property. This is called for all properties of a type.
          */
         void visitProperty(PropertyMetaData property) {
+        }
+
+        /**
+         * Called when the type has any non-static fields.
+         */
+        public void hasFields() {
         }
 
         /**
@@ -739,8 +781,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class AbstractPropertyHandler extends ClassGenerationHandler {
+    private static class ManagedTypeHandler extends ClassGenerationHandler {
         private final List<PropertyMetaData> properties = new ArrayList<>();
+        private boolean hasFields;
+
+        @Override
+        public void hasFields() {
+            hasFields = true;
+        }
 
         @Override
         boolean claimProperty(PropertyMetaData property) {
@@ -762,6 +810,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
+        void applyTo(ClassInspectionVisitor visitor) {
+            if (!hasFields) {
+                visitor.mixInManaged();
+            }
+        }
+
+        @Override
         void applyTo(ClassGenerationVisitor visitor) {
             for (PropertyMetaData property : properties) {
                 visitor.applyManagedStateToProperty(property);
@@ -771,6 +826,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 for (Method setter : property.setters) {
                     visitor.applyManagedStateToSetter(property, setter);
                 }
+            }
+            if (!hasFields) {
+                visitor.addManagedMethods(properties);
             }
         }
     }
@@ -941,6 +999,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             return services.build();
         }
+
+        public boolean isUsed() {
+            return !serviceInjectionProperties.isEmpty();
+        }
+
+        public Class<? extends Annotation> getAnnotation() {
+            return annotation;
+        }
     }
 
     private static class InjectAnnotationPropertyHandler extends AbstractInjectedPropertyHandler {
@@ -1012,6 +1078,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void providesOwnServicesImplementation();
 
+        void mixInManaged();
+
         void mixInServiceInjection();
 
         ClassGenerationVisitor builder();
@@ -1047,6 +1115,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyManagedStateToGetter(PropertyMetaData property, Method getter);
 
         void applyManagedStateToSetter(PropertyMetaData property, Method setter);
+
+        void addManagedMethods(List<PropertyMetaData> properties);
 
         void applyConventionMappingToProperty(PropertyMetaData property);
 

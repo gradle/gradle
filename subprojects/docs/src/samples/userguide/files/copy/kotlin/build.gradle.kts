@@ -84,8 +84,8 @@ tasks.register<Copy>("copyReportsDirForArchiving2") {
 
 // tag::create-archive-example[]
 tasks.register<Zip>("packageDistribution") {
-    archiveName = "my-distribution.zip"
-    destinationDir = file("$buildDir/dist")
+    archiveFileName.set("my-distribution.zip")
+    destinationDirectory.set(file("$buildDir/dist"))
 
     from("$buildDir/toArchive")
 }
@@ -243,8 +243,8 @@ tasks.register<Copy>("copyAssets") {
 }
 
 tasks.register<Zip>("distApp") {
-    archiveName = "my-app-dist.zip"
-    destinationDir = file("$buildDir/dists")
+    archiveFileName.set("my-app-dist.zip")
+    destinationDirectory.set(file("$buildDir/dists"))
 
     from(appClasses)
     with(webAssetsSpec)
@@ -262,8 +262,8 @@ tasks.register<Copy>("copyAppAssets") {
 }
 
 tasks.register<Zip>("archiveDistAssets") {
-    archiveName = "distribution-assets.zip"
-    destinationDir = file("$buildDir/dists")
+    archiveFileName.set("distribution-assets.zip")
+    destinationDirectory.set(file("$buildDir/dists"))
 
     from("distResources", webAssetPatterns)
 }

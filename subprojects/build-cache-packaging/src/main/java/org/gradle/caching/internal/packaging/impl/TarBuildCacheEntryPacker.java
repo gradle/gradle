@@ -290,7 +290,6 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         TarArchiveEntry entry;
 
         while ((entry = input.getNextTarEntry()) != null) {
-            entries.increment(1);
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
@@ -299,14 +298,15 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             if (parser.getDepth() == 0) {
                 break;
             }
+            entries.increment(1);
 
             File file = new File(treeRoot, parser.getRelativePath());
             if (isDir) {
                 FileUtils.forceMkdir(file);
                 chmodUnpackedFile(entry, file);
                 String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
-                String indernedDirName = stringInterner.intern(parser.getName());
-                builder.preVisitDirectory(internedAbsolutePath, indernedDirName);
+                String internedDirName = stringInterner.intern(parser.getName());
+                builder.preVisitDirectory(internedAbsolutePath, internedDirName);
             } else {
                 RegularFileSnapshot fileSnapshot = unpackFile(input, entry, file, parser.getName());
                 builder.visit(fileSnapshot);

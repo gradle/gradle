@@ -143,13 +143,13 @@ public class Dimensions {
                     addCommonAttributes(buildType, targetMachine, runtimeAttributes);
                     runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
 
-                    DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes);
+                    DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeAttributes);
 
                     AttributeContainer linkAttributes = attributesFactory.mutable();
                     linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
                     addCommonAttributes(buildType, targetMachine, linkAttributes);
                     linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
-                    DefaultUsageContext linkUsageContext = new DefaultUsageContext(variantName + "Link", linkUsage, linkAttributes);
+                    DefaultUsageContext linkUsageContext = new DefaultUsageContext(variantName + "Link", linkAttributes);
 
                     NativeVariantIdentity variantIdentity = new NativeVariantIdentity(variantName, baseName, group, version, buildType.isDebuggable(), buildType.isOptimized(), targetMachine, linkUsageContext, runtimeUsageContext, linkage);
 
@@ -180,7 +180,7 @@ public class Dimensions {
                 runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
                 addCommonAttributes(buildType, targetMachine, runtimeAttributes);
 
-                DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeUsage, runtimeAttributes);
+                DefaultUsageContext runtimeUsageContext = new DefaultUsageContext(variantName + "Runtime", runtimeAttributes);
 
                 DefaultUsageContext linkUsageContext = null;
 

@@ -1,0 +1,16 @@
+> Task :consumer:dependencyInsight FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':consumer:dependencyInsight'.
+> Could not resolve all dependencies for configuration ':consumer:runtimeClasspath'.
+   > Cannot choose between org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and org.gradle.demo:producer:1.0 variant postgresSupportRuntimeElements because they provide the same capability: org.gradle.demo:producer-db-support:1.0
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 0s
+1 actionable task: 1 executed

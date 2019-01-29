@@ -35,7 +35,7 @@ apply plugin: 'application'
 sourceCompatibility = 1.5
 targetCompatibility = 1.5
 repositories {
-    ${RepoScriptBlockUtil.gradleRepositoryDefintion()}
+    ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
     maven {
         url '${buildContext.libsRepo.toURI()}'
     }

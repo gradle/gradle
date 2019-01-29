@@ -16,9 +16,7 @@
 
 package org.gradle.language.cpp.internal
 
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
@@ -184,6 +182,7 @@ class DefaultCppLibraryTest extends Specification {
     }
 
     private NativeVariantIdentity getIdentity() {
+        // TODO Check that TargetMachine from NativeVariantIdentity is the same as the one from CppPlatform
         return Stub(NativeVariantIdentity) {
             getName() >> "debug"
             getTargetMachine() >> targetMachine(OperatingSystemFamily.WINDOWS, MachineArchitecture.X86_64)
@@ -198,8 +197,5 @@ class DefaultCppLibraryTest extends Specification {
             getOperatingSystemFamily() >> objectFactory.named(OperatingSystemFamily.class, os)
             getArchitecture() >> objectFactory.named(MachineArchitecture.class, arch)
         }
-    }
-
-    interface TestConfiguration extends Configuration, FileCollectionInternal {
     }
 }
