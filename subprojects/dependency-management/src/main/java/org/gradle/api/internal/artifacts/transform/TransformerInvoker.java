@@ -27,5 +27,5 @@ public interface TransformerInvoker {
     /**
      * Returns the result of applying the given transformer to the given file.
      */
-    Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject);
+    Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject);
 }

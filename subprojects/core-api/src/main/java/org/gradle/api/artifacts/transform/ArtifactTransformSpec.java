@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
 
@@ -28,7 +27,7 @@ import org.gradle.api.attributes.AttributeContainer;
  * @since 5.2
  */
 @Incubating
-public interface ArtifactTransformSpec<T> extends ActionConfiguration {
+public interface ArtifactTransformSpec<T> {
     /**
      * Attributes that match the variant that is consumed.
      */
@@ -39,9 +38,19 @@ public interface ArtifactTransformSpec<T> extends ActionConfiguration {
      */
     AttributeContainer getTo();
 
-    T getConfiguration();
+    /**
+     * The parameters for the transform action.
+     *
+     * @since 5.3
+     */
+    T getParameters();
 
-    void configuration(Action<? super T> action);
+    /**
+     * Configure the parameters for the transform action.
+     *
+     * @since 5.3
+     */
+    void parameters(Action<? super T> action);
 
     /**
      * Returns the {@link ArtifactTransform} implementation to use for this transform. Defaults to the value specified by the {@link TransformAction} annotation attached to the configuration object.

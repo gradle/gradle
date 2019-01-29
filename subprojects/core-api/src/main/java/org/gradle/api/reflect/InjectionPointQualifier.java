@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.reflect;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.reflect.InjectionPointQualifier;
 
-import java.io.File;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,14 +25,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a property that should receive the <em>workspace</em> for an artifact transform. This is the directory into which the transform should generate its output files.
+ * The annotated annotation can be used to inject elements of the supported types.
  *
- * @since 5.2
+ * <p>If no {@code supportedTypes} are supplied, all types are supported.</p>
+ *
+ * @since 5.3
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.ANNOTATION_TYPE})
 @Documented
-@InjectionPointQualifier(supportedTypes = File.class)
-public @interface Workspace {
+public @interface InjectionPointQualifier {
+    Class<?>[] supportedTypes() default {};
 }

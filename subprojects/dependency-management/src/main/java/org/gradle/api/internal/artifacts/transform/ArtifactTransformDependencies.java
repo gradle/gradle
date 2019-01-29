@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.Workspace;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.api.file.FileCollection;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
-import java.lang.annotation.Annotation;
+public interface ArtifactTransformDependencies {
+    /**
+     * Returns the dependency artifacts of the artifact being transformed.
+     * The order of the files match that of the dependencies in the source artifact view.
+     */
+    FileCollection getFiles();
 
-public class WorkspaceAnnotationHandler implements InjectAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotation() {
-        return Workspace.class;
-    }
+    CurrentFileCollectionFingerprint fingerprint(FileCollectionFingerprinter fingerprinter);
 }

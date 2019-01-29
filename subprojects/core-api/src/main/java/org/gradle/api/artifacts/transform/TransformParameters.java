@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,23 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.reflect.InjectionPointQualifier;
 
-import java.io.File;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * An injectable service that when injected into an {@link ArtifactTransform} can be used to access
- * the dependency artifacts of the artifact being transformed.
+ * Attached to a property that should receive the <em>parameter object</em> of the artifact transform.
  *
- * @since 5.1
+ * @since 5.3
  */
 @Incubating
-@HasInternalProtocol
-public interface ArtifactTransformDependencies {
-    /**
-     * Returns the dependency artifacts of the artifact being transformed.
-     * The order of the files match that of the dependencies in the source artifact view.
-     */
-    Iterable<File> getFiles();
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
+@Documented
+@InjectionPointQualifier
+public @interface TransformParameters {
 }

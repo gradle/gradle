@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
-
-import org.gradle.api.artifacts.transform.PrimaryInput;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
+package org.gradle.internal.instantiation;
 
 import java.lang.annotation.Annotation;
 
-public class PrimaryInputAnnotationHandler implements InjectAnnotationHandler {
+public class DefaultInjectAnnotationHandler implements InjectAnnotationHandler {
+    private final Class<? extends Annotation> annotation;
+
+    public DefaultInjectAnnotationHandler(Class<? extends Annotation> annotation) {
+        this.annotation = annotation;
+    }
+
     @Override
     public Class<? extends Annotation> getAnnotation() {
-        return PrimaryInput.class;
+        return annotation;
     }
 }

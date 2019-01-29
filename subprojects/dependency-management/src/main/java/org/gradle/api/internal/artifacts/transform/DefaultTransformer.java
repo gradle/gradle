@@ -16,13 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -40,18 +44,18 @@ import java.util.List;
 public class DefaultTransformer implements Transformer {
 
     private final Class<? extends ArtifactTransform> implementationClass;
-    private final Isolatable<?> config;
+    private final Isolatable<?> parameterObject;
     private final boolean requiresDependencies;
     private final Isolatable<Object[]> parameters;
     private final InstanceFactory<? extends ArtifactTransform> instanceFactory;
     private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
 
-    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<?> config, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public DefaultTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<?> parameterObject, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
-        this.config = config;
-        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class)).forType(implementationClass);
-        this.requiresDependencies = instanceFactory.requiresService(ArtifactTransformDependencies.class);
+        this.parameterObject = parameterObject;
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
+        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
         this.parameters = parameters;
         this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;
@@ -99,7 +103,7 @@ public class DefaultTransformer implements Transformer {
     }
 
     private ArtifactTransform newTransformer(File inputFile, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, config.isolate(), requiresDependencies ? artifactTransformDependencies : null);
+        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, parameterObject.isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services, parameters.isolate());
     }
 
@@ -138,36 +142,30 @@ public class DefaultTransformer implements Transformer {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        private final File inputFile;
-        private final File outputDir;
-        private final Object config;
-        private final ArtifactTransformDependencies artifactTransformDependencies;
+        private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object config, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
-            this.inputFile = inputFile;
-            this.outputDir = outputDir;
-            this.config = config;
-            this.artifactTransformDependencies = artifactTransformDependencies;
+        public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+            ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
+            builder
+                .add(new InjectionPoint(Workspace.class, outputDir))
+                .add(new InjectionPoint(PrimaryInput.class, inputFile));
+            if (parameters != null) {
+                builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
+            }
+            if (artifactTransformDependencies != null) {
+                builder.add(new InjectionPoint(PrimaryInputDependencies.class, artifactTransformDependencies.getFiles()));
+            }
+            this.injectionPoints = builder.build();
         }
 
         @Nullable
         private
         Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
-            if (!(serviceType instanceof Class)) {
-                return null;
-            }
-            Class<?> serviceClass = (Class<?>) serviceType;
-            if (annotatedWith == Workspace.class && serviceClass.isAssignableFrom(File.class)) {
-                return outputDir;
-            }
-            if (annotatedWith == PrimaryInput.class && serviceClass.isAssignableFrom(File.class)) {
-                return inputFile;
-            }
-            if (annotatedWith == null && artifactTransformDependencies != null && serviceClass.isAssignableFrom(ArtifactTransformDependencies.class)) {
-                return artifactTransformDependencies;
-            }
-            if (annotatedWith == null && serviceClass.isInstance(config)) {
-                return config;
+            TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
+            for (InjectionPoint injectionPoint : injectionPoints) {
+                if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
+                    return injectionPoint.getValueToInject();
+                }
             }
             return null;
         }
@@ -194,6 +192,42 @@ public class DefaultTransformer implements Transformer {
                 throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
             }
             return result;
+        }
+
+        private static class InjectionPoint {
+            private final Class<? extends Annotation> annotation;
+            private final Class<?> injectedType;
+            private final Object valueToInject;
+
+            public InjectionPoint(Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
+                this.annotation = annotation;
+                this.injectedType = injectedType;
+                this.valueToInject = valueToInject;
+            }
+
+            public InjectionPoint(Class<? extends Annotation> annotation, Object valueToInject) {
+                this(annotation, determineTypeFromAnnotation(annotation), valueToInject);
+            }
+
+            private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
+                Class<?>[] supportedTypes = annotation.getAnnotation(InjectionPointQualifier.class).supportedTypes();
+                if (supportedTypes.length != 1) {
+                    throw new IllegalArgumentException("Cannot determine supported type for annotation " + annotation.getName());
+                }
+                return supportedTypes[0];
+            }
+
+            public Class<? extends Annotation> getAnnotation() {
+                return annotation;
+            }
+
+            public Class<?> getInjectedType() {
+                return injectedType;
+            }
+
+            public Object getValueToInject() {
+                return valueToInject;
+            }
         }
     }
 }

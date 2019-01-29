@@ -128,7 +128,6 @@ project(':app') {
 }
 
 import javax.inject.Inject
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 
 class Producer extends DefaultTask {
     @OutputFile
@@ -140,20 +139,21 @@ class Producer extends DefaultTask {
     }
 }
 
-class TestTransform extends ArtifactTransform {
+abstract class TestTransform extends ArtifactTransform {
 
-    ArtifactTransformDependencies artifactDependencies
     String transformName
 
+    @PrimaryInputDependencies
+    abstract FileCollection getPrimaryInputDependencies();
+
     @Inject
-    TestTransform(String transformName, ArtifactTransformDependencies artifactDependencies) {
+    TestTransform(String transformName) {
         this.transformName = transformName
-        this.artifactDependencies = artifactDependencies
     }
     
     List<File> transform(File input) {
-        println "\${transformName} received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
-        assert artifactDependencies.files.every { it.exists() }
+        println "\${transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
+        assert primaryInputDependencies.every { it.exists() }
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")

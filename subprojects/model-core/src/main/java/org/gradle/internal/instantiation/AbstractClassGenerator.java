@@ -120,6 +120,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // Else, the generated class has been collected, so generate a new one
         }
 
+        List<CustomInjectAnnotationPropertyHandler> customAnnotationPropertyHandlers = new ArrayList<CustomInjectAnnotationPropertyHandler>(enabledAnnotations.size());
+
         ServicesPropertyHandler servicesHandler = new ServicesPropertyHandler();
         InjectAnnotationPropertyHandler injectionHandler = new InjectAnnotationPropertyHandler();
         PropertyTypePropertyHandler propertyTypedHandler = new PropertyTypePropertyHandler();
@@ -135,8 +137,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         handlers.add(servicesHandler);
         handlers.add(managedTypeHandler);
         for (Class<? extends Annotation> annotation : enabledAnnotations) {
-            handlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
+            customAnnotationPropertyHandlers.add(new CustomInjectAnnotationPropertyHandler(annotation));
         }
+        handlers.addAll(customAnnotationPropertyHandlers);
         handlers.add(injectionHandler);
 
         // Order is significant
@@ -180,8 +183,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw new ClassGenerationException(formatter.toString(), e);
         }
 
-        List<Class<?>> injectedServices = injectionHandler.getInjectedServices();
-        CachedClass cachedClass = new CachedClass(type, subclass, injectedServices);
+        ImmutableList.Builder<Class<? extends Annotation>> annotationsTriggeringServiceInjection = ImmutableList.builder();
+        for (CustomInjectAnnotationPropertyHandler handler : customAnnotationPropertyHandlers) {
+            if (handler.isUsed()) {
+                annotationsTriggeringServiceInjection.add(handler.getAnnotation());
+            }
+        }
+        CachedClass cachedClass = new CachedClass(type, subclass, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
         cache.put(type, cachedClass);
         cache.put(subclass, cachedClass);
         return cachedClass.asWrapper();
@@ -305,12 +313,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
         private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices) {
+        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = generatedClass;
             this.outerType = outerType;
             this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
@@ -364,6 +374,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
+            public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
+                return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
+            }
+
+            @Override
             public Class<?>[] getParameterTypes() {
                 return constructor.getParameterTypes();
             }
@@ -390,12 +405,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Keep a weak reference to the generated class, to allow it to be collected
         private final WeakReference<Class<?>> generatedClass;
         private final WeakReference<Class<?>> outerType;
-        // This should be a list of weak references. For now, assume that all service types are Gradle core services and are never collected
+        // This should be a list of weak references. For now, assume that all services are Gradle core services and are never collected
         private final List<Class<?>> injectedServices;
+        private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
 
-        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServices) {
+        CachedClass(Class<?> type, Class<?> generatedClass, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
             this.generatedClass = new WeakReference<Class<?>>(generatedClass);
             this.injectedServices = injectedServices;
+            this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
 
             // This is expensive to calculate, so cache the result
             Class<?> enclosingClass = type.getEnclosingClass();
@@ -413,7 +430,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (generatedClass == null) {
                 return null;
             }
-            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices);
+            return new GeneratedClassImpl(generatedClass, outerType != null ? outerType.get() : null, injectedServices, annotationsTriggeringServiceInjection);
         }
     }
 
@@ -981,6 +998,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 services.add(property.getType());
             }
             return services.build();
+        }
+
+        public boolean isUsed() {
+            return !serviceInjectionProperties.isEmpty();
+        }
+
+        public Class<? extends Annotation> getAnnotation() {
+            return annotation;
         }
     }
 
