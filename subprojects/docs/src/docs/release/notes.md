@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 
 TBD - Abstract service injection getter methods
 TBD - Abstract mutable property
+TBD - Abstract `ConfigurableFileCollection` property
 TBD - Use an interface for Gradle instantiated types
 
 ## Upgrade Instructions
