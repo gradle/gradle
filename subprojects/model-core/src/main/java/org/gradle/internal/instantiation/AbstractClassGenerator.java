@@ -479,11 +479,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return mainGetter != null;
         }
 
-        public Iterable<Method> getOverridableGetters() {
+        public List<Method> getOverridableGetters() {
             return overridableGetters;
         }
 
-        public Iterable<Method> getOverridableSetters() {
+        public List<Method> getOverridableSetters() {
             return overridableSetters;
         }
 

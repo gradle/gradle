@@ -549,8 +549,12 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(InterfaceFileCollectionBean.class, managed.publicType());
         assertFalse(managed.immutable());
         Object[] state = (Object[]) managed.unpackState();
+        assertEquals(1, state.length);
+        assertTrue(state[0] instanceof ConfigurableFileCollection);
+        assertSame(state[0], bean.getFiles());
 
-        // TODO - implement the rest of this
+        InterfaceFileCollectionBean copy = managed.managedFactory().fromState(InterfaceFileCollectionBean.class, state);
+        assertTrue(copy.getFiles().isEmpty());
     }
 
     @Test
