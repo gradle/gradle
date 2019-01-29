@@ -85,6 +85,7 @@ import static org.objectweb.asm.Opcodes.GETSTATIC;
 import static org.objectweb.asm.Opcodes.IFNULL;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.PUTSTATIC;
@@ -1015,6 +1016,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 String propFieldName = propFieldName(propertyMetaData);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
             }
+            for (int i = 0; i < readOnlyProperties.size(); i++) {
+                PropertyMetaData propertyMetaData = readOnlyProperties.get(i);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitVarInsn(ALOAD, 1);
+                methodVisitor.visitLdcInsn(i + mutableProperties.size());
+                methodVisitor.visitInsn(AALOAD);
+                methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(propertyMetaData.getType()).getInternalName());
+                String propFieldName = propFieldName(propertyMetaData);
+                methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
+            }
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
@@ -1036,16 +1047,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             // Generate: Object[] unpackState() { state = new Object[<size>]; state[x] = <prop-field>; return state; }
             methodVisitor = visitor.visitMethod(ACC_PUBLIC, "unpackState", RETURN_OBJECT, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(mutableProperties.size());
+            methodVisitor.visitLdcInsn(mutableProperties.size() + readOnlyProperties.size());
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
             // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
             for (int i = 0; i < mutableProperties.size(); i++) {
-                PropertyMetaData propertyMetaData = mutableProperties.get(i);
-                String propFieldName = propFieldName(propertyMetaData);
+                PropertyMetaData property = mutableProperties.get(i);
+                String propFieldName = propFieldName(property);
                 methodVisitor.visitInsn(DUP);
                 methodVisitor.visitLdcInsn(i);
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
+                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), propFieldName, Type.getType(property.getType()).getDescriptor());
+                methodVisitor.visitInsn(Opcodes.AASTORE);
+            }
+            for (int i = 0; i < readOnlyProperties.size(); i++) {
+                PropertyMetaData property = readOnlyProperties.get(i);
+                methodVisitor.visitInsn(DUP);
+                methodVisitor.visitLdcInsn(i + mutableProperties.size());
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                Method getter = property.getOverridableGetters().get(0);
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);
                 methodVisitor.visitInsn(Opcodes.AASTORE);
             }
             methodVisitor.visitInsn(ARETURN);

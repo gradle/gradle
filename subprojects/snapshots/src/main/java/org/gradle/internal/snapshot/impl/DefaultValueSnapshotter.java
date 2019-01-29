@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -162,6 +163,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         if (value instanceof Isolatable) {
             return visitor.fromIsolatable((Isolatable<?>) value);
         }
+        if (value instanceof ConfigurableFileCollection) {
+            return visitor.fromFileCollection((ConfigurableFileCollection) value);
+        }
 
         // Fall back to serialization
         return serialize(value, visitor);
@@ -221,6 +225,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         T map(ImmutableList<Pair<T, T>> elements);
 
         T provider(Object value, T snapshot);
+
+        T fromFileCollection(ConfigurableFileCollection files);
 
         T serialized(Object value, byte[] serializedValue);
     }
@@ -298,6 +304,16 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
+        public ValueSnapshot provider(Object value, ValueSnapshot snapshot) {
+            return new ProviderSnapshot(snapshot);
+        }
+
+        @Override
+        public ValueSnapshot fromFileCollection(ConfigurableFileCollection files) {
+            throw new UnsupportedOperationException("Not implemented");
+        }
+
+        @Override
         public ValueSnapshot serialized(Object value, byte[] serializedValue) {
             return new SerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
@@ -330,11 +346,6 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         @Override
         public ValueSnapshot map(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> elements) {
             return new MapValueSnapshot(elements);
-        }
-
-        @Override
-        public ValueSnapshot provider(Object value, ValueSnapshot snapshot) {
-            return new ProviderSnapshot(snapshot);
         }
     }
 
@@ -420,6 +431,11 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         @Override
         public Isolatable<?> provider(Object value, Isolatable<?> snapshot) {
             throw new IsolationException(value);
+        }
+
+        @Override
+        public Isolatable<?> fromFileCollection(ConfigurableFileCollection files) {
+            return new IsolatedFileCollection(files);
         }
 
         @Override
