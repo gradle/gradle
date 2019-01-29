@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Incubating;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.File;
 
-/**
- * Attached to an artifact transform parameter type to declare the corresponding {@link ArtifactTransformAction} implementation to use.
- *
- * @since 5.2
- */
-@Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface TransformAction {
-    Class<? extends ArtifactTransformAction> value();
+public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
+    ImmutableList<File> getRegisteredOutputs();
 }

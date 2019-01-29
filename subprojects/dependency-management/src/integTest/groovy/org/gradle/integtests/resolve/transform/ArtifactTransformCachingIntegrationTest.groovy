@@ -1470,6 +1470,7 @@ ${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registe
 
                 List<File> transform(File input) {
 ${getFileSizerBody(fileValue)}
+                    return [output]
                 }
             }
     
@@ -1498,15 +1499,19 @@ ${getFileSizerBody(fileValue)}
                 Number getValue()
                 void setValue(Number value)
             }
-            abstract class FileSizerAction extends ArtifactTransform {
+            abstract class FileSizerAction implements ArtifactTransformAction {
                 @TransformParameters
                 abstract FileSizer getParameters()
 
                 @PrimaryInput
                 abstract File getInput()
+                
+                @Workspace
+                abstract File getOutputDirectory()
 
-                List<File> transform(File ignored) {
+            void transform(ArtifactTransformOutputs outputs) {
 ${getFileSizerBody(fileValue)}
+                    outputs.registerOutput(output)
                 }
             }
     
@@ -1550,8 +1555,6 @@ ${getFileSizerBody(fileValue)}
                         new File(outputDirectory, "some-garbage").text = "delete-me"
                         throw new RuntimeException("broken")
                     }
-
-                    return [output]
         """
     }
 

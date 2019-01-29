@@ -16,13 +16,16 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.artifacts.transform.PrimaryInput
+import org.gradle.api.artifacts.transform.PrimaryInputDependencies
+import org.gradle.api.artifacts.transform.Workspace
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "transform can receive parameters via abstract getter"() {
+    def "transform can receive parameters, workspace and primary input via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -54,15 +57,19 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction extends ArtifactTransform {
+            abstract class MakeGreenAction implements ArtifactTransformAction {
                 @TransformParameters
-                abstract MakeGreen getConf()
+                abstract MakeGreen getParameters()
+                @PrimaryInput
+                abstract File getInput()
+                @Workspace
+                abstract File getOutputDirectory()
                 
-                List<File> transform(File input) {
+                void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + conf.extension)
+                    def output = new File(outputDirectory, input.name + "." + parameters.extension)
                     output.text = "ok"
-                    return [output]
+                    outputs.registerOutput(output)
                 }
             }
 """
@@ -113,15 +120,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setMissingInput(String missing)
             }
             
-            abstract class MakeGreenAction extends ArtifactTransform {
+            abstract class MakeGreenAction implements ArtifactTransformAction {
                 @TransformParameters
-                abstract MakeGreen getConf()
+                abstract MakeGreen getParameters()
+                @Workspace
+                abstract File getOutputDirectory()
                 
-                List<File> transform(File input) {
+                
+                void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + conf.extension)
+                    def output = new File(outputDirectory, input.name + "." + parameters.extension)
                     output.text = "ok"
-                    return [output]
+                    outputs.registerOutput(output)
                 }
             }
 """
@@ -211,15 +221,19 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen extends ArtifactTransform {
+abstract class MakeGreen implements ArtifactTransformAction {
     @PrimaryInputDependencies
     abstract ${targetType} getDependencies()
+    @PrimaryInput
+    abstract File getInput()
+    @Workspace
+    abstract File getOutputDirectory()
     
-    List<File> transform(File input) {
+    void transform(ArtifactTransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
         def output = new File(outputDirectory, input.name + ".green")
         output.text = "ok"
-        return [output]
+        outputs.registerOutput(output)
     }
 }
 
@@ -237,12 +251,22 @@ abstract class MakeGreen extends ArtifactTransform {
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    def "transform can receive workspace and primary input via abstract getter"() {
+    @Unroll
+    def "old style transform cannot use @#annotation"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorAttributes()
         buildFile << """
+allprojects {
+    dependencies {
+        registerTransform {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+            artifactTransform(MakeGreen)
+        }
+    }
+}
 
 project(':a') {
     dependencies {
@@ -252,16 +276,11 @@ project(':a') {
 }
 
 abstract class MakeGreen extends ArtifactTransform {
-    @Workspace
-    abstract File getWorkspace()
-    
-    @PrimaryInput
+    @${annotation.name}
     abstract File getInputFile()
     
     List<File> transform(File input) {
         println "processing \${input.name}"
-        assert workspace == outputDirectory
-        assert inputFile == input
         def output = new File(outputDirectory, input.name + ".green")
         output.text = "ok"
         return [output]
@@ -271,12 +290,13 @@ abstract class MakeGreen extends ArtifactTransform {
 """
 
         when:
-        run(":a:resolve")
+        fails(":a:resolve")
 
         then:
-        outputContains("processing c.jar")
-        outputContains("processing b.jar")
-        outputContains("result = [b.jar.green, c.jar.green]")
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
+
+        where:
+        annotation << [Workspace, PrimaryInput, PrimaryInputDependencies]
     }
 
     def "transform cannot receive parameter object via constructor parameter"() {
@@ -352,11 +372,11 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen extends ArtifactTransform {
+abstract class MakeGreen implements ArtifactTransformAction {
     ${annotation}
     abstract FileCollection getDependencies()
     
-    List<File> transform(File input) {
+    void transform(ArtifactTransformOutputs outputs) {
         dependencies.files
         throw new RuntimeException("broken")
     }
@@ -389,11 +409,11 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen extends ArtifactTransform {
+abstract class MakeGreen implements ArtifactTransformAction {
     @Inject
     abstract File getWorkspace()
     
-    List<File> transform(File input) {
+    void transform(ArtifactTransformOutputs outputs) {
         workspace
         throw new RuntimeException("broken")
     }
@@ -428,6 +448,6 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use ${annotation} annotation on method MyTask.getThing().")
 
         where:
-        annotation << ["@Workspace", "@PrimaryInput"]
+        annotation << ["@Workspace", "@PrimaryInput", "@PrimaryInputDependencies"]
     }
 }

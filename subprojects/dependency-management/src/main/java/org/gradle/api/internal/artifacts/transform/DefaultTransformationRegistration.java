@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -57,28 +58,47 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
     private final ImmutableAttributes to;
     private final TransformationStep transformationStep;
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, @Nullable Object parameterObject, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
         Hasher hasher = Hashing.newHasher();
-        hasher.putString(implementation.getName());
-        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
+        appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
         // TODO - should snapshot later
-        Isolatable<Object[]> paramsSnapshot;
         Isolatable<?> isolatableParameterObject;
         try {
-            paramsSnapshot = isolatableFactory.isolate(params);
             isolatableParameterObject = isolatableFactory.isolate(parameterObject);
         } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
+            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), parameterObject), e);
         }
 
-        paramsSnapshot.appendToHasher(hasher);
         if (parameterObject != null) {
             fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
         }
 
-        Transformer transformer = new DefaultTransformer(implementation, isolatableParameterObject, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new DefaultTransformerFromTransformAction(implementation, isolatableParameterObject, hasher.hash(), instantiatorFactory, from);
+
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+    }
+
+    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker) {
+        Hasher hasher = Hashing.newHasher();
+        appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
+
+        // TODO - should snapshot later
+        Isolatable<Object[]> paramsSnapshot;
+        try {
+            paramsSnapshot = isolatableFactory.isolate(params);
+        } catch (Exception e) {
+            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
+        }
+        paramsSnapshot.appendToHasher(hasher);
+        Transformer transformer = new DefaultTransformerFromTransform(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+
+        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+    }
+
+    private static void appendActionImplementation(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Hasher hasher, Class<?> implementation) {
+        hasher.putString(implementation.getName());
+        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
     }
 
     private static void fingerprintParameters(

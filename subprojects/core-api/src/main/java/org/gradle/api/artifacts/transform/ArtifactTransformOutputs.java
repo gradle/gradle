@@ -17,20 +17,22 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.File;
 
 /**
- * Attached to an artifact transform parameter type to declare the corresponding {@link ArtifactTransformAction} implementation to use.
+ * The outputs of the artifact transform.
  *
- * @since 5.2
+ * @since 5.3
  */
 @Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface TransformAction {
-    Class<? extends ArtifactTransformAction> value();
+@HasInternalProtocol
+public interface ArtifactTransformOutputs {
+    /**
+     * Registers an output file of the transform.
+     *
+     * The order of calls to this method is retained in the result of the transform.
+     */
+    void registerOutput(File outputFile);
 }

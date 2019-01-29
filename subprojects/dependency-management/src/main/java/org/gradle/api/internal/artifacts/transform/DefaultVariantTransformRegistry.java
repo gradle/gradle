@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -95,9 +97,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         // TODO - should calculate this lazily
         Object[] parameters = registration.getTransformParameters();
-        Object config = registration.getParameterObject();
-
-        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, config, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
+        Object parameterObject = registration.getParameterObject();
+        Registration finalizedRegistration = ArtifactTransform.class.isAssignableFrom(registration.actionType)
+            ? DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), Cast.uncheckedNonnullCast(registration.actionType), parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker)
+            : DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), Cast.uncheckedNonnullCast(registration.actionType), parameterObject, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
         transforms.add(finalizedRegistration);
     }
 
@@ -105,10 +108,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    public static abstract class RecordingRegistration {
+    public static abstract class RecordingRegistration<T> {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
-        Class<? extends ArtifactTransform> actionType;
+        Class<? extends T> actionType;
         Action<? super ActionConfiguration> configAction;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
@@ -131,7 +134,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @NonExtensible
-    public static class UntypedRegistration extends RecordingRegistration implements VariantTransform {
+    public static class UntypedRegistration extends RecordingRegistration<ArtifactTransform> implements VariantTransform {
         private final InstantiatorFactory instantiatorFactory;
 
         public UntypedRegistration(ImmutableAttributesFactory immutableAttributesFactory, InstantiatorFactory instantiatorFactory) {
@@ -170,7 +173,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @NonExtensible
-    public static class TypedRegistration<T> extends RecordingRegistration implements ArtifactTransformSpec<T> {
+    public static class TypedRegistration<T> extends RecordingRegistration<ArtifactTransformAction> implements ArtifactTransformSpec<T> {
         private final T parameterObject;
 
         public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
@@ -183,12 +186,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public Class<? extends ArtifactTransform> getActionClass() {
+        public Class<? extends ArtifactTransformAction> getActionClass() {
             return actionType;
         }
 
         @Override
-        public void setActionClass(Class<? extends ArtifactTransform> implementationClass) {
+        public void setActionClass(Class<? extends ArtifactTransformAction> implementationClass) {
             this.actionType = implementationClass;
         }
 

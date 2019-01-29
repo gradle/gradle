@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformAction
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
@@ -69,7 +71,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.parameterObject.isolate() == null
         registration.transformationStep.transformer.parameters.isolate() == []
     }
 
@@ -89,7 +90,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.parameterObject.isolate() == null
         registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
@@ -119,7 +119,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform(TestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            assert it.actionClass == TestArtifactTransform
+            assert it.actionClass == TestArtifactTransformAction
         }
 
         then:
@@ -127,9 +127,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
         registration.transformationStep.transformer.parameterObject.isolate() instanceof TestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == []
     }
 
     def "creates registration with unannotated config object and without parameters"() {
@@ -137,7 +136,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform(UnAnnotatedTestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.actionClass = TestArtifactTransform
+            it.actionClass = TestArtifactTransformAction
         }
 
         then:
@@ -145,9 +144,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
         registration.transformationStep.transformer.parameterObject.isolate() instanceof UnAnnotatedTestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == []
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
@@ -157,7 +155,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform(TestTransformConfig) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.actionClass = TestArtifactTransform
+            it.actionClass = TestArtifactTransformAction
             registration = it
         }
 
@@ -173,7 +171,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
-            it.artifactTransform(TestArtifactTransform) { artifactConfig ->
+            it.artifactTransform(TestArtifactTransformAction) { artifactConfig ->
                 throw failure
             }
         }
@@ -197,8 +195,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def "fails when multiple artifactTransforms are provided for registration"() {
         when:
         registry.registerTransform {
-            it.artifactTransform(TestArtifactTransform)
-            it.artifactTransform(TestArtifactTransform)
+            it.artifactTransform(TestArtifactTransformAction)
+            it.artifactTransform(TestArtifactTransformAction)
         }
 
         then:
@@ -211,7 +209,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         when:
         registry.registerTransform {
             it.to.attribute(TEST_ATTRIBUTE, "to")
-            it.artifactTransform(TestArtifactTransform)
+            it.artifactTransform(TestArtifactTransformAction)
         }
 
         then:
@@ -224,7 +222,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "from")
-            it.artifactTransform(TestArtifactTransform)
+            it.artifactTransform(TestArtifactTransformAction)
         }
 
         then:
@@ -240,7 +238,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
             it.from.attribute(Attribute.of("from2", String), "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
             it.to.attribute(Attribute.of("other", Integer), 12)
-            it.artifactTransform(TestArtifactTransform)
+            it.artifactTransform(TestArtifactTransformAction)
         }
 
         then:
@@ -249,7 +247,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    @TransformAction(TestArtifactTransform)
+    @TransformAction(TestArtifactTransformAction)
     static class TestTransformConfig {
         String value
     }
@@ -262,6 +260,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         @Override
         List<File> transform(File input) {
             throw new UnsupportedOperationException()
+        }
+    }
+
+    static class TestArtifactTransformAction implements ArtifactTransformAction {
+        @Override
+        void transform(ArtifactTransformOutputs outputs) {
         }
     }
 

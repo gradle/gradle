@@ -47,6 +47,12 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
 
+interface CommonTransformParameters {
+    @Input
+    String getTransformName()
+    void setTransformName(String name)
+}
+
 allprojects {
     repositories {
         maven { url = '${mavenHttpRepo.uri}' }
@@ -66,42 +72,49 @@ allprojects {
     }
 
     dependencies {
-        registerTransform {
+        registerTransform(CommonTransformParameters) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'size')
-            artifactTransform(TestTransform) {
-                params('Single step transform')
+            parameters {
+                transformName = 'Single step transform'
             }
+            actionType = TestTransform
         }
 
         // Multi step transform
-        registerTransform {
+        registerTransform(CommonTransformParameters) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'intermediate')
-            artifactTransform(TestTransform) {
-                params('Transform step 1')
+            parameters {
+                transformName = 'Transform step 1'
             }
+            actionType = TestTransform
         }
-        registerTransform {
+        registerTransform(CommonTransformParameters) {
             from.attribute(artifactType, 'intermediate')
             to.attribute(artifactType, 'final')
-            artifactTransform(TestTransform) {
-                params('Transform step 2')
+            parameters {
+                transformName = 'Transform step 2'
             }
+            actionType = TestTransform
         }
 
         //Multi step transform, without dependencies at step 1
-        registerTransform {
+        registerTransform(CommonTransformParameters) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'middle')
-            artifactTransform(SimpleTransform)
+            parameters {
+                transformName = 'Simple Transform'
+            }
+            actionType = SimpleTransform
         }
-        registerTransform {
+        registerTransform(CommonTransformParameters) {
             from.attribute(artifactType, 'middle')
             to.attribute(artifactType, 'end')
-            artifactTransform(TestTransform) {
-                params('Transform step 2')
+            parameters {
+                transformName = 'Transform step 2'
             }
+            actionType = TestTransform
         }
     }
 }
@@ -139,33 +152,41 @@ class Producer extends DefaultTask {
     }
 }
 
-abstract class TestTransform extends ArtifactTransform {
+abstract class TestTransform implements ArtifactTransformAction {
 
-    String transformName
+    @TransformParameters
+    abstract CommonTransformParameters getParameters()
 
     @PrimaryInputDependencies
-    abstract FileCollection getPrimaryInputDependencies();
+    abstract FileCollection getPrimaryInputDependencies()
 
-    @Inject
-    TestTransform(String transformName) {
-        this.transformName = transformName
-    }
-    
-    List<File> transform(File input) {
-        println "\${transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
+    @PrimaryInput
+    abstract File getInput()
+
+    @Workspace
+    abstract File getOutputDirectory()
+
+    void transform(ArtifactTransformOutputs outputs) {
+        println "\${parameters.transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
         assert primaryInputDependencies.every { it.exists() }
 
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
         println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
-        return [output]
+        outputs.registerOutput(output)
     }
 }
 
-class SimpleTransform extends ArtifactTransform {
+abstract class SimpleTransform implements ArtifactTransformAction {
 
-    List<File> transform(File input) {
+    @PrimaryInput
+    abstract File getInput()
+
+    @Workspace
+    abstract File getOutputDirectory()
+
+    void transform(ArtifactTransformOutputs outputs) {
         assert outputDirectory.directory && outputDirectory.list().length == 0
         def output = new File(outputDirectory, input.name + ".txt")
         println "Transforming without dependencies \${input.name} to \${output.name}"
@@ -173,7 +194,7 @@ class SimpleTransform extends ArtifactTransform {
             throw new RuntimeException("Cannot transform")
         }
         output.text = String.valueOf(input.length())
-        return [output]
+        outputs.registerOutput(output)
     }
 }
 """

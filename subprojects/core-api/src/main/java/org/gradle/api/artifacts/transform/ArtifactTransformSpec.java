@@ -53,9 +53,9 @@ public interface ArtifactTransformSpec<T> {
     void parameters(Action<? super T> action);
 
     /**
-     * Returns the {@link ArtifactTransform} implementation to use for this transform. Defaults to the value specified by the {@link TransformAction} annotation attached to the configuration object.
+     * Returns the {@link ArtifactTransformAction} implementation to use for this transform. Defaults to the value specified by the {@link TransformAction} annotation attached to the configuration object.
      */
-    Class<? extends ArtifactTransform> getActionClass();
+    Class<? extends ArtifactTransformAction> getActionClass();
 
-    void setActionClass(Class<? extends ArtifactTransform> implementationClass);
+    void setActionClass(Class<? extends ArtifactTransformAction> implementationClass);
 }
