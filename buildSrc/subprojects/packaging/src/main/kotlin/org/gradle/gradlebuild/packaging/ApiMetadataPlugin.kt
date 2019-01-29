@@ -16,7 +16,7 @@
 
 package org.gradle.gradlebuild.packaging
 
-import accessors.java
+import accessors.sourceSets
 
 import build.ParameterNamesIndex
 
@@ -53,9 +53,11 @@ open class ApiMetadataPlugin : Plugin<Project> {
             destinationFile.set(generatedPropertiesFileFor(apiParametersFilename))
         }
 
-        java.sourceSets.named("main") {
-            output.dir(generatedDirFor(apiDeclarationFilename), "builtBy" to apiDeclaration)
-            output.dir(generatedDirFor(apiParametersFilename), "builtBy" to apiParameterNames)
+        sourceSets {
+            "main" {
+                output.dir(generatedDirFor(apiDeclarationFilename), "builtBy" to apiDeclaration)
+                output.dir(generatedDirFor(apiParametersFilename), "builtBy" to apiParameterNames)
+            }
         }
     }
 

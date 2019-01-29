@@ -16,13 +16,13 @@
 
 package build
 
+import accessors.sourceSets
 import org.gradle.gradlebuild.PublicApi
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.RelativePath
-import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.kotlin.dsl.*
 
@@ -78,8 +78,10 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
         }
     }
 
-    the<SourceSetContainer>().named("main") {
-        compileClasspath += gradleApiWithParameterNames.get()
+    sourceSets {
+        "main" {
+            compileClasspath += gradleApiWithParameterNames.get()
+        }
     }
 }
 

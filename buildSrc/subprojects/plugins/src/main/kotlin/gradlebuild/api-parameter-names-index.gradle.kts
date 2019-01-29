@@ -18,12 +18,12 @@ package gradlebuild
 
 import gradlebuildJava
 import accessors.base
-import accessors.java
+import accessors.sourceSets
 import build.ParameterNamesIndex
 import org.gradle.gradlebuild.PublicApi
 
 
-val main by java.sourceSets.existing
+val main by sourceSets.existing
 
 val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
     sources.from(main.map {

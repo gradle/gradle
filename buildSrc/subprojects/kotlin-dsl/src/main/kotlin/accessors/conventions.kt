@@ -27,7 +27,6 @@ import org.gradle.kotlin.dsl.*
 import com.gradle.publish.PluginBundleExtension
 
 
-internal
 val Project.sourceSets
     get() = the<SourceSetContainer>()
 
