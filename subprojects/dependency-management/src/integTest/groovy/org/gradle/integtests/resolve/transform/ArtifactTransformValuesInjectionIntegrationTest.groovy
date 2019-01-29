@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.artifacts.transform.PrimaryInput
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies
-import org.gradle.api.artifacts.transform.Workspace
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
@@ -62,12 +61,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 abstract MakeGreen getParameters()
                 @PrimaryInput
                 abstract File getInput()
-                @Workspace
-                abstract File getOutputDirectory()
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + parameters.extension)
+                    def output = new File(outputs.workspace, input.name + "." + parameters.extension)
                     output.text = "ok"
                     outputs.registerOutput(output)
                 }
@@ -123,13 +120,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             abstract class MakeGreenAction implements ArtifactTransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
-                @Workspace
-                abstract File getOutputDirectory()
-                
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + parameters.extension)
+                    def output = new File(outputs.workspace, input.name + "." + parameters.extension)
                     output.text = "ok"
                     outputs.registerOutput(output)
                 }
@@ -226,12 +220,10 @@ abstract class MakeGreen implements ArtifactTransformAction {
     abstract ${targetType} getDependencies()
     @PrimaryInput
     abstract File getInput()
-    @Workspace
-    abstract File getOutputDirectory()
     
     void transform(ArtifactTransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
-        def output = new File(outputDirectory, input.name + ".green")
+        def output = new File(outputs.workspace, input.name + ".green")
         output.text = "ok"
         outputs.registerOutput(output)
     }
@@ -296,7 +288,7 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
 
         where:
-        annotation << [Workspace, PrimaryInput, PrimaryInputDependencies]
+        annotation << [PrimaryInput, PrimaryInputDependencies]
     }
 
     def "transform cannot receive parameter object via constructor parameter"() {
@@ -359,7 +351,7 @@ abstract class MakeGreen extends ArtifactTransform {
     }
 
     @Unroll
-    def "transform cannot use #annotation to receive dependencies"() {
+    def "transform cannot use @PrimaryInput to receive dependencies"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -373,7 +365,7 @@ project(':a') {
 }
 
 abstract class MakeGreen implements ArtifactTransformAction {
-    ${annotation}
+    @PrimaryInput
     abstract FileCollection getDependencies()
     
     void transform(ArtifactTransformOutputs outputs) {
@@ -391,9 +383,6 @@ abstract class MakeGreen implements ArtifactTransformAction {
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type interface ${FileCollection.name} available.")
-
-        where:
-        annotation << ["@Workspace", "@PrimaryInput"]
     }
 
     def "transform cannot use @Inject to receive workspace or input file"() {
@@ -448,6 +437,6 @@ abstract class MakeGreen implements ArtifactTransformAction {
         failure.assertHasCause("Cannot use ${annotation} annotation on method MyTask.getThing().")
 
         where:
-        annotation << ["@Workspace", "@PrimaryInput", "@PrimaryInputDependencies"]
+        annotation << ["@PrimaryInput", "@PrimaryInputDependencies"]
     }
 }

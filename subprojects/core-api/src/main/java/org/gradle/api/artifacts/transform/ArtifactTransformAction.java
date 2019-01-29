@@ -29,8 +29,6 @@ import org.gradle.api.Incubating;
  *
  * <p>A property annotated with {@link PrimaryInput} will receive the <em>primary input</em> location, which is the file or directory that the transform should be applied to.
  *
- * <p>A property annotated with {@link Workspace} will receive the <em>workspace</em> location, which is the directory that the transform should write its output files to.
- *
  * <p>A property annotated with {@link PrimaryInputDependencies} will receive the <em>dependencies</em> of its primary input.
  *
  * @since 5.3

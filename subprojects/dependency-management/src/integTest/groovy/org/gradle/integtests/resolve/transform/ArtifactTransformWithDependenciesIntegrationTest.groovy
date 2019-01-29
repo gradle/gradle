@@ -163,15 +163,13 @@ abstract class TestTransform implements ArtifactTransformAction {
     @PrimaryInput
     abstract File getInput()
 
-    @Workspace
-    abstract File getOutputDirectory()
-
     void transform(ArtifactTransformOutputs outputs) {
         println "\${parameters.transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
         assert primaryInputDependencies.every { it.exists() }
 
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
+        def workspace = outputs.workspace
+        assert workspace.directory && workspace.list().length == 0
+        def output = new File(workspace, input.name + ".txt")
         println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
         outputs.registerOutput(output)
@@ -183,12 +181,10 @@ abstract class SimpleTransform implements ArtifactTransformAction {
     @PrimaryInput
     abstract File getInput()
 
-    @Workspace
-    abstract File getOutputDirectory()
-
     void transform(ArtifactTransformOutputs outputs) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
+        def workspace = outputs.workspace
+        assert workspace.directory && workspace.list().length == 0
+        def output = new File(workspace, input.name + ".txt")
         println "Transforming without dependencies \${input.name} to \${output.name}"
         if (input.name == System.getProperty("failTransformOf")) {
             throw new RuntimeException("Cannot transform")

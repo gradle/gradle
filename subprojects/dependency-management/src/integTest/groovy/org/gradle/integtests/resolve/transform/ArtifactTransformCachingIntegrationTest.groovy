@@ -1506,10 +1506,8 @@ ${getFileSizerBody(fileValue)}
                 @PrimaryInput
                 abstract File getInput()
                 
-                @Workspace
-                abstract File getOutputDirectory()
-
-            void transform(ArtifactTransformOutputs outputs) {
+                void transform(ArtifactTransformOutputs outputs) {
+                    File outputDirectory = outputs.workspace
 ${getFileSizerBody(fileValue)}
                     outputs.registerOutput(output)
                 }

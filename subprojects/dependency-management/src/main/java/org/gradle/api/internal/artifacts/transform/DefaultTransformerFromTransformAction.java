@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.hash.HashCode;
@@ -48,7 +47,7 @@ public class DefaultTransformerFromTransformAction extends AbstractTransformer<A
     public DefaultTransformerFromTransformAction(Class<? extends ArtifactTransformAction> implementationClass, Isolatable<?> parameterObject, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         super(implementationClass, inputsHash, fromAttributes);
         this.parameterObject = parameterObject;
-        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(Workspace.class, PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
+        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
     }
 
@@ -58,26 +57,24 @@ public class DefaultTransformerFromTransformAction extends AbstractTransformer<A
 
     @Override
     public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransformAction transformAction = newTransformAction(primaryInput, outputDir, dependencies);
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs();
+        ArtifactTransformAction transformAction = newTransformAction(primaryInput, dependencies);
+        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(outputDir);
         transformAction.transform(transformOutputs);
         ImmutableList<File> outputs = transformOutputs.getRegisteredOutputs();
         return validateOutputs(primaryInput, outputDir, outputs);
     }
 
-    private ArtifactTransformAction newTransformAction(File inputFile, File outputDir, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, outputDir, parameterObject.isolate(), requiresDependencies ? artifactTransformDependencies : null);
+    private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
+        ServiceLookup services = new TransformServiceLookup(inputFile, parameterObject.isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services);
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
         private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, File outputDir, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+        public TransformServiceLookup(File inputFile, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder
-                .add(new InjectionPoint(Workspace.class, outputDir))
-                .add(new InjectionPoint(PrimaryInput.class, inputFile));
+            builder.add(new InjectionPoint(PrimaryInput.class, File.class, inputFile));
             if (parameters != null) {
                 builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
             }

@@ -23,10 +23,20 @@ import java.io.File;
 public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
+    private final File workspace;
+
+    public DefaultArtifactTransformOutputs(File workspace) {
+        this.workspace = workspace;
+    }
 
     @Override
     public void registerOutput(File outputFile) {
         outputsBuilder.add(outputFile);
+    }
+
+    @Override
+    public File getWorkspace() {
+        return workspace;
     }
 
     @Override

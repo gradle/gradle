@@ -32,7 +32,12 @@ public interface ArtifactTransformOutputs {
     /**
      * Registers an output file of the transform.
      *
-     * The order of calls to this method is retained in the result of the transform.
+     * <p>The order of calls to this method is retained in the result of the transform.</p>
      */
     void registerOutput(File outputFile);
+
+    /**
+     * Returns the <em>workspace</em> location for this transform, which is the directory that the transform should write its output files to.
+     */
+    File getWorkspace();
 }
