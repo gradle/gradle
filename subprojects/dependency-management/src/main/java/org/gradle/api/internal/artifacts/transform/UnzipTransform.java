@@ -1,0 +1,79 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.artifacts.transform;
+
+import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.internal.UncheckedException;
+
+import javax.inject.Inject;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static org.apache.commons.io.FilenameUtils.removeExtension;
+
+/**
+ * Provides a generic transform from a zipped file to an extracted directory.  The extracted directory
+ * is located in the output directory of the transform and is named after the zipped file name
+ * minus the extension.
+ */
+public class UnzipTransform extends ArtifactTransform {
+    @Inject
+    UnzipTransform() { }
+
+    @Override
+    public List<File> transform(File zippedFile) {
+        String unzippedDirName = removeExtension(zippedFile.getName());
+        File unzipDir = new File(getOutputDirectory(), unzippedDirName);
+        try {
+            unzipTo(zippedFile, unzipDir);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return Collections.singletonList(unzipDir);
+    }
+
+    private void unzipTo(File headersZip, File unzipDir) throws IOException {
+        ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
+        try {
+            ZipEntry entry;
+            while ((entry = inputStream.getNextEntry()) != null) {
+                if (entry.isDirectory()) {
+                    continue;
+                }
+                File outFile = new File(unzipDir, entry.getName());
+                Files.createParentDirs(outFile);
+                FileOutputStream outputStream = new FileOutputStream(outFile);
+                try {
+                    IOUtils.copyLarge(inputStream, outputStream);
+                } finally {
+                    outputStream.close();
+                }
+            }
+        } finally {
+            inputStream.close();
+        }
+    }
+}
