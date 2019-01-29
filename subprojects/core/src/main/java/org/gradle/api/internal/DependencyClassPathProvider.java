@@ -84,10 +84,6 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath gradleKotlinDsl() {
-        ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : Arrays.asList("gradle-kotlin-dsl", "gradle-kotlin-dsl-tooling-models")) {
-            classpath = classpath.plus(moduleRegistry.getModule(moduleName).getClasspath());
-        }
-        return classpath;
+        return moduleRegistry.getModule("gradle-kotlin-dsl").getClasspath();
     }
 }
