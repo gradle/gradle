@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.test.cpp.internal;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -59,8 +58,8 @@ public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTes
     private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
-    public DefaultCppTestExecutable(Names names, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, ConfigurationContainer configurations, ObjectFactory objects, FileOperations fileOperations, DependencyHandler dependencyHandler) {
-        super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity, dependencyHandler);
+    public DefaultCppTestExecutable(Names names, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, ConfigurationContainer configurations, ObjectFactory objects, FileOperations fileOperations) {
+        super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.testedComponent = testedComponent;
         this.executableFile = objects.fileProperty();
         this.executableFileProducer = objects.property(Task.class);

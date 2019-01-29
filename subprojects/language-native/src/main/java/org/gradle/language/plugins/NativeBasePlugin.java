@@ -472,6 +472,8 @@ public class NativeBasePlugin implements Plugin<Project> {
     static class HeaderDirectoryCompatibilityRule implements AttributeCompatibilityRule<String> {
         @Override
         public void execute(CompatibilityCheckDetails<String> details) {
+            // This allows arbitrary file-based dependencies that are added without attributes
+            // to be recognized as compatible for C++ headers if they're directories
             if (C_PLUS_PLUS_API_DIRECTORY.equals(details.getConsumerValue())
                     && DIRECTORY.equals(details.getProducerValue())) {
                 details.compatible();

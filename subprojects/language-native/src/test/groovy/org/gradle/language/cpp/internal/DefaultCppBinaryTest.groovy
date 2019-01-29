@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.provider.Provider
@@ -41,7 +40,6 @@ class DefaultCppBinaryTest extends Specification {
     def link = Stub(Configuration)
     def runtime = Stub(Configuration)
     def configurations = Stub(ConfigurationContainer)
-    def dependencyHandler = Stub(DependencyHandler)
 
     DefaultCppBinary binary
 
@@ -52,7 +50,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("nativeRuntimeDebug") >> runtime
         _ * componentHeaders.plus(_) >> headerDirs
 
-        binary = new DefaultCppBinary(Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity), dependencyHandler)
+        binary = new DefaultCppBinary(Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "creates configurations for the binary"() {
