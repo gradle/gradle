@@ -22,10 +22,8 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
@@ -80,9 +78,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.C_PLUS_PLUS_API_DIRECTORY;
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.C_PLUS_PLUS_API_ZIP_TYPE;
-import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY_TYPE;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ZIP_TYPE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
@@ -440,12 +437,11 @@ public class NativeBasePlugin implements Plugin<Project> {
     private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
         dependencyHandler.registerTransform(variantTransform -> {
             variantTransform.artifactTransform(UnzipTransform.class);
-            variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, C_PLUS_PLUS_API_ZIP_TYPE);
+            variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
             variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-            variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, C_PLUS_PLUS_API_DIRECTORY);
+            variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
             variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         });
-        dependencyHandler.getAttributesSchema().attribute(ArtifactAttributes.ARTIFACT_FORMAT).getCompatibilityRules().add(HeaderDirectoryCompatibilityRule.class);
     }
 
     static class LinkageSelectionRule implements AttributeDisambiguationRule<Linkage> {
@@ -453,18 +449,6 @@ public class NativeBasePlugin implements Plugin<Project> {
         public void execute(MultipleCandidatesDetails<Linkage> details) {
             if (details.getCandidateValues().contains(Linkage.SHARED)) {
                 details.closestMatch(Linkage.SHARED);
-            }
-        }
-    }
-
-    static class HeaderDirectoryCompatibilityRule implements AttributeCompatibilityRule<String> {
-        @Override
-        public void execute(CompatibilityCheckDetails<String> details) {
-            // This allows arbitrary file-based dependencies that are added without attributes
-            // to be recognized as compatible for C++ headers if they're directories
-            if (C_PLUS_PLUS_API_DIRECTORY.equals(details.getConsumerValue())
-                    && DIRECTORY.equals(details.getProducerValue())) {
-                details.compatible();
             }
         }
     }

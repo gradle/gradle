@@ -97,7 +97,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         ArtifactView includeDirs = includePathConfiguration.getIncoming().artifactView(viewConfiguration -> {
            viewConfiguration.attributes(attributeContainer -> {
                attributeContainer.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
-               attributeContainer.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.C_PLUS_PLUS_API_DIRECTORY);
+               attributeContainer.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
            });
         });
         includePath = componentHeaderDirs.plus(includeDirs.getFiles());

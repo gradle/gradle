@@ -56,7 +56,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     public ImmutableAttributes mapAttributesFor(File file) {
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         if (file.isDirectory()) {
-            attributes = attributesFactory.of(ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY);
+            attributes = attributesFactory.of(ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
         } else {
             String extension = Files.getFileExtension(file.getName());
             if (artifactTypeDefinitions != null) {

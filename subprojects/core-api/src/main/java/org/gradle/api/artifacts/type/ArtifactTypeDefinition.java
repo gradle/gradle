@@ -55,20 +55,12 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
     String JVM_RESOURCES_DIRECTORY = "java-resources-directory";
 
     /**
-     * Represents the packaged C++ public header files
+     * Represents a zip file
      *
      * @since 5.3
      */
     @Incubating
-    String C_PLUS_PLUS_API_ZIP_TYPE = "zip";
-
-    /**
-     * Represents a directory of C++ public header files
-     *
-     * @since 5.3
-     */
-    @Incubating
-    String C_PLUS_PLUS_API_DIRECTORY = "c-plus-plus-api-directory";
+    String ZIP_TYPE = "zip";
 
     /**
      * Represents a raw directory
@@ -76,7 +68,7 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      * @since 5.3
      */
     @Incubating
-    String DIRECTORY = "directory";
+    String DIRECTORY_TYPE = "directory";
 
     /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.

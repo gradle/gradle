@@ -607,7 +607,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         failure.assertHasCause """Unable to find a matching variant of project :hello:
   - Variant 'cppApiElements' capability test:hello:unspecified:
-      - Found artifactType 'c-plus-plus-api-directory' but wasn't required.
+      - Found artifactType 'directory' but wasn't required.
       - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
       - Required org.gradle.native.debuggable 'true' but no value provided.
       - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.

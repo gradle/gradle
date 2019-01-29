@@ -77,11 +77,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        apiElements.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.C_PLUS_PLUS_API_DIRECTORY);
+        apiElements.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
 
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.C_PLUS_PLUS_API_ZIP_TYPE);
+        publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.ZIP_TYPE);
         mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, collectionCallbackActionDecorator);
     }
 
