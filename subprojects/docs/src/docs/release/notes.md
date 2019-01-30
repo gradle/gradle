@@ -7,6 +7,10 @@ We would like to thank the following community contributors to this release of G
 [Stefan M.](https://github.com/StefMa), ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
+### Default JaCoCo version upgraded to 0.8.3
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
+
 ## Improvements for plugin authors
 
 TBD - Abstract service injection getter methods
