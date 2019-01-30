@@ -76,7 +76,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     String teamCityPassword
 
     @Internal
-    int repeat
+    int repeat = 1
 
     @OutputFile
     @PathSensitive(PathSensitivity.RELATIVE)
