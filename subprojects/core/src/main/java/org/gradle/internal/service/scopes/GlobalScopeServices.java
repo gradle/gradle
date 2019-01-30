@@ -78,6 +78,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.hash.DefaultStreamHasher;
@@ -253,10 +254,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
-    FileCollectionFactory createFileCollectionFactory() {
-        return new DefaultFileCollectionFactory();
+    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver) {
+        return new DefaultFileCollectionFactory(fileResolver, null);
     }
-
 
     ModelRuleExtractor createModelRuleInspector(List<MethodModelRuleExtractor> extractors, ModelSchemaStore modelSchemaStore, StructBindingsStore structBindingsStore, ManagedProxyFactory managedProxyFactory) {
         List<MethodModelRuleExtractor> coreExtractors = MethodModelRuleExtractors.coreExtractors(modelSchemaStore);
@@ -319,13 +319,14 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
         return new DefaultObjectFactory(
             instantiatorFactory.injectAndDecorate(services),
             NamedObjectInstantiator.INSTANCE,
             fileResolver,
             directoryFileTreeFactory,
-            new DefaultFilePropertyFactory(fileResolver));
+            new DefaultFilePropertyFactory(fileResolver),
+            fileCollectionFactory);
     }
 
     ProviderFactory createProviderFactory() {

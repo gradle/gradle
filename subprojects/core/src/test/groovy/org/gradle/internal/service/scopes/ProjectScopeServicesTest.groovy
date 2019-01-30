@@ -23,7 +23,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -45,7 +44,7 @@ import org.gradle.api.internal.project.DefaultAntBuilderFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskStatistics
 import org.gradle.api.logging.LoggingManager
@@ -56,6 +55,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -143,13 +143,13 @@ class ProjectScopeServicesTest extends Specification {
         1 * plugin2.registerProjectServices(_)
     }
 
-    def "provides a TaskContainerFactory"() {
+    def "provides a TaskContainer"() {
         def instantiator = Stub(Instantiator)
         1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
         1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
 
         expect:
-        registry.getFactory(TaskContainerInternal) instanceof DefaultTaskContainerFactory
+        registry.get(TaskContainerInternal) instanceof DefaultTaskContainer
     }
 
     def "provides a ToolingModelBuilderRegistry"() {

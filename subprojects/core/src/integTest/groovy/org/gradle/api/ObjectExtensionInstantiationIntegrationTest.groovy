@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import javax.inject.Inject
 
 
-class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
+class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
     def "can create instance of extension with multiple constructors without @Inject annotation"() {
         buildFile << """
@@ -145,6 +145,60 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
         failure.assertHasCause("Too many parameters provided for constructor for class Thing. Expected 2, received 3.")
+    }
+
+    def "can create instance of interface with mutable property"() {
+        buildFile << """
+            interface Thing {
+                String getValue()
+                void setValue(String value)
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value == null
+            thing {
+                value = "123"
+            }
+            assert thing.value == "123"
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only FileCollection property"() {
+        buildFile << """
+            interface Thing {
+                ConfigurableFileCollection getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.files.empty
+            thing.value.from("a.txt")
+            assert thing.value.files as List == [file("a.txt")]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of abstract class with mutable property"() {
+        buildFile << """
+            abstract class Thing {
+                abstract String getValue()
+                abstract void setValue(String value)
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value == null
+            thing {
+                value = "123"
+            }
+            assert thing.value == "123"
+        """
+
+        expect:
+        succeeds()
     }
 
     // Document current behaviour

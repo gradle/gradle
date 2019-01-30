@@ -2225,7 +2225,7 @@
 			}
 
 			// maybe use a scrolling parent element instead of document?
-			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse poisition is n/a
+			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse position is n/a
 				var d = $(document), t = d.scrollTop(), l = d.scrollLeft();
 				if(e.pageY - t < 20) { 
 					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }

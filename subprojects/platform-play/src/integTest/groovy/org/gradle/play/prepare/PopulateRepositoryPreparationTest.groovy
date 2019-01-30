@@ -43,7 +43,7 @@ allprojects {
         doFirst {
            configurations.all {
                if (it.canBeResolved) {
-                  println "Pre-emptively download all files for configuration \${it.name}"
+                  println "Preemptively download all files for configuration \${it.name}"
                   println it.resolve()*.name
                }
            }

@@ -322,9 +322,9 @@ public class GradleResolveVisitor extends ResolveVisitor {
         addError("unable to resolve class " + type.getName() + " " + msg, node);
     }
 
-    private void resolveOrFail(ClassNode type, ASTNode node, boolean prefereImports) {
+    private void resolveOrFail(ClassNode type, ASTNode node, boolean preferImports) {
         resolveGenericsTypes(type.getGenericsTypes());
-        if (prefereImports && resolveAliasFromModule(type)) {
+        if (preferImports && resolveAliasFromModule(type)) {
             return;
         }
         resolveOrFail(type, node);

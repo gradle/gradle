@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.inspect;
-
-import org.gradle.model.Managed;
-
-@Managed
-public interface ParametrizedManaged<T> {
+plugins {
+    id 'java-library'
 }
+
+repositories {
+    maven {
+        url '../repo'
+    }
+    jcenter()
+}
+
+// tag::consumer[]
+dependencies {
+    // This project requires the main producer component
+    implementation('org.gradle.demo:producer:1.0')
+
+    // But we also want to use its MongoDB support
+    runtimeOnly('org.gradle.demo:producer:1.0') {
+        capabilities {
+            requireCapability("org.gradle.demo:producer-mongodb-support")
+        }
+    }
+}
+// end::consumer[]

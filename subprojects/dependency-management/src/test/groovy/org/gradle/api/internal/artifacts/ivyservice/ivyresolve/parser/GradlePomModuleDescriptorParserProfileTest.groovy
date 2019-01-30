@@ -829,7 +829,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
             <id>profile-1</id>
             <activation>
                 <property>
-                    <name>!somePrpperty</name>
+                    <name>!someProperty</name>
                 </property>
             </activation>
             <properties>

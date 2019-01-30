@@ -179,14 +179,14 @@ class BuildControllerAdapterTest extends Specification {
 
         then:
         NullPointerException e1 = thrown()
-        e1.message == "parameterType and parameterInitializer both need to be set for a parametrized model request."
+        e1.message == "parameterType and parameterInitializer both need to be set for a parameterized model request."
 
         when:
         controller.getModel(GradleBuild, ValidParameter, null)
 
         then:
         NullPointerException e2 = thrown()
-        e2.message == "parameterType and parameterInitializer both need to be set for a parametrized model request."
+        e2.message == "parameterType and parameterInitializer both need to be set for a parameterized model request."
     }
 
     def "error when invalid parameter type is used"() {

@@ -101,7 +101,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
     def "build cache configurations are not exposed when build cache is not enabled"() {
         when:
         def cacheDir = temporaryFolder.file("cache-dir").createDir()
-        def url = "http://locahost:8080/cache/"
+        def url = "http://localhost:8080/cache/"
         settingsFile << """
             import org.gradle.caching.internal.NoOpBuildCacheService
             class CustomBuildCache extends AbstractBuildCache {

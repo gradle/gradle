@@ -19,7 +19,7 @@ package org.gradle.language.scala
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-class LanuageScalaCompilationFixture {
+class LanguageScalaCompilationFixture {
     private final TestFile root
     final ScalaClass basicClassSource
     final ScalaClass classDependingOnBasicClassSource
@@ -30,7 +30,7 @@ class LanuageScalaCompilationFixture {
     String sourceDir
     TestFile analysisFile
 
-    LanuageScalaCompilationFixture(File root) {
+    LanguageScalaCompilationFixture(File root) {
         this.root = new TestFile(root)
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileMainJarMainScala.analysis")
         this.sourceSet = 'main'
@@ -102,7 +102,7 @@ class LanuageScalaCompilationFixture {
         final String changedText
         final String javadocLocation
 
-        ScalaClass(String sourceDir = LanuageScalaCompilationFixture.this.sourceDir, String path, String originalText, String changedText) {
+        ScalaClass(String sourceDir = LanguageScalaCompilationFixture.this.sourceDir, String path, String originalText, String changedText) {
             this.changedText = changedText
             this.originalText = originalText
             source = root.file("${sourceDir}/${path}.scala")

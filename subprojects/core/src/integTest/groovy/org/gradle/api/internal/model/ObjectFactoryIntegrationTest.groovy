@@ -72,8 +72,8 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create instance of interface with mutable properties"() {
         buildFile << """
             interface Thing {
-                String getProp();
-                void setProp(String value);
+                String getProp()
+                void setProp(String value)
             }
             
             def t = objects.newInstance(Thing)
@@ -84,6 +84,58 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds()
+    }
+
+    def "plugin can create instance of interface with read-only FileCollection property"() {
+        buildFile << """
+            interface Thing {
+                ConfigurableFileCollection getFiles()
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.files.files.empty
+            t.files.from('a.txt')
+            assert t.files as List == [file('a.txt')]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create instance of abstract class with mutable properties"() {
+        buildFile << """
+            abstract class Thing {
+                String otherProp
+                
+                abstract String getProp()
+                abstract void setProp(String value)
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.prop == null
+            assert t.otherProp == null
+            t.prop = "value"
+            assert t.prop == "value"
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "fails when abstract method cannot be implemented"() {
+        buildFile << """
+            interface Thing {
+                String getProp()
+            }
+            
+            objects.newInstance(Thing)
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not create an instance of type Thing.")
+        failure.assertHasCause("Could not generate a decorated class for interface Thing.")
+        failure.assertHasCause("Cannot have abstract method Thing.getProp().")
     }
 
     def "services are injected into instances using constructor or getter"() {

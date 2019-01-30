@@ -329,7 +329,7 @@ class DefaultFileOperationsTest extends Specification {
         fileOperations.exec {
             executable = "touch"
             workingDir = tmpDir.getTestDirectory()
-            args tmpDir.testDirectory.name + "/nonExistingDir/someFile"
+            args tmpDir.testDirectory.name + "/nonexistentDir/someFile"
         }
 
         then:
@@ -345,7 +345,7 @@ class DefaultFileOperationsTest extends Specification {
             ignoreExitValue = true
             executable = "touch"
             workingDir = tmpDir.getTestDirectory()
-            args tmpDir.testDirectory.name + "/nonExistingDir/someFile"
+            args tmpDir.testDirectory.name + "/nonexistentDir/someFile"
         }
 
         then:

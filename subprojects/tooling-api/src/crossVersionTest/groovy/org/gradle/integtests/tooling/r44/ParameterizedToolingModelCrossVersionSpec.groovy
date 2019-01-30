@@ -26,7 +26,7 @@ import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.GradleVersion
 
-class ParametrizedToolingModelCrossVersionSpec extends ToolingApiSpecification {
+class ParameterizedToolingModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -191,7 +191,7 @@ class ParametrizedToolingModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.4")
     @ToolingApiVersion(">=4.4")
-    def "error when passing parameter to non parametrized builder"() {
+    def "error when passing parameter to non parameterized builder"() {
         def handler = Mock(ResultHandler)
 
         when:

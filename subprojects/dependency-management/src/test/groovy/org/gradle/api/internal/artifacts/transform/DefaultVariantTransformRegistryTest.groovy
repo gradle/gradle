@@ -27,6 +27,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
@@ -48,7 +49,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, propertyWalker)
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, Stub(ServiceRegistry), transformerInvoker, valueSnapshotter, propertyWalker)
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> HashCode.fromInt(123)

@@ -108,7 +108,7 @@ public class TestFiles {
     }
 
     public static FileCollectionFactory fileCollectionFactory() {
-        return new DefaultFileCollectionFactory();
+        return new DefaultFileCollectionFactory(pathToFileResolver(), null);
     }
 
     public static ExecFactory execFactory() {

@@ -158,8 +158,13 @@ public class PmdExtension extends CodeQualityExtension {
 
     /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set file.
+     * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
-     * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
+     * <pre>
+     *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
+     * </pre>
+     *
+     * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         this.ruleSetFiles = project.getLayout().configurableFiles(ruleSetFiles);

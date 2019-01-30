@@ -62,12 +62,13 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
 
         // TODO - should snapshot later
         Isolatable<Object[]> paramsSnapshot;
+        Isolatable<?> isolatedParameterObject;
         try {
             paramsSnapshot = isolatableFactory.isolate(params);
+            isolatedParameterObject = isolatableFactory.isolate(parameterObject);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
-        Isolatable<?> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
         paramsSnapshot.appendToHasher(hasher);
         if (parameterObject != null) {

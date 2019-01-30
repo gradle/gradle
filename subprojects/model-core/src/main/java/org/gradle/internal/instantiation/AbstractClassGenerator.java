@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
@@ -478,11 +479,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return mainGetter != null;
         }
 
-        public Iterable<Method> getOverridableGetters() {
+        public List<Method> getOverridableGetters() {
             return overridableGetters;
         }
 
-        public Iterable<Method> getOverridableSetters() {
+        public List<Method> getOverridableSetters() {
             return overridableSetters;
         }
 
@@ -782,7 +783,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ManagedTypeHandler extends ClassGenerationHandler {
-        private final List<PropertyMetaData> properties = new ArrayList<>();
+        private final List<PropertyMetaData> mutableProperties = new ArrayList<>();
+        private final List<PropertyMetaData> readOnlyProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
@@ -792,6 +794,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         boolean claimProperty(PropertyMetaData property) {
+            // Skip properties with non-abstract getter or setter implementations
             for (Method getter : property.getters) {
                 if (!Modifier.isAbstract(getter.getModifiers())) {
                     return false;
@@ -802,11 +805,21 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return false;
                 }
             }
-            if (property.setters.isEmpty()) {
+            if (property.getters.isEmpty()) {
                 return false;
             }
-            properties.add(property);
-            return true;
+            if (property.setters.isEmpty()) {
+                if (property.getType().equals(ConfigurableFileCollection.class)) {
+                    // Read-only file collection property
+                    readOnlyProperties.add(property);
+                    return true;
+                }
+                return false;
+            } else {
+                // Mutable property
+                mutableProperties.add(property);
+                return true;
+            }
         }
 
         @Override
@@ -814,11 +827,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (!hasFields) {
                 visitor.mixInManaged();
             }
+            if (!readOnlyProperties.isEmpty()) {
+                visitor.mixInServiceInjection();
+            }
         }
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : properties) {
+            for (PropertyMetaData property : mutableProperties) {
                 visitor.applyManagedStateToProperty(property);
                 for (Method getter : property.getters) {
                     visitor.applyManagedStateToGetter(property, getter);
@@ -827,8 +843,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     visitor.applyManagedStateToSetter(property, setter);
                 }
             }
+            for (PropertyMetaData property : readOnlyProperties) {
+                visitor.applyManagedStateToProperty(property);
+                for (Method getter : property.getters) {
+                    visitor.applyReadOnlyManagedStateToGetter(property, getter);
+                }
+            }
             if (!hasFields) {
-                visitor.addManagedMethods(properties);
+                visitor.addManagedMethods(mutableProperties, readOnlyProperties);
             }
         }
     }
@@ -1116,7 +1138,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyManagedStateToSetter(PropertyMetaData property, Method setter);
 
-        void addManagedMethods(List<PropertyMetaData> properties);
+        void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter);
+
+        void addManagedMethods(List<PropertyMetaData> properties, List<PropertyMetaData> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetaData property);
 

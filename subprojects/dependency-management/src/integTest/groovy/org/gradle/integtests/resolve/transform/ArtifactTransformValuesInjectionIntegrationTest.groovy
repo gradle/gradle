@@ -138,6 +138,60 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
     }
 
+    def "transform can receive file collection via parameter object"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithColorAttributes()
+        buildFile << """
+                allprojects {
+                    dependencies {
+                        registerTransform(MakeGreen) {
+                            from.attribute(color, 'blue')
+                            to.attribute(color, 'green')
+                            parameters {
+                            someFiles.from('a.txt')
+                            someFiles.from('b.txt')
+                        }
+                    }
+                }
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                ConfigurableFileCollection getSomeFiles()
+            }
+            
+            abstract class MakeGreenAction extends ArtifactTransform {
+                @TransformParameters
+                abstract MakeGreen getConf()
+                
+                List<File> transform(File input) {
+                    println "processing \${input.name} using \${conf.someFiles*.name}"
+                    def output = new File(outputDirectory, input.name + ".green")
+                    output.text = "ok"
+                    return [output]
+                }
+            }
+"""
+
+        when:
+        run(":a:resolve")
+
+        then:
+        outputContains("processing b.jar using [a.txt, b.txt]")
+        outputContains("processing c.jar using [a.txt, b.txt]")
+        outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
     @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """

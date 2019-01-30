@@ -210,33 +210,33 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         protected void parseDepsConfs(String confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
-            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande, true);
+                boolean useDefaultMappingToGuessRightOperand) {
+            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperand, true);
         }
 
         protected void parseDepsConfs(String confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande, boolean evaluateConditions) {
+                boolean useDefaultMappingToGuessRightOperand, boolean evaluateConditions) {
             if (confs == null) {
                 return;
             }
 
             String[] conf = confs.split(";");
-            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperande, evaluateConditions);
+            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperand, evaluateConditions);
         }
 
         protected void parseDepsConfs(String[] conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
-            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperande, true);
+                boolean useDefaultMappingToGuessRightOperand) {
+            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperand, true);
         }
 
         protected void parseDepsConfs(String[] conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande, boolean evaluateConditions) {
+                boolean useDefaultMappingToGuessRightOperand, boolean evaluateConditions) {
             replaceConfigurationWildcards(md);
             for (int i = 0; i < conf.length; i++) {
                 String[] ops = conf[i].split("->");
                 if (ops.length == 1) {
                     String[] modConfs = ops[0].split(",");
-                    if (!useDefaultMappingToGuessRightOperande) {
+                    if (!useDefaultMappingToGuessRightOperand) {
                         for (int j = 0; j < modConfs.length; j++) {
                             dd.addDependencyConfiguration(modConfs[j].trim(), modConfs[j].trim());
                         }
@@ -280,7 +280,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
 
             if (md.isMappingOverride()) {
-                addExtendingConfigurations(conf, dd, useDefaultMappingToGuessRightOperande);
+                addExtendingConfigurations(conf, dd, useDefaultMappingToGuessRightOperand);
             }
         }
 
@@ -348,14 +348,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private void addExtendingConfigurations(String[] confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
+                boolean useDefaultMappingToGuessRightOperand) {
             for (int i = 0; i < confs.length; i++) {
-                addExtendingConfigurations(confs[i], dd, useDefaultMappingToGuessRightOperande);
+                addExtendingConfigurations(confs[i], dd, useDefaultMappingToGuessRightOperand);
             }
         }
 
         private void addExtendingConfigurations(String conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
+                boolean useDefaultMappingToGuessRightOperand) {
             Set configsToAdd = new HashSet();
             Configuration[] configs = md.getConfigurations();
             for (int i = 0; i < configs.length; i++) {
@@ -365,13 +365,13 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         String configName = configs[i].getName();
                         configsToAdd.add(configName);
                         addExtendingConfigurations(configName, dd,
-                            useDefaultMappingToGuessRightOperande);
+                            useDefaultMappingToGuessRightOperand);
                     }
                 }
             }
 
             String[] confs = (String[]) configsToAdd.toArray(new String[0]);
-            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande);
+            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperand);
         }
 
         protected DependencyDescriptor getDefaultConfMappingDescriptor() {

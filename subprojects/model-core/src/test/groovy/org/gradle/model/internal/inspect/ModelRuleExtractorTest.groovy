@@ -578,7 +578,7 @@ ${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
   \\--- property 'invalidManaged' declared by ${fullyQualifiedNameOf(AnotherManagedWithPropertyOfInvalidManagedType)}, ${fullyQualifiedNameOf(ManagedWithPropertyOfInvalidManagedType)} ($ModelMap.name<?>)"""
 
         where:
-        invalidTypeName = "$ParametrizedManaged.name<$String.name>"
+        invalidTypeName = "$ParameterizedManaged.name<$String.name>"
     }
 
     static class HasRuleWithUncheckedModelMap extends RuleSource {

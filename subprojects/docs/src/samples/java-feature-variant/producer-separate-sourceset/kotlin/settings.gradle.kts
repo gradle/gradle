@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,4 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.internal.resolve;
-
-import org.gradle.api.Named;
-
-// Separate Java class because IBM JDK 6 -- See https://issues.apache.org/jira/browse/GROOVY-7010
-public interface ParametrizedVariant<T> extends Named {
-    T blah();
-}
+rootProject.name = "producer"
