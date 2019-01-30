@@ -216,7 +216,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     // as those are synthetic platforms generated at runtime. This test is here to make sure
     // this is the case
     def "can enforce a published platform"() {
-        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata()
+        def platform = mavenHttpRepo.module("org", "platform", "1.0")
+                .withModuleMetadata()
+                .adhocVariants()
                 .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
                 .dependsOn("org", "foo", "1.0")
                 .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false}
