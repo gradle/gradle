@@ -27,7 +27,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.AbstractUsageContext;
+import org.gradle.api.plugins.internal.AbstractUsageContext;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
