@@ -24,11 +24,13 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.hash.Hasher;
@@ -62,20 +64,20 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
 
         // TODO - should snapshot later
         Isolatable<Object[]> paramsSnapshot;
-        Isolatable<?> isolatedParameterObject;
+        Isolatable<?> isolatableParameterObject;
         try {
             paramsSnapshot = isolatableFactory.isolate(params);
-            isolatedParameterObject = isolatableFactory.isolate(parameterObject);
+            isolatableParameterObject = isolatableFactory.isolate(parameterObject);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
 
         paramsSnapshot.appendToHasher(hasher);
         if (parameterObject != null) {
-            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatedParameterObject);
+            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
         }
 
-        Transformer transformer = new DefaultTransformer(implementation, isolatedParameterObject, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new DefaultTransformer(implementation, isolatableParameterObject, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
@@ -83,10 +85,9 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         ValueSnapshotter valueSnapshotter,
         PropertyWalker propertyWalker,
         Hasher hasher,
-        Isolatable<?> isolatableParameterObject
+        Object parameterObject
     ) {
-        ImmutableSortedMap.Builder<String, ValueSnapshot> inputPropertyFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        Object parameterObject = isolatableParameterObject.isolate();
+        ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         List<String> validationMessages = new ArrayList<>();
         DefaultParameterValidationContext validationContext = new DefaultParameterValidationContext(validationMessages);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
@@ -99,7 +100,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
                         validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "does not have a value specified"));
                     }
 
-                    inputPropertyFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
+                    inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
                 } catch (Throwable e) {
                     throw new InvalidUserDataException(String.format(
                         "Error while evaluating property '%s' of %s",
@@ -113,6 +114,11 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
                 validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "is annotated with an output annotation"));
             }
+
+            @Override
+            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                throw new UnsupportedOperationException("File input properties are not yet supported");
+            }
         });
 
         if (!validationMessages.isEmpty()) {
@@ -122,13 +128,13 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
             );
         }
 
-        for (Map.Entry<String, ValueSnapshot> entry : inputPropertyFingerprintsBuilder.build().entrySet()) {
+        for (Map.Entry<String, ValueSnapshot> entry : inputParameterFingerprintsBuilder.build().entrySet()) {
             hasher.putString(entry.getKey());
             entry.getValue().appendToHasher(hasher);
         }
     }
 
-    public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+    private DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
         this.from = from;
         this.to = to;
         this.transformationStep = transformationStep;
