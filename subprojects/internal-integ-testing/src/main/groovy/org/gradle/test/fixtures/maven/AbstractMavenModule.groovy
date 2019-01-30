@@ -177,6 +177,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return this
     }
 
+    @Override
+    MavenModule adhocVariants() {
+        variants.clear()
+        this
+    }
+
     private VariantMetadataSpec createVariant(String variant, Map<String, String> attributes) {
         def variantMetadata = new VariantMetadataSpec(variant, attributes)
         variants.removeAll { it.name == variant }

@@ -17,6 +17,8 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.Usage
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -35,6 +37,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -415,5 +418,71 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         binary.tasks.contains(classesTask)
         binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
         binary.tasks.contains(project.tasks.findByName("processCustomResources"))
+    }
+
+    @Unroll
+    void "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
+        given:
+        JavaBasePlugin.UsageCompatibilityRules rules = new JavaBasePlugin.UsageCompatibilityRules()
+        def details = Mock(CompatibilityCheckDetails)
+        when:
+        rules.execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> Stub(Usage) { getName() >> consumer }
+        1 * details.getProducerValue() >> Stub(Usage) { getName() >> producer }
+        if (producer == consumer) {
+            // implementations are NOT required to say "compatible" because
+            // they should not even be called in this case
+            0 * details._()
+        } else if (compatible) {
+            1 * details.compatible()
+        } else {
+            0 * details._()
+        }
+
+        where:
+        consumer                     | producer                     | compatible
+        Usage.JAVA_API               | Usage.JAVA_API               | true
+        Usage.JAVA_API               | Usage.JAVA_API_CLASSES       | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_API               | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_API_CLASSES       | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_API_CLASSES       | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_CLASSES   | true
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_RESOURCES | true
+        Usage.JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME_JARS      | true
+
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_API_CLASSES       | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_CLASSES   | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_RESOURCES | false
+        Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_JARS      | true
     }
 }
