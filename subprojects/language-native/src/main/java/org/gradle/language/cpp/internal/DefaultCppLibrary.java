@@ -81,7 +81,6 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.ZIP_TYPE);
         mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, collectionCallbackActionDecorator);
     }
 
