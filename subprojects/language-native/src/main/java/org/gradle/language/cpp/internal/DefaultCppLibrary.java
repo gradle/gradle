@@ -19,11 +19,15 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -55,7 +59,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
@@ -73,8 +77,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+        apiElements.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
 
-        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, collectionCallbackActionDecorator);
+        AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
+        publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, collectionCallbackActionDecorator);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

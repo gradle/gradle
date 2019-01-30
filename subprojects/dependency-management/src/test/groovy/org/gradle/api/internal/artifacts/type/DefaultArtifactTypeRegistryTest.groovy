@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.artifacts.type
 
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.artifacts.ArtifactAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
@@ -153,6 +155,74 @@ class DefaultArtifactTypeRegistryTest extends Specification {
 
         expect:
         registry.mapAttributesFor(variant) == attrs
+    }
+
+    def "maps only artifactType attribute for arbitrary files when no extensions are registered"() {
+        expect:
+        registry.mapAttributesFor(artifactFile).getAttribute(ArtifactAttributes.ARTIFACT_FORMAT) == type
+
+        where:
+        artifactFile    | type
+        file("foo.jar") | ArtifactTypeDefinition.JAR_TYPE
+        file("foo.zip") | ArtifactTypeDefinition.ZIP_TYPE
+        file("foo.bar") | "bar"
+        file("foo")     | ""
+        dir("foo")      | ArtifactTypeDefinition.DIRECTORY_TYPE
+        dir("foo.jar")  | ArtifactTypeDefinition.DIRECTORY_TYPE
+    }
+
+    def "maps all attributes for arbitrary files when matching extensions are registered"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": type, "custom": "123"])
+
+        given:
+        registry.create().create(type).attributes.attribute(Attribute.of("custom", String), "123")
+
+        expect:
+        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+
+        where:
+        artifactFile    | type
+        file("foo.jar") | ArtifactTypeDefinition.JAR_TYPE
+        file("foo.zip") | ArtifactTypeDefinition.ZIP_TYPE
+        file("foo.bar") | "bar"
+    }
+
+    def "maps only artifactType attribute for arbitrary files when extensions are registered but none match"() {
+        def attrs = ImmutableAttributes.EMPTY
+        def attrsPlusFormat = concat(attrs, ["artifactType": type])
+
+        given:
+        registry.create().create("baz").attributes.attribute(Attribute.of("custom", String), "123")
+        registry.create().create("buzz").attributes.attribute(Attribute.of("custom", String), "234")
+
+        expect:
+        registry.mapAttributesFor(artifactFile) == attrsPlusFormat
+
+        where:
+        artifactFile    | type
+        file("foo.jar") | ArtifactTypeDefinition.JAR_TYPE
+        file("foo.zip") | ArtifactTypeDefinition.ZIP_TYPE
+        file("foo.bar") | "bar"
+        file("foo")     | ""
+        dir("foo")      | ArtifactTypeDefinition.DIRECTORY_TYPE
+        dir("foo.jar")  | ArtifactTypeDefinition.DIRECTORY_TYPE
+    }
+
+    File file(String name) {
+        return Stub(File) {
+            getName() >> name
+            isDirectory() >> false
+            isFile() >> true
+        }
+    }
+
+    File dir(String name) {
+        return Stub(File) {
+            getName() >> name
+            isDirectory() >> true
+            isFile() >> false
+        }
     }
 
     def concat(ImmutableAttributes source, Map<String, String> attrs) {
