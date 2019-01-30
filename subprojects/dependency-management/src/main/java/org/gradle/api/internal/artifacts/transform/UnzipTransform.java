@@ -21,7 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.internal.UncheckedException;
 
-import javax.inject.Inject;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,8 +39,6 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * minus the extension.
  */
 public class UnzipTransform extends ArtifactTransform {
-    @Inject
-    UnzipTransform() { }
 
     @Override
     public List<File> transform(File zippedFile) {
