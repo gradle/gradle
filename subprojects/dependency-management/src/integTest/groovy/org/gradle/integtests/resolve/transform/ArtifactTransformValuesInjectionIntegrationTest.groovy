@@ -49,6 +49,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @TransformAction(MakeGreenAction)
             interface MakeGreen {
+                @Input
                 String getExtension()
                 void setExtension(String value)
             }
@@ -75,7 +76,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "transform can receive file collection via parameter object"() {
+    def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -87,6 +88,68 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
                         parameters {
+                            extension = 'green'
+                        }
+                    }
+                }
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                String getExtension()
+                void setExtension(String value)
+                @OutputDirectory
+                File getOutputDir()
+                void setOutputDir(File outputDir)
+                @Input
+                String getMissingInput()
+                void setMissingInput(String missing)
+            }
+            
+            abstract class MakeGreenAction extends ArtifactTransform {
+                @TransformParameters
+                abstract MakeGreen getConf()
+                
+                List<File> transform(File input) {
+                    println "processing \${input.name}"
+                    def output = new File(outputDirectory, input.name + "." + conf.extension)
+                    output.text = "ok"
+                    return [output]
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        // TODO wolfs: We should report the user declared type
+        failure.assertHasCause('Some problems were found with the configuration of MakeGreen$Inject.')
+        failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
+        failure.assertHasCause("Property 'outputDir' is annotated with an output annotation.")
+        failure.assertHasCause("Property 'missingInput' does not have a value specified.")
+    }
+
+    def "transform can receive file collection via parameter object"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithColorAttributes()
+        buildFile << """
+                allprojects {
+                    dependencies {
+                        registerTransform(MakeGreen) {
+                            from.attribute(color, 'blue')
+                            to.attribute(color, 'green')
+                            parameters {
                             someFiles.from('a.txt')
                             someFiles.from('b.txt')
                         }
@@ -103,6 +166,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @TransformAction(MakeGreenAction)
             interface MakeGreen {
+                @Input
                 ConfigurableFileCollection getSomeFiles()
             }
             
@@ -242,6 +306,7 @@ abstract class MakeGreen extends ArtifactTransform {
             
             @TransformAction(MakeGreenAction)
             interface MakeGreen {
+                @Input
                 String getExtension()
                 void setExtension(String value)
             }

@@ -39,6 +39,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitor = Mock(PropertyVisitor)
+    def validationContext = Mock(ParameterValidationContext)
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -224,6 +225,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task)
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, validationContext, visitor)
     }
 }
