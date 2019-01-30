@@ -187,7 +187,6 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             ]
         ]
 
-        Map buildCacheProperties = ['ORG_GRADLE_PROJECT_org.gradle.caching': 'false']
         if (branchName) {
             requestBody['branchName'] = branchName
         }

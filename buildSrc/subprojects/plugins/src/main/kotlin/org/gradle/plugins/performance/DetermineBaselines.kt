@@ -38,14 +38,13 @@ open class DetermineBaselines : DefaultTask() {
 
     @TaskAction
     fun determineForkPointCommitBaseline() {
-        determinedBaselines.set("nightly")
-//        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
-//            determinedBaselines.set(defaultBaseline)
-//        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
-//            determinedBaselines.set(forkPointCommitBaseline())
-//        } else {
-//            determinedBaselines.set(configuredBaselines)
-//        }
+        if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
+            determinedBaselines.set(defaultBaseline)
+        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
+            determinedBaselines.set(forkPointCommitBaseline())
+        } else {
+            determinedBaselines.set(configuredBaselines)
+        }
     }
 
     private

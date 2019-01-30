@@ -271,7 +271,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             setBaselines("nightly")
             reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
-            repeat = 2
+            repeat = 3
             checks = "none"
             channel = "flakiness-detection"
         }

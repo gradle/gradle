@@ -74,7 +74,7 @@ data class CIBuildModel (
             Stage(StageNames.HISTORICAL_PERFORMANCE,
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
-                            PerformanceTestType.historical)),
+                        PerformanceTestType.historical, PerformanceTestType.flakinessDetection)),
             Stage(StageNames.EXPERIMENTAL,
                     trigger = Trigger.never,
                     runsIndependent = true,
@@ -286,6 +286,7 @@ enum class JvmVendor {
 enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {
     test("PerformanceTest", 420, "nightly"),
     experiment("PerformanceExperiment", 420, "defaults"),
+    flakinessDetection("FlakinessDetection", 420, "nightly"),
     historical("FullPerformanceTest", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
     fun asId(model : CIBuildModel): String {
