@@ -881,7 +881,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return getLayout().configurableFiles(paths);
+        return getObjects().fileCollection().from(paths);
     }
 
     @Override
@@ -1435,12 +1435,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     @Deprecated

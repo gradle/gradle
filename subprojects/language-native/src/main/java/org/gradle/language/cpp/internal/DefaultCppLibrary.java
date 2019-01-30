@@ -63,7 +63,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         super(name, fileOperations, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
-        publicHeaders = fileOperations.configurableFiles();
+        publicHeaders = objectFactory.fileCollection();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
         linkage = objectFactory.setProperty(Linkage.class);

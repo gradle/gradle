@@ -167,7 +167,7 @@ public class PmdExtension extends CodeQualityExtension {
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
-        this.ruleSetFiles = project.getLayout().configurableFiles(ruleSetFiles);
+        this.ruleSetFiles = project.getObjects().fileCollection().from(ruleSetFiles);
     }
 
     /**

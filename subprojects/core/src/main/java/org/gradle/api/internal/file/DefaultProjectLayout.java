@@ -113,6 +113,7 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... files) {
+        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.configurableFiles()", "ObjectFactory.fileCollection()");
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, files);
     }
 
