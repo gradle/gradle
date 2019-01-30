@@ -4,19 +4,9 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[Stefan M.](https://github.com/StefMa), ... TBD ... 
+[Stefan M.](https://github.com/StefMa), [Evgeny Mandrikov](https://github.com/Godin),  
+... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
-
-### Default JaCoCo version upgraded to 0.8.3
-
-[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
-
-## Improvements for plugin authors
-
-TBD - Abstract service injection getter methods
-TBD - Abstract mutable property
-TBD - Abstract `ConfigurableFileCollection` property
-TBD - Use an interface for Gradle instantiated types
 
 ## Upgrade Instructions
 
@@ -25,6 +15,13 @@ Switch your build to use Gradle 5.3 by updating your wrapper properties:
 `./gradlew wrapper --gradle-version=5.3`
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+
+## Improvements for plugin authors
+
+- TBD - Abstract service injection getter methods
+- TBD - Abstract mutable property
+- TBD - Abstract `ConfigurableFileCollection` property
+- TBD - Use an interface for Gradle instantiated types
 
 ## Feature variants, aka optional dependencies
 
@@ -44,6 +41,10 @@ dependencies {
 ```
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+
+## Default JaCoCo version upgraded to 0.8.3
+
+[The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
