@@ -16,6 +16,8 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -37,7 +39,9 @@ import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNTA
 
 public class IndexPageGenerator extends AbstractTablePageGenerator {
     private static final int DEFAULT_RETRY_COUNT = 3;
-    private static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
+
+    @VisibleForTesting
+    static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
         .thenComparing(ScenarioBuildResultData::isSuccessful)
         .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
