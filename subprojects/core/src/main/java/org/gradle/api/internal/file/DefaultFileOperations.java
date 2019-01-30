@@ -114,17 +114,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     @Override
-    public ConfigurableFileCollection configurableFiles() {
-        return new DefaultConfigurableFileCollection(fileResolver, taskResolver);
-    }
-
-    @Override
     public ConfigurableFileCollection configurableFiles(Object... paths) {
-        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
-    }
-
-    @Override
-    public ConfigurableFileCollection files(Object... paths) {
         return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
     }
 

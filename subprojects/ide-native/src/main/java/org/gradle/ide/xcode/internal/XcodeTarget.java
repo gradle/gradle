@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Named;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -56,12 +55,12 @@ public class XcodeTarget implements Named {
     private Property<String> defaultConfigurationName;
 
     @Inject
-    public XcodeTarget(String name, String id, FileOperations fileOperations, ObjectFactory objectFactory) {
+    public XcodeTarget(String name, String id, ObjectFactory objectFactory) {
         this.name = name;
         this.id = id;
-        this.sources = fileOperations.configurableFiles();
-        this.headerSearchPaths = fileOperations.configurableFiles();
-        this.compileModules = fileOperations.configurableFiles();
+        this.sources = objectFactory.fileCollection();
+        this.headerSearchPaths = objectFactory.fileCollection();
+        this.compileModules = objectFactory.fileCollection();
         this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
         this.defaultConfigurationName = objectFactory.property(String.class);
         this.defaultConfigurationName.set(BUILD_DEBUG);

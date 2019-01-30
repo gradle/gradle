@@ -50,16 +50,24 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.usingBuildScript(buildScript).run()
+        maybeDeprecated(code)
+        run()
 
         then:
         noExceptionThrown()
 
         where:
-        desc                                  | code
-        "project.files()"                     | "project.files(file, symlink, symlinked)"
-        "project.layout.files()"              | "project.layout.files(file, symlink, symlinked)"
-        "project.layout.configurableFiles()"  | "project.layout.configurableFiles(file, symlink, symlinked)"
-        "project.fileTree()"                  | "project.fileTree(baseDir)"
+        desc                                 | code
+        "project.files()"                    | "project.files(file, symlink, symlinked)"
+        "project.fileTree()"                 | "project.fileTree(baseDir)"
+        "project.layout.files()"             | "project.layout.files(file, symlink, symlinked)"
+        "project.layout.configurableFiles()" | "project.layout.configurableFiles(file, symlink, symlinked)"
+        "project.objects.fileCollection()"   | "project.objects.fileCollection().from(file, symlink, symlinked)"
+    }
+
+    void maybeDeprecated(String expression) {
+        if (expression.contains("configurableFiles")) {
+            executer.expectDeprecationWarning()
+        }
     }
 }

@@ -180,6 +180,8 @@ public interface ProjectLayout {
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      * @since 4.8
+     * @deprecated Please use {@link ObjectFactory#fileCollection()} instead.
      */
+    @Deprecated
     ConfigurableFileCollection configurableFiles(Object... paths);
 }

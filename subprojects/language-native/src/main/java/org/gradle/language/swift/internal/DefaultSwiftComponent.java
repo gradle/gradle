@@ -43,7 +43,7 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final SetProperty<TargetMachine> targetMachines;
 
     public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(fileOperations);
+        super(fileOperations, objectFactory);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);

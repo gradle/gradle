@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.DisplayName;
 
@@ -31,11 +32,11 @@ public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
     private final FileOperations fileOperations;
 
-    public DefaultNativeComponent(final FileOperations fileOperations) {
+    public DefaultNativeComponent(FileOperations fileOperations, ObjectFactory objectFactory) {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
         this.fileOperations = fileOperations;
 
-        source = fileOperations.configurableFiles();
+        source = objectFactory.fileCollection();
     }
 
     public abstract DisplayName getDisplayName();

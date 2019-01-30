@@ -51,11 +51,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
 
     @Inject
     public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(fileOperations);
+        super(fileOperations, objectFactory);
         this.name = name;
         this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = fileOperations.configurableFiles();
+        privateHeaders = objectFactory.fileCollection();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
         names = Names.of(name);

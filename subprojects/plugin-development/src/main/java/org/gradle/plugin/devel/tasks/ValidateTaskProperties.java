@@ -33,7 +33,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -120,9 +119,9 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private boolean failOnWarning;
 
     @Inject
-    public ValidateTaskProperties(ObjectFactory objects, ProjectLayout layout) {
-        this.classes = layout.configurableFiles();
-        this.classpath = layout.configurableFiles();
+    public ValidateTaskProperties(ObjectFactory objects) {
+        this.classes = objects.fileCollection();
+        this.classpath = objects.fileCollection();
         this.outputFile = objects.fileProperty();
     }
 

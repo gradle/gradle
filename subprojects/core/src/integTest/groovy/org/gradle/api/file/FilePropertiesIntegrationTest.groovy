@@ -847,7 +847,7 @@ class SomeTask extends DefaultTask {
             class ConsumerTask extends DefaultTask {
             
                 @InputFiles
-                ConfigurableFileCollection inputFiles = project.layout.configurableFiles()
+                ConfigurableFileCollection inputFiles = project.objects.fileCollection()
                 
                 @Optional
                 @OutputFile
