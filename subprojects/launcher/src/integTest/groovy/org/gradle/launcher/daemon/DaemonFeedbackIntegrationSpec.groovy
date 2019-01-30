@@ -69,7 +69,9 @@ task sleep {
         then:
         def ex = thrown(Exception)
         ex.message.contains(DaemonMessages.UNABLE_TO_START_DAEMON)
-        ex.message.contains("-Xyz")
+        ex.message.contains("Process command line:")
+        ex.message.contains("-Dorg.gradle.jvmargs=-Xyz")
+        ex.message.contains("Unrecognized option: -Xyz")
     }
 
     def "daemon log contains all necessary logging"() {
