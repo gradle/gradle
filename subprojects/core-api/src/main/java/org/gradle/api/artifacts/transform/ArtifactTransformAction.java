@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  *
  * <p>Implementations can receive parameters by using annotated abstract getter methods.</p>
  *
- * <p>A property annotated with {@link TransformParameters} will receive the object provided by {@link ArtifactTransformSpec#getParameters()}.
+ * <p>A property annotated with {@link TransformParameters} will receive the object provided by {@link ArtifactTransformParameterSpec#getParameters()}.
  *
  * <p>A property annotated with {@link PrimaryInput} will receive the <em>primary input</em> location, which is the file or directory that the transform should be applied to.
  *

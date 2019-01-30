@@ -174,15 +174,17 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 ConfigurableFileCollection getSomeFiles()
             }
             
-            abstract class MakeGreenAction extends ArtifactTransform {
+            abstract class MakeGreenAction implements ArtifactTransformAction {
                 @TransformParameters
-                abstract MakeGreen getConf()
+                abstract MakeGreen getParameters()
+                @PrimaryInput
+                abstract File getInput()
                 
-                List<File> transform(File input) {
-                    println "processing \${input.name} using \${conf.someFiles*.name}"
-                    def output = new File(outputDirectory, input.name + ".green")
+                void transform(ArtifactTransformOutputs outputs) {
+                    println "processing \${input.name} using \${parameters.someFiles*.name}"
+                    def output = new File(outputs.workspace, input.name + ".green")
                     output.text = "ok"
-                    return [output]
+                    outputs.registerOutput(output)
                 }
             }
 """

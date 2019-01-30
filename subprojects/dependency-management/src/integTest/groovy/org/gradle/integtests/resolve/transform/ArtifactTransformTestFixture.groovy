@@ -73,14 +73,11 @@ class Producer extends DefaultTask {
     void setupBuildWithColorTransform() {
         setupBuildWithColorAttributes()
         buildFile << """
-class EmptyParameters implements Serializable {}
-
 allprojects {
     dependencies {
-        registerTransform(EmptyParameters) {
+        registerTransformAction(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
-            actionClass = MakeGreen
         }
     }
 }

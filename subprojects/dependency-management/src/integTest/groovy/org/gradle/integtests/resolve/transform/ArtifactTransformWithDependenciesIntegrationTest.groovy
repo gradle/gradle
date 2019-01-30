@@ -46,8 +46,9 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
-
-interface CommonTransformParameters {
+                   
+@TransformAction(TestTransformAction)
+interface TestTransform {
     @Input
     String getTransformName()
     void setTransformName(String name)
@@ -72,49 +73,41 @@ allprojects {
     }
 
     dependencies {
-        registerTransform(CommonTransformParameters) {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'size')
             parameters {
                 transformName = 'Single step transform'
             }
-            actionType = TestTransform
         }
 
         // Multi step transform
-        registerTransform(CommonTransformParameters) {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'intermediate')
             parameters {
                 transformName = 'Transform step 1'
             }
-            actionType = TestTransform
         }
-        registerTransform(CommonTransformParameters) {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'intermediate')
             to.attribute(artifactType, 'final')
             parameters {
                 transformName = 'Transform step 2'
             }
-            actionType = TestTransform
         }
 
         //Multi step transform, without dependencies at step 1
-        registerTransform(CommonTransformParameters) {
+        registerTransformAction(SimpleTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'middle')
-            parameters {
-                transformName = 'Simple Transform'
-            }
-            actionType = SimpleTransform
         }
-        registerTransform(CommonTransformParameters) {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'middle')
             to.attribute(artifactType, 'end')
             parameters {
                 transformName = 'Transform step 2'
             }
-            actionType = TestTransform
         }
     }
 }
@@ -152,10 +145,10 @@ class Producer extends DefaultTask {
     }
 }
 
-abstract class TestTransform implements ArtifactTransformAction {
+abstract class TestTransformAction implements ArtifactTransformAction {
 
     @TransformParameters
-    abstract CommonTransformParameters getParameters()
+    abstract TestTransform getParameters()
 
     @PrimaryInputDependencies
     abstract FileCollection getPrimaryInputDependencies()
@@ -349,26 +342,26 @@ project(':app') {
         def outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 5
-        outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 5
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*lib.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
 
-        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 0
+        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 0
 
         when:
         run "resolve", "--info"
         outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 3
-        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 3
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
 
-        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
-        outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
-        outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
+        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 2
+        outputLines.any { it ==~ /TestTransformAction: .*lib.jar is not up-to-date because:/ }
+        outputLines.any { it ==~ /TestTransformAction: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
         assertTransformationsExecuted(
             singleStep('slf4j-api-1.7.25.jar'),
             singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),

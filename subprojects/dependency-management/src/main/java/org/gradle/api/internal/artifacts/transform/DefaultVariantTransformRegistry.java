@@ -22,6 +22,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
+import org.gradle.api.artifacts.transform.ArtifactTransformParameterSpec;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
@@ -68,23 +69,49 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     @Override
     public void registerTransform(Action<? super VariantTransform> registrationAction) {
         UntypedRegistration registration = instantiatorFactory.decorateLenient().newInstance(UntypedRegistration.class, immutableAttributesFactory, instantiatorFactory);
-        register(registration, registrationAction);
+        registrationAction.execute(registration);
+
+        validateActionType(registration.actionType);
+        validateAttributes(registration);
+
+        Object[] parameters = registration.getTransformParameters();
+        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
+        transforms.add(finalizedRegistration);
     }
 
     @Override
-    public <T> void registerTransform(Class<T> configurationType, Action<? super ArtifactTransformSpec<T>> registrationAction) {
+    public <T> void registerTransform(Class<T> parameterType, Action<? super ArtifactTransformParameterSpec<T>> registrationAction) {
         // TODO - should decorate
-        T configuration = instantiatorFactory.inject(services).newInstance(configurationType);
-        TypedRegistration<T> registration = instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, configuration, immutableAttributesFactory);
-        register(registration, registrationAction);
-    }
-
-    private <T extends RecordingRegistration> void register(T registration, Action<? super T> registrationAction) {
+        T parameterObject = instantiatorFactory.inject(services).newInstance(parameterType);
+        TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 
-        if (registration.actionType == null) {
-            throw new VariantTransformConfigurationException("Could not register transform: an ArtifactTransform must be provided.");
+        register(registration, registration.actionType, parameterObject);
+    }
+
+    @Override
+    public <T extends ArtifactTransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction) {
+        ActionRegistration registration = instantiatorFactory.decorateLenient().newInstance(ActionRegistration.class, immutableAttributesFactory);
+        registrationAction.execute(registration);
+
+        register(registration, actionType, null);
+    }
+
+    private <T> void register(RecordingRegistration registration, Class<? extends ArtifactTransformAction> actionType, @Nullable T parameterObject) {
+        validateActionType(actionType);
+        validateAttributes(registration);
+
+        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
+        transforms.add(finalizedRegistration);
+    }
+
+    private <T> void validateActionType(@Nullable Class<T> actionType) {
+        if (actionType == null) {
+            throw new VariantTransformConfigurationException("Could not register transform: an artifact transform action must be provided.");
         }
+    }
+
+    private <T> void validateAttributes(RecordingRegistration registration) {
         if (registration.to.isEmpty()) {
             throw new VariantTransformConfigurationException("Could not register transform: at least one 'to' attribute must be provided.");
         }
@@ -94,48 +121,37 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         if (!registration.from.keySet().containsAll(registration.to.keySet())) {
             throw new VariantTransformConfigurationException("Could not register transform: each 'to' attribute must be included as a 'from' attribute.");
         }
-
-        // TODO - should calculate this lazily
-        Object[] parameters = registration.getTransformParameters();
-        Object parameterObject = registration.getParameterObject();
-        Registration finalizedRegistration = ArtifactTransform.class.isAssignableFrom(registration.actionType)
-            ? DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), Cast.uncheckedNonnullCast(registration.actionType), parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker)
-            : DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), Cast.uncheckedNonnullCast(registration.actionType), parameterObject, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
-        transforms.add(finalizedRegistration);
     }
 
     public Iterable<Registration> getTransforms() {
         return transforms;
     }
 
-    public static abstract class RecordingRegistration<T> {
+    public static abstract class RecordingRegistration implements ArtifactTransformSpec {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
-        Class<? extends T> actionType;
-        Action<? super ActionConfiguration> configAction;
 
         public RecordingRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
             from = immutableAttributesFactory.mutable();
             to = immutableAttributesFactory.mutable();
         }
 
+        @Override
         public AttributeContainer getFrom() {
             return from;
         }
 
+        @Override
         public AttributeContainer getTo() {
             return to;
         }
-
-        abstract Object[] getTransformParameters();
-
-        @Nullable
-        abstract Object getParameterObject();
     }
 
     @NonExtensible
-    public static class UntypedRegistration extends RecordingRegistration<ArtifactTransform> implements VariantTransform {
+    public static class UntypedRegistration extends RecordingRegistration implements VariantTransform {
+        private Action<? super ActionConfiguration> configAction;
         private final InstantiatorFactory instantiatorFactory;
+        Class<? extends ArtifactTransform> actionType;
 
         public UntypedRegistration(ImmutableAttributesFactory immutableAttributesFactory, InstantiatorFactory instantiatorFactory) {
             super(immutableAttributesFactory);
@@ -156,7 +172,6 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             this.configAction = config;
         }
 
-        @Override
         Object[] getTransformParameters() {
             if (configAction == null) {
                 return NO_PARAMETERS;
@@ -165,16 +180,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             configAction.execute(config);
             return config.getParams();
         }
-
-        @Override
-        Object getParameterObject() {
-            return null;
-        }
     }
 
     @NonExtensible
-    public static class TypedRegistration<T> extends RecordingRegistration<ArtifactTransformAction> implements ArtifactTransformSpec<T> {
+    public static class TypedRegistration<T> extends RecordingRegistration implements ArtifactTransformParameterSpec<T> {
         private final T parameterObject;
+        Class<? extends ArtifactTransformAction> actionType;
 
         public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
@@ -186,16 +197,6 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
 
         @Override
-        public Class<? extends ArtifactTransformAction> getActionClass() {
-            return actionType;
-        }
-
-        @Override
-        public void setActionClass(Class<? extends ArtifactTransformAction> implementationClass) {
-            this.actionType = implementationClass;
-        }
-
-        @Override
         public T getParameters() {
             return parameterObject;
         }
@@ -204,16 +205,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         public void parameters(Action<? super T> action) {
             action.execute(parameterObject);
         }
+    }
 
-        @Nullable
-        @Override
-        Object getParameterObject() {
-            return parameterObject;
-        }
+    @NonExtensible
+    public static class ActionRegistration extends RecordingRegistration {
 
-        @Override
-        Object[] getTransformParameters() {
-            return new Object[0];
+        public ActionRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
+            super(immutableAttributesFactory);
         }
     }
 }
