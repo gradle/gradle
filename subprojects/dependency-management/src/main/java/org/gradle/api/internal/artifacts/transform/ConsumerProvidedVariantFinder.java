@@ -67,7 +67,9 @@ public class ConsumerProvidedVariantFinder {
             if (matchAttributes(registration.getTo(), requested)) {
                 if (matchAttributes(actual, registration.getFrom())) {
                     ImmutableAttributes variantAttributes = attributesFactory.concat(actual.asImmutable(), registration.getTo().asImmutable());
-                    result.matched(variantAttributes, registration.getTransformationStep(), 1);
+                    if (matchAttributes(variantAttributes, requested)) {
+                        result.matched(variantAttributes, registration.getTransformationStep(), 1);
+                    }
                 }
                 candidates.add(registration);
             }
