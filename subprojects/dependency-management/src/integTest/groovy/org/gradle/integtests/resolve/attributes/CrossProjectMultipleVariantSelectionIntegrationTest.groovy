@@ -89,4 +89,45 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         }
     }
 
+    def "prefers the variant which strictly matches the requested capabilities"() {
+        given:
+        settingsFile << "include 'lib'"
+
+        file("lib/build.gradle") << """
+            configurations {                
+                testFixtures {
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                    }
+                    outgoing.capability('test:lib:1.0')
+                    outgoing.capability('test:lib-fixtures:1.0')
+                }
+            }
+
+            artifacts {
+                testFixtures file("lib-test-fixtures.jar")
+            }
+        """
+
+        buildFile << """
+            dependencies {
+                implementation project(':lib')
+            }
+        """
+
+        when:
+        succeeds ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(":lib", "test:lib:") {
+                    variant "apiElements", ['org.gradle.usage':'java-api']
+                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                }
+            }
+        }
+    }
 }
