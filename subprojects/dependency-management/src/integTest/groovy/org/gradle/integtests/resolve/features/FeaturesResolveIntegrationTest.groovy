@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.optional
+package org.gradle.integtests.resolve.features
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -24,7 +24,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class OptionalFeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+class FeaturesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can select a variant providing a different capability"() {
         given:
