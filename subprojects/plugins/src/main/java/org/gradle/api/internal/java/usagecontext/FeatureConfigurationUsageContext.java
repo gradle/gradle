@@ -18,6 +18,7 @@ package org.gradle.api.internal.java.usagecontext;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.plugins.internal.AbstractConfigurationUsageContext;
 
 public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext {
     private final Configuration configuration;

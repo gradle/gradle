@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.plugins.internal.AbstractConfigurationUsageContext;
 
 import java.util.Set;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.component;
 
-package org.gradle.api.internal.component;
+import org.gradle.api.Incubating;
 
-import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.SoftwareComponentVariant;
-
-public interface UsageContext extends SoftwareComponentVariant {
-    @Deprecated
-    Usage getUsage(); // kept for backwards compatibility of plugins using internal APIs
+@Incubating
+public interface SoftwareComponentFactory {
+    /**
+     * Creates an adhoc software component, which can be used by plugins to
+     * build custom component types.
+     *
+     * @param name the name of the component
+     * @return the created component, which must be added to the components container later
+     *
+     * @since 5.3
+     */
+    AdhocComponentWithVariants adhoc(String name);
 }

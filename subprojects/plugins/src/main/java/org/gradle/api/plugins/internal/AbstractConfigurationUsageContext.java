@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.java.usagecontext;
+package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -37,7 +37,7 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-    AbstractConfigurationUsageContext(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
+    public AbstractConfigurationUsageContext(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
         super(attributes, artifacts);
         this.name = name;
     }
