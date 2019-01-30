@@ -42,14 +42,24 @@ public abstract class AttributeConfigurationSelector {
             fallbackConfiguration = null;
         }
         ModuleVersionIdentifier versionId = targetComponent.getModuleVersionId();
-        consumableConfigurations = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, consumableConfigurations, versionId.getGroup(), versionId.getName());
-        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
-        if (matches.size() == 1) {
-            ConfigurationMetadata match = matches.get(0);
-            if (variantsForGraphTraversal.isPresent()) {
-                return SelectedByVariantMatchingConfigurationMetadata.of(match);
+        if (!consumableConfigurations.isEmpty()) {
+            ImmutableList<ConfigurationMetadata> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, consumableConfigurations, versionId.getGroup(), versionId.getName(), true);
+            if (variantsProvidingRequestedCapabilities.isEmpty()) {
+                throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, consumableConfigurations);
             }
-            return match;
+            consumableConfigurations = variantsProvidingRequestedCapabilities;
+        }
+        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
+        if (matches.size() > 1) {
+            // there's an ambiguity, but we may have several variants matching the requested capabilities.
+            // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
+            List<ConfigurationMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, versionId.getGroup(), versionId.getName(), false);
+            if (strictlyMatchingCapabilities.size() == 1) {
+                return singleVariant(variantsForGraphTraversal, matches);
+            }
+        }
+        if (matches.size() == 1) {
+            return singleVariant(variantsForGraphTraversal, matches);
         } else if (!matches.isEmpty()) {
             throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent());
         } else {
@@ -57,46 +67,52 @@ public abstract class AttributeConfigurationSelector {
         }
     }
 
-    private static ImmutableList<? extends ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, ImmutableList<? extends ConfigurationMetadata> consumableConfigurations, String group, String name) {
-        if (consumableConfigurations.isEmpty()) {
-            return consumableConfigurations;
+    private static ConfigurationMetadata singleVariant(Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal, List<ConfigurationMetadata> matches) {
+        ConfigurationMetadata match = matches.get(0);
+        if (variantsForGraphTraversal.isPresent()) {
+            return SelectedByVariantMatchingConfigurationMetadata.of(match);
         }
-        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        return match;
+    }
+
+    private static ImmutableList<ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends ConfigurationMetadata> consumableConfigurations, String group, String name, boolean lenient) {
+        if (consumableConfigurations.isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<ConfigurationMetadata> builder = ImmutableList.builderWithExpectedSize(consumableConfigurations.size());
         boolean explicitlyRequested = !explicitRequestedCapabilities.isEmpty();
         for (ConfigurationMetadata configuration : consumableConfigurations) {
             List<? extends Capability> capabilities = configuration.getCapabilities().getCapabilities();
+            MatchResult result;
             if (explicitlyRequested) {
                 // some capabilities are explicitly required (in other words, we're not _necessarily_ looking for the default capability
                 // so we need to filter the configurations
-                if (providesAllCapabilities(targetComponent, explicitRequestedCapabilities, capabilities)) {
-                    builder.add(configuration);
-                }
+                result = providesAllCapabilities(targetComponent, explicitRequestedCapabilities, capabilities);
             } else {
                 // we need to make sure the variants we consider provide the implicit capability
-                if (containsImplicitCapability(capabilities, group, name)) {
+                result = containsImplicitCapability(capabilities, group, name);
+            }
+            if (result.matches) {
+                if (lenient || result == MatchResult.EXACT_MATCH) {
                     builder.add(configuration);
                 }
             }
         }
-        ImmutableList<ConfigurationMetadata> filtered = builder.build();
-        if (filtered.isEmpty()) {
-            throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, consumableConfigurations);
-        }
-        return filtered;
+        return builder.build();
     }
 
     /**
      * Determines if a producer variant provides all the requested capabilities. When doing so it does
      * NOT consider capability versions, as they will be used later in the engine during conflict resolution.
      */
-    private static boolean providesAllCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
+    private static MatchResult providesAllCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, List<? extends Capability> providerCapabilities) {
         if (providerCapabilities.isEmpty()) {
             // producer doesn't declare anything, so we assume that it only provides the implicit capability
             if (explicitRequestedCapabilities.size() == 1) {
                 Capability requested = explicitRequestedCapabilities.iterator().next();
                 ModuleVersionIdentifier mvi = targetComponent.getModuleVersionId();
                 if (requested.getGroup().equals(mvi.getGroup()) && requested.getName().equals(mvi.getName())) {
-                    return true;
+                    return MatchResult.EXACT_MATCH;
                 }
             }
         }
@@ -111,22 +127,36 @@ public abstract class AttributeConfigurationSelector {
                 }
             }
             if (!found) {
-                return false;
+                return MatchResult.NO_MATCH;
             }
         }
-        return true;
+        boolean exactMatch = explicitRequestedCapabilities.size() == providerCapabilities.size();
+        return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
     }
 
-    private static boolean containsImplicitCapability(Collection<? extends Capability> capabilities, String group, String name) {
+    private static MatchResult containsImplicitCapability(Collection<? extends Capability> capabilities, String group, String name) {
         if (capabilities.isEmpty()) {
             // An empty capability list means that it's an implicit capability only
-            return true;
+            return MatchResult.EXACT_MATCH;
         }
         for (Capability capability : capabilities) {
             if (group.equals(capability.getGroup()) && name.equals(capability.getName())) {
-                return true;
+                boolean exactMatch = capabilities.size() == 1;
+                return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
             }
         }
-        return false;
+        return MatchResult.NO_MATCH;
+    }
+
+    private enum MatchResult {
+        NO_MATCH(false),
+        MATCHES_ALL(true),
+        EXACT_MATCH(true);
+
+        private final boolean matches;
+
+        MatchResult(boolean match) {
+            this.matches = match;
+        }
     }
 }
