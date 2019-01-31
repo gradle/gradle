@@ -29,6 +29,7 @@ sealed class ResolverEvent
 
 internal
 data class ResolutionRequest(
+    val correlationId: String,
     val scriptFile: File?,
     val environment: Map<String, Any?>?,
     val previousDependencies: KotlinScriptExternalDependencies?
@@ -37,6 +38,7 @@ data class ResolutionRequest(
 
 internal
 data class ResolutionFailure(
+    val correlationId: String,
     val scriptFile: File?,
     val failure: Exception
 ) : ResolverEvent()
@@ -44,6 +46,7 @@ data class ResolutionFailure(
 
 internal
 data class SubmittedModelRequest(
+    val correlationId: String,
     val scriptFile: File?,
     val request: KotlinBuildScriptModelRequest
 ) : ResolverEvent()
@@ -51,6 +54,7 @@ data class SubmittedModelRequest(
 
 internal
 data class RequestCancelled(
+    val correlationId: String,
     val scriptFile: File?,
     val request: KotlinBuildScriptModelRequest
 ) : ResolverEvent()
@@ -58,6 +62,7 @@ data class RequestCancelled(
 
 internal
 data class ReceivedModelResponse(
+    val correlationId: String,
     val scriptFile: File?,
     val response: KotlinBuildScriptModel
 ) : ResolverEvent()
@@ -65,6 +70,7 @@ data class ReceivedModelResponse(
 
 internal
 data class ResolvedDependencies(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies
 ) : ResolverEvent()
@@ -72,6 +78,7 @@ data class ResolvedDependencies(
 
 internal
 data class ResolvedDependenciesWithErrors(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
     val exceptions: List<String>
@@ -80,6 +87,7 @@ data class ResolvedDependenciesWithErrors(
 
 internal
 data class ResolvedToPreviousWithErrors(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
     val exceptions: List<String>

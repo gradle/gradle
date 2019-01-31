@@ -148,6 +148,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                 prettyPrint(
                     "SubmittedModelRequest",
                     sequenceOf(
+                        "correlationId" to correlationId,
                         "scriptFile" to scriptFile,
                         "request" to prettyPrintAny(request, indentation = 2)))
 
@@ -155,6 +156,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                 prettyPrint(
                     "ReceivedModelResponse",
                     sequenceOf(
+                        "correlationId" to correlationId,
                         "scriptFile" to scriptFile,
                         "response" to prettyPrint(response, indentation = 2)))
 
@@ -162,6 +164,7 @@ object DefaultResolverEventLogger : ResolverEventLogger {
                 prettyPrint(
                     "ResolutionFailure",
                     sequenceOf(
+                        "correlationId" to correlationId,
                         "scriptFile" to scriptFile,
                         "failure" to stringForException(failure, indentation = 2)))
             else ->
