@@ -84,6 +84,10 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath gradleKotlinDsl() {
-        return moduleRegistry.getModule("gradle-kotlin-dsl").getClasspath();
+        ClassPath classpath = ClassPath.EMPTY;
+        for (Module module : moduleRegistry.getModule("gradle-kotlin-dsl").getAllRequiredModules()) {
+            classpath = classpath.plus((module.getClasspath()));
+        }
+        return classpath;
     }
 }

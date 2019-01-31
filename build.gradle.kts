@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
-import org.gradle.gradlebuild.ProjectGroups
-import org.gradle.modules.PatchExternalModules
-import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.ProjectGroups.publishedProjects
-import org.gradle.util.GradleVersion
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
@@ -236,15 +231,6 @@ val externalModules by configurations.creating {
 }
 
 /**
- * Configuration used to resolve external modules before patching them with versions from core runtime
- */
-val externalModulesRuntime by configurations.creating {
-    isVisible = false
-    extendsFrom(coreRuntime)
-    extendsFrom(externalModules)
-}
-
-/**
  * Combines the 'coreRuntime' with the patched external module jars
  */
 val runtime by configurations.creating {
@@ -257,7 +243,7 @@ val gradlePlugins by configurations.creating {
 }
 
 val testRuntime by configurations.creating {
-    extendsFrom(runtime)
+    extendsFrom(coreRuntime)
     extendsFrom(gradlePlugins)
 }
 
@@ -267,7 +253,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(runtime)
+        extendsFrom(coreRuntime)
         extendsFrom(gradlePlugins)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
     }
@@ -287,7 +273,7 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(runtime)
+        extendsFrom(coreRuntime)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core")
     }
 }
@@ -336,22 +322,13 @@ configurations {
 
 extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
 
-val patchedExternalModulesDir = buildDir / "external/files"
-val patchedExternalModules = files(provider { fileTree(patchedExternalModulesDir).files.sorted() })
-patchedExternalModules.builtBy("patchExternalModules")
-
 dependencies {
-
-    externalModules(project(":kotlinDsl"))
-    externalModules(project(":kotlinDslProviderPlugins"))
-    externalModules(project(":kotlinDslToolingBuilders"))
 
     coreRuntime(project(":launcher"))
     coreRuntime(project(":runtimeApiInfo"))
-
-    runtime(project(":wrapper"))
-    runtime(project(":installationBeacon"))
-    runtime(patchedExternalModules)
+    coreRuntime(project(":wrapper"))
+    coreRuntime(project(":installationBeacon"))
+    coreRuntime(project(":kotlinDsl"))
 
     pluginProjects.forEach { gradlePlugins(it) }
     implementationPluginProjects.forEach { gradlePlugins(it) }
@@ -363,20 +340,13 @@ dependencies {
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
-    coreRuntimeExtensions(patchedExternalModules)
+    coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))
+    coreRuntimeExtensions(project(":kotlinDslToolingBuilders"))
 
     testRuntime(project(":apiMetadata"))
 }
 
 extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
-
-tasks.register<PatchExternalModules>("patchExternalModules") {
-    allModules = externalModulesRuntime
-    coreModules = coreRuntime
-    modulesToPatch = this@Build_gradle.externalModules
-    destination = patchedExternalModulesDir
-    outputs.doNotCacheIfSlowInternetConnection()
-}
 
 evaluationDependsOn(":distributions")
 

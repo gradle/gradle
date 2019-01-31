@@ -34,7 +34,7 @@ import java.util.*
 
 
 private
-const val embeddedRepositoryCacheKeyVersion = 2
+const val embeddedRepositoryCacheKeyVersion = 3
 
 
 class EmbeddedKotlinProvider constructor(
@@ -99,7 +99,7 @@ class EmbeddedKotlinProvider constructor(
 
     private
     fun fileFor(module: EmbeddedModule) =
-        moduleRegistry.getExternalModule(module.name).classpath.asFiles.first()
+        moduleRegistry.getExternalModule(module.distributionModuleName).classpath.asFiles.first()
 
     private
     fun repoDirCacheKey() =
@@ -128,7 +128,8 @@ data class EmbeddedModule(
     val group: String,
     val name: String,
     val version: String,
-    val dependencies: List<EmbeddedModule> = emptyList()
+    val dependencies: List<EmbeddedModule> = emptyList(),
+    val distributionModuleName: String = name
 ) {
 
     val notation = "$group:$name:$version"
@@ -139,20 +140,33 @@ data class EmbeddedModule(
 private
 val embeddedModules: List<EmbeddedModule> by lazy {
 
-    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList()) =
-        EmbeddedModule("org.jetbrains.kotlin", "kotlin-$name", embeddedKotlinVersion, dependencies)
+    fun embeddedKotlin(name: String, dependencies: List<EmbeddedModule> = emptyList(), distributionModuleName: String? = null) =
+        "kotlin-$name".let { moduleName ->
+            EmbeddedModule(
+                "org.jetbrains.kotlin",
+                moduleName,
+                embeddedKotlinVersion,
+                dependencies,
+                distributionModuleName ?: moduleName
+            )
+        }
 
     // TODO:pm could be generated at build time
     val annotations = EmbeddedModule("org.jetbrains", "annotations", "13.0")
+    val trove4j = EmbeddedModule("org.jetbrains.intellij.deps", "trove4j", "1.0.20181211")
     val stdlib = embeddedKotlin("stdlib", listOf(annotations))
     val stdlibJdk7 = embeddedKotlin("stdlib-jdk7", listOf(stdlib))
     val stdlibJdk8 = embeddedKotlin("stdlib-jdk8", listOf(stdlibJdk7))
     val reflect = embeddedKotlin("reflect", listOf(stdlib))
-    val compilerEmbeddable = embeddedKotlin("compiler-embeddable")
     val scriptRuntime = embeddedKotlin("script-runtime")
+    val compilerEmbeddable = embeddedKotlin(
+        "compiler-embeddable",
+        listOf(stdlibJdk8, reflect, scriptRuntime, trove4j),
+        "kotlin-compiler-embeddable-$embeddedKotlinVersion-patched-for-gradle"
+    )
     val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
     listOf(
-        annotations,
+        annotations, trove4j,
         stdlib, stdlibJdk7, stdlibJdk8,
         reflect,
         compilerEmbeddable,
