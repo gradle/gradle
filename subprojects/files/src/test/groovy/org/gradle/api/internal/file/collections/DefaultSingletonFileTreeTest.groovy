@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.file.collections
 
-import org.gradle.util.UsesNativeServices
-import spock.lang.Specification
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultSingletonFileTreeTest extends Specification {
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
     def hasUsefulDisplayName() {
         File f = new File('test-file')
         DefaultSingletonFileTree tree = new DefaultSingletonFileTree(f)
@@ -44,5 +49,32 @@ class DefaultSingletonFileTreeTest extends Specification {
             assert details.path == 'test-file'
         }
         0 * visitor._
+    }
+    
+    def "can be converted to a directory tree"() {
+        File f = temporaryFolder.file('test-file')
+        f.createNewFile()
+        DefaultSingletonFileTree singletonFileTree = new DefaultSingletonFileTree(f)
+        def tree = new FileTreeAdapter(singletonFileTree)
+
+        when:
+        def fileTrees = tree.getAsFileTrees()
+        then:
+        fileTrees.size() == 1
+        def directoryTree = fileTrees[0]
+        directoryTree.dir == f.parentFile
+        new FileTreeAdapter(directoryTree).files == [f] as Set
+    }
+
+    def "convert filtered tree to empty file trees"() {
+        File f = temporaryFolder.file('test-file')
+        f.createNewFile()
+        DefaultSingletonFileTree singletonFileTree = new DefaultSingletonFileTree(f)
+        def tree = new FileTreeAdapter(singletonFileTree).filter { it.name == 'different' }
+
+        when:
+        def fileTrees = tree.getAsFileTrees()
+        then:
+        fileTrees.size() == 0
     }
 }
