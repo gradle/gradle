@@ -42,13 +42,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
-        String displayName = sourceSetDisplayName + " classes";
 
-        this.classesDirs = fileCollectionFactory.configurableFiles("classesDirs");
+        this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");
         // TODO: This should be more specific to just the tasks that create the class files?
         classesDirs.builtBy(this);
 
-        this.outputDirectories = fileCollectionFactory.configurableFiles(displayName);
+        this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
         outputDirectories.from(new Callable() {
             public Object call() {
                 return classesDirs;
@@ -59,9 +58,9 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
             }
         });
 
-        this.dirs = fileCollectionFactory.configurableFiles("dirs");
+        this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
-        this.generatedSourcesDirs = fileCollectionFactory.configurableFiles("generatedSourcesDirs");
+        this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
     }
 
     @Override

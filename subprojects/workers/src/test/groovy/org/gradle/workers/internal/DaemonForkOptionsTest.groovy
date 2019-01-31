@@ -20,7 +20,9 @@ import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
 import spock.lang.Specification
 
-import static org.gradle.api.internal.file.TestFiles.*
+import static org.gradle.api.internal.file.TestFiles.execFactory
+import static org.gradle.api.internal.file.TestFiles.pathToFileResolver
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class DaemonForkOptionsTest extends Specification {
     def "is compatible with itself"() {
@@ -205,6 +207,6 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder(JavaForkOptions javaForkOptions) {
-        return new DaemonForkOptionsBuilder(pathToFileResolver()).javaForkOptions(javaForkOptions)
+        return new DaemonForkOptionsBuilder(execFactory()).javaForkOptions(javaForkOptions)
     }
 }

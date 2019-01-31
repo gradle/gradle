@@ -67,7 +67,7 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
-import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
 
@@ -137,7 +137,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 @CacheableTask
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
-    private final DefaultJavaForkOptions forkOptions;
+    private final JavaForkOptions forkOptions;
 
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
@@ -150,7 +150,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
-        forkOptions = new DefaultJavaForkOptions(getFileResolver());
+        forkOptions = getForkOptionsFactory().newJavaForkOptions();
         forkOptions.setEnableAssertions(true);
     }
 
@@ -171,6 +171,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaForkOptionsFactory getForkOptionsFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -549,7 +554,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        DefaultJavaForkOptions javaForkOptions = new DefaultJavaForkOptions(getFileResolver());
+        JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
     }

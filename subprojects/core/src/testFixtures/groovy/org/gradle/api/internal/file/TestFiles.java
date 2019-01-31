@@ -119,6 +119,10 @@ public class TestFiles {
         return EXEC_FACTORY;
     }
 
+    public static ExecFactory execFactory(File baseDir) {
+        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
+    }
+
     public static ExecActionFactory execActionFactory() {
         return execFactory();
     }
