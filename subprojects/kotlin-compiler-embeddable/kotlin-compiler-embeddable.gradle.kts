@@ -1,3 +1,4 @@
+import build.CheckKotlinCompilerEmbeddableDependencies
 import build.PatchKotlinCompilerEmbeddable
 import build.futureKotlin
 import build.kotlinVersion
@@ -33,6 +34,11 @@ val kotlinCompilerEmbeddableConfiguration = configurations.detachedConfiguration
 
 tasks {
 
+    val checkKotlinCompilerEmbeddableDependencies by registering(CheckKotlinCompilerEmbeddableDependencies::class) {
+        current.from(configurations.runtimeClasspath)
+        expected.from(kotlinCompilerEmbeddableConfiguration)
+    }
+
     val patchKotlinCompilerEmbeddable by registering(PatchKotlinCompilerEmbeddable::class) {
         excludes.set(listOf(
             "META-INF/services/javax.annotation.processing.Processor",
@@ -53,7 +59,7 @@ tasks {
     }
 
     jar {
-        dependsOn(patchKotlinCompilerEmbeddable)
+        dependsOn(patchKotlinCompilerEmbeddable, checkKotlinCompilerEmbeddableDependencies)
         actions.clear()
     }
 }
