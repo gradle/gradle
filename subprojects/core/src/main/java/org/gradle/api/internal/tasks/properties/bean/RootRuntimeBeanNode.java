@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
+import org.gradle.api.internal.tasks.properties.ParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 
@@ -27,7 +28,7 @@ public class RootRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory) {
-        visitProperties(visitor, queue, nodeFactory);
+    public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, ParameterValidationContext validationContext) {
+        visitProperties(visitor, queue, nodeFactory, validationContext);
     }
 }

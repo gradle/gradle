@@ -49,10 +49,10 @@ class DaemonCommandLineConverterTest extends Specification {
         def converted = convert(options)
 
         then:
-        converted.foreground == foregound
+        converted.foreground == foreground
 
         where:
-        options                         | foregound
+        options                         | foreground
         []                              | false
         ['--foreground']                | true
         ['--foreground', '--no-daemon'] | true

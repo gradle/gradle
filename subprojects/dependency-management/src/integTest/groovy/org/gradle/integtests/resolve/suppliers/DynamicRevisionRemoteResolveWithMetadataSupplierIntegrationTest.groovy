@@ -844,7 +844,7 @@ group:projectB:2.2;release
                 }
                 '1.1' {
                     withModule {
-                        supplierInteractions.expectGetStatus(delegate, 'should be overriden by rule')
+                        supplierInteractions.expectGetStatus(delegate, 'should be overridden by rule')
 
                     }
                     expectResolve()
@@ -856,7 +856,7 @@ group:projectB:2.2;release
         then:
         outputContains 'Providing metadata for group:projectB:1.1'
         // first one comes from the rule executed on shallow metadata, provided by a rule
-        outputContains "Changing status for group:projectB:1.1 from 'should be overriden by rule' to 'release'"
+        outputContains "Changing status for group:projectB:1.1 from 'should be overridden by rule' to 'release'"
 
         // second one comes from the rule executed on "real" metadata, after parsing the module
         outputContains "Changing status for group:projectB:1.1 from '${GradleMetadataResolveRunner.useIvy()?'integration':'release'}' to 'release'"

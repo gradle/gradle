@@ -139,9 +139,9 @@ public class BuildExperimentRunner {
     }
 
     protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
-        String overridenInvocationCount = getExperimentOverride("runs");
-        if (overridenInvocationCount != null) {
-            return Integer.valueOf(overridenInvocationCount);
+        String overriddenInvocationCount = getExperimentOverride("runs");
+        if (overriddenInvocationCount != null) {
+            return Integer.valueOf(overriddenInvocationCount);
         }
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
@@ -150,9 +150,9 @@ public class BuildExperimentRunner {
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
-        String overridenWarmUpCount = getExperimentOverride("warmups");
-        if (overridenWarmUpCount != null) {
-            return Integer.valueOf(overridenWarmUpCount);
+        String overriddenWarmUpCount = getExperimentOverride("warmups");
+        if (overriddenWarmUpCount != null) {
+            return Integer.valueOf(overriddenWarmUpCount);
         }
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();

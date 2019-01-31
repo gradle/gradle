@@ -106,7 +106,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
@@ -197,7 +197,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File primaryInput;
         private final String identityString;
         private final ExecutionHistoryStore executionHistoryStore;
-        private final ArtifactTransformDependenciesInternal dependencies;
+        private final ArtifactTransformDependencies dependencies;
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final OutputFileCollectionFingerprinter outputFingerprinter;
@@ -210,7 +210,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             ExecutionHistoryStore executionHistoryStore,
             File primaryInput,
             CurrentFileCollectionFingerprint primaryInputFingerprint,
-            ArtifactTransformDependenciesInternal dependencies,
+            ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
             OutputFileCollectionFingerprinter outputFingerprinter
         ) {

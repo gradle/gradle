@@ -34,7 +34,7 @@ public interface ArtifactVisitor {
     /**
      * Should the file for each artifacts be made available prior to calling {@link #visitArtifact(DisplayName, AttributeContainer, ResolvableArtifact)}?
      *
-     * Returns true here allows the collection to pre-emptively resolve the files in parallel.
+     * Returns true here allows the collection to preemptively resolve the files in parallel.
      */
     boolean requireArtifactFiles();
 

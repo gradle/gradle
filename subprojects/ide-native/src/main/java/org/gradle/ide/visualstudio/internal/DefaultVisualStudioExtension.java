@@ -17,7 +17,10 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
@@ -25,8 +28,8 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 public class DefaultVisualStudioExtension implements VisualStudioExtensionInternal {
     private final VisualStudioProjectRegistry projectRegistry;
 
-    public DefaultVisualStudioExtension(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator, ideArtifactRegistry, collectionCallbackActionDecorator);
+    public DefaultVisualStudioExtension(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory,  FileOperations fileOperations) {
+        this.projectRegistry = new VisualStudioProjectRegistry(fileResolver, instantiator, ideArtifactRegistry, collectionCallbackActionDecorator, objectFactory, providerFactory, fileOperations);
     }
 
     @Override

@@ -17,17 +17,43 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Buildable;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.file.PathToFileResolver;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
+    private final PathToFileResolver fileResolver;
+    @Nullable
+    private final TaskResolver taskResolver;
+
+    // Used by the Kotlin-dsl base plugin
+    // TODO - remove this
+    @Deprecated
+    public DefaultFileCollectionFactory() {
+        this(new IdentityFileResolver(), null);
+    }
+
+    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, @Nullable TaskResolver taskResolver) {
+        this.fileResolver = fileResolver;
+        this.taskResolver = taskResolver;
+    }
+
+    @Override
+    public ConfigurableFileCollection configurableFiles() {
+        return new DefaultConfigurableFileCollection(fileResolver, taskResolver);
+    }
+
     @Override
     public FileCollection create(final TaskDependency builtBy, MinimalFileSet contents) {
         if (contents instanceof Buildable) {

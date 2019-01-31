@@ -19,6 +19,10 @@ package org.gradle.language
 class VariantContext {
     private final Map<String, VariantDimension> dimensions
 
+    private VariantContext() {
+        this([:])
+    }
+
     private VariantContext(Map<String, VariantDimension> dimensions) {
         this.dimensions = dimensions.withDefault { VariantDimension.missing(it) }
     }
@@ -49,7 +53,7 @@ class VariantContext {
         return '_' + dimensions.values()*.name.join('_').replaceAll('-', '_')
     }
 
-    static VariantContext of(Map<String, String> dimensions) {
+    static VariantContext of(Map<String, String> dimensions = [:]) {
         return new VariantContext(dimensions.collectEntries([:]) { key, value ->
             [(key): VariantDimension.of(key, value)]
         })

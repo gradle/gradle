@@ -56,7 +56,7 @@
  *  The callback mechanism works as follows.  The CUnit runtime system
  *  supports the registering and calling of functions at the start and end
  *  of each test, when all tests are complete, and when a suite
- *  initialialization function returns an error.  This allows clients to
+ *  initialization function returns an error.  This allows clients to
  *  perform actions associated with these events such as output formatting
  *  and reporting.
  */
@@ -263,7 +263,7 @@ CU_EXPORT CU_ErrorCode CU_run_test(CU_pSuite pSuite, CU_pTest pTest);
  *  if it is not successful.  Both the suite and test specified
  *  must be active for the test to be run.  The suite is not
  *  considered to be run, although it may be counted as a failed
- *  suite if the intialization or cleanup functions fail.
+ *  suite if the initialization or cleanup functions fail.
  *
  *  @param pSuite The suite containing the test (non-NULL)
  *  @param pTest  The test to run (non-NULL)

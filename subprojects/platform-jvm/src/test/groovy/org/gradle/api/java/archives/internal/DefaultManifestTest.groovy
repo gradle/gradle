@@ -138,7 +138,7 @@ class DefaultManifestTest extends Specification {
     }
 
     def writeWithPath() {
-        TestFile manifestFile = tmpDir.file('someNonexistingDir').file('someFile')
+        TestFile manifestFile = tmpDir.file('someNonexistentDir').file('someFile')
         DefaultManifest manifest = new DefaultManifest(fileResolver).attributes(key1: 'value1')
         fileResolver.resolve('file') >> manifestFile
 

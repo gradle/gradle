@@ -292,7 +292,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     /**
      * This test is a variant of the previous one where there's an additional catch: one
-     * of the modules (annotations) is supposely inexistent in 2.7.9 (say, it appeared in 2.9.x)
+     * of the modules (annotations) is supposely nonexistent in 2.7.9 (say, it appeared in 2.9.x)
      */
     def "can align heterogeneous versions with new modules appearing in later releases"() {
         repository {
@@ -713,7 +713,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'
@@ -795,7 +795,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
 
-            // Spring core intentionnaly doesn't belong to the Spring platform.
+            // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
         }
         run ':checkDeps'

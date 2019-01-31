@@ -28,7 +28,7 @@ public class DirectMethodBinding extends AbstractStructMethodBinding implements 
     }
 
     @Override
-    public WeaklyTypeReferencingMethod<?, ?> getImplementorMethod() {
+    public WeaklyTypeReferencingMethod<?, ?> getImplementerMethod() {
         return getViewMethod();
     }
 

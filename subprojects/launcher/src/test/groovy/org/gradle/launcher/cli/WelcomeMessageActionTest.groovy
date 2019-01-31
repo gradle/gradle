@@ -17,11 +17,16 @@
 package org.gradle.launcher.cli
 
 import com.google.common.base.Function
+import org.apache.commons.lang3.text.StrBuilder
 import org.gradle.initialization.BuildLayoutParameters
+import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
+import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
+import org.gradle.internal.time.MockClock
 import org.gradle.launcher.cli.CommandLineActionFactory.WelcomeMessageAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -38,14 +43,14 @@ class WelcomeMessageActionTest extends Specification {
 
     BuildLayoutParameters buildLayoutParameters
     File gradleUserHomeDir
-    ByteArrayOutputStream out
+    ToStringLogger log
 
     def setup() {
         gradleUserHomeDir = temporaryFolder.root
         buildLayoutParameters = Mock(BuildLayoutParameters) {
             getGradleUserHomeDir() >> gradleUserHomeDir
         }
-        out = new ByteArrayOutputStream()
+        log = new ToStringLogger()
     }
 
     def "prints highlights when file exists and contains visible content"() {
@@ -58,14 +63,17 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version("42.0"), inputStreamProvider)
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
-        def output = out.toString()
-        output.contains("Welcome to Gradle 42.0!")
-        output.contains("Here are the highlights of this release:")
-        output.contains(" - foo")
-        output.contains(" - bar")
+        def output = TextUtil.normaliseLineSeparators(log.toString());
+        output.contains('''Welcome to Gradle 42.0!
+
+Here are the highlights of this release:
+ - foo
+ - bar
+
+For more details see https://docs.gradle.org/42.0/release-notes.html''')
     }
 
     def "omits highlights when file contains only whitespace"() {
@@ -78,11 +86,11 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), inputStreamProvider)
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
 
-        !out.toString().contains("Here are the highlights of this release:")
+        !log.toString().contains("Here are the highlights of this release:")
     }
 
     def "omits highlights when file does not exist"() {
@@ -93,11 +101,11 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), inputStreamProvider)
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
 
-        !out.toString().contains("Here are the highlights of this release:")
+        !log.toString().contains("Here are the highlights of this release:")
     }
 
     def "closes InputStream after reading features"() {
@@ -114,7 +122,7 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version("42.0"), inputStreamProvider)
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
         inputStreamWasClosed
@@ -123,10 +131,10 @@ class WelcomeMessageActionTest extends Specification {
     def "prints links to release notes for non-snapshot versions"() {
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
-        out.toString().contains("For more details see https://docs.gradle.org/${version}/release-notes.html") == shouldContainLink
+        log.toString().contains("For more details see https://docs.gradle.org/${version}/release-notes.html") == shouldContainLink
 
         where:
         version        | shouldContainLink
@@ -140,7 +148,7 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
         markerFile(version).exists()
@@ -155,10 +163,10 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.version(version), Mock(Function))
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
-        out.toString().isEmpty()
+        log.toString().isEmpty()
     }
 
     def "does not print anything if system property is set to false"() {
@@ -167,13 +175,32 @@ class WelcomeMessageActionTest extends Specification {
 
         when:
         def action = new WelcomeMessageAction(buildLayoutParameters, GradleVersion.current(), Mock(Function))
-        action.execute(new PrintStream(out))
+        action.execute(log)
 
         then:
-        out.toString().isEmpty()
+        log.toString().isEmpty()
     }
 
     private TestFile markerFile(String version) {
         new TestFile(gradleUserHomeDir, "notifications", version, "release-features.rendered")
+    }
+
+    private static class ToStringLogger extends OutputEventListenerBackedLogger {
+
+        private final StrBuilder log = new StrBuilder()
+
+        ToStringLogger() {
+            super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
+        }
+
+        @Override
+        void lifecycle(String message) {
+            log.appendln(message)
+        }
+
+        @Override
+        String toString() {
+            log.toString()
+        }
     }
 }

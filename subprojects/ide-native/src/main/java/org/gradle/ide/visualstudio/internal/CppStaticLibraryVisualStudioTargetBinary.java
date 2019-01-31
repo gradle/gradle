@@ -26,7 +26,7 @@ public class CppStaticLibraryVisualStudioTargetBinary extends AbstractCppBinaryV
     private final CppStaticLibrary binary;
 
     public CppStaticLibraryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, CppStaticLibrary binary) {
-        super(projectName, projectPath, component, binary);
+        super(projectName, projectPath, component);
         this.binary = binary;
     }
 

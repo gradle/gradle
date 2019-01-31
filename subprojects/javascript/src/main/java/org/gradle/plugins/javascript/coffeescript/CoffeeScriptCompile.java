@@ -66,7 +66,7 @@ public class CoffeeScriptCompile extends SourceTask {
     }
 
     /**
-     * Sets Coffee Script Javascript file.
+     * Sets Coffee Script JavaScript file.
      *
      * @since 4.0
      */

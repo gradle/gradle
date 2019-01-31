@@ -1,4 +1,4 @@
-# Chapter 1 - Intoduction
+# Chapter 1 - Introduction
 
 ## Hello World
 

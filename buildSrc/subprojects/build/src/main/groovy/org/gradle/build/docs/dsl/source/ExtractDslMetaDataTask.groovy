@@ -19,6 +19,7 @@ import com.github.javaparser.JavaParser
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
 import org.gradle.api.Action
+import org.gradle.api.Transformer
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputFile
@@ -26,12 +27,11 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.build.docs.DocGenerationException
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.dsl.source.model.TypeMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.build.docs.DocGenerationException
-import org.gradle.api.Transformer
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle API. Persists the meta-data to a file
@@ -65,7 +65,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         }
 
         //updating/modifying the metadata and making sure every type reference across the metadata is fully qualified
-        //so, the superClassName, interafaces and types needed by declared properties and declared methods will have fully qualified name
+        //so, the superClassName, interfaces and types needed by declared properties and declared methods will have fully qualified name
         TypeNameResolver resolver = new TypeNameResolver(repository)
         repository.each { name, metaData ->
             fullyQualifyAllTypeNames(metaData, resolver)

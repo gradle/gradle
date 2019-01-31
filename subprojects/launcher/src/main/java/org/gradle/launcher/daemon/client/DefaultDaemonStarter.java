@@ -175,7 +175,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
                 execActionFactory.stop();
             }
 
-            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput());
+            return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), args);
         } catch (GradleException e) {
             throw e;
         } catch (Exception e) {

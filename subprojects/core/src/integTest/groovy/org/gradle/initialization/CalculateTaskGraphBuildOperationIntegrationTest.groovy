@@ -81,10 +81,10 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
     def "errors in calculating task graph are exposed"() {
         when:
-        fails('someNonExisting')
+        fails('someNonexistent')
 
         then:
-        operation().failure.contains("Task 'someNonExisting' not found in root project")
+        operation().failure.contains("Task 'someNonexistent' not found in root project")
     }
 
     def "build path for calculated task graph is exposed"() {

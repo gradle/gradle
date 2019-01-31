@@ -71,7 +71,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
     }
 
     @Requires(TestPrecondition.XCODE)
-    def "returns meaningful errors from xcode when component product is unbuildable"() {
+    def "returns meaningful errors from xcode when component product is unbuildable due to operating system"() {
         useXcodebuildTool()
 
         given:

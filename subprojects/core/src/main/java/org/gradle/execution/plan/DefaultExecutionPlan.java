@@ -528,8 +528,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.filter = filter;
     }
 
-    public void setContinueOnFailure(boolean continueOnFailre) {
-        this.continueOnFailure = continueOnFailre;
+    public void setContinueOnFailure(boolean continueOnFailure) {
+        this.continueOnFailure = continueOnFailure;
     }
 
     @Override

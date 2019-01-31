@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
 

@@ -496,7 +496,7 @@ dependencies {
         } catch (AssertionFailedError error) {
             println "EXPECTED:\n${expectedXml}"
             println "ACTUAL:\n${actualXml}"
-            throw new ComparisonFailure("Comparison filure: expected: $expectedFile, actual: $actualFile"
+            throw new ComparisonFailure("Comparison failure: expected: $expectedFile, actual: $actualFile"
                 + "\nUnexpected content for generated actualFile: ${error.message}", expectedXml, actualXml).initCause(error)
         }
     }

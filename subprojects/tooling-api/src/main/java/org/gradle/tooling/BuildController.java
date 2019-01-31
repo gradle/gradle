@@ -124,7 +124,7 @@ public interface BuildController {
      * @param parameterInitializer Action to configure the parameter
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
-     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parametrized models.
+     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      *
      * @since 4.4
      */
@@ -165,7 +165,7 @@ public interface BuildController {
      * @param parameterInitializer Action to configure the parameter
      * @return The model.
      * @throws UnknownModelException When the target project does not support the requested model.
-     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parametrized models.
+     * @throws UnsupportedVersionException When the target project does not support the requested model or Gradle version does not support parameterized models.
      *
      * @since 4.4
      */

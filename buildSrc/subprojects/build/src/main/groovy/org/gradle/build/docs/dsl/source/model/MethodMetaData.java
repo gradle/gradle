@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Static meta-data about a method extracted from the source for the class.
@@ -45,6 +46,29 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         return String.format("%s.%s()", ownerClass, name);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        MethodMetaData that = (MethodMetaData) o;
+        return Objects.equals(name, that.name) &&
+            Objects.equals(ownerClass.getClassName(), that.ownerClass.getClassName()) &&
+            Objects.equals(parameters, that.parameters) &&
+            Objects.equals(returnType, that.returnType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), name, ownerClass, parameters, returnType);
+    }
+
     public ClassMetaData getOwnerClass() {
         return ownerClass;
     }
@@ -61,7 +85,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
         queue.add(ownerClass.getSuperClass());
         queue.addAll(ownerClass.getInterfaces());
-        
+
         String overrideSignature = getOverrideSignature();
 
         while (!queue.isEmpty()) {
@@ -98,7 +122,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         builder.append(name);
         builder.append('(');
         for (int i = 0; i < parameters.size(); i++) {
-            ParameterMetaData param =  parameters.get(i);
+            ParameterMetaData param = parameters.get(i);
             if (i > 0) {
                 builder.append(", ");
             }
@@ -116,7 +140,7 @@ public class MethodMetaData extends AbstractLanguageElement implements Serializa
         builder.append(name);
         builder.append('(');
         for (int i = 0; i < parameters.size(); i++) {
-            ParameterMetaData param =  parameters.get(i);
+            ParameterMetaData param = parameters.get(i);
             if (i > 0) {
                 builder.append(", ");
             }
