@@ -20,11 +20,10 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
@@ -87,8 +86,8 @@ public class FileParameterUtils {
      *
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
-    public static Object resolveInputFileValue(PathToFileResolver resolver, InputFilePropertyType inputFilePropertyType, Object path) {
-        return inputFilePropertyType == InputFilePropertyType.DIRECTORY ? asFileTree(resolver, path) : path;
+    public static Object resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
+        return inputFilePropertyType == InputFilePropertyType.DIRECTORY ? asFileTree(fileCollectionFactory, "file collection", path) : path;
     }
 
     /**
@@ -96,13 +95,13 @@ public class FileParameterUtils {
      *
      * Especially, values of type {@link Map} are resolved.
      */
-    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, PathToFileResolver fileResolver, Consumer<OutputFilePropertySpec> consumer) {
+    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return;
         }
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileResolver, consumer);
+            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileResolver, fileCollectionFactory, consumer);
         } else {
             File outputFile = fileResolver.resolve(unpackedValue);
             DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
@@ -110,7 +109,7 @@ public class FileParameterUtils {
         }
     }
 
-    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, final PathToFileResolver resolver, Consumer<OutputFilePropertySpec> consumer) {
+    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, final PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
@@ -124,7 +123,7 @@ public class FileParameterUtils {
         } else {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = FileParameterUtils.asFileCollection(resolver, unpackedValue);
+            FileCollectionInternal outputFileCollection = asFileCollection(fileCollectionFactory, "file collection", unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
@@ -159,14 +158,11 @@ public class FileParameterUtils {
         }
     }
 
-    private static FileCollectionInternal asFileCollection(PathToFileResolver resolver, Object... paths) {
-        if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return Cast.cast(FileCollectionInternal.class, paths[0]);
-        }
-        return new DefaultConfigurableFileCollection(resolver, null, paths);
+    private static FileCollectionInternal asFileCollection(FileCollectionFactory fileCollectionFactory, String displayName, Object... paths) {
+        return fileCollectionFactory.resolving(displayName, paths);
     }
 
-    private static FileTreeInternal asFileTree(PathToFileResolver resolver, Object... paths) {
-        return Cast.cast(FileTreeInternal.class, asFileCollection(resolver, paths).getAsFileTree());
+    private static FileTreeInternal asFileTree(FileCollectionFactory fileCollectionFactory, String displayName, Object... paths) {
+        return Cast.uncheckedCast(asFileCollection(fileCollectionFactory, displayName, paths).getAsFileTree());
     }
 }

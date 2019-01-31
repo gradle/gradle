@@ -111,6 +111,10 @@ public class TestFiles {
         return new DefaultFileCollectionFactory(pathToFileResolver(), null);
     }
 
+    public static FileCollectionFactory fileCollectionFactory(File baseDir) {
+        return new DefaultFileCollectionFactory(pathToFileResolver(baseDir), null);
+    }
+
     public static ExecFactory execFactory() {
         return EXEC_FACTORY;
     }

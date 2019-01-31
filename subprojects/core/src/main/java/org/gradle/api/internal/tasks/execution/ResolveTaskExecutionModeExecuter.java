@@ -23,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -52,8 +53,10 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     private final PathToFileResolver fileResolver;
     private final TaskExecuter executer;
     private final TaskExecutionModeResolver executionModeResolver;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, PathToFileResolver fileResolver, PropertyWalker propertyWalker, TaskExecuter executer) {
+    public ResolveTaskExecutionModeExecuter(TaskExecutionModeResolver executionModeResolver, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory, PropertyWalker propertyWalker, TaskExecuter executer) {
+        this.fileCollectionFactory = fileCollectionFactory;
         this.propertyWalker = propertyWalker;
         this.fileResolver = fileResolver;
         this.executer = executer;
@@ -63,7 +66,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, final TaskExecutionContext context) {
         Timer clock = Time.startTimer();
-        TaskProperties properties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, task);
+        TaskProperties properties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, fileCollectionFactory, task);
         context.setTaskProperties(properties);
         TaskExecutionMode taskExecutionMode = executionModeResolver.getExecutionMode(task, properties);
         TaskOutputsInternal outputs = task.getOutputs();

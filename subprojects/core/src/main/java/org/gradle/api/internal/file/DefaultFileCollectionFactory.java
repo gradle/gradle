@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -25,12 +27,13 @@ import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private final PathToFileResolver fileResolver;
@@ -55,7 +58,12 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollection create(final TaskDependency builtBy, MinimalFileSet contents) {
+    public ConfigurableFileCollection configurableFiles(String displayName) {
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
+    }
+
+    @Override
+    public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
         if (contents instanceof Buildable) {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -68,18 +76,30 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollection create(MinimalFileSet contents) {
+    public FileCollectionInternal create(MinimalFileSet contents) {
         return new FileCollectionAdapter(contents);
     }
 
     @Override
-    public FileCollection empty(String displayName) {
-        // At some point, introduce a more efficient implementation for an empty collection
-        return fixed(displayName, Collections.<File>emptyList());
+    public FileCollectionInternal resolving(String displayName, List<?> files) {
+        if (files.size() == 1 && files.get(0) instanceof FileCollection) {
+            return Cast.uncheckedCast(files.get(0));
+        }
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver, files);
     }
 
     @Override
-    public FileCollection fixed(final String displayName, File... files) {
+    public FileCollectionInternal resolving(String displayName, Object... files) {
+        return resolving(displayName, ImmutableList.copyOf(files));
+    }
+
+    @Override
+    public FileCollectionInternal empty(String displayName) {
+        return fixed(displayName, ImmutableSet.<File>of());
+    }
+
+    @Override
+    public FileCollectionInternal fixed(final String displayName, File... files) {
         return new FileCollectionAdapter(new ListBackedFileSet(files) {
             @Override
             public String getDisplayName() {
@@ -89,7 +109,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollection fixed(final String displayName, Collection<File> files) {
+    public FileCollectionInternal fixed(final String displayName, Collection<File> files) {
         return new FileCollectionAdapter(new ListBackedFileSet(files) {
             @Override
             public String getDisplayName() {

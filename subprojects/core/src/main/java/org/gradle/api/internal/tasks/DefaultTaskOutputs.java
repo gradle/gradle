@@ -26,6 +26,7 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.GetOutputFilesVisitor;
@@ -51,6 +52,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
     private final PathToFileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
     private List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -59,12 +61,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PathToFileResolver fileResolver) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
         this.propertyWalker = propertyWalker;
         this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -146,7 +149,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileResolver);
+        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileResolver, fileCollectionFactory);
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.getFileProperties();
     }

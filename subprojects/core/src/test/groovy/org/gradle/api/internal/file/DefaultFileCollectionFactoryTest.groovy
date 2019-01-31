@@ -20,11 +20,10 @@ import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.tasks.TaskDependency
-import org.gradle.internal.file.PathToFileResolver
 import spock.lang.Specification
 
 class DefaultFileCollectionFactoryTest extends Specification {
-    def factory = new DefaultFileCollectionFactory(Stub(PathToFileResolver), Stub(TaskResolver))
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(), Stub(TaskResolver))
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
@@ -65,6 +64,14 @@ class DefaultFileCollectionFactoryTest extends Specification {
         0 * _
     }
 
+    def "constructs a configurable collection"() {
+        expect:
+        def collection = factory.configurableFiles("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "some collection"
+    }
+
     def "constructs an empty collection"() {
         expect:
         def collection = factory.empty("some collection")
@@ -73,7 +80,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
-    def "constructs an collection with fixed contents"() {
+    def "constructs a collection with fixed contents"() {
         def file1 = new File("a")
         def file2 = new File("b")
 
@@ -87,5 +94,37 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection2.files == [file1, file2] as Set
         collection2.buildDependencies.getDependencies(null).empty
         collection2.toString() == "some collection"
+    }
+
+    def "returns empty collection when constructed with a list containing nothing"() {
+        expect:
+        def collection = factory.resolving("some collection", [])
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "some collection"
+    }
+
+    def "returns empty collection when constructed with an array containing nothing"() {
+        expect:
+        def collection = factory.resolving("some collection")
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.toString() == "some collection"
+    }
+
+    def "returns original collection when constructed with a list containing a single file collection"() {
+        def original = Stub(FileCollectionInternal)
+
+        expect:
+        def collection = factory.resolving("some collection", [original])
+        collection.is(original)
+    }
+
+    def "returns original collection when constructed with an array containing a single file collection"() {
+        def original = Stub(FileCollectionInternal)
+
+        expect:
+        def collection = factory.resolving("some collection", original)
+        collection.is(original)
     }
 }
