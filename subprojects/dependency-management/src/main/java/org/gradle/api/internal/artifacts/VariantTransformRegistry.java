@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.ArtifactTransformParameterSpec;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.internal.artifacts.transform.TransformationStep;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -33,7 +33,7 @@ public interface VariantTransformRegistry {
      */
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
-    <T> void registerTransform(Class<T> parameterType, Action<? super ArtifactTransformParameterSpec<T>> registrationAction);
+    <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction);
 
     <T extends ArtifactTransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction);
 

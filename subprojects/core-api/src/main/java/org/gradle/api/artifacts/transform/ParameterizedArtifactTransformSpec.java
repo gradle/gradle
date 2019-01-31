@@ -26,7 +26,7 @@ import org.gradle.api.Incubating;
  * @since 5.3
  */
 @Incubating
-public interface ArtifactTransformParameterSpec<T> extends ArtifactTransformSpec {
+public interface ParameterizedArtifactTransformSpec<T> extends ArtifactTransformSpec {
     /**
      * The parameters for the transform action.
      */

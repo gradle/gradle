@@ -22,8 +22,8 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.ArtifactTransformParameterSpec;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
@@ -37,8 +37,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -80,7 +80,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T> void registerTransform(Class<T> parameterType, Action<? super ArtifactTransformParameterSpec<T>> registrationAction) {
+    public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction) {
         // TODO - should decorate
         T parameterObject = instantiatorFactory.inject(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
@@ -136,12 +136,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             to = immutableAttributesFactory.mutable();
         }
 
-        @Override
         public AttributeContainer getFrom() {
             return from;
         }
 
-        @Override
         public AttributeContainer getTo() {
             return to;
         }
@@ -183,7 +181,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @NonExtensible
-    public static class TypedRegistration<T> extends RecordingRegistration implements ArtifactTransformParameterSpec<T> {
+    public static class TypedRegistration<T> extends RecordingRegistration implements ParameterizedArtifactTransformSpec<T> {
         private final T parameterObject;
         Class<? extends ArtifactTransformAction> actionType;
 

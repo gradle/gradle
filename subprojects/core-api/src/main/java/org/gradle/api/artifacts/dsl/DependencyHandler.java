@@ -21,8 +21,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.ArtifactTransformParameterSpec;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -446,16 +446,16 @@ public interface DependencyHandler {
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
-     * Registers an artifact transform with a parameter.
+     * Registers an artifact transform with a parameter object.
      *
      * @see org.gradle.api.artifacts.transform.ArtifactTransformAction
      * @since 5.2
      */
     @Incubating
-    <T> void registerTransform(Class<T> parameterType, Action<? super ArtifactTransformParameterSpec<T>> registrationAction);
+    <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction);
 
     /**
-     * Registers an artifact transform action.
+     * Registers an artifact transform without a parameter object.
      *
      * @see org.gradle.api.artifacts.transform.ArtifactTransformAction
      * @since 5.3

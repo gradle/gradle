@@ -18,13 +18,24 @@ package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.attributes.AttributeContainer;
 
 /**
  * Registration of an variant transform.
  *
  * @since 3.5
  */
-public interface VariantTransform extends ArtifactTransformSpec {
+public interface VariantTransform {
+    /**
+     * Attributes that match the variant that is consumed.
+     */
+    AttributeContainer getFrom();
+
+    /**
+     * Attributes that match the variant that is produced.
+     */
+    AttributeContainer getTo();
+
     /**
      * Action to transform artifacts for this variant transform.
      *

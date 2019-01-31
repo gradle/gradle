@@ -1,12 +1,4 @@
 {
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.artifacts.transform.VariantTransform",
-            "member": "Class org.gradle.api.artifacts.transform.VariantTransform",
-            "acceptation": "New supertype added, which extracts some old methods",
-            "changes": [
-                "org.gradle.api.artifacts.transform.ArtifactTransformSpec"
-            ]
-        }
     ]
 }
