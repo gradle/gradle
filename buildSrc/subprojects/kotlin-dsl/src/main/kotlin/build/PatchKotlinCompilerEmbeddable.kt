@@ -47,6 +47,9 @@ open class PatchKotlinCompilerEmbeddable : DefaultTask() {
     val excludes = project.objects.listProperty<String>()
 
     @Classpath
+    val originalFiles = project.files()
+
+    @Classpath
     val dependencies = project.files()
 
     @Input
@@ -62,7 +65,7 @@ open class PatchKotlinCompilerEmbeddable : DefaultTask() {
     @Suppress("unused")
     fun patchKotlinCompilerEmbeddable() =
         patchKotlinCompilerEmbeddable(
-            originalFile = dependencies.single {
+            originalFile = originalFiles.single {
                 it.name.startsWith("kotlin-compiler-embeddable-")
             },
             patchedFile = outputFile.asFile.get().apply {

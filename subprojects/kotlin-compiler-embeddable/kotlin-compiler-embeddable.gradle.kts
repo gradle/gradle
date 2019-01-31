@@ -26,6 +26,11 @@ dependencies {
     runtime("org.jetbrains.intellij.deps:trove4j:1.0.20181211")
 }
 
+val kotlinCompilerEmbeddableConfiguration = configurations.detachedConfiguration(
+    project.dependencies.project(":distributionsDependencies"),
+    project.dependencies.create(futureKotlin("compiler-embeddable"))
+)
+
 tasks {
 
     val patchKotlinCompilerEmbeddable by registering(PatchKotlinCompilerEmbeddable::class) {
@@ -33,9 +38,9 @@ tasks {
             "META-INF/services/javax.annotation.processing.Processor",
             "META-INF/native/**/*jansi.*"
         ))
+        originalFiles.from(kotlinCompilerEmbeddableConfiguration)
         dependencies.from(configurations.detachedConfiguration(
             project.dependencies.project(":distributionsDependencies"),
-            project.dependencies.create(futureKotlin("compiler-embeddable")),
             project.dependencies.create(library("jansi"))
         ))
         dependenciesIncludes.set(mapOf(
@@ -47,7 +52,6 @@ tasks {
         outputFile.set(jar.get().archiveFile)
     }
 
-    // Replace this project JAR with the patched kotlin-compiler-embeddable JAR
     jar {
         dependsOn(patchKotlinCompilerEmbeddable)
         actions.clear()
