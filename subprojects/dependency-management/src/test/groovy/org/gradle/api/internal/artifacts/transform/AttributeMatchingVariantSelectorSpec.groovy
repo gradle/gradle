@@ -409,7 +409,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
-        2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, true]
+        3 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, false, true]
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
             args[2].matched(requestedAttributes, transform1, 3)
         }
