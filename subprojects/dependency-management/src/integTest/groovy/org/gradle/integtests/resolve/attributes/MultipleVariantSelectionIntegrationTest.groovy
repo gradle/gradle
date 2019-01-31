@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -721,6 +723,69 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:blah:1.0')
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/8386")
+    def "selects a variant with different attribute value but matching transform"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('usage', 'api')
+                    attribute('format', 'foo')
+                }
+                variant('runtime') {
+                    attribute('usage', 'runtime')
+                }
+            }
+        }
+
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Attribute.of("usage", String), "api")
+                        attribute(Attribute.of("format", String), "bar")
+                    }
+                }
+            }
+            
+            dependencies {
+                conf('org:test:1.0')
+                
+                registerTransform {
+                    artifactTransform(FooToBar.class)
+                    from.attribute(Attribute.of("usage", String), "api")
+                    from.attribute(Attribute.of("format", String), "foo")
+                    to.attribute(Attribute.of("usage", String), "api")
+                    to.attribute(Attribute.of("format", String), "bar")
+                }
+            }
+            
+            class FooToBar extends ArtifactTransform {
+                public List<File> transform(File fooFile) {
+                    return java.util.Collections.singletonList(fooFile)
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0') {
+                    variant('api', ['org.gradle.status': defaultStatus(), usage: 'api', format: 'foo'])
+                }
+            }
+        }
     }
 
     static Closure<String> defaultStatus() {
