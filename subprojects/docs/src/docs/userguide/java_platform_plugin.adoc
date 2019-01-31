@@ -81,7 +81,8 @@ include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[ta
 == Local project constraints
 
 If you have a multi-project build and want to publish a platform that links to subprojects, you can do it by declaring constraints on the subprojects which belong to the platform, as in the example below:
-.Allowing declaration of dependencies
+
+.Declaring constraints on subprojects
 ====
 include::sample[dir="java-platform/multiproject/groovy/platform",files="build.gradle[tags=project-constraints]"]
 include::sample[dir="java-platform/multiproject/kotlin/platform",files="build.gradle.kts[tags=project-constraints]"]
