@@ -22,6 +22,8 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
@@ -105,6 +107,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         existingDir = testDir.file("dir").createDir()
         missingDir = testDir.file("missing-dir")
         missingDir2 = testDir.file("missing-dir2")
+    }
+
+    def FileResolver getFileResolver() {
+        return project.fileResolver
+    }
+
+    def FileCollectionFactory getFileCollectionFactory() {
+        return project.services.get(FileCollectionFactory)
     }
 
     def doesNothingToTaskWithNoTaskActionAnnotations() {
@@ -630,7 +640,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value as Object[])
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, fileCollectionFactory, task)
 
         then:
         taskProperties.inputPropertyValues.create().keySet() == inputs as Set
@@ -676,7 +686,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithLocalState, localState)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, fileCollectionFactory, task)
 
         then:
         taskProperties.localStateFiles.files as List == [localState]
@@ -692,7 +702,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def task = expectTaskCreated(TaskWithDestroyable, destroyable)
 
         when:
-        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, project.fileResolver, task)
+        def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileResolver, fileCollectionFactory, task)
 
         then:
         taskProperties.destroyableFiles.files as List == [destroyable]

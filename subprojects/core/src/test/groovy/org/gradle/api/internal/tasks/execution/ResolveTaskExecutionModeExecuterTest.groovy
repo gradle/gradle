@@ -23,6 +23,8 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -48,11 +50,12 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
     final repository = Mock(TaskExecutionModeResolver)
     final executionMode = TaskExecutionMode.INCREMENTAL
     final resolver = Mock(PathToFileResolver)
+    final fileCollectionFactory = Mock(FileCollectionFactory)
     final propertyWalker = Mock(PropertyWalker)
     final project = Mock(ProjectInternal)
     final Action<Task> action = Mock(Action)
 
-    final executer = new ResolveTaskExecutionModeExecuter(repository, resolver, propertyWalker, delegate)
+    final executer = new ResolveTaskExecutionModeExecuter(repository, resolver, fileCollectionFactory, propertyWalker, delegate)
 
     def 'taskContext is initialized and cleaned as expected'() {
         when:
@@ -66,6 +69,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * task.getInputs() >> inputs
         1 * task.getDestroyables() >> destroyables
         1 * task.getLocalState() >> localState
+        2 * fileCollectionFactory.resolving(_, _) >> Stub(FileCollectionInternal)
         1 * outputs.setPreviousOutputFiles(_)
         1 * propertyWalker.visitProperties(task, _, _)
         1 * inputs.visitRegisteredProperties(_)

@@ -35,6 +35,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
@@ -600,6 +601,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             ProjectInternal project = (ProjectInternal) task.getProject();
             ServiceRegistry serviceRegistry = project.getServices();
             final FileResolver resolver = serviceRegistry.get(FileResolver.class);
+            final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
             PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
             try {
                 TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
@@ -612,7 +614,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, resolver, new Consumer<OutputFilePropertySpec>() {
+                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, resolver, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
                                         @Override
                                         public void accept(OutputFilePropertySpec outputFilePropertySpec) {
                                             mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));

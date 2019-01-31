@@ -21,13 +21,12 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Set;
 
 /**
  * Adapts a {@link MinimalFileSet} into a full {@link org.gradle.api.file.FileCollection}.
  */
-public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer, Serializable {
+public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer {
     private final MinimalFileSet fileCollection;
 
     public FileCollectionAdapter(MinimalFileSet fileSet) {
