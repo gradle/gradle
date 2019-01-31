@@ -34,7 +34,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.ReusableAction;
@@ -56,7 +55,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.model.RuleBasedPluginListener;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -79,15 +77,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
     public static final String DOCUMENTATION_GROUP = "documentation";
 
-    private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.instantiator = instantiator;
+    public JavaBasePlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -114,7 +108,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator, collectionCallbackActionDecorator);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, objectFactory);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);

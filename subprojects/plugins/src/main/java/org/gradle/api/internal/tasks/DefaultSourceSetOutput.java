@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.DeprecationLogger;
@@ -32,23 +32,23 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
-    private final DefaultConfigurableFileCollection outputDirectories;
+    private final ConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
 
-    private final DefaultConfigurableFileCollection classesDirs;
-    private final DefaultConfigurableFileCollection dirs;
-    private final DefaultConfigurableFileCollection generatedSourcesDirs;
+    private final ConfigurableFileCollection classesDirs;
+    private final ConfigurableFileCollection dirs;
+    private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
 
-    public DefaultSourceSetOutput(String sourceSetDisplayName, final FileResolver fileResolver, TaskResolver taskResolver) {
+    public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
         String displayName = sourceSetDisplayName + " classes";
 
-        this.classesDirs = new DefaultConfigurableFileCollection("classesDirs", fileResolver, taskResolver);
+        this.classesDirs = fileCollectionFactory.configurableFiles("classesDirs");
         // TODO: This should be more specific to just the tasks that create the class files?
         classesDirs.builtBy(this);
 
-        this.outputDirectories = new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
+        this.outputDirectories = fileCollectionFactory.configurableFiles(displayName);
         outputDirectories.from(new Callable() {
             public Object call() {
                 return classesDirs;
@@ -59,9 +59,9 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
             }
         });
 
-        this.dirs = new DefaultConfigurableFileCollection("dirs", fileResolver, taskResolver);
+        this.dirs = fileCollectionFactory.configurableFiles("dirs");
 
-        this.generatedSourcesDirs = new DefaultConfigurableFileCollection("generatedSourcesDirs", fileResolver, taskResolver);
+        this.generatedSourcesDirs = fileCollectionFactory.configurableFiles("generatedSourcesDirs");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     @Override
     public String getDisplayName() {
-        return outputDirectories.getDisplayName();
+        return outputDirectories.toString();
     }
 
     @Override

@@ -55,7 +55,8 @@ public interface FileCollectionFactory {
      *
      * The collection is not live. The provided {@link Iterable} is queried on construction and discarded.
      */
-    FileCollectionInternal fixed(String displayName, Collection<File> files);
+    // TODO - should return FileCollectionInternal, but Kotlin-dsl uses this method and the compiled bytecode expects FileCollection
+    FileCollection fixed(String displayName, Collection<File> files);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.

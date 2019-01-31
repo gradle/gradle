@@ -26,7 +26,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class ApplicationPluginTest extends AbstractProjectBuilderSpec {
-    private final ApplicationPlugin plugin = new ApplicationPlugin();
+    private final ApplicationPlugin plugin = new ApplicationPlugin()
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:

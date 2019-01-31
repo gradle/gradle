@@ -25,7 +25,7 @@ class DefaultSourceSetContainerTest extends Specification {
 
     def "can create a source set"() {
         given:
-        def container = new DefaultSourceSetContainer(TestFiles.resolver(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)
+        def container = new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.fileCollectionFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)
 
         when:
         SourceSet set = container.create("main")
