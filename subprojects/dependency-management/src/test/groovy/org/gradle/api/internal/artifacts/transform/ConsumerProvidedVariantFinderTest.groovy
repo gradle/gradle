@@ -217,8 +217,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg2 = registration(c1, c2, { })
         def reg3 = registration(c4, c5, { })
 
-        def concat = immutableAttributesFactory.concat(source.asImmutable(), c5.asImmutable())
-
         given:
         transformRegistrations.transforms >> [reg1, reg2, reg3]
 
@@ -238,7 +236,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         1 * matcher.isMatching(c5, requested) >> true
         1 * matcher.isMatching(source, c1) >> false
         1 * matcher.isMatching(source, c4) >> true
-        1 * matcher.isMatching(concat, requested) >> true
         0 * matcher._
     }
 
@@ -255,9 +252,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def reg3 = registration(c3, c4, {})
         def reg4 = registration(c4, c5, transform2)
         def registrations = [reg1, reg2, reg3, reg4]
-
-        def requestedForReg4 = immutableAttributesFactory.concat(requested.asImmutable(), c4.asImmutable())
-        def concatReg2 = immutableAttributesFactory.concat(source.asImmutable(), c4.asImmutable())
 
         given:
         transformRegistrations.transforms >> [registrations[registrationsIndex[0]], registrations[registrationsIndex[1]], registrations[registrationsIndex[2]], registrations[registrationsIndex[3]]]
@@ -277,12 +271,11 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         1 * matcher.isMatching(c4, requested) >> false
         1 * matcher.isMatching(c5, requested) >> true
         1 * matcher.isMatching(source, c4) >> false
-        1 * matcher.isMatching(c4, requestedForReg4) >> true
-        1 * matcher.isMatching(c3, requestedForReg4) >> false
-        1 * matcher.isMatching(c5, requestedForReg4) >> false
+        1 * matcher.isMatching(c4, { attributesIs(it, mapOf(a1, "4")) }) >> true
+        1 * matcher.isMatching(c3, { attributesIs(it, mapOf(a1, "4")) }) >> false
+        1 * matcher.isMatching(c5, { attributesIs(it, mapOf(a1, "4")) }) >> false
         1 * matcher.isMatching(source, c2) >> true
         1 * matcher.isMatching(source, c3) >> false
-        1 * matcher.isMatching(concatReg2, requestedForReg4) >> true
         0 * matcher._
 
         when:
@@ -394,38 +387,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         result2.matches.empty
 
         and:
-        0 * matcher._
-    }
-
-    def "does not match on unrelated transform"() {
-        def from = attributes().attribute(a2, 1).asImmutable()
-        def to = attributes().attribute(a2, 42).asImmutable()
-
-        def source = attributes().attribute(a1, "source")
-        def requested = attributes().attribute(a1, "hello")
-
-        def reg1 = registration(from, to, {})
-
-        def concatTo = immutableAttributesFactory.concat(source.asImmutable(), to)
-        def concatFrom = immutableAttributesFactory.concat(requested.asImmutable(), from)
-
-        given:
-        transformRegistrations.transforms >> [reg1]
-
-        when:
-        def result = new ConsumerVariantMatchResult()
-        matchingCache.collectConsumerVariants(source, requested, result)
-
-        then:
-        result.matches.empty
-
-        and:
-        _ * schema.matcher() >> matcher
-        _ * matcher.ignoreAdditionalConsumerAttributes() >> matcher
-        1 * matcher.isMatching(to, requested) >> true
-        1 * matcher.isMatching(source, from) >> true
-        1 * matcher.isMatching(concatTo, requested) >> false
-        1 * matcher.isMatching(to, concatFrom) >> false
         0 * matcher._
     }
 
