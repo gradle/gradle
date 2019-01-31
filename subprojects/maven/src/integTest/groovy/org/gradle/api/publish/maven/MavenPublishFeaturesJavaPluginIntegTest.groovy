@@ -46,10 +46,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         javaLibrary.parsedModuleMetadata.variant("runtime") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureApi") {
+        javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureRuntime") {
+        javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
             assert files*.name == ['publishTest-1.9.jar']
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
@@ -109,10 +109,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         javaLibrary.parsedModuleMetadata.variant("runtime") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureApi") {
+        javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureRuntime") {
+        javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
             assert files*.name == ["${name}-${version}.jar"]
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
