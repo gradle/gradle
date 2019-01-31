@@ -74,7 +74,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
             fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
         }
 
-        Transformer transformer = new DefaultTransformerFromTransformAction(implementation, isolatableParameterObject, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new DefaultTransformer(implementation, isolatableParameterObject, hasher.hash(), instantiatorFactory, from);
 
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
@@ -91,7 +91,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
             throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
         }
         paramsSnapshot.appendToHasher(hasher);
-        Transformer transformer = new DefaultTransformerFromTransform(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new LegacyTransformer(implementation, paramsSnapshot, hasher.hash(), instantiatorFactory, from);
 
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }

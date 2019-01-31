@@ -38,13 +38,13 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-public class DefaultTransformerFromTransformAction extends AbstractTransformer<ArtifactTransformAction> {
+public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
 
     private final Isolatable<?> parameterObject;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
 
-    public DefaultTransformerFromTransformAction(Class<? extends ArtifactTransformAction> implementationClass, Isolatable<?> parameterObject, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, Isolatable<?> parameterObject, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         super(implementationClass, inputsHash, fromAttributes);
         this.parameterObject = parameterObject;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);

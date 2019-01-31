@@ -28,12 +28,12 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 import java.util.List;
 
-public class DefaultTransformerFromTransform extends AbstractTransformer<ArtifactTransform> {
+public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
 
     private final Isolatable<Object[]> parameters;
     private final Instantiator instantiator;
 
-    public DefaultTransformerFromTransform(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
         super(implementationClass, inputsHash, fromAttributes);
         this.instantiator = instantiatorFactory.inject();
         this.parameters = parameters;
