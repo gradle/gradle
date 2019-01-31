@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.file;
 
-public interface HasFileOperations {
+import org.gradle.api.internal.ProcessOperations;
+
+public interface HasScriptServices {
     FileOperations getFileOperations();
+
+    ProcessOperations getProcessOperations();
 }

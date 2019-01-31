@@ -1090,7 +1090,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ProcessOperations getProcessOperations() {
+    public ProcessOperations getProcessOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }

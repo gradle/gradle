@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -45,6 +46,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
 
     private final DaemonCommandLineConverter daemonConverter;
     private final PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter;
+    private final FileCollectionFactory fileCollectionFactory;
 
     ParametersConverter(LayoutCommandLineConverter layoutConverter,
                         SystemPropertiesCommandLineConverter propertiesConverter,
@@ -52,7 +54,8 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
                         PropertiesToStartParameterConverter propertiesToStartParameterConverter,
                         DefaultCommandLineConverter commandLineConverter,
                         DaemonCommandLineConverter daemonConverter,
-                        PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter) {
+                        PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter,
+                        FileCollectionFactory fileCollectionFactory) {
         this.layoutConverter = layoutConverter;
         this.propertiesConverter = propertiesConverter;
         this.layoutToPropertiesConverter = layoutToPropertiesConverter;
@@ -60,16 +63,18 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         this.commandLineConverter = commandLineConverter;
         this.daemonConverter = daemonConverter;
         this.propertiesToDaemonParametersConverter = propertiesToDaemonParametersConverter;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
-    public ParametersConverter(BuildLayoutFactory buildLayoutFactory) {
+    public ParametersConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
         this(new LayoutCommandLineConverter(),
             new SystemPropertiesCommandLineConverter(),
             new LayoutToPropertiesConverter(buildLayoutFactory),
             new PropertiesToStartParameterConverter(),
             new DefaultCommandLineConverter(),
             new DaemonCommandLineConverter(),
-            new PropertiesToDaemonParametersConverter());
+            new PropertiesToDaemonParametersConverter(),
+            fileCollectionFactory);
     }
 
     @Override
@@ -83,7 +88,7 @@ public class ParametersConverter extends AbstractCommandLineConverter<Parameters
         propertiesToStartParameterConverter.convert(properties, target.getStartParameter());
         commandLineConverter.convert(args, target.getStartParameter());
 
-        DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), target.getStartParameter().getSystemPropertiesArgs());
+        DaemonParameters daemonParameters = new DaemonParameters(target.getLayout(), fileCollectionFactory, target.getStartParameter().getSystemPropertiesArgs());
         propertiesToDaemonParametersConverter.convert(properties, daemonParameters);
         daemonConverter.convert(args, daemonParameters);
         target.setDaemonParameters(daemonParameters);

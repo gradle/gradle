@@ -16,6 +16,7 @@
 package org.gradle.launcher.cli
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
@@ -60,9 +61,9 @@ class BuildActionsFactoryTest extends Specification {
         Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
         Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
         new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-        propertiesToDaemonParametersConverter)
+        propertiesToDaemonParametersConverter, Stub(FileCollectionFactory))
 
-    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector, Stub(FileCollectionFactory))
 
     def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
