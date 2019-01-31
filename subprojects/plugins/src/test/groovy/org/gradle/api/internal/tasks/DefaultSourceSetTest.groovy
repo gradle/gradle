@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
@@ -39,10 +41,11 @@ class DefaultSourceSetTest extends Specification {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
+    private final FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, taskResolver)
 
     private DefaultSourceSet sourceSet(String name) {
         def s = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
-        s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
+        s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, fileCollectionFactory)
         return s
     }
 
