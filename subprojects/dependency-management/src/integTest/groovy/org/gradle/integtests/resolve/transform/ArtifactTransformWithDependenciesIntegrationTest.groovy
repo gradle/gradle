@@ -160,12 +160,11 @@ abstract class TestTransformAction implements ArtifactTransformAction {
         println "\${parameters.transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
         assert primaryInputDependencies.every { it.exists() }
 
-        def workspace = outputs.workspace
+        def output = outputs.registerOutput(input.name + ".txt")
+        def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
-        def output = new File(workspace, input.name + ".txt")
         println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
-        outputs.registerOutput(output)
     }
 }
 
@@ -175,15 +174,14 @@ abstract class SimpleTransform implements ArtifactTransformAction {
     abstract File getInput()
 
     void transform(ArtifactTransformOutputs outputs) {
-        def workspace = outputs.workspace
+        def output = outputs.registerOutput(input.name + ".txt")
+        def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
-        def output = new File(workspace, input.name + ".txt")
         println "Transforming without dependencies \${input.name} to \${output.name}"
         if (input.name == System.getProperty("failTransformOf")) {
             throw new RuntimeException("Cannot transform")
         }
         output.text = String.valueOf(input.length())
-        outputs.registerOutput(output)
     }
 }
 """

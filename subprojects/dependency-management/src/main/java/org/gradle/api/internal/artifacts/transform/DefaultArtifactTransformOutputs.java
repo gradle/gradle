@@ -30,12 +30,20 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
     }
 
     @Override
-    public void registerOutput(File outputFile) {
+    public File registerOutput(String relativePath) {
+        File outputFile = new File(workspace, relativePath);
         outputsBuilder.add(outputFile);
+        return outputFile;
     }
 
     @Override
-    public File getWorkspace() {
+    public void registerOutputFile(File output) {
+        outputsBuilder.add(output);
+    }
+
+    @Override
+    public File registerWorkspaceAsOutputDirectory() {
+        outputsBuilder.add(workspace);
         return workspace;
     }
 

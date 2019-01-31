@@ -64,9 +64,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputs.workspace, input.name + "." + parameters.extension)
+                    def output = outputs.registerOutput(input.name + "." + parameters.extension)
                     output.text = "ok"
-                    outputs.registerOutput(output)
                 }
             }
 """
@@ -123,9 +122,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = new File(outputs.workspace, input.name + "." + parameters.extension)
+                    def output = outputs.registerOutput(input.name + "." + parameters.extension)
                     output.text = "ok"
-                    outputs.registerOutput(output)
                 }
             }
 """
@@ -182,9 +180,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
-                    def output = new File(outputs.workspace, input.name + ".green")
+                    def output = outputs.registerOutput(input.name + ".green")
                     output.text = "ok"
-                    outputs.registerOutput(output)
                 }
             }
 """
@@ -225,9 +222,8 @@ abstract class MakeGreen implements ArtifactTransformAction {
     
     void transform(ArtifactTransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
-        def output = new File(outputs.workspace, input.name + ".green")
+        def output = outputs.registerOutput(input.name + ".green")
         output.text = "ok"
-        outputs.registerOutput(output)
     }
 }
 

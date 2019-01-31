@@ -24,20 +24,36 @@ import java.io.File;
 /**
  * The outputs of the artifact transform.
  *
+ * <p>The order in which the methods on this interface are called is important, since the output of a transform is ordered.</p>
+ *
  * @since 5.3
  */
 @Incubating
 @HasInternalProtocol
 public interface ArtifactTransformOutputs {
     /**
-     * Registers an output file of the transform.
+     * Registers an output file in the workspace of the transform.
      *
      * <p>The order of calls to this method is retained in the result of the transform.</p>
+     *
+     * @param relativePath relative path of the output to the provided workspace
+     * @return determined location of the output
      */
-    void registerOutput(File outputFile);
+    File registerOutput(String relativePath);
 
     /**
-     * Returns the <em>workspace</em> location for this transform, which is the directory that the transform should write its output files to.
+     * Registers an output file of the transform.
+     *
+     * <p>This method needs be used when part of the {@link PrimaryInput} is the output of the transform.</p>
+     *
+     * @param output the output
      */
-    File getWorkspace();
+    void registerOutputFile(File output);
+
+    /**
+     * Registers the provided workspace as the output of the transform.
+     *
+     * @return location of the workspace directory
+     */
+    File registerWorkspaceAsOutputDirectory();
 }
