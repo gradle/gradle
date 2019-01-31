@@ -96,7 +96,6 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
-        val logger = modelRequestProject.logger
         val parameter = requestParameterOf(modelRequestProject)
         try {
             return kotlinBuildScriptModelFor(modelRequestProject, parameter).also {
