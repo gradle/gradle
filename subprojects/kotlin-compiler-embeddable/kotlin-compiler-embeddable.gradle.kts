@@ -17,6 +17,8 @@ gradlebuildJava {
 
 dependencies {
 
+    api(project(":distributionsDependencies"))
+
     compile(futureKotlin("stdlib"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("script-runtime"))
