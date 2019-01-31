@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
@@ -41,7 +42,7 @@ import java.io.File;
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(FILE_SYSTEM, PatternSets.getNonCachingPatternSetFactory());
-    private static final DefaultExecActionFactory EXEC_FACTORY = new DefaultExecActionFactory(resolver());
+    private static final DefaultExecActionFactory EXEC_FACTORY = DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory());
 
     public static FileLookup fileLookup() {
         return FILE_LOOKUP;
@@ -92,7 +93,7 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
-        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), execFactory(), textResourceLoader());
+        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoader());
     }
 
     public static TextResourceLoader textResourceLoader() {
@@ -120,7 +121,7 @@ public class TestFiles {
     }
 
     public static ExecFactory execFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
+        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject());
     }
 
     public static ExecActionFactory execActionFactory() {
@@ -132,11 +133,11 @@ public class TestFiles {
     }
 
     public static ExecHandleFactory execHandleFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
+        return execFactory(baseDir);
     }
 
     public static JavaExecHandleFactory javaExecHandleFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), TestUtil.instantiatorFactory().inject());
+        return execFactory(baseDir);
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {

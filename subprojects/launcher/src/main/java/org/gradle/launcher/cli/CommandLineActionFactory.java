@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -40,6 +42,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
@@ -103,7 +106,11 @@ public class CommandLineActionFactory {
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(buildLayoutFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())))));
+        IdentityFileResolver fileResolver = new IdentityFileResolver();
+        FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, null);
+        DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+        DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory);
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(buildLayoutFactory, fileCollectionFactory), new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execActionFactory)), fileCollectionFactory));
     }
 
     private static GradleLauncherMetaData clientMetaData() {

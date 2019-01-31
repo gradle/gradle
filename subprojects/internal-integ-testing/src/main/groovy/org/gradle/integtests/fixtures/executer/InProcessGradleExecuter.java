@@ -26,6 +26,7 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.tasks.TaskState;
@@ -298,9 +299,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         // TODO: Reuse more of CommandlineActionFactory
         CommandLineParser parser = new CommandLineParser();
         BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
-        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory);
+        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory();
+        ParametersConverter parametersConverter = new ParametersConverter(buildLayoutFactory, fileCollectionFactory);
         parametersConverter.configure(parser);
-        final Parameters parameters = new Parameters(startParameter);
+        final Parameters parameters = new Parameters(startParameter, fileCollectionFactory);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);
 
         BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);

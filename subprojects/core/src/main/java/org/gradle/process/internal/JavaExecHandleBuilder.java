@@ -16,7 +16,9 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.initialization.BuildCancellationToken;
@@ -37,17 +39,17 @@ import java.util.concurrent.Executor;
  * Use {@link JavaExecHandleFactory} instead.
  */
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
+    private final FileCollectionFactory fileCollectionFactory;
     private String mainClass;
     private final List<Object> applicationArgs = new ArrayList<Object>();
-    private FileCollection classpath;
+    private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
-    private final FileResolver fileResolver;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
         super(fileResolver, executor, buildCancellationToken);
-        this.fileResolver = fileResolver;
-        javaOptions = new DefaultJavaForkOptions(fileResolver);
+        this.fileCollectionFactory = fileCollectionFactory;
+        javaOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
         classpath = new DefaultConfigurableFileCollection(fileResolver, null);
         executable(javaOptions.getExecutable());
     }
@@ -207,16 +209,23 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
-        this.classpath = classpath;
+        doGetClasspath().setFrom(classpath);
         return this;
     }
 
     public JavaExecHandleBuilder classpath(Object... paths) {
-        classpath = classpath.plus(fileResolver.resolveFiles(paths));
+        doGetClasspath().setFrom(paths);
         return this;
     }
 
     public FileCollection getClasspath() {
+        return classpath;
+    }
+
+    private ConfigurableFileCollection doGetClasspath() {
+        if (classpath == null) {
+            classpath = fileCollectionFactory.configurableFiles("classpath");
+        }
         return classpath;
     }
 

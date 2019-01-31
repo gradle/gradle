@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
@@ -90,9 +91,10 @@ public class ProviderConnection {
     private final BuildActionExecuter<BuildActionParameters> embeddedExecutor;
     private final ServiceRegistry sharedServices;
     private final JvmVersionDetector jvmVersionDetector;
+    private final FileCollectionFactory fileCollectionFactory;
 
     public ProviderConnection(ServiceRegistry sharedServices, LoggingServiceRegistry loggingServices, BuildLayoutFactory buildLayoutFactory, DaemonClientFactory daemonClientFactory,
-                              BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector) {
+                              BuildActionExecuter<BuildActionParameters> embeddedExecutor, PayloadSerializer payloadSerializer, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory) {
         this.loggingServices = loggingServices;
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -100,6 +102,7 @@ public class ProviderConnection {
         this.payloadSerializer = payloadSerializer;
         this.sharedServices = sharedServices;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public void configure(ProviderConnectionParameters parameters) {
@@ -249,7 +252,7 @@ public class ProviderConnection {
         Map<String, String> properties = new HashMap<String, String>();
         new LayoutToPropertiesConverter(buildLayoutFactory).convert(layout, properties);
 
-        DaemonParameters daemonParams = new DaemonParameters(layout);
+        DaemonParameters daemonParams = new DaemonParameters(layout, fileCollectionFactory);
         new PropertiesToDaemonParametersConverter().convert(properties, daemonParams);
         if (operationParameters.getDaemonBaseDir(null) != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir(null));

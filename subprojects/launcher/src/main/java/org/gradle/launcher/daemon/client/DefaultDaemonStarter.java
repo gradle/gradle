@@ -20,10 +20,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.io.StreamByteBuffer;
@@ -163,7 +163,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
-            DefaultExecActionFactory execActionFactory = new DefaultExecActionFactory(new IdentityFileResolver());
+            DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root();
             try {
                 ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());
 
@@ -172,7 +172,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
                 handle.waitForFinish();
                 LOGGER.debug("Gradle daemon process is now detached.");
             } finally {
-                execActionFactory.stop();
+                CompositeStoppable.stoppable(execActionFactory).stop();
             }
 
             return daemonGreeter.parseDaemonOutput(outputConsumer.getProcessOutput(), args);

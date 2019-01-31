@@ -18,6 +18,8 @@ package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -55,11 +57,13 @@ class BuildActionsFactory implements CommandLineAction {
     private final CommandLineConverter<Parameters> parametersConverter;
     private final ServiceRegistry loggingServices;
     private final JvmVersionDetector jvmVersionDetector;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    BuildActionsFactory(ServiceRegistry loggingServices, CommandLineConverter<Parameters> parametersConverter, JvmVersionDetector jvmVersionDetector) {
+    BuildActionsFactory(ServiceRegistry loggingServices, CommandLineConverter<Parameters> parametersConverter, JvmVersionDetector jvmVersionDetector, FileCollectionFactory fileCollectionFactory) {
         this.loggingServices = loggingServices;
         this.parametersConverter = parametersConverter;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     public void configureCommandLineParser(CommandLineParser parser) {
@@ -67,7 +71,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
-        Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
+        Parameters parameters = parametersConverter.convert(commandLine, new Parameters(fileCollectionFactory));
 
         parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
@@ -80,7 +84,7 @@ class BuildActionsFactory implements CommandLineAction {
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval());
+                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory);
             return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (parameters.getDaemonParameters().isEnabled()) {
@@ -116,7 +120,7 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
-        BuildProcess currentProcess = new BuildProcess();
+        BuildProcess currentProcess = new BuildProcess(new DefaultFileCollectionFactory());
         return currentProcess.configureForBuild(requiredBuildParameters);
     }
 

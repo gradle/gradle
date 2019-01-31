@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.HasFileOperations;
+import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -76,35 +76,31 @@ public abstract class DefaultScript extends BasicScript {
         super.init(target, services);
         this.__scriptServices = services;
         loggingManager = services.get(LoggingManager.class);
-        Instantiator instantiator = services.get(Instantiator.class);
-        FileLookup fileLookup = services.get(FileLookup.class);
-        ExecFactory execFactory = services.get(ExecFactory.class);
-        DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
-        StreamHasher streamHasher = services.get(StreamHasher.class);
-        FileHasher fileHasher = services.get(FileHasher.class);
-        TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
-        if (target instanceof HasFileOperations) {
-            fileOperations = ((HasFileOperations) target).getFileOperations();
+        if (target instanceof HasScriptServices) {
+            HasScriptServices scriptServices = (HasScriptServices) target;
+            fileOperations = scriptServices.getFileOperations();
+            processOperations = scriptServices.getProcessOperations();
         } else {
+            Instantiator instantiator = services.get(Instantiator.class);
+            FileLookup fileLookup = services.get(FileLookup.class);
+            DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
+            StreamHasher streamHasher = services.get(StreamHasher.class);
+            FileHasher fileHasher = services.get(FileHasher.class);
+            TextResourceLoader textResourceLoader = services.get(TextResourceLoader.class);
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader);
             } else {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader);
             }
+            processOperations = services.get(ExecFactory.class);
         }
 
-        processOperations = (ProcessOperations) fileOperations;
         providerFactory = services.get(ProviderFactory.class);
     }
 
     public FileResolver getFileResolver() {
         return fileOperations.getFileResolver();
-    }
-
-    @Override
-    public FileOperations getFileOperations() {
-        return fileOperations;
     }
 
     private DefaultObjectConfigurationAction createObjectConfigurationAction() {

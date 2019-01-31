@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
@@ -39,16 +40,18 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements JavaForkOptionsInternal {
     private final PathToFileResolver resolver;
     private final JvmOptions options;
+    private final FileCollectionFactory fileCollectionFactory;
     private List<CommandLineArgumentProvider> jvmArgumentProviders;
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver) {
-        this(resolver, Jvm.current());
+    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory) {
+        this(resolver, fileCollectionFactory, Jvm.current());
     }
 
-    public DefaultJavaForkOptions(PathToFileResolver resolver, Jvm jvm) {
+    public DefaultJavaForkOptions(PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Jvm jvm) {
         super(resolver);
         this.resolver = resolver;
-        options = new JvmOptions(resolver);
+        options = new JvmOptions(fileCollectionFactory);
+        this.fileCollectionFactory = fileCollectionFactory;
         setExecutable(jvm.getJavaExecutable());
     }
 
@@ -195,7 +198,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         if (hasJvmArgumentProviders(this) || hasJvmArgumentProviders(options)) {
             throw new UnsupportedOperationException("Cannot merge options with jvmArgumentProviders.");
         }
-        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver);
+        JavaForkOptionsInternal mergedOptions = new DefaultJavaForkOptions(resolver, fileCollectionFactory);
 
         if (!canBeMerged(getExecutable(), options.getExecutable())) {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different executable (this: " + getExecutable() + ", other: " + options.getExecutable() + ").");

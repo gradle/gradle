@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
@@ -84,8 +85,8 @@ public class BasicGlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver) {
-        return new DefaultExecActionFactory(fileResolver);
+    ExecFactory createExecFactory(FileResolver fileResolver, ExecutorFactory executorFactory) {
+        return DefaultExecActionFactory.of(fileResolver, new DefaultFileCollectionFactory(fileResolver, null), executorFactory);
     }
 
     FileResolver createFileResolver(FileLookup lookup) {

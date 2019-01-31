@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
 import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
@@ -100,7 +99,7 @@ class DaemonForkOptionsMergeTest extends Specification {
     }
 
     JavaForkOptions javaForkOptions(Closure closure) {
-        JavaForkOptions options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        JavaForkOptions options = TestFiles.execFactory().newJavaForkOptions()
         options.with(closure)
         return options
     }

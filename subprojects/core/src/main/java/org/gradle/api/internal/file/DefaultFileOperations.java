@@ -24,7 +24,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
@@ -48,12 +47,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
-import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.process.internal.JavaExecAction;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -61,7 +55,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
-public class DefaultFileOperations implements FileOperations, ProcessOperations {
+public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
     @Nullable
     private final TaskResolver taskResolver;
@@ -72,17 +66,16 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final DefaultResourceHandler resourceHandler;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
-    private final ExecFactory execFactory;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     @Deprecated //used by the Kotlin DSL
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory) {
-        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, null);
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, @Nullable TextResourceLoader textResourceLoader) {
+        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader);
     }
 
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, @Nullable TextResourceLoader textResourceLoader) {
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader) {
         FileSystem fileSystem = fileLookup.getFileSystem();
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
@@ -92,7 +85,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.execFactory = execFactory;
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
         this.deleter = new Deleter(fileResolver, fileSystem);
@@ -208,20 +200,6 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     @Override
     public FileResolver getFileResolver() {
         return fileResolver;
-    }
-
-    @Override
-    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        JavaExecAction javaExecAction = execFactory.forContext(fileResolver, instantiator).newDecoratedJavaExecAction();
-        action.execute(javaExecAction);
-        return javaExecAction.execute();
-    }
-
-    @Override
-    public ExecResult exec(Action<? super ExecSpec> action) {
-        ExecAction execAction = execFactory.forContext(fileResolver, instantiator).newDecoratedExecAction();
-        action.execute(execAction);
-        return execAction.execute();
     }
 
     @Override

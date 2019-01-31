@@ -16,29 +16,23 @@
 
 package org.gradle.play.internal.toolchain
 
-
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.BaseForkOptions
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.spec.PlayCompileSpec
-import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
-import org.gradle.process.internal.JavaForkOptionsFactory
 import org.gradle.workers.internal.WorkerDaemonFactory
 import spock.lang.Specification
 
 class DaemonPlayCompilerTest extends Specification {
 
-    def workingDirectory = Mock(File)
+    def workingDirectory = new File(".").absoluteFile
     def delegate = Mock(Compiler)
     def workerDaemonFactory = Mock(WorkerDaemonFactory)
     def spec = Mock(PlayCompileSpec)
     def forkOptions = Mock(BaseForkOptions)
-    def forkOptionsFactory = Mock(JavaForkOptionsFactory)
+    def forkOptionsFactory = TestFiles.execFactory()
 
     def setup(){
-        _ * forkOptionsFactory.newJavaForkOptions() >> new DefaultJavaForkOptions(Mock(PathToFileResolver))
-        _ * forkOptionsFactory.immutableCopy(_) >> { JavaForkOptions options -> options }
         _ * spec.getForkOptions() >> forkOptions
         _ * forkOptions.jvmArgs >> []
     }
