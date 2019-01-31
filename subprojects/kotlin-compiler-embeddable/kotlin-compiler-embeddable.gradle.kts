@@ -17,7 +17,7 @@ gradlebuildJava {
 
 dependencies {
 
-    compile(futureKotlin("stdlib-jdk8"))
+    compile(futureKotlin("stdlib"))
     compile(futureKotlin("reflect"))
     compile(futureKotlin("script-runtime"))
 

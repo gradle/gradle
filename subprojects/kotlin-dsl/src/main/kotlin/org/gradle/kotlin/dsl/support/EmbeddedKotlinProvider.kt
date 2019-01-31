@@ -161,7 +161,7 @@ val embeddedModules: List<EmbeddedModule> by lazy {
     val scriptRuntime = embeddedKotlin("script-runtime")
     val compilerEmbeddable = embeddedKotlin(
         "compiler-embeddable",
-        listOf(stdlibJdk8, reflect, scriptRuntime, trove4j),
+        listOf(stdlib, reflect, scriptRuntime, trove4j),
         "kotlin-compiler-embeddable-$embeddedKotlinVersion-patched-for-gradle"
     )
     val samWithReceiverCompilerPlugin = embeddedKotlin("sam-with-receiver-compiler-plugin")
