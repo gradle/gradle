@@ -17,6 +17,8 @@ package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationVariant;
+import org.gradle.api.specs.Spec;
 
 /**
  * A component which can declare additional variants corresponding to
@@ -30,8 +32,8 @@ import org.gradle.api.artifacts.Configuration;
 public interface ComponentWithFeatures extends SoftwareComponent {
     /**
      * Declares an additional variant to publish, corresponding to an additional feature.
-     * @param name the name of the variant, used when publishing to Gradle metadata.
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
+     * @param spec tell if this outgoing variant of this configuration should be published
      */
-    void addFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration);
+    void addFeatureVariantsFromConfiguration(Configuration outgoingConfiguration, Spec<? super ConfigurationVariant> spec);
 }
