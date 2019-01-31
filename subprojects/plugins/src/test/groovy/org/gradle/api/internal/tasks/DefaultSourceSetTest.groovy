@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -214,7 +213,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(dependencies.getDependencies(null), isEmpty())
 
         sourceSet.compiledBy('a')
-        def dirs1 = new DefaultConfigurableFileCollection(fileResolver, taskResolver)
+        def dirs1 = fileCollectionFactory.configurableFiles()
         dirs1.builtBy('b')
         sourceSet.output.dir(dirs1)
         assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))

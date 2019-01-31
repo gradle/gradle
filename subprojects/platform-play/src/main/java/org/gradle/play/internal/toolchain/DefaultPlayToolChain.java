@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -32,6 +31,7 @@ import org.gradle.play.internal.javascript.GoogleClosureCompiler;
 import org.gradle.play.internal.routes.RoutesCompilerFactory;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.util.CollectionUtils;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultPlayToolChain implements PlayToolChainInternal {
-    private final PathToFileResolver fileResolver;
+    private final JavaForkOptionsFactory forkOptionsFactory;
     private final WorkerDaemonFactory workerDaemonFactory;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
@@ -50,8 +50,8 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final WorkerDirectoryProvider workerDirectoryProvider;
     private final ClasspathFingerprinter fingerprinter;
 
-    public DefaultPlayToolChain(PathToFileResolver fileResolver, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter) {
-        this.fileResolver = fileResolver;
+    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter) {
+        this.forkOptionsFactory = forkOptionsFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
         this.dependencyHandler = dependencyHandler;
@@ -76,7 +76,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(fileResolver, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter);
+            return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

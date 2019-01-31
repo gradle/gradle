@@ -27,13 +27,13 @@ class DaemonForkOptionsMergeTest extends Specification {
     JavaForkOptions forkOptions = javaForkOptions {
         workingDir = systemSpecificAbsolutePath("foo")
     }
-    DaemonForkOptions options1 = new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
+    DaemonForkOptions options1 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
         .javaForkOptions(forkOptions)
         .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
         .sharedPackages(["foo.bar", "baz.bar"])
         .keepAliveMode(KeepAliveMode.SESSION)
         .build()
-    DaemonForkOptions options2 = new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
+    DaemonForkOptions options2 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
         .javaForkOptions(forkOptions)
         .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
         .sharedPackages(["baz.bar", "other"])
@@ -65,12 +65,12 @@ class DaemonForkOptionsMergeTest extends Specification {
             debug = true
             jvmArgs = ["-Xverify:none", "-server"]
         }
-        options1 = new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
+        options1 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
             .javaForkOptions(forkOptions)
             .classpath([new File("lib/lib1.jar"), new File("lib/lib2.jar")])
             .sharedPackages(["foo.bar", "baz.bar"])
             .build()
-        options2 = new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
+        options2 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
             .javaForkOptions(forkOptions2)
             .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
             .sharedPackages(["baz.bar", "other"])
@@ -85,7 +85,7 @@ class DaemonForkOptionsMergeTest extends Specification {
     }
 
     def "throws an exception when merging options with different keepAlive modes"() {
-        options2 = new DaemonForkOptionsBuilder(TestFiles.pathToFileResolver())
+        options2 = new DaemonForkOptionsBuilder(TestFiles.execFactory())
             .javaForkOptions(forkOptions)
             .classpath([new File("lib/lib2.jar"), new File("lib/lib3.jar")])
             .sharedPackages(["baz.bar", "other"])

@@ -18,20 +18,19 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.process.internal.DefaultJavaForkOptions;
+import org.gradle.process.internal.JavaForkOptionsFactory;
 
 public class BaseForkOptionsConverter implements Transformer<JavaForkOptions, BaseForkOptions> {
-    private final PathToFileResolver fileResolver;
+    private final JavaForkOptionsFactory forkOptionsFactory;
 
-    public BaseForkOptionsConverter(PathToFileResolver fileResolver) {
-        this.fileResolver = fileResolver;
+    public BaseForkOptionsConverter(JavaForkOptionsFactory forkOptionsFactory) {
+        this.forkOptionsFactory = forkOptionsFactory;
     }
 
     @Override
     public JavaForkOptions transform(BaseForkOptions baseForkOptions) {
-        JavaForkOptions javaForkOptions = new DefaultJavaForkOptions(fileResolver);
+        JavaForkOptions javaForkOptions = forkOptionsFactory.newJavaForkOptions();
         javaForkOptions.setMinHeapSize(baseForkOptions.getMemoryInitialSize());
         javaForkOptions.setMaxHeapSize(baseForkOptions.getMemoryMaximumSize());
         javaForkOptions.setJvmArgs(baseForkOptions.getJvmArgs());

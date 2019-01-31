@@ -17,10 +17,9 @@
 package org.gradle.workers.internal
 
 import com.google.common.util.concurrent.ListenableFutureTask
-import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.Factory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecutionQueue
@@ -44,21 +43,18 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkerTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(PathToFileResolver)
+    def forkOptionsFactory = TestFiles.execFactory()
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
         getWorkingDirectory() >> { temporaryFolder.root }
     }
-    def instantiatorFactory = Mock(InstantiatorFactory)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
     ListenableFutureTask task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
-        _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
-        _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, fileResolver, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory)
     }
 
     @Unroll
