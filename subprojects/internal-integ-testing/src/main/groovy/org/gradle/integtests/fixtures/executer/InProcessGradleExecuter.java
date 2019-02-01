@@ -21,6 +21,8 @@ import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -41,14 +43,17 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.Parameters;
@@ -67,6 +72,7 @@ import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
@@ -75,11 +81,14 @@ import org.hamcrest.Matcher;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -91,6 +100,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
@@ -203,8 +216,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                 JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
                 builder.workingDir(getWorkingDir());
                 builder.setExecutable(new File(getJavaHome(), "bin/java"));
-                Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());
-                builder.classpath(classpath);
+                builder.classpath(getExecHandleFactoryClasspath());
                 builder.jvmArgs(invocation.launcherJvmArgs);
                 builder.environment(invocation.environmentVars);
 
@@ -215,6 +227,16 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                 return builder;
             }
         };
+    }
+
+    private Collection<File> getExecHandleFactoryClasspath() {
+        Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());
+        if (!OperatingSystem.current().isWindows()) {
+            return classpath;
+        }
+        // Use a Class-Path manifest JAR to circumvent too long command line issues on Windows (cap 8191)
+        // Classpath is huge here because it's the test runtime classpath
+        return Collections.singleton(getClasspathManifestJarFor(classpath));
     }
 
     private Collection<File> cleanup(List<File> files) {
@@ -228,6 +250,32 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             result.add(file);
         }
         return result;
+    }
+
+    private File getClasspathManifestJarFor(Collection<File> classpath) {
+        String cpString = CollectionUtils.join(" ", CollectionUtils.collect(classpath, new Transformer<String, File>() {
+            @Override
+            public String transform(File file) {
+                return file.toURI().toString();
+            }
+        }));
+        File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + HashUtil.createCompactMD5(cpString) + ".jar");
+        if (!cpJar.isFile()) {
+            Manifest manifest = new Manifest();
+            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+            manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpString);
+            JarOutputStream output = null;
+            try {
+                output = new JarOutputStream(new FileOutputStream(cpJar), manifest);
+                output.putNextEntry(new JarEntry("META-INF/"));
+                output.closeEntry();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } finally {
+                IoActions.closeQuietly(output);
+            }
+        }
+        return cpJar;
     }
 
     private BuildResult doRun(OutputStream outputStream, OutputStream errorStream, BuildListenerImpl listener) {
