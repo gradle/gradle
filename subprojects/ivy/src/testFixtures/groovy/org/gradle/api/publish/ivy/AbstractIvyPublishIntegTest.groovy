@@ -89,6 +89,8 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
 
         buildFile.text = """
+            apply plugin: 'java-base'
+
             configurations {
                 resolve {
                     $attributes
