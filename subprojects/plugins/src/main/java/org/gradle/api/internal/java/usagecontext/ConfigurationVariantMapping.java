@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.java.usagecontext;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
@@ -28,19 +28,19 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.specs.Spec;
 
 import java.util.Collection;
 import java.util.Set;
 
-public class FeatureMapping {
+public class ConfigurationVariantMapping {
     private final Configuration outgoingConfiguration;
-    private final Spec<? super ConfigurationVariant> spec;
+    private final Action<? super ConfigurationVariantDetails> action;
 
-    public FeatureMapping(Configuration outgoingConfiguration, Spec<? super ConfigurationVariant> spec) {
+    public ConfigurationVariantMapping(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
         this.outgoingConfiguration = outgoingConfiguration;
-        this.spec = spec;
+        this.action = action;
     }
 
     private void assertNoDuplicateVariant(String name, Set<String> seen) {
@@ -49,25 +49,29 @@ public class FeatureMapping {
         }
     }
 
-    public void collectUsageContexts(final ImmutableSet.Builder<UsageContext> outgoing) {
+    public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         Set<String> seen = Sets.newHashSet();
         DefaultConfigurationVariant defaultConfigurationVariant = new DefaultConfigurationVariant();
-        if (spec.isSatisfiedBy(defaultConfigurationVariant)) {
-            assertNoDuplicateVariant(outgoingConfiguration.getName(), seen);
-            outgoing.add(new FeatureConfigurationUsageContext(outgoingConfiguration.getName(), outgoingConfiguration, defaultConfigurationVariant));
+        ConfigurationVariantDetailsInternal details = new DefaultConfigurationVariantDetails(defaultConfigurationVariant);
+        action.execute(details);
+        String outgoingConfigurationName = outgoingConfiguration.getName();
+        if (details.shouldPublish()) {
+            registerUsageContext(outgoing, seen, defaultConfigurationVariant, outgoingConfigurationName, details.getMavenScope(), details.isOptional());
         }
         NamedDomainObjectContainer<ConfigurationVariant> extraVariants = outgoingConfiguration.getOutgoing().getVariants();
         for (ConfigurationVariant variant : extraVariants) {
-            if (spec.isSatisfiedBy(variant)) {
-                String name = outgoingConfiguration.getName() + StringUtils.capitalize(variant.getName());
-                assertNoDuplicateVariant(name, seen);
-                outgoing.add(new FeatureConfigurationUsageContext(
-                        name,
-                        outgoingConfiguration,
-                        variant
-                ));
+            details = new DefaultConfigurationVariantDetails(variant);
+            action.execute(details);
+            if (details.shouldPublish()) {
+                String name = outgoingConfigurationName + StringUtils.capitalize(variant.getName());
+                registerUsageContext(outgoing, seen, variant, name , details.getMavenScope(), details.isOptional());
             }
         }
+    }
+
+    private void registerUsageContext(ImmutableCollection.Builder<UsageContext> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
+        assertNoDuplicateVariant(name, seen);
+        outgoing.add(new FeatureConfigurationUsageContext(name, outgoingConfiguration, variant, scope, optional));
     }
 
     public void validate() {
@@ -106,6 +110,56 @@ public class FeatureMapping {
         @Override
         public AttributeContainer getAttributes() {
             return outgoingConfiguration.getAttributes();
+        }
+    }
+
+    private static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
+        private final ConfigurationVariant variant;
+        private boolean skip = false;
+        private String mavenScope = "compile";
+        private boolean optional = false;
+
+        private DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+            this.variant = variant;
+        }
+
+        @Override
+        public ConfigurationVariant getConfigurationVariant() {
+            return variant;
+        }
+
+        @Override
+        public void skip() {
+            skip = true;
+        }
+
+        @Override
+        public void mapToMavenScope(String scope, boolean optional) {
+            this.mavenScope = assertValidScope(scope);
+            this.optional = optional;
+        }
+
+        private static String assertValidScope(String scope) {
+            scope = scope.toLowerCase();
+            if ("compile".equals(scope) || "runtime".equals(scope)) {
+                return scope;
+            }
+            throw new InvalidUserCodeException("Invalid Maven scope '"+scope+"'. You must choose between 'compile' and 'runtime'");
+        }
+
+        @Override
+        public boolean shouldPublish() {
+            return !skip;
+        }
+
+        @Override
+        public String getMavenScope() {
+            return mavenScope;
+        }
+
+        @Override
+        public boolean isOptional() {
+            return optional;
         }
     }
 }
