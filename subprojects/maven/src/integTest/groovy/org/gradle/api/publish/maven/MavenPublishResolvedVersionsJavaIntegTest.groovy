@@ -54,13 +54,13 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
@@ -136,13 +136,13 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
@@ -222,7 +222,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -238,7 +238,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.artifactId.text() == 'bar'
             assert it.version.text() == '1.1'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -319,7 +319,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
                 exists()
             }
@@ -335,7 +335,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.artifactId.text() == 'bar'
             assert it.version.text() == '[1.0, 2.0)'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
                 exists()
             }
@@ -410,7 +410,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.0") {
                 exists()
             }
@@ -433,7 +433,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.version.text() == '1.1'
             assert it.scope.text() == 'import'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -458,7 +458,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     }
 
     private static String runtimeUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-runtime") { $config } """
+        """ usage("java-runtime-jars") { $config } """
     }
 
     private void createBuildScripts(def append) {

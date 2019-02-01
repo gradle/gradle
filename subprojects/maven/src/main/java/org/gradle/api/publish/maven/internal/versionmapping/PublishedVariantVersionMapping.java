@@ -16,20 +16,21 @@
 package org.gradle.api.publish.maven.internal.versionmapping;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
 import org.gradle.api.specs.Spec;
 
 class PublishedVariantVersionMapping {
-    private final Spec<? super PublishedVariant> spec;
+    private final Spec<? super ImmutableAttributes> spec;
     private final Action<? super VariantVersionMappingStrategy> configurationAction;
 
-    PublishedVariantVersionMapping(Spec<? super PublishedVariant> spec, Action<? super VariantVersionMappingStrategy> configurationAction) {
+    PublishedVariantVersionMapping(Spec<? super ImmutableAttributes> spec, Action<? super VariantVersionMappingStrategy> configurationAction) {
         this.spec = spec;
         this.configurationAction = configurationAction;
     }
 
-    void applyTo(PublishedVariant variant, VariantVersionMappingStrategy strategy) {
-        if (spec.isSatisfiedBy(variant)) {
+    void applyTo(ImmutableAttributes attributes, VariantVersionMappingStrategy strategy) {
+        if (spec.isSatisfiedBy(attributes)) {
             configurationAction.execute(strategy);
         }
     }

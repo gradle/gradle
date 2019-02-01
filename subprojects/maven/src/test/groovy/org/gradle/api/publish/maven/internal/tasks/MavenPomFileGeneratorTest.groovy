@@ -50,7 +50,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def strategy = Stub(VersionMappingStrategyInternal) {
-        findStrategyForVariant(_, _) >> Stub(VariantVersionMappingStrategyInternal) {
+        findStrategyForVariant(_) >> Stub(VariantVersionMappingStrategyInternal) {
             maybeResolveVersion(_, _) >> null
         }
     }

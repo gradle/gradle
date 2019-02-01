@@ -44,7 +44,7 @@ public class ConfigurationVariantMapping {
     }
 
     private void assertNoDuplicateVariant(String name, Set<String> seen) {
-        if ("runtime".equals(name) || "api".equals(name) || !seen.add(name)) {
+        if (!seen.add(name)) {
             throw new InvalidUserDataException("Cannot add feature variant '" + name + "' as a variant with the same name is already registered");
         }
     }
@@ -64,7 +64,7 @@ public class ConfigurationVariantMapping {
             action.execute(details);
             if (details.shouldPublish()) {
                 String name = outgoingConfigurationName + StringUtils.capitalize(variant.getName());
-                registerUsageContext(outgoing, seen, variant, name , details.getMavenScope(), details.isOptional());
+                registerUsageContext(outgoing, seen, variant, name, details.getMavenScope(), details.isOptional());
             }
         }
     }

@@ -46,7 +46,10 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
 
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
+ *
+ *  @deprecated Replaced by the {@link org.gradle.api.component.AdhocComponentWithVariants public software component API}
  */
+@Deprecated
 public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInternal {
 
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();

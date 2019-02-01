@@ -20,12 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConfigurationVariant;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithFeatures;
+import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
@@ -36,7 +34,6 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -47,7 +44,6 @@ import org.gradle.util.TextUtil;
 
 import java.util.List;
 
-import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
@@ -113,7 +109,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         final Configuration runtimeElements = export(runtimeElementsConfigurationName);
         runtimeElements.extendsFrom(impl);
         configureUsage(apiElements, Usage.JAVA_API);
-        configureUsage(runtimeElements, Usage.JAVA_RUNTIME);
+        configureUsage(runtimeElements, Usage.JAVA_RUNTIME_JARS);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
@@ -132,10 +128,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         pluginManager.withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin plugin) {
-                final ComponentWithFeatures component = findComponent();
+                final AdhocComponentWithVariants component = findComponent();
                 if (component != null) {
-                    component.addFeatureVariantsFromConfiguration(apiElements, DefaultConfigurationVariantSpec.INSTANCE);
-                    component.addFeatureVariantsFromConfiguration(runtimeElements, DefaultConfigurationVariantSpec.INSTANCE);
+                    component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
+                    component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
                 }
             }
         });
@@ -158,10 +154,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configuration.getArtifacts().add(new LazyPublishArtifact(jar));
     }
 
-    private ComponentWithFeatures findComponent() {
+    private AdhocComponentWithVariants findComponent() {
         SoftwareComponent component = components.findByName("java");
-        if (component instanceof ComponentWithFeatures) {
-            return (ComponentWithFeatures) component;
+        if (component instanceof AdhocComponentWithVariants) {
+            return (AdhocComponentWithVariants) component;
         }
         return null;
     }
@@ -201,17 +197,4 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         return mainSourceSet.equals(sourceSet);
     }
 
-    private static class DefaultConfigurationVariantSpec implements Spec<ConfigurationVariant> {
-        private static final DefaultConfigurationVariantSpec INSTANCE = new DefaultConfigurationVariantSpec();
-
-        @Override
-        public boolean isSatisfiedBy(ConfigurationVariant element) {
-            for (PublishArtifact artifact : element.getArtifacts()) {
-                if (UNPUBLISHABLE_VARIANT_ARTIFACTS.contains(artifact.getType())) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
 }

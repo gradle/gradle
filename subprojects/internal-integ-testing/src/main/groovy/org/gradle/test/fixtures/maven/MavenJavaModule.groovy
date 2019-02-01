@@ -48,9 +48,9 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         mavenModule.assertArtifactsPublished(expectedArtifacts)
 
         // Verify Gradle metadata particulars
-        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert mavenModule.parsedModuleMetadata.variant('api').files*.name == [artifact('jar')]
-        assert mavenModule.parsedModuleMetadata.variant('runtime').files*.name == [artifact('jar')]
+        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+        assert mavenModule.parsedModuleMetadata.variant('apiElements').files*.name == [artifact('jar')]
+        assert mavenModule.parsedModuleMetadata.variant('runtimeElements').files*.name == [artifact('jar')]
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == null
@@ -65,11 +65,11 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('api').dependencies.empty
+            assert parsedModuleMetadata.variant('apiElements').dependencies.empty
             assert parsedPom.scopes.compile == null
         } else {
-            assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedPom.scopes.compile.assertDependsOn(mavenizeDependencies(expected))
         }
     }
@@ -77,10 +77,10 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     @Override
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('runtime').dependencies.empty
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
             assert parsedPom.scopes.runtime == null
         } else {
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedPom.scopes.runtime.assertDependsOn(mavenizeDependencies(expected))
         }
     }

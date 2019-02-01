@@ -19,5 +19,5 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.publish.VersionMappingStrategy;
 
 public interface VersionMappingStrategyInternal extends VersionMappingStrategy {
-    VariantVersionMappingStrategyInternal findStrategyForVariant(String variantName, ImmutableAttributes variantAttributes);
+    VariantVersionMappingStrategyInternal findStrategyForVariant(ImmutableAttributes variantAttributes);
 }
