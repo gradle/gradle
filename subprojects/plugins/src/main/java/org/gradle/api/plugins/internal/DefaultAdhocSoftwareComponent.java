@@ -17,20 +17,20 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.FeatureMapping;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 
 import java.util.List;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
-    private final List<FeatureMapping> variants = Lists.newArrayListWithExpectedSize(4);
+    private final List<ConfigurationVariantMapping> variants = Lists.newArrayListWithExpectedSize(4);
 
     public DefaultAdhocSoftwareComponent(String componentName) {
         this.componentName = componentName;
@@ -42,17 +42,16 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Spec<? super ConfigurationVariant> spec) {
-        variants.add(new FeatureMapping(outgoingConfiguration, spec));
+    public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
+        variants.add(new ConfigurationVariantMapping(outgoingConfiguration, spec));
     }
 
     @Override
     public Set<? extends UsageContext> getUsages() {
         ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<UsageContext>();
-        for (FeatureMapping variant : variants) {
+        for (ConfigurationVariantMapping variant : variants) {
             variant.collectUsageContexts(builder);
         }
         return builder.build();
     }
-
 }
