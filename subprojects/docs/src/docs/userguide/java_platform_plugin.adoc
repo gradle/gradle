@@ -46,8 +46,8 @@ include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[ta
 [[sec:java_platform_separation]]
 == API and runtime separation
 
-A major difference between a Maven BOM and a Java platform is that Gradle makes the difference between dependencies required at compile time and those only needed at run time.
-While many users will only care about _compile time_ dependencies, it allows declaring dependencies or <<dependency_management_terminology.adoc#sub:terminology_dependency_constraint,constraints>> which only apply to runtime.
+A major difference between a Maven BOM and a Java platform is that in Gradle dependencies and <<dependency_management_terminology.adoc#sub:terminology_dependency_constraint,constraints>> are declared and scoped to a configuration and the ones extending it.
+While many users will only care about declaring constraints for _compile time_ dependencies, thus inherited by runtime and tests ones, it allows declaring dependencies or constraints that only apply to runtime or test.
 
 For this purpose, the plugin exposes two <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
