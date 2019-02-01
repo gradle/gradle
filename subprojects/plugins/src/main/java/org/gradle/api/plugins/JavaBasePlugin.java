@@ -77,6 +77,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
     public static final String DOCUMENTATION_GROUP = "documentation";
 
+    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
+            ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+            ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+            ArtifactTypeDefinition.DIRECTORY_TYPE
+    );
+
     private final ObjectFactory objectFactory;
 
     @Inject

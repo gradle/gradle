@@ -17,37 +17,23 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.component.AdhocComponentWithVariants;
-import org.gradle.api.component.MutableSoftwareComponentVariant;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.OutgoingConfigurationUsageContext;
-import org.gradle.internal.component.external.model.DefaultMutableCapabilities;
+import org.gradle.api.internal.java.usagecontext.FeatureMapping;
+import org.gradle.api.specs.Spec;
 
 import java.util.List;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
-    private final ImmutableAttributesFactory attributesFactory;
-    private final List<UsageContext> variants = Lists.newArrayListWithExpectedSize(4);
+    private final List<FeatureMapping> variants = Lists.newArrayListWithExpectedSize(4);
 
-    public DefaultAdhocSoftwareComponent(String componentName, ImmutableAttributesFactory attributesFactory) {
+    public DefaultAdhocSoftwareComponent(String componentName) {
         this.componentName = componentName;
-        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -56,111 +42,17 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public void addVariantFromConfiguration(String name, Configuration outgoingConfiguration) {
-        variants.add(new OutgoingConfigurationUsageContext(name, outgoingConfiguration));
-    }
-
-    @Override
-    public void addVariantFromConfiguration(String name, Configuration outgoingConfiguration, Action<? super MutableSoftwareComponentVariant> configureAction) {
-        variants.add(new LazyMutableSoftwareComponentVariant(
-                new OutgoingConfigurationUsageContext(name, outgoingConfiguration), attributesFactory, configureAction
-        ));
+    public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Spec<? super ConfigurationVariant> spec) {
+        variants.add(new FeatureMapping(outgoingConfiguration, spec));
     }
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.copyOf(variants);
-    }
-
-    private final static class LazyMutableSoftwareComponentVariant implements MutableSoftwareComponentVariant, UsageContext {
-        private final OutgoingConfigurationUsageContext delegate;
-        private final ImmutableAttributesFactory attributesFactory;
-        private final Action<? super MutableSoftwareComponentVariant> configureAction;
-        private ImmutableAttributes attributes;
-        private Set<? extends Capability> capabilities;
-
-        private LazyMutableSoftwareComponentVariant(OutgoingConfigurationUsageContext delegate, ImmutableAttributesFactory attributesFactory, Action<? super MutableSoftwareComponentVariant> configureAction) {
-            this.delegate = delegate;
-            this.attributesFactory = attributesFactory;
-            this.configureAction = configureAction;
+        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<UsageContext>();
+        for (FeatureMapping variant : variants) {
+            variant.collectUsageContexts(builder);
         }
-
-        @Override
-        public String getName() {
-            return delegate.getName();
-        }
-
-        @Override
-        public Set<ModuleDependency> getDependencies() {
-            return delegate.getDependencies();
-        }
-
-        @Override
-        public Set<? extends DependencyConstraint> getDependencyConstraints() {
-            return delegate.getDependencyConstraints();
-        }
-
-        @Override
-        public Set<? extends Capability> getCapabilities() {
-            configure();
-            return capabilities;
-        }
-
-        @Override
-        public Set<ExcludeRule> getGlobalExcludes() {
-            return delegate.getGlobalExcludes();
-        }
-
-        public Usage getUsage() {
-            return delegate.getUsage();
-        }
-
-        @Override
-        public AttributeContainer getAttributes() {
-            configure();
-            return attributes;
-        }
-
-        @Override
-        public Set<PublishArtifact> getArtifacts() {
-            return delegate.getArtifacts();
-        }
-
-        @Override
-        public AttributeContainer getSourceAttributes() {
-            return ((AttributeContainerInternal) delegate.getAttributes()).asImmutable();
-        }
-
-        @Override
-        public Set<? extends Capability> getSourceCapabilities() {
-            return delegate.getCapabilities();
-        }
-
-        @Override
-        public void attributes(Action<? super AttributeContainer> configuration) {
-            AttributeContainerInternal mutable = attributesFactory.mutable();
-            configuration.execute(mutable);
-            this.attributes = mutable.asImmutable();
-        }
-
-        @Override
-        public void capabilities(Action<? super MutableCapabilitiesMetadata> configuration) {
-            DefaultMutableCapabilities mutable = new DefaultMutableCapabilities(Lists.<Capability>newArrayListWithExpectedSize(2));
-            configuration.execute(mutable);
-            this.capabilities = ImmutableSet.copyOf(mutable.getCapabilities());
-        }
-
-        private synchronized void configure() {
-            if (attributes == null) {
-                configureAction.execute(this);
-            }
-            if (attributes == null) {
-                attributes = (ImmutableAttributes) getSourceAttributes();
-            }
-            if (capabilities == null) {
-                capabilities = ImmutableSet.copyOf(getSourceCapabilities());
-            }
-        }
+        return builder.build();
     }
 
 }

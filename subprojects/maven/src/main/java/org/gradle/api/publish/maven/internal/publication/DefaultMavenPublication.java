@@ -52,7 +52,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
-import org.gradle.api.internal.java.usagecontext.OutgoingConfigurationUsageContext;
+import org.gradle.api.internal.java.usagecontext.FeatureConfigurationUsageContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -342,7 +342,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private Set<MavenDependencyInternal> dependenciesFor(UsageContext usage) {
-        if (usage instanceof OutgoingConfigurationUsageContext) {
+        if (usage instanceof FeatureConfigurationUsageContext) {
             return optionalDependencies;
         }
         String name = usage.getName();

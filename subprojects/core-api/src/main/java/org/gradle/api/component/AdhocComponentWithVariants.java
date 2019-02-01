@@ -15,9 +15,10 @@
  */
 package org.gradle.api.component;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationVariant;
+import org.gradle.api.specs.Spec;
 
 /**
  * A component which can declare additional variants corresponding to
@@ -32,16 +33,9 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
 
     /**
      * Declares an additional variant to publish, corresponding to an additional feature.
-     * @param name the name of the variant, used when publishing to Gradle metadata.
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
+     * @param spec predicate which should return true if an outgoing configuration should be published
      */
-    void addVariantFromConfiguration(String name, Configuration outgoingConfiguration);
+    void addVariantsFromConfiguration(Configuration outgoingConfiguration, Spec<? super ConfigurationVariant> spec);
 
-    /**
-     * Declares an additional variant to publish, corresponding to an additional feature.
-     * @param name the name of the variant, used when publishing to Gradle metadata.
-     * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
-     * @param configureAction configuration of the adhoc variant
-     */
-    void addVariantFromConfiguration(String name, Configuration outgoingConfiguration, Action<? super MutableSoftwareComponentVariant> configureAction);
 }

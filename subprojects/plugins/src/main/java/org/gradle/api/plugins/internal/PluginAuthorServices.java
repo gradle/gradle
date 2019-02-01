@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -25,13 +24,13 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
  */
 public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
-        registration.addProvider(new BuildScopeServices());
+    public void registerGlobalServices(ServiceRegistration registration) {
+        registration.addProvider(new GlobalcopeServices());
     }
 
-    private static class BuildScopeServices {
-        SoftwareComponentFactory createSoftwareComponentFactory(ImmutableAttributesFactory attributesFactory) {
-            return new DefaultSoftwareComponentFactory(attributesFactory);
+    private static class GlobalcopeServices {
+        SoftwareComponentFactory createSoftwareComponentFactory() {
+            return new DefaultSoftwareComponentFactory();
         }
     }
 }

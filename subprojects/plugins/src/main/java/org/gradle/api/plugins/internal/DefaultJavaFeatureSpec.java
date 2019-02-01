@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.internal;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -23,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
@@ -48,8 +46,8 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
 import java.util.List;
-import java.util.Set;
 
+import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
@@ -204,17 +202,12 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     }
 
     private static class DefaultConfigurationVariantSpec implements Spec<ConfigurationVariant> {
-        private static final Set<String> DO_NOT_PUBLISH = ImmutableSet.of(
-                ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
-                ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
-                ArtifactTypeDefinition.DIRECTORY_TYPE
-        );
         private static final DefaultConfigurationVariantSpec INSTANCE = new DefaultConfigurationVariantSpec();
 
         @Override
         public boolean isSatisfiedBy(ConfigurationVariant element) {
             for (PublishArtifact artifact : element.getArtifacts()) {
-                if (DO_NOT_PUBLISH.contains(artifact.getType())) {
+                if (UNPUBLISHABLE_VARIANT_ARTIFACTS.contains(artifact.getType())) {
                     return false;
                 }
             }
