@@ -34,6 +34,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.BasicTextResourceLoader
+import org.gradle.internal.time.Time.startTimer
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.pluginAccessorsClassPath
@@ -96,14 +97,17 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
     override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
+        val timer = startTimer()
         val parameter = requestParameterOf(modelRequestProject)
         try {
             return kotlinBuildScriptModelFor(modelRequestProject, parameter).also {
-                println("$parameter => $it")
+                log("$parameter => $it")
             }
         } catch (e: Exception) {
-            println("$parameter => $e")
+            log("$parameter => $e")
             throw e
+        } finally {
+            log("MODEL built in ${timer.elapsed}.")
         }
     }
 
@@ -149,6 +153,9 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
             modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String,
             modelRequestProject.findProperty(kotlinBuildScriptModelCorrelationId) as? String
         )
+
+    private
+    fun log(message: String) = println(message)
 }
 
 
