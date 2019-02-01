@@ -37,6 +37,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.nativeintegration.filesystem.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
+import org.gradle.internal.snapshot.BrokenLinkSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -96,9 +97,10 @@ public class DirectorySnapshotter {
                         }
                         if (attrs.isSymbolicLink()) {
                             // when FileVisitOption.FOLLOW_LINKS, we only get here when link couldn't be followed
-                            throw new GradleException(String.format("Could not list contents of '%s'. Couldn't follow symbolic link.", file));
+                            addBrokenLink(file, name);
+                        } else {
+                            addFileSnapshot(file, name, attrs);
                         }
-                        addFileSnapshot(file, name, attrs);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -135,6 +137,11 @@ public class DirectorySnapshotter {
                     DefaultFileMetadata metadata = new DefaultFileMetadata(FileType.RegularFile, attrs.lastModifiedTime().toMillis(), attrs.size());
                     HashCode hash = hasher.hash(file.toFile(), metadata);
                     RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(internedAbsolutePath(file), name, hash, metadata.getLastModified());
+                    builder.visit(fileSnapshot);
+                }
+
+                private void addBrokenLink(Path file, String name) {
+                    BrokenLinkSnapshot fileSnapshot = new BrokenLinkSnapshot(internedAbsolutePath(file), name);
                     builder.visit(fileSnapshot);
                 }
 

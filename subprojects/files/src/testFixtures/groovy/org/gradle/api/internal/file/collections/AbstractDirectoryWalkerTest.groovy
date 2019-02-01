@@ -29,6 +29,7 @@ import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -155,6 +156,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     @Requires(TestPrecondition.SYMLINKS)
     @Unroll
     def "missing symbolic link causes an exception - walker: #walkerInstance.class.simpleName"() {
+        Assume.assumeTrue(enableMissingLinkTest())
         given:
         def rootDir = tmpDir.createDir("root")
         def dir = rootDir.createDir("a/b")
@@ -238,4 +240,8 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     }
 
     protected abstract List<String> walkDirForPaths(T walkerInstance, File rootDir, PatternSet patternSet)
+
+    protected boolean enableMissingLinkTest() {
+        return true
+    }
 }

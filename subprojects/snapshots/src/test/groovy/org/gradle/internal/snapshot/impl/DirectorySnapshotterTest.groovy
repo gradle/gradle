@@ -152,6 +152,49 @@ class DirectorySnapshotterTest extends Specification {
         !defaultExcludes.excludeFile('.svnsomething')
         !defaultExcludes.excludeFile('#some')
     }
+
+    def "should snapshot with broken symlinks"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def rootFile = rootDir.file("a.content").createFile()
+        def rootFileLink = rootDir.file("a_link.txt")
+        rootFileLink.createLink(rootFile)
+        def patterns = new PatternSet()
+        patterns.include("**/*.txt")
+
+        def relativePaths1 = []
+        def actuallyFiltered1 = new MutableBoolean(false)
+
+        def relativePaths2 = []
+        def actuallyFiltered2 = new MutableBoolean(false)
+
+        when:
+        // get the snapshot with a valid link
+        def snapshot1 = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered1)
+        snapshot1.accept(new RelativePathTrackingVisitor() {
+            @Override
+            void visit(String absolutePath, Deque<String> relativePath) {
+                relativePaths1 << relativePath.join("/")
+            }
+        })
+        // break the link, and get another snapshot
+        rootFile.delete()
+        def snapshot2 = directorySnapshotter.snapshot(rootDir.absolutePath, patterns, actuallyFiltered2)
+        snapshot2.accept(new RelativePathTrackingVisitor() {
+            @Override
+            void visit(String absolutePath, Deque<String> relativePath) {
+                relativePaths2 << relativePath.join("/")
+            }
+        })
+        then:
+        actuallyFiltered1.get()  // filtered rootTextFile
+        ! actuallyFiltered2.get()  // rootTextFile was already removed
+        relativePaths1 as Set == (['root'] + [
+            'a_link.txt'
+        ].collect { 'root/' + it }) as Set
+        relativePaths2 == relativePaths1  //
+        snapshot2.hash != snapshot1.hash
+    }
 }
 
 abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor {

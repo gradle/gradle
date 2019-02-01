@@ -28,9 +28,13 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.snapshot.BrokenLinkSnapshot
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -66,6 +70,30 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         visitedWithJdk7Walker.empty
     }
 
+    @Requires(TestPrecondition.SYMLINKS)
+    @Unroll
+    def "missing symbolic link gets added as BrokenLinkSnapshot - walker: #walkerInstance.class.simpleName"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.createDir("target")
+        def link = rootDir.file("source")
+        link.createLink(dir)
+
+        when:
+        dir.deleteDir()
+        def visited = walkDirForPaths0(walkerInstance, rootDir, new PatternSet())
+
+        then:
+        visited.size() == 1
+        visited[0] instanceof BrokenLinkSnapshot
+
+        cleanup:
+        link.delete()
+
+        where:
+        walkerInstance << walkers
+    }
+
     @Override
     protected List<DirectorySnapshotter> getWalkers() {
         [
@@ -88,6 +116,15 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
+        return walkDirForPaths0(walker, rootDir, patternSet).collect { it.absolutePath }
+    }
+
+    @Override
+    protected boolean enableMissingLinkTest() {
+        return false
+    }
+
+    private List<FileSystemLocationSnapshot> walkDirForPaths0(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
         def snapshot = walker.snapshot(rootDir.absolutePath, patternSet, new MutableBoolean())
         def visited = []
         snapshot.accept(new FileSystemSnapshotVisitor() {
@@ -96,7 +133,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             @Override
             boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
                 if (!root) {
-                    visited << directorySnapshot.absolutePath
+                    visited << directorySnapshot
                 }
                 root = false
                 return true
@@ -104,7 +141,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
             @Override
             void visit(FileSystemLocationSnapshot fileSnapshot) {
-                visited << fileSnapshot.absolutePath
+                visited << fileSnapshot
             }
 
             @Override
@@ -113,4 +150,5 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         })
         return visited
     }
+
 }
