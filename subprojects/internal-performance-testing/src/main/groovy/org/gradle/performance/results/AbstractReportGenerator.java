@@ -25,7 +25,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
 
-public abstract class AbstractReportGenerator<T extends ResultsStore> {
+public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected static <G extends AbstractReportGenerator> G getGenerator(Class<G> generatorClass) throws Exception {
         return generatorClass.getConstructor().newInstance();
     }
@@ -72,7 +72,7 @@ public abstract class AbstractReportGenerator<T extends ResultsStore> {
 
     protected ResultsStore getResultsStore() throws Exception {
         Type superClass = getClass().getGenericSuperclass();
-        Class<? extends ResultsStore> resultsStoreClass = (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
+        Class<? extends ResultsStore> resultsStoreClass = (Class<R>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
         return resultsStoreClass.getConstructor().newInstance();
     }
 

@@ -16,36 +16,37 @@
 
 package org.gradle.testing;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
 import org.gradle.api.Task;
-
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.gradlebuild.test.integrationtests.DistributionTest;
+import org.gradle.process.CommandLineArgumentProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
-
-import org.gradle.process.CommandLineArgumentProvider;
 
 /**
  * A test that checks execution time and memory consumption.
  */
 @CacheableTask
 public class PerformanceTest extends DistributionTest {
+    public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit");
     // Baselines configured by command line `--baselines`
     private Property<String> configuredBaselines = getProject().getObjects().property(String.class);
     // Baselines determined by determineBaselines task
@@ -64,14 +65,16 @@ public class PerformanceTest extends DistributionTest {
 
     public PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider());
-        getOutputs().cacheIf("baselines don't contain version 'last' or 'nightly'", this::notContainsLastOrNightly);
-        getOutputs().upToDateWhen(this::notContainsLastOrNightly);
+        getOutputs().cacheIf("baselines don't contain version 'flakiness-detection-commit', 'last' or 'nightly'", this::notContainsSpecialVersions);
+        getOutputs().upToDateWhen(this::notContainsSpecialVersions);
     }
 
-    private boolean notContainsLastOrNightly(Task task) {
-        return Arrays.stream(determinedBaselines.getOrElse("").split(","))
+    private boolean notContainsSpecialVersions(Task task) {
+        return Stream.of(configuredBaselines.getOrElse(""), determinedBaselines.getOrElse(""))
+            .map(baseline -> baseline.split(","))
+            .flatMap(Arrays::stream)
             .map(String::trim)
-            .noneMatch(baselineVersion -> "last".equals(baselineVersion) || "nightly".equals(baselineVersion));
+            .noneMatch(NON_CACHEABLE_VERSIONS::contains);
     }
 
     public void setDebugArtifactsDirectory(File debugArtifactsDirectory) {

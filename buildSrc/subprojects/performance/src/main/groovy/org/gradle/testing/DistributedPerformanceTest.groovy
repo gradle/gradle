@@ -126,6 +126,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             doExecuteTests()
         } catch (Throwable e) {
             e.printStackTrace()
+            throw e
         } finally {
             generatePerformanceReport()
             testEventsGenerator.release()

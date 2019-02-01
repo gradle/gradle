@@ -22,6 +22,7 @@ import org.gradle.performance.measure.DataSeries
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
     private static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90
+    private static final int FLAKINESS_DETECTION_THRESHOLD = 99
     String teamCityBuildId
     String scenarioName
     String webUrl
@@ -92,7 +93,7 @@ class ScenarioBuildResultData {
     }
 
     boolean isFlaky() {
-        return executions.any { it.confidencePercentage > 95 }
+        return executions.any { it.confidencePercentage > FLAKINESS_DETECTION_THRESHOLD }
     }
 
     static class ExecutionData {
