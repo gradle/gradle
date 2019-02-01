@@ -73,4 +73,8 @@ class IncrementalProcessingEnvironment implements ProcessingEnvironment {
     public Locale getLocale() {
         return delegate.getLocale();
     }
+    
+    public ProcessingEnvironment getDelegateProcessingEnvironment() {
+        return delegate;
+    }
 }
