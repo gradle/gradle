@@ -26,6 +26,13 @@ import org.gradle.api.capabilities.Capability;
 
 import java.util.Set;
 
+/**
+ * A software component variant, which has a number of artifacts,
+ * dependencies, constraints and capabilities, and that can be
+ * published to various formats (Gradle metadata, POM, ivy.xml, ...)
+ *
+ * @since 5.3
+ */
 @Incubating
 public interface SoftwareComponentVariant extends HasAttributes, Named {
     Set<? extends PublishArtifact> getArtifacts();
