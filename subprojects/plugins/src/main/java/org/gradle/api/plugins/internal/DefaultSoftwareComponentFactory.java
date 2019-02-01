@@ -17,18 +17,12 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
 public class DefaultSoftwareComponentFactory implements SoftwareComponentFactory {
-    private final ImmutableAttributesFactory attributesFactory;
-
-    public DefaultSoftwareComponentFactory(ImmutableAttributesFactory attributesFactory) {
-        this.attributesFactory = attributesFactory;
-    }
 
     @Override
     public AdhocComponentWithVariants adhoc(String name) {
-        return new DefaultAdhocSoftwareComponent(name, attributesFactory);
+        return new DefaultAdhocSoftwareComponent(name);
 
     }
 }
