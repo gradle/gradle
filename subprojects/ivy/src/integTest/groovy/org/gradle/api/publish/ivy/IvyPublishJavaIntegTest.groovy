@@ -112,8 +112,19 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             artifacts.empty
         }
-        javaLibrary.assertApiDependencies('commons-collections:commons-collections:3.2.2')
-        javaLibrary.assertRuntimeDependencies('commons-io:commons-io:1.4')
+        with(javaLibrary.parsedModuleMetadata) {
+            variant('api') {
+                dependency('commons-collections:commons-collections:3.2.2')
+                noMoreDependencies()
+            }
+        }
+        with(javaLibrary.parsedModuleMetadata) {
+            variant('runtime') {
+                dependency('commons-collections:commons-collections:3.2.2')
+                dependency('commons-io:commons-io:1.4')
+                noMoreDependencies()
+            }
+        }
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -319,7 +330,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('org.springframework:spring-core:2.5.6') {
                 exists()
                 hasExclude('commons-logging', 'commons-logging')
@@ -396,7 +407,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         exclusions('runtime') == [exclusion("runtimeElements"), exclusion("implementation"), exclusion("api"), exclusion("runtimeOnly"), exclusion("runtime")]
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('commons-collections:commons-collections:3.2.2') {
                 hasExclude('apiElements-group', 'apiElements-module')
                 hasExclude('runtime-group', 'runtime-module')
@@ -404,7 +415,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 noMoreExcludes()
             }
         }
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('commons-io:commons-io:1.4') {
                 hasExclude('runtimeElements-group', 'runtimeElements-module')
                 hasExclude('implementation-group', 'implementation-module')
@@ -534,7 +545,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.assertDependsOn("org.springframework:spring-core:2.5.6@compile", "commons-collections:commons-collections:3.2.2@runtime")
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('org.springframework:spring-core:') {
                 noMoreExcludes()
                 prefers('2.5.6')
@@ -544,7 +555,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             noMoreDependencies()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('commons-collections:commons-collections:3.2.2') {
                 noMoreExcludes()
                 prefers(null)
@@ -606,7 +617,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         // we do not publish constraints to ivy
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('org.springframework:spring-core:1.2.9') {
                 rejects()
                 noMoreExcludes()
@@ -616,7 +627,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             noMoreDependencies()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('org.springframework:spring-core:1.2.9') {
                 rejects()
                 noMoreExcludes()
@@ -682,11 +693,11 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:@runtime")
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             noMoreDependencies()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('commons-collections:commons-collections:') {
                 rejects()
                 noMoreExcludes()
@@ -752,14 +763,14 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:[3.2, 4)@runtime")
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             constraint('commons-logging:commons-logging:') {
                 rejects '+'
             }
             noMoreDependencies()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('commons-collections:commons-collections:[3.2, 4)') {
                 noMoreExcludes()
                 rejects '3.2.1', '[3.2.2,)'
@@ -807,12 +818,12 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             capability('org', 'foo', '1.0')
             noMoreCapabilities()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             capability('org', 'foo', '1.0')
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
@@ -879,7 +890,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
 
         and:
-        javaLibrary.parsedModuleMetadata.variant('api') {
+        javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
             }
@@ -889,7 +900,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             noMoreDependencies()
         }
 
-        javaLibrary.parsedModuleMetadata.variant('runtime') {
+        javaLibrary.parsedModuleMetadata.variant('runtimeElements') {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
             }
