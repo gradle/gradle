@@ -17,6 +17,18 @@ package org.gradle.api.component;
 
 import org.gradle.api.Incubating;
 
+/**
+ * A software component factory is responsible for providing to
+ * plugins a way to create software components. Currently the
+ * software factory only allows the creation of adhoc software
+ * components which can be used for publishing simple components.
+ *
+ * This is the case whenever there's no component model to be
+ * used and that the plugin can solely rely on outgoing variants
+ * to publish variants.
+ *
+ * @since 5.3
+ */
 @Incubating
 public interface SoftwareComponentFactory {
     /**
