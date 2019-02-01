@@ -32,6 +32,7 @@ import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -83,14 +84,14 @@ class AttributeConfigurationSelectorTest extends Specification {
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        e.message == '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
 All of them match the consumer attributes:
   - Variant 'api1' capability org:lib:1.0:
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
   - Variant 'api2' capability org:lib:1.0:
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.'''
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
     }
 
     def "fails to select a variant when there no matching candidates"() {
@@ -108,11 +109,11 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingConfigurationSelectionException e = thrown()
-        e.message == '''Unable to find a matching variant of org:lib:1.0:
+        failsWith(e, '''Unable to find a matching variant of org:lib:1.0:
   - Variant 'api' capability org:lib:1.0:
       - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-api'.
   - Variant 'runtime' capability org:lib:1.0:
-      - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-runtime'.'''
+      - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-runtime'.''')
     }
 
     @Unroll
@@ -186,7 +187,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        e.message == '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e,'''Cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
   - api3
@@ -196,7 +197,7 @@ All of them match the consumer attributes:
   - Variant 'api2' capability org:lib:1.0:
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
   - Variant 'api3' capabilities org:lib:1.0 and org:second:1.0:
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.'''
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
     }
 
     def "should select the variant which matches the most attributes"() {
@@ -231,7 +232,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        e.message == '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
   - first
   - second
 All of them match the consumer attributes:
@@ -240,7 +241,7 @@ All of them match the consumer attributes:
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
   - Variant 'second' capability org:lib:1.0:
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-      - Found other 'true' but wasn't required.'''
+      - Found other 'true' but wasn't required.''')
 
     }
 
@@ -259,7 +260,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        e.message == '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
   - first
   - second
 All of them match the consumer attributes:
@@ -269,7 +270,7 @@ All of them match the consumer attributes:
       - Found other 'true' but wasn't required.
   - Variant 'second' capability org:lib:1.0:
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-      - Found other 'true' but wasn't required.'''
+      - Found other 'true' but wasn't required.''')
 
     }
 
@@ -347,6 +348,12 @@ All of them match the consumer attributes:
 
     private Capability capability(String name) {
         capability('org', name)
+    }
+
+    private void failsWith(Throwable e, String message) {
+        String actualMessage = TextUtil.normaliseLineSeparators(e.message)
+        String expectedMessage = TextUtil.normaliseLineSeparators(message)
+        assert actualMessage == expectedMessage
     }
 
     private static class UsageCompatibilityRule implements AttributeCompatibilityRule<String> {
