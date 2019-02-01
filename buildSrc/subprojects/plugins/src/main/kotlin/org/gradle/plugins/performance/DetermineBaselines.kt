@@ -29,6 +29,9 @@ const val defaultBaseline = "defaults"
 const val forceDefaultBaseline = "force-defaults"
 
 
+const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
+
+
 open class DetermineBaselines : DefaultTask() {
     @Internal
     val configuredBaselines = project.objects.property<String>()
@@ -40,6 +43,8 @@ open class DetermineBaselines : DefaultTask() {
     fun determineForkPointCommitBaseline() {
         if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
             determinedBaselines.set(defaultBaseline)
+        } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
+            determinedBaselines.set(currentCommitBaseline())
         } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
@@ -54,6 +59,9 @@ open class DetermineBaselines : DefaultTask() {
     fun Property<String>.isDefaultValue() = !isPresent || get() in listOf("", defaultBaseline, Config.baseLineList)
 
     private
+    fun currentCommitBaseline() = commitBaseline(project.execAndGetStdout("git", "rev-parse", "HEAD"))
+
+    private
     fun forkPointCommitBaseline(): String {
         project.execAndGetStdout("git", "fetch", "origin", "master", "release")
         val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
@@ -63,8 +71,13 @@ open class DetermineBaselines : DefaultTask() {
                 releaseForkPointCommit
             else
                 masterForkPointCommit
-        val baseVersionOnForkPoint = project.execAndGetStdout("git", "show", "$forkPointCommit:version.txt")
-        val shortCommitId = project.execAndGetStdout("git", "rev-parse", "--short", forkPointCommit)
+        return commitBaseline(forkPointCommit)
+    }
+
+    private
+    fun commitBaseline(commit: String): String {
+        val baseVersionOnForkPoint = project.execAndGetStdout("git", "show", "$commit:version.txt")
+        val shortCommitId = project.execAndGetStdout("git", "rev-parse", "--short", commit)
         return "$baseVersionOnForkPoint-commit-$shortCommitId"
     }
 }

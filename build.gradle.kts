@@ -108,6 +108,10 @@ buildTypes {
         tasks("performance:distributedFullPerformanceTest")
     }
 
+    create("distributedFlakinessDetections") {
+        tasks("performance:distributedFlakinessDetection")
+    }
+
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
         tasks("allVersionsCrossVersionTests", "integMultiVersionTest")

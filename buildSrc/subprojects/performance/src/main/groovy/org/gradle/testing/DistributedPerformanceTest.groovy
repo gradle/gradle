@@ -75,6 +75,9 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @Internal
     String teamCityPassword
 
+    @Internal
+    int repeat = 1
+
     @OutputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     File scenarioList
@@ -121,6 +124,9 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         println("Running against baseline ${determinedBaselines.getOrElse('defaults')}")
         try {
             doExecuteTests()
+        } catch (Throwable e) {
+            e.printStackTrace()
+            throw e
         } finally {
             generatePerformanceReport()
             testEventsGenerator.release()
@@ -151,11 +157,12 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         def coordinatorBuild = resolveCoordinatorBuild()
         testEventsGenerator.coordinatorBuild = coordinatorBuild
 
-        scenarios.each {
-            schedule(it, coordinatorBuild?.lastChangeId)
+        repeat.times {
+            scenarios.each {
+                schedule(it, coordinatorBuild?.lastChangeId)
+            }
+            waitForTestsCompletion()
         }
-
-        waitForTestsCompletion()
 
         checkForErrors()
     }
@@ -180,6 +187,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                 ]
             ]
         ]
+
         if (branchName) {
             requestBody['branchName'] = branchName
         }
@@ -225,6 +233,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         */
 
         String workerBuildId = response.id
+
+        println("Scheduled ${scenario.id} and worker id: ${workerBuildId}")
         cancellationToken.addCallback {
             cancel(workerBuildId)
         }
