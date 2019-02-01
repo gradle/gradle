@@ -119,7 +119,17 @@ open class BuildScanPlugin : Plugin<Project> {
     // 1. CompileAll is the seed build
     // 2. Gradleception which re-builds Gradle with a new Gradle version
     // 3. buildScanPerformance test, which doesn't depend on compileAll
-        isInBuild("Gradle_Check_CompileAll", "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux", "Gradle_Check_Gradleception")
+    // 4. buildScanPerformance test, which doesn't depend on compileAll
+    // 5. Gradle/Promotion/Release - Release Nightly Snapshot
+    // 6. Gradle/Promotion/Master - Nightly Snapshot
+        isInBuild(
+            "Gradle_Check_CompileAll",
+            "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
+            "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux",
+            "Gradle_Check_Gradleception",
+            "bt61",
+            "bt39"
+        )
 
     private
     fun Task.isInBuild(vararg buildTypeIds: String) = System.getenv("BUILD_TYPE_ID") in buildTypeIds
