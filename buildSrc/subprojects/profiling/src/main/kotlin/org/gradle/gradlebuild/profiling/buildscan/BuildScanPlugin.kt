@@ -122,7 +122,8 @@ open class BuildScanPlugin : Plugin<Project> {
     // 4. buildScanPerformance test, which doesn't depend on compileAll
     // 5. Gradle/Promotion/Release - Release Nightly Snapshot
     // 6. Gradle/Promotion/Master - Nightly Snapshot
-        isInBuild("Gradle_Check_CompileAll",
+        isInBuild(
+            "Gradle_Check_CompileAll",
             "Enterprise_Master_Components_GradleBuildScansPlugin_Performance_PerformanceLinux",
             "Enterprise_Release_Components_BuildScansPlugin_Performance_PerformanceLinux",
             "Gradle_Check_Gradleception",
