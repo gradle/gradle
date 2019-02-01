@@ -101,7 +101,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultMavenPublication.class);
 
     private static final String API_VARIANT = "api";
-    private static final String RUNTIME_VARIANT = "runtime";
+    private static final String API_ELEMENTS_VARIANT = "apiElements";
 
     /*
      * Maven supports wildcards in exclusion rules according to:
@@ -113,10 +113,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
         // API first
-        if (API_VARIANT.equals(left)) {
+        if (API_VARIANT.equals(left) || API_ELEMENTS_VARIANT.equals(left)) {
             return -1;
         }
-        if (API_VARIANT.equals(right)) {
+        if (API_VARIANT.equals(right) || API_ELEMENTS_VARIANT.equals(right)) {
             return 1;
         }
         return left.compareTo(right);
@@ -301,7 +301,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     }
                 }
             }
-            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext.getName());
+            Set<MavenDependency> dependencyConstraints = dependencyConstraintsFor(usageContext);
             for (DependencyConstraint dependency : usageContext.getDependencyConstraints()) {
                 if (seenConstraints.add(dependency) && dependency.getVersion() != null) {
                     addDependencyConstraint(dependency, dependencyConstraints);
@@ -364,14 +364,27 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         // legacy mode for internal APIs
         String name = usage.getName();
-        if (API_VARIANT.equals(name)) {
+        if (API_VARIANT.equals(name)  || API_ELEMENTS_VARIANT.equals(name)) {
             return apiDependencies;
         }
         return runtimeDependencies;
     }
 
-    private Set<MavenDependency> dependencyConstraintsFor(String name) {
-        if (API_VARIANT.equals(name)) {
+    private Set<MavenDependency> dependencyConstraintsFor(UsageContext usage) {
+        if (usage instanceof FeatureConfigurationUsageContext) {
+            MavenPublishingAwareContext.ScopeMapping mapping = ((FeatureConfigurationUsageContext) usage).getScopeMapping();
+            switch (mapping) {
+                case compile:
+                case compile_optional:
+                    return apiDependencyConstraints;
+                case runtime:
+                case runtime_optional:
+                    return runtimeDependencyConstraints;
+            }
+        }
+        // legacy mode
+        String name = usage.getName();
+        if (API_VARIANT.equals(name) || API_ELEMENTS_VARIANT.equals(name)) {
             return apiDependencyConstraints;
         }
         return runtimeDependencyConstraints;

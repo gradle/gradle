@@ -49,10 +49,10 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
 
     @Override
     public <T> void variant(Attribute<T> attribute, T attributeValue, Action<? super VariantVersionMappingStrategy> action) {
-        PublishedVariantVersionMapping mapping = new PublishedVariantVersionMapping(new Spec<PublishedVariant>() {
+        PublishedVariantVersionMapping mapping = new PublishedVariantVersionMapping(new Spec<ImmutableAttributes>() {
             @Override
-            public boolean isSatisfiedBy(PublishedVariant element) {
-                AttributeValue<T> entry = element.attributes.findEntry(attribute);
+            public boolean isSatisfiedBy(ImmutableAttributes element) {
+                AttributeValue<T> entry = element.findEntry(attribute);
                 return entry.isPresent() && entry.get() == attributeValue;
             }
         }, action);
@@ -65,11 +65,10 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
     }
 
     @Override
-    public VariantVersionMappingStrategyInternal findStrategyForVariant(String variantName, ImmutableAttributes variantAttributes) {
-        PublishedVariant publishedVariant = new PublishedVariant(variantName, variantAttributes);
+    public VariantVersionMappingStrategyInternal findStrategyForVariant(ImmutableAttributes variantAttributes) {
         DefaultVariantVersionMappingStrategy strategy = new DefaultVariantVersionMappingStrategy(configurations);
         for (PublishedVariantVersionMapping mapping : mappings) {
-            mapping.applyTo(publishedVariant, strategy);
+            mapping.applyTo(variantAttributes, strategy);
         }
         return strategy;
     }

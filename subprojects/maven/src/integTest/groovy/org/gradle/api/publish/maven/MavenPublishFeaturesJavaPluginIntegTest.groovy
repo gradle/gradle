@@ -40,10 +40,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         run "publish"
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
@@ -103,10 +103,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         run "publish"
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
         javaLibrary.parsedModuleMetadata.variant("featureApiElements") {

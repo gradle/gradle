@@ -28,6 +28,9 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface ConfigurationVariantDetails {
+    /**
+     * The configuration variant
+     */
     ConfigurationVariant getConfigurationVariant();
 
     /**

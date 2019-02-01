@@ -277,7 +277,7 @@ public class MavenPomFileGenerator {
         String groupId = dependency.getGroupId();
         String dependencyVersion = dependency.getVersion();
         ImmutableAttributes attributes = attributesForScope(scope);
-        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(scope, attributes).maybeResolveVersion(groupId, artifactId);
+        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
         mavenDependency.setGroupId(groupId);
         mavenDependency.setArtifactId(artifactId);
         mavenDependency.setVersion(resolvedVersion != null ? resolvedVersion : mapToMavenSyntax(dependencyVersion));
@@ -315,7 +315,7 @@ public class MavenPomFileGenerator {
         String artifactId = dependency.getArtifactId();
         mavenDependency.setArtifactId(artifactId);
         ImmutableAttributes attributes = attributesForScope(scope);
-        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(scope, attributes).maybeResolveVersion(groupId, artifactId);
+        String resolvedVersion = versionMappingStrategy.findStrategyForVariant(attributes).maybeResolveVersion(groupId, artifactId);
         mavenDependency.setVersion(resolvedVersion == null ? mapToMavenSyntax(dependency.getVersion()) : resolvedVersion);
         String type = dependency.getType();
         if (type != null) {

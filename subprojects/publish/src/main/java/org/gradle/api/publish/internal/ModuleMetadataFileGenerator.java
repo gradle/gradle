@@ -394,7 +394,7 @@ public class ModuleMetadataFileGenerator {
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
         if (versionMappingStrategy != null) {
             ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
-            variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(name, attributes);
+            variantVersionMappingStrategy = versionMappingStrategy.findStrategyForVariant(attributes);
         }
         return variantVersionMappingStrategy;
     }
