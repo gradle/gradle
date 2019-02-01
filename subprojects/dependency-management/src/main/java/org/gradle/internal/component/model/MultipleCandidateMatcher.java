@@ -193,15 +193,28 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         remaining = new BitSet(candidates.size());
         remaining.or(compatible);
 
-        disambiguateWithRequestedAttributes();
+        disambiguateWithRequestedAttributeValues();
         if (remaining.cardinality() > 1) {
             disambiguateWithExtraAttributes();
         }
-
+        if (remaining.cardinality() > 1) {
+            disambiguateWithRequestedAttributeKeys();
+        }
         return remaining.cardinality() == 0 ? getCandidates(compatible) : getCandidates(remaining);
     }
 
-    private void disambiguateWithRequestedAttributes() {
+    private void disambiguateWithRequestedAttributeKeys() {
+        for (Attribute<?> extraAttribute : extraAttributes) {
+            for (int c = 0; c < candidateAttributeSets.length; c++) {
+                ImmutableAttributes candidateAttributeSet = candidateAttributeSets[c];
+                if (candidateAttributeSet.getAttributes().contains(extraAttribute)) {
+                    remaining.clear(c);
+                }
+            }
+        }
+    }
+
+    private void disambiguateWithRequestedAttributeValues() {
         for (int a = 0; a < requestedAttributes.size(); a++) {
             disambiguateWithAttribute(a);
             if (remaining.cardinality() == 0) {
