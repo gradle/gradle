@@ -12,17 +12,17 @@ We would like to thank the following community contributors to this release of G
 [Kim Brouer](https://github.com/brouer), [Roberto Perez Alcolea](https://github.com/rpalcolea), [Ian Kerins](https://github.com/isker),
 [Josh Soref](https://github.com/jsoref), [Andrew Nessin](https://github.com/andrewnessinjim), [NFM](https://github.com/not-for-me),
 [Jean-Michel Fayard](https://github.com/jmfayard), [Arun Ponniah Sethuramalingam](https://github.com/saponniah), [Victor Jacobs](https://github.com/victorjacobs),
-[Theodore Ni](https://github.com/tjni), [Sam Holmes](https://github.com/sbholmes), [Artem Zinnatullin ](https://github.com/artem-zinnatullin),
+[Theodore Ni](https://github.com/tjni), [Sam Holmes](https://github.com/sbholmes), [Artem Zinnatullin](https://github.com/artem-zinnatullin),
 [Ronald Brindl](https://github.com/rbrindl),
 and [Richard Newton](https://github.com/ricnewton).
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.2 RC1 by updating your wrapper properties:
+Switch your build to use Gradle 5.2 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.2-rc-1`
+`./gradlew wrapper --gradle-version=5.2`
 
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
 ## The Java Platform plugin
 
