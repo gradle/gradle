@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
@@ -28,7 +29,6 @@ import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.TreeType;
@@ -86,8 +86,12 @@ public class FileParameterUtils {
      *
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
-    public static Object resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
-        return inputFilePropertyType == InputFilePropertyType.DIRECTORY ? asFileTree(fileCollectionFactory, "file collection", path) : path;
+    public static FileCollection resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
+        if (inputFilePropertyType == InputFilePropertyType.DIRECTORY) {
+            return fileCollectionFactory.resolving(path).getAsFileTree();
+        } else {
+            return fileCollectionFactory.resolving(path);
+        }
     }
 
     /**
@@ -123,7 +127,7 @@ public class FileParameterUtils {
         } else {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = asFileCollection(fileCollectionFactory, "file collection", unpackedValue);
+            FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
@@ -146,7 +150,7 @@ public class FileParameterUtils {
             if (nonFileRoot.get()) {
                 consumer.accept(new CompositeOutputFilePropertySpec(
                     propertyName,
-                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", resolver, unpackedValue),
+                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileCollectionFactory.resolving(unpackedValue)),
                     outputType)
                 );
             } else {
@@ -156,13 +160,5 @@ public class FileParameterUtils {
                 }
             }
         }
-    }
-
-    private static FileCollectionInternal asFileCollection(FileCollectionFactory fileCollectionFactory, String displayName, Object... paths) {
-        return fileCollectionFactory.resolving(displayName, paths);
-    }
-
-    private static FileTreeInternal asFileTree(FileCollectionFactory fileCollectionFactory, String displayName, Object... paths) {
-        return Cast.uncheckedCast(asFileCollection(fileCollectionFactory, displayName, paths).getAsFileTree());
     }
 }

@@ -18,35 +18,33 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<InputFilePropertySpec> specs = Lists.newArrayList();
-    private final PathToFileResolver resolver;
     private final FileCollectionFactory fileCollectionFactory;
     private final String ownerDisplayName;
     private boolean hasSourceFiles;
 
     private ImmutableSortedSet<InputFilePropertySpec> fileProperties;
 
-    public GetInputFilesVisitor(String ownerDisplayName, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        this.resolver = fileResolver;
+    public GetInputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory) {
         this.ownerDisplayName = ownerDisplayName;
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-        Object actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+        FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             fileNormalizer,
-            new PropertyFileCollection(ownerDisplayName, propertyName, "input", resolver, actualValue),
+            new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
             skipWhenEmpty));
         if (skipWhenEmpty) {
             hasSourceFiles = true;
