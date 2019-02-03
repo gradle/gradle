@@ -18,17 +18,11 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public abstract class ImmutableFileCollection extends AbstractFileCollection {
@@ -55,13 +49,6 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
             return EMPTY;
         }
         return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
-    }
-
-    public static ImmutableFileCollection usingResolver(FileResolver fileResolver, Object... paths) {
-        if (paths.length == 0) {
-            return EMPTY;
-        }
-        return new ResolvingImmutableFileCollection(fileResolver, paths);
     }
 
     private ImmutableFileCollection() {
@@ -97,41 +84,6 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
             }
 
             return super.toString();
-        }
-    }
-
-    private static class ResolvingImmutableFileCollection extends ImmutableFileCollection {
-        private final FileResolver resolver;
-        private final Set<Object> paths;
-
-        ResolvingImmutableFileCollection(FileResolver fileResolver, Object... paths) {
-            this.resolver = fileResolver;
-            this.paths = ImmutableSet.copyOf(paths);
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(resolver);
-            context.add(paths);
-
-            ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-            List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
-            for (FileCollection collection : fileCollections) {
-                builder.addAll(collection.getFiles());
-            }
-            return builder.build();
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return new AbstractTaskDependency() {
-
-                @Override
-                public void visitDependencies(TaskDependencyResolveContext context) {
-                    BuildDependenciesOnlyFileCollectionResolveContext fileContext = new BuildDependenciesOnlyFileCollectionResolveContext(context);
-                    fileContext.add(paths);
-                }
-            };
         }
     }
 }

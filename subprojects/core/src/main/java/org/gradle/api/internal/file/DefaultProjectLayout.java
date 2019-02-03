@@ -25,8 +25,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.Providers;
@@ -40,12 +38,12 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
     private final FixedDirectory projectDir;
     private final DefaultDirectoryVar buildDir;
     private final TaskResolver taskResolver;
-    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver) {
+    public DefaultProjectLayout(File projectDir, FileResolver resolver, TaskResolver taskResolver, FileCollectionFactory fileCollectionFactory) {
         super(resolver);
         this.taskResolver = taskResolver;
-        this.fileResolver = resolver;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.projectDir = new FixedDirectory(projectDir, resolver);
         this.buildDir = new DefaultDirectoryVar(resolver, Project.DEFAULT_BUILD_DIR_NAME);
     }
@@ -108,13 +106,13 @@ public class DefaultProjectLayout extends DefaultFilePropertyFactory implements 
 
     @Override
     public FileCollection files(Object... paths) {
-        return ImmutableFileCollection.usingResolver(fileResolver, paths);
+        return fileCollectionFactory.resolving(paths);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... files) {
         DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.configurableFiles()", "ObjectFactory.fileCollection()");
-        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, files);
+        return fileCollectionFactory.configurableFiles().from(files);
     }
 
     /**
