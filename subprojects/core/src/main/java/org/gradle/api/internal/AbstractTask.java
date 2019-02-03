@@ -165,7 +165,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileResolver, fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
         taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileResolver, fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator);
         taskLocalState = new DefaultTaskLocalState(taskMutator);
