@@ -19,7 +19,6 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet
 import org.gradle.nativeplatform.NativeComponentSpec
@@ -38,7 +37,7 @@ class DefaultVisualStudioProjectTest extends Specification {
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory(), TestFiles.fileOperations(tmpDir.testDirectory))
+        new DefaultVisualStudioProject(vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory())
     }
 
     def "names"() {

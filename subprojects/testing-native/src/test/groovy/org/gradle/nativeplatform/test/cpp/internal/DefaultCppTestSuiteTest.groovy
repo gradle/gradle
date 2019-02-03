@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.internal
 
-import org.gradle.api.internal.file.FileOperations
+
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.nativeplatform.MachineArchitecture
@@ -33,7 +33,7 @@ class DefaultCppTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def testSuite = new DefaultCppTestSuite("test", project.objects, project.services.get(FileOperations))
+    def testSuite = project.objects.newInstance(DefaultCppTestSuite, "test")
 
     def "has display name"() {
         expect:

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
@@ -33,15 +32,13 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             import ${GetInputFilesVisitor.name}
             import ${TaskPropertyUtils.name}
             import ${PropertyWalker.name}
-            import ${FileResolver.name}
             import ${FileCollectionFactory.name}
 
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    def fileResolver = project.services.get(FileResolver)
                     def fileCollectionFactory = project.services.get(FileCollectionFactory)
-                    GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileResolver, fileCollectionFactory)
+                    GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileCollectionFactory)
                     def walker = services.get(PropertyWalker)
                     TaskPropertyUtils.visitProperties(walker, this, visitor)
                     def inputFiles = visitor.fileProperties*.propertyFiles*.files.flatten()

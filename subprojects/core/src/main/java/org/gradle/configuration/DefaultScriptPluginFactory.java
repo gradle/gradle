@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -77,6 +78,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
+    private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
@@ -96,6 +98,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
+                                      FileCollectionFactory fileCollectionFactory,
                                       AutoAppliedPluginHandler autoAppliedPluginHandler) {
 
         this.scriptCompilerFactory = scriptCompilerFactory;
@@ -110,6 +113,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
         this.execFactory = execFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
@@ -163,6 +167,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
+            services.add(FileCollectionFactory.class, fileCollectionFactory);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

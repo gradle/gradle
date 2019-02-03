@@ -28,7 +28,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -59,8 +58,8 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(name, fileOperations, objectFactory);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
         publicHeaders = objectFactory.fileCollection();

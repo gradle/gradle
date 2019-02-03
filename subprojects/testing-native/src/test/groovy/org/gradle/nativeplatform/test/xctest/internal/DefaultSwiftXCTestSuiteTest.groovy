@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal
 
-import org.gradle.api.internal.file.FileOperations
+
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture
@@ -33,7 +33,7 @@ class DefaultSwiftXCTestSuiteTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
-    def testSuite = new DefaultSwiftXCTestSuite("test", project.services.get(FileOperations), project.objects)
+    def testSuite = project.objects.newInstance(DefaultSwiftXCTestSuite, "test")
 
     def "has display name"() {
 

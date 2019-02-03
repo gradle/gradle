@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
-import org.gradle.internal.file.PathToFileResolver
 
 class TaskPropertyTestUtils {
     static Map<String, Object> getProperties(AbstractTask task) {
@@ -41,9 +40,8 @@ class TaskPropertyTestUtils {
     }
 
     static FileCollection getInputFiles(AbstractTask task) {
-        def resolver = task.getServices().get(PathToFileResolver)
         def fileCollectionFactory = task.getServices().get(FileCollectionFactory)
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), resolver, fileCollectionFactory)
+        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), fileCollectionFactory)
         def walker = task.getServices().get(PropertyWalker)
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         return new CompositeFileCollection() {

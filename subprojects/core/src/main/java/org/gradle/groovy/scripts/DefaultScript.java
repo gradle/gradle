@@ -27,6 +27,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -91,7 +92,8 @@ public abstract class DefaultScript extends BasicScript {
             FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(sourceFile.getParentFile()), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory);
+                FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
+                fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(resolver, null));
             } else {
                 fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory);
             }
