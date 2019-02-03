@@ -20,7 +20,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
@@ -50,13 +49,12 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         javaOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
-        classpath = new DefaultConfigurableFileCollection(fileResolver, null);
         executable(javaOptions.getExecutable());
     }
 
     public List<String> getAllJvmArgs() {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
-        if (!classpath.isEmpty()) {
+        if (classpath != null && !classpath.isEmpty()) {
             allArgs.add("-cp");
             allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
         }
@@ -219,7 +217,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public FileCollection getClasspath() {
-        return classpath;
+        return doGetClasspath();
     }
 
     private ConfigurableFileCollection doGetClasspath() {
