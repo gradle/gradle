@@ -18,7 +18,6 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -31,15 +30,13 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
     private final IdeArtifactRegistry ideArtifactRegistry;
     private final ObjectFactory objectFactory;
     private final ProviderFactory providerFactory;
-    private final FileOperations fileOperations;
 
-    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory, FileOperations fileOperations) {
+    public VisualStudioProjectRegistry(FileResolver fileResolver, Instantiator instantiator, IdeArtifactRegistry ideArtifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         super(DefaultVisualStudioProject.class, instantiator, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.ideArtifactRegistry = ideArtifactRegistry;
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
-        this.fileOperations = fileOperations;
     }
 
     public VisualStudioProjectConfiguration getProjectConfiguration(VisualStudioTargetBinary targetBinary) {
@@ -62,7 +59,7 @@ public class VisualStudioProjectRegistry extends DefaultNamedDomainObjectSet<Def
 
     public DefaultVisualStudioProject createProject(String vsProjectName, String componentName) {
         assert findByName(vsProjectName) == null;
-        DefaultVisualStudioProject vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, fileResolver, objectFactory, providerFactory, fileOperations);
+        DefaultVisualStudioProject vsProject = getInstantiator().newInstance(DefaultVisualStudioProject.class, vsProjectName, componentName, fileResolver, objectFactory, providerFactory);
         add(vsProject);
         ideArtifactRegistry.registerIdeProject(vsProject.getPublishArtifact());
         return vsProject;

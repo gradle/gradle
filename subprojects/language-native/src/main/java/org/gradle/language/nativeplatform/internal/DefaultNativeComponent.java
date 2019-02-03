@@ -20,22 +20,20 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.DisplayName;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.concurrent.Callable;
 
 public abstract class DefaultNativeComponent {
     private final ConfigurableFileCollection source;
-    private final FileOperations fileOperations;
 
-    public DefaultNativeComponent(FileOperations fileOperations, ObjectFactory objectFactory) {
+    public DefaultNativeComponent(ObjectFactory objectFactory) {
         // TODO - introduce a new 'var' data structure that allows these conventions to be configured explicitly
-        this.fileOperations = fileOperations;
-
         source = objectFactory.fileCollection();
     }
 
@@ -53,18 +51,23 @@ public abstract class DefaultNativeComponent {
         action.execute(source);
     }
 
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
     // TODO - this belongs with the 'var' data structure
     protected FileCollection createSourceView(final String defaultLocation, List<String> sourceExtensions) {
         final PatternSet patternSet = new PatternSet();
         for (String sourceExtension : sourceExtensions) {
             patternSet.include("**/*." + sourceExtension);
         }
-        return fileOperations.immutableFiles(new Callable<Object>() {
+        return getProjectLayout().files(new Callable<Object>() {
             @Override
             public Object call() {
                 FileTree tree;
                 if (source.getFrom().isEmpty()) {
-                    tree = fileOperations.fileTree(defaultLocation);
+                    tree = getProjectLayout().getProjectDirectory().dir(defaultLocation).getAsFileTree();
                 } else {
                     tree = source.getAsFileTree();
                 }

@@ -19,7 +19,6 @@ package org.gradle.language.swift.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -48,8 +47,8 @@ public class DefaultSwiftLibrary extends DefaultSwiftComponent implements SwiftL
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations) {
-        super(name, fileOperations, objectFactory);
+    public DefaultSwiftLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations) {
+        super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.configurations = configurations;
         this.developmentBinary = objectFactory.property(SwiftBinary.class);
