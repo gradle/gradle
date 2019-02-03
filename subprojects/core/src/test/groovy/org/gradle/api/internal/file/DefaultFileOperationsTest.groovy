@@ -17,7 +17,6 @@
 
 package org.gradle.api.internal.file
 
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
@@ -27,7 +26,6 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.internal.hash.FileHasher
@@ -54,12 +52,13 @@ class DefaultFileOperationsTest extends Specification {
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
     private final TextResourceLoader textResourceLoader = Mock()
+    private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory)
     }
 
     def resolvesFile() {
@@ -86,46 +85,27 @@ class DefaultFileOperationsTest extends Specification {
         fileOperations.uri('path') == uri
     }
 
-    def resolvesFilesInOrder() {
-        when:
-        def fileCollection = fileOperations.configurableFiles('a', 'b', 'c')
-
-        then:
-        fileCollection instanceof DefaultConfigurableFileCollection
-        fileCollection.from as List == ['a', 'b', 'c']
-        fileCollection.resolver.is(resolver)
-        fileCollection.buildDependency.resolver.is(taskResolver)
+    def usesFactoryToCreateConfigurableFileCollection() {
+        def fileCollection = Mock(ConfigurableFileCollection)
 
         when:
-        def files = fileCollection.files
+        def result = fileOperations.configurableFiles('a', 'b', 'c')
+
         then:
-        1 * resolver.resolve('a') >> new File('a')
-        then:
-        1 * resolver.resolve('b') >> new File('b')
-        then:
-        1 * resolver.resolve('c') >> new File('c')
-        then:
-        files*.name as List == ['a', 'b', 'c']
-        0 * _
+        result == fileCollection
+        1 * fileCollectionFactory.configurableFiles() >> fileCollection
+        1 * fileCollection.from('a', 'b', 'c') >> fileCollection
     }
 
-    def resolvesImmutableFilesInOrder() {
-        when:
-        def fileCollection = fileOperations.immutableFiles('a', 'b', 'c')
-
-        then:
-        fileCollection instanceof ImmutableFileCollection
+    def usesFactoryToCreateImmutableFiles() {
+        def fileCollection = Mock(FileCollectionInternal)
 
         when:
-        def files = fileCollection.files
-        files*.name as List == ['a', 'b', 'c']
+        def result = fileOperations.immutableFiles('a', 'b', 'c')
 
         then:
-        1 * resolver.resolve('a') >> new File('a')
-        then:
-        1 * resolver.resolve('b') >> new File('b')
-        then:
-        1 * resolver.resolve('c') >> new File('c')
+        result == fileCollection
+        1 * fileCollectionFactory.resolving('a', 'b', 'c') >> fileCollection
     }
 
     def createsFileTree() {

@@ -26,11 +26,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.Deleter;
@@ -69,13 +67,15 @@ public class DefaultFileOperations implements FileOperations {
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final FileCollectionFactory fileCollectionFactory;
 
     @Deprecated //used by the Kotlin DSL
     public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, @Nullable TextResourceLoader textResourceLoader) {
-        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader);
+        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(fileResolver, taskResolver));
     }
 
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader) {
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
         FileSystem fileSystem = fileLookup.getFileSystem();
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
@@ -107,12 +107,12 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... paths) {
-        return new DefaultConfigurableFileCollection(fileResolver, taskResolver, paths);
+        return fileCollectionFactory.configurableFiles().from(paths);
     }
 
     @Override
     public FileCollection immutableFiles(Object... paths) {
-        return ImmutableFileCollection.usingResolver(fileResolver, paths);
+        return fileCollectionFactory.resolving(paths);
     }
 
     @Override
