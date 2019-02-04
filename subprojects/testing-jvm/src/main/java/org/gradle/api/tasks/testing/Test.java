@@ -975,7 +975,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *  <li>A value of <code>N</code> means that a new test process is started after <code>N</code> test classes.</li>
      * </ul>
      * This property can have a large impact on performance due to the cost of stopping and starting each test process. It is unusual for this property to be changed from the default.
-     * </p>
      *
      * @return The maximum number of test classes to execute in a test worker. Returns 0 when there is no maximum.
      */
@@ -1010,7 +1009,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * </ul>
      *
      * This property cannot exceed the value of {@literal max-workers} for the current build. Gradle will also limit the number of started test processes across all {@link Test} tasks.
-     * </p>
      *
      * @return The maximum number of forked test processes.
      */
