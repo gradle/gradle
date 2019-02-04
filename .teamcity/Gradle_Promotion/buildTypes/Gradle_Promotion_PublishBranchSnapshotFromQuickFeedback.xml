@@ -7,7 +7,9 @@
       <option name="artifactRules" value="incoming-build-receipt/build-receipt.properties =&gt; incoming-build-receipt&#xA;**/build/git-checkout/build/build-receipt.properties&#xA;**/build/distributions/*.zip =&gt; promote-build-distributions&#xA;**/build/website-checkout/data/releases.xml&#xA;**/build/git-checkout/build/reports/integTest/** =&gt; distribution-tests&#xA;**/smoke-tests/build/reports/tests/** =&gt; post-smoke-tests" />
       <option name="checkoutMode" value="ON_SERVER" />
     </options>
-    <parameters />
+    <parameters>
+      <param name="branch.qualifier" value="%dep.Gradle_Check_Stage_QuickFeedback_Trigger.teamcity.build.branch%" />
+    </parameters>
     <build-runners>
       <runner id="RUNNER_18" name="Promote" type="gradle-runner">
         <parameters>
