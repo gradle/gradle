@@ -47,6 +47,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.net.URI;
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -318,7 +320,13 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            URI url = locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+            boolean reachable = InetAddress.getByName(url.toString()).isReachable();
+            if (reachable) {
+                return url;
+            } else {
+                throw GradleException("Can't reach uri " + url);
+            }
         } else {
             return null;
         }
