@@ -976,7 +976,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * </ul>
      * This property can have a large impact on performance due to the cost of stopping and starting each test process. It is unusual for this property to be changed from the default.
      *
-     * @return The maximum number of test classes to execute in a test worker. Returns 0 when there is no maximum.
+     * @return The maximum number of test classes to execute in a test process. Returns 0 when there is no maximum.
      */
     @Internal
     public long getForkEvery() {
@@ -1005,7 +1005,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * By default, Gradle executes a single test class at a time.
      * <ul>
      *  <li>A value of <code>1</code> means to only execute a single test class in a single test process at a time. This is the default.</li>
-     *  <li>A value of <code>N</code> means that up to <code>N</code> test processes will be started to execute test classes. <b>This can improve test execution time.</b></li>
+     *  <li>A value of <code>N</code> means that up to <code>N</code> test processes will be started to execute test classes. <b>This can improve test execution time by running multiple test classes in parallel.</b></li>
      * </ul>
      *
      * This property cannot exceed the value of {@literal max-workers} for the current build. Gradle will also limit the number of started test processes across all {@link Test} tasks.
