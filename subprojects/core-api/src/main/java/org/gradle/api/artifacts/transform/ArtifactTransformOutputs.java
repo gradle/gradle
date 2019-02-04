@@ -24,7 +24,11 @@ import java.io.File;
 /**
  * The outputs of the artifact transform.
  *
- * <p>The order in which the methods on this interface are called is important, since the output of a transform is ordered.</p>
+ * <p>
+ *     The final output of the artifact transform is an ordered list of {@link File}s.
+ *     In the variant produced by this transform, each artifact will be replaced by the final output of the transform executed on the artifact.
+ *     This is why the order of calls to output registering methods on this interface is important.
+ * </p>
  *
  * @since 5.3
  */
@@ -32,9 +36,7 @@ import java.io.File;
 @HasInternalProtocol
 public interface ArtifactTransformOutputs {
     /**
-     * Registers an output file in the workspace of the transform.
-     *
-     * <p>The order of calls to this method is retained in the result of the transform.</p>
+     * Registers an output file or directory in the workspace of the transform.
      *
      * @param relativePath relative path of the output to the provided workspace
      * @return determined location of the output
@@ -42,9 +44,9 @@ public interface ArtifactTransformOutputs {
     File registerOutput(String relativePath);
 
     /**
-     * Registers an output file of the transform.
+     * Registers an output file or directory of the transform.
      *
-     * <p>This method needs be used when part of the {@link PrimaryInput} is the output of the transform.</p>
+     * <p>This method can be used when the {@link PrimaryInput} is one of the outputs of the transform.</p>
      *
      * @param output the output
      */
