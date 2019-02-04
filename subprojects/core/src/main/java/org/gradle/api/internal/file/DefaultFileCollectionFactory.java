@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
+    public static final String DEFAULT_DISPLAY_NAME = "file collection";
     private final PathToFileResolver fileResolver;
     @Nullable
     private final TaskResolver taskResolver;
@@ -90,7 +91,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal resolving(Object... files) {
-        return resolving("file collection", files);
+        return resolving(DEFAULT_DISPLAY_NAME, files);
     }
 
     @Override
@@ -104,11 +105,26 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    public FileCollectionInternal empty() {
+        return empty(DEFAULT_DISPLAY_NAME);
+    }
+
+    @Override
+    public FileCollectionInternal fixed(File... files) {
+        return fixed(DEFAULT_DISPLAY_NAME, files);
+    }
+
+    @Override
     public FileCollectionInternal fixed(final String displayName, File... files) {
         if (files.length == 0) {
             return new EmptyFileCollection(displayName);
         }
         return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+    }
+
+    @Override
+    public FileCollectionInternal fixed(Collection<File> files) {
+        return fixed(DEFAULT_DISPLAY_NAME, files);
     }
 
     @Override

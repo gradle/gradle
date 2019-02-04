@@ -30,7 +30,6 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
@@ -99,21 +98,21 @@ public class FileParameterUtils {
      *
      * Especially, values of type {@link Map} are resolved.
      */
-    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
+    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return;
         }
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileResolver, fileCollectionFactory, consumer);
+            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {
-            File outputFile = fileResolver.resolve(unpackedValue);
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
+            FileCollection outputFiles = fileCollectionFactory.resolving(unpackedValue);
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
     }
 
-    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, final PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
+    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
@@ -121,8 +120,8 @@ public class FileParameterUtils {
                     throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
                 }
                 String id = key.toString();
-                File file = resolver.resolve(entry.getValue());
-                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, file, outputType));
+                FileCollection outputFiles = fileCollectionFactory.resolving(entry.getValue());
+                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
             final List<File> roots = Lists.newArrayList();
@@ -156,7 +155,8 @@ public class FileParameterUtils {
             } else {
                 int index = 0;
                 for (File root : roots) {
-                    consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), root, outputType));
+                    FileCollectionInternal outputFiles = fileCollectionFactory.fixed(root);
+                    consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), outputFiles, outputType));
                 }
             }
         }

@@ -257,6 +257,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     ArtifactTransformListener artifactTransformListener,
                                                     // For now we assume absolute paths when dealing with dependencies
                                                     AbsolutePathFileCollectionFingerprinter dependencyFingerprinter,
+                                                    FileCollectionFactory fileCollectionFactory,
                                                     OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                                     ProjectFinder projectFinder,
@@ -267,6 +268,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTransformListener,
                 transformationWorkspaceProvider,
                 dependencyFingerprinter,
+                fileCollectionFactory,
                 outputFileCollectionFingerprinter,
                 classLoaderHierarchyHasher,
                 projectFinder,

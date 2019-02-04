@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
@@ -25,13 +25,11 @@ import java.io.File;
 
 public class DefaultCacheableOutputFilePropertySpec extends AbstractFilePropertySpec implements CacheableOutputFilePropertySpec {
     private final String propertySuffix;
-    private final File outputFile;
     private final TreeType outputType;
 
-    public DefaultCacheableOutputFilePropertySpec(String propertyName, @Nullable String propertySuffix, File outputFile, TreeType outputType) {
-        super(propertyName, OutputNormalizer.class, ImmutableFileCollection.of(outputFile));
+    public DefaultCacheableOutputFilePropertySpec(String propertyName, @Nullable String propertySuffix, FileCollection outputFiles, TreeType outputType) {
+        super(propertyName, OutputNormalizer.class, outputFiles);
         this.propertySuffix = propertySuffix;
-        this.outputFile = outputFile;
         this.outputType = outputType;
     }
 
@@ -43,7 +41,7 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
     @Override
     @Nullable
     public File getOutputFile() {
-        return outputFile;
+        return getPropertyFiles().getSingleFile();
     }
 
     @Override

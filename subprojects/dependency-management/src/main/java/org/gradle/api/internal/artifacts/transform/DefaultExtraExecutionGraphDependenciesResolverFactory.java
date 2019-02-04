@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Factory;
 
@@ -25,15 +26,17 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     private final Factory<ResolverResults> graphResults;
     private final Factory<ResolverResults> artifactResults;
     private final WorkNodeAction graphResolveAction;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction) {
+    public DefaultExtraExecutionGraphDependenciesResolverFactory(Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, WorkNodeAction graphResolveAction, FileCollectionFactory fileCollectionFactory) {
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
         this.graphResolveAction = graphResolveAction;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public ExecutionGraphDependenciesResolver create(ComponentIdentifier componentIdentifier) {
-        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, graphResolveAction);
+        return new DefaultExecutionGraphDependenciesResolver(componentIdentifier, graphResults, artifactResults, graphResolveAction, fileCollectionFactory);
     }
 }

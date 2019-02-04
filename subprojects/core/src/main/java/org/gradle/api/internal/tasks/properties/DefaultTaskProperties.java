@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +50,10 @@ public class DefaultTaskProperties implements TaskProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingProperty> validatingProperties;
 
-    public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
+    public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
-        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver, fileCollectionFactory);
+        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory);
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);

@@ -16,7 +16,7 @@
 
 package org.gradle.api.file
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -219,7 +219,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'Closure'        | 'project.layout.files({ "src/resource/file.txt" })'
         'FileCollection'             | 'List'           | 'project.layout.files([ "src/resource/file.txt" ])'
         'FileCollection'             | 'array'          | 'project.layout.files([ "src/resource/file.txt" ] as Object[])'
-        'FileCollection'             | 'FileCollection' | "project.layout.files(${ImmutableFileCollection.name}.of(new File('src/resource/file.txt')))"
+        'FileCollection'             | 'FileCollection' | "project.layout.files(project.layout.files('src/resource/file.txt'))"
         'FileCollection'             | 'Callable'       | "project.layout.files($STRING_CALLABLE)"
         'FileCollection'             | 'Provider'       | "project.layout.files(provider($STRING_CALLABLE))"
         'FileCollection'             | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
@@ -234,7 +234,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'ConfigurableFileCollection' | 'Closure'        | 'project.layout.configurableFiles({ "src/resource/file.txt" })'
         'ConfigurableFileCollection' | 'List'           | 'project.layout.configurableFiles([ "src/resource/file.txt" ])'
         'ConfigurableFileCollection' | 'array'          | 'project.layout.configurableFiles([ "src/resource/file.txt" ] as Object[])'
-        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.configurableFiles(${ImmutableFileCollection.name}.of(new File('src/resource/file.txt')))"
+        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.configurableFiles(project.layout.files('src/resource/file.txt'))"
         'ConfigurableFileCollection' | 'Callable'       | "project.layout.configurableFiles($STRING_CALLABLE)"
         'ConfigurableFileCollection' | 'Provider'       | "project.layout.configurableFiles(provider($STRING_CALLABLE))"
         'ConfigurableFileCollection' | 'nested objects' | "project.layout.configurableFiles({[{$STRING_CALLABLE}]})"

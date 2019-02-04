@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -53,24 +52,18 @@ class DefaultTaskOutputsTest extends Specification {
             }
         }
     }
-    private final resolver = TestFiles.resolver(temporaryFolder.testDirectory)
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
-    def project = Stub(ProjectInternal) {
-        getFileFileResolver() >> resolver
-    }
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
-        getProject() >> project
-        getProject() >> project
         getOutputs() >> { outputs }
         getInputs() >> Stub(TaskInputsInternal)
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), resolver, fileCollectionFactory)
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), fileCollectionFactory)
 
     void hasNoOutputsByDefault() {
         setup:

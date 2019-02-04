@@ -50,10 +50,8 @@ public interface FileOperations {
      * Creates an immutable file collection with the given paths. The paths are resolved
      * with the file resolver.
      *
-     * If no resolution is required, use {@link org.gradle.api.internal.file.collections.ImmutableFileCollection#of(File...)} instead.
-     *
      * @see #getFileResolver()
-.     */
+     */
     FileCollection immutableFiles(Object... paths);
 
     ConfigurableFileTree fileTree(Object baseDir);
