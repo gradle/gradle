@@ -84,6 +84,8 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
+ *
+ * <p>
  * The sample below shows various configuration options.
  *
  * <pre class='autoTested'>
@@ -963,9 +965,19 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached. The default value is 0 (no maximum).
+     * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached.
      *
-     * @return The maximum number of test classes. Returns 0 when there is no maximum.
+     * <p>
+     * By default, Gradle automatically uses a separate JVM when executing tests.
+     * <ul>
+     *  <li>A value of <code>0</code> (no limit) means to reuse the test process for all test classes. This is the default.</li>
+     *  <li>A value of <code>1</code> means that a new test process is started for <b>every</b> test class. <b>This is very expensive.</b></li>
+     *  <li>A value of <code>N</code> means that a new test process is started after <code>N</code> test classes.</li>
+     * </ul>
+     * This property can have a large impact on performance due to the cost of stopping and starting each test process. It is unusual for this property to be changed from the default.
+     * </p>
+     *
+     * @return The maximum number of test classes to execute in a test worker. Returns 0 when there is no maximum.
      */
     @Internal
     public long getForkEvery() {
@@ -973,7 +985,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Sets the maximum number of test classes to execute in a forked test process. Use null or 0 to use no maximum.
+     * Sets the maximum number of test classes to execute in a forked test process.
+     * <p>
+     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
+     * </p>
      *
      * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
      */
@@ -985,8 +1000,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel test execution).
-     * It cannot exceed the value of {@literal max-workers} for the current build.
+     * Returns the maximum number of test processes to start in parallel.
+     *
+     * <p>
+     * By default, Gradle executes a single test class at a time.
+     * <ul>
+     *  <li>A value of <code>1</code> means to only execute a single test class in a single test process at a time. This is the default.</li>
+     *  <li>A value of <code>N</code> means that up to <code>N</code> test processes will be started to execute test classes. <b>This can improve test execution time.</b></li>
+     * </ul>
+     *
+     * This property cannot exceed the value of {@literal max-workers} for the current build. Gradle will also limit the number of started test processes across all {@link Test} tasks.
+     * </p>
      *
      * @return The maximum number of forked test processes.
      */
@@ -996,9 +1020,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Sets the maximum number of forked test processes to execute in parallel. Set to 1 to disable parallel test execution.
-     *
-     * @param maxParallelForks The maximum number of forked test processes.
+     * Sets the maximum number of test processes to start in parallel.
+     * <p>
+     * By default, Gradle executes a single test class at a time but allows multiple {@link Test} tasks to run in parallel.
+     * </p>
+     * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
      */
     public void setMaxParallelForks(int maxParallelForks) {
         if (maxParallelForks < 1) {
