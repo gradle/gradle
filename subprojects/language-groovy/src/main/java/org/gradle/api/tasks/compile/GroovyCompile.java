@@ -23,7 +23,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -104,7 +103,7 @@ public class GroovyCompile extends AbstractCompile {
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? ImmutableFileCollection.of() : compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(Lists.newArrayList(compileOptions.getAnnotationProcessorPath() == null ? getProject().getLayout().files() : compileOptions.getAnnotationProcessorPath()));
         spec.setGroovyClasspath(Lists.newArrayList(getGroovyClasspath()));
         spec.setCompileOptions(compileOptions);
         spec.setGroovyCompileOptions(groovyCompileOptions);

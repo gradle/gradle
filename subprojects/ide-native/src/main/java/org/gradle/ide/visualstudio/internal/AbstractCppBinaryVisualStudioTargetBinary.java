@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.language.cpp.CppBinary;
 import org.gradle.language.cpp.CppComponent;
 import org.gradle.language.cpp.internal.DefaultCppBinary;
@@ -44,11 +44,13 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
     protected final String projectName;
     private final String projectPath;
     private final CppComponent component;
+    private final ProjectLayout projectLayout;
 
-    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component) {
+    protected AbstractCppBinaryVisualStudioTargetBinary(String projectName, String projectPath, CppComponent component, ProjectLayout projectLayout) {
         this.projectName = projectName;
         this.projectPath = projectPath;
         this.component = component;
+        this.projectLayout = projectLayout;
     }
 
     abstract CppBinary getBinary();
@@ -131,7 +133,7 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
 
     @Override
     public FileCollection getResourceFiles() {
-        return ImmutableFileCollection.of();
+        return projectLayout.files();
     }
 
     @Override
