@@ -105,6 +105,7 @@ fun packageDir(outputDir: File, packageName: String) =
 internal
 inline fun <T> DirectoryProperty.withOutputDirectory(action: (File) -> T): T =
     asFile.get().let { outputDir ->
+        outputDir.deleteRecursively()
         outputDir.mkdirs()
         action(outputDir)
     }
