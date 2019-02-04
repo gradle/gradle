@@ -672,7 +672,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public void run() {
                 resolveExclusively(GRAPH_RESOLVED);
             }
-        });
+        }, fileCollectionFactory);
     }
 
     private ResolverResults getResultsForBuildDependencies() {

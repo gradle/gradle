@@ -46,6 +46,21 @@ public interface FileCollectionFactory {
     FileCollectionInternal empty(String displayName);
 
     /**
+     * Creates an empty {@link FileCollection}
+     */
+    FileCollectionInternal empty();
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     */
+    FileCollectionInternal fixed(File... files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     */
+    FileCollectionInternal fixed(Collection<File> files);
+
+    /**
      * Creates a {@link FileCollection} with the given files as content.
      */
     FileCollectionInternal fixed(String displayName, File... files);

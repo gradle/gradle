@@ -38,7 +38,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -51,7 +50,6 @@ import java.util.concurrent.Callable;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;
-    private final PathToFileResolver fileResolver;
     private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<SelfDescribingSpec<TaskInternal>>();
@@ -61,12 +59,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, PathToFileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
         this.propertyWalker = propertyWalker;
-        this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
@@ -149,7 +146,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileResolver, fileCollectionFactory);
+        GetOutputFilesVisitor visitor = new GetOutputFilesVisitor(task.toString(), fileCollectionFactory);
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         return visitor.getFileProperties();
     }

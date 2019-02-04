@@ -33,7 +33,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.PropertyWalker
-import org.gradle.internal.file.PathToFileResolver
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -49,13 +48,12 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
     final taskContext = Mock(TaskExecutionContext)
     final repository = Mock(TaskExecutionModeResolver)
     final executionMode = TaskExecutionMode.INCREMENTAL
-    final resolver = Mock(PathToFileResolver)
     final fileCollectionFactory = Mock(FileCollectionFactory)
     final propertyWalker = Mock(PropertyWalker)
     final project = Mock(ProjectInternal)
     final Action<Task> action = Mock(Action)
 
-    final executer = new ResolveTaskExecutionModeExecuter(repository, resolver, fileCollectionFactory, propertyWalker, delegate)
+    final executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, delegate)
 
     def 'taskContext is initialized and cleaned as expected'() {
         when:

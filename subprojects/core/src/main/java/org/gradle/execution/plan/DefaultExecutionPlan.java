@@ -614,13 +614,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                             new Runnable() {
                                 @Override
                                 public void run() {
-                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, resolver, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
+                                    FileParameterUtils.resolveOutputFilePropertySpecs(task.toString(), propertyName, value, filePropertyType, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
                                         @Override
                                         public void accept(OutputFilePropertySpec outputFilePropertySpec) {
                                             mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()));
                                         }
                                     });
-
                                 }
                             }
                         );
