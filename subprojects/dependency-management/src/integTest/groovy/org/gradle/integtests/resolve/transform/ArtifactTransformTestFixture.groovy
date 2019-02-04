@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.test.fixtures.file.TestFile
 
-
 trait ArtifactTransformTestFixture {
     abstract TestFile getBuildFile()
 
@@ -76,10 +75,9 @@ class Producer extends DefaultTask {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransform {
+        registerTransformAction(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
-            artifactTransform(MakeGreen)
         }
     }
 }

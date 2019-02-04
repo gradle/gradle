@@ -24,7 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to an artifact transform configuration type to declare the corresponding {@link ArtifactTransform} implementation to use.
+ * Attached to an artifact transform parameter type to declare the corresponding {@link ArtifactTransformAction} implementation to use.
  *
  * @since 5.2
  */
@@ -32,5 +32,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface TransformAction {
-    Class<? extends ArtifactTransform> value();
+    Class<? extends ArtifactTransformAction> value();
 }

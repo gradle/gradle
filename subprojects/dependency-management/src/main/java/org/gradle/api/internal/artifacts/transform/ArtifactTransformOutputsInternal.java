@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.attributes.AttributeContainer;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
 
-/**
- * Base configuration for artifact transform registrations.
- *
- * @since 5.2
- */
-@Incubating
-public interface ArtifactTransformSpec {
-    /**
-     * Attributes that match the variant that is consumed.
-     */
-    AttributeContainer getFrom();
+import java.io.File;
 
-    /**
-     * Attributes that match the variant that is produced.
-     */
-    AttributeContainer getTo();
+public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
+    ImmutableList<File> getRegisteredOutputs();
 }

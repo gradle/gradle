@@ -16,23 +16,24 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.AttributeContainer;
 
 /**
- * Base configuration for artifact transform registrations.
+ * Defines an artifact transformation.
  *
- * @since 5.2
+ * @param <T> The transform specific parameter type.
+ * @since 5.3
  */
 @Incubating
-public interface ArtifactTransformSpec {
+public interface ParameterizedArtifactTransformSpec<T> extends ArtifactTransformSpec {
     /**
-     * Attributes that match the variant that is consumed.
+     * The parameters for the transform action.
      */
-    AttributeContainer getFrom();
+    T getParameters();
 
     /**
-     * Attributes that match the variant that is produced.
+     * Configure the parameters for the transform action.
      */
-    AttributeContainer getTo();
+    void parameters(Action<? super T> action);
 }
