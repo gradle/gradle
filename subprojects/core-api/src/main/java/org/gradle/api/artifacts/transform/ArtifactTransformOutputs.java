@@ -48,12 +48,12 @@ public interface ArtifactTransformOutputs {
      *
      * @param output the output
      */
-    void registerOutputFile(File output);
+    void registerOutput(File output);
 
     /**
      * Registers the provided workspace as the output of the transform.
      *
      * @return location of the workspace directory
      */
-    File registerWorkspaceAsOutputDirectory();
+    File registerWorkspaceAsOutput();
 }

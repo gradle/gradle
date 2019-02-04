@@ -810,7 +810,7 @@ $fileSizer
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println("Transforming")
-                    File outputDirectory = outputs.registerWorkspaceAsOutputDirectory()
+                    File outputDirectory = outputs.registerWorkspaceAsOutput()
                     new File(outputDirectory, "some-output.txt").text = "\${input.length()}"
                 }
             }
@@ -856,7 +856,7 @@ $fileSizer
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println("Transforming")
-                    outputs.registerOutputFile(input)
+                    outputs.registerOutput(input)
                 }
             }
 
