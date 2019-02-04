@@ -261,7 +261,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     private
     val FoldersDsl.relativePath
-        get() = folder.relativeTo(projectRoot).path
+        get() = root.relativeTo(projectRoot).path
 
     private
     fun jarForPlugin(id: String, implClass: String): File =

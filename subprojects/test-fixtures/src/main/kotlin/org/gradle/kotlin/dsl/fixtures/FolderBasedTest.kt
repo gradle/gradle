@@ -38,7 +38,7 @@ fun File.withFolders(folders: FoldersDslExpression) =
     apply { FoldersDsl(this).folders() }
 
 
-class FoldersDsl(val folder: File) {
+class FoldersDsl(val root: File) {
 
     operator fun String.invoke(subFolders: FoldersDslExpression): File =
         (+this).withFolders(subFolders)
@@ -61,5 +61,5 @@ class FoldersDsl(val folder: File) {
         file(fileName).canonicalFile
 
     fun file(fileName: String): File =
-        File(folder, fileName)
+        File(root, fileName)
 }
