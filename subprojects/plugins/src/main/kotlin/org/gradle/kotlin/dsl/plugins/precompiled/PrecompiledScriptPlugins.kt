@@ -146,9 +146,11 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
         }
 
         val generatePrecompiledScriptPluginAccessors by registering(GeneratePrecompiledScriptPluginAccessors::class) {
+            dependsOn(generatePluginSpecBuilders)
             classPathFiles = sourceSets["main"].compileClasspath
             sourceCodeOutputDir.set(generatedAccessors)
             metadataOutputDir.set(generatedMetadata)
+            pluginSpecBuilders.set(generatedPluginSpecBuilders)
             plugins = scriptPlugins
         }
 

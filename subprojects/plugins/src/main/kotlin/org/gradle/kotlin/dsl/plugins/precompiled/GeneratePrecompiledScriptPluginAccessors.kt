@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -34,6 +35,8 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+
 import java.io.File
 
 
@@ -42,6 +45,9 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     @get:OutputDirectory
     var metadataOutputDir = project.objects.directoryProperty()
+
+    @get:InputDirectory
+    var pluginSpecBuilders = project.objects.directoryProperty()
 
     @get:Internal
     internal
@@ -68,23 +74,25 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     @TaskAction
     fun generate() {
         withAsynchronousIO(project) {
-            plugins.mapNotNull {
+            plugins.asSequence().mapNotNull {
                 scriptWithPluginsBlock(it)
             }.groupBy {
                 it.pluginsBlock.plugins
-            }.map {
-                it to HashedProjectSchema(projectSchemaImpliedBy(it.key))
-            }.groupBy(
-                { (_, projectSchema) -> projectSchema },
-                { (pluginGroup, _) -> pluginGroup.value }
-            ).forEach { (projectSchema, pluginGroups) ->
+            }.let {
+                projectSchemaImpliedByPluginGroups(it)
+            }.forEach { (projectSchema, pluginGroups) ->
                 writeTypeSafeAccessorsFor(projectSchema)
-                for (scriptPlugin in pluginGroups.asIterable().flatten()) {
+                for (scriptPlugin in pluginGroups) {
                     writeContentAddressableImplicitImportFor(scriptPlugin, projectSchema.packageName)
                 }
             }
         }
     }
+
+    private
+    fun projectSchemaImpliedByPluginGroups(
+        pluginGroupsPerPluginsBlock: Map<List<PluginApplication>, List<ScriptWithPluginsBlock>>
+    ): Iterable<Pair<HashedProjectSchema, List<ScriptWithPluginsBlock>>> = emptyList() // TODO
 
     private
     fun IO.writeTypeSafeAccessorsFor(projectSchema: HashedProjectSchema) {
@@ -104,8 +112,10 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     fun hashBytesOf(file: File) = Hashing.hashBytes(file.readBytes())
 
     private
-    fun scriptWithPluginsBlock(plugin: ScriptPlugin): ScriptWithPluginsBlock? =
-        null
+    fun scriptWithPluginsBlock(plugin: ScriptPlugin): ScriptWithPluginsBlock? {
+        if (plugin.scriptType != KotlinScriptType.PROJECT) return null
+        return null
+    }
 
     private
     fun projectSchemaImpliedBy(

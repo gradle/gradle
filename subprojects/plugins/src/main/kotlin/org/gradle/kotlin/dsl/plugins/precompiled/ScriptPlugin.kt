@@ -75,7 +75,6 @@ data class ScriptPlugin(internal val scriptFile: File) {
         }
     }
 
-    private
     val scriptType
         get() = scriptTypeMatch.scriptType
 
