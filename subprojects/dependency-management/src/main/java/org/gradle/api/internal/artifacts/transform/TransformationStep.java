@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -32,6 +33,8 @@ import java.io.File;
  */
 public class TransformationStep implements Transformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
+    public static final Equivalence<TransformationStep> FOR_SCHEDULING = Equivalence.equals().onResultOf(step -> step.transformer.getSecondaryInputHash());
+
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
@@ -93,23 +96,5 @@ public class TransformationStep implements Transformation {
     @Override
     public String toString() {
         return String.format("%s@%s", transformer.getDisplayName(), transformer.getSecondaryInputHash());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        TransformationStep that = (TransformationStep) o;
-        return transformer.equals(that.transformer);
-    }
-
-    @Override
-    public int hashCode() {
-        return transformer.hashCode();
     }
 }

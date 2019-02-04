@@ -74,23 +74,4 @@ public abstract class AbstractTransformer<T> implements Transformer {
     public String getDisplayName() {
         return implementationClass.getSimpleName();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AbstractTransformer<?> that = (AbstractTransformer<?>) o;
-
-        return inputsHash.equals(that.inputsHash);
-    }
-
-    @Override
-    public int hashCode() {
-        return inputsHash.hashCode();
-    }
 }
