@@ -14,11 +14,6 @@ import java.util.*
  */
 open class AbstractPluginTest : AbstractIntegrationTest() {
 
-    @Before
-    fun setUpTestPluginRepository() {
-        withSettings(pluginManagementBlock)
-    }
-
     override val defaultSettingsScript: String
         get() = pluginManagementBlock
 
@@ -84,6 +79,11 @@ open class AbstractPluginTest : AbstractIntegrationTest() {
     protected
     open val testRepositoryPaths: List<String>
         get() = normalisedPathsOf("build/repository")
+
+    @Before
+    fun setUpTestPluginRepository() {
+        withSettings(pluginManagementBlock)
+    }
 
     protected
     fun buildWithPlugin(vararg arguments: String) =
