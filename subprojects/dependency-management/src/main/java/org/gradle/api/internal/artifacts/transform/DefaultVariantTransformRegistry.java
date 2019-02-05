@@ -32,13 +32,9 @@ import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -47,23 +43,15 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<Registration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final IsolatableFactory isolatableFactory;
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
-    private final TransformerInvoker transformerInvoker;
-    private final ValueSnapshotter valueSnapshotter;
-    private final PropertyWalker propertyWalker;
+    private final TransformationRegistrationFactory registrationFactory;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ServiceRegistry services, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.isolatableFactory = isolatableFactory;
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.services = services;
-        this.transformerInvoker = transformerInvoker;
-        this.valueSnapshotter = valueSnapshotter;
-        this.propertyWalker = propertyWalker;
+        this.registrationFactory = registrationFactory;
     }
 
     @Override
@@ -75,7 +63,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateAttributes(registration);
 
         Object[] parameters = registration.getTransformParameters();
-        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker);
+        Registration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
         transforms.add(finalizedRegistration);
     }
 
@@ -101,7 +89,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateActionType(actionType);
         validateAttributes(registration);
 
-        Registration finalizedRegistration = DefaultTransformationRegistration.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject, isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
+        Registration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
         transforms.add(finalizedRegistration);
     }
 

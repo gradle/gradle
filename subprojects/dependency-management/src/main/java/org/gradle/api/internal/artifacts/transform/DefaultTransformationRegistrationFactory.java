@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,13 +52,26 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
 
-public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
+public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
 
-    private final ImmutableAttributes from;
-    private final ImmutableAttributes to;
-    private final TransformationStep transformationStep;
+    private final IsolatableFactory isolatableFactory;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final InstantiatorFactory instantiatorFactory;
+    private final TransformerInvoker transformerInvoker;
+    private final ValueSnapshotter valueSnapshotter;
+    private final PropertyWalker propertyWalker;
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+    public DefaultTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+        this.isolatableFactory = isolatableFactory;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.instantiatorFactory = instantiatorFactory;
+        this.transformerInvoker = transformerInvoker;
+        this.valueSnapshotter = valueSnapshotter;
+        this.propertyWalker = propertyWalker;
+    }
+
+    @Override
+    public VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject) {
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
@@ -79,7 +92,8 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker) {
+    @Override
+    public VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
@@ -154,24 +168,31 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         }
     }
 
-    private DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
-        this.from = from;
-        this.to = to;
-        this.transformationStep = transformationStep;
-    }
+    private static class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
-    @Override
-    public AttributeContainerInternal getFrom() {
-        return from;
-    }
+        private final ImmutableAttributes from;
+        private final ImmutableAttributes to;
+        private final TransformationStep transformationStep;
 
-    @Override
-    public AttributeContainerInternal getTo() {
-        return to;
-    }
+        public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+            this.from = from;
+            this.to = to;
+            this.transformationStep = transformationStep;
+        }
 
-    @Override
-    public TransformationStep getTransformationStep() {
-        return transformationStep;
+        @Override
+        public AttributeContainerInternal getFrom() {
+            return from;
+        }
+
+        @Override
+        public AttributeContainerInternal getTo() {
+            return to;
+        }
+
+        @Override
+        public TransformationStep getTransformationStep() {
+            return transformationStep;
+        }
     }
 }
