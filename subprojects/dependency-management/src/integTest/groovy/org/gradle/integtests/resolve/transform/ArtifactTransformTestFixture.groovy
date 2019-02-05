@@ -68,9 +68,9 @@ class Producer extends DefaultTask {
 
     /**
      * Each project produces 'blue' variants, and has a task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
-     * Caller will need to provide an implementation of 'MakeGreen' transform
+     * Caller will need to provide an implementation of 'MakeGreen' transform action
      */
-    void setupBuildWithColorTransform() {
+    void setupBuildWithColorTransformAction() {
         setupBuildWithColorAttributes()
         buildFile << """
 allprojects {
@@ -78,6 +78,27 @@ allprojects {
         registerTransformAction(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
+        }
+    }
+}
+"""
+    }
+
+    /**
+     * Each project produces 'blue' variants, and has a task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
+     * Caller will need to provide an implementation of 'MakeGreen' transform configuration and a `makeGreenParameters()` method to apply to the configuration object
+     */
+    void setupBuildWithColorTransform() {
+        setupBuildWithColorAttributes()
+        buildFile << """
+allprojects { p ->
+    dependencies {
+        registerTransform(MakeGreen) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+            parameters {
+                makeGreenParameters(p, it)
+            }
         }
     }
 }
