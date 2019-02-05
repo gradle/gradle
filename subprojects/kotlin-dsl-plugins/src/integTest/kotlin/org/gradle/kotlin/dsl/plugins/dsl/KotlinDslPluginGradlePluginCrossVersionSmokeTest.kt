@@ -55,6 +55,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         if (kotlinVersion == "1.2.20") {
             assumeJavaLessThan11()
         }
+        requireGradleDistributionOnEmbeddedExecuter()
         executer.noDeprecationChecks()
 
         withDefaultSettingsIn("buildSrc")
