@@ -17,6 +17,7 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
+import build.withCompileOnlyGradleApiModulesWithParameterNames
 import plugins.bundledGradlePlugin
 
 plugins {
@@ -30,6 +31,8 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
+withCompileOnlyGradleApiModulesWithParameterNames(":pluginDevelopment")
+
 dependencies {
     compileOnly(project(":kotlinDsl"))
 
@@ -38,6 +41,7 @@ dependencies {
     implementation(futureKotlin("sam-with-receiver"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(project(":plugins"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":apiMetadata"))
