@@ -41,13 +41,13 @@ open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
     @Classpath
     val expected = project.files()
 
-    val outputFile: File
+    val receiptFile: File
         @OutputFile get() = temporaryDir.resolve("output")
 
     @TaskAction
     @Suppress("unused")
     fun check() {
-        outputFile.delete()
+        receiptFile.delete()
         val currentFiles = current.files.sorted()
         val expectedFiles = expected.files.filterNot { it.name.startsWith("kotlin-compiler-embeddable-") }.sorted()
         require(currentFiles == expectedFiles) {
@@ -57,6 +57,6 @@ open class CheckKotlinCompilerEmbeddableDependencies : DefaultTask() {
             message += "Please fix dependency declarations in ${project.buildFile.relativeTo(project.rootDir)}"
             message
         }
-        outputFile.writeText("OK")
+        receiptFile.writeText("OK")
     }
 }
