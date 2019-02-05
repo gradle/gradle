@@ -35,6 +35,7 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -42,6 +43,7 @@ import java.io.File
 
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @Ignore("wip")
     @Test
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
