@@ -25,7 +25,11 @@ plugins {
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
-version = "1.1.2"
+
+group = "org.gradle.kotlin"
+version = "1.2.2"
+
+base.archivesBaseName = "plugins"
 
 gradlebuildJava {
     moduleType = ModuleType.INTERNAL

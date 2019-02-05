@@ -77,7 +77,7 @@ sourceSets.main {
     }
 }
 
-val publishedKotlinDslPluginVersion = "1.1.3" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.1" // TODO:kotlin-dsl
 
 tasks {
 
