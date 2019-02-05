@@ -47,6 +47,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     var metadataOutputDir = project.objects.directoryProperty()
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     var pluginSpecBuilders = project.objects.directoryProperty()
 
     @get:Internal
