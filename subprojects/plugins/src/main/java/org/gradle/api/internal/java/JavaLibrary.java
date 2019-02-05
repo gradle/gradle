@@ -18,15 +18,9 @@ package org.gradle.api.internal.java;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.component.ComponentWithFeatures;
-import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -34,7 +28,6 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 import org.gradle.api.internal.java.usagecontext.LazyConfigurationUsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.specs.Spec;
 
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
@@ -50,7 +43,7 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
  *  @deprecated Replaced by the {@link org.gradle.api.component.AdhocComponentWithVariants public software component API}
  */
 @Deprecated
-public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInternal {
+public class JavaLibrary implements SoftwareComponentInternal {
 
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
@@ -104,23 +97,5 @@ public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInte
         ImmutableAttributes attributes = attributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
         return new LazyConfigurationUsageContext("api", API_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, attributes);
     }
-
-    @Override
-    public void addFeatureVariantsFromConfiguration(Configuration outgoingConfiguration, final Spec<? super ConfigurationVariant> spec) {
-        if (featureVariants == null) {
-            featureVariants = Lists.newArrayListWithExpectedSize(2);
-        }
-        featureVariants.add(new ConfigurationVariantMapping(outgoingConfiguration, new Action<ConfigurationVariantDetails>() {
-            @Override
-            public void execute(ConfigurationVariantDetails details) {
-                if (spec.isSatisfiedBy(details.getConfigurationVariant())) {
-                    details.mapToMavenScope("compile", true);
-                } else {
-                    details.skip();
-                }
-            }
-        }));
-    }
-
 
 }
