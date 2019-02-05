@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
-public abstract class AbstractSingletonFileTree implements SingletonFileTree, PatternFilterableFileTree {
+public abstract class AbstractSingletonFileTree implements SingletonFileTree, PatternFilterableFileTree, FileSystemMirroringFileTree {
     private final PatternSet patterns;
 
     protected AbstractSingletonFileTree(PatternSet patterns) {
@@ -51,5 +51,10 @@ public abstract class AbstractSingletonFileTree implements SingletonFileTree, Pa
         PatternSet patternSet = this.patterns.intersect();
         patternSet.copyFrom(patterns);
         return patternSet;
+    }
+
+    @Override
+    public DirectoryFileTree getMirror() {
+        return new FileBackedDirectoryFileTree(getFile()).filter(patterns);
     }
 }
