@@ -56,14 +56,11 @@ open class ParameterNamesIndex : DefaultTask() {
     val destinationFile = project.objects.fileProperty()
 
     @TaskAction
-    fun generate() {
-        if (sources.isEmpty) destinationFile.get().asFile.writeText("")
-        else generateParameterNamesResource(
-            sources.files,
-            classpath.files,
-            destinationFile.get().asFile
-        )
-    }
+    fun generate(): Unit =
+        destinationFile.get().asFile.let {
+            if (sources.isEmpty) it.writeText("")
+            else generateParameterNamesResource(sources.files, classpath.files, it)
+        }
 
     private
     fun generateParameterNamesResource(sources: Set<File>, classpath: Set<File>, destinationFile: File) {
