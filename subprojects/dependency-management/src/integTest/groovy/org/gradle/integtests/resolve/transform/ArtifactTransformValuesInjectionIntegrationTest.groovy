@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.artifacts.transform.PrimaryInput
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
@@ -83,18 +84,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorAttributes()
+        setupBuildWithColorTransform()
         buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                    }
-                }
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
             }
             
             project(':a') {
@@ -140,67 +133,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
     }
 
-    def "transform can receive file collection via parameter object"() {
-        settingsFile << """
-                include 'a', 'b', 'c'
-            """
-        setupBuildWithColorAttributes()
-        buildFile << """
-                allprojects {
-                    dependencies {
-                        registerTransform(MakeGreen) {
-                            from.attribute(color, 'blue')
-                            to.attribute(color, 'green')
-                            parameters {
-                            someFiles.from('a.txt')
-                            someFiles.from('b.txt')
-                        }
-                    }
-                }
-            }
-            
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-            
-            @TransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                ConfigurableFileCollection getSomeFiles()
-            }
-            
-            abstract class MakeGreenAction implements ArtifactTransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
-                @PrimaryInput
-                abstract File getInput()
-                
-                void transform(ArtifactTransformOutputs outputs) {
-                    println "processing \${input.name} using \${parameters.someFiles*.name}"
-                    def output = outputs.registerOutput(input.name + ".green")
-                    output.text = "ok"
-                }
-            }
-"""
-
-        when:
-        run(":a:resolve")
-
-        then:
-        outputContains("processing b.jar using [a.txt, b.txt]")
-        outputContains("processing c.jar using [a.txt, b.txt]")
-        outputContains("result = [b.jar.green, c.jar.green]")
-    }
-
     @Unroll
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransformAction()
         buildFile << """
 
 project(':a') {
@@ -242,7 +180,7 @@ abstract class MakeGreen implements ArtifactTransformAction {
     }
 
     @Unroll
-    def "old style transform cannot use @#annotation"() {
+    def "old style transform cannot use @#annotation.name"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -286,25 +224,17 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
 
         where:
-        annotation << [PrimaryInput, PrimaryInputDependencies]
+        annotation << [PrimaryInput, PrimaryInputDependencies, TransformParameters]
     }
 
     def "transform cannot receive parameter object via constructor parameter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorAttributes()
+        setupBuildWithColorTransform()
         buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform(MakeGreen) {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        parameters {
-                            extension = 'green'
-                        }
-                    }
-                }
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
             }
             
             project(':a') {
@@ -353,7 +283,7 @@ abstract class MakeGreen extends ArtifactTransform {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransformAction()
         buildFile << """
 
 project(':a') {
@@ -383,11 +313,11 @@ abstract class MakeGreen implements ArtifactTransformAction {
         failure.assertHasCause("No service of type interface ${FileCollection.name} available.")
     }
 
-    def "transform cannot use @Inject to receive workspace or input file"() {
+    def "transform cannot use @Inject to receive input file"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransformAction()
         buildFile << """
 
 project(':a') {
@@ -418,10 +348,10 @@ abstract class MakeGreen implements ArtifactTransformAction {
     }
 
     @Unroll
-    def "task implementation cannot use #annotation"() {
+    def "task implementation cannot use #annotation.name"() {
         buildFile << """
             class MyTask extends DefaultTask {
-                ${annotation}
+                @${annotation.name}
                 File getThing() { null }
             }
 
@@ -432,9 +362,9 @@ abstract class MakeGreen implements ArtifactTransformAction {
         fails('broken')
         failure.assertHasCause("Could not create task of type 'MyTask'.")
         failure.assertHasCause("Could not generate a decorated class for class MyTask.")
-        failure.assertHasCause("Cannot use ${annotation} annotation on method MyTask.getThing().")
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:
-        annotation << ["@PrimaryInput", "@PrimaryInputDependencies"]
+        annotation << [PrimaryInput, PrimaryInputDependencies, TransformParameters]
     }
 }
