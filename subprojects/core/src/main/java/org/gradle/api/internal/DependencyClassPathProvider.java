@@ -65,9 +65,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     private ClassPath initGradleApi() {
         ClassPath classpath = ClassPath.EMPTY;
         for (String moduleName : Arrays.asList("gradle-core", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
-            for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
-            }
+            classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
@@ -84,10 +82,6 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath gradleKotlinDsl() {
-        ClassPath classpath = ClassPath.EMPTY;
-        for (Module module : moduleRegistry.getModule("gradle-kotlin-dsl").getAllRequiredModules()) {
-            classpath = classpath.plus(module.getClasspath());
-        }
-        return classpath;
+        return moduleRegistry.getModule("gradle-kotlin-dsl").getAllRequiredModulesClasspath();
     }
 }

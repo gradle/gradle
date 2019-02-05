@@ -390,6 +390,15 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
             return modules;
         }
 
+        @Override
+        public ClassPath getAllRequiredModulesClasspath() {
+            ClassPath classPath = ClassPath.EMPTY;
+            for (Module module : getAllRequiredModules()) {
+                classPath = classPath.plus(module.getClasspath());
+            }
+            return classPath;
+        }
+
         private void collectRequiredModules(Set<Module> modules) {
             if (!modules.add(this)) {
                 return;
