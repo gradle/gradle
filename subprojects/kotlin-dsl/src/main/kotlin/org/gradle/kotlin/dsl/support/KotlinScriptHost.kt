@@ -42,8 +42,11 @@ class KotlinScriptHost<out T : Any>(
     val fileName = scriptSource.fileName!!
 
     internal
-    val operations by unsafeLazy {
-        fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile)
+    val scriptServices by unsafeLazy {
+        KotlinScriptServices(
+            fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile),
+            serviceRegistry.get()
+        )
     }
 
     internal
@@ -54,7 +57,7 @@ class KotlinScriptHost<out T : Any>(
     private
     fun createObjectConfigurationAction() =
         DefaultObjectConfigurationAction(
-            operations.fileResolver,
+            scriptServices.fileOperations.fileResolver,
             serviceRegistry.get(),
             serviceRegistry.get(),
             baseScope,

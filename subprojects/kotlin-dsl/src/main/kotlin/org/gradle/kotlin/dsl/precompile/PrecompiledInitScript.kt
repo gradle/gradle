@@ -40,5 +40,5 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 abstract class PrecompiledInitScript(target: Gradle) : InitScriptApi(target) {
 
-    override val operations by lazy { fileOperationsFor(gradle, null) }
+    override val fileOperations by lazy { fileOperationsFor(gradle, null) }
 }

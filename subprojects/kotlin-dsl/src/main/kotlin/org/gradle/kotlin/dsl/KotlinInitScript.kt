@@ -24,7 +24,8 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -87,8 +88,11 @@ abstract class KotlinInitScript(
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
 
-    override val operations
-        get() = host.operations
+    override val fileOperations
+        get() = host.scriptServices.fileOperations
+
+    override val processOperations
+        get() = host.scriptServices.processOperations
 }
 
 
@@ -99,7 +103,10 @@ abstract class KotlinInitScript(
 abstract class InitScriptApi(target: Gradle) : Gradle by target {
 
     protected
-    abstract val operations: DefaultFileOperations
+    abstract val fileOperations: FileOperations
+
+    protected
+    abstract val processOperations: ProcessOperations
 
     /**
      * Configures the classpath of the init script.
@@ -126,7 +133,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
     @Suppress("unused")
-    val resources: ResourceHandler by unsafeLazy { operations.resources }
+    val resources: ResourceHandler by unsafeLazy { fileOperations.resources }
 
     /**
      * Returns the relative path from this script's target base directory to the given path.
@@ -139,7 +146,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun relativePath(path: Any): String =
-        operations.relativePath(path)
+        fileOperations.relativePath(path)
 
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
@@ -149,7 +156,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun uri(path: Any): URI =
-        operations.uri(path)
+        fileOperations.uri(path)
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -183,7 +190,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun file(path: Any): File =
-        operations.file(path)
+        fileOperations.file(path)
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -195,7 +202,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
-        operations.file(path, validation)
+        fileOperations.file(path, validation)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -242,7 +249,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(vararg paths: Any): ConfigurableFileCollection =
-        operations.configurableFiles(paths)
+        fileOperations.configurableFiles(paths)
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -254,7 +261,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        operations.configurableFiles(paths).also(configuration)
+        fileOperations.configurableFiles(paths).also(configuration)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -270,7 +277,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any): ConfigurableFileTree =
-        operations.fileTree(baseDir)
+        fileOperations.fileTree(baseDir)
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -282,7 +289,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
-        operations.fileTree(baseDir).also(configuration)
+        fileOperations.fileTree(baseDir).also(configuration)
 
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
@@ -300,7 +307,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun zipTree(zipPath: Any): FileTree =
-        operations.zipTree(zipPath)
+        fileOperations.zipTree(zipPath)
 
     /**
      * Creates a new [FileTree] which contains the contents of the given TAR file.
@@ -323,7 +330,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun tarTree(tarPath: Any): FileTree =
-        operations.tarTree(tarPath)
+        fileOperations.tarTree(tarPath)
 
     /**
      * Copies the specified files.
@@ -333,7 +340,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun copy(configuration: CopySpec.() -> Unit): WorkResult =
-        operations.copy(configuration)
+        fileOperations.copy(configuration)
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -342,7 +349,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun copySpec(): CopySpec =
-        operations.copySpec()
+        fileOperations.copySpec()
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -352,7 +359,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun copySpec(configuration: CopySpec.() -> Unit): CopySpec =
-        operations.copySpec().also(configuration)
+        fileOperations.copySpec().also(configuration)
 
     /**
      * Creates a directory and returns a file pointing to it.
@@ -363,7 +370,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun mkdir(path: Any): File =
-        operations.mkdir(path)
+        fileOperations.mkdir(path)
 
     /**
      * Deletes files and directories.
@@ -375,7 +382,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun delete(vararg paths: Any): Boolean =
-        operations.delete(*paths)
+        fileOperations.delete(*paths)
 
     /**
      * Deletes the specified files.
@@ -385,7 +392,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =
-        operations.delete(configuration)
+        fileOperations.delete(configuration)
 
     /**
      * Executes an external command.
@@ -397,7 +404,7 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        operations.exec(configuration)
+        processOperations.exec(configuration)
 
     /**
      * Executes an external Java process.
@@ -409,5 +416,5 @@ abstract class InitScriptApi(target: Gradle) : Gradle by target {
      */
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        operations.javaexec(configuration)
+        processOperations.javaexec(configuration)
 }

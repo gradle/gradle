@@ -25,8 +25,10 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -86,8 +88,11 @@ abstract class KotlinSettingsScript(
     override fun getBuildscript(): ScriptHandler =
         host.scriptHandler
 
-    override val fileOperations: DefaultFileOperations
-        get() = host.operations
+    override val fileOperations
+        get() = host.scriptServices.fileOperations
+
+    override val processOperations
+        get() = host.scriptServices.processOperations
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
@@ -101,7 +106,10 @@ abstract class KotlinSettingsScript(
 abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
 
     protected
-    abstract val fileOperations: DefaultFileOperations
+    abstract val fileOperations: FileOperations
+
+    protected
+    abstract val processOperations: ProcessOperations
 
     /**
      * Logger for settings. You can use this in your settings file to write log messages.
@@ -390,7 +398,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        fileOperations.exec(configuration)
+        processOperations.exec(configuration)
 
     /**
      * Executes an external Java process.
@@ -402,7 +410,7 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
      */
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        fileOperations.javaexec(configuration)
+        processOperations.javaexec(configuration)
 
     /**
      * Configures the build script classpath for settings.
@@ -416,17 +424,17 @@ abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
 
 
 internal
-fun fileOperationsFor(settings: Settings): DefaultFileOperations =
+fun fileOperationsFor(settings: Settings): FileOperations =
     fileOperationsFor(settings.gradle, settings.rootDir)
 
 
 internal
-fun fileOperationsFor(gradle: Gradle, baseDir: File?): DefaultFileOperations =
+fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
     fileOperationsFor((gradle as GradleInternal).services, baseDir)
 
 
 internal
-fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): DefaultFileOperations {
+fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
     val fileLookup = services.get<FileLookup>()
     return DefaultFileOperations(
         baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver,
