@@ -37,7 +37,7 @@ class DefaultSwiftLibraryTest extends Specification {
     DefaultSwiftLibrary library
 
     def setup() {
-        library = new DefaultSwiftLibrary("main", project.objects, project.fileOperations, project.configurations)
+        library = project.objects.newInstance(DefaultSwiftLibrary, "main")
     }
 
     def "has display name"() {

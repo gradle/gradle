@@ -22,7 +22,6 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.jvm.Jvm;
@@ -164,7 +163,7 @@ public class JavaInstallationProbe {
         exec.executable(javaExe(jdkPath, "java"));
         File workingDir = Files.createTempDir();
         exec.setWorkingDir(workingDir);
-        exec.setClasspath(ImmutableFileCollection.of(workingDir));
+        exec.classpath(workingDir);
         try {
             writeProbe(workingDir);
             exec.setMain(JavaProbe.CLASSNAME);

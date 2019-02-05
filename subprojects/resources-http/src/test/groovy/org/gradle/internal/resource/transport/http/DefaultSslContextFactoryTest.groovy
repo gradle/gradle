@@ -140,7 +140,7 @@ class DefaultSslContextFactoryTest extends Specification {
         notThrown(SSLInitializationException)
     }
 
-    // NOTE: A keystore and a truststore are generally both simmply a JKS
+    // NOTE: A keystore and a truststore are generally both simply a JKS
     //       file.  A default "keystore" is always shipped with the JRE and
     //       it contains simply trusted public certificates, and it is the
     //       default truststore used when one is not explicitly specified.

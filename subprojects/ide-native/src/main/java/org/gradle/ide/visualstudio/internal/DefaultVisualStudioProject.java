@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -64,21 +63,21 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final ConfigurableFileCollection sourceFiles;
     private final ConfigurableFileCollection headerFiles;
 
-    public DefaultVisualStudioProject(String name, String componentName, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory, FileOperations fileOperations) {
+    public DefaultVisualStudioProject(String name, String componentName, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.name = name;
         this.componentName = componentName;
         this.visualStudioVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_VISUAL_STUDIO_VERSION);
         this.sdkVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_SDK_VERSION);
         this.projectFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
         this.filtersFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
-        this.sourceFiles = fileOperations.configurableFiles(providerFactory.provider(() -> {
+        this.sourceFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
             Set<File> allSourcesFromBinaries = new LinkedHashSet<File>();
             for (VisualStudioTargetBinary binary : configurations.keySet()) {
                 allSourcesFromBinaries.addAll(binary.getSourceFiles().getFiles());
             }
             return allSourcesFromBinaries;
         }), providerFactory.provider(() -> additionalFiles));
-        this.headerFiles = fileOperations.configurableFiles(providerFactory.provider(() -> {
+        this.headerFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
             Set<File> allHeadersFromBinaries = new LinkedHashSet<File>();
             for (VisualStudioTargetBinary binary : configurations.keySet()) {
                 allHeadersFromBinaries.addAll(binary.getHeaderFiles().getFiles());

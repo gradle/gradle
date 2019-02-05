@@ -16,13 +16,12 @@
 
 package org.gradle.api.file
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
-    private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "%s/src/resource/file.txt" } }'
+    private static final String STRING_CALLABLE = 'new java.util.concurrent.Callable<String>() { String call() { return "src/resource/file.txt" } }'
 
     def "can access the project dir and build dir"() {
         buildFile << """
@@ -179,6 +178,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        maybeDeprecated(expression)
         run()
 
         then:
@@ -196,44 +196,45 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         file('src/resource/file.txt') << "some text"
 
         buildFile << """
-            def fileCollection = ${TextUtil.normaliseFileSeparators(String.format(expressionTemplate, testDirectory.absolutePath))}
+            def fileCollection = $expression
             println("size = \${fileCollection.files.size()}")
         """
 
         when:
+        maybeDeprecated(expression)
         run()
 
         then:
         outputContains('size = 1')
 
         where:
-        collectionType               | content          | expressionTemplate
-        'FileCollection'             | 'String'         | 'project.layout.files("%s/src/resource/file.txt")'
-        'FileCollection'             | 'File'           | 'project.layout.files(new File("%s", "src/resource/file.txt"))'
-        'FileCollection'             | 'Path'           | 'project.layout.files(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
-        'FileCollection'             | 'URI'            | 'project.layout.files(new File("%s", "/src/resource/file.txt").toURI())'
-        'FileCollection'             | 'URL'            | 'project.layout.files(new File("%s", "/src/resource/file.txt").toURI().toURL())'
+        collectionType               | content          | expression
+        'FileCollection'             | 'String'         | 'project.layout.files("src/resource/file.txt")'
+        'FileCollection'             | 'File'           | 'project.layout.files(new File("src/resource/file.txt"))'
+        'FileCollection'             | 'Path'           | 'project.layout.files(java.nio.file.Paths.get("src/resource/file.txt"))'
+        'FileCollection'             | 'URI'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI())'
+        'FileCollection'             | 'URL'            | 'project.layout.files(new File(projectDir, "/src/resource/file.txt").toURI().toURL())'
         'FileCollection'             | 'Directory'      | 'project.layout.files(project.layout.projectDirectory)'
         'FileCollection'             | 'RegularFile'    | 'project.layout.files(project.layout.projectDirectory.file("src/resource/file.txt"))'
-        'FileCollection'             | 'Closure'        | 'project.layout.files({ "%s/src/resource/file.txt" })'
-        'FileCollection'             | 'List'           | 'project.layout.files([ "%s/src/resource/file.txt" ])'
-        'FileCollection'             | 'array'          | 'project.layout.files([ "%s/src/resource/file.txt" ] as Object[])'
-        'FileCollection'             | 'FileCollection' | "project.layout.files(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
+        'FileCollection'             | 'Closure'        | 'project.layout.files({ "src/resource/file.txt" })'
+        'FileCollection'             | 'List'           | 'project.layout.files([ "src/resource/file.txt" ])'
+        'FileCollection'             | 'array'          | 'project.layout.files([ "src/resource/file.txt" ] as Object[])'
+        'FileCollection'             | 'FileCollection' | "project.layout.files(project.layout.files('src/resource/file.txt'))"
         'FileCollection'             | 'Callable'       | "project.layout.files($STRING_CALLABLE)"
         'FileCollection'             | 'Provider'       | "project.layout.files(provider($STRING_CALLABLE))"
         'FileCollection'             | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
 
-        'ConfigurableFileCollection' | 'String'         | 'project.layout.configurableFiles("%s/src/resource/file.txt")'
-        'ConfigurableFileCollection' | 'File'           | 'project.layout.configurableFiles(new File("%s", "src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'Path'           | 'project.layout.configurableFiles(java.nio.file.Paths.get("%s/src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'URI'            | 'project.layout.configurableFiles(new File("%s", "/src/resource/file.txt").toURI())'
-        'ConfigurableFileCollection' | 'URL'            | 'project.layout.configurableFiles(new File("%s", "/src/resource/file.txt").toURI().toURL())'
+        'ConfigurableFileCollection' | 'String'         | 'project.layout.configurableFiles("src/resource/file.txt")'
+        'ConfigurableFileCollection' | 'File'           | 'project.layout.configurableFiles(new File("src/resource/file.txt"))'
+        'ConfigurableFileCollection' | 'Path'           | 'project.layout.configurableFiles(java.nio.file.Paths.get("src/resource/file.txt"))'
+        'ConfigurableFileCollection' | 'URI'            | 'project.layout.configurableFiles(new File(projectDir, "/src/resource/file.txt").toURI())'
+        'ConfigurableFileCollection' | 'URL'            | 'project.layout.configurableFiles(new File(projectDir, "/src/resource/file.txt").toURI().toURL())'
         'ConfigurableFileCollection' | 'Directory'      | 'project.layout.configurableFiles(project.layout.projectDirectory)'
         'ConfigurableFileCollection' | 'RegularFile'    | 'project.layout.configurableFiles(project.layout.projectDirectory.file("src/resource/file.txt"))'
-        'ConfigurableFileCollection' | 'Closure'        | 'project.layout.configurableFiles({ "%s/src/resource/file.txt" })'
-        'ConfigurableFileCollection' | 'List'           | 'project.layout.configurableFiles([ "%s/src/resource/file.txt" ])'
-        'ConfigurableFileCollection' | 'array'          | 'project.layout.configurableFiles([ "%s/src/resource/file.txt" ] as Object[])'
-        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.configurableFiles(${ImmutableFileCollection.name}.of(new File('%s/src/resource/file.txt')))"
+        'ConfigurableFileCollection' | 'Closure'        | 'project.layout.configurableFiles({ "src/resource/file.txt" })'
+        'ConfigurableFileCollection' | 'List'           | 'project.layout.configurableFiles([ "src/resource/file.txt" ])'
+        'ConfigurableFileCollection' | 'array'          | 'project.layout.configurableFiles([ "src/resource/file.txt" ] as Object[])'
+        'ConfigurableFileCollection' | 'FileCollection' | "project.layout.configurableFiles(project.layout.files('src/resource/file.txt'))"
         'ConfigurableFileCollection' | 'Callable'       | "project.layout.configurableFiles($STRING_CALLABLE)"
         'ConfigurableFileCollection' | 'Provider'       | "project.layout.configurableFiles(provider($STRING_CALLABLE))"
         'ConfigurableFileCollection' | 'nested objects' | "project.layout.configurableFiles({[{$STRING_CALLABLE}]})"
@@ -243,7 +244,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def 'can create #collectionType with #dependencyType dependency'() {
         buildFile << """
             task myTask {
-                def outputFile = new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
+                def outputFile = file('build/resource/file.txt')
                 doLast {
                     outputFile.text = "some text"
                 }
@@ -255,10 +256,11 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        maybeDeprecated(expression)
         run('myTask')
 
         then:
-        outputContains("files = [${new File(testDirectory.absolutePath , '/build/resource/file.txt').absolutePath}]")
+        outputContains("files = [${testDirectory.file('/build/resource/file.txt').absolutePath}]")
 
         where:
         collectionType               | dependencyType | expression
@@ -272,7 +274,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def '#methodName enforces build dependencies when given Task as input'() {
         buildFile << """
             task producer {
-                def outputFile = new File('${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}', 'build/resource/file.txt')
+                def outputFile = file('build/resource/file.txt')
                 outputs.file outputFile
                 doLast {
                     outputFile.text = "some text"
@@ -280,7 +282,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task consumer {
-                def fileCollection = project.layout.$methodName(project.tasks.producer)
+                def fileCollection = $expression(project.tasks.producer)
                 inputs.files fileCollection
                 doLast {
                     println("files = \${fileCollection.files}")
@@ -289,14 +291,15 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        maybeDeprecated(expression)
         run('consumer')
 
         then:
         executed(':producer', ':consumer')
-        outputContains("files = [${new File(testDirectory.absolutePath, '/build/resource/file.txt').absolutePath}]")
+        outputContains("files = [${testDirectory.file('/build/resource/file.txt').absolutePath}]")
 
         where:
-        methodName << ['files', 'configurableFiles']
+        expression << ['project.layout.files', 'project.layout.configurableFiles']
     }
 
     @Unroll
@@ -308,7 +311,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                other files("${TextUtil.normaliseFileSeparators(testDirectory.absolutePath)}/src/resource/file.txt")
+                other files("src/resource/file.txt")
             }
 
             def fileCollection = $expression
@@ -316,10 +319,11 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        maybeDeprecated(expression)
         run()
 
         then:
-        outputContains("files = [${new File(testDirectory.absolutePath, '/src/resource/file.txt').absolutePath}]")
+        outputContains("files = [${testDirectory.file('/src/resource/file.txt').absolutePath}]")
 
         where:
         collectionType               | expression
@@ -335,6 +339,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        maybeDeprecated(expression)
         fails('help')
         errorOutput.contains('java.lang.NullPointerException')
 
@@ -343,5 +348,11 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection (Object...)' | 'project.layout.files((Object) null)'
         'FileCollection (File...)'   | 'project.layout.files((File) null)'
         'ConfigurableFileCollection' | 'project.layout.configurableFiles(null)'
+    }
+
+    void maybeDeprecated(String expression) {
+        if (expression.contains("configurableFiles")) {
+            executer.expectDeprecationWarning()
+        }
     }
 }

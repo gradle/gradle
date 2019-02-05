@@ -23,14 +23,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,13 +50,13 @@ public class DefaultTaskProperties implements TaskProperties {
     private FileCollection destroyableFiles;
     private List<ValidatingProperty> validatingProperties;
 
-    public static TaskProperties resolve(PropertyWalker propertyWalker, PathToFileResolver resolver, TaskInternal task) {
+    public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
-        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, resolver);
-        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, resolver);
+        GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
+        GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory);
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
-        GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, resolver);
-        GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, resolver);
+        GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
+        GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
         try {
             TaskPropertyUtils.visitProperties(propertyWalker, task, new CompositePropertyVisitor(
@@ -207,12 +206,12 @@ public class DefaultTaskProperties implements TaskProperties {
 
     private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
-        private final PathToFileResolver resolver;
+        private final FileCollectionFactory fileCollectionFactory;
         private List<Object> localState = new ArrayList<Object>();
 
-        public GetLocalStateVisitor(String beanName, PathToFileResolver resolver) {
+        public GetLocalStateVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
-            this.resolver = resolver;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -221,18 +220,18 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return new DefaultConfigurableFileCollection(beanName + " local state", resolver, null, localState);
+            return fileCollectionFactory.resolving(beanName + " local state", localState);
         }
     }
 
     private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
-        private final PathToFileResolver resolver;
+        private final FileCollectionFactory fileCollectionFactory;
         private List<Object> destroyables = new ArrayList<Object>();
 
-        public GetDestroyablesVisitor(String beanName, PathToFileResolver resolver) {
+        public GetDestroyablesVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
-            this.resolver = resolver;
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -241,7 +240,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         public FileCollection getFiles() {
-            return new DefaultConfigurableFileCollection(beanName + " destroy files", resolver, null, destroyables);
+            return fileCollectionFactory.resolving(beanName + " destroy files", destroyables);
         }
     }
 

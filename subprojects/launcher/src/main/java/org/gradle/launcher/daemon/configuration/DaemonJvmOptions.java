@@ -17,9 +17,9 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.HeapProportionalCacheSizer;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.CollectionUtils;
@@ -42,9 +42,9 @@ public class DaemonJvmOptions extends JvmOptions {
         SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY, HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
 
-    public DaemonJvmOptions(PathToFileResolver resolver) {
-        super(resolver);
-        final JvmOptions currentProcessJvmOptions = new CurrentProcess().getJvmOptions();
+    public DaemonJvmOptions(FileCollectionFactory fileCollectionFactory) {
+        super(fileCollectionFactory);
+        final JvmOptions currentProcessJvmOptions = new CurrentProcess(fileCollectionFactory).getJvmOptions();
         systemProperties(currentProcessJvmOptions.getImmutableSystemProperties());
         handleDaemonImmutableProperties(currentProcessJvmOptions.getMutableSystemProperties());
     }

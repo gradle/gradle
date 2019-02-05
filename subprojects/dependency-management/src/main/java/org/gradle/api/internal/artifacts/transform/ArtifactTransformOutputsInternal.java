@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.artifacts.transform;
 
-public interface HasFileOperations {
-    FileOperations getFileOperations();
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
+
+import java.io.File;
+
+public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
+    ImmutableList<File> getRegisteredOutputs();
 }

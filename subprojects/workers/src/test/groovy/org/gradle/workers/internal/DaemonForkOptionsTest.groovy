@@ -16,11 +16,12 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.DefaultJavaForkOptions
 import spock.lang.Specification
 
-import static org.gradle.api.internal.file.TestFiles.*
+import static org.gradle.api.internal.file.TestFiles.execFactory
+import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class DaemonForkOptionsTest extends Specification {
     def "is compatible with itself"() {
@@ -164,7 +165,7 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is compatible with compatible java forkOptions"() {
-        def javaForkOptions = new DefaultJavaForkOptions(pathToFileResolver())
+        def javaForkOptions = TestFiles.execFactory().newJavaForkOptions()
         javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions.minHeapSize = "128m"
         javaForkOptions.maxHeapSize = "1g"
@@ -179,12 +180,12 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     def "is not compatible with incompatible java forkOptions"() {
-        def javaForkOptions1 = new DefaultJavaForkOptions(pathToFileResolver())
+        def javaForkOptions1 = TestFiles.execFactory().newJavaForkOptions()
         javaForkOptions1.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions1.minHeapSize = "128m"
         javaForkOptions1.maxHeapSize = "1g"
         javaForkOptions1.jvmArgs = ["-server", "-verbose:gc"]
-        def javaForkOptions2 = new DefaultJavaForkOptions(pathToFileResolver())
+        def javaForkOptions2 = TestFiles.execFactory().newJavaForkOptions()
         javaForkOptions2.workingDir = systemSpecificAbsolutePath("foo")
         javaForkOptions2.minHeapSize = "256m"
         javaForkOptions2.maxHeapSize = "1g"
@@ -199,12 +200,12 @@ class DaemonForkOptionsTest extends Specification {
     }
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder() {
-        def javaForkOptions = new DefaultJavaForkOptions(pathToFileResolver())
+        def javaForkOptions = TestFiles.execFactory().newJavaForkOptions()
         javaForkOptions.workingDir = systemSpecificAbsolutePath("foo")
         return daemonForkOptionsBuilder(javaForkOptions)
     }
 
     DaemonForkOptionsBuilder daemonForkOptionsBuilder(JavaForkOptions javaForkOptions) {
-        return new DaemonForkOptionsBuilder(pathToFileResolver()).javaForkOptions(javaForkOptions)
+        return new DaemonForkOptionsBuilder(execFactory()).javaForkOptions(javaForkOptions)
     }
 }

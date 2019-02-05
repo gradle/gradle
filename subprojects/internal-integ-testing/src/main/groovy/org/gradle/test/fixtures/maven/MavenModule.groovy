@@ -82,6 +82,11 @@ interface MavenModule extends Module {
      */
     MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration)
 
+    /**
+     * Clears all predefined variants
+     */
+    MavenModule adhocVariants()
+
     String getPublishArtifactVersion()
 
     String getGroupId()

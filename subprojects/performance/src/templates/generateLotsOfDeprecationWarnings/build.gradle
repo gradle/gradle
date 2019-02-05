@@ -23,7 +23,7 @@ void createDeprecations(int iterations) {
         if(random.nextInt(100) < 10) {
             org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some unique deprecation No #\$i")
         }
-        org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some repetive Deprecation")
+        org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some repetitive Deprecation")
     }
 }
 

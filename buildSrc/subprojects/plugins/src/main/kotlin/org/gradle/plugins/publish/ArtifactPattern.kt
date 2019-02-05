@@ -6,7 +6,7 @@ fun createArtifactPattern(isSnapshot: Boolean, group: String, artifactName: Stri
     assert(artifactName.isNotEmpty())
 
     val libsType = if (isSnapshot) "snapshots" else "releases"
-    val repoUrl = "https://gradle.artifactoryonline.com/gradle/libs-$libsType-local"
+    val repoUrl = "https://repo.gradle.org/gradle/libs-$libsType-local"
     val groupId = group.replace(".", "/")
     return "$repoUrl/$groupId/$artifactName/[revision]/[artifact]-[revision](-[classifier]).[ext]"
 }

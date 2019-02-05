@@ -21,17 +21,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Cast;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
@@ -87,8 +85,12 @@ public class FileParameterUtils {
      *
      * The value is the file tree rooted at the provided path for an input directory, and the provided path otherwise.
      */
-    public static Object resolveInputFileValue(PathToFileResolver resolver, InputFilePropertyType inputFilePropertyType, Object path) {
-        return inputFilePropertyType == InputFilePropertyType.DIRECTORY ? asFileTree(resolver, path) : path;
+    public static FileCollection resolveInputFileValue(FileCollectionFactory fileCollectionFactory, InputFilePropertyType inputFilePropertyType, Object path) {
+        if (inputFilePropertyType == InputFilePropertyType.DIRECTORY) {
+            return fileCollectionFactory.resolving(path).getAsFileTree();
+        } else {
+            return fileCollectionFactory.resolving(path);
+        }
     }
 
     /**
@@ -96,21 +98,21 @@ public class FileParameterUtils {
      *
      * Especially, values of type {@link Map} are resolved.
      */
-    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, PathToFileResolver fileResolver, Consumer<OutputFilePropertySpec> consumer) {
+    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         Object unpackedValue = DeferredUtil.unpack(value);
         if (unpackedValue == null) {
             return;
         }
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileResolver, consumer);
+            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {
-            File outputFile = fileResolver.resolve(unpackedValue);
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFile, filePropertyType.getOutputType());
+            FileCollection outputFiles = fileCollectionFactory.resolving(unpackedValue);
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
     }
 
-    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, final PathToFileResolver resolver, Consumer<OutputFilePropertySpec> consumer) {
+    private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
@@ -118,13 +120,13 @@ public class FileParameterUtils {
                     throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
                 }
                 String id = key.toString();
-                File file = resolver.resolve(entry.getValue());
-                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, file, outputType));
+                FileCollection outputFiles = fileCollectionFactory.resolving(entry.getValue());
+                consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
-            FileCollectionInternal outputFileCollection = FileParameterUtils.asFileCollection(resolver, unpackedValue);
+            FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
             outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal fileCollection) {
@@ -147,26 +149,16 @@ public class FileParameterUtils {
             if (nonFileRoot.get()) {
                 consumer.accept(new CompositeOutputFilePropertySpec(
                     propertyName,
-                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", resolver, unpackedValue),
+                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileCollectionFactory.resolving(unpackedValue)),
                     outputType)
                 );
             } else {
                 int index = 0;
                 for (File root : roots) {
-                    consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), root, outputType));
+                    FileCollectionInternal outputFiles = fileCollectionFactory.fixed(root);
+                    consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), outputFiles, outputType));
                 }
             }
         }
-    }
-
-    private static FileCollectionInternal asFileCollection(PathToFileResolver resolver, Object... paths) {
-        if (paths.length == 1 && paths[0] instanceof FileCollection) {
-            return Cast.cast(FileCollectionInternal.class, paths[0]);
-        }
-        return new DefaultConfigurableFileCollection(resolver, null, paths);
-    }
-
-    private static FileTreeInternal asFileTree(PathToFileResolver resolver, Object... paths) {
-        return Cast.cast(FileTreeInternal.class, asFileCollection(resolver, paths).getAsFileTree());
     }
 }

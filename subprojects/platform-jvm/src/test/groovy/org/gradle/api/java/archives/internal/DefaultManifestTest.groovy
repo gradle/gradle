@@ -35,7 +35,7 @@ class DefaultManifestTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def testInitWithFileReolver() {
+    def testInitWithFileResolver() {
         expect:
         gradleManifest.attributes == MANIFEST_VERSION_MAP
         !gradleManifest.sections

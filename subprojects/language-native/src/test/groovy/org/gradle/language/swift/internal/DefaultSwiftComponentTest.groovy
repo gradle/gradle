@@ -17,28 +17,25 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
 import org.gradle.language.swift.SwiftVersion
-import org.gradle.nativeplatform.internal.DefaultTargetMachineFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.inject.Inject
+
 class DefaultSwiftComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def fileOperations = TestFiles.fileOperations(tmpDir.testDirectory)
-    def objectFactory = TestUtil.objectFactory()
-    def targetMachineFactory = new DefaultTargetMachineFactory(objectFactory)
+    def project = TestUtil.createRootProject(tmpDir.testDirectory)
     DefaultSwiftComponent component
 
     def setup() {
-        component = new TestComponent("main", fileOperations, objectFactory)
+        component = project.objects.newInstance(TestComponent, "main")
     }
 
     def "has no source files by default"() {
@@ -86,8 +83,8 @@ class DefaultSwiftComponentTest extends Specification {
     def "uses component name to determine source directory"() {
         def f1 = tmpDir.createFile("src/a/swift/a.swift")
         def f2 = tmpDir.createFile("src/b/swift/b.swift")
-        def c1 = new TestComponent("a", fileOperations, objectFactory)
-        def c2 = new TestComponent("b", fileOperations, objectFactory)
+        def c1 = project.objects.newInstance(TestComponent, "a")
+        def c2 = project.objects.newInstance(TestComponent, "b")
 
         expect:
         c1.swiftSource.files == [f1] as Set
@@ -106,9 +103,10 @@ class DefaultSwiftComponentTest extends Specification {
         component.sourceCompatibility.getOrNull() == null
     }
 
-    class TestComponent extends DefaultSwiftComponent {
-        TestComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-            super(name, fileOperations, objectFactory)
+    static class TestComponent extends DefaultSwiftComponent {
+        @Inject
+        TestComponent(String name, ObjectFactory objectFactory) {
+            super(name, objectFactory)
         }
 
         @Override

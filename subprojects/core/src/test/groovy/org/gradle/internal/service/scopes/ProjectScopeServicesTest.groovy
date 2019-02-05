@@ -33,7 +33,6 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
@@ -66,7 +65,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -76,7 +74,6 @@ import spock.lang.Specification
 
 class ProjectScopeServicesTest extends Specification {
     ProjectInternal project = Mock()
-    ConfigurationContainer configurationContainer = Mock()
     GradleInternal gradle = Mock()
     DependencyManagementServices dependencyManagementServices = Mock()
     ITaskFactory taskFactory = Mock()
@@ -144,12 +141,16 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a TaskContainer"() {
-        def instantiator = Stub(Instantiator)
-        1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
-        1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
+        expectTaskContainerCreated()
 
         expect:
         registry.get(TaskContainerInternal) instanceof DefaultTaskContainer
+    }
+
+    private expectTaskContainerCreated() {
+        def instantiator = Stub(Instantiator)
+        1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
+        1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
     }
 
     def "provides a ToolingModelBuilderRegistry"() {
@@ -192,8 +193,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a FileOperations instance"() {
-        _ * parent.get(ExecFactory) >> TestFiles.execFactory()
-        1 * project.tasks
+        expectTaskContainerCreated()
 
         expect:
         provides(FileOperations, DefaultFileOperations)

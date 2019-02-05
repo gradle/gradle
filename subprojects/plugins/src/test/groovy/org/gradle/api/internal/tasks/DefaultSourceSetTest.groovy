@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -39,10 +40,11 @@ class DefaultSourceSetTest extends Specification {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
+    private final FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, taskResolver)
 
     private DefaultSourceSet sourceSet(String name) {
         def s = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
-        s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, taskResolver)
+        s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, fileCollectionFactory)
         return s
     }
 
@@ -211,7 +213,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(dependencies.getDependencies(null), isEmpty())
 
         sourceSet.compiledBy('a')
-        def dirs1 = new DefaultConfigurableFileCollection(fileResolver, taskResolver)
+        def dirs1 = fileCollectionFactory.configurableFiles()
         dirs1.builtBy('b')
         sourceSet.output.dir(dirs1)
         assertThat(dependencies.getDependencies(null)*.name as Set, equalTo(['a', 'b'] as Set))

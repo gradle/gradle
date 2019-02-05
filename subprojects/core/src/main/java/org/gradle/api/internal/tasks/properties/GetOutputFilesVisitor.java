@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,19 +28,19 @@ import java.util.function.Consumer;
 public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     private final List<OutputFilePropertySpec> specs = Lists.newArrayList();
     private final String ownerDisplayName;
-    private final PathToFileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
     private ImmutableSortedSet<OutputFilePropertySpec> fileProperties;
     private boolean hasDeclaredOutputs;
 
-    public GetOutputFilesVisitor(String ownerDisplayName, PathToFileResolver fileResolver) {
+    public GetOutputFilesVisitor(String ownerDisplayName, FileCollectionFactory fileCollectionFactory) {
         this.ownerDisplayName = ownerDisplayName;
-        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
-        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileResolver, new Consumer<OutputFilePropertySpec>() {
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, new Consumer<OutputFilePropertySpec>() {
             @Override
             public void accept(OutputFilePropertySpec outputFilePropertySpec) {
                 specs.add(outputFilePropertySpec);

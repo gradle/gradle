@@ -20,19 +20,18 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.api.internal.file.HasFileOperations;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.PrintStream;
 import java.util.Map;
 
-public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, HasFileOperations, DynamicObjectAware {
+public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);

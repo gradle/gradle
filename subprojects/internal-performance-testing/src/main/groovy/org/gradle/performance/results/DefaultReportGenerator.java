@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
+package org.gradle.performance.results;
 
-import org.gradle.language.nativeplatform.internal.IncludeType;
-
-/**
- * A macro function whose body cannot be resolved.
- */
-public class UnresolveableMacro extends AbstractMacro {
-    public UnresolveableMacro(String name) {
-        super(name);
-    }
-
-    @Override
-    public IncludeType getType() {
-        return IncludeType.OTHER;
-    }
-
-    @Override
-    public String getValue() {
-        return null;
+public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
+    public static void main(String[] args) throws Exception {
+        getGenerator(DefaultReportGenerator.class).generateReport(args);
     }
 }

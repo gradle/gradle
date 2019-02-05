@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
@@ -70,15 +69,13 @@ public class VisualStudioPlugin extends IdePlugin {
     private final FileResolver fileResolver;
     private final IdeArtifactRegistry artifactRegistry;
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final FileOperations fileOperations;
 
     @Inject
-    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator, FileOperations fileOperations) {
+    public VisualStudioPlugin(Instantiator instantiator, FileResolver fileResolver, IdeArtifactRegistry artifactRegistry, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.artifactRegistry = artifactRegistry;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-        this.fileOperations = fileOperations;
     }
 
     @Override
@@ -93,12 +90,12 @@ public class VisualStudioPlugin extends IdePlugin {
         // Create Visual Studio project extensions
         final VisualStudioExtensionInternal extension;
         if (isRoot()) {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders(), fileOperations);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioRootExtension.class, "visualStudio", DefaultVisualStudioRootExtension.class, project.getName(), instantiator, target.getObjects(), fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders());
             final VisualStudioSolution solution = ((VisualStudioRootExtension) extension).getSolution();
             getLifecycleTask().configure(it -> it.dependsOn(solution));
             addWorkspace(solution);
         } else {
-            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders(), fileOperations);
+            extension = (VisualStudioExtensionInternal) project.getExtensions().create(VisualStudioExtension.class, "visualStudio", DefaultVisualStudioExtension.class, instantiator, fileResolver, artifactRegistry, collectionCallbackActionDecorator, project.getProviders());
             getLifecycleTask().configure(it -> it.dependsOn(extension.getProjects()));
         }
         includeBuildFileInProject(extension);
@@ -119,7 +116,7 @@ public class VisualStudioPlugin extends IdePlugin {
             vsProject.getSourceFiles().from(cppApplication.getCppSource());
             vsProject.getHeaderFiles().from(cppApplication.getHeaderFiles());
             cppApplication.getBinaries().whenElementFinalized(CppExecutable.class, executable -> {
-                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, executable));
+                extension.getProjectRegistry().addProjectConfiguration(new CppApplicationVisualStudioTargetBinary(project.getName(), project.getPath(), cppApplication, executable, project.getLayout()));
             });
         });
         project.afterEvaluate(proj -> {
@@ -134,10 +131,10 @@ public class VisualStudioPlugin extends IdePlugin {
                     vsProject.getHeaderFiles().from(cppLibrary.getHeaderFiles());
                 }
                 cppLibrary.getBinaries().whenElementFinalized(CppSharedLibrary.class, library -> {
-                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
+                    extension.getProjectRegistry().addProjectConfiguration(new CppSharedLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library, project.getLayout()));
                 });
                 cppLibrary.getBinaries().whenElementFinalized(CppStaticLibrary.class, library -> {
-                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library));
+                    extension.getProjectRegistry().addProjectConfiguration(new CppStaticLibraryVisualStudioTargetBinary(project.getName(), project.getPath(), cppLibrary, library, project.getLayout()));
                 });
             });
         });

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -26,14 +26,16 @@ import org.gradle.internal.hash.HashCode;
 public class DefaultClasspathHasher implements ClasspathHasher {
 
     private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultClasspathHasher(ClasspathFingerprinter fingerprinter) {
+    public DefaultClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
         this.fingerprinter = fingerprinter;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(ImmutableFileCollection.of(classpath.getAsFiles()));
+        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollectionFactory.fixed(classpath.getAsFiles()));
         return fingerprint.getHash();
     }
 }

@@ -48,7 +48,6 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     @Override
     public TextResource fromFile(Object file) {
         return fromFile(file, Charset.defaultCharset().name());
-
     }
 
     @Override

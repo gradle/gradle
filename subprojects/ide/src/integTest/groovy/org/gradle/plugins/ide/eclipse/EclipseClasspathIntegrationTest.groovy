@@ -369,7 +369,7 @@ configure(project(":b")){
 
 
     @Test
-    void substituesPathVariablesIntoLibraryPathsExceptForJavadoc() {
+    void substitutesPathVariablesIntoLibraryPathsExceptForJavadoc() {
         //given
         def module = mavenRepo.module('coolGroup', 'niceArtifact', '1.0')
         module.artifact(classifier: 'sources')

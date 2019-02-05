@@ -33,7 +33,7 @@ class DefaultProjectLayoutTest extends Specification {
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskResolver))
+        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskResolver), Stub(FileCollectionFactory))
     }
 
     def "can query the project directory"() {
@@ -455,7 +455,7 @@ class DefaultProjectLayoutTest extends Specification {
         !var.present
     }
 
-    def "can query and mutate the build directory using resolveable type"() {
+    def "can query and mutate the build directory using resolvable type"() {
         expect:
         def buildDirectory = layout.buildDirectory
         def fileProvider = buildDirectory.asFile

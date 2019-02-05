@@ -18,9 +18,9 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -59,9 +59,9 @@ public class JvmOptions {
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
-    private final PathToFileResolver resolver;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    private DefaultConfigurableFileCollection bootstrapClasspath;
+    private ConfigurableFileCollection bootstrapClasspath;
     private String minHeapSize;
     private String maxHeapSize;
     private boolean assertionsEnabled;
@@ -69,8 +69,8 @@ public class JvmOptions {
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
-    public JvmOptions(PathToFileResolver resolver) {
-        this.resolver = resolver;
+    public JvmOptions(FileCollectionFactory fileCollectionFactory) {
+        this.fileCollectionFactory = fileCollectionFactory;
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
@@ -249,9 +249,9 @@ public class JvmOptions {
         return internalGetBootstrapCLasspath();
     }
 
-    private DefaultConfigurableFileCollection internalGetBootstrapCLasspath() {
+    private ConfigurableFileCollection internalGetBootstrapCLasspath() {
         if (bootstrapClasspath == null) {
-            bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
+            bootstrapClasspath = fileCollectionFactory.configurableFiles("bootstrap classpath");
         }
         return bootstrapClasspath;
     }
@@ -320,7 +320,7 @@ public class JvmOptions {
     }
 
     public JvmOptions createCopy() {
-        JvmOptions target = new JvmOptions(resolver);
+        JvmOptions target = new JvmOptions(fileCollectionFactory);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);

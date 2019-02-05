@@ -16,28 +16,22 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.internal.file.PathToFileResolver;
 
 public class PropertyFileCollection extends CompositeFileCollection {
     private final String ownerDisplayName;
     private final String type;
-    private final PathToFileResolver resolver;
-    private final Object paths;
     private final String propertyName;
+    private final FileCollection files;
     private String displayName;
 
-    public PropertyFileCollection(String ownerDisplayName, String propertyName, String type, PathToFileResolver resolver, Object paths) {
+    public PropertyFileCollection(String ownerDisplayName, String propertyName, String type, FileCollection files) {
         this.ownerDisplayName = ownerDisplayName;
         this.type = type;
         this.propertyName = propertyName;
-        this.resolver = resolver;
-        this.paths = paths;
-    }
-
-    public Object getPaths() {
-        return paths;
+        this.files = files;
     }
 
     @Override
@@ -50,6 +44,6 @@ public class PropertyFileCollection extends CompositeFileCollection {
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        context.push(resolver).add(paths);
+        context.add(files);
     }
 }

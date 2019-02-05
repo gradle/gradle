@@ -16,13 +16,6 @@ Switch your build to use Gradle 5.3 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
-## Improvements for plugin authors
-
-- TBD - Abstract service injection getter methods
-- TBD - Abstract mutable property
-- TBD - Abstract `ConfigurableFileCollection` property
-- TBD - Use an interface for Gradle instantiated types
-
 ## Feature variants, aka optional dependencies
 
 Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html) :
@@ -41,6 +34,21 @@ dependencies {
 ```
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+
+## Improvements for plugin authors
+
+### Use abstract types
+
+- TBD - Abstract service injection getter methods
+- TBD - Abstract mutable property
+- TBD - Abstract `ConfigurableFileCollection` property
+- TBD - Use an interface for Gradle instantiated types
+
+### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
+
+Plugin and task implementations often need to create instances of various useful types, to provide a configurable model and DSL that is consistent with other Gradle plugins. One such type is `ConfigurableFileCollection`. In previous releases, plugins could use `Project.files()` or `ProjectLayout.configurableFiles()` to create instance of this type. However, these interfaces are not always available, for example in a `Settings` plugin (rather than a `Project` plugin) or in a nested model object.
+
+In this release, plugin authors can use the `ObjectFactory.fileCollection()` method to create instances. The `ObjectFactory` service is used by plugin and task implementations to create objects of various useful types. This now includes instances of `ConfigurableFileCollection`.
 
 ## Default JaCoCo version upgraded to 0.8.3
 
@@ -69,9 +77,9 @@ in the next major Gradle version (Gradle 6.0). See the User Manual section on th
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Incubating method `ProjectLayout.configurableFiles()` replaced by `ObjectFactory.fileCollection()`
+
+The method `ProjectLayout.configurableFiles()` is now deprecated, and will be removed in Gradle 6.0. You should use `ObjectFactory.fileCollection()` instead.
 
 ### Breaking changes
 

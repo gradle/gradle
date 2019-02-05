@@ -119,11 +119,11 @@ class RegexBackedCSourceParserTest extends Specification {
     }
 
     Macro unresolvedMacro(String name) {
-        return new UnresolveableMacro(name)
+        return new UnresolvableMacro(name)
     }
 
     MacroFunction unresolvedMacroFunction(String name, int parameters = 0) {
-        return new UnresolveableMacroFunction(name, parameters)
+        return new UnresolvableMacroFunction(name, parameters)
     }
 
     List<Macro> getMacros() {

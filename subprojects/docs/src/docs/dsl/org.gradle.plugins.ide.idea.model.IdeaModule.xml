@@ -11,7 +11,7 @@
             </thead>
             <tr>
                 <td>name</td>
-                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqeness)</literal></td>
+                <td><literal><replaceable>${project.name}</replaceable> (sometimes prefixed with parts of <replaceable>${project.path}</replaceable> to guarantee uniqueness)</literal></td>
                 <td/>
             </tr>
             <tr>

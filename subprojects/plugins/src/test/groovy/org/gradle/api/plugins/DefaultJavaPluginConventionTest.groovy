@@ -19,13 +19,12 @@ package org.gradle.api.plugins
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.TestUtil
@@ -39,12 +38,12 @@ class DefaultJavaPluginConventionTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def project = TestUtil.create(tmpDir).rootProject()
-    def instantiator = project.services.get(Instantiator)
+    def objectFactory = project.services.get(ObjectFactory)
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new DefaultJavaPluginConvention(project, instantiator,  CollectionCallbackActionDecorator.NOOP)
+        convention = new DefaultJavaPluginConvention(project, objectFactory)
     }
 
     def defaultValues() {

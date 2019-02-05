@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.artifacts.transform.Workspace;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
@@ -90,10 +89,6 @@ class DependencyManagementGlobalScopeServices {
 
     ProducerGuard<ExternalResourceName> createProducerAccess() {
         return ProducerGuard.adaptive();
-    }
-
-    InjectAnnotationHandler createWorkspaceAnnotationHandler() {
-        return new DefaultInjectAnnotationHandler(Workspace.class);
     }
 
     InjectAnnotationHandler createPrimaryInputAnnotationHandler() {

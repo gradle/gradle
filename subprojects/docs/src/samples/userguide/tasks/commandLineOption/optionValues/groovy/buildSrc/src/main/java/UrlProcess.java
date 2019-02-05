@@ -57,7 +57,7 @@ public class UrlProcess extends DefaultTask {
 
     @TaskAction
     public void process() {
-        getLogger().quiet("Writing out the URL reponse from '{}' to '{}'", url, outputType);
+        getLogger().quiet("Writing out the URL response from '{}' to '{}'", url, outputType);
 
         // retrieve content from URL and write to output
     }

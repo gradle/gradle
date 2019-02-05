@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
@@ -28,10 +28,8 @@ import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -39,15 +37,11 @@ import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
-@UsesNativeServices
 class DefaultTaskInputsTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    private final PathToFileResolver resolver = [
-            resolve: { temporaryFolder.file(it) },
-            newResolver: { resolver }
-    ] as PathToFileResolver
+    private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
     private def taskStatusNagger = Stub(TaskMutator) {
         mutate(_, _) >> { String method, Object action ->
@@ -58,20 +52,16 @@ class DefaultTaskInputsTest extends Specification {
             }
         }
     }
-    def project = Stub(ProjectInternal) {
-        getFileFileResolver() >> resolver
-    }
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
-        getProject() >> project
         getInputs() >> { inputs }
         getOutputs() >> Stub(TaskOutputsInternal)
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory()))
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, resolver)
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
     def "default values"() {
         expect:
@@ -133,7 +123,7 @@ class DefaultTaskInputsTest extends Specification {
     def "cannot register input file with same property name"() {
         inputs.file("a").withPropertyName("alma")
         inputs.file("b").withPropertyName("alma")
-        def visitor = new GetInputFilesVisitor(task.toString(), resolver)
+        def visitor = new GetInputFilesVisitor(task.toString(), fileCollectionFactory)
         when:
         TaskPropertyUtils.visitProperties(walker, task, visitor)
         visitor.getFileProperties()

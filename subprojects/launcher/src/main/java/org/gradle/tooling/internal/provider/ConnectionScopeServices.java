@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -56,8 +57,8 @@ public class ConnectionScopeServices {
         serviceRegistration.addProvider(new DaemonClientGlobalServices());
     }
 
-    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventListener outputEventListener) {
-        ServiceRegistry clientServices = daemonClientFactory.createStopDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters()));
+    ShutdownCoordinator createShutdownCoordinator(ListenerManager listenerManager, DaemonClientFactory daemonClientFactory, OutputEventListener outputEventListener, FileCollectionFactory fileCollectionFactory) {
+        ServiceRegistry clientServices = daemonClientFactory.createStopDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
         ShutdownCoordinator shutdownCoordinator = new ShutdownCoordinator(client);
         listenerManager.addListener(shutdownCoordinator);
@@ -69,6 +70,7 @@ public class ConnectionScopeServices {
                                                 BuildLayoutFactory buildLayoutFactory,
                                                 ServiceRegistry serviceRegistry,
                                                 JvmVersionDetector jvmVersionDetector,
+                                                FileCollectionFactory fileCollectionFactory,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
@@ -87,7 +89,8 @@ public class ConnectionScopeServices {
                                         new ModelClassLoaderFactory())),
                                 new ClasspathInferer(),
                                 classLoaderCache))),
-            jvmVersionDetector
+            jvmVersionDetector,
+            fileCollectionFactory
         );
     }
 

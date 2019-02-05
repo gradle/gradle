@@ -23,31 +23,26 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.DefaultProjectLayout
-import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TemporaryFileProvider
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultProjectSpec extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def "can create file collection configured with an Action"() {
         given:
@@ -149,7 +144,6 @@ class DefaultProjectSpec extends Specification {
     }
 
     def project(String name, ProjectInternal parent, GradleInternal build) {
-        def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         def serviceRegistryFactory = Stub(ServiceRegistryFactory)
         def serviceRegistry = Stub(ServiceRegistry)
 
@@ -159,21 +153,15 @@ class DefaultProjectSpec extends Specification {
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
 
-        def fileResolver = Mock(FileResolver) { getPatternSetFactory() >> TestFiles.getPatternSetFactory() }
-        def taskResolver = Mock(TaskResolver)
-        def tempFileProvider = Mock(TemporaryFileProvider)
-        def fileLookup = Mock(FileLookup)
-        def directoryFileTreeFactory = Mock(DefaultDirectoryFileTreeFactory)
-        def streamHasher = Mock(StreamHasher)
-        def fileHasher = Mock(FileHasher)
-        def textResourceLoader = Mock(TextResourceLoader)
-        def fileOperations = instantiator.newInstance(DefaultFileOperations, fileResolver, taskResolver, tempFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, TestFiles.execFactory(), textResourceLoader)
+        def fileOperations = Stub(FileOperations)
+        fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory).fileTree('tree')
         def projectDir = new File("project")
-        def layout = instantiator.newInstance(DefaultProjectLayout, projectDir, fileResolver, taskResolver)
+        def objectFactory = Stub(ObjectFactory)
+        objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
 
         return Spy(DefaultProject, constructorArgs: [name, parent, projectDir, new File("build file"), Stub(ScriptSource), build, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope)]) {
             getFileOperations() >> fileOperations
-            getLayout() >> layout
+            getObjects() >> objectFactory
         }
     }
 }

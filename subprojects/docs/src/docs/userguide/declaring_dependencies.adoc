@@ -245,9 +245,8 @@ include::sample[dir="userguide/dependencyManagement/declaringDependencies/fileDe
 As you can see in the code example, every dependency has to define its exact location in the file system.
 The most prominent methods for creating a file reference are
 link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)],
-link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)],
-link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)], and
-link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
+link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)]
+and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(java.lang.Object)]
 Alternatively, you can also define the source directory of one or many file dependencies in the form of a <<repository_types.adoc#sec:flat_dir_resolver,flat directory repository>>.
 
 [[sec:declaring_project_dependency]]

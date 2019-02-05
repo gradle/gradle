@@ -1041,7 +1041,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 outputDir2.file("some-unrelated-file.txt") << "added"
                 break
             default:
-                throw new IllegalStateException("Unkown action: ${action}")
+                throw new IllegalStateException("Unknown action: ${action}")
         }
 
         succeeds ":util:resolve", ":app:resolve"
@@ -1469,7 +1469,8 @@ ${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registe
                 }
 
                 List<File> transform(File input) {
-${getFileSizerBody(fileValue)}
+${getFileSizerBody(fileValue, 'new File(outputDirectory, ')}
+                    return [output]
                 }
             }
     
@@ -1498,15 +1499,15 @@ ${getFileSizerBody(fileValue)}
                 Number getValue()
                 void setValue(Number value)
             }
-            abstract class FileSizerAction extends ArtifactTransform {
+            abstract class FileSizerAction implements ArtifactTransformAction {
                 @TransformParameters
                 abstract FileSizer getParameters()
 
                 @PrimaryInput
                 abstract File getInput()
-
-                List<File> transform(File ignored) {
-${getFileSizerBody(fileValue)}
+                
+                void transform(ArtifactTransformOutputs outputs) {
+${getFileSizerBody(fileValue, 'outputs.registerOutput(')}
                 }
             }
     
@@ -1529,29 +1530,32 @@ ${getFileSizerBody(fileValue)}
             """
     }
 
-    String getFileSizerBody(String fileValue) {
+    String getFileSizerBody(String fileValue, String obtainOutput) {
+        String validateWorkspace = """
+            def outputDirectory = output.parentFile
+            assert outputDirectory.directory && outputDirectory.list().length == 0
         """
-                    assert outputDirectory.directory && outputDirectory.list().length == 0
-
+        """
                     assert input.exists()
                     
                     File output
                     if (input.file) {
-                        output = new File(outputDirectory, input.name + ".txt")
+                        output = ${obtainOutput}input.name + ".txt")
+                        ${validateWorkspace}
                         output.text = $fileValue
                     } else {
-                        output = new File(outputDirectory, input.name + ".dir")
+                        output = ${obtainOutput}input.name + ".dir")
+                        ${validateWorkspace}
                         output.mkdirs()
                         new File(output, "child.txt").text = "transformed"
                     }
+                    def outputDirectory = output.parentFile
                     println "Transformed \$input.name to \$output.name into \$outputDirectory"
 
                     if (System.getProperty("broken")) {
                         new File(outputDirectory, "some-garbage").text = "delete-me"
                         throw new RuntimeException("broken")
                     }
-
-                    return [output]
         """
     }
 

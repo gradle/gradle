@@ -90,7 +90,7 @@ open class TestFixturesPlugin : Plugin<Project> {
                 extendsFrom(testFixturesApi, testFixturesRuntime)
                 /*
                  * FIXME only the classes would be more appropriate here, but the Groovy compiler
-                 * needs resources too because we make use of extension methods registred through
+                 * needs resources too because we make use of extension methods registered through
                  * a META-INF file.
                  */
                 afterEvaluate {

@@ -36,9 +36,9 @@ public class OkTest {
         String classPathString = System.getProperty("java.class.path");
         String expectedClassPathString = System.getProperty("expectedClassPath");
         if (isJava9) {
-            String[] splittedClasspath = splitClasspath(classPathString);
-            String workerJar = splittedClasspath[0];
-            String[] classpathWithoutWorkerJar = Arrays.copyOfRange(splittedClasspath, 1, splittedClasspath.length);
+            String[] splitClasspath = splitClasspath(classPathString);
+            String workerJar = splitClasspath[0];
+            String[] classpathWithoutWorkerJar = Arrays.copyOfRange(splitClasspath, 1, splitClasspath.length);
             assertTrue(workerJar + " is the worker jar", workerJar.contains("gradle-worker.jar"));
             assertEquals(splitClasspath(expectedClassPathString), classpathWithoutWorkerJar);
         } else {

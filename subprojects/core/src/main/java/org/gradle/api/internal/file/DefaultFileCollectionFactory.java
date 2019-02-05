@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.file.collections.ListBackedFileSet;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.file.PathToFileResolver;
@@ -30,9 +32,11 @@ import org.gradle.internal.file.PathToFileResolver;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
+    public static final String DEFAULT_DISPLAY_NAME = "file collection";
     private final PathToFileResolver fileResolver;
     @Nullable
     private final TaskResolver taskResolver;
@@ -55,7 +59,12 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollection create(final TaskDependency builtBy, MinimalFileSet contents) {
+    public ConfigurableFileCollection configurableFiles(String displayName) {
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskResolver);
+    }
+
+    @Override
+    public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
         if (contents instanceof Buildable) {
             throw new UnsupportedOperationException("Not implemented yet.");
         }
@@ -68,33 +77,136 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollection create(MinimalFileSet contents) {
+    public FileCollectionInternal create(MinimalFileSet contents) {
         return new FileCollectionAdapter(contents);
     }
 
     @Override
-    public FileCollection empty(String displayName) {
-        // At some point, introduce a more efficient implementation for an empty collection
-        return fixed(displayName, Collections.<File>emptyList());
+    public FileCollectionInternal resolving(String displayName, List<?> files) {
+        if (files.isEmpty()) {
+            return new EmptyFileCollection(displayName);
+        }
+        return new ResolvingFileCollection(displayName, fileResolver, ImmutableList.copyOf(files));
     }
 
     @Override
-    public FileCollection fixed(final String displayName, File... files) {
-        return new FileCollectionAdapter(new ListBackedFileSet(files) {
-            @Override
-            public String getDisplayName() {
-                return displayName;
-            }
-        });
+    public FileCollectionInternal resolving(Object... files) {
+        return resolving(DEFAULT_DISPLAY_NAME, files);
     }
 
     @Override
-    public FileCollection fixed(final String displayName, Collection<File> files) {
-        return new FileCollectionAdapter(new ListBackedFileSet(files) {
-            @Override
-            public String getDisplayName() {
-                return displayName;
-            }
-        });
+    public FileCollectionInternal resolving(String displayName, Object... files) {
+        return resolving(displayName, ImmutableList.copyOf(files));
+    }
+
+    @Override
+    public FileCollectionInternal empty(String displayName) {
+        return new EmptyFileCollection(displayName);
+    }
+
+    @Override
+    public FileCollectionInternal empty() {
+        return empty(DEFAULT_DISPLAY_NAME);
+    }
+
+    @Override
+    public FileCollectionInternal fixed(File... files) {
+        return fixed(DEFAULT_DISPLAY_NAME, files);
+    }
+
+    @Override
+    public FileCollectionInternal fixed(final String displayName, File... files) {
+        if (files.length == 0) {
+            return new EmptyFileCollection(displayName);
+        }
+        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+    }
+
+    @Override
+    public FileCollectionInternal fixed(Collection<File> files) {
+        return fixed(DEFAULT_DISPLAY_NAME, files);
+    }
+
+    @Override
+    public FileCollectionInternal fixed(final String displayName, Collection<File> files) {
+        if (files.isEmpty()) {
+            return new EmptyFileCollection(displayName);
+        }
+        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+    }
+
+    private static final class EmptyFileCollection extends AbstractFileCollection {
+        private final String displayName;
+
+        public EmptyFileCollection(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return TaskDependencyInternal.EMPTY;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
+        }
+    }
+
+    private static final class FixedFileCollection extends AbstractFileCollection {
+        private final String displayName;
+        private final ImmutableSet<File> files;
+
+        public FixedFileCollection(String displayName, ImmutableSet<File> files) {
+            this.displayName = displayName;
+            this.files = files;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return files;
+        }
+
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return TaskDependencyInternal.EMPTY;
+        }
+    }
+
+    private static final class ResolvingFileCollection extends CompositeFileCollection {
+        private final String displayName;
+        private final PathToFileResolver resolver;
+        private final ImmutableList<Object> paths;
+
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, ImmutableList<Object> paths) {
+            this.displayName = displayName;
+            this.resolver = resolver;
+            this.paths = paths;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public void visitContents(FileCollectionResolveContext context) {
+            FileCollectionResolveContext nested = context.push(resolver);
+            nested.add(paths);
+        }
     }
 }

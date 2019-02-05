@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.test.xctest.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
@@ -49,8 +48,8 @@ public class DefaultSwiftXCTestSuite extends DefaultSwiftComponent implements Sw
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultSwiftXCTestSuite(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(name, fileOperations, objectFactory);
+    public DefaultSwiftXCTestSuite(String name, ObjectFactory objectFactory) {
+        super(name, objectFactory);
         this.testedComponent = objectFactory.property(SwiftComponent.class);
         this.objectFactory = objectFactory;
         this.testBinary = objectFactory.property(SwiftXCTestBinary.class);

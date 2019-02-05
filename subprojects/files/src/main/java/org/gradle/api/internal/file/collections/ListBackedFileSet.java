@@ -15,24 +15,25 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Adapts a java util collection into a file set.
  */
-public class ListBackedFileSet implements MinimalFileSet, Serializable {
-    private final Set<File> files;
+public class ListBackedFileSet implements MinimalFileSet {
+    private final ImmutableSet<File> files;
 
     public ListBackedFileSet(File... files) {
-        this(Arrays.asList(files));
+        this.files = ImmutableSet.copyOf(files);
     }
 
     public ListBackedFileSet(Collection<File> files) {
-        this.files = new LinkedHashSet<File>(files);
+        this.files = ImmutableSet.copyOf(files);
     }
 
     public String getDisplayName() {

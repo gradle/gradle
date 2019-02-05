@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.service.ServiceRegistration;
@@ -42,6 +43,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
         protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
             final ProjectTaskLister taskLister,
             final ProjectPublicationRegistry projectPublicationRegistry,
+            final FileCollectionFactory fileCollectionFactory,
             final ServiceRegistry services) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -56,7 +58,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
-                    registry.register(new BuildEnvironmentBuilder());
+                    registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
                 }
             };
         }

@@ -16,13 +16,14 @@
 package org.gradle.api.internal.java.usagecontext;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 
 public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext {
     private final Configuration configuration;
 
-    public FeatureConfigurationUsageContext(String name, Configuration configuration) {
-        super(name, ((AttributeContainerInternal)configuration.getAttributes()).asImmutable(), configuration.getArtifacts());
+    public FeatureConfigurationUsageContext(String name, Configuration configuration, ConfigurationVariant variant) {
+        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts());
         this.configuration = configuration;
     }
 
@@ -30,4 +31,5 @@ public class FeatureConfigurationUsageContext extends AbstractConfigurationUsage
     protected Configuration getConfiguration() {
         return configuration;
     }
+
 }
