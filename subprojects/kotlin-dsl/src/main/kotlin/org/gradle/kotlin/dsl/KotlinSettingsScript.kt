@@ -89,10 +89,10 @@ abstract class KotlinSettingsScript(
         host.scriptHandler
 
     override val fileOperations
-        get() = host.scriptServices.fileOperations
+        get() = host.fileOperations
 
     override val processOperations
-        get() = host.scriptServices.processOperations
+        get() = host.processOperations
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)

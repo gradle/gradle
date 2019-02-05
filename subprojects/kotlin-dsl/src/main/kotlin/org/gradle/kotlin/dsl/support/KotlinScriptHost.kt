@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -42,11 +44,13 @@ class KotlinScriptHost<out T : Any>(
     val fileName = scriptSource.fileName!!
 
     internal
-    val scriptServices by unsafeLazy {
-        KotlinScriptServices(
-            fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile),
-            serviceRegistry.get()
-        )
+    val fileOperations: FileOperations by unsafeLazy {
+        fileOperationsFor(serviceRegistry, scriptSource.resource.location.file?.parentFile)
+    }
+
+    internal
+    val processOperations: ProcessOperations by unsafeLazy {
+        serviceRegistry.get<ProcessOperations>()
     }
 
     internal
@@ -57,7 +61,7 @@ class KotlinScriptHost<out T : Any>(
     private
     fun createObjectConfigurationAction() =
         DefaultObjectConfigurationAction(
-            scriptServices.fileOperations.fileResolver,
+            fileOperations.fileResolver,
             serviceRegistry.get(),
             serviceRegistry.get(),
             baseScope,

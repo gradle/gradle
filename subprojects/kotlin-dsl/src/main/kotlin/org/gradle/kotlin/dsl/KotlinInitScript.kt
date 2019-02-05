@@ -89,10 +89,10 @@ abstract class KotlinInitScript(
         host.applyObjectConfigurationAction(action)
 
     override val fileOperations
-        get() = host.scriptServices.fileOperations
+        get() = host.fileOperations
 
     override val processOperations
-        get() = host.scriptServices.processOperations
+        get() = host.processOperations
 }
 
 
