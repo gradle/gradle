@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures(
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 )
-class MavenDependencyResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+class  MavenDependencyResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     String getRootProjectName() { 'testproject' }
 

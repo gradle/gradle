@@ -18,6 +18,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -262,6 +263,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.parsedIvy.expectArtifact("publishTest", "jar", "source").hasAttributes("jar", "sources", ["runtime"], "source")
 
         and:
+        javaLibrary.removeGradleMetadataRedirection()
         resolveArtifacts(javaLibrary) {
             withoutModuleMetadata {
                 expectFiles "commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "publishTest-1.9-source.jar"
@@ -617,6 +619,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         // we do not publish constraints to ivy
 
         and:
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.parsedModuleMetadata.variant('apiElements') {
             dependency('org.springframework:spring-core:1.2.9') {
                 rejects()
@@ -686,6 +689,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputContains('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
@@ -756,6 +760,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         javaLibrary.assertPublished()
 
@@ -932,6 +937,45 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         then:
         skipped(':generateMetadataFileForJavaPublication')
         outputContains "Ivy publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
+    }
+
+    @Unroll
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
+        publishModuleMetadata = enableFeaturePreview
+
+        given:
+        createBuildScripts("""
+            publishing {
+                repositories {
+                    ivy { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            generateMetadataFileForIvyPublication.enabled = $enabled
+        """)
+        settingsFile.text = "rootProject.name = 'publishTest' "
+        if (enableFeaturePreview) {
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        }
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = javaLibrary.backingModule
+        module.hasGradleMetadataRedirectionMarker() == hasMarker
+
+        where:
+        enableFeaturePreview | enabled | hasMarker
+        false                | false   | false
+        false                | true    | false
+        true                 | false   | false
+        true                 | true    | true
     }
 
     private void createBuildScripts(def append) {

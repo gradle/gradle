@@ -70,5 +70,7 @@ public interface MavenPublicationInternal extends MavenPublication, PublicationI
     void publishWithOriginalFileName();
 
     VersionMappingStrategyInternal getVersionMappingStrategy();
+
+    boolean writeGradleMetadataMarker();
 }
 

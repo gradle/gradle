@@ -117,6 +117,9 @@ public interface MavenArtifactRepository extends ArtifactRepository, Authenticat
 
         /**
          * Indicates that this repository will contain Maven POM files.
+         * If the POM file contains a marker telling that Gradle metadata exists
+         * for this component, Gradle will <i>also</i> look for the Gradle metadata
+         * file.
          */
         void mavenPom();
 

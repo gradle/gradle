@@ -230,6 +230,20 @@ public class SimpleMarkupWriter extends Writer {
         return this;
     }
 
+    public SimpleMarkupWriter comment(String comment) throws IOException {
+        maybeFinishStartTag();
+        if (indent != null) {
+            writeRaw(LINE_SEPARATOR);
+            for (int i = 0; i < elements.size(); i++) {
+                writeRaw(indent);
+            }
+        }
+        writeRaw("<!-- ");
+        writeXmlEncoded(comment);
+        writeRaw(" -->");
+        return this;
+    }
+
     public SimpleMarkupWriter attribute(String name, String value) throws IOException {
         if (!XmlValidation.isValidXmlName(name)) {
             throw new IllegalArgumentException(String.format("Invalid attribute name: '%s'", name));

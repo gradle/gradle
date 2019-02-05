@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.tasks;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.apache.maven.model.CiManagement;
 import org.apache.maven.model.Contributor;
 import org.apache.maven.model.Dependency;
@@ -36,6 +38,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publication.maven.internal.VersionRangeMapper;
@@ -61,6 +64,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
@@ -69,6 +73,17 @@ public class MavenPomFileGenerator {
 
     private static final String POM_FILE_ENCODING = "UTF-8";
     private static final String POM_VERSION = "4.0.0";
+    private static final Action<XmlProvider> ADD_GRADLE_METADATA_MARKER = new Action<XmlProvider>() {
+        @Override
+        public void execute(XmlProvider xmlProvider) {
+            StringBuilder builder = xmlProvider.asString();
+            int idx = builder.indexOf("<modelVersion");
+            builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
+                    + "  "
+                    + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                    + "  ");
+        }
+    };
 
     private final Model model = new Model();
     private final XmlTransformer xmlTransformer = new XmlTransformer();
@@ -81,7 +96,8 @@ public class MavenPomFileGenerator {
                                  VersionRangeMapper versionRangeMapper,
                                  VersionMappingStrategyInternal versionMappingStrategy,
                                  ImmutableAttributes compileScopeAttributes,
-                                 ImmutableAttributes runtimeScopeAttributes) {
+                                 ImmutableAttributes runtimeScopeAttributes,
+                                 boolean gradleMetadataMarker) {
         this.versionRangeMapper = versionRangeMapper;
         this.versionMappingStrategy = versionMappingStrategy;
         this.compileScopeAttributes = compileScopeAttributes;
@@ -90,6 +106,17 @@ public class MavenPomFileGenerator {
         model.setGroupId(identity.getGroupId().get());
         model.setArtifactId(identity.getArtifactId().get());
         model.setVersion(identity.getVersion().get());
+        if (gradleMetadataMarker) {
+            withXml(ADD_GRADLE_METADATA_MARKER);
+        }
+    }
+
+    private static String xmlComments(String[] lines) {
+        return Joiner.on("  ").join(Iterables.transform(Arrays.asList(lines), MavenPomFileGenerator::xmlComment));
+    }
+
+    private static String xmlComment(String content) {
+        return "<!-- " + content + " -->\n";
     }
 
     public MavenPomFileGenerator configureFrom(MavenPomInternal pom) {

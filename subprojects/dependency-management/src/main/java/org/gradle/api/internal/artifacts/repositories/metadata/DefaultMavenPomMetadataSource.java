@@ -49,23 +49,27 @@ public class DefaultMavenPomMetadataSource extends AbstractRepositoryMetadataSou
         this.mavenMetadataLoader = mavenMetadataLoader;
     }
 
-    protected MutableMavenModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
-        MutableMavenModuleResolveMetadata metaData = pomParser.parseMetaData(context, cachedResource);
-        if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
-            // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
-            MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
-            checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
+    protected MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
+       MetaDataParser.ParseResult<MutableMavenModuleResolveMetadata> parseResult = pomParser.parseMetaData(context, cachedResource);
+        MutableMavenModuleResolveMetadata metaData = parseResult.getResult();
+        if (metaData != null) {
+            if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+                // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
+                MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;
+                checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
 
-            metaData.setId(snapshotComponentIdentifier);
-            metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
-        } else {
-            checkMetadataConsistency(moduleComponentIdentifier, metaData);
+                metaData.setId(snapshotComponentIdentifier);
+                metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
+            } else {
+                checkMetadataConsistency(moduleComponentIdentifier, metaData);
+            }
+            MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
+            if (validator.isUsableModule(repoName, result, artifactResolver)) {
+                return parseResult;
+            }
+            return null;
         }
-        MutableMavenModuleResolveMetadata result = MavenResolver.processMetaData(metaData);
-        if (validator.isUsableModule(repoName, result, artifactResolver)) {
-            return result;
-        }
-        return null;
+        return parseResult;
     }
 
     @Override

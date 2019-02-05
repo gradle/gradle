@@ -143,7 +143,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private MavenArtifact pomArtifact;
-    private MavenArtifact moduleMetadataArtifact;
+    private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private Task moduleDescriptorGenerator;
     private SoftwareComponentInternal component;
     private boolean isPublishWithOriginalFileName;
@@ -464,6 +464,14 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
+    public boolean writeGradleMetadataMarker() {
+        if (canPublishModuleMetadata() && moduleMetadataArtifact != null && moduleMetadataArtifact.isEnabled()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
     public FileCollection getPublishableFiles() {
         return getPublishableArtifacts().getFiles();
     }
@@ -542,7 +550,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                 return artifact.getFile().exists();
             }
         });
-        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
+        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<MavenArtifact>() {
+            @Override
+            public boolean isSatisfiedBy(MavenArtifact element) {
+                if (moduleMetadataArtifact == element) {
+                    // We temporarily want to allow skipping the publication of Gradle module metadata
+                    return moduleMetadataArtifact.isEnabled();
+                }
+                return true;
+            }
+        });
         return new MavenNormalizedPublication(name, pom.getPackaging(), getPomArtifact(), projectIdentity, artifactsToBePublished, determineMainArtifact());
     }
 

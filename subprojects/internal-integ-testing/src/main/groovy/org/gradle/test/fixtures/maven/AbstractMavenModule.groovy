@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.maven
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -44,6 +45,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     String packaging
     int publishCount = 1
     private boolean hasPom = true
+    private boolean gradleMetadataRedirect = false
     private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
     private final List dependencies = []
     private final List artifacts = []
@@ -483,11 +485,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 writer << getMetaDataFileContent()
             }
         }
-
+        boolean writeRedirect = gradleMetadataRedirect
         publish(pomFileForPublish) { Writer writer ->
             def pomPackaging = packaging ?: type;
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
+                if (writeRedirect) {
+                    mkp.comment(MetaDataParser.GRADLE_METADATA_MARKER)
+                }
                 modelVersion("4.0.0")
                 groupId(groupId)
                 artifactId(artifactId)
@@ -674,6 +679,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule withModuleMetadata() {
         super.withModuleMetadata()
+    }
+
+    @Override
+    MavenModule withGradleMetadataRedirection() {
+        gradleMetadataRedirect = true
+        return this
     }
 
     @Override

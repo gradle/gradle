@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.ivy
 import groovy.xml.MarkupBuilder
 import org.gradle.api.Action
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.AbstractModule
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -49,6 +50,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
+    boolean writeGradleMetadataRedirection = false
 
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
@@ -217,6 +219,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     IvyFileModule extendsFrom(Map<String, ?> attributes) {
         this.extendsFrom.clear()
         this.extendsFrom.putAll(attributes)
+        return this
+    }
+
+    @Override
+    IvyModule withGradleMetadataRedirection() {
+        writeGradleMetadataRedirection = true
         return this
     }
 
@@ -427,6 +435,9 @@ class IvyFileModule extends AbstractModule implements IvyModule {
             infoAttrs.branch = branch
         }
         infoAttrs += extraAttributes.collectEntries { key, value -> ["e:$key", value] }
+        if (writeGradleMetadataRedirection) {
+            ivyFileWriter << "<!-- ${MetaDataParser.GRADLE_METADATA_MARKER} -->"
+        }
         builder.info(infoAttrs) {
             if (extendsFrom) {
                 "extends"(extendsFrom)
@@ -571,6 +582,17 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         assertPublished()
         assertArtifactsPublished("${module}-${revision}.ear", "ivy-${revision}.xml")
         parsedIvy.expectArtifact(module, "ear").hasAttributes("ear", "ear", ["master"])
+    }
+
+    IvyFileModule removeGradleMetadataRedirection() {
+        if (ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+            ivyFile.replace(MetaDataParser.GRADLE_METADATA_MARKER, '')
+        }
+        this
+    }
+
+    boolean hasGradleMetadataRedirectionMarker() {
+        ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)
     }
 
     interface IvyModuleArtifact extends ModuleArtifact {

@@ -21,9 +21,10 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
+import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
@@ -48,6 +49,7 @@ public class IvyDescriptorFileGenerator {
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
+    private final boolean writeGradleRedirectionMarker;
     private String branch;
     private String status;
     private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
@@ -60,8 +62,9 @@ public class IvyDescriptorFileGenerator {
     private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
     private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
 
-    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
+    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker) {
         this.projectIdentity = projectIdentity;
+        this.writeGradleRedirectionMarker = writeGradleRedirectionMarker;
     }
 
     public void setStatus(String status) {
@@ -137,6 +140,13 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
         if (usesClassifier()) {
             xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
+        }
+
+        if (writeGradleRedirectionMarker) {
+            for (String commentLine : MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES) {
+                xmlWriter.comment(commentLine);
+            }
+            xmlWriter.comment(MetaDataParser.GRADLE_METADATA_MARKER);
         }
 
         xmlWriter.startElement("info")
@@ -299,6 +309,12 @@ public class IvyDescriptorFileGenerator {
             if (value != null) {
                 super.attribute(name, value);
             }
+            return this;
+        }
+
+        @Override
+        public OptionalAttributeXmlWriter comment(String comment) throws IOException {
+            super.comment(comment);
             return this;
         }
     }

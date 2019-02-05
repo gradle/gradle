@@ -124,7 +124,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private Task moduleDescriptorGenerator;
-    private IvyArtifact gradleModuleDescriptorArtifact;
+    private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
@@ -428,8 +428,25 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return artifact.getFile().exists();
             }
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
+        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<IvyArtifact>() {
+            @Override
+            public boolean isSatisfiedBy(IvyArtifact element) {
+                if (gradleModuleDescriptorArtifact == element) {
+                    // We temporarily want to allow skipping the publication of Gradle module metadata
+                    return gradleModuleDescriptorArtifact.isEnabled();
+                }
+                return true;
+            }
+        });
         return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
+    }
+
+    @Override
+    public boolean writeGradleMetadataMarker() {
+        if (canPublishModuleMetadata() && gradleModuleDescriptorArtifact != null && gradleModuleDescriptorArtifact.isEnabled()) {
+            return true;
+        }
+        return false;
     }
 
     private boolean canPublishModuleMetadata() {

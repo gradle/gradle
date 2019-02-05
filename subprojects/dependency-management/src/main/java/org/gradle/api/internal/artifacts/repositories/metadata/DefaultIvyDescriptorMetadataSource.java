@@ -43,10 +43,13 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
         this.metaDataParser = metaDataParser;
     }
 
-    protected MutableIvyModuleResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
-        MutableIvyModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
-        checkMetadataConsistency(moduleComponentIdentifier, metaData);
-        return metaData;
+    protected MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName) {
+        MetaDataParser.ParseResult<MutableIvyModuleResolveMetadata> parseResult = metaDataParser.parseMetaData(context, cachedResource);
+        MutableIvyModuleResolveMetadata metaData = parseResult.getResult();
+        if (metaData != null) {
+            checkMetadataConsistency(moduleComponentIdentifier, metaData);
+        }
+        return parseResult;
     }
 
     @Override
