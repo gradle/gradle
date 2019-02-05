@@ -56,6 +56,8 @@ public interface IvyModule extends Module {
 
     IvyModule extendsFrom(Map<String, ?> attributes);
 
+    IvyModule withGradleMetadataRedirection();
+
     /**
      * Attributes:
      *  organisation

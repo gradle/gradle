@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvid
 import org.gradle.api.artifacts.repositories.IvyPatternRepositoryLayout;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -236,11 +237,13 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     private ImmutableMetadataSources createMetadataSources() {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
+        DefaultGradleModuleMetadataSource gradleModuleMetadataSource = new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true);
         if (metadataSources.gradleMetadata) {
-            sources.add(new DefaultGradleModuleMetadataSource(moduleMetadataParser, metadataFactory, true));
+            sources.add(gradleModuleMetadataSource);
         }
         if (metadataSources.ivyDescriptor) {
-            sources.add(new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory));
+            DefaultIvyDescriptorMetadataSource ivyDescriptorMetadataSource = new DefaultIvyDescriptorMetadataSource(IvyMetadataArtifactProvider.INSTANCE, createIvyDescriptorParser(), fileResourceRepository, moduleIdentifierFactory);
+            sources.add(new RedirectingGradleMetadataModuleMetadataSource(ivyDescriptorMetadataSource, gradleModuleMetadataSource));
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));

@@ -283,6 +283,9 @@ public interface IvyArtifactRepository extends ArtifactRepository, Authenticatio
 
         /**
          * Indicates that this repository will contain Ivy descriptors.
+         * If the Ivy file contains a marker telling that Gradle metadata exists
+         * for this component, Gradle will <i>also</i> look for the Gradle metadata
+         * file.
          */
         void ivyDescriptor();
 

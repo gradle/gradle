@@ -18,8 +18,10 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
+import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
@@ -27,7 +29,8 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
-    MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
+    MavenFileModule module = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+    MavenJavaModule javaLibrary = javaLibrary(module)
 
     def "can publish java-library with no dependencies"() {
         createBuildScripts("""
@@ -263,6 +266,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         when:
         run "publish"
+        module.removeGradleMetadataRedirection()
 
         then:
         javaLibrary.assertPublished()
@@ -353,6 +357,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         when:
         run "publish"
+        module.removeGradleMetadataRedirection()
 
         then:
         javaLibrary.assertPublished()
@@ -563,6 +568,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         def mavenModule = javaLibrary.mavenModule
+        mavenModule.removeGradleMetadataRedirection()
 
         mavenModule.assertPublished()
         mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom")
@@ -1158,4 +1164,44 @@ include(':platform')
         "implementation" | "runtime"
 
     }
+
+    @Unroll
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
+        publishModuleMetadata = enableFeaturePreview
+
+        given:
+        createBuildScripts("""
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            
+            generateMetadataFileForMavenPublication.enabled = $enabled
+        """)
+        settingsFile.text = "rootProject.name = 'publishTest' "
+        if (enableFeaturePreview) {
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        }
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = javaLibrary.mavenModule
+        module.hasGradleMetadataRedirectionMarker() == hasMarker
+
+        where:
+        enableFeaturePreview | enabled | hasMarker
+        false                | false   | false
+        false                | true    | false
+        true                 | false   | false
+        true                 | true    | true
+    }
+
 }

@@ -16,7 +16,9 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import spock.lang.Unroll
 
 class MavenGradleModuleMetadataPublishIntegrationTest extends AbstractMavenPublishIntegTest {
     def setup() {
@@ -86,6 +88,56 @@ class TestCapability implements Capability {
         def module = mavenRepo.module('group', 'root', '1.0')
         module.assertPublished()
         module.parsedModuleMetadata.variants.empty
+    }
+
+    @Unroll
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
+        publishModuleMetadata = enableFeaturePreview
+
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        if (enableFeaturePreview) {
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        }
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+            generateMetadataFileForMavenPublication.enabled = $enabled
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'publishTest', '1.0')
+        module.hasGradleMetadataRedirectionMarker() == hasMarker
+
+        where:
+        enableFeaturePreview | enabled | hasMarker
+        false                | false   | false
+        false                | true    | true       // component with variants is published independently of feature preview
+        true                 | false   | false
+        true                 | true    | true
     }
 
     def "maps project dependencies"() {
