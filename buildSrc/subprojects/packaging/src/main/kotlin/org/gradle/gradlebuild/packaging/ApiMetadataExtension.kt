@@ -24,5 +24,4 @@ open class ApiMetadataExtension(project: Project) {
     val sources = project.files()
     val includes = project.objects.listProperty<String>().empty()
     val excludes = project.objects.listProperty<String>().empty()
-    val classpath = project.files()
 }
