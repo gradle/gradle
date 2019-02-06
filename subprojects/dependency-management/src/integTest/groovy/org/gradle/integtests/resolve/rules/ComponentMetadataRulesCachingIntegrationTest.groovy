@@ -343,7 +343,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'thing': 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime-jars', 'thing': 'Bar'])
                 }
             }
         }
@@ -355,7 +355,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.test:projectA:1.0') {
-                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime', 'thing': 'Bar'])
+                    variant('runtime', ['org.gradle.status': expectedStatus, 'org.gradle.usage': 'java-runtime-jars', 'thing': 'Bar'])
                 }
             }
         }

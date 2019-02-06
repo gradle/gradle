@@ -514,6 +514,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         public ImmutableAttributesFactory getAttributesFactory() {
             return services.get(ImmutableAttributesFactory.class);
         }
+
+        @Override
+        public AttributesSchema getAttributesSchema() {
+            return services.get(AttributesSchema.class);
+        }
+
+        @Override
+        public ObjectFactory getObjectFactory() {
+            return services.get(ObjectFactory.class);
+        }
     }
 
     private static class DefaultArtifactPublicationServices implements ArtifactPublicationServices {

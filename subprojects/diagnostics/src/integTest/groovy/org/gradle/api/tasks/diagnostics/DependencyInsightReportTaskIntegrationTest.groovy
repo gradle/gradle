@@ -1959,7 +1959,7 @@ org:leaf2:1.0
         outputContains """
 project :api
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :api
@@ -1974,7 +1974,7 @@ project :api
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :some:deeply:nested
@@ -1988,7 +1988,7 @@ project :some:deeply:nested
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :some:deeply:nested

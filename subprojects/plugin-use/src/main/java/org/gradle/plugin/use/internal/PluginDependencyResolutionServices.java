@@ -23,12 +23,14 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
 
 import java.util.ArrayList;
@@ -77,6 +79,10 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         return getDependencyResolutionServices().getAttributesFactory();
     }
 
+    @Override
+    public AttributesSchema getAttributesSchema() {
+        return getDependencyResolutionServices().getAttributesSchema();
+    }
     public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
         return new PluginRepositoryHandlerProvider() {
             @Override
@@ -84,6 +90,11 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
                 return getResolveRepositoryHandler();
             }
         };
+    }
+
+    @Override
+    public ObjectFactory getObjectFactory() {
+        return getDependencyResolutionServices().getObjectFactory();
     }
 
     public PluginRepositoriesProvider getPluginRepositoriesProvider() {

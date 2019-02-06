@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
@@ -71,6 +72,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
 
     private DefaultAttributesSchema createSchema() {
         def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         PlatformSupport.configureSchema(schema)
         schema
     }

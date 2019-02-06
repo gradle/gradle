@@ -105,7 +105,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
             }
 """
         when:
@@ -116,8 +116,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, compile-1.0.jar, other-java.jar, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-api}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-api}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-api-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-api-jars}")
 
         when:
         buildFile << """
@@ -134,8 +134,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, compile-1.0.jar, other-java.jar, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-api}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-api}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.usage=java-api-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.usage=java-api-jars}")
 
         where:
         usage                                          | _
@@ -148,7 +148,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, ${usage})
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
             }
 """
         when:
@@ -208,7 +208,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_CLASSES))
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
             }
 """
         when:
@@ -245,7 +245,7 @@ project(':consumer') {
         buildFile << """
             project(':consumer') {
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME_RESOURCES))
-                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.plugins.JavaBasePlugin.UsageCompatibilityRules)
+                dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
             }
 """
 

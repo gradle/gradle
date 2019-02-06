@@ -108,7 +108,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         apiElements.extendsFrom(api);
         final Configuration runtimeElements = export(runtimeElementsConfigurationName);
         runtimeElements.extendsFrom(impl);
-        configureUsage(apiElements, Usage.JAVA_API);
+        configureUsage(apiElements, Usage.JAVA_API_JARS);
         configureUsage(runtimeElements, Usage.JAVA_RUNTIME_JARS);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);

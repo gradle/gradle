@@ -87,7 +87,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api'])
+                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api-jars'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
