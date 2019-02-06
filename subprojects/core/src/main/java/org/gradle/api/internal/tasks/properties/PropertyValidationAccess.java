@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Equivalence;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
@@ -25,8 +24,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
-import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.CompileClasspathPropertyAnnotationHandler;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -38,6 +37,11 @@ import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.service.DefaultServiceLocator;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -46,6 +50,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
@@ -61,13 +66,32 @@ public class PropertyValidationAccess {
         InputDirectory.class, new MissingPathSensitivityValidator()
     );
 
+    private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
+    private final TaskClassInfoStore taskClassInfoStore;
+    private final TypeMetadataStore metadataStore;
+
+    private PropertyValidationAccess() {
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
+        builder.provider(new Object() {
+            void configure(ServiceRegistration registration) {
+                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
+                for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
+                    pluginServiceFactory.registerGlobalServices(registration);
+                }
+            }
+        });
+        ServiceRegistry services = builder.build();
+        DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
+        taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
+        metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler.class), cacheFactory);
+    }
+
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
-        DefaultTaskClassInfoStore taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
-        TypeMetadataStore metadataStore = new DefaultTypeMetadataStore(ImmutableList.of(
-            new ClasspathPropertyAnnotationHandler(), new CompileClasspathPropertyAnnotationHandler()
-        ), cacheFactory);
+        INSTANCE.collectValidationProblems(topLevelBean, problems, enableStricterValidation);
+    }
+
+    private void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));

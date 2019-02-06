@@ -61,6 +61,7 @@ configurations {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
         attributes.attribute(Attribute.of("type", String), "full-docs")
     }
+
     gradleGettingStarted {
         visible = false
         canBeResolved = true
@@ -69,10 +70,19 @@ configurations {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
         attributes.attribute(Attribute.of("type", String), "getting-started")
     }
+
+    minimalRuntime {
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(Attribute.of("org.gradle.runtime", String), "minimal")
+    }
 }
 
 dependencies {
     implementation(project(":distributionsDependencies"))
+    minimalRuntime(project(":core"))
+    minimalRuntime(project(":dependencyManagement"))
+    minimalRuntime(project(":platformJvm"))
 }
 
 ext {

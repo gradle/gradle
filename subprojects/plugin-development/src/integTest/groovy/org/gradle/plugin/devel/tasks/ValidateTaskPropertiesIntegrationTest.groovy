@@ -79,9 +79,21 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     return null;
                 }
 
+                // Valid because it is annotated
+                @CompileClasspath
+                public java.util.List<java.io.File> getClasspath() {
+                    return null;
+                }
+
                 // Invalid because it has no annotation
                 public long getBadTime() {
                     return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
                 }
 
                 public static class Options {
@@ -103,11 +115,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Task type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Task type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
             Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             Warning: Task type 'MyTask': property 'ter' is not annotated with an input or output annotation.
         """.stripIndent().trim()
