@@ -16,7 +16,7 @@
 
 <sample>
     <para>
-        Recommended cache configuration: Developer push to a local build cache and pull from local and remote build cache,
-        continuous integration server pushes to and pulls from both the local and remote caches.
+        Recommended cache configuration: Developers store only in the local build cache, and load from both the local and remote build caches.
+        Continuous integration builds store and load from both the local and remote caches.
     </para>
 </sample>
