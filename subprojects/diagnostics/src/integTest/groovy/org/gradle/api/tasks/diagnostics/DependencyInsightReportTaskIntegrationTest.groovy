@@ -2428,7 +2428,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
 """
     }
 
-
+    @Unroll
     def "renders dependency from BOM as a constraint"() {
         given:
         def leaf = mavenRepo.module("org", "leaf", "1.0").publish()
@@ -2445,7 +2445,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
             }
 
             dependencies {
-                implementation platform('org:bom:1.0')
+                implementation platform('org:bom:1.0') $conf
                 implementation 'org:leaf'
             }
         """
@@ -2469,6 +2469,10 @@ org:leaf:1.0
 org:leaf -> 1.0
 \\--- compileClasspath
 """
+        where:
+        conf << ["",
+                 // this is just a sanity check. Nobody should ever write this.
+                 "{ capabilities { requireCapability('org:bom-derived-platform') } }" ]
     }
 
     def "shows published dependency reason"() {

@@ -60,16 +60,52 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
         ModuleComponentIdentifier componentId = conf.getComponentId();
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
+        ImmutableCapability shadowed = new ImmutableCapability(
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
+        );
         metadata = metadata
                 .withConstraintsOnly()
-                .withCapabilities(Collections.singletonList(new ImmutableCapability(
-                        componentId.getGroup(),
-                        componentId.getModule() + "-derived-platform",
-                        componentId.getVersion()
-                )));
+                .withCapabilities(Collections.singletonList(new DefaultShadowedCapability(shadowed, "-derived-platform")));
         if (enforcedPlatform) {
             metadata = metadata.withForcedDependencies();
         }
         return metadata;
+    }
+
+    private static class DefaultShadowedCapability implements ShadowedCapability {
+        private final CapabilityInternal shadowed;
+        private final String appendix;
+
+        private DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
+            this.shadowed = shadowed;
+            this.appendix = appendix;
+        }
+
+        @Override
+        public CapabilityInternal getShadowedCapability() {
+            return shadowed;
+        }
+
+        @Override
+        public String getGroup() {
+            return shadowed.getGroup();
+        }
+
+        @Override
+        public String getName() {
+            return shadowed.getName() + appendix;
+        }
+
+        @Override
+        public String getVersion() {
+            return shadowed.getVersion();
+        }
+
+        @Override
+        public String getCapabilityId() {
+            return shadowed.getCapabilityId() + appendix;
+        }
     }
 }

@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -606,6 +607,15 @@ public class NodeState implements DependencyGraphNode {
     public boolean isAttachedToVirtualPlatform() {
         for (EdgeState incomingEdge : incomingEdges) {
             if (incomingEdge.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean hasShadowedCapability() {
+        for (Capability capability : metaData.getCapabilities().getCapabilities()) {
+            if (capability instanceof ShadowedCapability) {
                 return true;
             }
         }
