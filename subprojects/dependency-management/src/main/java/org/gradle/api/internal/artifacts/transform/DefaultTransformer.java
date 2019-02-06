@@ -110,7 +110,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         }
 
         if (parameterObject != null) {
-            // TODO - should snapshot later
+            // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
             fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
         }
         HashCode secondaryInputsHash = hasher.hash();

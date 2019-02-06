@@ -20,6 +20,7 @@ import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,5 +98,9 @@ public class TransformationStep implements Transformation {
     @Override
     public String toString() {
         return String.format("%s@%s", transformer.getDisplayName(), transformer.getSecondaryInputHash());
+    }
+
+    public TaskDependencyContainer getDependencies() {
+        return transformer;
     }
 }

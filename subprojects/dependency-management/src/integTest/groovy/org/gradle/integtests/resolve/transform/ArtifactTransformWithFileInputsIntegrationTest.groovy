@@ -17,8 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import spock.lang.Ignore
-
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
@@ -155,13 +153,23 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @Ignore("Need to use a different transform")
     def "transform can receive a file collection containing transform outputs as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
+            abstract class MakeRedAction implements ArtifactTransformAction {
+                @PrimaryInput
+                abstract File getInput()
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    println "processing \${input.name} wit MakeRedAction"
+                    def output = outputs.registerOutput(input.name + ".red")
+                    output.text = "ok"
+                }
+            }
+
             allprojects {
                 def attr = Attribute.of('color', String)
                 configurations.create("tools") {
@@ -169,8 +177,14 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     attributes.attribute(attr, 'blue')
                 }
                 ext.inputFiles = configurations.tools.incoming.artifactView {
-                    attributes.attribute(attr, 'green')
+                    attributes.attribute(attr, 'red')
                 }.files
+                dependencies {
+                    registerTransformAction(MakeRedAction) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                    }
+                }
             }
             
             project(':a') {
@@ -193,14 +207,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // the eager resolve of `configuration.tools` happens before the transform is registered and some caching means the transform is ignored
-        // (see https://github.com/gradle/gradle/issues/8418)
-        // this means nothing ends up in the result. Removing the eager resolve will fix this
-//        result.assertTasksExecuted(":b:producer", ":c:producer", ":d:producer", ":e:producer", "a:resolve")
-//        outputContains("processing b.jar using [d.jar.green, e.jar.green]")
-//        outputContains("processing c.jar using [d.jar.green, e.jar.green]")
-//        outputContains("result = [b.jar.green, c.jar.green]")
-        outputContains("result = []")
+        // TODO wolfs: Build dependencies of transforms required by the parameters are not discovered
+        // result.assertTasksExecuted(":b:producer", ":c:producer", , ":d:producer", ":e:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b.jar using [d.jar.red, e.jar.red]")
+        outputContains("processing c.jar using [d.jar.red, e.jar.red]")
+        outputContains("result = [b.jar.green, c.jar.green]")
     }
 
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {

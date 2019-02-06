@@ -41,6 +41,7 @@ public abstract class TransformationNode extends Node {
 
     private final int order = ORDER_COUNTER.incrementAndGet();
     protected final TransformationStep transformationStep;
+    protected final ExecutionGraphDependenciesResolver dependenciesResolver;
     protected Try<TransformationSubject> transformedSubject;
 
     public static TransformationNode chained(TransformationStep current, TransformationNode previous, ExecutionGraphDependenciesResolver executionGraphDependenciesResolver) {
@@ -51,8 +52,9 @@ public abstract class TransformationNode extends Node {
         return new InitialTransformationNode(initial, artifact, executionGraphDependenciesResolver);
     }
 
-    protected TransformationNode(TransformationStep transformationStep) {
+    protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformationStep = transformationStep;
+        this.dependenciesResolver = dependenciesResolver;
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
@@ -111,12 +113,18 @@ public abstract class TransformationNode extends Node {
         }
     }
 
+    @Override
+    public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep.getDependencies()));
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
+    }
+
     private static class InitialTransformationNode extends TransformationNode {
         private final ResolvableArtifact artifact;
         private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
         public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            super(transformationStep);
+            super(transformationStep, dependenciesResolver);
             this.artifact = artifact;
             this.dependenciesResolver = dependenciesResolver;
         }
@@ -149,20 +157,18 @@ public abstract class TransformationNode extends Node {
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+            super.resolveDependencies(dependencyResolver, processHardSuccessor);
             processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, artifact));
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
     }
 
     private static class ChainedTransformationNode extends TransformationNode {
         private final TransformationNode previousTransformationNode;
-        private final ExecutionGraphDependenciesResolver dependenciesResolver;
 
         public ChainedTransformationNode(TransformationStep transformationStep, TransformationNode previousTransformationNode, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            super(transformationStep);
+            super(transformationStep, dependenciesResolver);
             this.previousTransformationNode = previousTransformationNode;
-            this.dependenciesResolver = dependenciesResolver;
         }
 
         @Override
@@ -185,9 +191,9 @@ public abstract class TransformationNode extends Node {
 
         @Override
         public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
+            super.resolveDependencies(dependencyResolver, processHardSuccessor);
             addDependencySuccessor(previousTransformationNode);
             processHardSuccessor.execute(previousTransformationNode);
-            processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
         }
 
     }

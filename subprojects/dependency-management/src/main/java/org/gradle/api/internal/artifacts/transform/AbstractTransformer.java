@@ -18,13 +18,17 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public abstract class AbstractTransformer<T, P> implements Transformer {
@@ -33,12 +37,25 @@ public abstract class AbstractTransformer<T, P> implements Transformer {
     private final DomainObjectContextProjectStateHandler projectStateHandler;
     private IsolatableParameters<P> isolatableParameters;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
+    private WorkNodeAction isolateAction;
 
     public AbstractTransformer(Class<? extends T> implementationClass, ImmutableAttributes fromAttributes, DomainObjectContextProjectStateHandler projectStateHandler) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
+        this.isolateAction = new WorkNodeAction() {
+            @Nullable
+            @Override
+            public Project getProject() {
+                return projectStateHandler.maybeGetOwningProject();
+            }
+
+            @Override
+            public void run() {
+                isolateExclusively();
+            }
+        };
     }
 
     static class IsolatableParameters<T> {
@@ -65,6 +82,11 @@ public abstract class AbstractTransformer<T, P> implements Transformer {
     }
 
     abstract protected IsolatableParameters<P> doIsolateParameters();
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(isolateAction);
+    }
 
     @Override
     public void isolateParameters() {

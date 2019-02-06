@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -29,7 +30,7 @@ import java.util.List;
  *
  * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
  */
-public interface Transformer extends Describable {
+public interface Transformer extends Describable, TaskDependencyContainer {
     Class<?> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
