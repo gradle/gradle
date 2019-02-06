@@ -31,8 +31,6 @@ import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.execution.TaskSelector
-import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -142,16 +140,6 @@ public class GradleScopeServicesTest extends Specification {
         then:
         firstExecuter instanceof BuildConfigurationActionExecuter
         firstExecuter sameInstance(secondExecuter)
-    }
-
-    def "provides a task graph executer"() {
-        when:
-        def graphExecuter = registry.get(TaskExecutionGraphInternal)
-        def secondExecuter = registry.get(TaskExecutionGraphInternal)
-
-        then:
-        graphExecuter instanceof DefaultTaskExecutionGraph
-        graphExecuter sameInstance(secondExecuter)
     }
 
     def "provides a task selector"() {

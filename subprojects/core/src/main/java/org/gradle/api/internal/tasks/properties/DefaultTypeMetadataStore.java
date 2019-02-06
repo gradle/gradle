@@ -32,18 +32,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.NestedBeanAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.plugins.ExtensionAware;
@@ -69,17 +58,6 @@ import java.util.Set;
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
-        new InputFilePropertyAnnotationHandler(),
-        new InputDirectoryPropertyAnnotationHandler(),
-        new InputFilesPropertyAnnotationHandler(),
-        new OutputFilePropertyAnnotationHandler(),
-        new OutputFilesPropertyAnnotationHandler(),
-        new OutputDirectoryPropertyAnnotationHandler(),
-        new OutputDirectoriesPropertyAnnotationHandler(),
-        new InputPropertyAnnotationHandler(),
-        new DestroysPropertyAnnotationHandler(),
-        new LocalStatePropertyAnnotationHandler(),
-        new NestedBeanAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
         new NoOpPropertyAnnotationHandler(Internal.class),
