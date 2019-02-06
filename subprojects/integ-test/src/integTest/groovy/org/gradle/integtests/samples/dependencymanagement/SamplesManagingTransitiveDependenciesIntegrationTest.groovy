@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -201,6 +202,7 @@ Searched in the following locations:
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore
     @Unroll
     @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM")
     def "can import dependency versions from a bom for #dsl dsl"() {

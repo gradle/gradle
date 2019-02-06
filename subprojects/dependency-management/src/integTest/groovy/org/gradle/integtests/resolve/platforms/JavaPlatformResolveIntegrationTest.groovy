@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -266,6 +267,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    @Ignore
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")

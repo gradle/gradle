@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -568,6 +569,7 @@ include 'other'
         succeeds ':checkDeps'
     }
 
+    @Ignore
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
     ])

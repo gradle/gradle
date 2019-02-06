@@ -2428,6 +2428,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
 """
     }
 
+    @Ignore
     @Unroll
     def "renders dependency from BOM as a constraint"() {
         given:
