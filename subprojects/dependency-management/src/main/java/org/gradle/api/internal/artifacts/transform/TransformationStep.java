@@ -33,7 +33,7 @@ import java.io.File;
  */
 public class TransformationStep implements Transformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
-    public static final Equivalence<TransformationStep> FOR_SCHEDULING = Equivalence.equals().onResultOf(step -> step.transformer.getSecondaryInputHash());
+    public static final Equivalence<? super TransformationStep> FOR_SCHEDULING = Equivalence.identity();
 
 
     private final Transformer transformer;
@@ -60,6 +60,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        transformer.isolateParameters();
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File primaryInput : primaryInputs) {

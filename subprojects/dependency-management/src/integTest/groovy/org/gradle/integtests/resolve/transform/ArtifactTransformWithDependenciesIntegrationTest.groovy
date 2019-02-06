@@ -446,9 +446,6 @@ project(':app') {
 
             transformStep1(libWithSlf4New),
             transformStep2(libWithSlf4New),
-            // Looks like we execute this second step once with the first step having dependencies slf4j-api-1.7.26.jar and once with dependencies slf4j-api-1.7.25.jar
-            // TODO wolfs: Schedule only the right transformations, not transformations with mixed dependencies which cannot be re-used by anything.
-            transformStep2(libWithSlf4New)
         )
 
         def outputLines = output.readLines()
@@ -457,11 +454,9 @@ project(':app') {
         def libTransformWithOldSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar")
         def libTransformWithNewSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar")
         ![app1Resolve, app2Resolve, libTransformWithOldSlf4j, libTransformWithNewSlf4j].contains(-1)
-        // scheduled transformation, executed before the resolve task
+        // scheduled transformations, executed before the resolve task
         assert libTransformWithOldSlf4j < app1Resolve
-        // immediate transformation, we do not distinguish between transformations with different dependency graphs, so we only schedule the transformation once.
-        // TODO wolfs: should be scheduled as well
-        assert libTransformWithNewSlf4j > app2Resolve
+        assert libTransformWithNewSlf4j < app2Resolve
     }
 
     def "transform does not execute when dependencies cannot be found"() {

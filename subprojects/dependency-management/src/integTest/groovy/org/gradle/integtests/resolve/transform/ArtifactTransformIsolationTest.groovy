@@ -17,7 +17,8 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
@@ -69,6 +70,7 @@ public class CountRecorder extends ArtifactTransform {
 """
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "serialized mutable class is isolated during artifact transformation"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         def m2 = mavenRepo.module("test", "test2", "2.3").publish()
@@ -102,7 +104,6 @@ public class CountRecorder extends ArtifactTransform {
                     to.attribute(artifactType, 'secondCount')
                     artifactTransform(CountRecorder) { params(counter) }
                 }
-                counter.increment()
                 registerTransform {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'thirdCount')
@@ -118,6 +119,7 @@ public class CountRecorder extends ArtifactTransform {
                 into "\${buildDir}/libs1"
                 
                 doLast {
+                    counter.increment()
                     println "files: " + first.collect { it.file.name }
                     println "ids: " + first.collect { it.id }
                     println "components: " + first.collect { it.id.componentIdentifier }
@@ -125,13 +127,6 @@ public class CountRecorder extends ArtifactTransform {
                 }
             }
             
-            task increment {
-                doFirst {
-                    // Just to show that incrementing the counter doesn't matter.
-                    counter.increment()
-                }
-            }
-
             task resolveSecond(type: Copy) {
                 def second = configurations.compile.incoming.artifactView {
                     attributes { it.attribute(artifactType, 'secondCount') }
@@ -140,6 +135,7 @@ public class CountRecorder extends ArtifactTransform {
                 into "\${buildDir}/libs2"
                 
                 doLast {
+                    counter.increment()
                     println "files: " + second.collect { it.file.name }
                     println "ids: " + second.collect { it.id }
                     println "components: " + second.collect { it.id.componentIdentifier }
@@ -155,6 +151,7 @@ public class CountRecorder extends ArtifactTransform {
                 into "\${buildDir}/libs3"
                 
                 doLast {
+                    counter.increment()
                     println "files: " + third.collect { it.file.name }
                     println "ids: " + third.collect { it.id }
                     println "components: " + third.collect { it.id.componentIdentifier }
@@ -162,7 +159,7 @@ public class CountRecorder extends ArtifactTransform {
                 }
             }
             
-            task resolve dependsOn 'resolveFirst', 'increment', 'resolveSecond', 'resolveThird'
+            task resolve dependsOn 'resolveFirst', 'resolveSecond', 'resolveThird'
         """
 
         when:
@@ -171,20 +168,20 @@ public class CountRecorder extends ArtifactTransform {
         then:
         outputContains("variants: [{artifactType=firstCount}, {artifactType=firstCount}]")
         file("build/libs1").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs1/test-1.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
-        file("build/libs1/test2-2.3.jar.txt").readLines() == ["0", "1", "2", "3", "4"]
+        file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
 
         and:
         outputContains("variants: [{artifactType=secondCount}, {artifactType=secondCount}]")
         file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs2/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
-        file("build/libs2/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
 
         and:
         outputContains("variants: [{artifactType=thirdCount}, {artifactType=thirdCount}]")
         file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
-        file("build/libs3/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
-        file("build/libs3/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
 
         and:
         output.count("Transforming") == 6

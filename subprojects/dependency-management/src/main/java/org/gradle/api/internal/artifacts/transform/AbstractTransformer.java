@@ -19,24 +19,71 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.isolation.Isolatable;
 
 import java.io.File;
 
-public abstract class AbstractTransformer<T> implements Transformer {
+public abstract class AbstractTransformer<T, P> implements Transformer {
     private final Class<? extends T> implementationClass;
-    private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
+    private final DomainObjectContextProjectStateHandler projectStateHandler;
+    private IsolatableParameters<P> isolatableParameters;
+    private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
 
-    public AbstractTransformer(Class<? extends T> implementationClass, HashCode inputsHash, ImmutableAttributes fromAttributes) {
+    public AbstractTransformer(Class<? extends T> implementationClass, ImmutableAttributes fromAttributes, DomainObjectContextProjectStateHandler projectStateHandler) {
         this.implementationClass = implementationClass;
-        this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;
+        this.projectStateHandler = projectStateHandler;
+        this.isolationLock = projectStateHandler.newExclusiveOperationLock();
+    }
+
+    static class IsolatableParameters<T> {
+        private HashCode secondaryInputsHash;
+        private Isolatable<T> isolatableParameters;
+
+        public IsolatableParameters(Isolatable<T> isolatableParameters, HashCode secondaryInputsHash) {
+            this.secondaryInputsHash = secondaryInputsHash;
+            this.isolatableParameters = isolatableParameters;
+        }
+
+        public HashCode getSecondaryInputsHash() {
+            return secondaryInputsHash;
+        }
+
+        public Isolatable<T> getIsolatableParameters() {
+            return isolatableParameters;
+        }
     }
 
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
+    }
+
+    abstract protected IsolatableParameters<P> doIsolateParameters();
+
+    @Override
+    public void isolateParameters() {
+        if (isolatableParameters == null) {
+            if (!projectStateHandler.hasMutableProjectState()) {
+                projectStateHandler.withLenientState(this::isolateExclusively);
+            } else {
+                isolateExclusively();
+            }
+        }
+    }
+
+    private void isolateExclusively() {
+        isolationLock.withLock(() -> {
+            if (isolatableParameters != null) {
+                return;
+            }
+            isolatableParameters = doIsolateParameters();
+        });
     }
 
     protected static ImmutableList<File> validateOutputs(File primaryInput, File outputDir, ImmutableList<File> outputs) {
@@ -61,11 +108,6 @@ public abstract class AbstractTransformer<T> implements Transformer {
     }
 
     @Override
-    public HashCode getSecondaryInputHash() {
-        return inputsHash;
-    }
-
-    @Override
     public Class<? extends T> getImplementationClass() {
         return implementationClass;
     }
@@ -73,5 +115,22 @@ public abstract class AbstractTransformer<T> implements Transformer {
     @Override
     public String getDisplayName() {
         return implementationClass.getSimpleName();
+    }
+
+    protected static void appendActionImplementation(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Hasher hasher, Class<?> implementation) {
+        hasher.putString(implementation.getName());
+        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
+    }
+
+    @Override
+    public HashCode getSecondaryInputHash() {
+        return getIsolated().getSecondaryInputsHash();
+    }
+
+    public IsolatableParameters<P> getIsolated() {
+        if (isolatableParameters == null) {
+            throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
+        }
+        return isolatableParameters;
     }
 }

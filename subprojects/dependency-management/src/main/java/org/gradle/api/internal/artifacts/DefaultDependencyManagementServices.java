@@ -73,6 +73,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
+import org.gradle.api.internal.artifacts.transform.DomainObjectContextProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
@@ -278,8 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
-            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker);
+        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder) {
+            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker, new DomainObjectContextProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder));
         }
 
         VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory) {

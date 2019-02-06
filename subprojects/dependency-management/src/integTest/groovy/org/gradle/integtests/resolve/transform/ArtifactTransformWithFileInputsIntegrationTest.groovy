@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Ignore
 
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -26,7 +27,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     def setupBuildWithTransformFileInputs() {
         buildFile << """
             def makeGreenParameters(project, params) { 
-                params.someFiles.from(project.inputFiles)
+                params.someFiles.from { project.inputFiles }
             }
         """
         setupBuildWithColorTransform()
@@ -56,13 +57,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         settingsFile << """
                 include 'a', 'b', 'c'
             """
-        // TODO - should be able to do this after registering the transform
+        setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
                 ext.inputFiles = files('a.txt', 'b.txt')
             }
         """
-        setupBuildWithTransformFileInputs()
         buildFile << """
             
             project(':a') {
@@ -89,7 +89,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         settingsFile << """
                 include 'a', 'b', 'c'
             """
-        // TODO - should be able to add the dependencies after registering the transform
+        setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
                 configurations.create("tools") { }
@@ -104,7 +104,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 """
-        setupBuildWithTransformFileInputs()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -127,7 +126,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         settingsFile << """
                 include 'a', 'b', 'c'
             """
-        // TODO - should be able to add task outputs after registering transform
+        setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
                 task tool(type: Producer) {
@@ -136,7 +135,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 ext.inputFiles = files(tool.outputFile)                
             }
         """
-        setupBuildWithTransformFileInputs()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -157,11 +155,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @Ignore("Need to use a different transform")
     def "transform can receive a file collection containing transform outputs as parameter"() {
         settingsFile << """
                 include 'a', 'b', 'c', 'd', 'e'
             """
-        // TODO - should be able to add the dependencies after registering the transform
+        setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
                 def attr = Attribute.of('color', String)
@@ -181,7 +180,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 """
-        setupBuildWithTransformFileInputs()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -233,7 +231,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 include 'a', 'b', 'c'
                 includeBuild 'tools'
             """
-        // TODO - should be able to add the dependencies after registering the transform
+        setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
                 configurations.create("tools") { }
@@ -247,7 +245,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 """
-        setupBuildWithTransformFileInputs()
         buildFile << """
             project(':a') {
                 dependencies {

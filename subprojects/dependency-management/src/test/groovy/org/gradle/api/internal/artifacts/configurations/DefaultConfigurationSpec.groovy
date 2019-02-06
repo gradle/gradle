@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.artifacts.transform.DomainObjectContextProjectStateHandler
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -1758,8 +1759,8 @@ All Artifacts:
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, projectStateRegistry, Stub(DocumentationRegistry),
-            domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext)
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry),
+            domainObjectCollectioncallbackActionDecorator, userCodeApplicationContext, new DomainObjectContextProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder))
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -47,4 +47,6 @@ public interface Transformer extends Describable {
      * This includes the parameters and the implementation.
      */
     HashCode getSecondaryInputHash();
+
+    void isolateParameters();
 }

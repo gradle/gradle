@@ -125,9 +125,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
         // TODO wolfs: We should report the user declared type
-        failure.assertHasCause('Some problems were found with the configuration of MakeGreen$Inject.')
+        failure.assertHasDescription('Some problems were found with the configuration of MakeGreen$Inject.')
         failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with an output annotation.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")

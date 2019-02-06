@@ -134,6 +134,10 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        void isolateParameters() {
+        }
+
+        @Override
         String getDisplayName() {
             return "Test transformer"
         }
