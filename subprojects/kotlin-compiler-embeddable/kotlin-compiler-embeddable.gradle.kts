@@ -62,4 +62,16 @@ tasks {
         dependsOn(patchKotlinCompilerEmbeddable, checkKotlinCompilerEmbeddableDependencies)
         actions.clear()
     }
+
+    val classesDir = layout.buildDirectory.dir("kotlin-compiler-embeddable-classes")
+
+    val unpackPatched by registering(Sync::class) {
+        dependsOn(patchKotlinCompilerEmbeddable)
+        from(zipTree(patchKotlinCompilerEmbeddable.get().outputFile))
+        into(classesDir)
+    }
+
+    sourceSets.main {
+        output.dir(files(classesDir).builtBy(unpackPatched))
+    }
 }
