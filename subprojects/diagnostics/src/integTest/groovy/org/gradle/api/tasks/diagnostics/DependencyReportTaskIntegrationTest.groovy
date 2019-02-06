@@ -17,7 +17,6 @@ package org.gradle.api.tasks.diagnostics
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class DependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -993,7 +992,6 @@ conf
 """
     }
 
-    @Ignore
     def "reports imported BOM as a set of dependency constraints"() {
         def moduleC = mavenRepo.module('group', 'moduleC', '1.0').publish()
         def moduleB = mavenRepo.module('group', 'moduleB', '1.0').dependsOn(moduleC).publish()

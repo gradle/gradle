@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -45,7 +44,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         bom.dependencyConstraint(mavenHttpRepo.module('group', artifact, '2.0'), exclusions: exclusions)
     }
 
-    @Ignore
     def "can use a bom to select a version"() {
         given:
         bomDependency('moduleA').publish()
@@ -71,7 +69,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @Ignore
     def "a bom dependencyManagement entry can declare excludes which are applied unconditionally to module"() {
         given:
         moduleA.dependsOn(mavenHttpRepo.module("group", "moduleC", "1.0").allowAll().publish()).publish()
@@ -100,7 +97,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @Ignore
     def "exclusions from multiple bom dependencyManagement entries are additive"() {
         given:
         moduleA
@@ -141,7 +137,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @Ignore
     @Issue("gradle/gradle#8420")
     def "can depend on both platform and library if a published POM represents both of them"() {
         given:
@@ -279,7 +274,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         failure.assertNotOutput("parse")
     }
 
-    @Ignore
     def 'a BOM dependencyManagement entry preserves exclusions declared in build file'() {
         def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
         moduleA.dependsOn(modB).publish()
@@ -309,7 +303,6 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @Ignore
     def 'a BOM dependencyManagement entry preserves transitive=false declared in build file'() {
         def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
         moduleA.dependsOn(modB).publish()
