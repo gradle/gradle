@@ -212,9 +212,9 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
     }
 
     private void findImplementationClasspath(String name, Collection<File> implementationClasspath) {
-        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(name);
-        matcher.matches();
-        String projectDirName = matcher.group(1);
+        String projectDirName = name.startsWith("kotlin-compiler-embeddable-")
+            ? "kotlin-compiler-embeddable"
+            : projectDirNameFrom(name);
         List<String> suffixesForProjectDir = getClasspathSuffixesForProjectDir(projectDirName);
         for (File file : classpath) {
             if (file.isDirectory()) {
@@ -226,6 +226,12 @@ public class DefaultModuleRegistry implements ModuleRegistry, CachedJarFileStore
                 }
             }
         }
+    }
+
+    private static String projectDirNameFrom(String moduleName) {
+        Matcher matcher = Pattern.compile("gradle-(.+)").matcher(moduleName);
+        matcher.matches();
+        return matcher.group(1);
     }
 
     /**
