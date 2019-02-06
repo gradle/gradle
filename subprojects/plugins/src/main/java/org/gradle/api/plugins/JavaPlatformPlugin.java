@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.java.JavaPlatform;
@@ -87,6 +88,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         createSoftwareComponent(project);
         configureExtension(project);
         addPlatformDisambiguationRule(project);
+        JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
     }
 
     private void addPlatformDisambiguationRule(Project project) {

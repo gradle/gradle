@@ -46,7 +46,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -62,7 +62,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                 implementation project(':lib')
                 implementation (project(':lib')) {
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
                     }
                     capabilities {
                         requireCapability('org:lib-fixtures')
@@ -78,11 +78,11 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api']
+                    variant "testFixtures", ['org.gradle.usage':'java-api-jars']
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }
@@ -99,7 +99,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api'))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')
@@ -124,7 +124,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

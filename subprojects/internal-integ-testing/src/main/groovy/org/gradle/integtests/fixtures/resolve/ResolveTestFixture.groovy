@@ -805,6 +805,17 @@ allprojects {
             allprojects { dependencies.components.variantDerivationStrategy = new org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy() }
         """
     }
+
+    void addJavaEcosystemSchema() {
+        buildFile << """
+            allprojects {
+                org.gradle.api.internal.artifacts.JavaEcosystemSupport.configureSchema(
+                    dependencies.attributesSchema,
+                    project.objects
+                )
+            }
+        """
+    }
 }
 
 class GenerateGraphTask extends DefaultTask {

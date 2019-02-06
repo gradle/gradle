@@ -153,8 +153,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2']
     }
 
     @RequiredFeatures(
@@ -258,8 +258,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', lifecycle: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', lifecycle: 'c2']
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', lifecycle: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', lifecycle: 'c2']
     }
 
     @RequiredFeatures(
@@ -355,7 +355,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 module('org:test:1.0') {
                     configuration = 'api'
-                    variant('api', ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1'])
+                    variant('api', ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1'])
                 }
             }
         }
@@ -378,12 +378,12 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         buildFile << """
-            configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "java-api"))
+            configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "java-runtime"))
 
             dependencies {
                 conf('org:test:1.0') {
                     attributes {
-                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                        attribute(CUSTOM_ATTRIBUTE, 'c1')
                     }
                 }
             }
@@ -400,13 +400,13 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
   - Variant 'api' capability org:test:1.0:
-      - Required custom 'c2' and found incompatible value 'c1'.
+      - Required custom 'c1' and found compatible value 'c1'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+      - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
   - Variant 'runtime' capability org:test:1.0:
-      - Required custom 'c2' and found compatible value 'c2'.
+      - Required custom 'c1' and found incompatible value 'c2'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'""")
+      - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
     }
 
     @RequiredFeatures(
@@ -458,8 +458,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         configurationValue | dependencyValue | expectedVariant | expectedAttributes
-        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
-        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2']
     }
 
     @RequiredFeatures(
@@ -518,8 +518,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         configurationValue | dependencyValue | expectedVariant | expectedAttributes
-        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
-        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2']
     }
 
     @RequiredFeatures(
@@ -539,13 +539,13 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         buildFile << """
-            configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "java-api"))
+            configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "java-runtime"))
 
             dependencies {
                 constraints {
                     conf('org:test:1.0') {
                         attributes {
-                            attribute(CUSTOM_ATTRIBUTE, 'c2')
+                            attribute(CUSTOM_ATTRIBUTE, 'c1')
                         }
                     }
                 }
@@ -564,13 +564,13 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
   - Variant 'api' capability org:test:1.0:
-      - Required custom 'c2' and found incompatible value 'c1'.
+      - Required custom 'c1' and found compatible value 'c1'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+      - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
   - Variant 'runtime' capability org:test:1.0:
-      - Required custom 'c2' and found compatible value 'c2'.
+      - Required custom 'c1' and found incompatible value 'c2'.
       - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found incompatible value 'java-runtime'""")
+      - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
     }
 
     @RequiredFeatures(
@@ -700,8 +700,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2']
     }
 
 
@@ -850,8 +850,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         attributeValue | expectedVariant | expectedAttributes
-        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', custom: 'c1']
-        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2']
+        'c1'           | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api-jars', custom: 'c1']
+        'c2'           | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2']
     }
 
     @RequiredFeatures(
@@ -940,25 +940,25 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 module('org:directA:1.0') {
                     configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}-jars", custom: configurationAttributeValue])
                     module('org:transitiveA:1.0') {
                         configuration = expectedTransitiveVariantA
-                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantA", custom: transitiveAttributeValueA])
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantA}-jars", custom: transitiveAttributeValueA])
                         module('org:leafA:1.0') {
                             configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}-jars", custom: configurationAttributeValue])
                         }
                     }
                 }
                 module('org:directB:1.0') {
                     configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}-jars", custom: configurationAttributeValue])
                     module('org:transitiveB:1.0') {
                         configuration = expectedTransitiveVariantB
-                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantB", custom: transitiveAttributeValueB])
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantB}-jars", custom: transitiveAttributeValueB])
                         module('org:leafB:1.0') {
                             configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}-jars", custom: configurationAttributeValue])
                         }
                     }
                 }
@@ -1037,25 +1037,25 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
             root(":", ":test:") {
                 module('org:directA:1.0') {
                     configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}-jars", custom: configurationAttributeValue])
                     module('org:transitiveA:1.0') {
                         configuration = expectedTransitiveVariantA
-                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantA", custom: transitiveAttributeValueA])
+                        variant(expectedTransitiveVariantA, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantA}-jars", custom: transitiveAttributeValueA])
                         module('org:leafA:1.0') {
                             configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}-jars", custom: configurationAttributeValue])
                         }
                     }
                 }
                 module('org:directB:1.0') {
                     configuration = expectedDirectVariant
-                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedDirectVariant", custom: configurationAttributeValue])
+                    variant(expectedDirectVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedDirectVariant}-jars", custom: configurationAttributeValue])
                     module('org:transitiveB:1.0') {
                         configuration = expectedTransitiveVariantB
-                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedTransitiveVariantB", custom: transitiveAttributeValueB])
+                        variant(expectedTransitiveVariantB, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedTransitiveVariantB}-jars", custom: transitiveAttributeValueB])
                         module('org:leafB:1.0') {
                             configuration = expectedLeafVariant
-                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-$expectedLeafVariant", custom: configurationAttributeValue])
+                            variant(expectedLeafVariant, ['org.gradle.status': DependenciesAttributesIntegrationTest.defaultStatus(), 'org.gradle.usage': "java-${expectedLeafVariant}-jars", custom: configurationAttributeValue])
                         }
                     }
                 }

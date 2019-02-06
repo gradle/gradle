@@ -46,7 +46,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     final Map extendsFrom = [:]
     final Map extraAttributes = [:]
     final Map extraInfo = [:]
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME])]
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API_JARS]), new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME_JARS])]
     String branch = null
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
