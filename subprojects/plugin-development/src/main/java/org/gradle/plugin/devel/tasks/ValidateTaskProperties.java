@@ -147,9 +147,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             taskInterface = classLoader.loadClass(Task.class.getName());
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
             validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class, Boolean.TYPE);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
 
@@ -250,7 +248,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
-        return  Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
+        return Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
             @Override
             @SuppressWarnings("NullableProblems")
             public InvalidUserDataException apply(String problemMessage) {
@@ -341,7 +339,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
-     * 
+     *
      * @since 5.1
      */
     @Incubating
