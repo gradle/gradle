@@ -65,16 +65,18 @@ public class PropertyValidationAccess {
         InputFile.class, new MissingPathSensitivityValidator(),
         InputDirectory.class, new MissingPathSensitivityValidator()
     );
-
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
+
     private final TaskClassInfoStore taskClassInfoStore;
     private final TypeMetadataStore metadataStore;
 
     private PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
+        // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
+        // For now, re-implement the discovery here
         builder.provider(new Object() {
             void configure(ServiceRegistration registration) {
-                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
+                List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
                 for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
                     pluginServiceFactory.registerGlobalServices(registration);
                 }
@@ -83,7 +85,8 @@ public class PropertyValidationAccess {
         ServiceRegistry services = builder.build();
         DefaultCrossBuildInMemoryCacheFactory cacheFactory = new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager());
         taskClassInfoStore = new DefaultTaskClassInfoStore(cacheFactory);
-        metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler.class), cacheFactory);
+        List<PropertyAnnotationHandler> handlers = services.getAll(PropertyAnnotationHandler.class);
+        metadataStore = new DefaultTypeMetadataStore(handlers, cacheFactory);
     }
 
     @SuppressWarnings("unused")
