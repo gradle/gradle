@@ -28,6 +28,7 @@ class ActionNode extends Node {
     private final WorkNodeAction action;
 
     public ActionNode(WorkNodeAction action) {
+        super(true);
         this.action = action;
     }
 

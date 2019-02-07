@@ -32,6 +32,10 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> finalizers = Sets.newTreeSet();
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
+    public TaskNode() {
+        super(false);
+    }
+
     @Override
     public boolean allDependenciesComplete() {
         if (!super.allDependenciesComplete()) {

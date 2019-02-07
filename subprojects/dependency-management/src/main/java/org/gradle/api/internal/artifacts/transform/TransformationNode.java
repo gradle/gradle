@@ -53,6 +53,7 @@ public abstract class TransformationNode extends Node {
     }
 
     protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        super(false);
         this.transformationStep = transformationStep;
         this.dependenciesResolver = dependenciesResolver;
     }

@@ -999,7 +999,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public int size() {
-        return nodeMapping.size();
+        return nodeMapping.getNumberOfPublicNodes();
     }
 
     private static class GraphEdge {
@@ -1085,6 +1085,16 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         @Override
         public int size() {
             return nodes.size();
+        }
+
+        public int getNumberOfPublicNodes() {
+            int publicNodes = 0;
+            for (Node node : this) {
+                if (!node.isInternalNode()) {
+                    publicNodes++;
+                }
+            }
+            return publicNodes;
         }
 
         public void retainFirst(int count) {

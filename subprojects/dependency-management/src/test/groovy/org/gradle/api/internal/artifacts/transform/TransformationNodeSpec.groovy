@@ -83,6 +83,10 @@ class TransformationNodeSpec extends Specification {
     }
 
     class TestNode extends Node {
+        TestNode() {
+            super(false)
+        }
+
         @Override
         Project getProject() {
             return null
