@@ -135,7 +135,7 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     def intermediateFileFor(File sourceFile, String intermediateFilesDir, String intermediateFileSuffix) {
-        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(TestFiles.fileSystem(), testDirectory, TestFiles.getPatternSetFactory())).create()
+        File intermediateFile = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(testDirectory, TestFiles.getPatternSetFactory())).create()
             .withObjectFileNameSuffix(intermediateFileSuffix)
             .withOutputBaseFolder(file(intermediateFilesDir))
             .map(file(sourceFile))

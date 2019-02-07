@@ -18,15 +18,14 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 
 public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
     private final File baseDir;
 
-    public BaseDirFileResolver(FileSystem fileSystem, File baseDir, Factory<PatternSet> patternSetFactory) {
-        super(fileSystem, patternSetFactory);
+    public BaseDirFileResolver(File baseDir, Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
         assert baseDir.isAbsolute() : String.format("base dir '%s' is not an absolute file.", baseDir);
         this.baseDir = baseDir;
     }

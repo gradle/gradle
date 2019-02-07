@@ -47,7 +47,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, TestFiles.getPatternSetFactory())
+        baseDirConverter = new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }

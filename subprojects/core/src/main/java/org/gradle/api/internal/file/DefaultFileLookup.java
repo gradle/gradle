@@ -29,7 +29,7 @@ public class DefaultFileLookup implements FileLookup {
 
     public DefaultFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.fileSystem = fileSystem;
-        fileResolver = new IdentityFileResolver(this.fileSystem, patternSetFactory);
+        this.fileResolver = new IdentityFileResolver(patternSetFactory);
     }
 
     @Override
