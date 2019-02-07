@@ -22,8 +22,8 @@ import org.gradle.util.VersionNumber
 import static org.gradle.api.JavaVersion.current
 
 class PlayCoverage {
- static final List<VersionNumber> ALL_VERSIONS = ["2.4.11", "2.5.18", DefaultPlayPlatform.DEFAULT_PLAY_VERSION, "2.7.0"].collect { VersionNumber.parse(it) }
-static final List<VersionNumber> JDK9_COMPATIBLE_VERSIONS = [DefaultPlayPlatform.DEFAULT_PLAY_VERSION, "2.7.0"]
+    static final List<VersionNumber> ALL_VERSIONS = ["2.4.11", "2.5.18", DefaultPlayPlatform.DEFAULT_PLAY_VERSION, "2.7.0"].collect { VersionNumber.parse(it) }
+    static final List<VersionNumber> JDK9_COMPATIBLE_VERSIONS = [DefaultPlayPlatform.DEFAULT_PLAY_VERSION, "2.7.0"]
     static final List<String> ALL = ALL_VERSIONS.asImmutable()
     static final List<String> DEFAULT = current().isJava9Compatible() ? JDK9_COMPATIBLE_VERSIONS : ALL
 }
