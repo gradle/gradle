@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.annotations.InputFilesPropertyAn
 import org.gradle.api.internal.tasks.properties.annotations.InputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.LocalStatePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.NestedBeanAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoriesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
@@ -46,6 +47,7 @@ import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 
 import java.util.List;
@@ -56,7 +58,7 @@ public class ExecutionGlobalServices {
     }
 
     InspectionScheme createTaskInspectionScheme(InspectionSchemeFactory inspectionSchemeFactory) {
-        return inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class));
+        return inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, OptionValues.class));
     }
 
     PropertyWalker createPropertyWalker(InspectionScheme inspectionScheme) {
@@ -65,6 +67,10 @@ public class ExecutionGlobalServices {
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTaskClassInfoStore(cacheFactory);
+    }
+
+    PropertyAnnotationHandler createOptionValuesAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(OptionValues.class);
     }
 
     PropertyAnnotationHandler createInputPropertyAnnotationHandler() {

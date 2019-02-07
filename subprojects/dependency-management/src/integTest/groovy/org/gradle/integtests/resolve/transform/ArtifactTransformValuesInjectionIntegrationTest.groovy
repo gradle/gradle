@@ -20,6 +20,13 @@ import org.gradle.api.artifacts.transform.PrimaryInput
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Destroys
+import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
@@ -114,9 +121,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 abstract MakeGreen getParameters()
                 
                 void transform(ArtifactTransformOutputs outputs) {
-                    println "processing \${input.name}"
-                    def output = outputs.registerOutput(input.name + "." + parameters.extension)
-                    output.text = "ok"
+                    throw new RuntimeException()
                 }
             }
 """
@@ -129,8 +134,108 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         // TODO wolfs: We should report the user declared type
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen$Inject.')
         failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
-        failure.assertHasCause("Property 'outputDir' is annotated with an output annotation.")
+        failure.assertHasCause("Property 'outputDir' is not annotated with an input or output annotation.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
+    }
+
+    @Unroll
+    def "transform parameters type cannot use annotation @#annotation.simpleName"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                String getExtension()
+                void setExtension(String value)
+                @${annotation.simpleName}
+                String getBad()
+                void setBad(String value)
+            }
+            
+            abstract class MakeGreenAction implements ArtifactTransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen$Inject.')
+        failure.assertHasCause("Property 'bad' is not annotated with an input or output annotation.")
+
+        where:
+        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
+    }
+
+    @Unroll
+    def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                String getExtension()
+                void setExtension(String value)
+                @${annotation.simpleName}
+                String getBad()
+                void setBad(String value)
+            }
+            
+            abstract class MakeGreenAction implements ArtifactTransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('Could not create an instance of type MakeGreen.')
+        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen.')
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getBad().")
+
+        where:
+        annotation << [PrimaryInput, PrimaryInputDependencies, TransformParameters]
     }
 
     @Unroll
@@ -348,7 +453,7 @@ abstract class MakeGreen implements ArtifactTransformAction {
     }
 
     @Unroll
-    def "task implementation cannot use #annotation.name"() {
+    def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
             class MyTask extends DefaultTask {
                 @${annotation.name}
