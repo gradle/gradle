@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A stateless attribute matcher, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
+ * An attribute matcher, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
  */
 public class ComponentAttributeMatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentAttributeMatcher.class);
