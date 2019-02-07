@@ -62,7 +62,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
-        // TODO - should snapshot later
+        // TODO - should isolate later
         Isolatable<?> isolatableParameterObject;
         try {
             isolatableParameterObject = isolatableFactory.isolate(parameterObject);
