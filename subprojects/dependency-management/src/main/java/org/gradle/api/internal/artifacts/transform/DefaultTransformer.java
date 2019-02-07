@@ -21,12 +21,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -63,7 +66,7 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
 
-public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction, Object> {
+public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
 
     private final Object parameterObject;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -72,9 +75,14 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     private final PropertyWalker propertyWalker;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
+    private final DomainObjectContextProjectStateHandler projectStateHandler;
+    private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
+    private final WorkNodeAction isolateAction;
+
+    private IsolatableParameters isolatable;
 
     public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, DomainObjectContextProjectStateHandler projectStateHandler) {
-        super(implementationClass, fromAttributes, projectStateHandler);
+        super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
@@ -82,10 +90,29 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         this.propertyWalker = propertyWalker;
         this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
+        this.projectStateHandler = projectStateHandler;
+        this.isolationLock = projectStateHandler.newExclusiveOperationLock();
+        this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
+            @Nullable
+            @Override
+            public Project getProject() {
+                return projectStateHandler.maybeGetOwningProject();
+            }
+
+            @Override
+            public void run() {
+                isolateExclusively();
+            }
+        };
     }
 
     public boolean requiresDependencies() {
         return requiresDependencies;
+    }
+
+    @Override
+    public HashCode getSecondaryInputHash() {
+        return getIsolatable().getSecondaryInputsHash();
     }
 
     @Override
@@ -98,23 +125,37 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     @Override
-    protected IsolatableParameters<Object> doIsolateParameters() {
-        Hasher hasher = Hashing.newHasher();
-        appendActionImplementation(classLoaderHierarchyHasher, hasher, getImplementationClass());
-
-        Isolatable<Object> isolatableParameterObject;
-        try {
-            isolatableParameterObject = isolatableFactory.isolate(parameterObject);
-        } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(getImplementationClass()).getDisplayName(), parameterObject), e);
+    public void isolateParameters() {
+        if (isolatable == null) {
+            if (!projectStateHandler.hasMutableProjectState()) {
+                projectStateHandler.withLenientState(this::isolateExclusively);
+            } else {
+                isolateExclusively();
+            }
         }
+    }
+
+    private void isolateExclusively() {
+        isolationLock.withLock(() -> {
+            if (isolatable != null) {
+                return;
+            }
+            isolatable = doIsolateParameters();
+        });
+    }
+
+    protected IsolatableParameters doIsolateParameters() {
+        Isolatable<Object> isolatableParameterObject = isolateParameters(parameterObject, getImplementationClass(), isolatableFactory);
+
+        Hasher hasher = Hashing.newHasher();
+        appendActionImplementation(getImplementationClass(), hasher, classLoaderHierarchyHasher);
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
             fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
         }
         HashCode secondaryInputsHash = hasher.hash();
-        return new IsolatableParameters<>(isolatableParameterObject, secondaryInputsHash);
+        return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
     }
 
     private static void fingerprintParameters(
@@ -171,8 +212,15 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolated().getIsolatableParameters().isolate(), requiresDependencies ? artifactTransformDependencies : null);
+        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatable().getIsolatableParameters().isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services);
+    }
+
+    private IsolatableParameters getIsolatable() {
+        if (isolatable == null) {
+            throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
+        }
+        return isolatable;
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
@@ -260,6 +308,30 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
             public Object getValueToInject() {
                 return valueToInject;
             }
+        }
+    }
+
+    private static class IsolatableParameters {
+        private HashCode secondaryInputsHash;
+        private Isolatable<?> isolatableParameters;
+
+        public IsolatableParameters(Isolatable<?> isolatableParameters, HashCode secondaryInputsHash) {
+            this.secondaryInputsHash = secondaryInputsHash;
+            this.isolatableParameters = isolatableParameters;
+        }
+
+        public HashCode getSecondaryInputsHash() {
+            return secondaryInputsHash;
+        }
+        public Isolatable<?> getIsolatableParameters() {
+            return isolatableParameters;
+        }
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (isolateAction != null) {
+            context.add(isolateAction);
         }
     }
 }

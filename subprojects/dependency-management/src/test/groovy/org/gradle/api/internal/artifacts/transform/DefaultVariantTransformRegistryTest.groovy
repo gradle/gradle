@@ -74,7 +74,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.parameters == []
+        registration.transformationStep.transformer.isolatableParameters.isolate() == []
     }
 
     def "creates legacy registration with parameters"() {
@@ -93,7 +93,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.parameters == ["EXTRA_1", "EXTRA_2"]
+        registration.transformationStep.transformer.isolatableParameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
     def "delegates are DSL decorated but not extensible when registering without config object"() {

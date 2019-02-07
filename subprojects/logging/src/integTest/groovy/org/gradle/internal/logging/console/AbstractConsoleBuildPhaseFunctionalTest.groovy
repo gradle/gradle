@@ -421,23 +421,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("16% EXECUTING")
+        assertHasBuildPhase("25% EXECUTING")
         doubleTransform.releaseAll()
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("33% EXECUTING")
+        assertHasBuildPhase("50% EXECUTING")
         sizeTransform.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("75% EXECUTING")
         resolveTask.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        // FIXME wolfs: Make sure we end up with 100% at the end.
-        assertHasBuildPhase("66% EXECUTING")
+        assertHasBuildPhase("100% EXECUTING")
         buildFinished.releaseAll()
 
         and:

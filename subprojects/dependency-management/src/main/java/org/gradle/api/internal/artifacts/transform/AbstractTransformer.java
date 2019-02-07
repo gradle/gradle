@@ -18,94 +18,30 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Arrays;
 
-public abstract class AbstractTransformer<T, P> implements Transformer {
+public abstract class AbstractTransformer<T> implements Transformer {
     private final Class<? extends T> implementationClass;
     private final ImmutableAttributes fromAttributes;
-    private final DomainObjectContextProjectStateHandler projectStateHandler;
-    private IsolatableParameters<P> isolatableParameters;
-    private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
-    private WorkNodeAction isolateAction;
 
-    public AbstractTransformer(Class<? extends T> implementationClass, ImmutableAttributes fromAttributes, DomainObjectContextProjectStateHandler projectStateHandler) {
+    public AbstractTransformer(Class<? extends T> implementationClass, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
         this.fromAttributes = fromAttributes;
-        this.projectStateHandler = projectStateHandler;
-        this.isolationLock = projectStateHandler.newExclusiveOperationLock();
-        this.isolateAction = new WorkNodeAction() {
-            @Nullable
-            @Override
-            public Project getProject() {
-                return projectStateHandler.maybeGetOwningProject();
-            }
-
-            @Override
-            public void run() {
-                isolateExclusively();
-            }
-        };
-    }
-
-    static class IsolatableParameters<T> {
-        private HashCode secondaryInputsHash;
-        private Isolatable<T> isolatableParameters;
-
-        public IsolatableParameters(Isolatable<T> isolatableParameters, HashCode secondaryInputsHash) {
-            this.secondaryInputsHash = secondaryInputsHash;
-            this.isolatableParameters = isolatableParameters;
-        }
-
-        public HashCode getSecondaryInputsHash() {
-            return secondaryInputsHash;
-        }
-
-        public Isolatable<T> getIsolatableParameters() {
-            return isolatableParameters;
-        }
     }
 
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
-    }
-
-    abstract protected IsolatableParameters<P> doIsolateParameters();
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(isolateAction);
-    }
-
-    @Override
-    public void isolateParameters() {
-        if (isolatableParameters == null) {
-            if (!projectStateHandler.hasMutableProjectState()) {
-                projectStateHandler.withLenientState(this::isolateExclusively);
-            } else {
-                isolateExclusively();
-            }
-        }
-    }
-
-    private void isolateExclusively() {
-        isolationLock.withLock(() -> {
-            if (isolatableParameters != null) {
-                return;
-            }
-            isolatableParameters = doIsolateParameters();
-        });
     }
 
     protected static ImmutableList<File> validateOutputs(File primaryInput, File outputDir, ImmutableList<File> outputs) {
@@ -139,20 +75,25 @@ public abstract class AbstractTransformer<T, P> implements Transformer {
         return implementationClass.getSimpleName();
     }
 
-    protected static void appendActionImplementation(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Hasher hasher, Class<?> implementation) {
+    protected static void appendActionImplementation(Class<?> implementation, Hasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
     }
 
-    @Override
-    public HashCode getSecondaryInputHash() {
-        return getIsolated().getSecondaryInputsHash();
+    protected static <T> Isolatable<T> isolateParameters(@Nullable T parameters, Class<?> implementationClass, IsolatableFactory isolatableFactory) {
+        try {
+            return isolatableFactory.isolate(parameters);
+        } catch (Exception e) {
+            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementationClass).getDisplayName(), formatParameters(parameters)), e);
+        }
     }
 
-    public IsolatableParameters<P> getIsolated() {
-        if (isolatableParameters == null) {
-            throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
+    @Nullable
+    private static Object formatParameters(@Nullable Object parameters) {
+        if (parameters instanceof Object[]) {
+            return Arrays.toString((Object[]) parameters);
+        } else {
+            return parameters;
         }
-        return isolatableParameters;
     }
 }
