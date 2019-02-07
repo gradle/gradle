@@ -41,7 +41,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.PropertyExtractor;
@@ -60,8 +59,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
-        new NoOpPropertyAnnotationHandler(Internal.class),
-        new NoOpPropertyAnnotationHandler(OptionValues.class)
+        new NoOpPropertyAnnotationHandler(Internal.class)
     );
 
     // Avoid reflecting on classes we know we don't need to look at
