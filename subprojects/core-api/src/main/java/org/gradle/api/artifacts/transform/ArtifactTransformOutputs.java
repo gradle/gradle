@@ -36,26 +36,26 @@ import java.io.File;
 @HasInternalProtocol
 public interface ArtifactTransformOutputs {
     /**
-     * Registers an output file or directory in the workspace of the transform.
+     * Registers an output directory.
      *
-     * @param relativePath relative path of the output to the provided workspace
+     * <p>
+     *     The path is resolved relative to the provided workspace of the artifact transform.
+     * </p>
+     *
+     * @param path path of the output directory
      * @return determined location of the output
      */
-    File registerOutput(String relativePath);
+    File dir(Object path);
 
     /**
-     * Registers an output file or directory of the transform.
+     * Registers an output file.
      *
-     * <p>This method can be used when the {@link PrimaryInput} is one of the outputs of the transform.</p>
+     * <p>
+     *     The path is resolved relative to the provided workspace of the artifact transform.
+     * </p>
      *
-     * @param output the output
+     * @param path path of the output directory
+     * @return determined location of the output
      */
-    void registerOutput(File output);
-
-    /**
-     * Registers the provided workspace as the output of the transform.
-     *
-     * @return location of the workspace directory
-     */
-    File registerWorkspaceAsOutput();
+    File file(Object path);
 }

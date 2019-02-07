@@ -65,7 +65,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = outputs.registerOutput(input.name + "." + parameters.extension)
+                    def output = outputs.file(input.name + "." + parameters.extension)
                     output.text = "ok"
                 }
             }
@@ -115,7 +115,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name}"
-                    def output = outputs.registerOutput(input.name + "." + parameters.extension)
+                    def output = outputs.file(input.name + "." + parameters.extension)
                     output.text = "ok"
                 }
             }
@@ -160,7 +160,7 @@ abstract class MakeGreen implements ArtifactTransformAction {
     
     void transform(ArtifactTransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
-        def output = outputs.registerOutput(input.name + ".green")
+        def output = outputs.file(input.name + ".green")
         output.text = "ok"
     }
 }

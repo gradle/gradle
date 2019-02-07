@@ -1469,7 +1469,7 @@ ${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registe
                 }
 
                 List<File> transform(File input) {
-${getFileSizerBody(fileValue, 'new File(outputDirectory, ')}
+${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDirectory, ')}
                     return [output]
                 }
             }
@@ -1507,7 +1507,7 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ')}
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
-${getFileSizerBody(fileValue, 'outputs.registerOutput(')}
+${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
                 }
             }
     
@@ -1530,7 +1530,7 @@ ${getFileSizerBody(fileValue, 'outputs.registerOutput(')}
             """
     }
 
-    String getFileSizerBody(String fileValue, String obtainOutput) {
+    String getFileSizerBody(String fileValue, String obtainOutputDir, String obtainOutputFile) {
         String validateWorkspace = """
             def outputDirectory = output.parentFile
             assert outputDirectory.directory && outputDirectory.list().length == 0
@@ -1540,11 +1540,11 @@ ${getFileSizerBody(fileValue, 'outputs.registerOutput(')}
                     
                     File output
                     if (input.file) {
-                        output = ${obtainOutput}input.name + ".txt")
+                        output = ${obtainOutputFile}input.name + ".txt")
                         ${validateWorkspace}
                         output.text = $fileValue
                     } else {
-                        output = ${obtainOutput}input.name + ".dir")
+                        output = ${obtainOutputDir}input.name + ".dir")
                         ${validateWorkspace}
                         output.mkdirs()
                         new File(output, "child.txt").text = "transformed"

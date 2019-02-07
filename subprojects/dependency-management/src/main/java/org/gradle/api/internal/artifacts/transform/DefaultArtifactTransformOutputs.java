@@ -17,38 +17,37 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 
 public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
-    private final File workspace;
+    private final PathToFileResolver resolver;
 
-    public DefaultArtifactTransformOutputs(File workspace) {
-        this.workspace = workspace;
-    }
-
-    @Override
-    public File registerOutput(String relativePath) {
-        File outputFile = new File(workspace, relativePath);
-        outputsBuilder.add(outputFile);
-        return outputFile;
-    }
-
-    @Override
-    public void registerOutput(File output) {
-        outputsBuilder.add(output);
-    }
-
-    @Override
-    public File registerWorkspaceAsOutput() {
-        outputsBuilder.add(workspace);
-        return workspace;
+    public DefaultArtifactTransformOutputs(PathToFileResolver resolver) {
+        this.resolver = resolver;
     }
 
     @Override
     public ImmutableList<File> getRegisteredOutputs() {
         return outputsBuilder.build();
+    }
+
+    @Override
+    public File dir(Object path) {
+        return resolveAndRegister(path);
+    }
+
+    @Override
+    public File file(Object path) {
+        return resolveAndRegister(path);
+    }
+
+    private File resolveAndRegister(Object path) {
+        File file = resolver.resolve(path);
+        outputsBuilder.add(file);
+        return file;
     }
 }
