@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
@@ -32,7 +33,19 @@ import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectories;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -55,7 +68,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker propertyWalker;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ServiceRegistry services, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ServiceRegistry services, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, InspectionSchemeFactory inspectionSchemeFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.isolatableFactory = isolatableFactory;
@@ -63,7 +76,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         this.services = services;
         this.transformerInvoker = transformerInvoker;
         this.valueSnapshotter = valueSnapshotter;
-        this.propertyWalker = propertyWalker;
+        this.propertyWalker = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Nested.class)).getPropertyWalker();
     }
 
     @Override

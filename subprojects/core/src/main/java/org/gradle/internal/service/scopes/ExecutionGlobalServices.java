@@ -15,6 +15,12 @@
  */
 package org.gradle.internal.service.scopes;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
+import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
+import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
+import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -27,8 +33,39 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPrope
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Destroys;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.LocalState;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectories;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.OutputFiles;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+
+import java.util.List;
 
 public class ExecutionGlobalServices {
+    InspectionSchemeFactory createInspectionSchemeFactory(List<PropertyAnnotationHandler> handlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new InspectionSchemeFactory(handlers, cacheFactory);
+    }
+
+    InspectionScheme createTaskInspectionScheme(InspectionSchemeFactory inspectionSchemeFactory) {
+        return inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class));
+    }
+
+    PropertyWalker createPropertyWalker(InspectionScheme inspectionScheme) {
+        return inspectionScheme.getPropertyWalker();
+    }
+
+    TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTaskClassInfoStore(cacheFactory);
+    }
 
     PropertyAnnotationHandler createInputPropertyAnnotationHandler() {
         return new InputPropertyAnnotationHandler();
