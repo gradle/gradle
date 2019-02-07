@@ -24,6 +24,7 @@ import org.junit.runner.RunWith
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+import static org.gradle.util.Matchers.matchesRegexp
 
 @RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -1516,6 +1517,52 @@ Found the following transforms:
         outputContains(":resolve NO-SOURCE")
     }
 
+    def "user gets a reasonable error message when transform registers a non-existing file"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class NoExistTransform implements ArtifactTransformAction {
+                void transform(ArtifactTransformOutputs outputs) {
+                    outputs.file('this_file_does_not.exist')
+                }
+            }
+            ${declareTransformAction('NoExistTransform')}
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                    if (project.hasProperty("lenient")) {
+                        lenient(true)
+                    }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertThatCause(matchesRegexp("Transform output file .*this_file_does_not.exist does not exist."))
+
+        when:
+        executer.withArguments("-Plenient=true")
+        succeeds("resolve")
+
+        then:
+        outputContains(":resolve NO-SOURCE")
+    }
+
     def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
         given:
         buildFile << """
@@ -1536,6 +1583,46 @@ Found the following transforms:
                 }
             }
             ${configurationAndTransform('SomewhereElseTransform')}
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
+        failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
+    }
+
+    def "user gets a reasonable error message when transform registers an output that is not in an input or in the output directory"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            SomewhereElseTransform.output = file("other.jar")
+
+            class SomewhereElseTransform implements ArtifactTransformAction {
+                static def output
+                void transform(ArtifactTransformOutputs outputs) {
+                    def outputFile = outputs.file(output)
+                    outputFile.text = "123"
+                }
+            }
+            ${declareTransformAction('SomewhereElseTransform')}
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
         """
 
         when:
@@ -2001,6 +2088,17 @@ Found the following transforms:
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                     artifactTransform(${transformImplementation})
+                }
+            }
+        """
+    }
+
+    def declareTransformAction(String transformActionImplementation) {
+        """
+            dependencies {
+                registerTransformAction($transformActionImplementation) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
                 }
             }
         """

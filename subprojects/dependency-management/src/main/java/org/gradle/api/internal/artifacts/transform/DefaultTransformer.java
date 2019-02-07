@@ -24,10 +24,7 @@ import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.reflect.InjectionPointQualifier;
-import org.gradle.api.tasks.util.internal.PatternSets;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -61,11 +58,9 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     @Override
     public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransformAction transformAction = newTransformAction(primaryInput, dependencies);
-        PathToFileResolver resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(resolver);
+        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(primaryInput, outputDir);
         transformAction.transform(transformOutputs);
-        ImmutableList<File> outputs = transformOutputs.getRegisteredOutputs();
-        return validateOutputs(primaryInput, outputDir, outputs);
+        return transformOutputs.getRegisteredOutputs();
     }
 
     private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {

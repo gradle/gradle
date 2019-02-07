@@ -16,12 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.hash.HashCode;
-
-import java.io.File;
 
 public abstract class AbstractTransformer<T> implements Transformer {
     private final Class<? extends T> implementationClass;
@@ -37,27 +33,6 @@ public abstract class AbstractTransformer<T> implements Transformer {
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
-    }
-
-    protected static ImmutableList<File> validateOutputs(File primaryInput, File outputDir, ImmutableList<File> outputs) {
-        String inputFilePrefix = primaryInput.getPath() + File.separator;
-        String outputDirPrefix = outputDir.getPath() + File.separator;
-        for (File output : outputs) {
-            if (!output.exists()) {
-                throw new InvalidUserDataException("Transform output file " + output.getPath() + " does not exist.");
-            }
-            if (output.equals(primaryInput) || output.equals(outputDir)) {
-                continue;
-            }
-            if (output.getPath().startsWith(outputDirPrefix)) {
-                continue;
-            }
-            if (output.getPath().startsWith(inputFilePrefix)) {
-                continue;
-            }
-            throw new InvalidUserDataException("Transform output file " + output.getPath() + " is not a child of the transform's input file or output directory.");
-        }
-        return outputs;
     }
 
     @Override

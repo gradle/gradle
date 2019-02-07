@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -25,14 +28,45 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
     private final PathToFileResolver resolver;
+    private final File primaryInput;
+    private final File outputDir;
+    private final String primaryInputPrefix;
+    private final String outputDirPrefix;
 
-    public DefaultArtifactTransformOutputs(PathToFileResolver resolver) {
-        this.resolver = resolver;
+    public DefaultArtifactTransformOutputs(File primaryInput, File outputDir) {
+        this.resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
+        this.primaryInput = primaryInput;
+        this.outputDir = outputDir;
+        this.primaryInputPrefix = primaryInput.getPath() + File.separator;
+        this.outputDirPrefix = outputDir.getPath() + File.separator;
+    }
+
+    public static void validateOutput(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
+        if (output.equals(primaryInput) || output.equals(outputDir)) {
+            return;
+        }
+        if (output.getPath().startsWith(outputDirPrefix)) {
+            return;
+        }
+        if (output.getPath().startsWith(primaryInputPrefix)) {
+            return;
+        }
+        throw new InvalidUserDataException("Transform output file " + output.getPath() + " is not a child of the transform's input file or output directory.");
+    }
+
+    public static void validateOutputExists(File output) {
+        if (!output.exists()) {
+            throw new InvalidUserDataException("Transform output file " + output.getPath() + " does not exist.");
+        }
     }
 
     @Override
     public ImmutableList<File> getRegisteredOutputs() {
-        return outputsBuilder.build();
+        ImmutableList<File> outputs = outputsBuilder.build();
+        for (File output : outputs) {
+            validateOutputExists(output);
+        }
+        return outputs;
     }
 
     @Override
@@ -46,8 +80,9 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
     }
 
     private File resolveAndRegister(Object path) {
-        File file = resolver.resolve(path);
-        outputsBuilder.add(file);
-        return file;
+        File output = resolver.resolve(path);
+        validateOutput(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        outputsBuilder.add(output);
+        return output;
     }
 }
