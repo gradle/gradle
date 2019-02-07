@@ -16,11 +16,13 @@ We would like to thank the following community contributors to this release of G
 [Ronald Brindl](https://github.com/rbrindl),
 and [Richard Newton](https://github.com/ricnewton).
 
+*NOTE*: Gradle 5.2 has had one patch release. You should use the latest patch release (5.2.1).
+
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.2 by updating your wrapper properties:
+Switch your build to use Gradle 5.2.1 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.2`
+`./gradlew wrapper --gradle-version=5.2.1`
 
 Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
 
