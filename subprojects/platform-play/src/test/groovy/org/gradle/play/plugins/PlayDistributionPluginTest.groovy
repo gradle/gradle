@@ -165,7 +165,7 @@ class PlayDistributionPluginTest extends Specification {
         "2.4.11"    | "play.core.server.ProdServerStart"
         "2.5.18"    | "play.core.server.ProdServerStart"
         "2.6.6"     | "play.core.server.ProdServerStart"
-        "2.7.0-RC3"  | "play.core.server.ProdServerStart"
+        "2.7.0"  | "play.core.server.ProdServerStart"
     }
 
     def "adds dist and stage tasks for binary" () {
