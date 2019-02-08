@@ -61,6 +61,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         file("build.gradle") << """
+            import java.util.concurrent.CountDownLatch
+
             apply plugin: 'java'
     
             repositories {
@@ -73,6 +75,14 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             
             jar.doLast {
                 println 'from jar task'
+            }
+            
+            classes.doLast {
+                CountDownLatch latch = new CountDownLatch(1);
+
+                def t = new Thread({ println 'from classes task external thread'; latch.countDown(); } as Runnable)
+                t.start()  // Output: hello
+                latch.await();
             }
         
             task resolve {
@@ -138,6 +148,16 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
+
+        def runBuildProgress = operations.only('Run build').progress
+        runBuildProgress.size() > 0
+        runBuildProgress[0].details.logLevel == 'QUIET'
+        runBuildProgress[0].details.category == 'system.out'
+        runBuildProgress[0].details.spans.size == 1
+        runBuildProgress[0].details.spans[0].styleName == 'Normal'
+        runBuildProgress[0].details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}"
+
+
     }
 
     def "captures output from buildSrc"() {

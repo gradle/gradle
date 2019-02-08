@@ -36,6 +36,9 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     @Shared
     def operationId = Mock(OperationIdentifier)
 
+    @Shared
+    def fallbackOperationId = LoggingBuildOperationProgressBroadcaster.ROOT_BUILD_OPERATION_ID
+
     LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
 
     @Unroll
@@ -51,13 +54,16 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
 
         when:
-        bridge.onOutput(eventWithNoBuildOperationId)
+        bridge.onOutput(eventWithFallbackBuildOperationId)
 
         then:
-        0 * buildOperationListener.progress(_, _)
+        1 * buildOperationListener.progress(_, _) >> {
+            assert it[0] == fallbackOperationId
+            assert it[1].details == eventWithFallbackBuildOperationId
+        }
 
         where:
-        eventType             | eventWithBuildOperationId                                          | eventWithNoBuildOperationId
+        eventType             | eventWithBuildOperationId                                          | eventWithFallbackBuildOperationId
         LogEvent              | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, operationId)        | new LogEvent(0, 'c', LogLevel.INFO, 'm', null, null)
         StyledTextOutputEvent | new StyledTextOutputEvent(0, 'c', LogLevel.INFO, operationId, 'm') | new StyledTextOutputEvent(0, 'c', LogLevel.INFO, null, 'm')
         ProgressStartEvent    | progressStartEvent(operationId)                                    | progressStartEvent(null)

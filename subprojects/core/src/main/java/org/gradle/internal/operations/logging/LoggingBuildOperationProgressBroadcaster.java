@@ -29,6 +29,8 @@ import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
+import static org.gradle.internal.operations.DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE;
+
 /**
  * Emits build operation progress for events that represent logging.
  *
@@ -58,6 +60,8 @@ import org.gradle.internal.operations.OperationProgressEvent;
  */
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
+    private final static OperationIdentifier ROOT_BUILD_OPERATION_ID = new OperationIdentifier(ROOT_BUILD_OPERATION_ID_VALUE);
+
     private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationListener buildOperationListener;
 
@@ -72,21 +76,23 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     public void onOutput(OutputEvent event) {
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            if (renderableOutputEvent.getBuildOperationId() == null) {
-                return;
+            OperationIdentifier operationIdentifier = renderableOutputEvent.getBuildOperationId();
+            if (operationIdentifier == null) {
+                operationIdentifier = ROOT_BUILD_OPERATION_ID;
             }
             if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
-                emit(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
+                emit(renderableOutputEvent, operationIdentifier);
             }
         } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            if (progressStartEvent.getBuildOperationId() == null) {
-                return;
-            }
             if (progressStartEvent.getLoggingHeader() == null) {
                 return; // If the event has no logging header, it doesn't manifest as console output.
             }
-            emit(progressStartEvent, progressStartEvent.getBuildOperationId());
+            OperationIdentifier operationIdentifier = progressStartEvent.getBuildOperationId();
+            if (operationIdentifier == null) {
+                operationIdentifier = ROOT_BUILD_OPERATION_ID;
+            }
+            emit(progressStartEvent, operationIdentifier);
         }
     }
 
