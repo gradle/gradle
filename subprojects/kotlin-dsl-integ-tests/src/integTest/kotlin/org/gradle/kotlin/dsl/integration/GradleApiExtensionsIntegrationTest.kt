@@ -258,7 +258,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     fun generatedExtensionsJarFromGradleUserHome(guh: File): File =
         Regex("^\\d.*").let { startsWithDigit ->
             guh.resolve("caches")
-                .listFiles { f -> f.isDirectory && f.also { println(it) }.name.matches(startsWithDigit) }
+                .listFiles { f -> f.isDirectory && f.name.matches(startsWithDigit) }
                 .single()
                 .resolve("generated-gradle-jars")
                 .listFiles { f -> f.isFile && f.name.startsWith("gradle-kotlin-dsl-extensions-") }
