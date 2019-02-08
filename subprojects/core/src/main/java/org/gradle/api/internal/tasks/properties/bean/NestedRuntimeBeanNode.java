@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.properties.ParameterValidationContext;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;

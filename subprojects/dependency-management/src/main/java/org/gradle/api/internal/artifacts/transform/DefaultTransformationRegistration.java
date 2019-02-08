@@ -27,7 +27,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -49,8 +48,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
 
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
@@ -117,7 +114,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "does not have a value specified"));
+                        validationContext.recordValidationMessage(null, propertyName, "does not have a value specified");
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -128,11 +125,6 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
                         ModelType.of(parameterObject.getClass()).getDisplayName()
                     ), e);
                 }
-            }
-
-            @Override
-            public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "is annotated with an output annotation"));
             }
 
             @Override

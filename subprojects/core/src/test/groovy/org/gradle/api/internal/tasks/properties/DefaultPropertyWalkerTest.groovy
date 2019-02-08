@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.ParameterValidationContext
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec

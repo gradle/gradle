@@ -28,6 +28,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.gradle.internal.Pair;
+import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,6 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 
@@ -72,7 +75,7 @@ public class PropertyExtractor {
         return ImmutableSet.copyOf(methods);
     }
 
-    public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type) {
+    public <T> Pair<ImmutableSet<PropertyMetadata>, ImmutableList<ValidationProblem>> extractPropertyMetadata(Class<T> type) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = primaryAnnotationTypes;
         final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, ignoredSuperclasses, new Types.TypeVisitor<T>() {
@@ -109,17 +112,26 @@ public class PropertyExtractor {
                 }
             }
         });
-        ImmutableSet.Builder<PropertyMetadata> builder = ImmutableSet.builder();
+
+        ImmutableSet.Builder<PropertyMetadata> propertyBuilder = ImmutableSet.builderWithExpectedSize(properties.size());
+        ImmutableList.Builder<ValidationProblem> problemBuilder = ImmutableList.builder();
         for (PropertyMetadataBuilder property : properties.values()) {
-            if (property.privateGetter && !property.annotations.isEmpty()) {
-                property.validationMessage("is private and annotated with " + displayName);
+            validateProperty(property);
+            problemBuilder.addAll(property.validationProblems);
+            if (property.propertyType != null) {
+                propertyBuilder.add(property.toMetadata());
             }
-            if (!property.privateGetter && property.propertyType == null) {
-                property.validationMessage("is not annotated with " + displayName);
-            }
-            builder.add(property.toMetadata());
         }
-        return builder.build();
+        return Pair.of(propertyBuilder.build(), problemBuilder.build());
+    }
+
+    private void validateProperty(PropertyMetadataBuilder property) {
+        if (property.privateGetter && !property.annotations.isEmpty()) {
+            property.validationMessage("is private and annotated with " + displayName);
+        }
+        if (!property.privateGetter && property.propertyType == null) {
+            property.validationMessage("is not annotated with " + displayName);
+        }
     }
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property) {
@@ -182,17 +194,16 @@ public class PropertyExtractor {
         }
 
         if (declaredPropertyTypes.size() > 1) {
-            property.validationMessage("has conflicting property types declared: "
-                    + Joiner.on(", ").join(Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
-                    @Override
-                    public String apply(Class<? extends Annotation> annotationType) {
-                        return "@" + annotationType.getSimpleName();
-                    }
-                }))
-            );
+            Iterable<String> names = Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
+                @Override
+                public String apply(Class<? extends Annotation> annotationType) {
+                    return "@" + annotationType.getSimpleName();
+                }
+            });
+            Set<String> sortedNames = CollectionUtils.addAll(new TreeSet<String>(), names);
+            property.validationMessage("has conflicting property types declared: " + Joiner.on(", ").join(sortedNames));
         }
     }
-
 
     private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations) {
         List<Annotation> relevantAnnotations = Lists.newArrayListWithCapacity(annotations.length);
@@ -261,7 +272,7 @@ public class PropertyExtractor {
         private final Method method;
         private Class<? extends Annotation> propertyType;
         private final Map<Class<? extends Annotation>, Annotation> annotations = Maps.newHashMap();
-        private final List<String> validationMessages = Lists.newArrayList();
+        private final List<ValidationProblem> validationProblems = Lists.newArrayList();
         private boolean privateGetter;
 
         PropertyMetadataBuilder(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
@@ -275,7 +286,12 @@ public class PropertyExtractor {
         }
 
         public void validationMessage(String message) {
-            validationMessages.add(message);
+            validationProblems.add(new ValidationProblem() {
+                @Override
+                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+                    validationContext.recordValidationMessage(ownerPropertyPath, fieldName, message);
+                }
+            });
         }
 
         public void addAnnotation(Annotation annotation) {
@@ -304,7 +320,7 @@ public class PropertyExtractor {
         }
 
         PropertyMetadata toMetadata() {
-            return new DefaultPropertyMetadata(fieldName, method, propertyType, ImmutableMap.copyOf(annotations), ImmutableList.copyOf(validationMessages));
+            return new DefaultPropertyMetadata(fieldName, method, propertyType, ImmutableMap.copyOf(annotations));
         }
     }
 
@@ -313,14 +329,12 @@ public class PropertyExtractor {
         private final Method method;
         private final Class<? extends Annotation> propertyType;
         private final ImmutableMap<Class<? extends Annotation>, Annotation> annotations;
-        private final ImmutableList<String> validationMessages;
 
-        DefaultPropertyMetadata(String fieldName, Method method, Class<? extends Annotation> propertyType, ImmutableMap<Class<? extends Annotation>, Annotation> annotations, ImmutableList<String> validationMessages) {
+        DefaultPropertyMetadata(String fieldName, Method method, Class<? extends Annotation> propertyType, ImmutableMap<Class<? extends Annotation>, Annotation> annotations) {
             this.fieldName = fieldName;
             this.method = method;
             this.propertyType = propertyType;
             this.annotations = annotations;
-            this.validationMessages = validationMessages;
         }
 
         @Override
@@ -337,11 +351,6 @@ public class PropertyExtractor {
         @Nullable
         public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
             return annotationType.cast(annotations.get(annotationType));
-        }
-
-        @Override
-        public ImmutableList<String> getValidationMessages() {
-            return validationMessages;
         }
 
         @Override
