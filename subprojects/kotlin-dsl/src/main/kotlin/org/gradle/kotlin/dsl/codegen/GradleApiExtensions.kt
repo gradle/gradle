@@ -26,7 +26,7 @@ fun writeGradleApiKotlinDslExtensionsTo(outputDirectory: File, gradleJars: Colle
 
     val gradleApiJars = gradleApiJarsFrom(gradleJars)
 
-    val gradleApiMetadata = gradleApiMetadataFrom(gradleApiMetadataJar)
+    val gradleApiMetadata = gradleApiMetadataFrom(gradleApiMetadataJar, gradleApiJars)
 
     return generateKotlinDslApiExtensionsSourceTo(
         outputDirectory,

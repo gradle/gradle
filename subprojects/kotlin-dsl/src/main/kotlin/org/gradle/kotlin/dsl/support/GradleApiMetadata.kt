@@ -41,22 +41,41 @@ data class GradleApiMetadata(
 }
 
 
-fun gradleApiMetadataFrom(gradleApiMetadataJar: File): GradleApiMetadata =
-    JarFile(gradleApiMetadataJar).use { jar ->
-        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
-        val parameterNames = jar.loadProperties(gradleApiParameterNamesPropertiesName)
-        GradleApiMetadata(
-            apiDeclaration.getProperty("includes").split(":"),
-            apiDeclaration.getProperty("excludes").split(":"),
-            parameterNamesSupplierFrom(parameterNames))
+fun gradleApiMetadataFrom(gradleApiMetadataJar: File, gradleApiJars: Collection<File>): GradleApiMetadata =
+    apiDeclarationFrom(gradleApiMetadataJar).let { (includes, excludes) ->
+        GradleApiMetadata(includes, excludes, parameterNamesSupplierFor(parameterNamesFrom(gradleApiJars)))
     }
 
 
 private
-fun JarFile.loadProperties(name: String) =
-    getInputStream(getJarEntry(name)).use { input ->
-        Properties().also { it.load(input) }
+fun apiDeclarationFrom(gradleApiMetadataJar: File): Pair<List<String>, List<String>> =
+    JarFile(gradleApiMetadataJar).use { jar ->
+        val apiDeclaration = jar.loadProperties(gradleApiDeclarationPropertiesName)
+        apiDeclaration.getProperty("includes").split(":") to apiDeclaration.getProperty("excludes").split(":")
     }
+
+
+private
+fun parameterNamesFrom(gradleApiJars: Collection<File>): List<Properties> =
+    gradleApiJars.mapNotNull { gradleApiJar ->
+        JarFile(gradleApiJar).use { jar ->
+            jar.loadPropertiesOrNull(parameterNamesResourceNameFor(gradleApiJar))
+        }
+    }
+
+
+private
+fun JarFile.loadPropertiesOrNull(name: String): Properties? =
+    getJarEntry(name)?.let { entry ->
+        getInputStream(entry)?.use { input ->
+            Properties().also { it.load(input) }
+        }
+    }
+
+
+private
+fun JarFile.loadProperties(name: String): Properties =
+    loadPropertiesOrNull(name)!!
 
 
 private
@@ -64,12 +83,18 @@ const val gradleApiDeclarationPropertiesName = "gradle-api-declaration.propertie
 
 
 private
-const val gradleApiParameterNamesPropertiesName = "gradle-api-parameter-names.properties"
+fun parameterNamesResourceNameFor(jar: File) =
+    "${jar.name.split(Regex("\\d")).first()}parameter-names.properties"
 
 
 private
-fun parameterNamesSupplierFrom(parameterNames: Properties): ParameterNamesSupplier =
-    { key: String -> parameterNames.getProperty(key, null)?.split(",") }
+fun parameterNamesSupplierFor(parameterNames: List<Properties>): ParameterNamesSupplier =
+    { key: String ->
+        parameterNames.asSequence()
+            .mapNotNull { it.getProperty(key, null) }
+            .firstOrNull()
+            ?.split(",")
+    }
 
 
 private
