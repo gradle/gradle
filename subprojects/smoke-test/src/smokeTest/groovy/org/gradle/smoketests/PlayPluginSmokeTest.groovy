@@ -28,7 +28,7 @@ class PlayPluginSmokeTest extends AbstractSmokeTest {
             }
             
             repositories {
-                jcenter()
+                ${jcenterRepository()}
                 maven {
                     name "lightbend-maven-release"
                     url "https://repo.lightbend.com/lightbend/maven-releases"
@@ -50,7 +50,7 @@ class PlayPluginSmokeTest extends AbstractSmokeTest {
         """
 
         when:
-        def result = runner('build').forwardOutput().build()
+        def result = runner('build').build()
 
         then:
         result.task(':build').outcome == SUCCESS
