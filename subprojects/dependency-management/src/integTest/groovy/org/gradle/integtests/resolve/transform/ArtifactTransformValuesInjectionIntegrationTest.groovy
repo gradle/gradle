@@ -133,8 +133,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         // TODO wolfs: We should report the user declared type
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen$Inject.')
-        failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
-        failure.assertHasCause("Property 'outputDir' is not annotated with an input or output annotation.")
+        failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
+        failure.assertHasCause("Property 'outputDir' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
     }
 
@@ -182,7 +182,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen$Inject.')
-        failure.assertHasCause("Property 'bad' is not annotated with an input or output annotation.")
+        failure.assertHasCause("Property 'bad' is not annotated with an input annotation.")
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]

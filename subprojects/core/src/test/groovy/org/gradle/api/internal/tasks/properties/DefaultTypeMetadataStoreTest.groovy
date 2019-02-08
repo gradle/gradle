@@ -236,10 +236,25 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     def "can get annotated properties of simple task"() {
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
+        def properties = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
 
         then:
-        nonIgnoredProperties(typeMetadata) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+        nonIgnoredProperties(properties) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+    }
+
+    static class Unannotated extends DefaultTask {
+        String bad1
+        File bad2
+        @Inject String ignore1
+        @Input String ignore2
+    }
+
+    def "can get properties that are not annotated"() {
+        when:
+        def properties = metadataStore.getTypeMetadata(Unannotated).propertiesMetadata
+
+        then:
+        properties.propertyName == ["bad1", "bad2", "ignore1", "ignore2"]
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")

@@ -46,7 +46,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
 import java.util.List;
@@ -177,9 +176,6 @@ public class PropertyValidationAccess {
                 }
                 Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
                 if (propertyType == null) {
-                    if (!Modifier.isPrivate(propertyMetadata.getGetterMethod().getModifiers())) {
-                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
-                    }
                     continue;
                 }
                 PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
