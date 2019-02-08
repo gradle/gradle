@@ -53,12 +53,16 @@ public abstract class TransformationNode extends Node {
     }
 
     protected TransformationNode(TransformationStep transformationStep, ExecutionGraphDependenciesResolver dependenciesResolver) {
-        super(false);
         this.transformationStep = transformationStep;
         this.dependenciesResolver = dependenciesResolver;
     }
 
     public abstract void execute(BuildOperationExecutor buildOperationExecutor, ArtifactTransformListener transformListener);
+
+    @Override
+    public boolean isPublicNode() {
+        return true;
+    }
 
     @Override
     public String toString() {

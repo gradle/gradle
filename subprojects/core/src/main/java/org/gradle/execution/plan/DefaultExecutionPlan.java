@@ -1090,7 +1090,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         public int getNumberOfPublicNodes() {
             int publicNodes = 0;
             for (Node node : this) {
-                if (!node.isInternalNode()) {
+                if (node.isPublicNode()) {
                     publicNodes++;
                 }
             }

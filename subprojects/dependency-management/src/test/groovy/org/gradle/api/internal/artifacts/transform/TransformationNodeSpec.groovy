@@ -83,10 +83,6 @@ class TransformationNodeSpec extends Specification {
     }
 
     class TestNode extends Node {
-        TestNode() {
-            super(false)
-        }
-
         @Override
         Project getProject() {
             return null
@@ -115,6 +111,11 @@ class TransformationNodeSpec extends Specification {
         @Override
         Set<Node> getFinalizers() {
             return null
+        }
+
+        @Override
+        boolean isPublicNode() {
+            return true
         }
 
         @Override

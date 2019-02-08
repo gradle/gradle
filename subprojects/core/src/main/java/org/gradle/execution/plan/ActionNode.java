@@ -28,7 +28,6 @@ class ActionNode extends Node {
     private final WorkNodeAction action;
 
     public ActionNode(WorkNodeAction action) {
-        super(true);
         this.action = action;
     }
 
@@ -53,6 +52,11 @@ class ActionNode extends Node {
     @Override
     public Set<Node> getFinalizers() {
         return Collections.emptySet();
+    }
+
+    @Override
+    public boolean isPublicNode() {
+        return false;
     }
 
     @Override

@@ -39,12 +39,10 @@ public abstract class Node implements Comparable<Node> {
     private ExecutionState state;
     private boolean dependenciesProcessed;
     private Throwable executionFailure;
-    private final boolean internalNode;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
 
-    public Node(boolean internalNode) {
-        this.internalNode = internalNode;
+    public Node() {
         this.state = ExecutionState.UNKNOWN;
     }
 
@@ -221,9 +219,7 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract Set<Node> getFinalizers();
 
-    public boolean isInternalNode() {
-        return internalNode;
-    }
+    public abstract boolean isPublicNode();
 
     /**
      * Returns the project which the node requires access to, if any.
