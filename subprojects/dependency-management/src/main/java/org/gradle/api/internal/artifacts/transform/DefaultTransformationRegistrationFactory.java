@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,16 +32,11 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 
 public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
 
@@ -89,30 +83,12 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
-        Hasher hasher = Hashing.newHasher();
-        appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
-
-        // TODO - should snapshot later
-        Isolatable<Object[]> paramsSnapshot;
-        try {
-            paramsSnapshot = isolatableFactory.isolate(params);
-        } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementation).getDisplayName(), Arrays.asList(params)), e);
-        }
-        paramsSnapshot.appendToHasher(hasher);
         Transformer transformer = new LegacyTransformer(implementation, params, instantiatorFactory, from, classLoaderHierarchyHasher, isolatableFactory);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
-    private static void appendActionImplementation(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Hasher hasher, Class<?> implementation) {
-        hasher.putString(implementation.getName());
-        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
-    }
-
-
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
-
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
         private final TransformationStep transformationStep;
