@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.Pair;
@@ -26,13 +27,17 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.component.AmbiguousVariantSelectionException.formatAttributes;
 
 public class AmbiguousTransformException extends VariantSelectionException {
-    public AmbiguousTransformException(String producerDisplayName, AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
-        super(format(producerDisplayName, requested, candidates));
+    public AmbiguousTransformException(String producerDisplayName,
+                                       AttributeContainerInternal requested,
+                                       List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates,
+                                       Set<Ecosystem> knownEcosystems, Set<Ecosystem> requiredEcosystems) {
+        super(format(producerDisplayName, requested, candidates), knownEcosystems, requiredEcosystems);
     }
 
     private static String format(String producerDisplayName, AttributeContainerInternal requested, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {

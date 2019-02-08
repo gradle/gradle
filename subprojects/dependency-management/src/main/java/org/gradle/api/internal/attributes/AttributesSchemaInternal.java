@@ -18,7 +18,10 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.internal.component.model.AttributeMatcher;
+
+import java.util.Set;
 
 public interface AttributesSchemaInternal extends AttributesSchema {
     /**
@@ -34,4 +37,6 @@ public interface AttributesSchemaInternal extends AttributesSchema {
     CompatibilityRule<Object> compatibilityRules(Attribute<?> attribute);
 
     DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute);
+
+    Set<Ecosystem> getEcosystems();
 }

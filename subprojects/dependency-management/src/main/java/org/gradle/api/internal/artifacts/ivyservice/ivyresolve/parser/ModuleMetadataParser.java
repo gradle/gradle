@@ -34,6 +34,7 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.component.ImmutableEcosystem;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -115,11 +116,35 @@ public class ModuleMetadataParser {
             String name = reader.nextName();
             if ("attributes".equals(name)) {
                 metadata.setAttributes(consumeAttributes(reader));
+            } else if ("ecosystems".equals(name)) {
+                consumeEcosystems(metadata, reader);
             } else {
                 consumeAny(reader);
             }
         }
         reader.endObject();
+    }
+
+    private void consumeEcosystems(MutableModuleComponentResolveMetadata metadata, JsonReader reader) throws IOException {
+        reader.beginArray();
+        while (reader.peek() != JsonToken.END_ARRAY) {
+            reader.beginObject();
+            String ecosystemName = null;
+            String ecosystemDescription = null;
+            while (reader.peek() != END_OBJECT) {
+                String name = reader.nextName();
+                if ("name".equals(name)) {
+                    ecosystemName = reader.nextString();
+                } else if ("description".equals(name)) {
+                    ecosystemDescription = reader.nextString();
+                } else {
+                    consumeAny(reader);
+                }
+            }
+            reader.endObject();
+            metadata.addEcosystem(new ImmutableEcosystem(ecosystemName, ecosystemDescription));
+        }
+        reader.endArray();
     }
 
     private void consumeVariants(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {

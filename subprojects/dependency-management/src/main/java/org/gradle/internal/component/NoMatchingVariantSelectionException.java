@@ -16,18 +16,20 @@
 
 package org.gradle.internal.component;
 
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collection;
+import java.util.Set;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
 public class NoMatchingVariantSelectionException extends VariantSelectionException {
-    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
-        super(format(producerDisplayName, consumer, candidates, matcher));
+    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher, Set<Ecosystem> knownEcosystems, Set<Ecosystem> requiredEcosystems) {
+        super(format(producerDisplayName, consumer, candidates, matcher), knownEcosystems, requiredEcosystems);
     }
 
     private static String format(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {

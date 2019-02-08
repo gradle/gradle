@@ -70,6 +70,6 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes);
+        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSource(), ModuleExclusions.excludeNone(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, overriddenAttributes, component.getEcosystems());
     }
 }

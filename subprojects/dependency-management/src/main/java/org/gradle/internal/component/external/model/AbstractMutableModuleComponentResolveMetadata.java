@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -47,6 +48,7 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,6 +75,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private List<MutableVariantImpl> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private Set<ComponentIdentifier> owners;
+    private Set<Ecosystem> ecosystems;
 
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier) {
         this.attributesFactory = attributesFactory;
@@ -95,6 +98,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
+        this.ecosystems = Sets.newHashSet(metadata.getEcosystems());
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -277,6 +281,19 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     @Override
     public Set<? extends ComponentIdentifier> getPlatformOwners() {
         return owners;
+    }
+
+    @Override
+    public Set<Ecosystem> getEcosystems() {
+        return ecosystems == null ? Collections.emptySet() : ecosystems;
+    }
+
+    @Override
+    public void addEcosystem(Ecosystem ecosystem) {
+        if (ecosystems == null) {
+            ecosystems = Sets.newHashSet();
+        }
+        ecosystems.add(ecosystem);
     }
 
     protected static class MutableVariantImpl implements MutableComponentVariant {

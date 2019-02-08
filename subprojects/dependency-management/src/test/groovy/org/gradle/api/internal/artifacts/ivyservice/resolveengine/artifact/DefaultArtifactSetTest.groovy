@@ -29,7 +29,9 @@ import spock.lang.Specification
 class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def exclusions = Stub(ModuleExclusions)
-    def schema = Stub(AttributesSchemaInternal)
+    def schema = Stub(AttributesSchemaInternal) {
+        getEcosystems() >> []
+    }
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
 
 
@@ -42,9 +44,9 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = Stub(VariantResolveMetadata)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
 
         expect:
         artifacts1.select({false}, Stub(VariantSelector)) == ResolvedArtifactSet.EMPTY
@@ -59,9 +61,9 @@ class DefaultArtifactSetTest extends Specification {
         def selector = Stub(VariantSelector)
 
         given:
-        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
-        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY)
+        def artifacts1 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1, variant2] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
+        def artifacts2 = DefaultArtifactSet.multipleVariants(componentId, null, null, null, [variant1] as Set, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
+        def artifacts3 = DefaultArtifactSet.singleVariant(componentId, null, Mock(DisplayName), [] as Set, null, null, schema, null, null, artifactTypeRegistry, ImmutableAttributes.EMPTY, [] as Set)
 
         selector.select(_) >> resolvedVariant1
 

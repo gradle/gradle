@@ -228,6 +228,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyFileModule ecosystem(String name) {
+        super.ecosystem(name)
+        this
+    }
+
     IvyFileModule nonTransitive(String config) {
         configurations[config].transitive = false
         return this
@@ -414,7 +420,8 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                     v.capabilities
                 )
             },
-            attributes + ['org.gradle.status': status]
+            attributes + ['org.gradle.status': status],
+            ecosystems
         )
 
         adapter.publishTo(moduleDir)

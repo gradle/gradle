@@ -26,13 +26,20 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.component.ImmutableEcosystem;
 
 import javax.inject.Inject;
 import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
+    private static final Ecosystem JAVA_ECOSYSTEM = new ImmutableEcosystem(
+            "org.gradle.ecosystem.java",
+            "The JVM ecosystem providing support for the usage and dependency packing attributes"
+    );
+
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         AttributeMatchingStrategy<Usage> matchingStrategy = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
         matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
@@ -48,6 +55,7 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
+        attributesSchema.registerEcosystem(JAVA_ECOSYSTEM.getName(), JAVA_ECOSYSTEM.getDescription());
     }
 
 

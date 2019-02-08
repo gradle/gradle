@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleSource;
@@ -106,4 +107,8 @@ public interface MutableModuleComponentResolveMetadata {
 
     @Nullable
     Set<? extends ComponentIdentifier> getPlatformOwners();
+
+    Set<Ecosystem> getEcosystems();
+
+    void addEcosystem(Ecosystem ecosystem);
 }

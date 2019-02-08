@@ -144,4 +144,7 @@ public interface IvyModule extends Module {
     void assertPublishedAsJavaModule();
 
     void assertPublishedAsWebModule();
+
+    @Override
+    IvyModule ecosystem(String name);
 }

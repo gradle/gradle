@@ -33,6 +33,8 @@ abstract class AbstractModule implements Module {
 
     Map<String, String> attributes = [:]
 
+    Set<String> ecosystems = []
+
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */
@@ -123,5 +125,10 @@ abstract class AbstractModule implements Module {
 
     boolean isHasModuleMetadata() {
         hasModuleMetadata
+    }
+
+    Module ecosystem(String name) {
+        ecosystems << name
+        this
     }
 }

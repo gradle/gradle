@@ -35,6 +35,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
         withProducer(_) >> attributeMatcher
+        getEcosystems() >> []
     }
     def attributesFactory = Mock(ImmutableAttributesFactory) {
         concat(_, _) >> { args -> return args[0]}
@@ -50,6 +51,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def variantSet = Mock(ResolvedVariantSet) {
         asDescribable() >> Describables.of("mock producer")
         getVariants() >> [variant]
+        getEcosystems() >> []
     }
 
     def 'direct match on variant means no finder interaction'() {
@@ -376,6 +378,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def multiVariantSet = Mock(ResolvedVariantSet) {
             asDescribable() >> Describables.of("mock multi producer")
             getVariants() >> [variant, otherVariant, yetAnotherVariant]
+            getEcosystems() >> []
         }
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)

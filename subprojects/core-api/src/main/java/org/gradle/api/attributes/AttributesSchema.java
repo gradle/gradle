@@ -17,7 +17,9 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 /**
@@ -69,4 +71,17 @@ public interface AttributesSchema {
      * Returns true when this schema contains the given attribute.
      */
     boolean hasAttribute(Attribute<?> key);
+
+    /**
+     * Registers an ecosystem. This method is called whenever a plugin or build script
+     * wants to declare that it recognizes a specific ecosystem. In particular, it is
+     * expected that when registering an ecosystem, a plugin would also declare attributes
+     * in the schema.
+     *
+     * @param name the name of the ecosystem
+     *
+     * @since 5.3
+     */
+    @Incubating
+    void registerEcosystem(String name, @Nullable String description);
 }

@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import javax.annotation.Nullable;
@@ -94,5 +95,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
     List<String> getStatusScheme();
 
     ImmutableList<? extends ComponentIdentifier> getPlatformOwners();
+
+    Set<Ecosystem> getEcosystems();
 
 }

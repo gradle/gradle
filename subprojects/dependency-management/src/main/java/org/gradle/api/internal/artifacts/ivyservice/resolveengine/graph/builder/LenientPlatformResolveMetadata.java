@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -178,6 +179,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public VariantMetadataRules getVariantMetadataRules() {
         return VariantMetadataRules.noOp();
+    }
+
+    @Override
+    public Set<Ecosystem> getEcosystems() {
+        return Collections.emptySet();
     }
 
     @Override

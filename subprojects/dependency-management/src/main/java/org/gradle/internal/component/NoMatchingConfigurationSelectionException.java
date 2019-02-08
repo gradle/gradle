@@ -19,6 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -31,14 +32,15 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class NoMatchingConfigurationSelectionException extends RuntimeException {
     public NoMatchingConfigurationSelectionException(
-        AttributeContainerInternal fromConfigurationAttributes,
-        AttributeMatcher attributeMatcher,
-        ComponentResolveMetadata targetComponent,
-        boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
+            AttributeContainerInternal fromConfigurationAttributes,
+            AttributeMatcher attributeMatcher,
+            ComponentResolveMetadata targetComponent,
+            boolean variantAware,
+            AttributesSchemaInternal consumerSchema) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware, consumerSchema));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware, AttributesSchemaInternal consumerSchema) {
         Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
@@ -58,7 +60,11 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             }
         }
         formatter.endChildren();
-        return formatter.toString();
+        String message = formatter.toString();
+        if (variantAware) {
+            message = VariantSelectionException.amendMessageWithEcosystems(message, consumerSchema.getEcosystems(), targetComponent.getEcosystems());
+        }
+        return message;
     }
 
 }

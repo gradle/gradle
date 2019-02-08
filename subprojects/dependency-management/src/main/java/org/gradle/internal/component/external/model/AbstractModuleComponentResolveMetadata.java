@@ -19,9 +19,11 @@ package org.gradle.internal.component.external.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -35,6 +37,7 @@ import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
 
@@ -55,6 +58,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends ComponentIdentifier> platformOwners;
+    private final ImmutableSet<Ecosystem> ecosystems;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -68,48 +72,52 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
         platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.<ComponentIdentifier>of() : ImmutableList.copyOf(metadata.getPlatformOwners());
+        ecosystems = ImmutableSet.copyOf(metadata.getEcosystems());
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
         this.componentIdentifier = metadata.getId();
         this.moduleVersionIdentifier = metadata.getModuleVersionId();
-        changing = metadata.isChanging();
-        missing = metadata.isMissing();
-        statusScheme = metadata.getStatusScheme();
-        moduleSource = metadata.getSource();
-        attributesFactory = metadata.getAttributesFactory();
-        originalContentHash = metadata.getOriginalContentHash();
-        attributes = metadata.getAttributes();
+        this.changing = metadata.isChanging();
+        this.missing = metadata.isMissing();
+        this.statusScheme = metadata.getStatusScheme();
+        this.moduleSource = metadata.getSource();
+        this.attributesFactory = metadata.getAttributesFactory();
+        this.originalContentHash = metadata.getOriginalContentHash();
+        this.attributes = metadata.getAttributes();
         this.variants = variants;
         this.platformOwners = metadata.getPlatformOwners();
+        this.ecosystems = ImmutableSet.copyOf(metadata.getEcosystems());
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.componentIdentifier;
         this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
-        changing = metadata.changing;
-        missing = metadata.missing;
-        statusScheme = metadata.statusScheme;
-        moduleSource = metadata.moduleSource;
-        attributesFactory = metadata.attributesFactory;
-        originalContentHash = metadata.originalContentHash;
-        attributes = metadata.attributes;
-        variants = metadata.variants;
-        platformOwners = metadata.platformOwners;
+        this.changing = metadata.changing;
+        this.missing = metadata.missing;
+        this.statusScheme = metadata.statusScheme;
+        this.moduleSource = metadata.moduleSource;
+        this.attributesFactory = metadata.attributesFactory;
+        this.originalContentHash = metadata.originalContentHash;
+        this.attributes = metadata.attributes;
+        this.variants = metadata.variants;
+        this.platformOwners = metadata.platformOwners;
+        this.ecosystems = metadata.ecosystems;
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
         this.componentIdentifier = metadata.componentIdentifier;
         this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
-        changing = metadata.changing;
-        missing = metadata.missing;
-        statusScheme = metadata.statusScheme;
-        attributesFactory = metadata.attributesFactory;
-        originalContentHash = metadata.originalContentHash;
-        attributes = metadata.attributes;
-        variants = metadata.variants;
-        platformOwners = metadata.platformOwners;
-        moduleSource = source;
+        this.changing = metadata.changing;
+        this.missing = metadata.missing;
+        this.statusScheme = metadata.statusScheme;
+        this.attributesFactory = metadata.attributesFactory;
+        this.originalContentHash = metadata.originalContentHash;
+        this.attributes = metadata.attributes;
+        this.variants = metadata.variants;
+        this.platformOwners = metadata.platformOwners;
+        this.moduleSource = source;
+        this.ecosystems = metadata.ecosystems;
     }
 
     @Override
@@ -198,6 +206,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public Set<Ecosystem> getEcosystems() {
+        return ecosystems;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -215,7 +228,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(moduleSource, that.moduleSource)
             && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
-            && Objects.equal(originalContentHash, that.originalContentHash);
+            && Objects.equal(originalContentHash, that.originalContentHash)
+            && Objects.equal(ecosystems, that.ecosystems);
     }
 
     @Override
@@ -229,6 +243,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             moduleSource,
             attributes,
             variants,
-            originalContentHash);
+            originalContentHash,
+            ecosystems);
     }
 }

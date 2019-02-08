@@ -386,7 +386,9 @@ public class DependencyGraphBuilder {
         }
         if (!incompatibleNodes.isEmpty()) {
             IncompatibleVariantsSelectionException variantsSelectionException = new IncompatibleVariantsSelectionException(
-                    IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes)
+                    IncompatibleVariantsSelectionMessageBuilder.buildMessage(selected, incompatibleNodes),
+                    attributesSchema.getEcosystems(),
+                    selected.getMetadata().getEcosystems()
             );
             for (EdgeState edge : module.getIncomingEdges()) {
                 edge.failWith(variantsSelectionException);

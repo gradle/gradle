@@ -34,8 +34,10 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithCoordinates;
+import org.gradle.api.component.ComponentWithEcosystems;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
@@ -185,6 +187,7 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("version");
             jsonWriter.value(coordinates.getVersion());
             writeAttributes(attributes, jsonWriter);
+            writeEcosystems(component, jsonWriter);
             jsonWriter.endObject();
         } else {
             ComponentData componentData = componentCoordinates.get(owner);
@@ -200,7 +203,27 @@ public class ModuleMetadataFileGenerator {
             jsonWriter.name("version");
             jsonWriter.value(ownerCoordinates.getVersion());
             writeAttributes(componentData.attributes, jsonWriter);
+            writeEcosystems(owner, jsonWriter);
             jsonWriter.endObject();
+        }
+    }
+
+    private void writeEcosystems(SoftwareComponent owner, JsonWriter jsonWriter) throws IOException {
+        if (owner instanceof ComponentWithEcosystems) {
+            jsonWriter.name("ecosystems");
+            jsonWriter.beginArray();
+            for (Ecosystem ecosystem : ((ComponentWithEcosystems) owner).getEcosystems()) {
+                jsonWriter.beginObject();
+                jsonWriter.name("name");
+                jsonWriter.value(ecosystem.getName());
+                String description = ecosystem.getDescription();
+                if (description != null) {
+                    jsonWriter.name("description");
+                    jsonWriter.value(description);
+                }
+                jsonWriter.endObject();
+            }
+            jsonWriter.endArray();
         }
     }
 

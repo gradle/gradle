@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -146,6 +147,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
+        }
+
+        @Override
+        public Set<Ecosystem> getEcosystems() {
+            return Collections.emptySet();
         }
 
         @Override

@@ -18,6 +18,7 @@ package org.gradle.internal.component;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -34,11 +35,12 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent,
-                                                    boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware));
+                                                    boolean variantAware,
+                                                    AttributesSchemaInternal consumerSchema) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware, consumerSchema));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware, AttributesSchemaInternal consumerSchema) {
         Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
@@ -59,7 +61,11 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware);
         }
         formatter.endChildren();
-        return formatter.toString();
+        String message = formatter.toString();
+        if (variantAware) {
+            message = VariantSelectionException.amendMessageWithEcosystems(message, consumerSchema.getEcosystems(), targetComponent.getEcosystems());
+        }
+        return message;
     }
 
     static void formatConfiguration(TreeFormatter formatter, ComponentResolveMetadata targetComponent, AttributeContainerInternal consumerAttributes, AttributeMatcher attributeMatcher, ConfigurationMetadata configuration, boolean variantAware) {

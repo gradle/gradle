@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
+package org.gradle.api.component;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.ecosystem.Ecosystem;
 
-import java.util.Set;
+import java.util.List;
 
-public class IncompatibleVariantsSelectionException extends VariantSelectionException {
-    public IncompatibleVariantsSelectionException(String message, Set<Ecosystem> knownEcosystems, Set<Ecosystem> requiredEcosystems) {
-        super(message, knownEcosystems, requiredEcosystems);
-    }
+/**
+ * A software component which belongs to one or more specific ecosystems.
+ * Ecosystems are used to determine what plugins need to be applied for
+ * the dependency resolution engine to understand the attributes of
+ * a variant.
+ *
+ * @since 5.3
+ */
+@Incubating
+public interface ComponentWithEcosystems extends SoftwareComponent {
+    /**
+     * The list of ecosystems this component requires.
+     */
+    List<Ecosystem> getEcosystems();
 }

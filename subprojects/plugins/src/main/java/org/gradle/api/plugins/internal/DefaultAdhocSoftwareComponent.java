@@ -21,19 +21,26 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
+import org.gradle.internal.Factory;
+import org.gradle.internal.component.ImmutableEcosystem;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
+    private final Factory<List<Ecosystem>> defaultEcosystems;
     private final List<ConfigurationVariantMapping> variants = Lists.newArrayListWithExpectedSize(4);
+    private List<Ecosystem> explicitEcosystems;
 
-    public DefaultAdhocSoftwareComponent(String componentName) {
+    public DefaultAdhocSoftwareComponent(String componentName, Factory<List<Ecosystem>> defaultEcosystems) {
         this.componentName = componentName;
+        this.defaultEcosystems = defaultEcosystems;
     }
 
     @Override
@@ -47,11 +54,24 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
+    public void registerEcosystem(String name, @Nullable String description) {
+        if (explicitEcosystems == null) {
+            explicitEcosystems = Lists.newArrayListWithExpectedSize(2);
+        }
+        explicitEcosystems.add(new ImmutableEcosystem(name, description));
+    }
+
+    @Override
     public Set<? extends UsageContext> getUsages() {
         ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<UsageContext>();
         for (ConfigurationVariantMapping variant : variants) {
             variant.collectUsageContexts(builder);
         }
         return builder.build();
+    }
+
+    @Override
+    public List<Ecosystem> getEcosystems() {
+        return explicitEcosystems != null ? explicitEcosystems : defaultEcosystems.create();
     }
 }

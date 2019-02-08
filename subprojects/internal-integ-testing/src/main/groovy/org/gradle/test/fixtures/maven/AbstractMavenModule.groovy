@@ -467,7 +467,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.capabilities
                 )
             },
-            attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release']
+            attributes + ['org.gradle.status': version.endsWith('-SNAPSHOT') ? 'integration' : 'release'],
+            ecosystems
         )
 
         adapter.publishTo(moduleDir)
@@ -679,6 +680,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule withModuleMetadata() {
         super.withModuleMetadata()
+    }
+
+    @Override
+    MavenModule ecosystem(String name) {
+        super.ecosystem(name)
     }
 
     @Override

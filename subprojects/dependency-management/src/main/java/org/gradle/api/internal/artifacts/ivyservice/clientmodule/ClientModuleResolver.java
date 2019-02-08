@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -47,6 +48,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -177,6 +179,11 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
         @Override
         public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
             return ImmutableList.of();
+        }
+
+        @Override
+        public Set<Ecosystem> getEcosystems() {
+            return Collections.emptySet();
         }
 
         @Override

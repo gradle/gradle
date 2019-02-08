@@ -18,20 +18,23 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.HasAttributes;
-import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.ImmutableEcosystem;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeSelectionSchema;
 import org.gradle.internal.component.model.AttributeSelectionUtils;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DefaultMultipleCandidateResult;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
@@ -51,6 +54,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
+    private final Set<Ecosystem> ecosystems = Sets.newHashSet();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -128,6 +132,16 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
             return Cast.uncheckedCast(matchingStrategy.getDisambiguationRules());
         }
         return EmptySchema.INSTANCE.disambiguationRules(attribute);
+    }
+
+    @Override
+    public Set<Ecosystem> getEcosystems() {
+        return Collections.unmodifiableSet(ecosystems);
+    }
+
+    @Override
+    public void registerEcosystem(String name, String description) {
+        ecosystems.add(new ImmutableEcosystem(name, description));
     }
 
     private static class DefaultAttributeMatcher implements AttributeMatcher {

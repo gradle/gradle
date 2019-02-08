@@ -200,6 +200,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
         return t();
     }
 
+    @Override
+    public T ecosystem(String name) {
+        backingModule.ecosystem(name);
+        return t();
+    }
+
     public T configuration(String name) {
         backingModule.configuration(Collections.<String, Object>emptyMap(), name);
         return t();

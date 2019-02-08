@@ -19,6 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 
+import javax.annotation.Nullable;
+
 /**
  * A component which can declare additional variants corresponding to
  * features. When published to Maven POMs, the dependencies of those variants
@@ -28,7 +30,7 @@ import org.gradle.api.artifacts.Configuration;
  * @since 5.3
  */
 @Incubating
-public interface AdhocComponentWithVariants extends SoftwareComponent {
+public interface AdhocComponentWithVariants extends ComponentWithEcosystems {
 
     /**
      * Declares an additional variant to publish, corresponding to an additional feature.
@@ -37,4 +39,16 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      */
     void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
+    /**
+     * By default, an adhoc component will be published with a list of ecosystems corresponding
+     * to the ecosystems which have been registered on the project. If for some reason the default
+     * ecosystems are not suitable, this method can be called, in which case the defaults are ignored.
+     *
+     * It may be the case when a plugin registers an ecosystem which is only suitable for testing,
+     * but should not be used when publishing.
+     *
+     * @param name the name of the ecosystem
+     * @param description a description of the ecosystem
+     */
+    void registerEcosystem(String name, @Nullable String description);
 }

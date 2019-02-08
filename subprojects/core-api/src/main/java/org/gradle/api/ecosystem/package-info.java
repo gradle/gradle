@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component;
 
-import org.gradle.api.ecosystem.Ecosystem;
-
-import java.util.Set;
-
-public class IncompatibleVariantsSelectionException extends VariantSelectionException {
-    public IncompatibleVariantsSelectionException(String message, Set<Ecosystem> knownEcosystems, Set<Ecosystem> requiredEcosystems) {
-        super(message, knownEcosystems, requiredEcosystems);
-    }
-}
+/**
+ * Types for declaring ecosystems.
+ *
+ * @since 5.3
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.api.ecosystem;

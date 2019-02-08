@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.ImmutableEcosystem;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -119,9 +121,19 @@ public class ModuleMetadataSerializer {
             writeNullableString(metadata.getSnapshotTimestamp());
             writeMavenDependencies(metadata.getDependencies());
             writeSharedInfo(metadata);
+            writeEcosystems(metadata);
             writeNullableString(metadata.getPackaging());
             writeBoolean(metadata.isRelocated());
             writeVariants(metadata);
+        }
+
+        private void writeEcosystems(ModuleComponentResolveMetadata metadata) throws IOException {
+            Set<Ecosystem> ecosystems = metadata.getEcosystems();
+            encoder.writeSmallInt(ecosystems.size());
+            for (Ecosystem ecosystem : ecosystems) {
+                encoder.writeString(ecosystem.getName());
+                encoder.writeNullableString(ecosystem.getDescription());
+            }
         }
 
         private void writeVariants(ModuleComponentResolveMetadata metadata) throws IOException {
@@ -192,6 +204,7 @@ public class ModuleMetadataSerializer {
             writeArtifacts(metadata.getArtifactDefinitions());
             writeExcludeRules(metadata.getExcludes());
             writeSharedInfo(metadata);
+            writeEcosystems(metadata);
             writeNullableString(metadata.getBranch());
             writeVariants(metadata);
         }
@@ -418,6 +431,7 @@ public class ModuleMetadataSerializer {
             List<MavenDependencyDescriptor> dependencies = readMavenDependencies();
             MutableMavenModuleResolveMetadata metadata = mavenMetadataFactory.create(id, dependencies);
             readSharedInfo(metadata);
+            readEcosystems(metadata);
             metadata.setSnapshotTimestamp(snapshotTimestamp);
             metadata.setPackaging(readNullableString());
             metadata.setRelocated(readBoolean());
@@ -496,6 +510,7 @@ public class ModuleMetadataSerializer {
             List<Exclude> excludes = readModuleExcludes();
             MutableIvyModuleResolveMetadata metadata = ivyMetadataFactory.create(id, dependencies, configurations, artifacts, excludes);
             readSharedInfo(metadata);
+            readEcosystems(metadata);
             String branch = readNullableString();
             metadata.setBranch(branch);
             metadata.setExtraAttributes(extraAttributes);
@@ -507,6 +522,16 @@ public class ModuleMetadataSerializer {
         private void readInfoSection() throws IOException {
             id = readId();
             attributes = readAttributes();
+        }
+
+        private void readEcosystems(MutableModuleComponentResolveMetadata metadata) throws IOException {
+            int size = decoder.readSmallInt();
+            for (int i=0; i<size; i++) {
+                metadata.addEcosystem(new ImmutableEcosystem(
+                        decoder.readString(),
+                        decoder.readNullableString()
+                ));
+            }
         }
 
         private ModuleComponentIdentifier readId() throws IOException {

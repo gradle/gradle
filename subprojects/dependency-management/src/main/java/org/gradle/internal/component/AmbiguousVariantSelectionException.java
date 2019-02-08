@@ -19,19 +19,21 @@ package org.gradle.internal.component;
 import com.google.common.collect.Ordering;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
-    public AmbiguousVariantSelectionException(String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
-        super(format(producerDisplayName, requested, matches, matcher));
+    public AmbiguousVariantSelectionException(String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<Ecosystem> knownEcosystems, Set<Ecosystem> requiredEcosystems) {
+        super(format(producerDisplayName, requested, matches, matcher), knownEcosystems, requiredEcosystems);
     }
 
     private static String format(String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher) {

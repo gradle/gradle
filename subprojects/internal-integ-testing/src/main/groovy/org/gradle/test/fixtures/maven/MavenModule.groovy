@@ -157,4 +157,7 @@ interface MavenModule extends Module {
      * If created {@link #withModuleMetadata()}, module file is also expected.
      */
     void assertPublishedAsJavaModule()
+
+    @Override
+    MavenModule ecosystem(String name)
 }

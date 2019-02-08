@@ -26,13 +26,15 @@ class GradleFileModuleAdapter {
     private final String version
     private final List<VariantMetadataSpec> variants
     private final Map<String, String> attributes
+    private final Set<String> ecosystems
 
-    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:]) {
+    GradleFileModuleAdapter(String group, String module, String version, List<VariantMetadataSpec> variants, Map<String, String> attributes = [:], Set<String> ecosystems = []) {
         this.group = group
         this.module = module
         this.version = version
         this.variants = variants
         this.attributes = attributes
+        this.ecosystems = ecosystems
     }
 
     void publishTo(TestFile moduleDir) {
@@ -53,6 +55,11 @@ class GradleFileModuleAdapter {
                         "$key" value
                     }
                 }
+                ecosystems(
+                    this.ecosystems.collect { ecosystem ->
+                        { -> name(ecosystem) }
+                    }
+                )
             }
             variants(this.variants.collect { v ->
                 { ->

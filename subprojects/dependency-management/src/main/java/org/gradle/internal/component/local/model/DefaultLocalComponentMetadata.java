@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.ecosystem.Ecosystem;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
@@ -215,6 +216,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
         return ImmutableList.of();
+    }
+
+    @Override
+    public Set<Ecosystem> getEcosystems() {
+        return attributesSchema.getEcosystems();
     }
 
     @Override

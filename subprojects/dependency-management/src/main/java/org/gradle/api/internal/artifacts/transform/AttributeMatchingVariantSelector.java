@@ -85,7 +85,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             return matches.get(0).getArtifacts();
         }
         if (matches.size() > 1) {
-            throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher);
+            throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, schema.getEcosystems(), producer.getEcosystems());
         }
 
         List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
@@ -109,13 +109,13 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
 
         if (!candidates.isEmpty()) {
-            throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), componentRequested, candidates);
+            throw new AmbiguousTransformException(producer.asDescribable().getDisplayName(), componentRequested, candidates, schema.getEcosystems(), producer.getEcosystems());
         }
 
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
-        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
+        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher, schema.getEcosystems(), producer.getEcosystems());
     }
 
     private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {

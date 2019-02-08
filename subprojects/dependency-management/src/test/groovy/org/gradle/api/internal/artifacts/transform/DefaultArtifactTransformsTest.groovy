@@ -46,8 +46,8 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
-    def producerSchema = Mock(AttributesSchemaInternal)
-    def consumerSchema = Mock(AttributesSchemaInternal)
+    def producerSchema = mockSchema()
+    def consumerSchema = mockSchema()
     def attributeMatcher = Mock(AttributeMatcher)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
     def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory())
@@ -112,6 +112,7 @@ class DefaultArtifactTransformsTest extends Specification {
     private ResolvedVariantSet resolvedVariantSet() {
         Stub(ResolvedVariantSet) {
             getOverriddenAttributes() >> ImmutableAttributes.EMPTY
+            getEcosystems() >> []
         }
     }
 
@@ -294,6 +295,12 @@ Found the following transforms:
         def attributeContainer = new DefaultMutableAttributeContainer(AttributeTestUtil.attributesFactory())
         attributeContainer.attribute(ARTIFACT_FORMAT, artifactType)
         attributeContainer.asImmutable()
+    }
+
+    private AttributesSchemaInternal mockSchema() {
+        Mock(AttributesSchemaInternal) {
+            getEcosystems() >> []
+        }
     }
 
     interface TestArtifact extends ResolvableArtifact, Buildable {}

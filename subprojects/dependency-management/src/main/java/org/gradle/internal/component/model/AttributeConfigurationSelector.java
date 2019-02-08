@@ -62,9 +62,9 @@ public abstract class AttributeConfigurationSelector {
         if (matches.size() == 1) {
             return singleVariant(variantsForGraphTraversal, matches);
         } else if (!matches.isEmpty()) {
-            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent());
+            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent(), consumerSchema);
         } else {
-            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
+            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent(), consumerSchema);
         }
     }
 

@@ -116,6 +116,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule ecosystem(String name) {
+        backingModule.ecosystem(name);
+        return t();
+    }
+
+    @Override
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
