@@ -17,6 +17,7 @@
 package org.gradle.language.twirl.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlSourceSet;
@@ -32,7 +33,7 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     private TwirlImports defaultImports = TwirlImports.SCALA;
     private List<TwirlTemplateFormat> userTemplateFormats = Lists.newArrayList();
     private List<String> additionalImports = Lists.newArrayList();
-    private List<String> constructorAnnotations = Lists.newArrayList();
+    private ListProperty<String> constructorAnnotations = objectFactory.listProperty(String.class).empty();
 
     @Override
     protected String getLanguageName() {
@@ -75,12 +76,14 @@ public class DefaultTwirlSourceSet extends BaseLanguageSourceSet implements Twir
     }
 
     @Override
-    public List<String> getConstuctorAnnotations() {
+    public ListProperty<String> getConstructorAnnotations() {
         return constructorAnnotations;
     }
 
     @Override
     public void setConstructorAnnotations(List<String> constructorAnnotations) {
-        this.constructorAnnotations = constructorAnnotations;
+        this.constructorAnnotations.set(constructorAnnotations);
     }
+
+
 }

@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -76,7 +77,7 @@ public class TwirlCompile extends SourceTask {
     private PlayPlatform platform;
     private List<TwirlTemplateFormat> userTemplateFormats = Lists.newArrayList();
     private List<String> additionalImports = Lists.newArrayList();
-    private List<String> constructorAnnotations = Lists.newArrayList();
+    private ListProperty<String> constructorAnnotations = getProject().getObjects().listProperty(String.class).empty();
 
     /**
      * {@inheritDoc}
@@ -124,15 +125,19 @@ public class TwirlCompile extends SourceTask {
 
     /**
      * Returns the default imports that will be used when compiling templates.
+     *
      * @return The imports that will be used.
      */
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public TwirlImports getDefaultImports() {
         return defaultImports;
     }
 
     /**
      * Sets the default imports to be used when compiling templates.
+     *
      * @param defaultImports The imports to be used.
      */
     public void setDefaultImports(@Nullable TwirlImports defaultImports) {
@@ -143,7 +148,7 @@ public class TwirlCompile extends SourceTask {
     void compile(IncrementalTaskInputs inputs) {
         RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
         getSource().visit(relativeFileCollector);
-        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports, constructorAnnotations);
+        TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports, constructorAnnotations.get());
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
@@ -226,7 +231,6 @@ public class TwirlCompile extends SourceTask {
      * @param extension file extension this template applies to (e.g., {@code html}).
      * @param templateType fully-qualified type for this template format.
      * @param imports additional imports to add for the custom template format.
-     *
      * @since 4.2
      */
     public void addUserTemplateFormat(final String extension, String templateType, String... imports) {
@@ -247,7 +251,6 @@ public class TwirlCompile extends SourceTask {
      * Sets the additional imports to add to all generated Scala code.
      *
      * @param additionalImports additional imports
-     *
      * @since 4.2
      */
     public void setAdditionalImports(List<String> additionalImports) {
@@ -261,19 +264,8 @@ public class TwirlCompile extends SourceTask {
      * @since 5.3
      */
     @Input
-    public List<String> getConstructorAnnotations() {
+    public ListProperty<String> getConstructorAnnotations() {
         return constructorAnnotations;
-    }
-
-    /**
-     * Sets the construtor annotations to add to the generated Scala code.
-     *
-     * @param constructorAnnotations constructor annotations
-     *
-     * @since 5.3
-     */
-    public void setConstructorAnnotations(List<String> constructorAnnotations) {
-        this.constructorAnnotations = constructorAnnotations;
     }
 
 
@@ -294,7 +286,7 @@ public class TwirlCompile extends SourceTask {
         File calculateOutputFile(File inputFile) {
             String inputFileName = inputFile.getName();
             String[] splits = inputFileName.split("\\.");
-            String relativeOutputFilePath = "views/" + splits[2]+ "/" + splits[0] + ".template.scala"; //TODO: use Twirl library instead?
+            String relativeOutputFilePath = "views/" + splits[2] + "/" + splits[0] + ".template.scala"; //TODO: use Twirl library instead?
             return new File(destinationDir, relativeOutputFilePath);
         }
     }

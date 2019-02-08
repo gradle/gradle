@@ -17,6 +17,7 @@
 package org.gradle.language.twirl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.language.base.LanguageSourceSet;
 
 import java.util.List;
@@ -104,13 +105,15 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @since 5.3
      */
-    List<String> getConstuctorAnnotations();
+    ListProperty<String> getConstructorAnnotations();
 
     /**
-     * Sets the construtor annotations to support dependency injection
-     * @param constructorAnnotations list of annotations to include in template constructor
+     * Sets the additional imports to add to all generated Scala code.
      *
-     * @since 5.3
+     * @param constructorAnnotations additional imports
+     *
+     * @since 4.2
      */
     void setConstructorAnnotations(List<String> constructorAnnotations);
+
 }

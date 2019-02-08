@@ -16,8 +16,6 @@
 
 package org.gradle.play.internal.twirl;
 
-import com.google.common.collect.Lists;
-
 import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlTemplateFormat;
 import org.gradle.scala.internal.reflect.ScalaCodecMapper;
@@ -71,11 +69,6 @@ class TwirlCompilerAdapterV13X extends TwirlCompilerAdapterV10X {
             cl.loadClass(ScalaCodecMapper.getClassName()),
             boolean.class
         );
-    }
-
-    @Override
-    public Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultPlayImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        return  createCompileParameters(cl, file, sourceDirectory, destinationDirectory, defaultPlayImports, templateFormat, additionalImports, Lists.<String>newArrayList());
     }
 
     @Override

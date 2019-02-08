@@ -31,8 +31,6 @@ public abstract class VersionedTwirlCompilerAdapter implements Serializable {
 
     public abstract ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException;
 
-    public abstract Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
-
     public abstract Object[] createCompileParameters(ClassLoader cl, File file, File sourceDirectory, File destinationDirectory, TwirlImports defaultImports, TwirlTemplateFormat templateFormat, List<String> additionalImports, List<String> constructorAnnotations) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException;
 
     public abstract Iterable<String> getClassLoaderPackages();
