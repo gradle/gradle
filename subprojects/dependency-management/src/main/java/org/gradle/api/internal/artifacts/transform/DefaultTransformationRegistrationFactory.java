@@ -84,7 +84,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, instantiatorFactory, from, classLoaderHierarchyHasher, isolatableFactory);
-
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 

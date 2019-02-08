@@ -42,7 +42,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
         super(implementationClass, fromAttributes);
         this.instantiator = instantiatorFactory.inject();
-        this.isolatableParameters = isolateParameters(parameters, implementationClass, isolatableFactory);
+        this.isolatableParameters = isolatableFactory.isolate(parameters);
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
 

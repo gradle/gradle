@@ -36,8 +36,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
@@ -64,8 +66,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateAttributes(registration);
 
         Object[] parameters = registration.getTransformParameters();
-        ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
-        transforms.add(finalizedRegistration);
+        try {
+            ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
+            transforms.add(finalizedRegistration);
+        } catch (Exception e) {
+            throw new VariantTransformConfigurationException(String.format("Cannot register artifact transform %s with parameters %s", ModelType.of(registration.actionType).getDisplayName(), Arrays.toString(parameters)), e);
+        }
     }
 
     @Override
@@ -89,9 +95,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private <T> void register(RecordingRegistration registration, Class<? extends ArtifactTransformAction> actionType, @Nullable T parameterObject) {
         validateActionType(actionType);
         validateAttributes(registration);
-
-        ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
-        transforms.add(finalizedRegistration);
+        try {
+            ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+            transforms.add(finalizedRegistration);
+        } catch (Exception e) {
+            throw new VariantTransformConfigurationException(String.format("Cannot register artifact transform %s with parameters %s", ModelType.of(actionType).getDisplayName(), parameterObject), e);
+        }
     }
 
     private <T> void validateActionType(@Nullable Class<T> actionType) {

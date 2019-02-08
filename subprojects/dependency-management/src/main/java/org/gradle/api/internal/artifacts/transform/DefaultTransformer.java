@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -141,12 +142,16 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
             if (isolatable != null) {
                 return;
             }
-            isolatable = doIsolateParameters();
+            try {
+                isolatable = doIsolateParameters();
+            } catch (Exception e) {
+                throw new VariantTransformConfigurationException(String.format("Cannot isolate parameters %s of artifact transform %s", parameterObject,  ModelType.of(getImplementationClass()).getDisplayName()), e);
+            }
         });
     }
 
     protected IsolatableParameters doIsolateParameters() {
-        Isolatable<Object> isolatableParameterObject = isolateParameters(parameterObject, getImplementationClass(), isolatableFactory);
+        Isolatable<Object> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(getImplementationClass(), hasher, classLoaderHierarchyHasher);

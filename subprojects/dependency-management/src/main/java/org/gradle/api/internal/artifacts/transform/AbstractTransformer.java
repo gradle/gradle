@@ -18,17 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.model.internal.type.ModelType;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 
 public abstract class AbstractTransformer<T> implements Transformer {
     private final Class<? extends T> implementationClass;
@@ -78,22 +72,5 @@ public abstract class AbstractTransformer<T> implements Transformer {
     protected static void appendActionImplementation(Class<?> implementation, Hasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         hasher.putString(implementation.getName());
         hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
-    }
-
-    protected static <T> Isolatable<T> isolateParameters(@Nullable T parameters, Class<?> implementationClass, IsolatableFactory isolatableFactory) {
-        try {
-            return isolatableFactory.isolate(parameters);
-        } catch (Exception e) {
-            throw new VariantTransformConfigurationException(String.format("Could not snapshot parameters values for transform %s: %s", ModelType.of(implementationClass).getDisplayName(), formatParameters(parameters)), e);
-        }
-    }
-
-    @Nullable
-    private static Object formatParameters(@Nullable Object parameters) {
-        if (parameters instanceof Object[]) {
-            return Arrays.toString((Object[]) parameters);
-        } else {
-            return parameters;
-        }
     }
 }
