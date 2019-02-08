@@ -27,24 +27,27 @@ dependencies {
     runtime("org.jetbrains.intellij.deps:trove4j:1.0.20181211")
 }
 
-val kotlinCompilerEmbeddableConfiguration = configurations.detachedConfiguration(
-    project.dependencies.project(":distributionsDependencies"),
-    project.dependencies.create(futureKotlin("compiler-embeddable"))
-)
+val kotlinCompilerEmbeddable by configurations.creating
+
+dependencies {
+    kotlinCompilerEmbeddable(project(":distributionsDependencies"))
+    kotlinCompilerEmbeddable(futureKotlin("compiler-embeddable"))
+}
 
 tasks {
 
     val checkKotlinCompilerEmbeddableDependencies by registering(CheckKotlinCompilerEmbeddableDependencies::class) {
         current.from(configurations.runtimeClasspath)
-        expected.from(kotlinCompilerEmbeddableConfiguration)
+        expected.from(kotlinCompilerEmbeddable)
     }
 
     val patchKotlinCompilerEmbeddable by registering(PatchKotlinCompilerEmbeddable::class) {
+        dependsOn(checkKotlinCompilerEmbeddableDependencies)
         excludes.set(listOf(
             "META-INF/services/javax.annotation.processing.Processor",
             "META-INF/native/**/*jansi.*"
         ))
-        originalFiles.from(kotlinCompilerEmbeddableConfiguration)
+        originalFiles.from(kotlinCompilerEmbeddable)
         dependencies.from(configurations.detachedConfiguration(
             project.dependencies.project(":distributionsDependencies"),
             project.dependencies.create(library("jansi"))
@@ -59,19 +62,19 @@ tasks {
     }
 
     jar {
-        dependsOn(patchKotlinCompilerEmbeddable, checkKotlinCompilerEmbeddableDependencies)
+        dependsOn(patchKotlinCompilerEmbeddable)
         actions.clear()
     }
 
-    val classesDir = layout.buildDirectory.dir("kotlin-compiler-embeddable-classes")
+    val classesDir = layout.buildDirectory.dir("classes/patched")
 
-    val unpackPatched by registering(Sync::class) {
+    val unpackPatchedKotlinCompilerEmbeddable by registering(Sync::class) {
         dependsOn(patchKotlinCompilerEmbeddable)
         from(zipTree(patchKotlinCompilerEmbeddable.get().outputFile))
         into(classesDir)
     }
 
     sourceSets.main {
-        output.dir(files(classesDir).builtBy(unpackPatched))
+        output.dir(files(classesDir).builtBy(unpackPatchedKotlinCompilerEmbeddable))
     }
 }
