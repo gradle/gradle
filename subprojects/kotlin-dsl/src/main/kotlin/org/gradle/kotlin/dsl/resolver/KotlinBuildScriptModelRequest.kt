@@ -46,14 +46,19 @@ sealed class GradleInstallation {
 
 @VisibleForTesting
 data class KotlinBuildScriptModelRequest(
-    val projectDir: java.io.File,
-    val scriptFile: java.io.File? = null,
+    val projectDir: File,
+    val scriptFile: File? = null,
     val gradleInstallation: GradleInstallation = GradleInstallation.Wrapper,
-    val gradleUserHome: java.io.File? = null,
-    val javaHome: java.io.File? = null,
+    val gradleUserHome: File? = null,
+    val javaHome: File? = null,
     val options: List<String> = emptyList(),
-    val jvmOptions: List<String> = emptyList()
+    val jvmOptions: List<String> = emptyList(),
+    val correlationId: String = newCorrelationId()
 )
+
+
+internal
+fun newCorrelationId() = System.nanoTime().toString()
 
 
 internal
@@ -119,9 +124,15 @@ fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
     model(KotlinBuildScriptModel::class.java).apply {
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
+
+        val arguments = request.options.toMutableList()
+        arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"
+
         request.scriptFile?.let {
-            withArguments(request.options + "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}")
-        } ?: withArguments(request.options)
+            arguments += "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}"
+        }
+
+        withArguments(arguments)
     }
 
 
@@ -131,6 +142,9 @@ val modelSpecificJvmOptions =
 
 
 const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
+
+
+const val kotlinBuildScriptModelCorrelationId = "org.gradle.kotlin.dsl.provider.cid"
 
 
 private

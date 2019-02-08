@@ -107,21 +107,23 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         previousDependencies: KotlinScriptExternalDependencies?
     ) = future {
 
+        val cid = newCorrelationId()
         try {
-            logger.log(ResolutionRequest(script.file, environment, previousDependencies))
+            log(ResolutionRequest(cid, script.file, environment, previousDependencies))
             assembleDependenciesFrom(
+                cid,
                 script.file,
                 environment!!,
                 report,
                 previousDependencies
             )
         } catch (e: BuildException) {
-            logger.log(ResolutionFailure(script.file, e))
+            log(ResolutionFailure(cid, script.file, e))
             if (previousDependencies == null) report.fatal(EditorMessages.buildConfigurationFailed)
             else report.warning(EditorMessages.buildConfigurationFailedUsingPrevious)
             previousDependencies
         } catch (e: Exception) {
-            logger.log(ResolutionFailure(script.file, e))
+            log(ResolutionFailure(cid, script.file, e))
             if (previousDependencies == null) report.fatal(EditorMessages.failure)
             else report.error(EditorMessages.failureUsingPrevious)
             previousDependencies
@@ -130,21 +132,22 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
 
     private
     suspend fun assembleDependenciesFrom(
+        cid: String,
         scriptFile: File?,
         environment: Environment,
         report: Report,
         previousDependencies: KotlinScriptExternalDependencies?
     ): KotlinScriptExternalDependencies? {
 
-        val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment)
-        logger.log(SubmittedModelRequest(scriptFile, scriptModelRequest))
+        val scriptModelRequest = scriptModelRequestFrom(scriptFile, environment, cid)
+        log(SubmittedModelRequest(cid, scriptFile, scriptModelRequest))
 
         val response = DefaultKotlinBuildScriptModelRepository.scriptModelFor(scriptModelRequest)
         if (response == null) {
-            logger.log(RequestCancelled(scriptFile, scriptModelRequest))
+            log(RequestCancelled(cid, scriptFile, scriptModelRequest))
             return null
         }
-        logger.log(ReceivedModelResponse(scriptFile, response))
+        log(ReceivedModelResponse(cid, scriptFile, response))
 
         response.editorReports.forEach { editorReport ->
             report.editorReport(editorReport)
@@ -153,21 +156,28 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         return when {
             response.exceptions.isEmpty() ->
                 dependenciesFrom(response).also {
-                    logger.log(ResolvedDependencies(scriptFile, it))
+                    log(ResolvedDependencies(cid, scriptFile, it))
                 }
             previousDependencies != null && previousDependencies.classpath.count() > response.classPath.size ->
                 previousDependencies.also {
-                    logger.log(ResolvedToPreviousWithErrors(scriptFile, previousDependencies, response.exceptions))
+                    log(ResolvedToPreviousWithErrors(cid, scriptFile, previousDependencies, response.exceptions))
                 }
             else ->
                 dependenciesFrom(response).also {
-                    logger.log(ResolvedDependenciesWithErrors(scriptFile, it, response.exceptions))
+                    log(ResolvedDependenciesWithErrors(cid, scriptFile, it, response.exceptions))
                 }
         }
     }
 
     private
-    fun scriptModelRequestFrom(scriptFile: File?, environment: Environment): KotlinBuildScriptModelRequest {
+    fun log(event: ResolverEvent) = logger.log(event)
+
+    private
+    fun scriptModelRequestFrom(
+        scriptFile: File?,
+        environment: Environment,
+        correlationId: String
+    ): KotlinBuildScriptModelRequest {
 
         @Suppress("unchecked_cast")
         fun stringList(key: String) =
@@ -184,7 +194,8 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             gradleUserHome = path("gradleUserHome"),
             javaHome = path("gradleJavaHome"),
             options = stringList("gradleOptions"),
-            jvmOptions = stringList("gradleJvmOptions")
+            jvmOptions = stringList("gradleJvmOptions"),
+            correlationId = correlationId
         )
     }
 

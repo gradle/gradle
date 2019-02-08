@@ -31,6 +31,7 @@ sealed class ResolverEvent
 
 @VisibleForTesting
 data class ResolutionRequest internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val environment: Map<String, Any?>?,
     val previousDependencies: KotlinScriptExternalDependencies?
@@ -39,6 +40,7 @@ data class ResolutionRequest internal constructor(
 
 @VisibleForTesting
 data class ResolutionFailure internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val failure: Exception
 ) : ResolverEvent()
@@ -46,6 +48,7 @@ data class ResolutionFailure internal constructor(
 
 @VisibleForTesting
 data class SubmittedModelRequest internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val request: KotlinBuildScriptModelRequest
 ) : ResolverEvent()
@@ -53,6 +56,7 @@ data class SubmittedModelRequest internal constructor(
 
 internal
 data class RequestCancelled(
+    val correlationId: String,
     val scriptFile: File?,
     val request: KotlinBuildScriptModelRequest
 ) : ResolverEvent()
@@ -60,6 +64,7 @@ data class RequestCancelled(
 
 @VisibleForTesting
 data class ReceivedModelResponse internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val response: KotlinBuildScriptModel
 ) : ResolverEvent()
@@ -67,6 +72,7 @@ data class ReceivedModelResponse internal constructor(
 
 @VisibleForTesting
 data class ResolvedDependencies internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies
 ) : ResolverEvent()
@@ -74,6 +80,7 @@ data class ResolvedDependencies internal constructor(
 
 @VisibleForTesting
 data class ResolvedDependenciesWithErrors internal constructor(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
     val exceptions: List<String>
@@ -82,6 +89,7 @@ data class ResolvedDependenciesWithErrors internal constructor(
 
 internal
 data class ResolvedToPreviousWithErrors(
+    val correlationId: String,
     val scriptFile: File?,
     val dependencies: KotlinScriptExternalDependencies,
     val exceptions: List<String>
