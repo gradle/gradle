@@ -125,8 +125,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        // TODO wolfs: We should report the user declared type
-        failure.assertHasDescription('Some problems were found with the configuration of MakeGreen$Inject.')
+        failure.assertHasDescription('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
         failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with an output annotation.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")

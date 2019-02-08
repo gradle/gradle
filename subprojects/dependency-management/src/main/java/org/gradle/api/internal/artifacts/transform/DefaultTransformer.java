@@ -46,6 +46,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
@@ -182,7 +183,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
                     throw new InvalidUserDataException(String.format(
                         "Error while evaluating property '%s' of %s",
                         propertyName,
-                        ModelType.of(parameterObject.getClass()).getDisplayName()
+                        getParameterObjectDisplayName(parameterObject)
                     ), e);
                 }
             }
@@ -200,7 +201,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(parameterObject.getClass()).getDisplayName()),
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
                 validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList())
             );
         }
@@ -209,6 +210,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
             hasher.putString(entry.getKey());
             entry.getValue().appendToHasher(hasher);
         }
+    }
+
+    private static String getParameterObjectDisplayName(Object parameterObject) {
+        Class<?> parameterClass = parameterObject instanceof Managed ? ((Managed) parameterObject).publicType() : parameterObject.getClass();
+        return ModelType.of(parameterClass).getDisplayName();
     }
 
     private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
