@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.concurrent
 
+import org.awaitility.Duration.ONE_SECOND
+import org.awaitility.kotlin.atMost
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilNotNull
+
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -66,7 +71,7 @@ class DefaultAsyncIOScopeFactoryTest {
             failureLatch.await()
 
             assertThat(
-                runCatching { scope.io { } }.exceptionOrNull(),
+                await atMost ONE_SECOND untilNotNull { runCatching { scope.io { } }.exceptionOrNull() },
                 sameInstance<Throwable>(expectedFailure)
             )
         }
@@ -108,10 +113,7 @@ class DefaultAsyncIOScopeFactoryTest {
         }
 
         fun await() {
-            // There's small chance this thread can be awakened before
-            // the exception in the IO thread is caught, so let's sleep a little
             latch.await(1, TimeUnit.SECONDS)
-            Thread.sleep(1)
         }
     }
 

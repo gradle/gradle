@@ -59,6 +59,7 @@ dependencies {
 
     testImplementation("com.tngtech.archunit:archunit:0.8.3")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
+    testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 
