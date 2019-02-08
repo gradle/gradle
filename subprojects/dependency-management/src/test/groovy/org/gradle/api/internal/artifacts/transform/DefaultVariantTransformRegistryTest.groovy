@@ -59,7 +59,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def domainObjectContextProjectStateHandler = Mock(DomainObjectContextProjectStateHandler)
+    def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
     def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, domainObjectContextProjectStateHandler)
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory)
 

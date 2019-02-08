@@ -46,7 +46,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final TransformerInvoker transformerInvoker;
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker propertyWalker;
-    private final DomainObjectContextProjectStateHandler domainObjectContextProjectStateHandler;
+    private final DomainObjectProjectStateHandler domainObjectProjectStateHandler;
 
     public DefaultTransformationRegistrationFactory(
         IsolatableFactory isolatableFactory,
@@ -54,7 +54,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         InstantiatorFactory instantiatorFactory,
         TransformerInvoker transformerInvoker,
         ValueSnapshotter valueSnapshotter,
-        InspectionSchemeFactory inspectionSchemeFactory, DomainObjectContextProjectStateHandler domainObjectContextProjectStateHandler
+        InspectionSchemeFactory inspectionSchemeFactory, DomainObjectProjectStateHandler domainObjectProjectStateHandler
     ) {
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -62,7 +62,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.transformerInvoker = transformerInvoker;
         this.valueSnapshotter = valueSnapshotter;
         this.propertyWalker = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, Classpath.class, CompileClasspath.class, Nested.class)).getPropertyWalker();
-        this.domainObjectContextProjectStateHandler = domainObjectContextProjectStateHandler;
+        this.domainObjectProjectStateHandler = domainObjectProjectStateHandler;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             isolatableFactory,
             valueSnapshotter,
             propertyWalker,
-            domainObjectContextProjectStateHandler);
+            domainObjectProjectStateHandler);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }

@@ -77,13 +77,13 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     private final PropertyWalker propertyWalker;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
-    private final DomainObjectContextProjectStateHandler projectStateHandler;
+    private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, DomainObjectContextProjectStateHandler projectStateHandler) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, DomainObjectProjectStateHandler projectStateHandler) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;

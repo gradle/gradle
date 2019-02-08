@@ -75,7 +75,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.DomainObjectContextProjectStateHandler;
+import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
@@ -149,7 +149,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
-    private final DomainObjectContextProjectStateHandler projectStateHandler;
+    private final DomainObjectProjectStateHandler projectStateHandler;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private DefaultDependencySet allDependencies;
@@ -237,7 +237,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 DocumentationRegistry documentationRegistry,
                                 CollectionCallbackActionDecorator callbackDecorator,
                                 UserCodeApplicationContext userCodeApplicationContext,
-                                DomainObjectContextProjectStateHandler domainObjectContextProjectStateHandler
+                                DomainObjectProjectStateHandler domainObjectProjectStateHandler
     ) {
         this.callbackActionDecorator = callbackDecorator;
         this.userCodeApplicationContext = userCodeApplicationContext;
@@ -261,7 +261,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
         this.documentationRegistry = documentationRegistry;
-        this.resolutionLock = domainObjectContextProjectStateHandler.newExclusiveOperationLock();
+        this.resolutionLock = domainObjectProjectStateHandler.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -281,7 +281,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, callbackDecorator);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
-        this.projectStateHandler = domainObjectContextProjectStateHandler;
+        this.projectStateHandler = domainObjectProjectStateHandler;
         path = domainObjectContext.projectPath(name);
     }
 

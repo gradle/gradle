@@ -73,7 +73,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransforms;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
-import org.gradle.api.internal.artifacts.transform.DomainObjectContextProjectStateHandler;
+import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
@@ -280,7 +280,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder, InspectionSchemeFactory inspectionSchemeFactory) {
-            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, new DomainObjectContextProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder));
+            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder));
         }
 
         VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory) {

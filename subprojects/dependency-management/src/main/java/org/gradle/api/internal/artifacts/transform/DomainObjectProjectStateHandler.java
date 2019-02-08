@@ -24,13 +24,13 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 
 import javax.annotation.Nullable;
 
-public class DomainObjectContextProjectStateHandler {
+public class DomainObjectProjectStateHandler {
 
     private final ProjectStateRegistry projectStateRegistry;
     private final DomainObjectContext domainObjectContext;
     private final ProjectFinder projectFinder;
 
-    public DomainObjectContextProjectStateHandler(ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder) {
+    public DomainObjectProjectStateHandler(ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder) {
         this.projectStateRegistry = projectStateRegistry;
         this.domainObjectContext = domainObjectContext;
         this.projectFinder = projectFinder;
