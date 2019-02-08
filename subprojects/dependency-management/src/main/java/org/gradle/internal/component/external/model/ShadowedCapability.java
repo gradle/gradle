@@ -24,5 +24,6 @@ package org.gradle.internal.component.external.model;
  * this case, we use the "shadowed" capability to check.
  */
 public interface ShadowedCapability extends CapabilityInternal {
+    String getAppendix();
     CapabilityInternal getShadowedCapability();
 }
