@@ -93,14 +93,26 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     @Override
     public void create() {
-        setupConfigurations(isMainSourceSet(sourceSet));
+        setupConfigurations(sourceSet);
     }
 
-    private void setupConfigurations(boolean isMainSourceSet) {
-        String apiConfigurationName = name + "Api";
-        String implConfigurationName = name + "Implementation";
-        String apiElementsConfigurationName = apiConfigurationName + "Elements";
-        String runtimeElementsConfigurationName = name + "RuntimeElements";
+    private void setupConfigurations(SourceSet sourceSet) {
+        String apiConfigurationName;
+        String implConfigurationName;
+        String apiElementsConfigurationName;
+        String runtimeElementsConfigurationName;
+        boolean mainSourceSet = isMainSourceSet(sourceSet);
+        if (mainSourceSet) {
+            apiConfigurationName = name + "Api";
+            implConfigurationName = name + "Implementation";
+            apiElementsConfigurationName = apiConfigurationName + "Elements";
+            runtimeElementsConfigurationName = name + "RuntimeElements";
+        } else {
+            apiConfigurationName = sourceSet.getApiConfigurationName();
+            implConfigurationName = sourceSet.getImplementationConfigurationName();
+            apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
+            runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
+        }
         final Configuration api = bucket("API", apiConfigurationName);
         Configuration impl = bucket("Implementation", implConfigurationName);
         impl.extendsFrom(api);
@@ -119,7 +131,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         Provider<JavaCompile> javaCompile = tasks.named(javaCompileTaskName, JavaCompile.class);
         registerClassesDirVariant(javaCompile, objectFactory, apiElements);
 
-        if (isMainSourceSet) {
+        if (mainSourceSet) {
             // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
             configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
             configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
@@ -143,7 +155,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             tasks.register(jarTaskName, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
-                    jar.setDescription("Assembles a jar archive containing the classes of the '" + name +"' feature.");
+                    jar.setDescription("Assembles a jar archive containing the classes of the '" + name + "' feature.");
                     jar.setGroup(BasePlugin.BUILD_GROUP);
                     jar.from(sourceSet.getOutput());
                     jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
