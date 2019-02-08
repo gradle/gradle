@@ -22,6 +22,7 @@ import org.gradle.api.Transformer
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -437,8 +438,8 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         immutableAttributesFactory.mutable()
     }
 
-    private VariantTransformRegistry.Registration registration(AttributeContainer from, AttributeContainer to, Transformer<List<File>, File> transformer) {
-        def reg = Stub(VariantTransformRegistry.Registration)
+    private ArtifactTransformRegistration registration(AttributeContainer from, AttributeContainer to, Transformer<List<File>, File> transformer) {
+        def reg = Stub(ArtifactTransformRegistration)
         reg.from >> from
         reg.to >> to
         reg.transformationStep >> Stub(TransformationStep) {

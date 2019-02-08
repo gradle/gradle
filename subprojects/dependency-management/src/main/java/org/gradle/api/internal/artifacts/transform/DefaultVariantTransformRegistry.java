@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -41,7 +42,7 @@ import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private static final Object[] NO_PARAMETERS = new Object[0];
-    private final List<Registration> transforms = Lists.newArrayList();
+    private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
@@ -63,7 +64,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateAttributes(registration);
 
         Object[] parameters = registration.getTransformParameters();
-        Registration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
+        ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
         transforms.add(finalizedRegistration);
     }
 
@@ -89,7 +90,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         validateActionType(actionType);
         validateAttributes(registration);
 
-        Registration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+        ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
         transforms.add(finalizedRegistration);
     }
 
@@ -111,7 +112,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    public Iterable<Registration> getTransforms() {
+    public Iterable<ArtifactTransformRegistration> getTransforms() {
         return transforms;
     }
 

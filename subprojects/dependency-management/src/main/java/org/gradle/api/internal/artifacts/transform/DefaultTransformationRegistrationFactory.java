@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
-import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -64,7 +64,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     @Override
-    public VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject) {
+    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject) {
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
@@ -76,11 +76,11 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             propertyWalker,
             domainObjectContextProjectStateHandler);
 
-        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
     @Override
-    public VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
+    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
@@ -94,7 +94,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         paramsSnapshot.appendToHasher(hasher);
         Transformer transformer = new LegacyTransformer(implementation, params, instantiatorFactory, from, classLoaderHierarchyHasher, isolatableFactory);
 
-        return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
 
     private static void appendActionImplementation(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, Hasher hasher, Class<?> implementation) {
@@ -103,13 +103,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
 
-    private static class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
+    private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
 
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
         private final TransformationStep transformationStep;
 
-        public DefaultTransformationRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
+        public DefaultArtifactTransformRegistration(ImmutableAttributes from, ImmutableAttributes to, TransformationStep transformationStep) {
             this.from = from;
             this.to = to;
             this.transformationStep = transformationStep;
