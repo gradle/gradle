@@ -47,6 +47,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeConsumed = true
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(DependencyPacking.PACKING, project.objects.named(DependencyPacking, DependencyPacking.EXTERNAL))
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -78,11 +79,11 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api-jars']
+                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }
@@ -100,6 +101,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeConsumed = true
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(DependencyPacking.PACKING, project.objects.named(DependencyPacking, DependencyPacking.EXTERNAL))
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')
@@ -124,7 +126,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }
