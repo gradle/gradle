@@ -26,6 +26,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.DependencyPacking;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
 
@@ -34,9 +35,9 @@ import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<Usage> matchingStrategy = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
-        matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
-        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
+        AttributeMatchingStrategy<Usage> usageSchema = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
+        usageSchema.getCompatibilityRules().add(UsageCompatibilityRules.class);
+        usageSchema.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
             @Override
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
@@ -48,9 +49,10 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
+        AttributeMatchingStrategy<DependencyPacking> packingSchema = attributesSchema.attribute(DependencyPacking.PACKING);
+        packingSchema.getCompatibilityRules().add(PackingCompatibilityRules.class);
+        packingSchema.getDisambiguationRules().add(PackingDisambiguationRules.class);
     }
-
-
 
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
@@ -195,6 +197,76 @@ public abstract class JavaEcosystemSupport {
             if (consumerValue.equals(Usage.JAVA_RUNTIME_JARS) && producerValue.equals(Usage.JAVA_RUNTIME)) {
                 // Can use the Java runtime if present, but prefer Java runtime jar
                 details.compatible();
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class PackingCompatibilityRules implements AttributeCompatibilityRule<DependencyPacking>, ReusableAction {
+        private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
+                // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
+                DependencyPacking.FATJAR,
+                DependencyPacking.SHADOWED
+        );
+
+        @Override
+        public void execute(CompatibilityCheckDetails<DependencyPacking> details) {
+            DependencyPacking consumerValue = details.getConsumerValue();
+            DependencyPacking producerValue = details.getProducerValue();
+            if (consumerValue == null) {
+                // consumer didn't express any preference, everything fits
+                details.compatible();
+                return;
+            }
+            String consumerValueName = consumerValue.getName();
+            String producerValueName = producerValue.getName();
+            if (DependencyPacking.EXTERNAL.equals(consumerValueName)) {
+                if (COMPATIBLE_WITH_EXTERNAL.contains(producerValueName)) {
+                    details.compatible();
+                }
+            } else if (DependencyPacking.FATJAR.equals(consumerValueName)) {
+                // asking for a fat jar. If everything available is a shadow jar, that's fine
+                if (DependencyPacking.SHADOWED.equals(producerValueName)) {
+                    details.compatible();
+                }
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class PackingDisambiguationRules implements AttributeDisambiguationRule<DependencyPacking>, ReusableAction {
+
+        @Override
+        public void execute(MultipleCandidatesDetails<DependencyPacking> details) {
+            DependencyPacking consumerValue = details.getConsumerValue();
+            Set<DependencyPacking> candidateValues = details.getCandidateValues();
+            if (candidateValues.contains(consumerValue)) {
+                details.closestMatch(consumerValue);
+                return;
+            }
+            if (consumerValue == null) {
+                DependencyPacking fatJar = null;
+                for (DependencyPacking candidateValue : candidateValues) {
+                    if (DependencyPacking.EXTERNAL.equals(candidateValue.getName())) {
+                        details.closestMatch(candidateValue);
+                        return;
+                    } else if (DependencyPacking.FATJAR.equals(candidateValue.getName())) {
+                        fatJar = candidateValue;
+                    }
+                }
+                if (fatJar != null) {
+                    details.closestMatch(fatJar);
+                }
+            } else {
+                String consumerValueName = consumerValue.getName();
+                if (DependencyPacking.EXTERNAL.equals(consumerValueName)) {
+                    for (DependencyPacking candidateValue : candidateValues) {
+                        if (DependencyPacking.FATJAR.equals(candidateValue.getName())) {
+                            details.closestMatch(candidateValue);
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
