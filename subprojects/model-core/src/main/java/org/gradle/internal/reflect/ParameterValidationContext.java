@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,19 @@
 package org.gradle.internal.reflect;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 
-public interface PropertyMetadata {
-    String getPropertyName();
+public interface ParameterValidationContext {
+    ParameterValidationContext NOOP = new ParameterValidationContext() {
+        @Override
+        public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
+        }
 
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+        @Override
+        public void recordValidationMessage(String message) {
+        }
+    };
 
-    @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+    void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message);
 
-    Class<? extends Annotation> getPropertyType();
-
-    Class<?> getDeclaredType();
-
-    Method getGetterMethod();
+    void recordValidationMessage(String message);
 }

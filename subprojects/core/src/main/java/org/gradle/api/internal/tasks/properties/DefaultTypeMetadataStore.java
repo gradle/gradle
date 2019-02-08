@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -44,10 +45,14 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Pair;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyExtractor;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.ValidationProblem;
 import org.gradle.internal.scripts.ScriptOrigin;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -134,16 +139,26 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
-        return new DefaultTypeMetadata(propertyExtractor.extractPropertyMetadata(type), annotationHandlers);
+        Pair<ImmutableSet<PropertyMetadata>, ImmutableList<ValidationProblem>> properties = propertyExtractor.extractPropertyMetadata(type);
+        return new DefaultTypeMetadata(properties.left, properties.right, annotationHandlers);
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
+        private final ImmutableList<ValidationProblem> validationProblems;
         private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
 
-        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
+        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableList<ValidationProblem> validationProblems, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
             this.propertiesMetadata = propertiesMetadata;
+            this.validationProblems = validationProblems;
             this.annotationHandlers = annotationHandlers;
+        }
+
+        @Override
+        public void collectValidationFailures(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+            for (ValidationProblem problem : validationProblems) {
+                problem.collect(ownerPropertyPath, validationContext);
+            }
         }
 
         @Override
@@ -153,12 +168,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public boolean hasAnnotatedProperties() {
-            for (PropertyMetadata metadata : propertiesMetadata) {
-                if (metadata.getPropertyType() != null) {
-                    return true;
-                }
-            }
-            return false;
+            return !propertiesMetadata.isEmpty();
         }
 
         @Override

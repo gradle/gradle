@@ -103,8 +103,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
         propertyMetadata.propertyType == SearchPath
-        propertyMetadata.validationMessages.empty
         typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
+        collectProblems(typeMetadata).empty
     }
 
     @Unroll
@@ -121,14 +121,17 @@ class DefaultTypeMetadataStoreTest extends Specification {
             }
         """
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask)
+        def parentProperty = parentMetadata.propertiesMetadata.first()
+
+        def childMetadata = metadataStore.getTypeMetadata(childTask)
+        def childProperty = childMetadata.propertiesMetadata.first()
 
         expect:
-        isOfType(parentMetadata, parentAnnotation)
-        isOfType(childMetadata, childAnnotation)
-        parentMetadata.validationMessages.empty
-        childMetadata.validationMessages.empty
+        isOfType(parentProperty, parentAnnotation)
+        isOfType(childProperty, childAnnotation)
+        collectProblems(parentMetadata).empty
+        collectProblems(childMetadata).empty
 
         where:
         [parentAnnotation, childAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, PROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -148,14 +151,17 @@ class DefaultTypeMetadataStoreTest extends Specification {
             }
         """
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask)
+        def parentProperty = parentMetadata.propertiesMetadata.first()
+
+        def childMetadata = metadataStore.getTypeMetadata(childTask)
+        def childProperty = childMetadata.propertiesMetadata.first()
 
         expect:
-        isOfType(parentMetadata, processedAnnotation)
-        isIgnored(childMetadata)
-        parentMetadata.validationMessages.empty
-        childMetadata.validationMessages.empty
+        isOfType(parentProperty, processedAnnotation)
+        isIgnored(childProperty)
+        collectProblems(parentMetadata).empty
+        collectProblems(childMetadata).empty
 
         where:
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -175,14 +181,17 @@ class DefaultTypeMetadataStoreTest extends Specification {
             }
         """
 
-        def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
-        def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
+        def parentMetadata = metadataStore.getTypeMetadata(parentTask)
+        def parentProperty = parentMetadata.propertiesMetadata.first()
+
+        def childMetadata = metadataStore.getTypeMetadata(childTask)
+        def childProperty = childMetadata.propertiesMetadata.first()
 
         expect:
-        isIgnored(parentMetadata)
-        isOfType(childMetadata, processedAnnotation)
-        parentMetadata.validationMessages.empty
-        childMetadata.validationMessages.empty
+        isIgnored(parentProperty)
+        isOfType(childProperty, processedAnnotation)
+        collectProblems(parentMetadata).empty
+        collectProblems(childMetadata).empty
 
         where:
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
@@ -200,12 +209,13 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
+        def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)
 
         then:
-        typeMetadata*.propertyName as List == ["inputFiles1", "inputFiles2"]
-        typeMetadata*.propertyType as List == [Classpath, Classpath]
-        typeMetadata*.validationMessages.flatten().empty
+        def properties = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+        properties*.propertyName as List == ["inputFiles1", "inputFiles2"]
+        properties*.propertyType as List == [Classpath, Classpath]
+        collectProblems(typeMetadata).empty
     }
 
     @Unroll
@@ -249,12 +259,16 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @Input String ignore2
     }
 
-    def "can get properties that are not annotated"() {
+    def "ignores properties that are not annotated"() {
         when:
-        def properties = metadataStore.getTypeMetadata(Unannotated).propertiesMetadata
+        def metadata = metadataStore.getTypeMetadata(Unannotated)
 
         then:
-        properties.propertyName == ["bad1", "bad2", "ignore1", "ignore2"]
+        metadata.propertiesMetadata.propertyName == ["ignore1", "ignore2"]
+        collectProblems(metadata) == [
+            "Property 'bad1' is not annotated with an input or output annotation.",
+            "Property 'bad2' is not annotated with an input or output annotation."
+        ]
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
@@ -277,13 +291,19 @@ class DefaultTypeMetadataStoreTest extends Specification {
         }
     }
 
+    private static List<String> collectProblems(TypeMetadata metadata) {
+        def result = []
+        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(result))
+        return result
+    }
+
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
         metadata.propertyType == type
     }
 
     private static boolean isIgnored(PropertyMetadata propertyMetadata) {
         def propertyType = propertyMetadata.propertyType
-        propertyType == null || UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS.contains(propertyType)
+        UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS.contains(propertyType)
     }
 
     private static List<String> nonIgnoredProperties(Collection<PropertyMetadata> typeMetadata) {
