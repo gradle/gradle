@@ -29,7 +29,7 @@ import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
-import org.gradle.internal.service.scopes.ExecutionServices;
+import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
@@ -89,7 +89,7 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
-        workExecutor = new ExecutionServices().createWorkExecutor(
+        workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheController,
             buildCacheCommandFactory,
             buildInvocationScopeId,

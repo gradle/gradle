@@ -40,12 +40,18 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             return ImmutableList.of(
-                    libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
-                    libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
-                    platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false),
-                    platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false),
-                    platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true),
-                    platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true));
+                    // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
+                    // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
+                    // to use generic JAVA_API and JAVA_RUNTIME attributes, instead of more precise JAVA_API_JARS and JAVA_RUNTIME_JARS
+                    // because of the platform aspect (which aren't jars but "something"). Using JAVA_API_JARS for the library part and
+                    // JAVA_API for the platform would lead to selection of the platform when we don't want them (in other words in a single
+                    // component we cannot mix precise usages with more generic ones)
+                libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
+                libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false),
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true));
         }
         return null;
     }

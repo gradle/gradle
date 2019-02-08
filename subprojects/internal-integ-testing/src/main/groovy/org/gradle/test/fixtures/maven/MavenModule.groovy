@@ -49,6 +49,8 @@ interface MavenModule extends Module {
      */
     MavenModule withModuleMetadata()
 
+    MavenModule withGradleMetadataRedirection();
+
     MavenModule parent(String group, String artifactId, String version)
 
     MavenModule dependsOnModules(String... dependencyArtifactIds)

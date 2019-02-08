@@ -16,13 +16,22 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -51,15 +60,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         InstantiatorFactory instantiatorFactory,
         TransformerInvoker transformerInvoker,
         ValueSnapshotter valueSnapshotter,
-        PropertyWalker propertyWalker,
-        DomainObjectContextProjectStateHandler domainObjectContextProjectStateHandler
+        InspectionSchemeFactory inspectionSchemeFactory, DomainObjectContextProjectStateHandler domainObjectContextProjectStateHandler
     ) {
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.instantiatorFactory = instantiatorFactory;
         this.transformerInvoker = transformerInvoker;
         this.valueSnapshotter = valueSnapshotter;
-        this.propertyWalker = propertyWalker;
+        this.propertyWalker = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, Classpath.class, CompileClasspath.class, Nested.class)).getPropertyWalker();
         this.domainObjectContextProjectStateHandler = domainObjectContextProjectStateHandler;
     }
 

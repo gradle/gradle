@@ -210,7 +210,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     // If the Java plugin is applied, we want to express that the "compile" and "runtime" variants
                     // are mapped to some attributes, which can be used in the version mapping strategy.
                     // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
-                    generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
+                    generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_JARS)))
                                    .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
                 });
             }
@@ -285,7 +285,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             plugins.withPlugin("org.gradle.java", plugin -> {
                 SourceSet mainSourceSet = extensionContainer.getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 // setup the default configurations used when mapping to resolved versions
-                versionMappingStrategy.usage(Usage.JAVA_API, strategy -> {
+                versionMappingStrategy.usage(Usage.JAVA_API_JARS, strategy -> {
                     DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
                     mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()));
                 });

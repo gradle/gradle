@@ -446,8 +446,8 @@ project(":library") {
         when:
         run "publish"
 
-        def platformModule = mavenRepo.module("org.test", "platform", "1.0")
-        def libraryModule = mavenRepo.module("org.test", "library", "1.0")
+        def platformModule = mavenRepo.module("org.test", "platform", "1.0").removeGradleMetadataRedirection()
+        def libraryModule = mavenRepo.module("org.test", "library", "1.0").removeGradleMetadataRedirection()
 
         then:
         platformModule.parsedPom.packaging == 'pom'

@@ -72,6 +72,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -120,7 +121,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.metadataFactory = metadataFactory;
     }
 
-    protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected ParseResult<MutableIvyModuleResolveMetadata> doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
         parser.setValidate(validate);
         parser.parse();
@@ -128,7 +129,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
 
-        return parser.getMetaData();
+        return ParseResult.of(parser.getMetaData(), parser.hasGradleMetadataRedirect);
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
@@ -451,7 +452,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
     }
 
-    public static class Parser extends AbstractParser {
+    public static class Parser extends AbstractParser implements LexicalHandler {
         public enum State {
             NONE,
             INFO,
@@ -491,6 +492,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private StringBuffer buffer;
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
+        private boolean hasGradleMetadataRedirect;
         final Map<String, String> properties;
 
         public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, IvyMutableModuleMetadataFactory metadataFactory, Map<String, String> properties) {
@@ -1281,6 +1283,46 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private PatternMatcher getMatcher(String matcherName) {
             return PatternMatchers.getInstance().getMatcher(matcherName);
         }
+
+        // Handler to detect Gradle metadata redirects
+
+        @Override
+        public void startDTD(String name, String publicId, String systemId) throws SAXException {
+
+        }
+
+        @Override
+        public void endDTD() throws SAXException {
+
+        }
+
+        @Override
+        public void startEntity(String name) throws SAXException {
+
+        }
+
+        @Override
+        public void endEntity(String name) throws SAXException {
+
+        }
+
+        @Override
+        public void startCDATA() throws SAXException {
+
+        }
+
+        @Override
+        public void endCDATA() throws SAXException {
+
+        }
+
+        @Override
+        public void comment(char[] ch, int start, int length) throws SAXException {
+            String comment = new String(ch, start, length);
+            if (comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+                hasGradleMetadataRedirect = true;
+            }
+        }
     }
 
     public static class ParserHelper {
@@ -1349,6 +1391,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
                 try {
                     SAXParser parser = newSAXParser(schema, schemaStream);
+                    parser.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
                     parser.parse(xmlStream, handler);
                 } finally {
                     Thread.currentThread().setContextClassLoader(original);

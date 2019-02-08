@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
@@ -248,13 +249,15 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     ImmutableMetadataSources createMetadataSources(MavenMetadataLoader mavenMetadataLoader) {
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
+        // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
+        boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
+        DefaultGradleModuleMetadataSource gradleModuleMetadataSource = new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata);
         if (metadataSources.gradleMetadata) {
-            // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
-            boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
-            sources.add(new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata));
+            sources.add(gradleModuleMetadataSource);
         }
         if (metadataSources.mavenPom) {
-            sources.add(new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader));
+            DefaultMavenPomMetadataSource pomMetadataSource = new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader);
+            sources.add(new RedirectingGradleMetadataModuleMetadataSource(pomMetadataSource, gradleModuleMetadataSource));
         }
         if (metadataSources.artifact) {
             sources.add(new DefaultArtifactMetadataSource(metadataFactory));

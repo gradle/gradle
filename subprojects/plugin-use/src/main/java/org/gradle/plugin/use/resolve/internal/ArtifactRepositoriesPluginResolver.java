@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
@@ -58,6 +59,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public ArtifactRepositoriesPluginResolver(DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
         this.resolution = dependencyResolutionServices;
         this.versionSelectorScheme = versionSelectorScheme;
+        JavaEcosystemSupport.configureSchema(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getObjectFactory());
     }
 
     @Override

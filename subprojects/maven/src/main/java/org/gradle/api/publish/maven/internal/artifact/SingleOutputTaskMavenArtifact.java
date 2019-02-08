@@ -55,4 +55,8 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     protected TaskDependencyInternal getDefaultBuildDependencies() {
         return buildDependencies;
     }
+
+    public boolean isEnabled() {
+        return generator.getEnabled();
+    }
 }

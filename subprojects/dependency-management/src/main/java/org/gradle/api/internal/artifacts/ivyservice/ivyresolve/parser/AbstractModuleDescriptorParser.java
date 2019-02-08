@@ -30,24 +30,27 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
         this.fileResourceRepository = fileResourceRepository;
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
+    public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, File descriptorFile, boolean validate) throws MetaDataParseException {
         LocallyAvailableExternalResource resource = fileResourceRepository.resource(descriptorFile);
         return parseDescriptor(ivySettings, resource, validate);
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
+    public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, File descriptorFile) throws MetaDataParseException {
         return parseMetaData(ivySettings, descriptorFile, false);
     }
 
-    public T parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
+    public ParseResult<T> parseMetaData(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource) throws MetaDataParseException {
         return parseDescriptor(ivySettings, resource, false);
     }
 
-    protected T parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
+    protected ParseResult<T> parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         try {
-            T metadata = doParseDescriptor(ivySettings, resource, validate);
-            metadata.setContentHash(HashUtil.createHash(resource.getFile(), "MD5"));
-            return metadata;
+            ParseResult<T> parseResult = doParseDescriptor(ivySettings, resource, validate);
+            T metadata = parseResult.getResult();
+            if (metadata != null) {
+                metadata.setContentHash(HashUtil.createHash(resource.getFile(), "MD5"));
+            }
+            return parseResult;
         } catch (MetaDataParseException e) {
             throw e;
         } catch (Exception e) {
@@ -57,5 +60,5 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
 
     protected abstract String getTypeName();
 
-    protected abstract T doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
+    protected abstract ParseResult<T> doParseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws Exception;
 }

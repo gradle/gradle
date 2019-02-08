@@ -93,7 +93,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
@@ -279,8 +279,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder) {
-            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, propertyWalker, new DomainObjectContextProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder));
+        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder, InspectionSchemeFactory inspectionSchemeFactory) {
+            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, new DomainObjectContextProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder));
         }
 
         VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory) {
@@ -520,6 +520,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Override
         public ImmutableAttributesFactory getAttributesFactory() {
             return services.get(ImmutableAttributesFactory.class);
+        }
+
+        @Override
+        public AttributesSchema getAttributesSchema() {
+            return services.get(AttributesSchema.class);
+        }
+
+        @Override
+        public ObjectFactory getObjectFactory() {
+            return services.get(ObjectFactory.class);
         }
     }
 

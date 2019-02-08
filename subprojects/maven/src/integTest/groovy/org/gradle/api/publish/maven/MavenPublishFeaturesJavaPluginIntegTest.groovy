@@ -99,8 +99,10 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         """
 
         when:
-        javaLibrary = javaLibrary(mavenRepo.module(group, name, version))
+        def mod = mavenRepo.module(group, name, version)
+        javaLibrary = javaLibrary(mod)
         run "publish"
+        mod.removeGradleMetadataRedirection()
 
         then:
         javaLibrary.parsedModuleMetadata.variant("apiElements") {

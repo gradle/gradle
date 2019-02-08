@@ -92,6 +92,11 @@ public class DefaultMavenPom implements MavenPomInternal, MavenPomLicenseSpec, M
         return mavenPublication.getVersionMappingStrategy();
     }
 
+    @Override
+    public boolean writeGradleMetadataMarker() {
+        return mavenPublication.writeGradleMetadataMarker();
+    }
+
     public String getPackaging() {
         if (packaging == null) {
             return mavenPublication.determinePackagingFromArtifacts();

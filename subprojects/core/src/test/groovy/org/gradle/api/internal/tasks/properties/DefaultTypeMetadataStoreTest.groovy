@@ -41,6 +41,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.scripts.ScriptOrigin
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
@@ -60,12 +62,14 @@ class DefaultTypeMetadataStoreTest extends Specification {
     ]
 
     @Shared GroovyClassLoader groovyClassLoader
+    def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
+    def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), new TestCrossBuildInMemoryCacheFactory())
 
     def setupSpec() {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
     }
 
-    static  class TaskWithCustomAnnotation extends DefaultTask {
+    static class TaskWithCustomAnnotation extends DefaultTask {
         @SearchPath FileCollection searchPath
     }
 
@@ -117,8 +121,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
@@ -145,8 +147,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
                 @Override @$unprocessedAnnotation.name Object getValue() { null }
             }
         """
-
-        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
 
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
@@ -175,8 +175,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
             }
         """
 
-        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
         def parentMetadata = metadataStore.getTypeMetadata(parentTask).propertiesMetadata.first()
         def childMetadata = metadataStore.getTypeMetadata(childTask).propertiesMetadata.first()
 
@@ -199,7 +197,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultTypeMetadataStore([new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask).propertiesMetadata.findAll { !isIgnored(it) }
@@ -212,8 +210,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     @Unroll
     def "all properties on #workClass are ignored"() {
-        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
         when:
         def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
         then:
@@ -239,8 +235,6 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     def "can get annotated properties of simple task"() {
-        def metadataStore = new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())
-
         when:
         def typeMetadata = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
 

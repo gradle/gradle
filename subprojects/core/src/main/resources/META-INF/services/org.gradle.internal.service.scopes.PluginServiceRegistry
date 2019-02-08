@@ -1,1 +1,2 @@
 org.gradle.caching.internal.BuildCacheServices
+org.gradle.internal.service.scopes.ExecutionServices

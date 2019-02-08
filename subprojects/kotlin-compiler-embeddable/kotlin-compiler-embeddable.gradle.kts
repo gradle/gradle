@@ -74,8 +74,4 @@ tasks {
     sourceSets.main {
         output.dir(files(classesDir).builtBy(unpackPatched))
     }
-    
-    clean {
-        enabled = false
-    }
 }

@@ -26,6 +26,11 @@ public class DefaultInjectAnnotationHandler implements InjectAnnotationHandler {
     }
 
     @Override
+    public String toString() {
+        return "handler for @" + annotation.getSimpleName();
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotation() {
         return annotation;
     }

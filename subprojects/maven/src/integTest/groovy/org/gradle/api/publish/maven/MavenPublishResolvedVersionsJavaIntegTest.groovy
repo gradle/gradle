@@ -454,7 +454,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     private static String noop() { "" }
 
     private static String apiUsingUsage(String config = "fromResolutionResult()") {
-        """ usage("java-api") { $config } """
+        """ usage("java-api-jars") { $config } """
     }
 
     private static String runtimeUsingUsage(String config = "fromResolutionResult()") {

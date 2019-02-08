@@ -149,6 +149,11 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
         return description;
     }
 
+    @Override
+    public boolean writeGradleMetadataMarker() {
+        return ivyPublication.writeGradleMetadataMarker();
+    }
+
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
         T item = instantiator.newInstance(clazz, objectFactory);
         action.execute(item);

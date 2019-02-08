@@ -49,4 +49,6 @@ public interface IvyPublicationInternal extends IvyPublication, PublicationInter
     Set<IvyExcludeRule> getGlobalExcludes();
 
     IvyNormalizedPublication asNormalisedPublication();
+
+    boolean writeGradleMetadataMarker();
 }

@@ -123,6 +123,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
         then: "jar is published to defined ivy repository"
         javaLibrary.assertPublishedAsJavaModule()
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.parsedIvy.status == 'integration'
         javaLibrary.moduleDir.file('root-1.0.jar').assertIsCopyOf(file('build/libs/root-1.0.jar'))
 

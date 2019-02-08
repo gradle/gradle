@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.ivy
 
+
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.test.fixtures.file.TestFile
@@ -122,5 +123,10 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
 
     TestFile getModuleDir() {
         backingModule.moduleDir
+    }
+
+    IvyJavaModule removeGradleMetadataRedirection() {
+        backingModule.removeGradleMetadataRedirection()
+        this
     }
 }

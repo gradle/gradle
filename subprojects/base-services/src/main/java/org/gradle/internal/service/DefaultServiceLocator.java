@@ -24,7 +24,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.JarURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -36,9 +38,15 @@ import java.util.Set;
  * Uses the Jar service resource specification to locate service implementations.
  */
 public class DefaultServiceLocator implements ServiceLocator {
+    private final boolean useCaches;
     private final List<ClassLoader> classLoaders;
 
     public DefaultServiceLocator(ClassLoader... classLoaders) {
+        this(true, classLoaders);
+    }
+
+    public DefaultServiceLocator(boolean useCaches, ClassLoader... classLoaders) {
+        this.useCaches = useCaches;
         this.classLoaders = Arrays.asList(classLoaders);
     }
 
@@ -140,7 +148,11 @@ public class DefaultServiceLocator implements ServiceLocator {
     }
 
     private List<String> extractImplementationClassNames(URL resource) throws IOException {
-        InputStream inputStream = resource.openStream();
+        URLConnection urlConnection = resource.openConnection();
+        if (!useCaches && urlConnection instanceof JarURLConnection) {
+            urlConnection.setUseCaches(false);
+        }
+        InputStream inputStream = urlConnection.getInputStream();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
             List<String> implementationClassNames = new ArrayList<String>();

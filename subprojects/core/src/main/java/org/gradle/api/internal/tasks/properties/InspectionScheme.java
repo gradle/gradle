@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.project.taskfactory;
-
-import org.gradle.api.internal.tasks.properties.PropertyValidationAccess;
+package org.gradle.api.internal.tasks.properties;
 
 /**
- * Left for backwards compatibility in Gradle build.
+ * A scheme, or strategy, for inspecting object graphs.
  *
- * @deprecated Use {@link PropertyValidationAccess} instead.
+ * <p>Instances are created using a {@link InspectionSchemeFactory}.</p>
  */
-@Deprecated
-public class TaskPropertyValidationAccess extends PropertyValidationAccess {
+public interface InspectionScheme {
+    PropertyWalker getPropertyWalker();
+
+    TypeMetadataStore getMetadataStore();
 }
