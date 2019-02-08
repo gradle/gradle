@@ -51,7 +51,7 @@ class DefaultAsyncIOScopeFactoryTest {
             }
 
             assertThat(
-                runCatching { scope.close() }.exceptionOrNull(),
+                exceptionOrNullFrom { scope.close() },
                 sameInstance<Throwable>(failure)
             )
         }
@@ -64,14 +64,12 @@ class DefaultAsyncIOScopeFactoryTest {
 
             val expectedFailure = IOException()
 
-            val failureLatch = FailureLatch()
             val scope = newScope().apply {
-                io { failureLatch.failWith(expectedFailure) }
+                io { throw expectedFailure }
             }
-            failureLatch.await()
 
             assertThat(
-                await atMost ONE_SECOND untilNotNull { runCatching { scope.io { } }.exceptionOrNull() },
+                await atMost ONE_SECOND untilNotNull { exceptionOrNullFrom { scope.io { } } },
                 sameInstance<Throwable>(expectedFailure)
             )
         }
@@ -83,11 +81,11 @@ class DefaultAsyncIOScopeFactoryTest {
         withAsyncIOScopeFactory {
 
             // given: a failure in one scope
-            val failureLatch = FailureLatch()
+            val failureLatch = CountDownLatch(1)
             newScope().apply {
-                io { failureLatch.failWith(IllegalStateException()) }
+                io { throw IllegalStateException() }
             }
-            failureLatch.await()
+            failureLatch.await(1, TimeUnit.SECONDS)
 
             // then: actions can still be scheduled in separate scope
             val isolatedScopeAction = CompletableFuture<Unit>()
@@ -102,20 +100,7 @@ class DefaultAsyncIOScopeFactoryTest {
     }
 
     private
-    class FailureLatch {
-
-        private
-        val latch: CountDownLatch = CountDownLatch(1)
-
-        fun failWith(failure: Throwable) {
-            latch.countDown()
-            throw failure
-        }
-
-        fun await() {
-            latch.await(1, TimeUnit.SECONDS)
-        }
-    }
+    fun exceptionOrNullFrom(action: () -> Unit) = runCatching(action).exceptionOrNull()
 
     private
     fun withAsyncIOScopeFactory(action: DefaultAsyncIOScopeFactory.() -> Unit) {
