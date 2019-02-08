@@ -41,7 +41,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         resolve.prepare()
     }
 
-    def "doesn't try to fetch Gradle metadata even if published if marker is not present"() {
+    def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
         given:
         createPomFile(false)
 
@@ -64,7 +64,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         }
     }
 
-    def "prefers Gradle metadata even if published and marker is present"() {
+    def "prefers Gradle metadata if published and marker is present"() {
         given:
         createPomFile(true)
 

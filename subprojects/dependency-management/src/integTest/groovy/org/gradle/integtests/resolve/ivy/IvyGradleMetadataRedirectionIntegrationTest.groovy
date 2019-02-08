@@ -40,7 +40,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         resolve.prepare()
     }
 
-    def "doesn't try to fetch Gradle metadata even if published if marker is not present"() {
+    def "doesn't try to fetch Gradle metadata if published and marker is not present"() {
         given:
         createIvyFile(false)
 
@@ -63,7 +63,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         }
     }
 
-    def "prefers Gradle metadata even if published and marker is present"() {
+    def "prefers Gradle metadata if published and marker is present"() {
         given:
         createIvyFile(true)
 
