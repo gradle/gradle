@@ -26,7 +26,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.Hashing.hashString
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
@@ -48,7 +48,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    var pluginSpecBuilders = project.objects.directoryProperty()
+    var compiledPluginsBlocksDir = project.objects.directoryProperty()
 
     @get:Internal
     internal
@@ -75,6 +75,8 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     @TaskAction
     fun generate() {
         withAsynchronousIO(project) {
+            val metadataOutputDir = metadataOutputDir.get().asFile
+            io { recreate(metadataOutputDir) }
             plugins.asSequence().mapNotNull {
                 scriptWithPluginsBlock(it)
             }.groupBy {
@@ -107,10 +109,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun implicitImportFileFor(scriptPlugin: ScriptWithPluginsBlock): File =
-        metadataOutputDir.get().asFile.resolve(hashBytesOf(scriptPlugin.script.scriptFile).toString())
-
-    private
-    fun hashBytesOf(file: File) = Hashing.hashBytes(file.readBytes())
+        metadataOutputDir.get().asFile.resolve(scriptPlugin.script.hashString)
 
     private
     fun scriptWithPluginsBlock(plugin: ScriptPlugin): ScriptWithPluginsBlock? {

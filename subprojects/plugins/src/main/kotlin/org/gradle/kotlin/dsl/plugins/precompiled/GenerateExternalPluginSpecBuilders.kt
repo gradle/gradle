@@ -21,19 +21,18 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
+import java.io.File
 
 
 @CacheableTask
-open class GeneratePluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
+open class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
 
     @TaskAction
     @Suppress("unused")
     internal
     fun generate() =
         sourceCodeOutputDir.withOutputDirectory { outputDir ->
-            val packageDir = outputDir.resolve(packageName.split('.').joinToString("/")).apply {
-                mkdirs()
-            }
+            val packageDir = createPackageDirIn(outputDir)
             val outputFile = packageDir.resolve("PluginSpecBuildersFor$$classPathHash.kt")
             writeSourceCodeForPluginSpecBuildersFor(
                 classPath,
@@ -41,6 +40,12 @@ open class GeneratePluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
                 packageName = kotlinPackageName
             )
         }
+
+    private
+    fun createPackageDirIn(outputDir: File) = outputDir.resolve(packagePath()).apply { mkdirs() }
+
+    private
+    fun packagePath() = packageName.split('.').joinToString("/")
 
     @get:Internal
     internal

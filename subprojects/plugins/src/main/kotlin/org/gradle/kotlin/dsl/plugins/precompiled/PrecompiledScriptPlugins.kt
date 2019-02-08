@@ -85,7 +85,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  * [type-safe model accessors](https://docs.gradle.org/current/userguide/kotlin_dsl.html#type-safe-accessors)
  * to model elements contributed by plugins applied via the `plugins` block, so can precompiled [Project] script plugins:
  * ```kotlin
- *
  * // java7-project.gradle.kts
  *
  * plugins {
@@ -96,11 +95,23 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  *     sourceCompatibility = JavaVersion.VERSION_1_7
  *     targetCompatibility = JavaVersion.VERSION_1_7
  * }
- *
  * ```
  * ## Implementation Notes
  * External plugin dependencies are declared as regular artifact dependencies but a more
  * semantic preserving model could be introduced in the future.
+ *
+ * ### Type-safe accessors
+ * The process of generating type-safe accessors for precompiled script plugins is carried out by the
+ * following tasks:
+ *  - [ExtractPrecompiledScriptPluginPlugins] - extracts the `plugins` block of every precompiled script plugin and
+ *  saves it to a file with the same name in the output directory
+ *  - [GenerateInternalPluginSpecBuilders] - generates plugin spec builders for the _Project_ script plugins defined
+ *  in the current module
+ *  - [GenerateExternalPluginSpecBuilders] - generates plugin spec builders for the plugins in the compile classpath
+ *  - [CompilePrecompiledScriptPluginPlugins] - compiles the extracted `plugins` blocks along with the internal
+ *  and external plugin spec builders
+ *  - [GeneratePrecompiledScriptPluginAccessors] - uses the compiled `plugins` block of each precompiled script plugin
+ *  to compute its [HashedProjectSchema] and emit the corresponding type-safe accessors
  *
  * ## Todo
  *  - DONE type-safe plugin spec accessors for plugins in the precompiled script plugin classpath
@@ -132,30 +143,57 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
         "kotlinCompilerPluginClasspath"(gradleApi())
     }
 
-    val generatedPluginSpecBuilders = generatedSourceDirFor("plugin-spec-builders")
+    val extractedPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/extracted")
+
+    val compiledPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/compiled")
+
+    val internalPluginSpecBuilders = generatedSourceDirFor("internal-plugin-spec-builders")
+
+    val externalPluginSpecBuilders = generatedSourceDirFor("external-plugin-spec-builders")
 
     val generatedAccessors = generatedSourceDirFor("accessors")
 
-    val generatedMetadata = layout.buildDirectory.dir("precompiled-script-plugins")
+    val generatedMetadata = buildDir("precompiled-script-plugins")
 
     tasks {
 
-        val generatePluginSpecBuilders by registering(GeneratePluginSpecBuilders::class) {
-            classPathFiles = sourceSets["main"].compileClasspath
-            sourceCodeOutputDir.set(generatedPluginSpecBuilders)
+        val extractPrecompiledScriptPluginPlugins by registering(ExtractPrecompiledScriptPluginPlugins::class) {
+            plugins = scriptPlugins
+            outputDir.set(extractedPluginsBlocks)
+        }
+
+        val generateInternalPluginSpecBuilders by registering(GenerateInternalPluginSpecBuilders::class) {
+            plugins = scriptPlugins
+            sourceCodeOutputDir.set(internalPluginSpecBuilders)
+        }
+
+        val compileClasspath = compileClasspath()
+
+        val generateExternalPluginSpecBuilders by registering(GenerateExternalPluginSpecBuilders::class) {
+            classPathFiles = compileClasspath
+            sourceCodeOutputDir.set(externalPluginSpecBuilders)
+        }
+
+        val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
+            classPathFiles = compileClasspath
+            outputDir.set(compiledPluginsBlocks)
+            sourceDir(extractedPluginsBlocks)
+            sourceDir(internalPluginSpecBuilders)
+            sourceDir(externalPluginSpecBuilders)
         }
 
         val generatePrecompiledScriptPluginAccessors by registering(GeneratePrecompiledScriptPluginAccessors::class) {
-            dependsOn(generatePluginSpecBuilders)
-            classPathFiles = sourceSets["main"].compileClasspath
+            dependsOn(generateExternalPluginSpecBuilders)
+            dependsOn(compilePluginsBlocks)
+            classPathFiles = compileClasspath
             sourceCodeOutputDir.set(generatedAccessors)
             metadataOutputDir.set(generatedMetadata)
-            pluginSpecBuilders.set(generatedPluginSpecBuilders)
+            compiledPluginsBlocksDir.set(compiledPluginsBlocks)
             plugins = scriptPlugins
         }
 
         named<KotlinCompile>("compileKotlin") {
-            dependsOn(generatePluginSpecBuilders)
+            dependsOn(generateExternalPluginSpecBuilders)
             dependsOn(generatePrecompiledScriptPluginAccessors)
             kotlinOptions {
                 freeCompilerArgs += listOf(
@@ -167,6 +205,10 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
         }
     }
 }
+
+
+private
+fun Project.compileClasspath() = sourceSets["main"].compileClasspath
 
 
 private
@@ -261,11 +303,14 @@ fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
 
 
 private
-fun Project.generatedSourceDirFor(purpose: String): Provider<Directory> {
-    val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-$purpose/kotlin")
-    sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
-    return generatedSourcesDir
-}
+fun Project.generatedSourceDirFor(purpose: String): Provider<Directory> =
+    buildDir("generated-sources/kotlin-dsl-$purpose/kotlin").also {
+        sourceSets["main"].kotlin.srcDir(it)
+    }
+
+
+private
+fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 
 
 private

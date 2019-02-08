@@ -16,16 +16,24 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 
 
-abstract class ClassPathSensitiveCodeGenerationTask : ClassPathSensitiveTask() {
+@CacheableTask
+open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
 
     @get:OutputDirectory
-    var sourceCodeOutputDir = project.objects.directoryProperty()
+    var outputDir = project.objects.directoryProperty()
+
+    @TaskAction
+    fun compile() {
+        outputDir.withOutputDirectory {
+        }
+    }
+
+    fun sourceDir(dir: Provider<Directory>) = Unit
 }
-
-
-internal
-fun kotlinPackageNameFor(packageName: String) =
-    packageName.split('.').joinToString(".") { "`$it`" }
