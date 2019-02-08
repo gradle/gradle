@@ -211,7 +211,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     // are mapped to some attributes, which can be used in the version mapping strategy.
                     // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
                     generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API)))
-                                   .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME)));
+                                   .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
                 });
             }
         });
@@ -289,7 +289,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
                     mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()));
                 });
-                versionMappingStrategy.usage(Usage.JAVA_RUNTIME, strategy -> {
+                versionMappingStrategy.usage(Usage.JAVA_RUNTIME_JARS, strategy -> {
                     DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
                     mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()));
                 });

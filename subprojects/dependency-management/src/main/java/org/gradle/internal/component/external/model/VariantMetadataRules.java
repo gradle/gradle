@@ -15,10 +15,8 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
@@ -32,7 +30,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.CapabilitiesRules;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
@@ -41,7 +38,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class VariantMetadataRules {
@@ -80,7 +76,7 @@ public class VariantMetadataRules {
                 // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten
                 descriptors.add(new ImmutableCapability(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
             }
-            MutableCapabilities mutableCapabilities = new MutableCapabilities(descriptors);
+            DefaultMutableCapabilities mutableCapabilities = new DefaultMutableCapabilities(descriptors);
             return capabilitiesRules.execute(variant, mutableCapabilities);
         }
         return capabilities;
@@ -182,47 +178,6 @@ public class VariantMetadataRules {
         public void addCapabilitiesAction(VariantAction<? super MutableCapabilitiesMetadata> action) {
             throw new UnsupportedOperationException("You are probably trying to change capabilities of something that wasn't supposed to be mutable");
         }
-    }
-
-    private static class MutableCapabilities implements MutableCapabilitiesMetadata {
-        private final List<Capability> descriptors;
-
-        private MutableCapabilities(List<Capability> descriptors) {
-            this.descriptors = descriptors;
-        }
-
-        @Override
-        public void addCapability(String group, String name, String version) {
-            for (Capability descriptor : descriptors) {
-                if (descriptor.getGroup().equals(group) && descriptor.getName().equals(name) && !descriptor.getVersion().equals(version)) {
-                    throw new InvalidUserDataException("Cannot add capability " + group + ":" + name + " with version " + version + " because it's already defined with version " + descriptor.getVersion());
-                }
-            }
-            descriptors.add(new ImmutableCapability(group, name, version));
-        }
-
-        @Override
-        public void removeCapability(String group, String name) {
-            Iterator<Capability> it = descriptors.iterator();
-            while (it.hasNext()) {
-                Capability next = it.next();
-                if (next.getGroup().equals(group) && next.getName().equals(name)) {
-                    it.remove();
-                }
-            }
-        }
-
-        @Override
-        public CapabilitiesMetadata asImmutable() {
-            ImmutableList<ImmutableCapability> capabilities = Cast.uncheckedCast(getCapabilities());
-            return new ImmutableCapabilities(capabilities);
-        }
-
-        @Override
-        public List<? extends Capability> getCapabilities() {
-            return ImmutableList.copyOf(descriptors);
-        }
-
     }
 
 }

@@ -217,7 +217,6 @@ class CommandLineActionFactoryTest extends Specification {
 
     def "displays version message"() {
         def version = GradleVersion.current()
-        def kotlinDslVersion = KotlinDslVersion.current()
         def expectedText = [
             "",
             "------------------------------------------------------------",
@@ -227,8 +226,7 @@ class CommandLineActionFactoryTest extends Specification {
             "Build time:   $version.buildTime",
             "Revision:     $version.revision",
             "",
-            "Kotlin DSL:   ${kotlinDslVersion.providerVersion}",
-            "Kotlin:       ${kotlinDslVersion.kotlinVersion}",
+            "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
             "Groovy:       $GroovySystem.version",
             "Ant:          $Main.antVersion",
             "JVM:          ${Jvm.current()}",

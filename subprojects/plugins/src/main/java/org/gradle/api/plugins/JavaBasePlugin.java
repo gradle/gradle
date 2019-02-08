@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -76,6 +77,19 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
     public static final String DOCUMENTATION_GROUP = "documentation";
+
+    /**
+     * A list of known artifact types which are known to prevent from
+     * publication.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
+            ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+            ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+            ArtifactTypeDefinition.DIRECTORY_TYPE
+    );
 
     private final ObjectFactory objectFactory;
 

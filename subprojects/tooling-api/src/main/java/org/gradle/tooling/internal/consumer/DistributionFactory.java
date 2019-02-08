@@ -16,7 +16,6 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
-import org.gradle.api.internal.classpath.Module;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -195,11 +194,7 @@ public class DistributionFactory {
 
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, File userHomeDir, BuildCancellationToken cancellationToken) {
             DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
-            ClassPath classpath = ClassPath.EMPTY;
-            for (Module module : registry.getModule("gradle-launcher").getAllRequiredModules()) {
-                classpath = classpath.plus(module.getClasspath());
-            }
-            return classpath;
+            return registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
         }
     }
 }

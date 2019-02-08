@@ -233,8 +233,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         def javaLibrary = project.components.getByName("java")
 
         then:
-        javaLibrary.artifacts.collect {it.file} == [jarTask.archivePath]
-        javaLibrary.usages[0].dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
+        def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
+        runtime.artifacts.collect {it.file} == [jarTask.archivePath]
+        runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }
 
     def createsStandardSourceSetsAndAppliesMappings() {

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -81,6 +82,24 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
                                          DependencyFilter dependencyFilter) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.EMPTY);
+        this.componentMetadataRules = componentMetadataRules;
+        this.componentLevelAttributes = attributes;
+        this.dependencyFilter = dependencyFilter;
+    }
+
+    private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId,
+                                         String name,
+                                         boolean transitive,
+                                         boolean visible,
+                                         ImmutableSet<String> hierarchy,
+                                         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+                                         VariantMetadataRules componentMetadataRules,
+                                         ImmutableList<ExcludeMetadata> excludes,
+                                         ImmutableAttributes attributes,
+                                         Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
+                                         DependencyFilter dependencyFilter,
+                                         List<Capability> capabilities) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities));
         this.componentMetadataRules = componentMetadataRules;
         this.componentLevelAttributes = attributes;
         this.dependencyFilter = dependencyFilter;
@@ -163,6 +182,10 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     public DefaultConfigurationMetadata withForcedDependencies() {
         return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), componentLevelAttributes, lazyConfigDependencies(), dependencyFilter.forcing());
+    }
+
+    public DefaultConfigurationMetadata withCapabilities(List<Capability> capabilities) {
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter, capabilities);
     }
 
     private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {

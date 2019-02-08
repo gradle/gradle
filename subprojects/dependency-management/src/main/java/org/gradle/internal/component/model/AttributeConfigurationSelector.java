@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
+import org.gradle.internal.component.external.model.ShadowedCapability;
 
 import java.util.Collection;
 import java.util.List;
@@ -140,12 +141,20 @@ public abstract class AttributeConfigurationSelector {
             return MatchResult.EXACT_MATCH;
         }
         for (Capability capability : capabilities) {
+            capability = unwrap(capability);
             if (group.equals(capability.getGroup()) && name.equals(capability.getName())) {
                 boolean exactMatch = capabilities.size() == 1;
                 return exactMatch ? MatchResult.EXACT_MATCH : MatchResult.MATCHES_ALL;
             }
         }
         return MatchResult.NO_MATCH;
+    }
+
+    private static Capability unwrap(Capability capability) {
+        if (capability instanceof ShadowedCapability) {
+            return ((ShadowedCapability) capability).getShadowedCapability();
+        }
+        return capability;
     }
 
     private enum MatchResult {

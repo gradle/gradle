@@ -16,11 +16,14 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+
+import java.util.Collections;
 
 public class JavaEcosystemVariantDerivationStrategy implements VariantDerivationStrategy {
     @Override
@@ -37,12 +40,12 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             return ImmutableList.of(
-                libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
-                libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true));
+                    libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
+                    libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
+                    platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false),
+                    platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false),
+                    platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true),
+                    platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true));
         }
         return null;
     }
@@ -54,12 +57,55 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
 
     private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
+        ModuleComponentIdentifier componentId = conf.getComponentId();
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
-        metadata = metadata.withConstraintsOnly();
+        ImmutableCapability shadowed = new ImmutableCapability(
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
+        );
+        metadata = metadata
+                .withConstraintsOnly()
+                .withCapabilities(Collections.singletonList(new DefaultShadowedCapability(shadowed, "-derived-platform")));
         if (enforcedPlatform) {
             metadata = metadata.withForcedDependencies();
         }
         return metadata;
+    }
+
+    private static class DefaultShadowedCapability implements ShadowedCapability {
+        private final CapabilityInternal shadowed;
+        private final String appendix;
+
+        private DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
+            this.shadowed = shadowed;
+            this.appendix = appendix;
+        }
+
+        @Override
+        public CapabilityInternal getShadowedCapability() {
+            return shadowed;
+        }
+
+        @Override
+        public String getGroup() {
+            return shadowed.getGroup();
+        }
+
+        @Override
+        public String getName() {
+            return shadowed.getName() + appendix;
+        }
+
+        @Override
+        public String getVersion() {
+            return shadowed.getVersion();
+        }
+
+        @Override
+        public String getCapabilityId() {
+            return shadowed.getCapabilityId() + appendix;
+        }
     }
 }

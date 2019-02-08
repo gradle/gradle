@@ -22,7 +22,7 @@ object ProjectGroups {
     private
     val Project.internalProjects
         get() = rootProject.subprojects.filter { it.name.startsWith("internal") ||
-            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance") }.toSet()
+            it.name in setOf("integTest", "distributions", "performance", "buildScanPerformance", "kotlinCompilerEmbeddable", "kotlinDslTestFixtures", "kotlinDslIntegTests") }.toSet()
 
     val Project.javaProjects
         get() = rootProject.subprojects - listOf(project(":distributionsDependencies"))
@@ -43,7 +43,10 @@ object ProjectGroups {
     val Project.implementationPluginProjects
         get() = setOf(
             rootProject.project("buildProfile"),
-            rootProject.project("toolingApiBuilders"))
+            rootProject.project("toolingApiBuilders"),
+            rootProject.project("kotlinDslProviderPlugins"),
+            rootProject.project("kotlinDslToolingBuilders")
+        )
 
     val Project.publishedProjects
         get() = setOf(
@@ -58,7 +61,8 @@ object ProjectGroups {
             rootProject.project(":dependencyManagement"),
             rootProject.project(":messaging"),
             rootProject.project(":processServices"),
-            rootProject.project(":resources"))
+            rootProject.project(":resources"),
+            rootProject.project(":kotlinDslToolingModels"))
 
     val Project.publicProjects
         get() = pluginProjects +

@@ -371,7 +371,7 @@ public class DependencyGraphBuilder {
      */
     private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
-                .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform())
+                .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
                 .collect(Collectors.toSet());
         if (selectedNodes.size()<2) {
             return;

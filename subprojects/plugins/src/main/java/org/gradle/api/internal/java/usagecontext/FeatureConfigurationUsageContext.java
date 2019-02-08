@@ -18,13 +18,17 @@ package org.gradle.api.internal.java.usagecontext;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.component.MavenPublishingAwareContext;
+import org.gradle.api.plugins.internal.AbstractConfigurationUsageContext;
 
-public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext {
+public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext implements MavenPublishingAwareContext {
     private final Configuration configuration;
+    private final ScopeMapping scopeMapping;
 
-    public FeatureConfigurationUsageContext(String name, Configuration configuration, ConfigurationVariant variant) {
+    public FeatureConfigurationUsageContext(String name, Configuration configuration, ConfigurationVariant variant, String mavenScope, boolean optional) {
         super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts());
         this.configuration = configuration;
+        this.scopeMapping = ScopeMapping.of(mavenScope, optional);
     }
 
     @Override
@@ -32,4 +36,8 @@ public class FeatureConfigurationUsageContext extends AbstractConfigurationUsage
         return configuration;
     }
 
+    @Override
+    public ScopeMapping getScopeMapping() {
+        return scopeMapping;
+    }
 }

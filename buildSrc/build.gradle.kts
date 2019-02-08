@@ -25,7 +25,7 @@ import java.util.Properties
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.0" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
 }
 
 subprojects {
