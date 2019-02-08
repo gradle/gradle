@@ -32,6 +32,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
@@ -79,8 +80,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
     };
 
-    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> customAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, customAnnotationHandlers);
+    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, annotationHandlers);
         this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
@@ -94,8 +95,18 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 return handler.getAnnotationType();
             }
         })).keySet());
-        this.propertyExtractor = new PropertyExtractor(annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
+        String displayName = calculateDisplayName(allAnnotationHandlers);
+        this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
         this.cache = cacheFactory.newClassCache();
+    }
+
+    private String calculateDisplayName(Iterable<PropertyAnnotationHandler> annotationHandlers) {
+        for (PropertyAnnotationHandler annotationHandler : annotationHandlers) {
+            if (annotationHandler instanceof AbstractOutputPropertyAnnotationHandler) {
+                return "an input or output annotation";
+            }
+        }
+        return "an input annotation";
     }
 
     private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<PropertyAnnotationHandler> allAnnotationHandlers) {

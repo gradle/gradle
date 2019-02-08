@@ -46,13 +46,15 @@ import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 
 public class PropertyExtractor {
 
+    private final String displayName;
     private final Set<Class<? extends Annotation>> primaryAnnotationTypes;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final ImmutableSet<Class<?>> ignoredSuperclasses;
     private final ImmutableSet<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    public PropertyExtractor(Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodsFromClasses) {
+    public PropertyExtractor(String displayName, Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodsFromClasses) {
+        this.displayName = displayName;
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
@@ -109,6 +111,12 @@ public class PropertyExtractor {
         });
         ImmutableSet.Builder<PropertyMetadata> builder = ImmutableSet.builder();
         for (PropertyMetadataBuilder property : properties.values()) {
+            if (property.privateGetter && !property.annotations.isEmpty()) {
+                property.validationMessage("is private and annotated with " + displayName);
+            }
+            if (!property.privateGetter && property.propertyType == null) {
+                property.validationMessage("is not annotated with " + displayName);
+            }
             builder.add(property.toMetadata());
         }
         return builder.build();
@@ -116,8 +124,8 @@ public class PropertyExtractor {
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property) {
         Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
-        if (Modifier.isPrivate(method.getModifiers()) && !methodAnnotations.isEmpty()) {
-            property.validationMessage("is private and annotated with an input or output annotation");
+        if (Modifier.isPrivate(method.getModifiers())) {
+            property.isPrivate();
         }
         if (field == null) {
             return methodAnnotations;
@@ -254,11 +262,16 @@ public class PropertyExtractor {
         private Class<? extends Annotation> propertyType;
         private final Map<Class<? extends Annotation>, Annotation> annotations = Maps.newHashMap();
         private final List<String> validationMessages = Lists.newArrayList();
+        private boolean privateGetter;
 
         PropertyMetadataBuilder(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
             this.propertyTypeAnnotations = propertyTypeAnnotations;
             this.fieldName = fieldName;
             this.method = method;
+        }
+
+        public void isPrivate() {
+            this.privateGetter = true;
         }
 
         public void validationMessage(String message) {

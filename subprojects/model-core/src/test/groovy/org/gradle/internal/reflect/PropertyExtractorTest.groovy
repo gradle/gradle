@@ -30,7 +30,7 @@ import java.lang.annotation.Target
 
 class PropertyExtractorTest extends Specification {
 
-    def extractor = new PropertyExtractor(ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class), ImmutableSet.of(Object, GroovyObject))
+    def extractor = new PropertyExtractor("a thing annotation", ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class), ImmutableSet.of(Object, GroovyObject))
 
     class WithPropertyType1 {
         @PropertyType1 getFile() {}
@@ -153,8 +153,34 @@ class PropertyExtractorTest extends Specification {
         then:
         assertPropertyTypes(metadata, input: PropertyType1, outputFile: PropertyType2, notAnInput: null)
         metadata*.validationMessages.flatten() as List == [
-            "is private and annotated with an input or output annotation",
-            "is private and annotated with an input or output annotation",
+            "is private and annotated with a thing annotation",
+            "is private and annotated with a thing annotation",
+        ]
+    }
+
+    class WithUnannotatedProperties {
+        private String getIgnored() {
+            'Input'
+        }
+
+        String getBad1() {
+            null
+        }
+
+        protected String getBad2() {
+            null
+        }
+    }
+
+    def "warns about non-private getters that are not annotated"() {
+        when:
+        def metadata = extractor.extractPropertyMetadata(WithUnannotatedProperties)
+
+        then:
+        assertPropertyTypes(metadata, ignored: null, bad1: null, bad2: null)
+        metadata*.validationMessages.flatten() as List == [
+            "is not annotated with a thing annotation",
+            "is not annotated with a thing annotation",
         ]
     }
 
