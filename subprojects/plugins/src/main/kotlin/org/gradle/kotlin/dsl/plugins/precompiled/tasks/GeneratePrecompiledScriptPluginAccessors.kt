@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
@@ -26,7 +26,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.Hashing.hashString
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
@@ -34,6 +33,8 @@ import org.gradle.kotlin.dsl.accessors.hashCodeFor
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
+
+import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 

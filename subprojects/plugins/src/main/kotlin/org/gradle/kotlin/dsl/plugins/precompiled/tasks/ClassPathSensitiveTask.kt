@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection

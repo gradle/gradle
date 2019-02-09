@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
 
 import java.io.File
 
 
 /**
- * Extracts the `plugins` block of each precompiled [Project] script plugin
- * and writes it to a file with the same name under [outputDir].
+ * Generates plugin spec builders for the _Project_ script plugins defined in the current module.
  */
 @CacheableTask
-open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
-
-    @get:OutputDirectory
-    var outputDir = project.objects.directoryProperty()
+open class GenerateInternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
 
     @get:Internal
     internal
@@ -51,8 +45,7 @@ open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
         get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
-    fun extract() {
-        outputDir.withOutputDirectory {
-        }
+    fun generate() {
+        // TODO()
     }
 }

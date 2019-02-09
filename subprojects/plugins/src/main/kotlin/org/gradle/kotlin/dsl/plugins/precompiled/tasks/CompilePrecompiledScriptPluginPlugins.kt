@@ -14,37 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
-import java.io.File
 
-
-/**
- * Generates plugin spec builders for the _Project_ script plugins defined in the current module.
- */
 @CacheableTask
-open class GenerateInternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
+open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
 
-    @get:Internal
-    internal
-    lateinit var plugins: List<ScriptPlugin>
-
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    @Suppress("unused")
-    internal
-    val scriptFiles: Set<File>
-        get() = scriptPluginFilesOf(plugins)
+    @get:OutputDirectory
+    var outputDir = project.objects.directoryProperty()
 
     @TaskAction
-    fun generate() {
-        // TODO()
+    fun compile() {
+        outputDir.withOutputDirectory {
+        }
     }
+
+    fun sourceDir(dir: Provider<Directory>) = Unit
 }

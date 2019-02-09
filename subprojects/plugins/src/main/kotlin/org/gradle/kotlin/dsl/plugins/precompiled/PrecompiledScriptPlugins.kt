@@ -28,6 +28,12 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
