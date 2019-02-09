@@ -367,6 +367,51 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent().trim()
     }
 
+    def "detects annotations on private getter methods"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                private long getBadTime() {
+                    return 0;
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    private String getBadNested() {
+                        return "good";
+                    }
+                }
+                
+                @OutputDirectory
+                private File getOutputDir() {
+                    return new File("outputDir");
+                }
+                
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'badTime' is private and annotated with @Input.
+            Warning: Task type 'MyTask': property 'options.badNested' is private and annotated with @Input.
+            Warning: Task type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
+        """.stripIndent().trim()
+    }
+
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using external types"() {
         buildFile << """

@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class InspectionSchemeFactory {
-    private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> handlers;
+    private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> allKnownHandlers;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     // Assume for now that the annotations are all part of Gradle core and are never unloaded, so use strong references to the annotation types
     private final LoadingCache<Set<Class<? extends Annotation>>, InspectionScheme> schemes = CacheBuilder.newBuilder().build(new CacheLoader<Set<Class<? extends Annotation>>, InspectionScheme>() {
@@ -42,22 +42,29 @@ public class InspectionSchemeFactory {
         public InspectionScheme load(Set<Class<? extends Annotation>> annotations) {
             ImmutableList.Builder<PropertyAnnotationHandler> builder = ImmutableList.builderWithExpectedSize(annotations.size());
             for (Class<? extends Annotation> annotation : annotations) {
-                PropertyAnnotationHandler handler = handlers.get(annotation);
+                PropertyAnnotationHandler handler = allKnownHandlers.get(annotation);
                 if (handler == null) {
                     throw new IllegalArgumentException(String.format("Annotation @%s is not a registered annotation.", annotation.getSimpleName()));
                 }
                 builder.add(handler);
             }
-            return new InspectionSchemeImpl(builder.build(), cacheFactory);
+            ImmutableList<PropertyAnnotationHandler> annotationHandlers = builder.build();
+            ImmutableSet.Builder<Class<? extends Annotation>> otherAnnotations = ImmutableSet.builderWithExpectedSize(allKnownHandlers.size() - annotations.size());
+            for (Class<? extends Annotation> annotation : allKnownHandlers.keySet()) {
+                if (!annotations.contains(annotation)) {
+                    otherAnnotations.add(annotation);
+                }
+            }
+            return new InspectionSchemeImpl(annotationHandlers, otherAnnotations.build(), cacheFactory);
         }
     });
 
-    public InspectionSchemeFactory(List<? extends PropertyAnnotationHandler> handlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public InspectionSchemeFactory(List<? extends PropertyAnnotationHandler> allKnownHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         ImmutableMap.Builder<Class<? extends Annotation>, PropertyAnnotationHandler> builder = ImmutableMap.builder();
-        for (PropertyAnnotationHandler handler : handlers) {
+        for (PropertyAnnotationHandler handler : allKnownHandlers) {
             builder.put(handler.getAnnotationType(), handler);
         }
-        this.handlers = builder.build();
+        this.allKnownHandlers = builder.build();
         this.cacheFactory = cacheFactory;
     }
 
@@ -76,8 +83,8 @@ public class InspectionSchemeFactory {
         private final DefaultPropertyWalker propertyWalker;
         private final DefaultTypeMetadataStore metadataStore;
 
-        public InspectionSchemeImpl(List<PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-            metadataStore = new DefaultTypeMetadataStore(annotationHandlers, cacheFactory);
+        public InspectionSchemeImpl(List<PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
+            metadataStore = new DefaultTypeMetadataStore(annotationHandlers, otherKnownAnnotations, cacheFactory);
             propertyWalker = new DefaultPropertyWalker(metadataStore);
         }
 

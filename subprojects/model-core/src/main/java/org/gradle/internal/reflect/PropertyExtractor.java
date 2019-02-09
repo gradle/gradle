@@ -53,14 +53,16 @@ public class PropertyExtractor {
     private final Set<Class<? extends Annotation>> primaryAnnotationTypes;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
-    private final ImmutableSet<Class<?>> ignoredSuperclasses;
-    private final ImmutableSet<Equivalence.Wrapper<Method>> ignoredMethods;
+    private final Set<Class<? extends Annotation>> otherKnownAnnotations;
+    private final Set<Class<?>> ignoredSuperclasses;
+    private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    public PropertyExtractor(String displayName, Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, ImmutableSet<Class<?>> ignoredSuperclasses, ImmutableSet<Class<?>> ignoreMethodsFromClasses) {
+    public PropertyExtractor(String displayName, Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, Set<Class<? extends Annotation>> otherKnownAnnotations, Set<Class<?>> ignoredSuperclasses, Set<Class<?>> ignoreMethodsFromClasses) {
         this.displayName = displayName;
         this.primaryAnnotationTypes = primaryAnnotationTypes;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
+        this.otherKnownAnnotations = otherKnownAnnotations;
         this.ignoredSuperclasses = ignoredSuperclasses;
         this.ignoredMethods = allMethodsOf(ignoreMethodsFromClasses);
     }
@@ -126,23 +128,23 @@ public class PropertyExtractor {
     }
 
     private void validateProperty(PropertyMetadataBuilder property) {
-        if (property.privateGetter && !property.annotations.isEmpty()) {
-            property.validationMessage("is private and annotated with " + displayName);
-        }
-        if (!property.privateGetter && property.propertyType == null) {
+        if (!property.brokenType && property.propertyType == null) {
             property.validationMessage("is not annotated with " + displayName);
         }
     }
 
     private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property) {
-        Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations());
+        Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations(), property);
         if (Modifier.isPrivate(method.getModifiers())) {
-            property.isPrivate();
+            if (!methodAnnotations.isEmpty()) {
+                property.validationMessage("is private and annotated with @" + methodAnnotations.iterator().next().annotationType().getSimpleName());
+            }
+            property.hasBrokenType();
         }
         if (field == null) {
             return methodAnnotations;
         }
-        Collection<Annotation> fieldAnnotations = collectRelevantAnnotations(field.getDeclaredAnnotations());
+        Collection<Annotation> fieldAnnotations = collectRelevantAnnotations(field.getDeclaredAnnotations(), property);
         if (fieldAnnotations.isEmpty()) {
             return methodAnnotations;
         }
@@ -205,11 +207,15 @@ public class PropertyExtractor {
         }
     }
 
-    private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations) {
+    private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations, PropertyMetadataBuilder property) {
         List<Annotation> relevantAnnotations = Lists.newArrayListWithCapacity(annotations.length);
         for (Annotation annotation : annotations) {
             if (relevantAnnotationTypes.contains(annotation.annotationType())) {
                 relevantAnnotations.add(annotation);
+            }
+            if (otherKnownAnnotations.contains(annotation.annotationType())) {
+                property.validationMessage("is annotated with unsupported annotation @" + annotation.annotationType().getSimpleName());
+                property.hasBrokenType();
             }
         }
         return relevantAnnotations;
@@ -273,7 +279,7 @@ public class PropertyExtractor {
         private Class<? extends Annotation> propertyType;
         private final Map<Class<? extends Annotation>, Annotation> annotations = Maps.newHashMap();
         private final List<ValidationProblem> validationProblems = Lists.newArrayList();
-        private boolean privateGetter;
+        private boolean brokenType;
 
         PropertyMetadataBuilder(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
             this.propertyTypeAnnotations = propertyTypeAnnotations;
@@ -281,8 +287,8 @@ public class PropertyExtractor {
             this.method = method;
         }
 
-        public void isPrivate() {
-            this.privateGetter = true;
+        public void hasBrokenType() {
+            this.brokenType = true;
         }
 
         public void validationMessage(String message) {

@@ -31,7 +31,13 @@ import java.lang.annotation.Target
 
 class PropertyExtractorTest extends Specification {
 
-    def extractor = new PropertyExtractor("a thing annotation", ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override), ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation), ImmutableMultimap.of(PropertyType1, PropertyType1Override), ImmutableSet.of(Object.class, GroovyObject.class), ImmutableSet.of(Object, GroovyObject))
+    def extractor = new PropertyExtractor("a thing annotation",
+        ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override),
+        ImmutableSet.of(PropertyType1, PropertyType2, PropertyType1Override, SupportingAnnotation),
+        ImmutableMultimap.of(PropertyType1, PropertyType1Override),
+        ImmutableSet.of(KnownAnnotation),
+        ImmutableSet.of(Object, GroovyObject),
+        ImmutableSet.of(Object, GroovyObject))
 
     class WithPropertyType1 {
         @PropertyType1 getFile() {}
@@ -154,8 +160,8 @@ class PropertyExtractorTest extends Specification {
         then:
         assertPropertyTypes(result.left, input: PropertyType1, outputFile: PropertyType2)
         collectProblems(result.right) == [
-            "Property 'input' is private and annotated with a thing annotation.",
-            "Property 'outputFile' is private and annotated with a thing annotation.",
+            "Property 'input' is private and annotated with @${PropertyType1.simpleName}.",
+            "Property 'outputFile' is private and annotated with @${PropertyType2.simpleName}."
         ]
     }
 
@@ -204,6 +210,27 @@ class PropertyExtractorTest extends Specification {
         collectProblems(result.right) == [
             "Property 'confusedFile' has conflicting property types declared: @${PropertyType1.simpleName}, @${PropertyType2.simpleName}.",
             "Property 'inputThing' has conflicting property types declared: @${PropertyType1.simpleName}, @${PropertyType2.simpleName}."
+        ]
+    }
+
+    class WithUnsupportedPropertyTypes {
+        @KnownAnnotation
+        File inputThing
+
+        @PropertyType1
+        @KnownAnnotation
+        File hasBoth
+    }
+
+    def "warns about properties annotated with known bu unsupported annotations"() {
+        when:
+        def result = extractor.extractPropertyMetadata(WithUnsupportedPropertyTypes)
+
+        then:
+        assertPropertyTypes(result.left, hasBoth: PropertyType1)
+        collectProblems(result.right) == [
+            "Property 'hasBoth' is annotated with unsupported annotation @${KnownAnnotation.simpleName}.",
+            "Property 'inputThing' is annotated with unsupported annotation @${KnownAnnotation.simpleName}."
         ]
     }
 
@@ -408,6 +435,12 @@ class PropertyExtractorTest extends Specification {
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface SupportingAnnotation {
     String value()
+}
+
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface KnownAnnotation {
 }
 
 @Documented
