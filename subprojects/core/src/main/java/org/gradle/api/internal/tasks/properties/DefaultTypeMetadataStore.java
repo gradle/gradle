@@ -85,7 +85,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
     };
 
-    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> annotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
         Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, annotationHandlers);
         this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -101,7 +101,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         })).keySet());
         String displayName = calculateDisplayName(allAnnotationHandlers);
-        this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
+        this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, otherKnownAnnotations, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
         this.cache = cacheFactory.newClassCache();
     }
 

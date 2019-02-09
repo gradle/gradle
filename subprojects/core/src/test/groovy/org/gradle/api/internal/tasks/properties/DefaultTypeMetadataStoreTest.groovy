@@ -63,7 +63,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     @Shared GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
-    def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), new TestCrossBuildInMemoryCacheFactory())
+    def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
     def setupSpec() {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
@@ -92,7 +92,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     def "can use custom annotation processor"() {
         def annotationHandler = new SearchPathAnnotationHandler()
-        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
@@ -206,7 +206,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)
