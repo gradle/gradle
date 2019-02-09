@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -24,6 +25,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
@@ -33,27 +35,25 @@ import java.io.File
 @CacheableTask
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
+    @get:OutputDirectory
+    var outputDirectory = project.objects.directoryProperty()
+
     @get:Internal
     internal
     lateinit var plugins: List<ScriptPlugin>
-
-    @get:OutputDirectory
-    var outputDirectory = project.objects.directoryProperty()
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
     val scriptFiles: Set<File>
-        get() = plugins.map { it.scriptFile }.toSet()
+        get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
     @Suppress("unused")
     internal
     fun generate() =
-        outputDirectory.asFile.get().let { outputDir ->
-            outputDir.deleteRecursively()
-            outputDir.mkdirs()
+        outputDirectory.withOutputDirectory { outputDir ->
             for (scriptPlugin in plugins) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
             }
@@ -101,6 +101,21 @@ fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 private
 fun packageDir(outputDir: File, packageName: String) =
     outputDir.mkdir(packageName.replace('.', '/'))
+
+
+internal
+inline fun <T> DirectoryProperty.withOutputDirectory(action: (File) -> T): T =
+    asFile.get().let { outputDir ->
+        recreate(outputDir)
+        action(outputDir)
+    }
+
+
+internal
+fun recreate(outputDir: File) {
+    outputDir.deleteRecursively()
+    outputDir.mkdirs()
+}
 
 
 private

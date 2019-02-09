@@ -44,7 +44,7 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 
-import org.gradle.kotlin.dsl.accessors.pluginAccessorsClassPath
+import org.gradle.kotlin.dsl.accessors.pluginSpecBuildersClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 
@@ -151,7 +151,7 @@ class StandardKotlinScriptEvaluator(
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? Project)?.let {
-                pluginAccessorsClassPath(it).bin
+                pluginSpecBuildersClassPath(it).bin
             } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =

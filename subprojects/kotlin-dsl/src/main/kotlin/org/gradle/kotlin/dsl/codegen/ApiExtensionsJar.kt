@@ -98,7 +98,7 @@ class ApiExtensionsJarGenerator(
         "$packageDir/$fileName"
 
     private
-    val packageDir = packageName.replace('.', '/')
+    val packageDir = kotlinDslPackagePath
 }
 
 

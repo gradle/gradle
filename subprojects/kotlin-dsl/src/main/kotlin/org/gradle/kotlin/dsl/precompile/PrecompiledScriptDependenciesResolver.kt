@@ -44,7 +44,9 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
             KotlinBuildScriptDependencies(
                 imports = implicitImportsFrom(environment),
                 classpath = emptyList(),
-                sources = emptyList()))
+                sources = emptyList()
+            )
+        )
 
     private
     fun implicitImportsFrom(environment: Environment?) =

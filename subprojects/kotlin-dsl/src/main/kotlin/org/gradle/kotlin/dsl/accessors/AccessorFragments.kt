@@ -25,6 +25,8 @@ import org.gradle.api.reflect.TypeOf
 
 import org.gradle.internal.hash.HashUtil
 
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
+
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
@@ -66,7 +68,7 @@ private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
     val propertyName = name.original
-    val className = InternalName("$packagePath/${propertyName.capitalize()}ConfigurationAccessorsKt")
+    val className = InternalName("$kotlinDslPackagePath/${propertyName.capitalize()}ConfigurationAccessorsKt")
 
     className to sequenceOf(
         AccessorFragment(
@@ -801,11 +803,7 @@ val kotlinPrimitiveTypes = primitiveTypeStrings.asSequence().map { (jvmName, kot
 
 private
 fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
-    InternalName("$packagePath/Accessors${hashOf(accessorSpec)}Kt")
-
-
-internal
-const val packagePath = "org/gradle/kotlin/dsl"
+    InternalName("$kotlinDslPackagePath/Accessors${hashOf(accessorSpec)}Kt")
 
 
 private
