@@ -13,38 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.build
+
+import com.google.common.base.Charsets
+import org.gradle.internal.util.PropertiesUtils
 
 class ReproduciblePropertiesWriter {
 
     /**
      * Writes {@link Map} of data as {@link Properties} to a file, but without including the timestamp comment.
+     *
+     * See {@link PropertiesUtils#store(java.util.Properties, java.io.File)}.
      */
     static void store(Map<String, ?> data, File file, String comment = null) {
-        def properties = new Properties()
-        data.each { key, value ->
-            properties.put(key, value == null ? null : value.toString())
-        }
-        store(properties, file, comment)
+        store(propertiesFrom(data), file, comment)
     }
 
     /**
      * Writes {@link Properties} to a file, but without including the timestamp comment.
+     *
+     * See {@link PropertiesUtils#store(java.util.Properties, java.io.File)}.
      */
     static void store(Properties properties, File file, String comment = null) {
-        def sw = new StringWriter()
-        properties.store(sw, null)
-        String systemLineSeparator = System.lineSeparator()
-        String lineSeparator = "\n" // Use LF to have the same result on Windows and on Linux
-        def content = sw.toString().split(systemLineSeparator).findAll { !it.startsWith("#") }.join(lineSeparator)
-        file.parentFile.mkdirs()
-        file.withWriter("8859_1") { BufferedWriter bw ->
-            if (comment) {
-                bw.write("# ${comment}")
-                bw.write(lineSeparator)
+        PropertiesUtils.store(properties, file, comment, Charsets.ISO_8859_1, "\n")
+    }
+
+    private static Properties propertiesFrom(Map<String, ?> data) {
+        new Properties().with {
+            data.forEach { key, value ->
+                put(key, value ?: value.toString())
             }
-            bw.write(content)
+            it
         }
     }
 }
