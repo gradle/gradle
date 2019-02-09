@@ -27,7 +27,6 @@ import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.jarWithPluginDescriptors
-import org.gradle.kotlin.dsl.fixtures.toPlatformLineSeparators
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
