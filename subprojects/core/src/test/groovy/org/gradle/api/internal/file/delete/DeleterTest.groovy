@@ -176,7 +176,7 @@ class DeleterTest extends Specification {
     }
 
     @Unroll
-    def "report reasonable help message when failing to delete single #description"() {
+    def "reports reasonable help message when failing to delete single #description"() {
 
         given:
         delete = new Deleter(resolver, fileSystem()) {
@@ -205,9 +205,11 @@ class DeleterTest extends Specification {
         "symlink to directory" | true        | true
     }
 
-    def "report failed to delete child paths after failure to delete directory"() {
+    def "reports failed to delete child files after failure to delete directory"() {
+
         given:
         def targetDir = tmpDir.createDir("target")
+        def deletable = targetDir.createFile("delete.yes")
         def nonDeletable = targetDir.createFile("delete.no")
 
         and:
@@ -226,24 +228,26 @@ class DeleterTest extends Specification {
 
         then:
         targetDir.assertIsDir()
+        deletable.assertDoesNotExist()
         nonDeletable.assertIsFile()
 
         and:
         def ex = thrown UnableToDeleteFileException
         ex.message == """
             Unable to delete directory '$targetDir'
-              Child paths failed to delete! Is something holding files in the target directory?
+              Child files failed to delete! Is something holding files in the target directory?
               - $nonDeletable
         """.stripIndent().trim()
     }
 
-    def "report new child paths after failure to delete directory"() {
+    def "reports new child files after failure to delete directory"() {
+
         given:
         def targetDir = tmpDir.createDir("target")
         def triggerFile = targetDir.createFile("zzz.txt")
-        def newFile = targetDir.file("aaa.txt")
 
         and:
+        def newFile = targetDir.file("aaa.txt")
         delete = new Deleter(resolver, fileSystem()) {
             @Override
             protected boolean deleteFile(File file) {
@@ -266,18 +270,18 @@ class DeleterTest extends Specification {
         def ex = thrown UnableToDeleteFileException
         ex.message == """
             Unable to delete directory '$targetDir'
-              More files were found after failure! Is something concurrently writing into the target directory?
+              New files were found after failure! Is something concurrently writing into the target directory?
               - $newFile
         """.stripIndent().trim()
     }
 
-    def "report both failed to delete child paths and new child paths after failure to delete directory, deduplicated"() {
+    def "reports both failed to delete and new child files after failure to delete directory"() {
         given:
         def targetDir = tmpDir.createDir("target")
         def nonDeletable = targetDir.createFile("delete.no")
-        def newFile = targetDir.file("aaa.txt")
 
         and:
+        def newFile = targetDir.file("aaa.txt")
         delete = new Deleter(resolver, fileSystem()) {
             @Override
             protected boolean deleteFile(File file) {
@@ -301,11 +305,57 @@ class DeleterTest extends Specification {
         def ex = thrown UnableToDeleteFileException
         ex.message == """
             Unable to delete directory '$targetDir'
-              Child paths failed to delete! Is something holding files in the target directory?
+              Child files failed to delete! Is something holding files in the target directory?
               - $nonDeletable
-              More files were found after failure! Is something concurrently writing into the target directory?
+              New files were found after failure! Is something concurrently writing into the target directory?
               - $newFile
         """.stripIndent().trim()
+    }
+
+    def "fails fast and reports a reasonable number of paths after failure to delete directory"() {
+
+        given: 'more existing files than the cap'
+        def targetDir = tmpDir.createDir("target")
+        def tooManyRange = (1..(Deleter.MAX_REPORTED_PATHS + 10))
+        def nonDeletableFiles = tooManyRange.collect { targetDir.createFile("zzz-${it}-zzz.txt") }
+
+        and: 'a deleter that cannot delete, records deletion requests and creates new files'
+        def triedToDelete = [] as Set<File>
+        def newFiles = tooManyRange.collect { targetDir.file("aaa-${it}-aaa.txt") }
+        delete = new Deleter(resolver, fileSystem()) {
+            @Override
+            protected boolean deleteFile(File file) {
+                triedToDelete << file
+                newFiles.each { it.text = "" }
+                return false;
+            }
+        }
+
+        when:
+        delete.delete(targetDir)
+
+        then: 'nothing gets deleted'
+        targetDir.assertIsDir()
+        nonDeletableFiles.each { it.assertIsFile() }
+        newFiles.each { it.assertIsFile() }
+
+        and: 'it failed fast'
+        triedToDelete.size() == Deleter.MAX_REPORTED_PATHS
+
+        and: 'the report size is capped'
+        def ex = thrown UnableToDeleteFileException
+        ex.message.startsWith("""
+            Unable to delete directory '$targetDir'
+              Child files failed to delete! Is something holding files in the target directory?
+              - $targetDir/zzz-
+        """.stripIndent().trim())
+        ex.message.contains("-zzz.txt\n  " + """
+              - and more ...
+              New files were found after failure! Is something concurrently writing into the target directory?
+              - $targetDir/aaa-
+        """.stripIndent(12).trim())
+        ex.message.endsWith("-aaa.txt\n  - and more ...")
+        ex.message.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
     }
 
     def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {
