@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.delete;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.UnableToDeleteFileException;
@@ -27,6 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
@@ -69,6 +75,15 @@ public class Deleter {
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
+        Set<String> failedPaths = new LinkedHashSet<String>();
+        deleteRecursively(file, file, deleteSpec, failedPaths);
+        if (!failedPaths.isEmpty()) {
+            throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(file, deleteSpec, failedPaths));
+        }
+    }
+
+    private void deleteRecursively(File baseDir, File file, DeleteSpecInternal deleteSpec, Set<String> failedPaths) {
+
         if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
             File[] contents = file.listFiles();
 
@@ -78,20 +93,20 @@ public class Deleter {
             }
 
             for (File item : contents) {
-                doDeleteInternal(item, deleteSpec);
+                deleteRecursively(baseDir, item, deleteSpec, failedPaths);
             }
         }
 
-        if (!file.delete() && file.exists()) {
-            handleFailedDelete(file);
+        if (!deleteFile(file)) {
+            handleFailedDelete(file, failedPaths);
         }
     }
 
-    private boolean isRunGcOnFailedDelete() {
-        return OperatingSystem.current().isWindows();
+    protected boolean deleteFile(File file) {
+        return file.delete() && !file.exists();
     }
 
-    private void handleFailedDelete(File file) {
+    private void handleFailedDelete(File file, Set<String> failedPaths) {
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
         // It mentions that there is a bug in the Windows JDK impls that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
@@ -105,8 +120,61 @@ public class Deleter {
             Thread.currentThread().interrupt();
         }
 
-        if (!file.delete() && file.exists()) {
-            throw new UnableToDeleteFileException(file);
+        if (!deleteFile(file)) {
+            failedPaths.add(file.getAbsolutePath());
         }
+    }
+
+    private boolean isRunGcOnFailedDelete() {
+        return OperatingSystem.current().isWindows();
+    }
+
+    private String buildHelpMessageForFailedDelete(File file, DeleteSpecInternal deleteSpec, Set<String> failedPaths) {
+
+        boolean isSymlink = fileSystem.isSymlink(file);
+        boolean isDirectory = file.isDirectory();
+
+        StringBuilder help = new StringBuilder("Unable to delete ");
+        if (isSymlink) {
+            help.append("symlink to ");
+        }
+        if (isDirectory) {
+            help.append("directory ");
+        } else {
+            help.append("file ");
+        }
+        help.append('\'').append(file).append('\'');
+
+        if (isDirectory && (deleteSpec.isFollowSymlinks() || !isSymlink)) {
+
+            String absolutePath = file.getAbsolutePath();
+            failedPaths.remove(absolutePath);
+            if (!failedPaths.isEmpty()) {
+                help.append("\n  Child paths failed to delete! Is something holding files in the target directory?");
+                for (String failed : failedPaths) {
+                    help.append("\n  - ").append(failed);
+                }
+            }
+
+            Collection<String> remainingPaths = listRemainingPaths(file);
+            remainingPaths.remove(absolutePath);
+            remainingPaths.removeAll(failedPaths);
+            if (!remainingPaths.isEmpty()) {
+                help.append("\n  More files were found after failure! Is something concurrently writing into the target directory?");
+                for (String remain : remainingPaths) {
+                    help.append("\n  - ").append(remain);
+                }
+            }
+        }
+        return help.toString();
+    }
+
+    private List<String> listRemainingPaths(File directory) {
+        Collection<File> files = FileUtils.listFiles(directory, null, true);
+        List<String> paths = new ArrayList<String>(files.size());
+        for (File file : files) {
+            paths.add(file.getAbsolutePath());
+        }
+        return paths;
     }
 }

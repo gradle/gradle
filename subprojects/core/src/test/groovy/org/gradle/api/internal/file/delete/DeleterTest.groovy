@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.delete
 
 import org.gradle.api.Action
 import org.gradle.api.file.DeleteSpec
+import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
@@ -25,6 +26,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 
@@ -171,6 +173,139 @@ class DeleterTest extends Specification {
 
         where:
         followSymlinks << [true, false]
+    }
+
+    @Unroll
+    def "report reasonable help message when failing to delete single #description"() {
+
+        given:
+        delete = new Deleter(resolver, fileSystem()) {
+            @Override
+            protected boolean deleteFile(File file) {
+                return false
+            }
+        }
+
+        and:
+        def target = isDirectory ? tmpDir.createDir("target") : tmpDir.createFile("target")
+        target = isSymlink ? tmpDir.file("link").tap { fileSystem().createSymbolicLink(delegate, target) } : target
+
+        when:
+        delete.delete(target)
+
+        then:
+        def ex = thrown UnableToDeleteFileException
+        ex.message == "Unable to delete $description '$target'"
+
+        where:
+        description            | isDirectory | isSymlink
+        "file"                 | false       | false
+        "directory"            | true        | false
+        "symlink to file"      | false       | true
+        "symlink to directory" | true        | true
+    }
+
+    def "report failed to delete child paths after failure to delete directory"() {
+        given:
+        def targetDir = tmpDir.createDir("target")
+        def nonDeletable = targetDir.createFile("delete.no")
+
+        and:
+        delete = new Deleter(resolver, fileSystem()) {
+            @Override
+            protected boolean deleteFile(File file) {
+                if (file.canonicalFile == nonDeletable.canonicalFile) {
+                    return false
+                }
+                return super.deleteFile(file)
+            }
+        }
+
+        when:
+        delete.delete(targetDir)
+
+        then:
+        targetDir.assertIsDir()
+        nonDeletable.assertIsFile()
+
+        and:
+        def ex = thrown UnableToDeleteFileException
+        ex.message == """
+            Unable to delete directory '$targetDir'
+              Child paths failed to delete! Is something holding files in the target directory?
+              - $nonDeletable
+        """.stripIndent().trim()
+    }
+
+    def "report new child paths after failure to delete directory"() {
+        given:
+        def targetDir = tmpDir.createDir("target")
+        def triggerFile = targetDir.createFile("zzz.txt")
+        def newFile = targetDir.file("aaa.txt")
+
+        and:
+        delete = new Deleter(resolver, fileSystem()) {
+            @Override
+            protected boolean deleteFile(File file) {
+                if (file.canonicalFile == triggerFile.canonicalFile) {
+                    newFile.text = ""
+                }
+                return super.deleteFile(file)
+            }
+        }
+
+        when:
+        delete.delete(targetDir)
+
+        then:
+        targetDir.assertIsDir()
+        triggerFile.assertDoesNotExist()
+        newFile.assertIsFile()
+
+        and:
+        def ex = thrown UnableToDeleteFileException
+        ex.message == """
+            Unable to delete directory '$targetDir'
+              More files were found after failure! Is something concurrently writing into the target directory?
+              - $newFile
+        """.stripIndent().trim()
+    }
+
+    def "report both failed to delete child paths and new child paths after failure to delete directory, deduplicated"() {
+        given:
+        def targetDir = tmpDir.createDir("target")
+        def nonDeletable = targetDir.createFile("delete.no")
+        def newFile = targetDir.file("aaa.txt")
+
+        and:
+        delete = new Deleter(resolver, fileSystem()) {
+            @Override
+            protected boolean deleteFile(File file) {
+                if (file.canonicalFile == nonDeletable.canonicalFile) {
+                    newFile.text = ""
+                    return false
+                }
+                return super.deleteFile(file)
+            }
+        }
+
+        when:
+        delete.delete(targetDir)
+
+        then:
+        targetDir.assertIsDir()
+        nonDeletable.assertIsFile()
+        newFile.assertIsFile()
+
+        and:
+        def ex = thrown UnableToDeleteFileException
+        ex.message == """
+            Unable to delete directory '$targetDir'
+              Child paths failed to delete! Is something holding files in the target directory?
+              - $nonDeletable
+              More files were found after failure! Is something concurrently writing into the target directory?
+              - $newFile
+        """.stripIndent().trim()
     }
 
     def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {

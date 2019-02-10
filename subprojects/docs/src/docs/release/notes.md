@@ -54,6 +54,12 @@ In this release, plugin authors can use the `ObjectFactory.fileCollection()` met
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
 
+## Better help message on delete operation failure
+
+The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide with a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and, concurrent writes.
+
+The help message now displays each failed path, handy to identify which process might be holing files, and also new paths found in a directory after failure, handy to spot concurrent writes.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
