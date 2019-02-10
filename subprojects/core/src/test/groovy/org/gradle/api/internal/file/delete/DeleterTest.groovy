@@ -149,6 +149,30 @@ class DeleterTest extends Specification {
         didWork
     }
 
+    @Unroll
+    def "does not follow symlink to a file when followSymlinks is #followSymlinks"() {
+        given:
+        def originalFile = tmpDir.createFile("originalFile", "keep.txt")
+        def link = new File(tmpDir.getTestDirectory(), "link")
+
+        when:
+        fileSystem().createSymbolicLink(link, originalFile)
+
+        then:
+        link.exists()
+
+        when:
+        boolean didWork = delete.delete(deleteAction(followSymlinks, link)).getDidWork()
+
+        then:
+        !link.exists()
+        originalFile.assertExists()
+        didWork
+
+        where:
+        followSymlinks << [true, false]
+    }
+
     def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {
         return new Action<DeleteSpec>() {
             @Override
