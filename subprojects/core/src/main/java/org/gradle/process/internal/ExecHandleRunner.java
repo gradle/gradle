@@ -23,6 +23,8 @@ import org.gradle.api.logging.Logging;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
+
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -79,7 +81,7 @@ public class ExecHandleRunner implements Runnable {
                 detached();
             } else {
                 int exitValue = process.waitFor();
-                streamsHandler.stop();
+                streamsHandler.disconnect(1, TimeUnit.SECONDS);
                 completed(exitValue);
             }
         } catch (Throwable t) {

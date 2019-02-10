@@ -38,6 +38,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -428,6 +429,12 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         public void stop() {
             outputHandler.stop();
             inputHandler.stop();
+        }
+
+        @Override
+        public void disconnect(long timeout, TimeUnit unit) {
+            outputHandler.disconnect(timeout, unit);
+            inputHandler.disconnect(timeout, unit);
         }
 
         @Override

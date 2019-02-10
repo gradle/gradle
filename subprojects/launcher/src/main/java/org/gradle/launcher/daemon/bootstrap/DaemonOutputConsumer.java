@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Scanner;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 public class DaemonOutputConsumer implements StreamsHandler {
 
@@ -72,6 +73,10 @@ public class DaemonOutputConsumer implements StreamsHandler {
     }
 
     public void stop() {
+    }
+
+    @Override
+    public void disconnect(long timeout, TimeUnit unit) {
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 public interface StreamsHandler extends Stoppable {
     /**
@@ -35,6 +36,11 @@ public interface StreamsHandler extends Stoppable {
      * Disconnects from the process without waiting for further work.
      */
     void disconnect();
+
+    /**
+     * Disconnects from the process after waiting specified timeout.
+     */
+    void disconnect(long timeout, TimeUnit unit);
 
     /**
      * Stops doing work with the process's streams. Should block until no further asynchronous work is happening on the streams.
