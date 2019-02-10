@@ -44,13 +44,19 @@ open class DetermineBaselines : DefaultTask() {
         if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
             determinedBaselines.set(defaultBaseline)
         } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
-            determinedBaselines.set(currentCommitBaseline())
+            determinedBaselines.set(determineFlakinessDetectionBaseline())
         } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(configuredBaselines)
         }
     }
+
+    private
+    fun determineFlakinessDetectionBaseline() = if (isWorker()) currentCommitBaseline() else flakinessDetectionCommitBaseline
+
+    private
+    fun isWorker() = System.getenv("BUILD_TYPE_ID") == "Gradle_Check_IndividualPerformanceScenarioWorkersLinux"
 
     private
     fun currentBranchIsMasterOrRelease() = project.determineCurrentBranch() in listOf("master", "release")
