@@ -69,11 +69,13 @@ public class ForwardStdinStreamsHandler implements StreamsHandler {
     @Override
     public void disconnect(long timeout, TimeUnit unit) {
         try {
-            completed.await(timeout, unit);
+            boolean gracefulExit = completed.await(timeout, unit);
+            if (!gracefulExit) {
+                disconnect();
+            }
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        disconnect();
     }
 
     @Override

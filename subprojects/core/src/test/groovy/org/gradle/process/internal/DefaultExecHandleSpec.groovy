@@ -31,6 +31,7 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 
 @UsesNativeServices
 @Timeout(60)
@@ -401,7 +402,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         result.rethrowFailure()
         1 * streamsHandler.connectStreams(_ as Process, "foo proc", _ as Executor)
         1 * streamsHandler.start()
-        1 * streamsHandler.stop()
+        1 * streamsHandler.disconnect(1, TimeUnit.SECONDS)
         0 * streamsHandler._
     }
 
