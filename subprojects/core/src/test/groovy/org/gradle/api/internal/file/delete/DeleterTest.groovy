@@ -20,6 +20,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -29,6 +30,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
+import static org.gradle.util.TextUtil.normaliseLineSeparators
+import static org.junit.Assume.assumeTrue
 
 class DeleterTest extends Specification {
     static final boolean FOLLOW_SYMLINKS = true;
@@ -152,6 +155,7 @@ class DeleterTest extends Specification {
     }
 
     @Unroll
+    @Requires([TestPrecondition.SYMLINKS])
     def "does not follow symlink to a file when followSymlinks is #followSymlinks"() {
         given:
         def originalFile = tmpDir.createFile("originalFile", "keep.txt")
@@ -177,6 +181,10 @@ class DeleterTest extends Specification {
 
     @Unroll
     def "reports reasonable help message when failing to delete single #description"() {
+
+        if (isSymlink) {
+            assumeTrue(TestPrecondition.SYMLINKS.isFulfilled())
+        }
 
         given:
         delete = new Deleter(resolver, fileSystem()) {
@@ -233,7 +241,7 @@ class DeleterTest extends Specification {
 
         and:
         def ex = thrown UnableToDeleteFileException
-        ex.message == """
+        normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               Child files failed to delete! Is something holding files in the target directory?
               - $nonDeletable
@@ -253,6 +261,7 @@ class DeleterTest extends Specification {
             protected boolean deleteFile(File file) {
                 if (file.canonicalFile == triggerFile.canonicalFile) {
                     newFile.text = ""
+                    newFile.setLastModified(Time.currentTimeMillis() + 1)
                 }
                 return super.deleteFile(file)
             }
@@ -268,7 +277,7 @@ class DeleterTest extends Specification {
 
         and:
         def ex = thrown UnableToDeleteFileException
-        ex.message == """
+        normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               New files were found after failure! Is something concurrently writing into the target directory?
               - $newFile
@@ -303,7 +312,7 @@ class DeleterTest extends Specification {
 
         and:
         def ex = thrown UnableToDeleteFileException
-        ex.message == """
+        normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
               Child files failed to delete! Is something holding files in the target directory?
               - $nonDeletable
@@ -344,18 +353,19 @@ class DeleterTest extends Specification {
 
         and: 'the report size is capped'
         def ex = thrown UnableToDeleteFileException
-        ex.message.startsWith("""
+        def normalizedMessage = normaliseLineSeparators(ex.message)
+        normalizedMessage.startsWith("""
             Unable to delete directory '$targetDir'
               Child files failed to delete! Is something holding files in the target directory?
-              - $targetDir/zzz-
+              - $targetDir${File.separator}zzz-
         """.stripIndent().trim())
-        ex.message.contains("-zzz.txt\n  " + """
+        normalizedMessage.contains("-zzz.txt\n  " + """
               - and more ...
               New files were found after failure! Is something concurrently writing into the target directory?
-              - $targetDir/aaa-
+              - $targetDir${File.separator}aaa-
         """.stripIndent(12).trim())
-        ex.message.endsWith("-aaa.txt\n  - and more ...")
-        ex.message.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
+        normalizedMessage.endsWith("-aaa.txt\n  - and more ...")
+        normalizedMessage.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
     }
 
     def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {
