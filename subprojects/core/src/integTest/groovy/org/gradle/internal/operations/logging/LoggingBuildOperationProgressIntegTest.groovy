@@ -19,6 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.StyledTextBuildOperationProgressDetails
@@ -61,8 +62,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
 
         file("build.gradle") << """
-            import java.util.concurrent.CountDownLatch
-
             apply plugin: 'java'
     
             repositories {
@@ -75,14 +74,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             
             jar.doLast {
                 println 'from jar task'
-            }
-            
-            classes.doLast {
-                CountDownLatch latch = new CountDownLatch(1);
-
-                def t = new Thread({ println 'from classes task external thread'; latch.countDown(); } as Runnable)
-                t.start()  // Output: hello
-                latch.await();
             }
         
             task resolve {
@@ -148,13 +139,65 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         operations.parentsOf(downloadEvent).find {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
+    }
+
+    def "captures threaded output sources with context"() {
+        given:
+        executer.requireOwnGradleUserHomeDir()
+        settingsFile << """
+            rootProject.name = 'root'
+            10.times {
+                include "project-\${it}"
+            }
+        """
+        file("build.gradle") << """
+            import java.util.concurrent.CountDownLatch
+            
+            subprojects {
+                10.times {
+                    task("myTask\$it") { tsk ->
+                        doLast {
+                            threaded {
+                                logger.lifecycle("from \${tsk.path} task external thread")
+                            }
+                        }
+                    }
+                }
+                task all(dependsOn: tasks.matching{it.name.startsWith('myTask')})
+            }
+            
+            
+            threaded {
+                println("threaded configuration output")
+            }
+            
+            def threaded(Closure action) {
+                CountDownLatch latch = new CountDownLatch(1);
+                def t = new Thread({ action.call(); latch.countDown(); } as Runnable)
+                t.start() 
+                latch.await();
+            }
+        """
+
+        when:
+        succeeds("all")
+
+        then:
+        10.times {  projectCount ->
+            10.times { taskCount ->
+                def taskExecutionOp = operations.only("Task :project-${projectCount}:myTask$taskCount")
+                def classesTaskProgresses = taskExecutionOp.progress
+                def threadedTaskLoggingProgress = classesTaskProgresses.find { it.detailsType == LogEvent && it.details.message == "from :project-${projectCount}:myTask$taskCount task external thread" }
+                assert threadedTaskLoggingProgress.details.logLevel == 'LIFECYCLE'
+            }
+        }
 
         def runBuildProgress = operations.only('Run build').progress
-        def threadedProgress = runBuildProgress.find { it.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}" }
-        threadedProgress.details.category == 'system.out'
-        threadedProgress.details.spans.size == 1
-        threadedProgress.details.spans[0].styleName == 'Normal'
-        threadedProgress.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}"
+        def threadedConfigurationProgress = runBuildProgress.find { it.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}" }
+        threadedConfigurationProgress.details.category == 'system.out'
+        threadedConfigurationProgress.details.spans.size == 1
+        threadedConfigurationProgress.details.spans[0].styleName == 'Normal'
+        threadedConfigurationProgress.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}"
     }
 
     def "captures output from buildSrc"() {
@@ -364,7 +407,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assert nestedTaskProgress[0].details.spans[0].text == "foo println${getPlatformLineSeparator()}"
 
         assert nestedTaskProgress[1].details.logLevel == 'LIFECYCLE'
-        assert nestedTaskProgress[1].details.category == 'org.gradle.api.Task'
+        assert nestedTaskProgress[1].details.category == "org.gradle.api.Task"
         assert nestedTaskProgress[1].details.message == 'foo from logger'
     }
 
