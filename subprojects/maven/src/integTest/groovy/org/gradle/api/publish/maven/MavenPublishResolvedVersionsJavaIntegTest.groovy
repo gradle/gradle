@@ -447,6 +447,54 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
     }
 
+    def "can published resolved version for legacy configurations"() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                compile "org.test:foo:+"
+                runtime "org.test:bar:+"
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.test:bar:1.1") {
+                exists()
+            }
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        javaLibrary.parsedPom.scopes["compile"].assertDependsOn("org.test:foo:1.0")
+        javaLibrary.parsedPom.scopes["runtime"].assertDependsOn("org.test:bar:1.1")
+    }
+
     private static String allVariants() {
         " allVariants { fromResolutionResult() } "
     }
