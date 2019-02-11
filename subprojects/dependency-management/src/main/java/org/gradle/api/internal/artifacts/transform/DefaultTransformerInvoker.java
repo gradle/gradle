@@ -252,7 +252,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
+            ImmutableList<File> result = transformer.transform(primaryInput, outputDir, dependencies);
             writeResultsFile(outputDir, resultsFile, result);
             return ExecutionOutcome.EXECUTED;
         }
