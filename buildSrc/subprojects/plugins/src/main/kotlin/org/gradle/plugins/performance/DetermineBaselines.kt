@@ -55,6 +55,12 @@ open class DetermineBaselines(isDistributed: Boolean) : DefaultTask() {
         }
     }
 
+    /**
+     * Coordinator build doesn't resolve to real commit version, they just pass "flakiness-detection-commit" as it is to worker build
+     * "flakiness-detection-commit" is resolved to real commit id in worker build to disable build cache.
+     *
+     * @see PerformanceTest#NON_CACHEABLE_VERSIONS
+     */
     private
     fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
