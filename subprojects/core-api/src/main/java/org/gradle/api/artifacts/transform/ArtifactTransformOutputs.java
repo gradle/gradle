@@ -26,8 +26,7 @@ import java.io.File;
  *
  * <p>
  *     The final output of the artifact transform is an ordered list of {@link File}s.
- *     In the variant produced by this transform, each artifact will be replaced by the final output of the transform executed on the artifact.
- *     This is why the order of calls to output registering methods on this interface is important.
+ *     The registered output {@link File}s will appear in the transformed variant in the order they were registered.
  * </p>
  *
  * @since 5.3
@@ -37,10 +36,7 @@ import java.io.File;
 public interface ArtifactTransformOutputs {
     /**
      * Registers an output directory.
-     *
-     * <p>
-     *     The path is resolved relative to the provided workspace of the artifact transform.
-     * </p>
+     * For a relative path, a location for the output directory is provided.
      *
      * @param path path of the output directory
      * @return determined location of the output
@@ -49,10 +45,7 @@ public interface ArtifactTransformOutputs {
 
     /**
      * Registers an output file.
-     *
-     * <p>
-     *     The path is resolved relative to the provided workspace of the artifact transform.
-     * </p>
+     * For a relative path, a location for the output file is provided.
      *
      * @param path path of the output directory
      * @return determined location of the output
