@@ -61,8 +61,7 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
     private
     fun mockGradleApiMetadataModule() =
         withZip("gradle-api-metadata-0.jar", sequenceOf(
-            "gradle-api-declaration.properties" to "includes=\nexcludes=\n".toByteArray(),
-            "gradle-api-parameter-names.properties" to "".toByteArray())
+            "gradle-api-declaration.properties" to "includes=\nexcludes=\n".toByteArray())
         ).let { jar ->
             mock<Module> { on { classpath } doReturn DefaultClassPath.of(listOf(jar)) }
         }

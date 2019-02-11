@@ -180,9 +180,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
             assert apiDeclaration.size() == 2
             assert apiDeclaration.getProperty("includes").contains(":org/gradle/api/**:")
             assert apiDeclaration.getProperty("excludes").split(":").size() == 1
-            def parameterNames = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-parameter-names.properties")))
-            assert parameterNames.size() > 2900
-            assert parameterNames["org.gradle.api.DomainObjectCollection.withType(java.lang.Class,org.gradle.api.Action)"] == "type,configureAction"
         }
     }
 }
