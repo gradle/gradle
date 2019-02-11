@@ -17,13 +17,20 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
+import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
@@ -32,11 +39,17 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultTransformationRegistrationFactory implements TransformationRegistrationFactory {
 
@@ -47,6 +60,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker propertyWalker;
     private final DomainObjectProjectStateHandler domainObjectProjectStateHandler;
+    private final TypeMetadataStore actionMetadataStore;
+    private final InstantiationScheme instantiationScheme;
 
     public DefaultTransformationRegistrationFactory(
         IsolatableFactory isolatableFactory,
@@ -54,29 +69,41 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         InstantiatorFactory instantiatorFactory,
         TransformerInvoker transformerInvoker,
         ValueSnapshotter valueSnapshotter,
-        InspectionSchemeFactory inspectionSchemeFactory, DomainObjectProjectStateHandler domainObjectProjectStateHandler
+        InspectionSchemeFactory inspectionSchemeFactory,
+        DomainObjectProjectStateHandler domainObjectProjectStateHandler
     ) {
         this.isolatableFactory = isolatableFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.instantiatorFactory = instantiatorFactory;
         this.transformerInvoker = transformerInvoker;
         this.valueSnapshotter = valueSnapshotter;
+        this.instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class));
         this.propertyWalker = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, Classpath.class, CompileClasspath.class, Nested.class)).getPropertyWalker();
         this.domainObjectProjectStateHandler = domainObjectProjectStateHandler;
+        this.actionMetadataStore = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).getMetadataStore();
     }
 
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject) {
+        List<String> validationMessages = new ArrayList<>();
+        TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
+        actionMetadata.collectValidationFailures(null, new DefaultParameterValidationContext(validationMessages));
+        if (!validationMessages.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
+                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
+        }
+
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
-            instantiatorFactory,
             from,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,
             propertyWalker,
-            domainObjectProjectStateHandler);
+            domainObjectProjectStateHandler,
+            instantiationScheme);
 
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }

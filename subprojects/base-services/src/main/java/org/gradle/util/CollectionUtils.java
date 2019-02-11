@@ -438,7 +438,7 @@ public abstract class CollectionUtils {
      * @param <T> The element type of t1
      * @return t1
      */
-    public static <T> Collection<T> addAll(Collection<T> t1, Iterable<? extends T> t2) {
+    public static <T, C extends Collection<? super T>> C addAll(C t1, Iterable<? extends T> t2) {
         for (T t : t2) {
             t1.add(t);
         }
@@ -453,7 +453,7 @@ public abstract class CollectionUtils {
      * @param <T> The element type of t1
      * @return t1
      */
-    public static <T> Collection<T> addAll(Collection<T> t1, T... t2) {
+    public static <T, C extends Collection<? super T>> C addAll(C t1, T... t2) {
         Collections.addAll(t1, t2);
         return t1;
     }

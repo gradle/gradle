@@ -71,7 +71,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file("second")).withTasks("wrapper").run()
 
         then: "the checksum should be constant (unless there are code changes)"
-        sha256(file("first/gradle/wrapper/gradle-wrapper.jar")).asHexString() == "372ef28e56755b074af00b3d1e615efc695ae881fedce8eb398c583d534bdf4"
+        sha256(file("first/gradle/wrapper/gradle-wrapper.jar")).asHexString() == "7b9a14d31f0cfbc1a5587e0d77d8a0a9baa8f1db4382d64406d53a7a6a5e5e01"
 
         and:
         file("first/gradle/wrapper/gradle-wrapper.jar").md5Hash == file("second/gradle/wrapper/gradle-wrapper.jar").md5Hash

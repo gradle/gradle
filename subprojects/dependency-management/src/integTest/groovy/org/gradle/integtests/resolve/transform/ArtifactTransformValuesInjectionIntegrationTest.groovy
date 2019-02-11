@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.transform.PrimaryInputDependencies
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Destroys
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
@@ -134,8 +137,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
-        failure.assertHasCause("Property 'extension' is not annotated with an input or output annotation.")
-        failure.assertHasCause("Property 'outputDir' is not annotated with an input or output annotation.")
+        failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
+        failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
     }
 
@@ -183,7 +186,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.')
-        failure.assertHasCause("Property 'bad' is not annotated with an input or output annotation.")
+        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
@@ -237,6 +240,107 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         where:
         annotation << [PrimaryInput, PrimaryInputDependencies, TransformParameters]
+    }
+
+    def "transform action is validated for input output annotations"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                String getExtension()
+                void setExtension(String value)
+            }
+            
+            abstract class MakeGreenAction implements ArtifactTransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                
+                @InputFile
+                File inputFile 
+                
+                File notAnnotated 
+
+                @InputFile @PrimaryInput @PrimaryInputDependencies
+                File getConflictingAnnotations() { } 
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('Some problems were found with the configuration of MakeGreenAction.')
+        failure.assertHasCause("Property 'conflictingAnnotations' is annotated with unsupported annotation @InputFile.")
+        failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @PrimaryInput, @PrimaryInputDependencies.")
+        failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
+        failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
+    }
+
+    @Unroll
+    def "transform action type cannot use annotation @#annotation.simpleName"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            def makeGreenParameters(project, params) {
+                params.extension = 'green'
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @TransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                String getExtension()
+                void setExtension(String value)
+            }
+            
+            abstract class MakeGreenAction implements ArtifactTransformAction {
+                @${annotation.simpleName}
+                String getBad() { }
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreenAction.')
+        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
+
+        where:
+        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
     @Unroll
@@ -357,19 +461,15 @@ abstract class MakeGreen extends ArtifactTransform {
                 void setExtension(String value)
             }
             
-            class MakeGreenAction extends ArtifactTransform {
-                MakeGreen conf
+            class MakeGreenAction implements ArtifactTransformAction {
+                private MakeGreen conf
                 
                 @Inject
                 MakeGreenAction(MakeGreen conf) {
                     this.conf = conf
                 }
                 
-                List<File> transform(File input) {
-                    println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + "." + conf.extension)
-                    output.text = "ok"
-                    return [output]
+                void transform(ArtifactTransformOutputs outputs) {
                 }
             }
 """

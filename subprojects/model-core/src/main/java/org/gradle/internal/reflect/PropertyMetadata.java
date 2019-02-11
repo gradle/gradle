@@ -19,7 +19,6 @@ package org.gradle.internal.reflect;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.List;
 
 public interface PropertyMetadata {
     String getPropertyName();
@@ -29,9 +28,6 @@ public interface PropertyMetadata {
     @Nullable
     <A extends Annotation> A getAnnotation(Class<A> annotationType);
 
-    List<String> getValidationMessages();
-
-    @Nullable
     Class<? extends Annotation> getPropertyType();
 
     Class<?> getDeclaredType();

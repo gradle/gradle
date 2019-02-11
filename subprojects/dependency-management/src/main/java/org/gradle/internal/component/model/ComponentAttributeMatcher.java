@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A stateless attribute matcher, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
+ * An attribute matcher, which optimizes for the case of only comparing 0 or 1 candidates and delegates to {@link MultipleCandidateMatcher} for all other cases.
  */
 public class ComponentAttributeMatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentAttributeMatcher.class);
@@ -130,6 +130,8 @@ public class ComponentAttributeMatcher {
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
         CachedQuery query = CachedQuery.of(schema, requestedAttributes, candidates);
+        // Copy to local variable because the component attribute matcher can be accessed concurrently
+        CachedQuery lastQuery = this.lastQuery;
         if (query.equals(lastQuery)) {
             return lastQuery.select(candidates);
         }
@@ -141,6 +143,7 @@ public class ComponentAttributeMatcher {
         return matches;
     }
 
+    // in theory we don't need the synchronized here, but let's be safer in the beginning
     private synchronized <T extends HasAttributes> void cacheMatchingResult(Collection<? extends T> candidates, CachedQuery query, List<T> matches) {
         int[] queryResult;
         if (matches.isEmpty()) {

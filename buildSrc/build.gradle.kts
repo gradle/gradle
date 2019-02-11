@@ -190,7 +190,6 @@ fun Project.applyGroovyProjectConventions() {
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
         }
-        
     }
 
     val compileGroovy by tasks.existing(GroovyCompile::class)

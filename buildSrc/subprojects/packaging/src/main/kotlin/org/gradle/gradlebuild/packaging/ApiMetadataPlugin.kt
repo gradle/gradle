@@ -18,8 +18,6 @@ package org.gradle.gradlebuild.packaging
 
 import accessors.sourceSets
 
-import build.ParameterNamesIndex
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.WriteProperties
@@ -45,18 +43,9 @@ open class ApiMetadataPlugin : Plugin<Project> {
             outputFile = generatedPropertiesFileFor(apiDeclarationFilename).get().asFile
         }
 
-        val apiParameterNames by tasks.registering(ParameterNamesIndex::class) {
-            sources.from(extension.sources.asFileTree.matching {
-                include(extension.includes.get())
-                exclude(extension.excludes.get())
-            })
-            destinationFile.set(generatedPropertiesFileFor(apiParametersFilename))
-        }
-
         sourceSets {
             "main" {
                 output.dir(generatedDirFor(apiDeclarationFilename), "builtBy" to apiDeclaration)
-                output.dir(generatedDirFor(apiParametersFilename), "builtBy" to apiParameterNames)
             }
         }
     }
@@ -71,7 +60,4 @@ open class ApiMetadataPlugin : Plugin<Project> {
 
     private
     val apiDeclarationFilename = "gradle-api-declaration"
-
-    private
-    val apiParametersFilename = "gradle-api-parameter-names"
 }

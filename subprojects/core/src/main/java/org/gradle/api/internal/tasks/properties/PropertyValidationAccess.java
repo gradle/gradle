@@ -35,6 +35,7 @@ import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -46,7 +47,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
 import java.util.List;
@@ -169,24 +169,18 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            for (PropertyMetadata propertyMetadata : getTypeMetadata().getPropertiesMetadata()) {
+        public void visit(final Class<?> topLevelBean, boolean stricterValidation, final Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+            TypeMetadata typeMetadata = getTypeMetadata();
+            ParameterValidationContext validationContext = new CollectingParameterValidationContext(topLevelBean, problems);
+            typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
+            for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
-                for (String validationMessage : propertyMetadata.getValidationMessages()) {
-                    problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
-                }
                 Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
-                if (propertyType == null) {
-                    if (!Modifier.isPrivate(propertyMetadata.getGetterMethod().getModifiers())) {
-                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, "is not annotated with an input or output annotation"), Boolean.FALSE);
-                    }
-                    continue;
-                }
                 PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
                     String validationMessage = validator.validate(stricterValidation, propertyMetadata);
                     if (validationMessage != null) {
-                        problems.put(propertyValidationMessage(topLevelBean, qualifiedPropertyName, validationMessage), Boolean.FALSE);
+                        validationContext.recordValidationMessage(null, propertyMetadata.getPropertyName(), validationMessage);
                     }
                 }
                 if (propertyMetadata.isAnnotationPresent(Nested.class)) {
@@ -205,8 +199,24 @@ public class PropertyValidationAccess {
             return genericReturnType;
         }
 
-        private static String propertyValidationMessage(Class<?> task, String qualifiedPropertyName, String validationMessage) {
-            return String.format("Task type '%s': property '%s' %s.", task.getName(), qualifiedPropertyName, validationMessage);
+        private class CollectingParameterValidationContext implements ParameterValidationContext {
+            private final Class<?> topLevelBean;
+            private final Map<String, Boolean> problems;
+
+            public CollectingParameterValidationContext(Class<?> topLevelBean, Map<String, Boolean> problems) {
+                this.topLevelBean = topLevelBean;
+                this.problems = problems;
+            }
+
+            @Override
+            public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
+                recordValidationMessage(String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message));
+            }
+
+            @Override
+            public void recordValidationMessage(String message) {
+                problems.put(message, Boolean.FALSE);
+            }
         }
     }
 

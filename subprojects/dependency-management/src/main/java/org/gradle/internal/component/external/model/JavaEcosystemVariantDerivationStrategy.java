@@ -80,38 +80,4 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
         return metadata;
     }
 
-    private static class DefaultShadowedCapability implements ShadowedCapability {
-        private final CapabilityInternal shadowed;
-        private final String appendix;
-
-        private DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
-            this.shadowed = shadowed;
-            this.appendix = appendix;
-        }
-
-        @Override
-        public CapabilityInternal getShadowedCapability() {
-            return shadowed;
-        }
-
-        @Override
-        public String getGroup() {
-            return shadowed.getGroup();
-        }
-
-        @Override
-        public String getName() {
-            return shadowed.getName() + appendix;
-        }
-
-        @Override
-        public String getVersion() {
-            return shadowed.getVersion();
-        }
-
-        @Override
-        public String getCapabilityId() {
-            return shadowed.getCapabilityId() + appendix;
-        }
-    }
 }
