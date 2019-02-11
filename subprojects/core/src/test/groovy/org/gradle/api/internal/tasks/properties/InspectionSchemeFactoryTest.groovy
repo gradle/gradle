@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.tasks.properties
 
+
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Specification
 
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
 
 class InspectionSchemeFactoryTest extends Specification {
     def handler1 = handler(Thing1)
@@ -31,6 +34,9 @@ class InspectionSchemeFactoryTest extends Specification {
 
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
+        def problems = []
+        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
+        problems.empty
         metadata.propertiesMetadata.size() == 2
     }
 
@@ -44,7 +50,7 @@ class InspectionSchemeFactoryTest extends Specification {
 
     def handler(Class<?> annotation) {
         def handler = Stub(PropertyAnnotationHandler)
-        handler.annotationType >> annotation
+        _ * handler.annotationType >> annotation
         return handler
     }
 }
@@ -57,8 +63,10 @@ class AnnotatedBean {
     String prop2
 }
 
+@Retention(RetentionPolicy.RUNTIME)
 @interface Thing1 {
 }
 
+@Retention(RetentionPolicy.RUNTIME)
 @interface Thing2 {
 }

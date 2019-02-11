@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.PrimaryInput;
@@ -27,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstanceFactory;
-import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
@@ -44,10 +43,10 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, Isolatable<?> parameterObject, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, Isolatable<?> parameterObject, HashCode inputsHash, InstantiationScheme instantiationScheme, ImmutableAttributes fromAttributes) {
         super(implementationClass, inputsHash, fromAttributes);
         this.parameterObject = parameterObject;
-        this.instanceFactory = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class)).forType(implementationClass);
+        this.instanceFactory = instantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
     }
 

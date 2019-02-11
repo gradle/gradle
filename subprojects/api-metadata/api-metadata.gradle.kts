@@ -11,7 +11,6 @@ gradlebuildJava {
 }
 
 apiMetadata {
-    sources.from({ publicJavaProjects.map { it.sourceSets.main.get().allJava } })
     includes.addAll(PublicApi.includes)
     excludes.addAll(PublicApi.excludes)
 }

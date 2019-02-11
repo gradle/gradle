@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.properties.ParameterValidationContext;
+import org.gradle.internal.reflect.ParameterValidationContext;
 
 public interface TaskValidationContext extends ParameterValidationContext {
     FileResolver getResolver();

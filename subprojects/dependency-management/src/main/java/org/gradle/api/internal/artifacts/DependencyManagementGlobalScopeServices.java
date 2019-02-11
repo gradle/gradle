@@ -33,6 +33,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.instantiation.DefaultInjectAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -103,4 +105,15 @@ class DependencyManagementGlobalScopeServices {
         return new DefaultInjectAnnotationHandler(TransformParameters.class);
     }
 
+    PropertyAnnotationHandler createPrimaryInputPropertyAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(PrimaryInput.class);
+    }
+
+    PropertyAnnotationHandler createPrimaryInputDependenciesPropertyAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(PrimaryInputDependencies.class);
+    }
+
+    PropertyAnnotationHandler createTransformParametersPropertyAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(TransformParameters.class);
+    }
 }
