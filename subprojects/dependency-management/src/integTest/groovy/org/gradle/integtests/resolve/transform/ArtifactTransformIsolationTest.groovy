@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
@@ -28,6 +30,7 @@ class ArtifactTransformIsolationTest extends AbstractHttpDependencyResolutionTes
         """
 
         buildFile << """
+import javax.inject.Inject
 
 def artifactType = Attribute.of('artifactType', String)
 
@@ -43,38 +46,202 @@ class Counter implements Serializable {
     }
 }
 
-public class CountRecorder extends ArtifactTransform {
-    private final Counter counter;
-    
-    @javax.inject.Inject
-    public CountRecorder(Counter counter) {
-        this.counter = counter
-        println "Creating CountRecorder"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.withWriter { out ->
-            out.println String.valueOf(counter.getCount())
-            for (int i = 0; i < 4; i++) {
-                out.println String.valueOf(counter.increment())
-            }
-            out.close()
+class Resolve extends Copy {
+
+    @Internal
+    ArtifactCollection artifacts
+    @Internal
+    final artifactType = Attribute.of('artifactType', String)
+    private final ConfigurableFileCollection artifactFiles
+    @Internal
+    Configuration compileConfiguration
+
+    @Inject
+    Resolve(ObjectFactory objectFactory) {
+        artifactFiles = objectFactory.fileCollection()
+        from(artifactFiles)
+        doLast {
+            println "files: " + artifacts.collect { it.file.name }
+            println "ids: " + artifacts.collect { it.id }
+            println "components: " + artifacts.collect { it.id.componentIdentifier }
+            println "variants: " + artifacts.collect { it.variant.attributes }
         }
-        return [output]
+    }
+
+    void setArtifactTypeAttribute(String artifactTypeAttribute) {
+        artifacts = compileConfiguration.incoming.artifactView {
+            attributes { it.attribute(artifactType, artifactTypeAttribute) }
+        }.artifacts
+        artifactFiles.setFrom(artifacts.artifactFiles)
     }
 }
 """
     }
 
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "serialized mutable class is isolated during artifact transformation"() {
-        def m1 = mavenRepo.module("test", "test", "1.3").publish()
-        def m2 = mavenRepo.module("test", "test2", "2.3").publish()
+        mavenRepo.module("test", "test", "1.3").publish()
+        mavenRepo.module("test", "test2", "2.3").publish()
 
         given:
         buildFile << """
+            @TransformAction(CountRecorderAction)
+            interface CountRecorder {
+                @Input
+                Counter getCounter()
+                void setCounter(Counter counter)
+            }
+
+            abstract class CountRecorderAction implements ArtifactTransformAction {
+                private final Counter counter;
+                            
+                @TransformParameters
+                abstract CountRecorder getParameters()                  
+
+                @PrimaryInput
+                abstract File getInput()
+
+                CountRecorderAction() {
+                    println "Creating CountRecorder"
+                }
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    def output = outputs.file(input.name + ".txt")
+                    def counter = parameters.counter
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.withWriter { out ->
+                        out.println String.valueOf(counter.getCount())
+                        for (int i = 0; i < 4; i++) {
+                            out.println String.valueOf(counter.increment())
+                        }
+                        out.close()
+                    }
+                }
+            }
+
+            def buildScriptCounter = new Counter()
+
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            
+            configurations {
+                compile
+            }
+            
+            dependencies {
+                compile 'test:test:1.3'
+                compile 'test:test2:2.3'
+            }
+            
+            dependencies {
+                registerTransform(CountRecorder) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'firstCount')
+                    parameters {
+                        counter = buildScriptCounter
+                    }
+                }
+                buildScriptCounter.increment()
+                registerTransform(CountRecorder) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'secondCount')
+                    parameters {
+                        counter = buildScriptCounter
+                    }
+                }
+                registerTransform(CountRecorder) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'thirdCount')
+                    parameters {
+                        counter = buildScriptCounter
+                    }
+                }
+            }
+
+            tasks.withType(Resolve).configureEach {
+                compileConfiguration = configurations.compile
+                doLast {
+                    buildScriptCounter.increment()
+                }
+            }
+
+            task resolveFirst(type: Resolve) {
+                artifactTypeAttribute = 'firstCount'
+                into "\${buildDir}/libs1"
+            }
+            
+            task resolveSecond(type: Resolve) {
+                artifactTypeAttribute = 'secondCount'
+                into "\${buildDir}/libs2"
+            }
+
+            task resolveThird(type: Resolve) {
+                artifactTypeAttribute = 'thirdCount'
+                into "\${buildDir}/libs3"
+            }
+            
+            task resolve dependsOn 'resolveFirst', 'resolveSecond', 'resolveThird'
+        """
+
+        when:
+        run 'resolve', '--max-workers=1'
+
+        then:
+        outputContains("variants: [{artifactType=firstCount}, {artifactType=firstCount}]")
+        file("build/libs1").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs1/test-1.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+        file("build/libs1/test2-2.3.jar.txt").readLines() == ["1", "2", "3", "4", "5"]
+
+        and:
+        outputContains("variants: [{artifactType=secondCount}, {artifactType=secondCount}]")
+        file("build/libs2").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs2/test-1.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+        file("build/libs2/test2-2.3.jar.txt").readLines() == ["2", "3", "4", "5", "6"]
+
+        and:
+        outputContains("variants: [{artifactType=thirdCount}, {artifactType=thirdCount}]")
+        file("build/libs3").assertHasDescendants("test-1.3.jar.txt", "test2-2.3.jar.txt")
+        file("build/libs3/test-1.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+        file("build/libs3/test2-2.3.jar.txt").readLines() == ["3", "4", "5", "6", "7"]
+
+        and:
+        output.count("Transforming") == 6
+        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 3
+        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 3
+    }
+
+    def "serialized mutable class is isolated during legacy artifact transformation"() {
+        mavenRepo.module("test", "test", "1.3").publish()
+         mavenRepo.module("test", "test2", "2.3").publish()
+
+        given:
+        buildFile << """
+
+            public class CountRecorder extends ArtifactTransform {
+                private final Counter counter;
+                
+                @Inject
+                public CountRecorder(Counter counter) {
+                    this.counter = counter
+                    println "Creating CountRecorder"
+                }
+                
+                List<File> transform(File input) {
+                    assert outputDirectory.directory && outputDirectory.list().length == 0
+                    def output = new File(outputDirectory, input.name + ".txt")
+                    println "Transforming \${input.name} to \${output.name}"
+                    output.withWriter { out ->
+                        out.println String.valueOf(counter.getCount())
+                        for (int i = 0; i < 4; i++) {
+                            out.println String.valueOf(counter.increment())
+                        }
+                        out.close()
+                    }
+                    return [output]
+                }
+            }
+
             def counter = new Counter()
 
             repositories {
@@ -110,19 +277,13 @@ public class CountRecorder extends ArtifactTransform {
                 }
             }
 
-            task resolveFirst(type: Copy) {
-                def first = configurations.compile.incoming.artifactView {
-                    attributes { it.attribute(artifactType, 'firstCount') }
-                }.artifacts
-                from first.artifactFiles
+            tasks.withType(Resolve).configureEach {
+                compileConfiguration = configurations.compile
+            }
+
+            task resolveFirst(type: Resolve) {
+                artifactTypeAttribute = 'firstCount'
                 into "\${buildDir}/libs1"
-                
-                doLast {
-                    println "files: " + first.collect { it.file.name }
-                    println "ids: " + first.collect { it.id }
-                    println "components: " + first.collect { it.id.componentIdentifier }
-                    println "variants: " + first.collect { it.variant.attributes }
-                }
             }
             
             task increment {
@@ -132,34 +293,14 @@ public class CountRecorder extends ArtifactTransform {
                 }
             }
 
-            task resolveSecond(type: Copy) {
-                def second = configurations.compile.incoming.artifactView {
-                    attributes { it.attribute(artifactType, 'secondCount') }
-                }.artifacts
-                from second.artifactFiles
+            task resolveSecond(type: Resolve) {
+                artifactTypeAttribute = 'secondCount'
                 into "\${buildDir}/libs2"
-                
-                doLast {
-                    println "files: " + second.collect { it.file.name }
-                    println "ids: " + second.collect { it.id }
-                    println "components: " + second.collect { it.id.componentIdentifier }
-                    println "variants: " + second.collect { it.variant.attributes }
-                }
             }
 
-            task resolveThird(type: Copy) {
-                def third = configurations.compile.incoming.artifactView {
-                    attributes { it.attribute(artifactType, 'thirdCount') }
-                }.artifacts
-                from third.artifactFiles
+            task resolveThird(type: Resolve) {
+                artifactTypeAttribute = 'thirdCount'
                 into "\${buildDir}/libs3"
-                
-                doLast {
-                    println "files: " + third.collect { it.file.name }
-                    println "ids: " + third.collect { it.id }
-                    println "components: " + third.collect { it.id.componentIdentifier }
-                    println "variants: " + third.collect { it.variant.attributes }
-                }
             }
             
             task resolve dependsOn 'resolveFirst', 'increment', 'resolveSecond', 'resolveThird'

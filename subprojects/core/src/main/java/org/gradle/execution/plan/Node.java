@@ -219,6 +219,8 @@ public abstract class Node implements Comparable<Node> {
 
     public abstract Set<Node> getFinalizers();
 
+    public abstract boolean isPublicNode();
+
     /**
      * Returns the project which the node requires access to, if any.
      *

@@ -17,27 +17,21 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.Hasher;
 
 public abstract class AbstractTransformer<T> implements Transformer {
     private final Class<? extends T> implementationClass;
-    private final HashCode inputsHash;
     private final ImmutableAttributes fromAttributes;
 
-    public AbstractTransformer(Class<? extends T> implementationClass, HashCode inputsHash, ImmutableAttributes fromAttributes) {
+    public AbstractTransformer(Class<? extends T> implementationClass, ImmutableAttributes fromAttributes) {
         this.implementationClass = implementationClass;
-        this.inputsHash = inputsHash;
         this.fromAttributes = fromAttributes;
     }
 
     @Override
     public ImmutableAttributes getFromAttributes() {
         return fromAttributes;
-    }
-
-    @Override
-    public HashCode getSecondaryInputHash() {
-        return inputsHash;
     }
 
     @Override
@@ -50,22 +44,8 @@ public abstract class AbstractTransformer<T> implements Transformer {
         return implementationClass.getSimpleName();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        AbstractTransformer<?> that = (AbstractTransformer<?>) o;
-
-        return inputsHash.equals(that.inputsHash);
-    }
-
-    @Override
-    public int hashCode() {
-        return inputsHash.hashCode();
+    protected static void appendActionImplementation(Class<?> implementation, Hasher hasher, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        hasher.putString(implementation.getName());
+        hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementation.getClassLoader()));
     }
 }

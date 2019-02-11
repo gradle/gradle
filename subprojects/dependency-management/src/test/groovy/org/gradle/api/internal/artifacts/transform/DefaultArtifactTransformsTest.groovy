@@ -214,11 +214,17 @@ class DefaultArtifactTransformsTest extends Specification {
 
         then:
         def e = thrown(AmbiguousTransformException)
-        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> for consumer attributes:
+        e.message == toPlatformLineSeparators("""Found multiple transforms that can produce a variant of <component> with requested attributes:
   - artifactType 'dll'
 Found the following transforms:
-  - Transform from <variant1>: artifactType 'jar'
-  - Transform from <variant2>: artifactType 'classes'""")
+  - From '<variant1>':
+      - With source attributes: artifactType 'jar'
+      - Candidate transform(s):
+          - Transform '' producing attributes: artifactType 'dll'
+  - From '<variant2>':
+      - With source attributes: artifactType 'classes'
+      - Candidate transform(s):
+          - Transform '' producing attributes: artifactType 'dll'""")
     }
 
     def "returns empty variant when no variants match and ignore no matching enabled"() {

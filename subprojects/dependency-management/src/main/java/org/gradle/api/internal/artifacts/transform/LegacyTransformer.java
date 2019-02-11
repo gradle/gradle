@@ -20,9 +20,14 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -30,13 +35,15 @@ import java.util.List;
 
 public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
 
-    private final Isolatable<Object[]> parameters;
     private final Instantiator instantiator;
+    private final HashCode secondaryInputsHash;
+    private final Isolatable<Object[]> isolatableParameters;
 
-    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> parameters, HashCode inputsHash, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes) {
-        super(implementationClass, inputsHash, fromAttributes);
+    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
+        super(implementationClass, fromAttributes);
         this.instantiator = instantiatorFactory.inject();
-        this.parameters = parameters;
+        this.isolatableParameters = isolatableFactory.isolate(parameters);
+        this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
 
     public boolean requiresDependencies() {
@@ -64,7 +71,28 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         }
     }
 
+    @Override
+    public HashCode getSecondaryInputHash() {
+        return secondaryInputsHash;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+    }
+
+    @Override
+    public void isolateParameters() {
+    }
+
     private ArtifactTransform newTransformer() {
-        return instantiator.newInstance(getImplementationClass(), parameters.isolate());
+        Object[] isolatedParameters = isolatableParameters.isolate();
+        return instantiator.newInstance(getImplementationClass(), isolatedParameters);
+    }
+
+    private static HashCode hashSecondaryInputs(Isolatable<Object[]> isolatableParameters, Class<? extends ArtifactTransform> implementationClass, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        Hasher hasher = Hashing.newHasher();
+        appendActionImplementation(implementationClass, hasher, classLoaderHierarchyHasher);
+        isolatableParameters.appendToHasher(hasher);
+        return hasher.hash();
     }
 }

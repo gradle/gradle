@@ -128,4 +128,8 @@ public abstract class TaskNode extends Node {
 
     public abstract TaskInternal getTask();
 
+    @Override
+    public boolean isPublicNode() {
+        return true;
+    }
 }

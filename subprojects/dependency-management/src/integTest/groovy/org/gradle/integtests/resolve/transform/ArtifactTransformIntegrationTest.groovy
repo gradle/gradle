@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.internal.file.FileType
+import org.hamcrest.Matcher
 import org.junit.runner.RunWith
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -982,16 +983,23 @@ $fileSizer
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from configuration ':lib:compile':
-      - artifactType 'custom'
-      - usage 'api'
-  - Transform from configuration ':lib:compile':
-      - artifactType 'custom'
-      - usage 'api'"""
+  - From 'configuration ':lib:compile'':
+      - With source attributes:
+          - artifactType 'custom'
+          - usage 'api'
+      - Candidate transform(s):
+          - Transform 'BrokenTransform' producing attributes:
+              - artifactType 'transformed'
+              - extra 'bar'
+              - usage 'api'
+          - Transform 'BrokenTransform' producing attributes:
+              - artifactType 'transformed'
+              - extra 'baz'
+              - usage 'api'"""
     }
 
     def "user receives reasonable error message when multiple variants can be transformed to produce requested variant"() {
@@ -1072,24 +1080,44 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib for consumer attributes:
+        failure.assertHasCause """Found multiple transforms that can produce a variant of project :lib with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transforms:
-  - Transform from configuration ':lib:compile' variant variant1:
-      - artifactType 'jar'
-      - buildType 'release'
-      - flavor 'free'
-      - usage 'api'
-  - Transform from configuration ':lib:compile' variant variant2:
-      - artifactType 'jar'
-      - buildType 'release'
-      - flavor 'paid'
-      - usage 'api'
-  - Transform from configuration ':lib:compile' variant variant3:
-      - artifactType 'jar'
-      - buildType 'debug'
-      - usage 'api'"""
+  - From 'configuration ':lib:compile' variant variant1':
+      - With source attributes:
+          - artifactType 'jar'
+          - buildType 'release'
+          - flavor 'free'
+          - usage 'api'
+      - Candidate transform(s):
+          - Transform 'BrokenTransform' producing attributes:
+              - artifactType 'transformed'
+              - buildType 'release'
+              - flavor 'free'
+              - usage 'api'
+  - From 'configuration ':lib:compile' variant variant2':
+      - With source attributes:
+          - artifactType 'jar'
+          - buildType 'release'
+          - flavor 'paid'
+          - usage 'api'
+      - Candidate transform(s):
+          - Transform 'BrokenTransform' producing attributes:
+              - artifactType 'transformed'
+              - buildType 'release'
+              - flavor 'paid'
+              - usage 'api'
+  - From 'configuration ':lib:compile' variant variant3':
+      - With source attributes:
+          - artifactType 'jar'
+          - buildType 'debug'
+          - usage 'api'
+      - Candidate transform(s):
+          - Transform 'BrokenTransform' producing attributes:
+              - artifactType 'transformed'
+              - buildType 'debug'
+              - usage 'api'"""
     }
 
     def "result is applied for all query methods"() {
@@ -1772,7 +1800,7 @@ Found the following transforms:
             }
 """
         then:
-        fails "resolve"
+        fails "help"
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
@@ -1801,12 +1829,90 @@ Found the following transforms:
             }
 """
         then:
-        fails "resolve"
+        fails "help"
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Could not snapshot parameters values for transform Custom: [<custom>]")
+        failure.assertHasCause("Cannot register artifact transform Custom with parameters [<custom>]")
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
+    }
+
+    @Unroll
+    def "provides useful error message when parameter value cannot be isolated for #type transform"() {
+        mavenRepo.module("test", "a", "1.3").publish()
+        settingsFile << "include 'lib'"
+
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib.jar'
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                compile ${dependency}
+            }
+
+            // Not serializable
+            class CustomType {
+                String toString() { return "<custom>" }
+            }
+
+            @TransformAction(CustomAction)
+            interface Custom {
+                @Input
+                CustomType getInput()
+                void setInput(CustomType input)
+            }
+              
+            class CustomAction implements ArtifactTransformAction { 
+                void transform(ArtifactTransformOutputs outputs) {  }
+            }
+            
+            dependencies {
+                registerTransform(Custom) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                    parameters {
+                        input = new CustomType()
+                    }
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
+        """
+
+        when:
+        fails "resolve"
+        then:
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Inject@.* of artifact transform CustomAction")
+        if (scheduled) {
+            failure.assertThatDescription(matchesCannotIsolate)
+        } else {
+            failure.assertHasDescription("Execution failed for task ':resolve'.")
+            failure.assertThatCause(matchesCannotIsolate)
+        }
+        failure.assertHasCause("java.io.NotSerializableException: CustomType")
+
+        where:
+        scheduled | dependency
+        true      | 'project(":lib")'
+        false     | '"test:a:1.3"'
+        type = scheduled ? 'scheduled' : 'immediate'
     }
 
     def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
