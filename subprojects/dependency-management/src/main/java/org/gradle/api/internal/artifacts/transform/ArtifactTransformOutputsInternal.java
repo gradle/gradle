@@ -17,10 +17,31 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
 
 import java.io.File;
 
 public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
+
+    static void validateOutputLocation(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
+        if (output.equals(primaryInput) || output.equals(outputDir)) {
+            return;
+        }
+        if (output.getPath().startsWith(outputDirPrefix)) {
+            return;
+        }
+        if (output.getPath().startsWith(primaryInputPrefix)) {
+            return;
+        }
+        throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or a relative path.");
+    }
+
+    static void validateOutputExists(File output) {
+        if (!output.exists()) {
+            throw new InvalidUserDataException("Transform output " + output.getPath() + " must exist.");
+        }
+    }
+
     ImmutableList<File> getRegisteredOutputs();
 }

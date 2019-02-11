@@ -45,30 +45,11 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
         this.outputDirPrefix = outputDir.getPath() + File.separator;
     }
 
-    public static void validateOutput(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
-        if (output.equals(primaryInput) || output.equals(outputDir)) {
-            return;
-        }
-        if (output.getPath().startsWith(outputDirPrefix)) {
-            return;
-        }
-        if (output.getPath().startsWith(primaryInputPrefix)) {
-            return;
-        }
-        throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or a relative path.");
-    }
-
-    public static void validateOutputExists(File output) {
-        if (!output.exists()) {
-            throw new InvalidUserDataException("Transform output " + output.getPath() + " must exist.");
-        }
-    }
-
     @Override
     public ImmutableList<File> getRegisteredOutputs() {
         ImmutableList<File> outputs = outputsBuilder.build();
         for (File output : outputs) {
-            validateOutputExists(output);
+            ArtifactTransformOutputsInternal.validateOutputExists(output);
             if (outputFiles.contains(output) && !output.isFile()) {
                 throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
             }
@@ -95,7 +76,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     private File resolveAndRegister(Object path) {
         File output = resolver.resolve(path);
-        validateOutput(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        ArtifactTransformOutputsInternal.validateOutputLocation(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
         outputsBuilder.add(output);
         return output;
     }

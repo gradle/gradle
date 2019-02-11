@@ -66,8 +66,8 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         String inputFilePrefix = primaryInput.getPath() + File.separator;
         String outputDirPrefix = outputDir.getPath() + File.separator;
         for (File output : outputs) {
-            DefaultArtifactTransformOutputs.validateOutputExists(output);
-            DefaultArtifactTransformOutputs.validateOutput(output, primaryInput, inputFilePrefix, outputDir, outputDirPrefix);
+            ArtifactTransformOutputsInternal.validateOutputExists(output);
+            ArtifactTransformOutputsInternal.validateOutputLocation(output, primaryInput, inputFilePrefix, outputDir, outputDirPrefix);
         }
     }
 
