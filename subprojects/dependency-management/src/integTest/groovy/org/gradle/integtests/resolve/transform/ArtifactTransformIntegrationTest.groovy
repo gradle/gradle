@@ -20,8 +20,10 @@ import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformatio
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
+import org.gradle.internal.file.FileType
 import org.junit.runner.RunWith
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
 import static org.gradle.util.Matchers.matchesRegexp
@@ -1507,7 +1509,7 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Transform output file this_file_does_not.exist does not exist.")
+        failure.assertHasCause("Transform output this_file_does_not.exist must exist.")
 
         when:
         executer.withArguments("-Plenient=true")
@@ -1517,7 +1519,8 @@ Found the following transforms:
         outputContains(":resolve NO-SOURCE")
     }
 
-    def "user gets a reasonable error message when transform registers a non-existing file"() {
+    @Unroll
+    def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -1527,12 +1530,25 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class NoExistTransform implements ArtifactTransformAction {
+            class TransformAction implements ArtifactTransformAction {
                 void transform(ArtifactTransformOutputs outputs) {
-                    outputs.file('this_file_does_not.exist')
+                    ${switch (type) {
+                        case FileType.Missing:
+                            return "outputs.${method}('this_file_does_not.exist')"
+                        case FileType.Directory:
+                            return """
+                                def output = outputs.${method}('directory')
+                                output.mkdirs()
+                            """
+                        case FileType.RegularFile:
+                            return """
+                                def output = outputs.${method}('file')
+                                output.text = 'some text'
+                            """
+                    }}
                 }
             }
-            ${declareTransformAction('NoExistTransform')}
+            ${declareTransformAction('TransformAction')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1553,7 +1569,7 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertThatCause(matchesRegexp("Transform output file .*this_file_does_not.exist does not exist."))
+        failure.assertThatCause(matchesRegexp("Transform ${failureMessage}."))
 
         when:
         executer.withArguments("-Plenient=true")
@@ -1561,9 +1577,16 @@ Found the following transforms:
 
         then:
         outputContains(":resolve NO-SOURCE")
+
+        where:
+        method | type                 | failureMessage
+        'file' | FileType.Directory   | 'output file .*directory must be a file, but is not'
+        'file' | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
+        'dir'  | FileType.RegularFile | 'output directory .*file must be a directory, but is not'
+        'dir'  | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
     }
 
-    def "user gets a reasonable error message when transform returns a file that is not input or in output directory"() {
+    def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -1592,10 +1615,10 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
+        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or a relative path.")
     }
 
-    def "user gets a reasonable error message when transform registers an output that is not in an input or in the output directory"() {
+    def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
             def a = file('a.jar')
@@ -1632,7 +1655,7 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Transform output file ${testDirectory.file('other.jar')} is not a child of the transform's input file or output directory.")
+        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or a relative path.")
     }
 
     def "user gets a reasonable error message when transform cannot be instantiated"() {

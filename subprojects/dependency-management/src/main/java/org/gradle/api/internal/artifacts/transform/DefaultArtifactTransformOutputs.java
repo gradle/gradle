@@ -23,10 +23,14 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
+    private final Set<File> outputDirectories = new HashSet<>();
+    private final Set<File> outputFiles = new HashSet<>();
     private final PathToFileResolver resolver;
     private final File primaryInput;
     private final File outputDir;
@@ -51,12 +55,12 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
         if (output.getPath().startsWith(primaryInputPrefix)) {
             return;
         }
-        throw new InvalidUserDataException("Transform output file " + output.getPath() + " is not a child of the transform's input file or output directory.");
+        throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or a relative path.");
     }
 
     public static void validateOutputExists(File output) {
         if (!output.exists()) {
-            throw new InvalidUserDataException("Transform output file " + output.getPath() + " does not exist.");
+            throw new InvalidUserDataException("Transform output " + output.getPath() + " must exist.");
         }
     }
 
@@ -65,18 +69,28 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
         ImmutableList<File> outputs = outputsBuilder.build();
         for (File output : outputs) {
             validateOutputExists(output);
+            if (outputFiles.contains(output) && !output.isFile()) {
+                throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
+            }
+            if (outputDirectories.contains(output) && !output.isDirectory()) {
+                throw new InvalidUserDataException("Transform output directory " + output.getPath() + " must be a directory, but is not.");
+            }
         }
         return outputs;
     }
 
     @Override
     public File dir(Object path) {
-        return resolveAndRegister(path);
+        File outputDir = resolveAndRegister(path);
+        outputDirectories.add(outputDir);
+        return outputDir;
     }
 
     @Override
     public File file(Object path) {
-        return resolveAndRegister(path);
+        File outputFile = resolveAndRegister(path);
+        outputFiles.add(outputFile);
+        return outputFile;
     }
 
     private File resolveAndRegister(Object path) {
