@@ -323,7 +323,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
         }
 
-        createAndWireCommitDistributionTasks(performanceTest)
+        createAndWireCommitDistributionTasks(performanceTest, true)
 
         afterEvaluate {
             performanceTest.configure {
@@ -337,12 +337,12 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>) {
+    fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>, isDistributed: Boolean) {
         // The data flow here is:
         // performanceTest.configuredBaselines -> determineBaselines.configuredBaselines
         // determineBaselines.determinedBaselines -> performanceTest.determinedBaselines
         // determineBaselines.determinedBaselines -> buildCommitDistribution.commitBaseline
-        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class)
+        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class, isDistributed)
         val buildCommitDistribution = tasks.register("${performanceTest.name}BuildCommitDistribution", BuildCommitDistribution::class)
 
         determineBaselines.configure {
@@ -373,7 +373,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 testLogging.showStandardStreams = true
             }
         }
-        createAndWireCommitDistributionTasks(performanceTest)
+        createAndWireCommitDistributionTasks(performanceTest, false)
 
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)
 

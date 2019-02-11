@@ -32,7 +32,10 @@ const val forceDefaultBaseline = "force-defaults"
 const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
 
 
-open class DetermineBaselines : DefaultTask() {
+open class DetermineBaselines(isDistributed: Boolean) : DefaultTask() {
+    @Internal
+    val distributed: Boolean = isDistributed
+
     @Internal
     val configuredBaselines = project.objects.property<String>()
 
@@ -53,10 +56,7 @@ open class DetermineBaselines : DefaultTask() {
     }
 
     private
-    fun determineFlakinessDetectionBaseline() = if (isWorker()) currentCommitBaseline() else flakinessDetectionCommitBaseline
-
-    private
-    fun isWorker() = System.getenv("BUILD_TYPE_ID") == "Gradle_Check_IndividualPerformanceScenarioWorkersLinux"
+    fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
     fun currentBranchIsMasterOrRelease() = project.determineCurrentBranch() in listOf("master", "release")
