@@ -185,7 +185,7 @@ class Resolve extends Copy {
         """
 
         when:
-        run 'resolve'
+        run 'resolve', '--max-workers=1'
 
         then:
         outputContains("variants: [{artifactType=firstCount}, {artifactType=firstCount}]")
