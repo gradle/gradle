@@ -187,19 +187,14 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
-    fun Test.getPreviousFailedTestClasses(): Set<String> {
-        val serializer = TestResultSerializer(getBinResultsDir())
-        if (serializer.isHasResults) {
-            val previousFailedTestClasses = mutableSetOf<String>()
-            serializer.read {
-                if (failuresCount > 0) {
-                    previousFailedTestClasses.add(className)
-                }
+    fun Test.getPreviousFailedTestClasses(): Set<String> = TestResultSerializer(binResultsDir).let { serializer ->
+        val previousFailedTestClasses = mutableSetOf<String>()
+        serializer.read {
+            if (failuresCount > 0) {
+                previousFailedTestClasses.add(className)
             }
-            return previousFailedTestClasses
-        } else {
-            return emptySet()
         }
+        previousFailedTestClasses
     }
 
     private
