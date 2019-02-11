@@ -324,18 +324,30 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
             include 'lib'
             include 'util'
         """
-
         enableIncrementalArtifactTransformations(settingsFile)
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
-                
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
+                  
+            @TransformAction(FileSizerAction)
+            interface FileSizer {
+                @Input
+                String getSuffix()
+                void setSuffix(String suffix)
+            }
+
+            abstract class FileSizerAction implements ArtifactTransformAction {
+                @TransformParameters
+                abstract FileSizer getParameters()
+                @PrimaryInputDependencies
+                abstract FileCollection getDependencies()
+                @PrimaryInput
+                abstract File getInput()
+
+                void transform(ArtifactTransformOutputs outputs) {
                     ${server.callFromBuild('size-transform')}
-                    File output = new File(outputDirectory, input.name + ".txt")
+                    File output = outputs.registerOutput(input.name + parameters.suffix)
                     output.text = String.valueOf(input.length())
-                    return [output]
                 }
             }
             
@@ -381,10 +393,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                         to.attribute(artifactType, "double")
                         artifactTransform(FileDoubler)
                     }
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "double")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
+                        parameters {
+                            suffix = ".txt"
+                        }
                     }
                 }
                 task resolve {

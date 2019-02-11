@@ -33,6 +33,8 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
+import static org.gradle.util.Matchers.matchesRegexp
+
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def "transform can receive parameters, workspace and primary input via abstract getter"() {
@@ -133,9 +135,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
-        // TODO wolfs: We should report the user declared type
-        failure.assertHasCause('Some problems were found with the configuration of MakeGreen$Inject.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
@@ -183,8 +184,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('A problem was found with the configuration of MakeGreen$Inject.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
+        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.')
         failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
 
         where:

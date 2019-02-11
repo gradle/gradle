@@ -31,6 +31,7 @@ class TransformationNodeSpec extends Specification {
     def artifact = Mock(ResolvableArtifact)
     def dependencyResolver = Mock(TaskDependencyResolver)
     def artifactNode = new TestNode()
+    def transformerDependencies = Mock(TaskDependencyContainer)
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
@@ -38,6 +39,7 @@ class TransformationNodeSpec extends Specification {
     def "initial node adds dependency on artifact node and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
+        def isolationNode = new TestNode()
 
         given:
         def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver)
@@ -51,12 +53,16 @@ class TransformationNodeSpec extends Specification {
         1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
         1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
         1 * hardSuccessor.execute(additionalNode)
+        1 * transformationStep.dependencies >> transformerDependencies
+        1 * dependencyResolver.resolveDependenciesFor(null, transformerDependencies) >> [isolationNode]
+        1 * hardSuccessor.execute(isolationNode)
         0 * hardSuccessor._
     }
 
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = new TestNode()
+        def isolationNode = new TestNode()
         def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, Stub(ExecutionGraphDependenciesResolver))
 
         given:
@@ -70,6 +76,9 @@ class TransformationNodeSpec extends Specification {
         1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
         1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
         1 * hardSuccessor.execute(additionalNode)
+        1 * transformationStep.dependencies >> transformerDependencies
+        1 * dependencyResolver.resolveDependenciesFor(null, transformerDependencies) >> [isolationNode]
+        1 * hardSuccessor.execute(isolationNode)
         0 * hardSuccessor._
     }
 
@@ -102,6 +111,11 @@ class TransformationNodeSpec extends Specification {
         @Override
         Set<Node> getFinalizers() {
             return null
+        }
+
+        @Override
+        boolean isPublicNode() {
+            return true
         }
 
         @Override

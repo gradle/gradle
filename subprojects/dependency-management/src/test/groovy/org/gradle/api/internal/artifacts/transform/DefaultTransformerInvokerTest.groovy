@@ -26,6 +26,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
@@ -134,8 +135,16 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        void isolateParameters() {
+        }
+
+        @Override
         String getDisplayName() {
             return "Test transformer"
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
         }
     }
 

@@ -20,10 +20,13 @@ import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformatio
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
+import org.hamcrest.Matcher
 import org.junit.runner.RunWith
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
+import static org.gradle.util.Matchers.matchesRegexp
 
 @RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -1735,7 +1738,7 @@ Found the following transforms:
             }
 """
         then:
-        fails "resolve"
+        fails "help"
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
@@ -1764,12 +1767,90 @@ Found the following transforms:
             }
 """
         then:
-        fails "resolve"
+        fails "help"
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Could not snapshot parameters values for transform Custom: [<custom>]")
+        failure.assertHasCause("Cannot register artifact transform Custom with parameters [<custom>]")
         failure.assertHasCause("java.io.NotSerializableException: CustomType")
+    }
+
+    @Unroll
+    def "provides useful error message when parameter value cannot be isolated for #type transform"() {
+        mavenRepo.module("test", "a", "1.3").publish()
+        settingsFile << "include 'lib'"
+
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDir = buildDir
+                    archiveName = 'lib.jar'
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                compile ${dependency}
+            }
+
+            // Not serializable
+            class CustomType {
+                String toString() { return "<custom>" }
+            }
+
+            @TransformAction(CustomAction)
+            interface Custom {
+                @Input
+                CustomType getInput()
+                void setInput(CustomType input)
+            }
+              
+            class CustomAction implements ArtifactTransformAction { 
+                void transform(ArtifactTransformOutputs outputs) {  }
+            }
+            
+            dependencies {
+                registerTransform(Custom) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'size')
+                    parameters {
+                        input = new CustomType()
+                    }
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
+        """
+
+        when:
+        fails "resolve"
+        then:
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Inject@.* of artifact transform CustomAction")
+        if (scheduled) {
+            failure.assertThatDescription(matchesCannotIsolate)
+        } else {
+            failure.assertHasDescription("Execution failed for task ':resolve'.")
+            failure.assertThatCause(matchesCannotIsolate)
+        }
+        failure.assertHasCause("java.io.NotSerializableException: CustomType")
+
+        where:
+        scheduled | dependency
+        true      | 'project(":lib")'
+        false     | '"test:a:1.3"'
+        type = scheduled ? 'scheduled' : 'immediate'
     }
 
     def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
