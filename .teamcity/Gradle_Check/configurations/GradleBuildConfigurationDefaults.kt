@@ -113,19 +113,26 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 
     val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
 
+    val gradleParamList = listOf(gradleParameterString) +
+        buildType.buildCache.gradleParameters(os) +
+        listOf(extraParameters) +
+        "-PteamCityUsername=%teamcity.username.restbot%" +
+        "-PteamCityPassword=%teamcity.password.restbot%" +
+        "-PteamCityBuildId=%teamcity.build.id%" +
+        buildScanTags.map { buildScanTag(it) }
+
     buildType.steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
-            gradleParams = (
-                    listOf(gradleParameterString) +
-                            buildType.buildCache.gradleParameters(os) +
-                            listOf(extraParameters) +
-                            "-PteamCityUsername=%teamcity.username.restbot%" +
-                            "-PteamCityPassword=%teamcity.password.restbot%" +
-                            "-PteamCityBuildId=%teamcity.build.id%" +
-                            buildScanTags.map { buildScanTag(it) }
-                    ).joinToString(separator = " ")
+            gradleParams = gradleParamList.joinToString(separator = " ")
+        }
+
+        gradleWrapper {
+            name = "GRADLE_RERUNNER"
+            tasks = "$gradleTasks"
+            executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
+            gradleParams = (gradleParamList + "-PonlyPreviousFailedTestClasses=true").joinToString(separator = " ")
         }
     }
 

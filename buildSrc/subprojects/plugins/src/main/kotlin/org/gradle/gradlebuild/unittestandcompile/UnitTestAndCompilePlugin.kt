@@ -25,6 +25,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -39,8 +40,8 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
-import java.util.concurrent.Callable
 import testLibrary
+import java.util.concurrent.Callable
 import java.util.jar.Attributes
 
 
@@ -186,26 +187,62 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureTests() {
-        val javaInstallationForTest = rootProject.availableJavaInstallations.javaInstallationForTest
+    fun Test.getPreviousFailedTestClasses(): Set<String> {
+        val serializer = TestResultSerializer(getBinResultsDir())
+        if (serializer.isHasResults) {
+            val previousFailedTestClasses = mutableSetOf<String>()
+            serializer.read {
+                if (failuresCount > 0) {
+                    previousFailedTestClasses.add(className)
+                }
+            }
+            return previousFailedTestClasses
+        } else {
+            return emptySet()
+        }
+    }
 
+    private
+    fun Test.configureJvmForTest() {
+        val javaInstallationForTest = project.rootProject.availableJavaInstallations.javaInstallationForTest
+        jvmArgumentProviders.add(createCiEnvironmentProvider(this))
+        executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
+        environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
+        if (javaInstallationForTest.javaVersion.isJava7) {
+            // enable class unloading
+            jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
+        }
+        if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+            // allow embedded executer to modify environment variables
+            jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
+            // allow embedded executer to inject legacy types into the system classloader
+            jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
+        }
+        // Includes JVM vendor and major version
+        inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
+    }
+
+    private
+    fun Test.onlyRunPreviousFailedClassesIfNecessary() {
+        if (project.stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
+            val previousFailedClasses = getPreviousFailedTestClasses()
+            if (previousFailedClasses.isEmpty()) {
+                enabled = false
+            } else {
+                previousFailedClasses.forEach { filter.includeTestsMatching(it) }
+            }
+        }
+    }
+
+    private
+    fun Project.configureTests() {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
-            jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-            executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
-            environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
-            if (javaInstallationForTest.javaVersion.isJava7) {
-                // enable class unloading
-                jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
-            }
-            if (javaInstallationForTest.javaVersion.isJava9Compatible) {
-                // allow embedded executer to modify environment variables
-                jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
-                // allow embedded executer to inject legacy types into the system classloader
-                jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
-            }
-            // Includes JVM vendor and major version
-            inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
+
+            configureJvmForTest()
+
+            onlyRunPreviousFailedClassesIfNecessary()
+
             doFirst {
                 if (BuildEnvironment.isCiServer) {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
