@@ -124,7 +124,8 @@ public class GenerateMavenPom extends DefaultTask {
                 getVersionRangeMapper(),
                 pomInternal.getVersionMappingStrategy(),
                 compileScopeAttributes,
-                runtimeScopeAttributes);
+                runtimeScopeAttributes,
+                pomInternal.writeGradleMetadataMarker());
         pomGenerator.configureFrom(pomInternal);
 
         for (MavenDependency mavenDependency : pomInternal.getApiDependencyManagement()) {

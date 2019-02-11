@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.concurrent
 
+import org.awaitility.Duration.ONE_SECOND
+import org.awaitility.kotlin.atMost
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.untilNotNull
+
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -46,7 +51,7 @@ class DefaultAsyncIOScopeFactoryTest {
             }
 
             assertThat(
-                runCatching { scope.close() }.exceptionOrNull(),
+                exceptionOrNullFrom { scope.close() },
                 sameInstance<Throwable>(failure)
             )
         }
@@ -59,14 +64,12 @@ class DefaultAsyncIOScopeFactoryTest {
 
             val expectedFailure = IOException()
 
-            val failureLatch = FailureLatch()
             val scope = newScope().apply {
-                io { failureLatch.failWith(expectedFailure) }
+                io { throw expectedFailure }
             }
-            failureLatch.await()
 
             assertThat(
-                runCatching { scope.io { } }.exceptionOrNull(),
+                await atMost ONE_SECOND untilNotNull { exceptionOrNullFrom { scope.io { } } },
                 sameInstance<Throwable>(expectedFailure)
             )
         }
@@ -78,11 +81,11 @@ class DefaultAsyncIOScopeFactoryTest {
         withAsyncIOScopeFactory {
 
             // given: a failure in one scope
-            val failureLatch = FailureLatch()
+            val failureLatch = CountDownLatch(1)
             newScope().apply {
-                io { failureLatch.failWith(IllegalStateException()) }
+                io { throw IllegalStateException() }
             }
-            failureLatch.await()
+            failureLatch.await(1, TimeUnit.SECONDS)
 
             // then: actions can still be scheduled in separate scope
             val isolatedScopeAction = CompletableFuture<Unit>()
@@ -97,23 +100,7 @@ class DefaultAsyncIOScopeFactoryTest {
     }
 
     private
-    class FailureLatch {
-
-        private
-        val latch: CountDownLatch = CountDownLatch(1)
-
-        fun failWith(failure: Throwable) {
-            latch.countDown()
-            throw failure
-        }
-
-        fun await() {
-            // There's small chance this thread can be awakened before
-            // the exception in the IO thread is caught, so let's sleep a little
-            latch.await(1, TimeUnit.SECONDS)
-            Thread.sleep(1)
-        }
-    }
+    fun exceptionOrNullFrom(action: () -> Unit) = runCatching(action).exceptionOrNull()
 
     private
     fun withAsyncIOScopeFactory(action: DefaultAsyncIOScopeFactory.() -> Unit) {

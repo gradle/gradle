@@ -213,6 +213,36 @@ project(':app') {
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
     }
 
+    def "transform can access file dependencies as a set of files when using ArtifactView"() {
+
+        given:
+
+        buildFile << """
+project(':common') {
+
+    dependencies {
+        implementation files("otherLib.jar")
+    }
+
+    task resolve(type: Copy) {
+        def artifacts = configurations.implementation.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'size') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+    }
+}
+"""
+
+        when:
+        executer.withArgument("--parallel")
+        run "common:resolve"
+
+        then:
+        output.count('Transforming') == 1
+        output.contains('Single step transform received dependencies files [] for processing otherLib.jar')
+    }
+
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
 
         given:

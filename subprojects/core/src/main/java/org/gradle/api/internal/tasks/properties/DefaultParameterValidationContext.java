@@ -16,18 +16,25 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.reflect.ParameterValidationContext;
+
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 public class DefaultParameterValidationContext implements ParameterValidationContext {
-
-    public static String propertyValidationMessage(String propertyName, String validationMessage) {
-        return String.format("Property '%s' %s.", propertyName, validationMessage);
-    }
-
     private final Collection<String> messages;
 
     public DefaultParameterValidationContext(Collection<String> messages) {
         this.messages = messages;
+    }
+
+    @Override
+    public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
+        if (ownerPath == null) {
+            recordValidationMessage("Property '" + propertyName + "' " + message + ".");
+        } else {
+            recordValidationMessage("Property '" + ownerPath + '.' + propertyName + "' " + message + ".");
+        }
     }
 
     @Override

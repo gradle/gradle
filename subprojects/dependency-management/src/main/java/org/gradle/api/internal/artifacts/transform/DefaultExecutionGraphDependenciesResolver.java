@@ -37,6 +37,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -76,7 +77,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
         ResolverResults results = artifactResults.create();
         if (dependencies == null) {
-            dependencies = computeProjectDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents());
+            dependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), false);
         }
         VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
         SelectedArtifactSet artifacts = visitedArtifacts.select(Specs.satisfyAll(), transformer.getFromAttributes(), element -> {
@@ -103,7 +104,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
                 public void visitDependencies(TaskDependencyResolveContext context) {
                     ResolverResults results = graphResults.create();
                     if (buildDependencies == null) {
-                        buildDependencies = computeProjectDependencies(componentIdentifier, ProjectComponentIdentifier.class, results.getResolutionResult().getAllComponents());
+                        buildDependencies = computeDependencies(componentIdentifier, ProjectComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
                     }
                     VisitedArtifactSet visitedArtifacts = results.getVisitedArtifacts();
                     if (!buildDependencies.isEmpty()) {
@@ -118,7 +119,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         }
     }
 
-    private static Set<ComponentIdentifier> computeProjectDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults) {
+    private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
         ResolvedComponentResult targetComponent = null;
         for (ResolvedComponentResult component : componentResults) {
             if (component.getId().equals(componentIdentifier)) {
@@ -127,7 +128,11 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
             }
         }
         if (targetComponent == null) {
-            throw new AssertionError("Could not find component " + componentIdentifier + " in provided results.");
+            if (strict) {
+                throw new AssertionError("Could not find component " + componentIdentifier + " in provided results.");
+            } else {
+                return Collections.emptySet();
+            }
         }
         Set<ComponentIdentifier> buildDependencies = new HashSet<>();
         collectDependenciesIdentifiers(buildDependencies, type, new HashSet<>(), targetComponent.getDependencies());

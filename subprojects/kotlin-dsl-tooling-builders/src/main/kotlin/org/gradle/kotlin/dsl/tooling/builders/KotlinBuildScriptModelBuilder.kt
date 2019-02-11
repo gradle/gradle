@@ -34,6 +34,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.BasicTextResourceLoader
+import org.gradle.internal.time.Time.startTimer
 
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.pluginAccessorsClassPath
@@ -49,6 +50,7 @@ import org.gradle.kotlin.dsl.provider.ignoringErrors
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
+import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelCorrelationId
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -71,7 +73,10 @@ import java.util.*
 
 
 private
-class KotlinBuildScriptModelParameter(val scriptPath: String?)
+data class KotlinBuildScriptModelParameter(
+    val scriptPath: String?,
+    val correlationId: String?
+)
 
 
 private
@@ -91,9 +96,24 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel"
 
-    override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel =
-        scriptModelBuilderFor(modelRequestProject as ProjectInternal, requestParameterOf(modelRequestProject))
-            .buildModel()
+    override fun buildAll(modelName: String, modelRequestProject: Project): KotlinBuildScriptModel {
+        val timer = startTimer()
+        val parameter = requestParameterOf(modelRequestProject)
+        try {
+            return kotlinBuildScriptModelFor(modelRequestProject, parameter).also {
+                log("$parameter => $it")
+            }
+        } catch (e: Exception) {
+            log("$parameter => $e")
+            throw e
+        } finally {
+            log("MODEL built in ${timer.elapsed}.")
+        }
+    }
+
+    private
+    fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
+        scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
 
     private
     fun scriptModelBuilderFor(
@@ -130,8 +150,12 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String
+            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String,
+            modelRequestProject.findProperty(kotlinBuildScriptModelCorrelationId) as? String
         )
+
+    private
+    fun log(message: String) = println(message)
 }
 
 

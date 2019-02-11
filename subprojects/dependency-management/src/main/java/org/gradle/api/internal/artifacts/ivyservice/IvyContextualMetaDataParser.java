@@ -36,30 +36,30 @@ public class IvyContextualMetaDataParser<T extends MutableModuleComponentResolve
     }
 
     @Override
-    public T parseMetaData(final DescriptorParseContext context, final LocallyAvailableExternalResource resource) throws MetaDataParseException {
-        return ivyContextManager.withIvy(new Transformer<T, Ivy>() {
+    public ParseResult<T> parseMetaData(final DescriptorParseContext context, final LocallyAvailableExternalResource resource) throws MetaDataParseException {
+        return ivyContextManager.withIvy(new Transformer<ParseResult<T>, Ivy>() {
             @Override
-            public T transform(Ivy ivy) {
+            public ParseResult<T> transform(Ivy ivy) {
                 return delegate.parseMetaData(context, resource);
             }
         });
     }
 
     @Override
-    public T parseMetaData(final DescriptorParseContext ivySettings, final File descriptorFile) throws MetaDataParseException {
-        return ivyContextManager.withIvy(new Transformer<T, Ivy>() {
+    public ParseResult<T> parseMetaData(final DescriptorParseContext ivySettings, final File descriptorFile) throws MetaDataParseException {
+        return ivyContextManager.withIvy(new Transformer<ParseResult<T>, Ivy>() {
             @Override
-            public T transform(Ivy ivy) {
+            public ParseResult<T> transform(Ivy ivy) {
                 return delegate.parseMetaData(ivySettings, descriptorFile);
             }
         });
     }
 
     @Override
-    public T parseMetaData(final DescriptorParseContext ivySettings, final File descriptorFile, final boolean validate) throws MetaDataParseException {
-        return ivyContextManager.withIvy(new Transformer<T, Ivy>() {
+    public ParseResult<T> parseMetaData(final DescriptorParseContext ivySettings, final File descriptorFile, final boolean validate) throws MetaDataParseException {
+        return ivyContextManager.withIvy(new Transformer<ParseResult<T>, Ivy>() {
             @Override
-            public T transform(Ivy ivy) {
+            public ParseResult<T> transform(Ivy ivy) {
                 return delegate.parseMetaData(ivySettings, descriptorFile, validate);
             }
         });

@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
@@ -42,7 +43,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def projectIdentity = new DefaultIvyPublicationIdentity("my-org", "my-name", "my-version")
-    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity)
+    IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity, false)
 
     def "writes correct prologue and schema declarations"() {
         expect:
@@ -50,6 +51,17 @@ class IvyDescriptorFileGeneratorTest extends Specification {
 """<?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
 """))
+    }
+
+    def "writes Gradle metadata marker"() {
+        given:
+        generator = new IvyDescriptorFileGenerator(projectIdentity, markerPresent)
+
+        expect:
+        ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER) == markerPresent
+
+        where:
+        markerPresent << [true, false]
     }
 
     def "writes empty descriptor with module values"() {
@@ -72,7 +84,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
     def "encodes coordinates for XML and unicode"() {
         when:
         def projectIdentity = new DefaultIvyPublicationIdentity('org-ぴ₦ガき∆ç√∫', 'module-<tag attrib="value"/>-markup', 'version-&"')
-        generator = new IvyDescriptorFileGenerator(projectIdentity)
+        generator = new IvyDescriptorFileGenerator(projectIdentity, false)
 
 
         then:

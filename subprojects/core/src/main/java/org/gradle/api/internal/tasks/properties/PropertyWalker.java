@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.reflect.ParameterValidationContext;
+
 /**
  * Walks properties declared by the type.
  */

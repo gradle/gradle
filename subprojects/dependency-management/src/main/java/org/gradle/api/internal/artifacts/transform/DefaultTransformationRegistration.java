@@ -27,15 +27,16 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -50,19 +51,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext.propertyValidationMessage;
-
 public class DefaultTransformationRegistration implements VariantTransformRegistry.Registration {
 
     private final ImmutableAttributes from;
     private final ImmutableAttributes to;
     private final TransformationStep transformationStep;
 
-    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker) {
+    public static VariantTransformRegistry.Registration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransformAction> implementation, @Nullable Object parameterObject, IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiationScheme instantiationScheme, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, PropertyWalker paramsObjectWalker, TypeMetadata actionMetadata) {
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(classLoaderHierarchyHasher, hasher, implementation);
 
-        // TODO - should snapshot later
+        List<String> validationMessages = new ArrayList<>();
+        actionMetadata.collectValidationFailures(null, new DefaultParameterValidationContext(validationMessages));
+        if (!validationMessages.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
+                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
+        }
+
+        // TODO - should isolate later
         Isolatable<?> isolatableParameterObject;
         try {
             isolatableParameterObject = isolatableFactory.isolate(parameterObject);
@@ -71,10 +78,10 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
         }
 
         if (parameterObject != null) {
-            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, paramsObjectWalker, hasher, isolatableParameterObject.isolate());
         }
 
-        Transformer transformer = new DefaultTransformer(implementation, isolatableParameterObject, hasher.hash(), instantiatorFactory, from);
+        Transformer transformer = new DefaultTransformer(implementation, isolatableParameterObject, hasher.hash(), instantiationScheme, from);
 
         return new DefaultTransformationRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
     }
@@ -117,7 +124,7 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "does not have a value specified"));
+                        validationContext.recordValidationMessage(null, propertyName, "does not have a value specified");
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -128,11 +135,6 @@ public class DefaultTransformationRegistration implements VariantTransformRegist
                         ModelType.of(parameterObject.getClass()).getDisplayName()
                     ), e);
                 }
-            }
-
-            @Override
-            public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.recordValidationMessage(propertyValidationMessage(propertyName, "is annotated with an output annotation"));
             }
 
             @Override

@@ -19,7 +19,7 @@
 [NOTE]
 ====
 
-The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed. We recommend new projects looking to build C++ applications and libraries use the newer <<cpp_plugins.adoc#cpp_plugins,C++ plugins>>.
+The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed. We recommend new projects looking to build C++ applications and libraries use the newer <<cpp_plugins.adoc#cpp_plugin,replacement plugins>>.
 
 ====
 

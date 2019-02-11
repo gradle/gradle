@@ -131,11 +131,11 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     MutableMavenModuleResolveMetadata parsePom(File pomFile) {
-        pomModuleDescriptorParser.parseMetaData(Mock(DescriptorParseContext), resource(pomFile))
+        pomModuleDescriptorParser.parseMetaData(Mock(DescriptorParseContext), resource(pomFile)).result
     }
 
     MutableIvyModuleResolveMetadata parseIvy(File ivyFile) {
-        ivyDescriptorParser.parseMetaData(Stub(DescriptorParseContext), resource(ivyFile))
+        ivyDescriptorParser.parseMetaData(Stub(DescriptorParseContext), resource(ivyFile)).result
     }
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {

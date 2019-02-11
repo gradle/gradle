@@ -62,7 +62,7 @@ project :$expectedProject
 
         where:
         configuration      | expectedProject | expectedVariant   | expectedAttributes
-        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage = java-api'
+        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage = java-api-jars (compatible with: java-api)'
         'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage = java-runtime-jars (compatible with: java-runtime)'
     }
 

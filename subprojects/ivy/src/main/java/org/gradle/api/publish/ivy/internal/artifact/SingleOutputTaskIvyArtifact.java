@@ -76,4 +76,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     public File getFile() {
         return generator.getOutputs().getFiles().getSingleFile();
     }
+
+    public boolean isEnabled() {
+        return generator.getEnabled();
+    }
 }

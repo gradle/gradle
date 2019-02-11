@@ -392,10 +392,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     setProperty("excludes", "**/internal/**")
                     store(output, null)
                 }
-                output.putNextEntry(JarEntry("gradle-api-parameter-names.properties"))
-                Properties().apply {
-                    store(output, null)
-                }
             }
         }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolverDescriptorParseContext;
@@ -69,7 +70,17 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
         LocallyAvailableExternalResource metadataArtifact = artifactResolver.resolveArtifact(artifact, result);
         if (metadataArtifact != null) {
             ExternalResourceResolverDescriptorParseContext context = new ExternalResourceResolverDescriptorParseContext(componentResolvers, fileResourceRepository);
-            return parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, artifactResolver, context, repositoryName);
+            MetaDataParser.ParseResult<S> parseResult = parseMetaDataFromResource(moduleComponentIdentifier, metadataArtifact, artifactResolver, context, repositoryName);
+            if (parseResult != null) {
+                if (parseResult.hasGradleMetadataRedirectionMarker()) {
+                    if (result instanceof BuildableModuleComponentMetaDataResolveResult) {
+                        ((BuildableModuleComponentMetaDataResolveResult) result).redirectToGradleMetadata();
+                    } else {
+                        throw new IllegalStateException("Unexpected Gradle metadata redirection answer");
+                    }
+                }
+                return parseResult.getResult();
+            }
         }
         return null;
     }
@@ -90,7 +101,7 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
         checkEquals("version", expectedId.getVersion(), actualId.getVersion(), errors);
         if (errors.size() > 0) {
             throw new MetaDataParseException(
-                String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
+                    String.format("inconsistent module metadata found. Descriptor: %s Errors: %s", actualId, joinLines(errors)));
         }
     }
 
@@ -104,6 +115,6 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
         }
     }
 
-    protected abstract S parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName);
+    protected abstract MetaDataParser.ParseResult<S> parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, ExternalResourceArtifactResolver artifactResolver, DescriptorParseContext context, String repoName);
 
 }

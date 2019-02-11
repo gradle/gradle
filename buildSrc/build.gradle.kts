@@ -57,8 +57,8 @@ subprojects {
 
                     val mainSourceSet = project.sourceSets.main.get()
                     classes.setFrom(mainSourceSet.output.classesDirs)
-                    classpath.setFrom(mainSourceSet.compileClasspath)
                     dependsOn(mainSourceSet.output)
+                    classpath.setFrom(mainSourceSet.runtimeClasspath)
                 }
                 tasks.check { dependsOn(validateTaskProperties) }
             }
@@ -190,7 +190,6 @@ fun Project.applyGroovyProjectConventions() {
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
         }
-        
     }
 
     val compileGroovy by tasks.existing(GroovyCompile::class)
