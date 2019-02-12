@@ -76,7 +76,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun withFolders(folders: FoldersDslExpression) =
-        testDirectory.withFolders(folders)
+        projectRoot.withFolders(folders)
 
     protected
     fun withDefaultSettings() =
@@ -166,10 +166,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     private
     fun canonicalFile(relativePath: String) =
-        File(testDirectory, relativePath).canonicalFile
+        File(projectRoot, relativePath).canonicalFile
 
     fun build(vararg arguments: String): ExecutionResult =
-        executer.withArguments(*arguments).run()
+        gradleExecuterFor(arguments).run()
 
     protected
     fun buildFailureOutput(vararg arguments: String): String =
@@ -177,11 +177,15 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun buildAndFail(vararg arguments: String): ExecutionFailure =
-        executer.withArguments(*arguments).runWithFailure()
+        gradleExecuterFor(arguments).runWithFailure()
 
     protected
     fun build(rootDir: File, vararg arguments: String): ExecutionResult =
-        executer.inDirectory(rootDir).withArguments(*arguments).run()
+        gradleExecuterFor(arguments, rootDir).run()
+
+    private
+    fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
+        inDirectory(rootDir).withArguments(*arguments)
 
     protected
     fun assumeJavaLessThan9() {
