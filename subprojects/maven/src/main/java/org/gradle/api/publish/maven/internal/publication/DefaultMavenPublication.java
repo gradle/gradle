@@ -261,7 +261,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE);
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
-        Set<ModuleDependency> seenDependencies = Sets.newHashSet();
+        Set<String> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
         for (UsageContext usageContext : getSortedUsageContexts()) {
             // TODO Need a smarter way to map usage to artifact classifier
@@ -276,7 +276,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
-                if (seenDependencies.add(dependency)) {
+                if (seenDependencies.add(dependency.getGroup() + ":" + dependency.getName())) {
                     if (PlatformSupport.isTargettingPlatform(dependency)) {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
