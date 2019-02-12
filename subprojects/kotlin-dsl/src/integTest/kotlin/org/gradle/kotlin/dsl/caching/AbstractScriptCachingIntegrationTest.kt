@@ -52,9 +52,9 @@ abstract class AbstractScriptCachingIntegrationTest : AbstractKotlinIntegrationT
 
     private
     fun executerForCacheInspection(vararg arguments: String): GradleExecuter =
-        executer.withArguments(
+        gradleExecuterFor(arrayOf(
             "-d",
             "-Dorg.gradle.internal.operations.trace=${newFile("operation-trace")}",
             *arguments
-        )
+        ))
 }

@@ -183,7 +183,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     fun build(rootDir: File, vararg arguments: String): ExecutionResult =
         gradleExecuterFor(arguments, rootDir).run()
 
-    private
+    protected
     fun gradleExecuterFor(arguments: Array<out String>, rootDir: File = projectRoot) =
         inDirectory(rootDir).withArguments(*arguments)
 
