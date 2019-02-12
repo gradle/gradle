@@ -75,6 +75,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
@@ -85,7 +86,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
@@ -149,6 +149,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
+    private final DomainObjectProjectStateHandler projectStateHandler;
     private CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private DefaultDependencySet allDependencies;
@@ -213,8 +214,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ImmutableAttributesFactory attributesFactory;
     private final FileCollection intrinsicFiles;
 
-    private final ProjectStateRegistry projectStateRegistry;
-
     private final DisplayName displayName;
     private CollectionCallbackActionDecorator callbackActionDecorator;
     private UserCodeApplicationContext userCodeApplicationContext;
@@ -235,10 +234,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 NotationParser<Object, Capability> capabilityNotationParser,
                                 ImmutableAttributesFactory attributesFactory,
                                 RootComponentMetadataBuilder rootComponentMetadataBuilder,
-                                ProjectStateRegistry projectStateRegistry,
                                 DocumentationRegistry documentationRegistry,
                                 CollectionCallbackActionDecorator callbackDecorator,
-                                UserCodeApplicationContext userCodeApplicationContext
+                                UserCodeApplicationContext userCodeApplicationContext,
+                                DomainObjectProjectStateHandler domainObjectProjectStateHandler
     ) {
         this.callbackActionDecorator = callbackDecorator;
         this.userCodeApplicationContext = userCodeApplicationContext;
@@ -261,9 +260,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
-        this.projectStateRegistry = projectStateRegistry;
         this.documentationRegistry = documentationRegistry;
-        this.resolutionLock = projectStateRegistry.newExclusiveOperationLock();
+        this.resolutionLock = domainObjectProjectStateHandler.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -283,6 +281,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, callbackDecorator);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
+        this.projectStateHandler = domainObjectProjectStateHandler;
         path = domainObjectContext.projectPath(name);
     }
 
@@ -529,11 +528,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
 
-        if (!hasMutableProjectState()) {
+        if (!projectStateHandler.hasMutableProjectState()) {
             // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
             // lenient locking to prevent deadlocks in user-managed threads.
             DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "sub:configuration_resolution_constraints") + " for more details.");
-            projectStateRegistry.withLenientState(new Runnable() {
+            projectStateHandler.withLenientState(new Runnable() {
                 @Override
                 public void run() {
                     resolveExclusively(requestedState);
@@ -665,7 +664,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Nullable
             @Override
             public Project getProject() {
-                return maybeGetOwningProject();
+                return projectStateHandler.maybeGetOwningProject();
             }
 
             @Override
@@ -909,7 +908,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
         DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
             configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, projectFinder, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, projectStateRegistry, documentationRegistry, callbackActionDecorator, userCodeApplicationContext);
+            rootComponentMetadataBuilder, documentationRegistry, callbackActionDecorator, userCodeApplicationContext, projectStateHandler);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -1174,24 +1173,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         throw new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures);
-    }
-
-    private boolean hasMutableProjectState() {
-        Project project = maybeGetOwningProject();
-        if (project != null) {
-            ProjectState projectState = projectStateRegistry.stateFor(project);
-            return projectState.hasMutableState();
-        }
-        return true;
-    }
-
-    @Nullable
-    private Project maybeGetOwningProject() {
-        if (domainObjectContext.getProjectPath() != null) {
-            return projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
-        } else {
-            return null;
-        }
     }
 
     private void assertIsResolvable() {

@@ -55,6 +55,11 @@ class ActionNode extends Node {
     }
 
     @Override
+    public boolean isPublicNode() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "work action " + action;
     }

@@ -28,6 +28,7 @@ import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.Matchers.not
 
 abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -211,15 +212,24 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
             findbugsMain.reports {
                 xml.enabled false
                 html.enabled true
+                html.stylesheet resources.text.fromFile('${anotherSampleStylesheet()}')
+            }
+        """
+        goodCode()
+        when:
+        succeeds"findbugsMain"
+        then:
+        file("build/reports/findbugs/main.html").exists()
+        file("build/reports/findbugs/main.html").assertContents(not(containsString("A custom Findbugs stylesheet")))
+
+        when:
+        // Change to a custom stylesheet
+        buildFile << """
+            findbugsMain.reports {
                 html.stylesheet resources.text.fromFile('${sampleStylesheet()}')
             }
         """
-
-        and:
-        goodCode()
-
-        when:
-        run "findbugsMain"
+        succeeds "findbugsMain"
 
         then:
         file("build/reports/findbugs/main.html").exists()
@@ -678,6 +688,10 @@ abstract class AbstractFindBugsPluginIntegrationTest extends AbstractIntegration
 
     private sampleStylesheet() {
         normaliseFileSeparators(resources.getResource('/findbugs-custom-stylesheet.xsl').absolutePath)
+    }
+
+    private anotherSampleStylesheet() {
+        normaliseFileSeparators(resources.getResource('/findbugs-another-custom-stylesheet.xsl').absolutePath)
     }
 
     private static Matcher<String> containsClass(String className) {

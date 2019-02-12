@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
@@ -33,7 +34,7 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
 
     @Override
     public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
-        final List<TransformationStep> transformationChain = unpackTransformation(transformation);
+        final List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         Function<ResolvableArtifact, TransformationNode> nodeCreator = artifact -> {
             return getOrCreateInternal(artifact, transformationChain, dependenciesResolver);
@@ -52,27 +53,27 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         });
     }
 
-    private TransformationNode getOrCreateInternal(ResolvableArtifact artifact, List<TransformationStep> transformationChain, ExecutionGraphDependenciesResolver dependenciesResolver) {
+    private TransformationNode getOrCreateInternal(ResolvableArtifact artifact, List<Equivalence.Wrapper<TransformationStep>> transformationChain, ExecutionGraphDependenciesResolver dependenciesResolver) {
         ArtifactTransformKey key = new ArtifactTransformKey(artifact.getId(), transformationChain);
         TransformationNode transformationNode = transformations.get(key);
         if (transformationNode == null) {
             if (transformationChain.size() == 1) {
-                transformationNode = TransformationNode.initial(transformationChain.get(0), artifact, dependenciesResolver);
+                transformationNode = TransformationNode.initial(transformationChain.get(0).get(), artifact, dependenciesResolver);
             } else {
                 TransformationNode previous = getOrCreateInternal(artifact, transformationChain.subList(0, transformationChain.size() - 1), dependenciesResolver);
-                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1), previous, dependenciesResolver);
+                transformationNode = TransformationNode.chained(transformationChain.get(transformationChain.size() - 1).get(), previous, dependenciesResolver);
             }
             transformations.put(key, transformationNode);
         }
         return transformationNode;
     }
 
-    private static List<TransformationStep> unpackTransformation(Transformation transformation) {
-        final ImmutableList.Builder<TransformationStep> builder = ImmutableList.builder();
+    private static List<Equivalence.Wrapper<TransformationStep>> unpackTransformation(Transformation transformation) {
+        final ImmutableList.Builder<Equivalence.Wrapper<TransformationStep>> builder = ImmutableList.builder();
         transformation.visitTransformationSteps(new Action<TransformationStep>() {
             @Override
             public void execute(TransformationStep transformation) {
-                builder.add(transformation);
+                builder.add(TransformationStep.FOR_SCHEDULING.wrap(transformation));
             }
         });
         return builder.build();
@@ -80,9 +81,9 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
 
     private static class ArtifactTransformKey {
         private final ComponentArtifactIdentifier artifactIdentifier;
-        private final List<TransformationStep> transformations;
+        private final List<Equivalence.Wrapper<TransformationStep>> transformations;
 
-        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<TransformationStep> transformations) {
+        private ArtifactTransformKey(ComponentArtifactIdentifier artifactIdentifier, List<Equivalence.Wrapper<TransformationStep>> transformations) {
             this.artifactIdentifier = artifactIdentifier;
             this.transformations = transformations;
         }

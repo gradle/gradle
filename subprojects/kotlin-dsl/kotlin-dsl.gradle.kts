@@ -72,18 +72,12 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-sourceSets.main {
-    kotlin {
-        srcDir(apiExtensionsOutputDir)
-    }
-}
-
 val publishedKotlinDslPluginVersion = "1.2.1" // TODO:kotlin-dsl
 
 tasks {
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputFile = File(apiExtensionsOutputDir, "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
+        outputFile = apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
         embeddedKotlinVersion = kotlinVersion
         kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
     }
@@ -92,8 +86,8 @@ tasks {
         dependsOn(generateKotlinDependencyExtensions)
     }
 
-    compileKotlin {
-        dependsOn(generateExtensions)
+    sourceSets.main {
+        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
     }
 
     clean {
@@ -101,23 +95,12 @@ tasks {
     }
 
 // -- Version manifest properties --------------------------------------
-    val versionsManifestOutputDir = file("$buildDir/versionsManifest")
     val writeVersionsManifest by registering(WriteProperties::class) {
-        outputFile = versionsManifestOutputDir.resolve("gradle-kotlin-dsl-versions.properties")
+        outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
         property("kotlin", kotlinVersion)
     }
 
     processResources {
         from(writeVersionsManifest)
-    }
-
-// -- Testing ----------------------------------------------------------
-    listOf(compileTestJava, compileIntegTestJava).forEach { javaCompilationTask ->
-        javaCompilationTask {
-            // `kotlin-compiler-embeddable` brings the `javaslang.match.PatternsProcessor`
-            // annotation processor to the classpath which causes Gradle to emit a deprecation warning.
-            // `-proc:none` disables annotation processing and gets rid of the warning.
-            options.compilerArgs.add("-proc:none")
-        }
     }
 }

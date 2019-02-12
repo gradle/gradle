@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,8 @@ import java.io.File;
  */
 public class TransformationStep implements Transformation {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
+    public static final Equivalence<? super TransformationStep> FOR_SCHEDULING = Equivalence.identity();
+
 
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
@@ -57,6 +61,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        transformer.isolateParameters();
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File primaryInput : primaryInputs) {
@@ -95,21 +100,7 @@ public class TransformationStep implements Transformation {
         return String.format("%s@%s", transformer.getDisplayName(), transformer.getSecondaryInputHash());
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        TransformationStep that = (TransformationStep) o;
-        return transformer.equals(that.transformer);
-    }
-
-    @Override
-    public int hashCode() {
-        return transformer.hashCode();
+    public TaskDependencyContainer getDependencies() {
+        return transformer;
     }
 }
