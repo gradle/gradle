@@ -35,15 +35,13 @@ import java.util.Set;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ServiceRegistry noServices = new DefaultServiceRegistry();
-    private final ConstructorSelector injectOnlyLenientSelector;
-    private final ConstructorSelector decoratedJsr330Selector;
-    private final ConstructorSelector decoratedLenientSelector;
-    private final Instantiator decoratingLenientInstantiator;
-    private final Instantiator decoratingJsr330Instantiator;
-    private final Instantiator injectOnlyLenientInstantiator;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
     private final DefaultInstantiationScheme injectOnlyScheme;
+    private final DefaultInstantiationScheme injectOnlyLenientScheme;
+    private final DefaultInstantiationScheme decoratingScheme;
+    private final DefaultInstantiationScheme decoratingLenientScheme;
+
     // Assume for now that the annotations are all part of Gradle core and are never unloaded, so use strong references to the annotation types
     private final LoadingCache<Set<Class<? extends Annotation>>, InstantiationScheme> schemes = CacheBuilder.newBuilder().build(new CacheLoader<Set<Class<? extends Annotation>>, InstantiationScheme>() {
         @Override
@@ -52,7 +50,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
                 assertKnownAnnotation(annotation);
             }
             ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, annotations);
-            Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
+            Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
             return new DefaultInstantiationScheme(constructorSelector, noServices);
         }
     });
@@ -60,17 +58,17 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = annotationHandlers;
-        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.<Class<? extends Annotation>>of());
-        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.<Class<? extends Annotation>>of());
-        ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
-        decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.<Jsr330ConstructorSelector.CachedConstructor>newClassCache());
-        injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
-        decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.<ClassGenerator.GeneratedClass<?>>newClassCache());
-        decoratingJsr330Instantiator = new DependencyInjectingInstantiator(decoratedJsr330Selector, noServices);
-        decoratingLenientInstantiator = new DependencyInjectingInstantiator(decoratedLenientSelector, noServices);
-        injectOnlyLenientInstantiator = new DependencyInjectingInstantiator(injectOnlyLenientSelector, noServices);
+        ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of());
+        ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of());
+        ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.newClassCache());
+        ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.newClassCache());
+        ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.newClassCache());
+        ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.newClassCache());
         injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, noServices);
-        schemes.put(ImmutableSet.<Class<? extends Annotation>>of(), injectOnlyScheme);
+        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, noServices);
+        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, noServices);
+        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, noServices);
+        schemes.put(ImmutableSet.of(), injectOnlyScheme);
     }
 
     @Override
@@ -84,6 +82,11 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
+    public InstantiationScheme injectScheme() {
+        return injectOnlyScheme;
+    }
+
+    @Override
     public InstantiationScheme injectScheme(Collection<Class<? extends Annotation>> injectAnnotations) {
         try {
             return schemes.getUnchecked(ImmutableSet.copyOf(injectAnnotations));
@@ -94,32 +97,32 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public Instantiator injectLenient() {
-        return injectOnlyLenientInstantiator;
+        return injectOnlyLenientScheme.instantiator();
     }
 
     @Override
     public Instantiator injectLenient(ServiceLookup services) {
-        return new DependencyInjectingInstantiator(injectOnlyLenientSelector, services);
+        return injectOnlyLenientScheme.withServices(services);
     }
 
     @Override
     public Instantiator decorateLenient() {
-        return decoratingLenientInstantiator;
-    }
-
-    @Override
-    public Instantiator injectAndDecorate() {
-        return decoratingJsr330Instantiator;
-    }
-
-    @Override
-    public Instantiator injectAndDecorate(ServiceLookup services) {
-        return new DependencyInjectingInstantiator(decoratedJsr330Selector, services);
+        return decoratingLenientScheme.instantiator();
     }
 
     @Override
     public Instantiator injectAndDecorateLenient(ServiceLookup services) {
-        return new DependencyInjectingInstantiator(decoratedLenientSelector, services);
+        return decoratingLenientScheme.withServices(services);
+    }
+
+    @Override
+    public InstantiationScheme decorateScheme() {
+        return decoratingScheme;
+    }
+
+    @Override
+    public Instantiator injectAndDecorate(ServiceLookup services) {
+        return decoratingScheme.withServices(services);
     }
 
     private void assertKnownAnnotation(Class<? extends Annotation> annotation) {

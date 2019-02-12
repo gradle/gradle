@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -36,11 +37,13 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyA
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectories;
@@ -49,7 +52,10 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 
+import javax.inject.Inject;
 import java.util.List;
 
 public class ExecutionGlobalServices {
@@ -57,16 +63,30 @@ public class ExecutionGlobalServices {
         return new InspectionSchemeFactory(handlers, cacheFactory);
     }
 
-    InspectionScheme createTaskInspectionScheme(InspectionSchemeFactory inspectionSchemeFactory) {
-        return inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, OptionValues.class));
+    TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
+        InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Inject.class, Console.class, Internal.class, OptionValues.class));
+        return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
-    PropertyWalker createPropertyWalker(InspectionScheme inspectionScheme) {
-        return inspectionScheme.getPropertyWalker();
+    PropertyWalker createPropertyWalker(TaskScheme taskScheme) {
+        return taskScheme.getInspectionScheme().getPropertyWalker();
     }
 
     TaskClassInfoStore createTaskClassInfoStore(CrossBuildInMemoryCacheFactory cacheFactory) {
         return new DefaultTaskClassInfoStore(cacheFactory);
+    }
+
+    PropertyAnnotationHandler createInjectAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(Inject.class);
+    }
+
+    PropertyAnnotationHandler createConsoleAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(Console.class);
+    }
+
+    PropertyAnnotationHandler createInternalAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(Internal.class);
     }
 
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {

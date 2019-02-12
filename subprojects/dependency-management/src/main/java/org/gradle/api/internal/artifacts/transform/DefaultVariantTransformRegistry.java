@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.type.ModelType;
@@ -48,13 +49,15 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
+    private final InstantiationScheme parametersInstantiationScheme;
     private final TransformationRegistrationFactory registrationFactory;
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory) {
+    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.services = services;
         this.registrationFactory = registrationFactory;
+        this.parametersInstantiationScheme = parametersInstantiationScheme;
     }
 
     @Override
@@ -76,8 +79,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction) {
-        // TODO - should decorate
-        T parameterObject = instantiatorFactory.inject(services).newInstance(parameterType);
+        T parameterObject = parametersInstantiationScheme.withServices(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 
