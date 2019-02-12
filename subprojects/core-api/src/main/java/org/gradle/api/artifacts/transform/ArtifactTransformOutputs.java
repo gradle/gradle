@@ -25,7 +25,6 @@ import java.io.File;
  * The outputs of the artifact transform.
  *
  * <p>
- *     The final output of the artifact transform is an ordered list of {@link File}s.
  *     The registered output {@link File}s will appear in the transformed variant in the order they were registered.
  * </p>
  *
