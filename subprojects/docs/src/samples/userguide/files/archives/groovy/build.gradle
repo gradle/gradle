@@ -14,6 +14,19 @@ task unpackFiles(type: Copy) {
 }
 // end::unpack-archive-example[]
 
+// tag::unpack-archive-subset-example[]
+task unpackLibsDirectory(type: Copy) {
+    from(zipTree("src/resources/thirdPartyResources.zip")) {
+        include "libs/**"
+        includeEmptyDirs = false
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(!fcd.isDirectory(), fcd.relativePath.segments.drop(1))
+        }
+    }
+    into "$buildDir/resources"
+}
+// end::unpack-archive-subset-example[]
+
 // tag::zip[]
 task zip(type: Zip) {
     from 'src/dist'

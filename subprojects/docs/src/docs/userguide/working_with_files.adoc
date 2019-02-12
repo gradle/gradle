@@ -173,7 +173,13 @@ include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=u
 include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-example]"]
 ====
 
-As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked.
+As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked. Sometimes you'll only need to unpack a subset of the archive. In that case, you can use api:org.gradle.api.tasks.AbstractCopyTask#eachFile(org.gradle.api.Action)[] to apply an action to each file as it is about to be copied into its destination. You can change the relative path of the files to the another root, like so:
+
+.Unpacking a subset of a ZIP file
+====
+include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=unpack-archive-subset-example]"]
+include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-subset-example]"]
+====
 
 If you're a Java developer and are wondering why there is no `jarTree()` method, that's because `zipTree()` works perfectly well for JARs, WARs and EARs.
 
