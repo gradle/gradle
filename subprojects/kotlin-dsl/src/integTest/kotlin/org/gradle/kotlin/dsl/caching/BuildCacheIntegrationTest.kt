@@ -81,7 +81,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // Cache miss with a fresh Gradle home, script cache will be pushed to build cache
             executer.withGradleUserHomeDir(newDir("guh-1"))
-            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
@@ -99,7 +98,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             // Cache hit from build cache
             executer.withGradleUserHomeDir(newDir("guh-2"))
-            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
@@ -116,7 +114,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
                 )
             })
-            executer.requireIsolatedDaemons()
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
