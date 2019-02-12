@@ -148,6 +148,7 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -298,6 +299,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Instantiator.class),
             get(ScriptHandlerFactory.class),
             get(PluginRequestApplicator.class),
+            get(FileSystem.class),
             get(FileLookup.class),
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
