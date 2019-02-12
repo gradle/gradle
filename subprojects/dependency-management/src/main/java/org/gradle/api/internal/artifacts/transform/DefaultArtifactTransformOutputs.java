@@ -21,10 +21,12 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
 
@@ -62,21 +64,24 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     @Override
     public File dir(Object path) {
-        File outputDir = resolveAndRegister(path);
+        File outputDir = resolveAndRegister(path, location -> GFileUtils.mkdirs(location));
         outputDirectories.add(outputDir);
         return outputDir;
     }
 
     @Override
     public File file(Object path) {
-        File outputFile = resolveAndRegister(path);
+        File outputFile = resolveAndRegister(path, location -> GFileUtils.mkdirs(location.getParentFile()));
         outputFiles.add(outputFile);
         return outputFile;
     }
 
-    private File resolveAndRegister(Object path) {
+    private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
         File output = resolver.resolve(path);
-        ArtifactTransformOutputsInternal.validateOutputLocation(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.validateOutputLocation(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        if (outputLocationType == OutputLocationType.WORKSPACE) {
+            prepareOutputLocation.accept(output);
+        }
         outputsBuilder.add(output);
         return output;
     }

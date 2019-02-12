@@ -1545,6 +1545,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
                         output.text = $fileValue
                     } else {
                         output = ${obtainOutputDir}input.name + ".dir")
+                        output.delete()
                         ${validateWorkspace}
                         output.mkdirs()
                         new File(output, "child.txt").text = "transformed"

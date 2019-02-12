@@ -1562,7 +1562,10 @@ Found the following transforms:
                 void transform(ArtifactTransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
-                            return "outputs.${method}('this_file_does_not.exist')"
+                            return """
+                                outputs.${method}('this_file_does_not.exist').delete()
+                                
+                            """
                         case FileType.Directory:
                             return """
                                 def output = outputs.${method}('directory')
@@ -1571,6 +1574,7 @@ Found the following transforms:
                         case FileType.RegularFile:
                             return """
                                 def output = outputs.${method}('file')
+                                output.delete()
                                 output.text = 'some text'
                             """
                     }}
@@ -1612,6 +1616,88 @@ Found the following transforms:
         'file' | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
         'dir'  | FileType.RegularFile | 'output directory .*file must be a directory, but is not'
         'dir'  | FileType.Missing     | 'output .*this_file_does_not.exist must exist'
+    }
+
+    def "directories are created for outputs in the workspace"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.text = '1234'
+
+            dependencies {
+                compile files(a)
+            }
+
+            class TransformAction implements ArtifactTransformAction {
+                void transform(ArtifactTransformOutputs outputs) {
+                    def outputFile = outputs.file("some/dir/output.txt")
+                    assert outputFile.parentFile.directory
+                    outputFile.text = "output"
+                    def outputDir = outputs.dir("another/output/dir")
+                    assert outputDir.directory
+                    new File(outputDir, "in-dir.txt").text = "another output"
+                }
+            }
+            ${declareTransformAction('TransformAction')}
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
+        """
+
+        expect:
+        succeeds "resolve"
+    }
+
+    @Unroll
+    def "directories are not created for output #method which is part of the input"() {
+        given:
+        buildFile << """
+            def a = file('a.jar')
+            a.mkdirs()
+            new File(a, "subdir").mkdirs()
+            new File(a, "subfile.txt").text = "input file"
+
+            dependencies {
+                compile files(a)
+            }
+
+            abstract class TransformAction implements ArtifactTransformAction {
+                @PrimaryInput
+                abstract File getInput() 
+
+                void transform(ArtifactTransformOutputs outputs) {
+                    println "Hello?"
+                    def output = outputs.${method}(new File(input, "some/dir/does-not-exist"))
+                    assert !output.parentFile.directory
+                }
+            }
+            dependencies {
+                registerTransformAction(TransformAction) {
+                    from.attribute(artifactType, 'directory')
+                    to.attribute(artifactType, 'size')
+                }
+            }
+
+            task resolve(type: Copy) {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                from artifacts.artifactFiles
+                into "\${buildDir}/libs"
+            }
+        """
+
+        expect:
+        fails "resolve"
+        failure.assertThatCause(matchesRegexp('Transform output .*does-not-exist must exist.'))
+
+        where:
+        method << ["file", "dir"]
     }
 
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
