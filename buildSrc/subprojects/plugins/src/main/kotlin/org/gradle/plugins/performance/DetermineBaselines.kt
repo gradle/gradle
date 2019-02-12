@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
+import javax.inject.Inject
 
 
 const val defaultBaseline = "defaults"
@@ -32,7 +33,7 @@ const val forceDefaultBaseline = "force-defaults"
 const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
 
 
-open class DetermineBaselines(isDistributed: Boolean) : DefaultTask() {
+open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : DefaultTask() {
     @Internal
     val distributed: Boolean = isDistributed
 
