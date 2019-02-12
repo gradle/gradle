@@ -17,6 +17,7 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
@@ -153,13 +154,9 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
 
     val compiledPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/compiled")
 
-    val internalPluginSpecBuilders = generatedSourceDirFor("internal-plugin-spec-builders")
-
-    val externalPluginSpecBuilders = generatedSourceDirFor("external-plugin-spec-builders")
-
-    val generatedAccessors = generatedSourceDirFor("accessors")
-
     val generatedMetadata = buildDir("precompiled-script-plugins")
+
+    val compileClasspath = compileClasspath()
 
     tasks {
 
@@ -168,19 +165,28 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
             outputDir.set(extractedPluginsBlocks)
         }
 
-        val generateInternalPluginSpecBuilders by registering(GenerateInternalPluginSpecBuilders::class) {
-            plugins = scriptPlugins
-            sourceCodeOutputDir.set(internalPluginSpecBuilders)
-        }
+        val (generateInternalPluginSpecBuilders, internalPluginSpecBuilders) =
+            codeGenerationTask<GenerateInternalPluginSpecBuilders>(
+                "internal-plugin-spec-builders",
+                "generateInternalPluginSpecBuilders"
+            ) {
+                plugins = scriptPlugins
+                sourceCodeOutputDir.set(it)
+            }
 
-        val compileClasspath = compileClasspath()
-
-        val generateExternalPluginSpecBuilders by registering(GenerateExternalPluginSpecBuilders::class) {
-            classPathFiles = compileClasspath
-            sourceCodeOutputDir.set(externalPluginSpecBuilders)
-        }
+        val (generateExternalPluginSpecBuilders, externalPluginSpecBuilders) =
+            codeGenerationTask<GenerateExternalPluginSpecBuilders>(
+                "external-plugin-spec-builders",
+                "generateExternalPluginSpecBuilders"
+            ) {
+                classPathFiles = compileClasspath
+                sourceCodeOutputDir.set(it)
+            }
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
+            dependsOn(extractPrecompiledScriptPluginPlugins)
+            dependsOn(generateInternalPluginSpecBuilders)
+            dependsOn(generateExternalPluginSpecBuilders)
             classPathFiles = compileClasspath
             outputDir.set(compiledPluginsBlocks)
             sourceDir(extractedPluginsBlocks)
@@ -188,8 +194,8 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
             sourceDir(externalPluginSpecBuilders)
         }
 
+        val generatedAccessors = generatedSourceDirFor("accessors")
         val generatePrecompiledScriptPluginAccessors by registering(GeneratePrecompiledScriptPluginAccessors::class) {
-            dependsOn(generateExternalPluginSpecBuilders)
             dependsOn(compilePluginsBlocks)
             classPathFiles = compileClasspath
             sourceCodeOutputDir.set(generatedAccessors)
@@ -199,8 +205,9 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
         }
 
         named<KotlinCompile>("compileKotlin") {
-            dependsOn(generateExternalPluginSpecBuilders)
             dependsOn(generatePrecompiledScriptPluginAccessors)
+            dependsOn(generateInternalPluginSpecBuilders)
+            dependsOn(generateExternalPluginSpecBuilders)
             kotlinOptions {
                 freeCompilerArgs += listOf(
                     "-script-templates", scriptTemplates,
@@ -292,19 +299,24 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 private
 fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
 
-    val generatedSourcesDir = generatedSourceDirFor("plugins")
-
-    tasks {
-
-        val generateScriptPluginAdapters by registering(GenerateScriptPluginAdapters::class) {
-            plugins = scriptPlugins
-            outputDirectory.set(generatedSourcesDir)
-        }
-
-        "compileKotlin" {
-            dependsOn(generateScriptPluginAdapters)
-        }
+    codeGenerationTask<GenerateScriptPluginAdapters>("plugins", "generateScriptPluginAdapters") {
+        plugins = scriptPlugins
+        outputDirectory.set(it)
     }
+}
+
+
+private
+inline fun <reified T : Task> Project.codeGenerationTask(
+    purpose: String,
+    taskName: String,
+    noinline configure: T.(Provider<Directory>) -> Unit
+) = buildDir("generated-sources/kotlin-dsl-$purpose/kotlin").let { outputDir ->
+    val task = tasks.register(taskName, T::class.java) {
+        it.configure(outputDir)
+    }
+    sourceSets["main"].kotlin.srcDir(files(outputDir).builtBy(task))
+    task to outputDir
 }
 
 

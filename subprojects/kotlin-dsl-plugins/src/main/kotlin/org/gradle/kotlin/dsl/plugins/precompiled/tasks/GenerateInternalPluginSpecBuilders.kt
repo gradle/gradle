@@ -16,12 +16,15 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+
 import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
 
 import java.io.File
@@ -31,7 +34,7 @@ import java.io.File
  * Generates plugin spec builders for the _Project_ script plugins defined in the current module.
  */
 @CacheableTask
-open class GenerateInternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask() {
+open class GenerateInternalPluginSpecBuilders : DefaultTask() {
 
     @get:Internal
     internal
@@ -43,6 +46,9 @@ open class GenerateInternalPluginSpecBuilders : ClassPathSensitiveCodeGeneration
     internal
     val scriptFiles: Set<File>
         get() = scriptPluginFilesOf(plugins)
+
+    @get:OutputDirectory
+    var sourceCodeOutputDir = project.objects.directoryProperty()
 
     @TaskAction
     fun generate() {
