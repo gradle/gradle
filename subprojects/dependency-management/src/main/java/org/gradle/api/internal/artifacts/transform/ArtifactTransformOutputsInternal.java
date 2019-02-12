@@ -34,7 +34,7 @@ public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutpu
         if (output.getPath().startsWith(primaryInputPrefix)) {
             return;
         }
-        throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or a relative path.");
+        throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
     }
 
     static void validateOutputExists(File output) {

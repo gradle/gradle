@@ -1643,7 +1643,7 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or a relative path.")
+        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
@@ -1683,7 +1683,7 @@ Found the following transforms:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform file 'a.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or a relative path.")
+        failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
     def "user gets a reasonable error message when transform cannot be instantiated"() {
