@@ -122,11 +122,24 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
         buildScanTags.map { buildScanTag(it) }
 
     buildType.steps {
+        fun addKillProcessStep(stepName: String) {
+            if (os == OS.windows) {
+                gradleWrapper {
+                    name = stepName
+                    executionMode = BuildStep.ExecutionMode.ALWAYS
+                    tasks = "killExistingProcessesStartedByGradle"
+                    gradleParams = gradleParameterString
+                }
+            }
+        }
+
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = gradleParamList.joinToString(separator = " ")
         }
+
+        addKillProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE")
 
         gradleWrapper {
             name = "GRADLE_RERUNNER"
@@ -134,6 +147,8 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
             gradleParams = (gradleParamList + "-PonlyPreviousFailedTestClasses=true").joinToString(separator = " ")
         }
+
+        addKillProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN")
     }
 
     buildType.steps.extraSteps()
@@ -149,14 +164,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
             tasks = "verifyTestFilesCleanup"
             gradleParams = gradleParameterString
         }
-        if (os == OS.windows) {
-            gradleWrapper {
-                name = "KILL_PROCESSES_STARTED_BY_GRADLE"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                tasks = "killExistingProcessesStartedByGradle"
-                gradleParams = gradleParameterString
-            }
-        }
+
         if (model.tagBuilds) {
             gradleWrapper {
                 name = "TAG_BUILD"
