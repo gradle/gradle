@@ -87,7 +87,7 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
         paths.map(::normalisedPathOf)
 
     protected
-    fun normalisedPathOf(relativePath: String) =
+    fun normalisedPathOf(relativePath: String): String =
         normaliseFileSeparators(absolutePathOf(relativePath))
 
     private
