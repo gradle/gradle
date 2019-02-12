@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import static org.hamcrest.CoreMatchers.containsString
+
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
@@ -37,7 +39,8 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         fails "clean"
 
         then:
-        failure.assertHasCause("Unable to delete file")
+        failure.assertHasCause("Unable to delete directory '${file('build')}'")
+        failure.assertThatCause(containsString(file("build/newFile").absolutePath))
 
         cleanup:
         lock?.release()
