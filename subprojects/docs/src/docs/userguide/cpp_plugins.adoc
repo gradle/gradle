@@ -23,7 +23,7 @@ Please be aware that the DSL and APIs may change in later Gradle versions as we 
 
 ====
 
-Gradle's C++ plugins add support for building applications and libraries written in C++. These plugins were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend new projects to use these plugins over <<native_software.adoc#native_binaries,the older Native plugins>>. This chapter makes heavy use of a https://github.com/gradle/native-samples[large collection of samples].
+Gradle's C\++ plugins add support for building applications and libraries written in C++. These plugins were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend new projects to use these plugins over <<native_software.adoc#native_binaries,the older Native plugins>>. This chapter makes heavy use of a https://github.com/gradle/native-samples[large collection of samples].
 
 [[cpp:features]]
 == Features
@@ -112,7 +112,7 @@ By default, Gradle assumes a C++ library or application's sources are in `src/ma
 
 For a library, Gradle assumes its public headers are in `src/main/public`. Header files can be mixed into `src/main/cpp`, but these headers will be treated as private and not exposed to downstream consumers.
 
-Gradle assumes C++ source files end in `.cpp`, `.c+\+` or `.cc`. 
+Gradle assumes C\++ source files end in `.cpp`, `.c++` or `.cc`.
 
 [[cpp:declaring_dependencies]]
 == Declaring dependencies
@@ -120,7 +120,8 @@ Gradle assumes C++ source files end in `.cpp`, `.c+\+` or `.cc`.
 Dependencies can be declared in a similar way to other Gradle plugins, like Java, with the main difference being that the `dependencies` block is inside the `application` or `library` block.
 
 C++ applications only have `implementation` level dependencies.
-C++ libraries have `api` and `implementation` dependencies. 
+
+C++ libraries have `api` and `implementation` dependencies.
 
 Dependencies that are `implementation` only are not shared with downstream consumers. `api` dependencies form a part of the public API for a library. 
 
@@ -189,7 +190,7 @@ https://github.com/gradle/native-samples/tree/master/cpp/multiple-target-machine
 
 Gradle provides plugins for Visual Studio and Xcode. 
 
-When used with the C++ plugins, Gradle will generate metadata files used by these IDEs. As much as possible, we've tried to make the IDE delegate to Gradle when compiling and linking C++ applications and libraries. 
+When used with the C\++ plugins, Gradle will generate metadata files used by these IDEs. As much as possible, we've tried to make the IDE delegate to Gradle when compiling and linking C++ applications and libraries.
 
 JetBrains maintains a separate integration with CLion.
 
