@@ -25,8 +25,10 @@ import org.junit.Before
 open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Before
-    fun setupPluginTest() =
+    fun setupPluginTest() {
         requireGradleDistributionOnEmbeddedExecuter()
+        withDefaultSettings()
+    }
 
     protected
     fun givenPrecompiledKotlinScript(fileName: String, code: String) {

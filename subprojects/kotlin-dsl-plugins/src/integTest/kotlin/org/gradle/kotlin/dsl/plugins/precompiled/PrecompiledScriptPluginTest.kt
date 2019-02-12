@@ -98,7 +98,6 @@ class PrecompiledScriptPluginTest : AbstractPrecompiledScriptPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
