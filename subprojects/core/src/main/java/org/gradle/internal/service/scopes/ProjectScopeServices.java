@@ -64,6 +64,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -188,8 +189,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator);
     }
 
-    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, InstantiatorFactory instantiatorFactory) {
-        return parentFactory.createChild(project, instantiatorFactory.injectAndDecorate(this));
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
+        return parentFactory.createChild(project, taskScheme.getInstantiationScheme().withServices(this));
     }
 
     protected TaskInstantiator createTaskInstantiator(ITaskFactory taskFactory) {

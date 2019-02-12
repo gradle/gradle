@@ -25,7 +25,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,9 +39,9 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     private final HashCode secondaryInputsHash;
     private final Isolatable<Object[]> isolatableParameters;
 
-    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
+    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
         super(implementationClass, fromAttributes);
-        this.instantiator = instantiatorFactory.inject();
+        this.instantiator = actionInstantiationScheme.instantiator();
         this.isolatableParameters = isolatableFactory.isolate(parameters);
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }

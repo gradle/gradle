@@ -46,6 +46,8 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskStatistics
+import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.internal.tasks.properties.TaskScheme
 import org.gradle.api.logging.LoggingManager
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -54,6 +56,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
+import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -64,7 +67,6 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -83,7 +85,6 @@ class ProjectScopeServicesTest extends Specification {
     PluginRegistry pluginRegistry = Mock() {
         createChild(_) >> Mock(PluginRegistry)
     }
-    ModelRegistry modelRegistry = Mock()
     ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
@@ -105,6 +106,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(PluginRegistry) >> pluginRegistry
         parent.get(DependencyManagementServices) >> dependencyManagementServices
         parent.get(Instantiator) >> TestUtil.instantiatorFactory().decorateLenient()
+        parent.get(TaskScheme) >> new TaskScheme(Stub(InstantiationScheme), Stub(InspectionScheme))
         parent.get(FileSystem) >> Stub(FileSystem)
         parent.get(ProjectAccessListener) >> Stub(ProjectAccessListener)
         parent.get(FileLookup) >> Stub(FileLookup)
@@ -148,9 +150,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     private expectTaskContainerCreated() {
-        def instantiator = Stub(Instantiator)
-        1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
-        1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
+        1 * taskFactory.createChild({ it.is project }, _) >> Stub(ITaskFactory)
     }
 
     def "provides a ToolingModelBuilderRegistry"() {

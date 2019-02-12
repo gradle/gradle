@@ -41,9 +41,11 @@ class DefaultInstantiatorFactoryTest extends Specification {
         instantiatorFactory.injectScheme([Annotation2, Annotation1]).is(instantiatorFactory.injectScheme([Annotation1, Annotation2]))
     }
 
-    def "uses Instantiator from inject scheme"() {
+    def "uses Instantiators from inject schemes"() {
         expect:
+        instantiatorFactory.injectScheme().instantiator().is(instantiatorFactory.inject())
         instantiatorFactory.injectScheme([]).instantiator().is(instantiatorFactory.inject())
+        !instantiatorFactory.decorateScheme().instantiator().is(instantiatorFactory.inject())
     }
 
     def "fails for unknown annotation"() {

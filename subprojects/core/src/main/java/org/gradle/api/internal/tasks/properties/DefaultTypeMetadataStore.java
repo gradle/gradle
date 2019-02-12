@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import groovy.lang.GroovyObject;
@@ -34,12 +33,9 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.tasks.Console;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -53,21 +49,12 @@ import org.gradle.internal.reflect.ValidationProblem;
 import org.gradle.internal.scripts.ScriptOrigin;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
-
-    private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
-        new NoOpPropertyAnnotationHandler(Inject.class),
-        new NoOpPropertyAnnotationHandler(Console.class),
-        new NoOpPropertyAnnotationHandler(Internal.class)
-    );
-
     // Avoid reflecting on classes we know we don't need to look at
     private static final ImmutableSet<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
         ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
@@ -75,7 +62,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
 
-    private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final PropertyExtractor propertyExtractor;
     private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
@@ -85,27 +72,26 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
     };
 
-    public DefaultTypeMetadataStore(Iterable<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
-        Iterable<PropertyAnnotationHandler> allAnnotationHandlers = Iterables.concat(HANDLERS, annotationHandlers);
-        this.annotationHandlers = Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+    public DefaultTypeMetadataStore(Collection<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
+        this.annotationHandlers = Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
         });
-        Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides = collectAnnotationOverrides(allAnnotationHandlers);
-        Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(((Map<Class<? extends Annotation>, PropertyAnnotationHandler>) Maps.uniqueIndex(allAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+        Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides = collectAnnotationOverrides(annotationHandlers);
+        Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(((Map<Class<? extends Annotation>, PropertyAnnotationHandler>) Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
         })).keySet());
-        String displayName = calculateDisplayName(allAnnotationHandlers);
+        String displayName = calculateDisplayName(annotationHandlers);
         this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, otherKnownAnnotations, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
         this.cache = cacheFactory.newClassCache();
     }
 
-    private String calculateDisplayName(Iterable<PropertyAnnotationHandler> annotationHandlers) {
+    private String calculateDisplayName(Iterable<? extends PropertyAnnotationHandler> annotationHandlers) {
         for (PropertyAnnotationHandler annotationHandler : annotationHandlers) {
             if (annotationHandler instanceof AbstractOutputPropertyAnnotationHandler) {
                 return "an input or output annotation";
@@ -114,7 +100,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return "an input annotation";
     }
 
-    private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<PropertyAnnotationHandler> allAnnotationHandlers) {
+    private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<? extends PropertyAnnotationHandler> allAnnotationHandlers) {
         ImmutableSetMultimap.Builder<Class<? extends Annotation>, Class<? extends Annotation>> builder = ImmutableSetMultimap.builder();
         for (PropertyAnnotationHandler handler : allAnnotationHandlers) {
             if (handler instanceof OverridingPropertyAnnotationHandler) {
@@ -146,9 +132,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private static class DefaultTypeMetadata implements TypeMetadata {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ImmutableList<ValidationProblem> validationProblems;
-        private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers;
+        private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
 
-        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableList<ValidationProblem> validationProblems, ImmutableMap<Class<? extends Annotation>, PropertyAnnotationHandler> annotationHandlers) {
+        DefaultTypeMetadata(ImmutableSet<PropertyMetadata> propertiesMetadata, ImmutableList<ValidationProblem> validationProblems, ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers) {
             this.propertiesMetadata = propertiesMetadata;
             this.validationProblems = validationProblems;
             this.annotationHandlers = annotationHandlers;

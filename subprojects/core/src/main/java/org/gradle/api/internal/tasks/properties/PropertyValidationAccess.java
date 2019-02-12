@@ -34,7 +34,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.instantiation.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -75,8 +75,9 @@ public class PropertyValidationAccess {
         // For now, re-implement the discovery here
         builder.provider(new Object() {
             void configure(ServiceRegistration registration) {
-                registration.add(ListenerManager.class, new DefaultListenerManager());
+                registration.add(DefaultListenerManager.class, new DefaultListenerManager());
                 registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
+                registration.add(DefaultInstantiatorFactory.class);
                 List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
                 for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {
                     pluginServiceFactory.registerGlobalServices(registration);
@@ -85,7 +86,7 @@ public class PropertyValidationAccess {
         });
         ServiceRegistry services = builder.build();
         taskClassInfoStore = services.get(TaskClassInfoStore.class);
-        metadataStore = services.get(InspectionScheme.class).getMetadataStore();
+        metadataStore = services.get(TaskScheme.class).getInspectionScheme().getMetadataStore();
     }
 
     @SuppressWarnings("unused")

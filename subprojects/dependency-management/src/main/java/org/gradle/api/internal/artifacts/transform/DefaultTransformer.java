@@ -71,7 +71,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
-    private final PropertyWalker propertyWalker;
+    private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
     private final DomainObjectProjectStateHandler projectStateHandler;
@@ -80,14 +80,14 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme instantiationScheme) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
-        this.propertyWalker = propertyWalker;
-        this.instanceFactory = instantiationScheme.forType(implementationClass);
+        this.parameterPropertyWalker = parameterPropertyWalker;
+        this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
@@ -154,7 +154,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);

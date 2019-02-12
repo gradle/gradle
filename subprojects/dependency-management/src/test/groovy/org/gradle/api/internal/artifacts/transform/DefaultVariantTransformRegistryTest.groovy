@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.tasks.properties.InspectionScheme
-import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -51,17 +50,15 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def transformerInvoker = Mock(TransformerInvoker)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def propertyWalker = Mock(PropertyWalker)
-    def inspectionSchemeFactory = Stub(InspectionSchemeFactory) {
-        inspectionScheme(_) >> Stub(InspectionScheme) {
-            getPropertyWalker() >> propertyWalker
-        }
+    def inspectionScheme = Stub(InspectionScheme) {
+        getPropertyWalker() >> propertyWalker
     }
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
-    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, domainObjectContextProjectStateHandler)
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory)
+    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, domainObjectContextProjectStateHandler, new ArtifactTransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme), new ArtifactTransformActionScheme(instantiatorFactory.injectScheme(), inspectionScheme, instantiatorFactory.injectScheme()))
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> HashCode.fromInt(123)
