@@ -1,9 +1,8 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
-
 import java.io.File
-import java.util.*
+import java.util.Properties
 
 
 /**
@@ -54,8 +53,8 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
         """
 
     private
-    val futurePluginRules: String?
-        get() = futurePluginVersions?.entries?.joinLines { (id, version) ->
+    val futurePluginRules: String
+        get() = futurePluginVersions.entries.joinLines { (id, version) ->
             """
                 if (requested.id.id == "$id") {
                     useVersion("$version")
@@ -66,6 +65,7 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
     private
     val futurePluginVersions by lazy {
         loadPropertiesFromResource("/future-plugin-versions.properties")
+            ?: throw IllegalStateException("/future-plugin-versions.properties resource not found. Run intTestImage.")
     }
 
     private
