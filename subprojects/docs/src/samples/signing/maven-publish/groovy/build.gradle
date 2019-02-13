@@ -10,12 +10,12 @@ version = '1.0'
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allJava
-    classifier = 'sources'
+    archiveClassifier = 'sources'
 }
 
 task javadocJar(type: Jar) {
     from javadoc
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
 }
 
 // tag::pom-customization[]
@@ -44,6 +44,10 @@ publishing {
                 name = 'My Library'
                 description = 'A concise description of my library'
                 url = 'http://www.example.com/library'
+                properties = [
+                    myProp: "value",
+                    "prop.with.dots": "anotherValue"
+                ]
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'

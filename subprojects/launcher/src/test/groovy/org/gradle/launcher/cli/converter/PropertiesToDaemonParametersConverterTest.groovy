@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli.converter
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
@@ -32,7 +33,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
 
     def converter = new PropertiesToDaemonParametersConverter()
-    def params = new DaemonParameters(new BuildLayoutParameters())
+    def params = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())
 
     def "allows whitespace around boolean properties"() {
         when:

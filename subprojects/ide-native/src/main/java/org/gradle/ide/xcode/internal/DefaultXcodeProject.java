@@ -18,7 +18,6 @@ package org.gradle.ide.xcode.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.ide.xcode.XcodeProject;
@@ -76,34 +75,13 @@ public class DefaultXcodeProject implements XcodeProject {
         this.locationDir = locationDir;
     }
 
-    public static class Groups {
-        private final ConfigurableFileCollection sources;
-        private final ConfigurableFileCollection tests;
-        private final ConfigurableFileCollection headers;
-        private final ConfigurableFileCollection root;
+    public static abstract class Groups {
+        public abstract ConfigurableFileCollection getRoot();
 
-        @Inject
-        public Groups(FileOperations fileOperations) {
-            this.sources = fileOperations.configurableFiles();
-            this.tests = fileOperations.configurableFiles();
-            this.headers = fileOperations.configurableFiles();
-            this.root = fileOperations.configurableFiles();
-        }
+        public abstract ConfigurableFileCollection getSources();
 
-        public ConfigurableFileCollection getRoot() {
-            return root;
-        }
+        public abstract ConfigurableFileCollection getTests();
 
-        public ConfigurableFileCollection getSources() {
-            return sources;
-        }
-
-        public ConfigurableFileCollection getTests() {
-            return tests;
-        }
-
-        public ConfigurableFileCollection getHeaders() {
-            return headers;
-        }
+        public abstract ConfigurableFileCollection getHeaders();
     }
 }

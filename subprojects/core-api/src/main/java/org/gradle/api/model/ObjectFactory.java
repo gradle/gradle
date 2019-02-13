@@ -18,6 +18,7 @@ package org.gradle.api.model;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -88,6 +89,13 @@ public interface ObjectFactory {
      * @since 5.0
      */
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
+
+    /**
+     * Creates a new {@link ConfigurableFileCollection}. The collection is initially empty.
+     *
+     * @since 5.3
+     */
+    ConfigurableFileCollection fileCollection();
 
     /**
      * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.

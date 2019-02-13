@@ -18,6 +18,7 @@ package org.gradle.api.internal
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
@@ -47,18 +48,19 @@ class DependencyClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath("GRADLE_TEST_KIT")
 
         then:
-        classpath.asFiles.collect{it.name} == ["gradle-test-kit-runtime"]
+        classpath.asFiles.collect { it.name } == ["gradle-test-kit-runtime"]
 
         and:
         1 * moduleRegistry.getModule("gradle-test-kit") >> module("gradle-test-kit")
         0 * pluginModuleRegistry.getApiModules()
     }
 
-    def module(String name, Module ... requiredModules) {
+    def module(String name, Module... requiredModules) {
         Module module = Mock()
         _ * module.classpath >> DefaultClassPath.of(new File("$name-runtime"))
         _ * module.implementationClasspath >> DefaultClassPath.of(new File("$name-runtime"))
         _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
+        _ * module.allRequiredModulesClasspath >> module.allRequiredModules.collect { it.classpath }.inject(ClassPath.EMPTY) { r, i -> r + i }
         return module
     }
 }

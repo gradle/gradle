@@ -316,7 +316,7 @@ include::sample[dir="buildCache/http-build-cache/kotlin",files="settings.gradle.
 [[sec:build_cache_configure_use_cases]]
 === Configuration use cases
 
-The recommended use case for the build cache is that your continuous integration server populates the remote build cache from clean builds while developers load from the remote build cache and store in the local build cache.
+The recommended use case for the remote build cache is that your continuous integration server populates it from clean builds while developers only load from it.
 The configuration would then look as follows.
 
 .Recommended setup for CI push use case

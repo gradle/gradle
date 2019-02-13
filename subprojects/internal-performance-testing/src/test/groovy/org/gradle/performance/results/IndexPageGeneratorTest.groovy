@@ -45,9 +45,10 @@ class IndexPageGeneratorTest extends ResultSpecification {
             createHighConfidenceRegressedData(),
             createFailedData()
         ]
+        buildResults.sort(IndexPageGenerator.SCENARIO_COMPARATOR)
 
         then:
-        generator.sortBuildResultData(buildResults.stream()).toList().collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
+        buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
     }
 
     private ScenarioBuildResultData createFailedData() {

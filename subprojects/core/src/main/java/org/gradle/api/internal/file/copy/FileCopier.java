@@ -21,18 +21,21 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
 public class FileCopier {
     private final Instantiator instantiator;
+    private final FileSystem fileSystem;
     private final FileResolver fileResolver;
     private final FileLookup fileLookup;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public FileCopier(Instantiator instantiator, FileResolver fileResolver, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public FileCopier(Instantiator instantiator, FileSystem fileSystem, FileResolver fileResolver, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.instantiator = instantiator;
+        this.fileSystem = fileSystem;
         this.fileResolver = fileResolver;
         this.fileLookup = fileLookup;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -63,7 +66,7 @@ public class FileCopier {
     }
 
     private WorkResult doCopy(CopySpecInternal copySpec, CopyAction visitor) {
-        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileLookup.getFileSystem(), false);
+        CopyActionExecuter visitorDriver = new CopyActionExecuter(instantiator, fileSystem, false);
         return visitorDriver.execute(copySpec, visitor);
     }
 

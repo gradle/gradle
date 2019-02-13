@@ -42,6 +42,26 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
 
     abstract String getTestedComponentDsl()
 
+    @Override
+    protected String configureTargetMachines(String... targetMachines) {
+        return """
+            ${testedComponentDsl}.targetMachines = [${targetMachines.join(",")}]
+        """ + super.configureTargetMachines(targetMachines)
+    }
+
+    @Override
+    protected void assertXcodeProjectSources(List<String> rootChildren) {
+        def project = rootXcodeProject.projectFile
+        project.mainGroup.assertHasChildren(rootChildren + ['Sources', 'Tests'])
+        project.sources.assertHasChildren(componentUnderTest.main.files*.name)
+        project.tests.assertHasChildren(componentUnderTest.test.files*.name)
+    }
+
+    @Override
+    protected List<ExpectedXcodeTarget> getExpectedXcodeTargets() {
+        return super.getExpectedXcodeTargets() + [new ExpectedXcodeTarget('AppTest')]
+    }
+
     @Unroll
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:

@@ -17,7 +17,6 @@
 package org.gradle.language.swift.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -42,8 +41,8 @@ public abstract class DefaultSwiftComponent extends DefaultNativeComponent imple
     private final Property<SwiftVersion> sourceCompatibility;
     private final SetProperty<TargetMachine> targetMachines;
 
-    public DefaultSwiftComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(fileOperations);
+    public DefaultSwiftComponent(String name, ObjectFactory objectFactory) {
+        super(objectFactory);
         this.name = name;
         swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));
         module = objectFactory.property(String.class);

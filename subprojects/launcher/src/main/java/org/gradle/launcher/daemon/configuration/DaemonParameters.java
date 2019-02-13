@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.JavaInfo;
@@ -45,7 +45,7 @@ public class DaemonParameters {
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
-    private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
+    private final DaemonJvmOptions jvmOptions;
     private Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean hasJvmArgs;
@@ -56,11 +56,12 @@ public class DaemonParameters {
     private Priority priority = Priority.NORMAL;
     private JavaInfo jvm = Jvm.current();
 
-    public DaemonParameters(BuildLayoutParameters layout) {
-        this(layout, Collections.<String, String>emptyMap());
+    public DaemonParameters(BuildLayoutParameters layout, FileCollectionFactory fileCollectionFactory) {
+        this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
     }
 
-    public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
+    public DaemonParameters(BuildLayoutParameters layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+        jvmOptions = new DaemonJvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             List<String> immutableBefore = jvmOptions.getAllImmutableJvmArgs();
             jvmOptions.systemProperties(extraSystemProperties);

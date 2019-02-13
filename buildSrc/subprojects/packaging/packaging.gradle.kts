@@ -6,7 +6,6 @@ dependencies {
     implementation("org.ow2.asm:asm:6.0")
     implementation("org.ow2.asm:asm-commons:6.0")
     implementation("com.google.code.gson:gson:2.7")
-    implementation("com.thoughtworks.qdox:qdox:2.0-M9")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")

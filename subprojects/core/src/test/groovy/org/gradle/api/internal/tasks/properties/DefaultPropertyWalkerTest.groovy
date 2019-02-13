@@ -34,11 +34,15 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
-
+    def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def visitor = Mock(PropertyVisitor)
+    def validationContext = Mock(ParameterValidationContext)
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -223,7 +227,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         @Nested Object right
     }
 
-    private visitProperties(TaskInternal task, PropertyAnnotationHandler... annotationHandlers) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(annotationHandlers as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(visitor, task)
+    private visitProperties(TaskInternal task) {
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, validationContext, visitor)
     }
 }

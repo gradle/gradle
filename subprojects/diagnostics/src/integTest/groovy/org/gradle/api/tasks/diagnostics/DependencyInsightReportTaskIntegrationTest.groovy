@@ -870,7 +870,7 @@ org:foo:1.0 -> 2.0
             configurations {
                conf {
                   resolutionStrategy.dependencySubstitution {
-                     substitute module('org:foo') because 'foo superceded by bar' with module('org:bar:1.0')
+                     substitute module('org:foo') because 'foo superseded by bar' with module('org:bar:1.0')
                      substitute module('org:baz') with module('org:baz:2.0')
                   }
                }
@@ -907,7 +907,7 @@ org:bar:1.0
       org.gradle.component.category = library (not requested)
    ]
    Selection reasons:
-      - Selected by rule : foo superceded by bar
+      - Selected by rule : foo superseded by bar
 
 org:foo:1.0 -> org:bar:1.0
 \\--- conf
@@ -1959,7 +1959,7 @@ org:leaf2:1.0
         outputContains """
 project :api
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :api
@@ -1974,7 +1974,7 @@ project :api
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :some:deeply:nested
@@ -1988,7 +1988,7 @@ project :some:deeply:nested
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage = java-api
+      org.gradle.usage = java-api-jars (compatible with: java-api)
    ]
 
 project :some:deeply:nested
@@ -2428,7 +2428,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
 """
     }
 
-
+    @Unroll
     def "renders dependency from BOM as a constraint"() {
         given:
         def leaf = mavenRepo.module("org", "leaf", "1.0").publish()
@@ -2445,7 +2445,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
             }
 
             dependencies {
-                implementation platform('org:bom:1.0')
+                implementation platform('org:bom:1.0') $conf
                 implementation 'org:leaf'
             }
         """
@@ -2469,6 +2469,10 @@ org:leaf:1.0
 org:leaf -> 1.0
 \\--- compileClasspath
 """
+        where:
+        conf << ["",
+                 // this is just a sanity check. Nobody should ever write this.
+                 "{ capabilities { requireCapability('org:bom-derived-platform') } }" ]
     }
 
     def "shows published dependency reason"() {

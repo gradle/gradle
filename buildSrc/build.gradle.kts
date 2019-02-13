@@ -25,7 +25,7 @@ import java.util.Properties
 
 plugins {
     `kotlin-dsl`
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.0" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
 }
 
 subprojects {
@@ -57,8 +57,8 @@ subprojects {
 
                     val mainSourceSet = project.sourceSets.main.get()
                     classes.setFrom(mainSourceSet.output.classesDirs)
-                    classpath.setFrom(mainSourceSet.compileClasspath)
                     dependsOn(mainSourceSet.output)
+                    classpath.setFrom(mainSourceSet.runtimeClasspath)
                 }
                 tasks.check { dependsOn(validateTaskProperties) }
             }
@@ -190,7 +190,6 @@ fun Project.applyGroovyProjectConventions() {
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
         }
-        
     }
 
     val compileGroovy by tasks.existing(GroovyCompile::class)

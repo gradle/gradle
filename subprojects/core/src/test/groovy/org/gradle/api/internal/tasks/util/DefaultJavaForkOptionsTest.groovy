@@ -20,12 +20,13 @@ package org.gradle.api.internal.tasks.util
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaForkOptions
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.charset.Charset
@@ -37,13 +38,14 @@ import static org.junit.Assert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
-    private final resolver = Mock(PathToFileResolver)
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    private final resolver = TestFiles.pathToFileResolver(tmpDir.testDirectory)
+    private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private DefaultJavaForkOptions options
 
     def setup() {
-        _ * resolver.resolve(_ as File) >> { args -> args[0] }
-        _ * resolver.resolve(_ as String) >> { args -> new File(args[0]) }
-        options = new DefaultJavaForkOptions(resolver, Jvm.current())
+        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
     }
 
     def "provides correct default values"() {
@@ -349,7 +351,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
 
@@ -360,7 +362,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "allJvmArgs includes bootstrapClasspath"() {
         when:
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
         options.bootstrapClasspath(files)
 
         then:
@@ -371,7 +373,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
 
         when:
-        options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
         options.bootstrapClasspath(files[0])
         options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 
@@ -413,14 +415,14 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "defaults are compatible"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         expect:
         options.isCompatibleWith(other)
     }
 
     def "is compatible with identical options"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
         def settings = {
             executable = "/foo/bar"
             workingDir = new File("foo")
@@ -440,7 +442,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with different representations of heap options"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -457,7 +459,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with lower heap requirements"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -474,7 +476,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with higher heap requirements"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -491,7 +493,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with the same set of jvm args"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.jvmArgs = ["-server", "-esa"]
@@ -502,7 +504,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with a subset of jvm args"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.jvmArgs = ["-server", "-esa"]
@@ -513,7 +515,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with a superset of jvm args"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.jvmArgs = ["-server"]
@@ -524,7 +526,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with a different set of jvm args"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.jvmArgs = ["-server", "-esa"]
@@ -535,7 +537,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with same executable"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.executable = "foo"
@@ -546,7 +548,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different executables"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.executable = "foo"
@@ -557,7 +559,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with same workingDir"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.workingDir = new File("foo")
@@ -568,7 +570,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different workingDir"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.workingDir = new File("foo")
@@ -579,7 +581,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with same environment variables"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.environment = ["FOO": "bar", "BAR": "foo"]
@@ -590,7 +592,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different environment variables"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.environment = ["FOO": "bar", "BAR": "foo"]
@@ -601,7 +603,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with subset of environment variables"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.environment = ["FOO": "bar", "BAR": "foo"]
@@ -612,7 +614,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with super set of environment variables"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.environment = ["FOO": "bar"]
@@ -623,7 +625,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with the same system properties"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -634,7 +636,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different system properties"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -645,7 +647,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with subset of system properties"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.systemProperties = ["foo": "bar", "bar": "foo"]
@@ -656,7 +658,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with super set of system properties"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.systemProperties = ["foo": "bar"]
@@ -667,7 +669,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with same debug setting"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.debug = true
@@ -678,7 +680,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different debug setting"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.debug = true
@@ -689,7 +691,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is compatible with same enableAssertions setting"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.enableAssertions = true
@@ -700,7 +702,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "is not compatible with different enableAssertions setting"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.enableAssertions = true
@@ -712,8 +714,8 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "is compatible with same bootstrapClasspath"() {
         def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
-        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
 
         when:
         options.with {
@@ -732,8 +734,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "is not compatible with different bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file2.jar', 'file3.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
-        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
 
         when:
         options.with {
@@ -750,7 +752,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "string values are trimmed"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -771,7 +773,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "capitalization of memory options is irrelevant"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -788,7 +790,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "capitalization of JVM args is relevant"() {
-        def other = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         options.with {
@@ -803,8 +805,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "unspecified heap options are only compatible with unspecified heap options"() {
-        def other1 = new DefaultJavaForkOptions(resolver, Jvm.current())
-        def other2 = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other1 = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
+        def other2 = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         other2.with {
@@ -818,8 +820,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "unspecified executable is only compatible with unspecified executable options"() {
-        def other1 = new DefaultJavaForkOptions(resolver, Jvm.current())
-        def other2 = new DefaultJavaForkOptions(resolver, Jvm.current())
+        def other1 = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
+        def other2 = new DefaultJavaForkOptions(resolver, fileCollectionFactory, Jvm.current())
 
         when:
         other2.executable = "/foo/bar"
@@ -830,7 +832,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "cannot determine compatibility with jvmArgumentProviders"() {
-        def other = new DefaultJavaForkOptions(resolver)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
         def argumentProvider = new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {
@@ -860,7 +862,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "can merge options"() {
-        def other = new DefaultJavaForkOptions(resolver)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
 
         when:
         options.with {
@@ -885,7 +887,7 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         merged.executable == "/foo/bar"
-        merged.workingDir == new File("foo")
+        merged.workingDir == tmpDir.file("foo")
         merged.environment == ["FOO": "BAR", "BAR": "FOO"]
         merged.systemProperties == ["foo": "bar", "bar": "foo", "baz": "foo"]
         merged.minHeapSize == "256m"
@@ -896,8 +898,8 @@ class DefaultJavaForkOptionsTest extends Specification {
     def "can merge options with bootstrapClasspath"() {
         def files1 = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         def files2 = ['file3.jar', 'file4.jar'].collect { new File(it).canonicalFile }
-        def options = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
-        def other = new DefaultJavaForkOptions(TestFiles.pathToFileResolver())
+        def options = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
 
         when:
         options.with {
@@ -915,7 +917,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "un-mergeable options throw an exception"() {
-        def other = new DefaultJavaForkOptions(resolver)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
 
         when:
         options.with settings1
@@ -931,7 +933,7 @@ class DefaultJavaForkOptionsTest extends Specification {
     }
 
     def "cannot merge options with jvmArgumentProviders"() {
-        def other = new DefaultJavaForkOptions(resolver)
+        def other = new DefaultJavaForkOptions(resolver, fileCollectionFactory)
         def argumentProvider = new CommandLineArgumentProvider() {
             @Override
             Iterable<String> asArguments() {

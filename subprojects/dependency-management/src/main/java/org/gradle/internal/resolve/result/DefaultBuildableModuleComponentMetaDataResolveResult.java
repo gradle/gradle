@@ -96,6 +96,16 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
         this.authoritative = authoritative;
     }
 
+    @Override
+    public void redirectToGradleMetadata() {
+        reset(State.Redirect);
+    }
+
+    @Override
+    public boolean shouldUseGradleMetatada() {
+        return state == State.Redirect;
+    }
+
     private void assertHasResult() {
         if (!hasResult()) {
             throw new IllegalStateException("No result has been specified.");

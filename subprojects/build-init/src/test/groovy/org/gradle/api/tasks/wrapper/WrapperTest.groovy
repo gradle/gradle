@@ -153,7 +153,7 @@ class WrapperTest extends AbstractTaskTest {
             "distributionType", "archiveBase", "archivePath", "gradleVersion")
     }
 
-    def "execute with extant wrapper jar parent directory and extant wraper jar"() {
+    def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
         given:
         def jarDir = new File(getProject().getProjectDir(), "lib")
         jarDir.mkdirs()

@@ -110,6 +110,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
+    public MavenModule withGradleMetadataRedirection() {
+        backingModule.withGradleMetadataRedirection();
+        return t();
+    }
+
+    @Override
     public TestFile getArtifactFile() {
         return backingModule.getArtifactFile();
     }
@@ -214,6 +220,12 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     @Override
     public MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value=VariantMetadataSpec.class, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
         backingModule.variant(variant, attributes, variantConfiguration);
+        return t();
+    }
+
+    @Override
+    public MavenModule adhocVariants() {
+        backingModule.adhocVariants();
         return t();
     }
 

@@ -45,11 +45,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -369,7 +371,7 @@ public class DependencyGraphBuilder {
      */
     private void validateMultipleNodeSelection(ModuleResolveState module, ComponentState selected) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
-                .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform())
+                .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
                 .collect(Collectors.toSet());
         if (selectedNodes.size()<2) {
             return;
@@ -398,14 +400,25 @@ public class DependencyGraphBuilder {
         ImmutableSet<Attribute<?>> firstKeys = firstAttributes.keySet();
         ImmutableSet<Attribute<?>> secondKeys = secondAttributes.keySet();
         for (Attribute<?> attribute : Sets.intersection(firstKeys, secondKeys)) {
-            // for all commons attributes, make sure they are equal
+            CompatibilityRule<Object> rule = attributesSchema.compatibilityRules(attribute);
             Object v1 = firstAttributes.getAttribute(attribute);
             Object v2 = secondAttributes.getAttribute(attribute);
-            if (!Objects.equal(v1, v2)) {
+            // for all commons attributes, make sure they are compatible with each other
+            if (!compatible(rule, v1, v2) || !compatible(rule, v2, v1)) {
                 incompatibleNodes.add(first);
                 incompatibleNodes.add(second);
             }
         }
+    }
+
+    private static boolean compatible(CompatibilityRule<Object> rule, Object v1, Object v2) {
+        DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<>(v1, v2);
+        rule.execute(result);
+        if (!result.hasResult()) {
+            // the rule said nothing, so we use equality
+            return Objects.equal(v1, v2);
+        }
+        return result.isCompatible();
     }
 
     private void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {

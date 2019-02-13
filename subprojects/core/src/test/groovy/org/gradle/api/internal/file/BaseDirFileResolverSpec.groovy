@@ -229,7 +229,7 @@ The following types/formats are supported:
     }
 
     private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {
-        new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, TestFiles.getPatternSetFactory())
+        new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
     }
 
     private File[] getFsRoots() {

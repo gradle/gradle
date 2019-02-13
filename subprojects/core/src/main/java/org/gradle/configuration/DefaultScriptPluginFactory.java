@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -47,6 +48,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -77,9 +79,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ProviderFactory providerFactory;
     private final TextResourceLoader textResourceLoader;
     private final ExecFactory execFactory;
+    private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
+    private final FileSystem fileSystem;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -87,6 +91,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
+                                      FileSystem fileSystem,
                                       FileLookup fileLookup,
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
@@ -96,6 +101,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       StreamHasher streamHasher,
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
+                                      FileCollectionFactory fileCollectionFactory,
                                       AutoAppliedPluginHandler autoAppliedPluginHandler) {
 
         this.scriptCompilerFactory = scriptCompilerFactory;
@@ -103,6 +109,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginRequestApplicator = pluginRequestApplicator;
+        this.fileSystem = fileSystem;
         this.fileLookup = fileLookup;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
@@ -110,6 +117,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.providerFactory = providerFactory;
         this.textResourceLoader = textResourceLoader;
         this.execFactory = execFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
@@ -156,6 +164,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
             services.add(FileLookup.class, fileLookup);
+            services.add(FileSystem.class, fileSystem);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
@@ -163,6 +172,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
+            services.add(FileCollectionFactory.class, fileCollectionFactory);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

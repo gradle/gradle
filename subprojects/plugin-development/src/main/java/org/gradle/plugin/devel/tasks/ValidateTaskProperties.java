@@ -33,7 +33,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -120,9 +119,9 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     private boolean failOnWarning;
 
     @Inject
-    public ValidateTaskProperties(ObjectFactory objects, ProjectLayout layout) {
-        this.classes = layout.configurableFiles();
-        this.classpath = layout.configurableFiles();
+    public ValidateTaskProperties(ObjectFactory objects) {
+        this.classes = objects.fileCollection();
+        this.classpath = objects.fileCollection();
         this.outputFile = objects.fileProperty();
     }
 
@@ -148,9 +147,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
             taskInterface = classLoader.loadClass(Task.class.getName());
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
             validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class, Boolean.TYPE);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchMethodException e) {
+        } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
 
@@ -251,7 +248,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
     }
 
     private static List<InvalidUserDataException> toExceptionList(List<String> problemMessages) {
-        return  Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
+        return Lists.transform(problemMessages, new Function<String, InvalidUserDataException>() {
             @Override
             @SuppressWarnings("NullableProblems")
             public InvalidUserDataException apply(String problemMessage) {
@@ -342,7 +339,7 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
-     * 
+     *
      * @since 5.1
      */
     @Incubating

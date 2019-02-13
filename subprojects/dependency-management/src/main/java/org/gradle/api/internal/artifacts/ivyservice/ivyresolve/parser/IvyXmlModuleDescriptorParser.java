@@ -72,6 +72,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -120,7 +121,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         this.metadataFactory = metadataFactory;
     }
 
-    protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected ParseResult<MutableIvyModuleResolveMetadata> doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
         parser.setValidate(validate);
         parser.parse();
@@ -128,7 +129,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
 
-        return parser.getMetaData();
+        return ParseResult.of(parser.getMetaData(), parser.hasGradleMetadataRedirect);
     }
 
     protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties) throws MalformedURLException {
@@ -210,33 +211,33 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         protected void parseDepsConfs(String confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
-            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande, true);
+                boolean useDefaultMappingToGuessRightOperand) {
+            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperand, true);
         }
 
         protected void parseDepsConfs(String confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande, boolean evaluateConditions) {
+                boolean useDefaultMappingToGuessRightOperand, boolean evaluateConditions) {
             if (confs == null) {
                 return;
             }
 
             String[] conf = confs.split(";");
-            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperande, evaluateConditions);
+            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperand, evaluateConditions);
         }
 
         protected void parseDepsConfs(String[] conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
-            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperande, true);
+                boolean useDefaultMappingToGuessRightOperand) {
+            parseDepsConfs(conf, dd, useDefaultMappingToGuessRightOperand, true);
         }
 
         protected void parseDepsConfs(String[] conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande, boolean evaluateConditions) {
+                boolean useDefaultMappingToGuessRightOperand, boolean evaluateConditions) {
             replaceConfigurationWildcards(md);
             for (int i = 0; i < conf.length; i++) {
                 String[] ops = conf[i].split("->");
                 if (ops.length == 1) {
                     String[] modConfs = ops[0].split(",");
-                    if (!useDefaultMappingToGuessRightOperande) {
+                    if (!useDefaultMappingToGuessRightOperand) {
                         for (int j = 0; j < modConfs.length; j++) {
                             dd.addDependencyConfiguration(modConfs[j].trim(), modConfs[j].trim());
                         }
@@ -280,7 +281,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             }
 
             if (md.isMappingOverride()) {
-                addExtendingConfigurations(conf, dd, useDefaultMappingToGuessRightOperande);
+                addExtendingConfigurations(conf, dd, useDefaultMappingToGuessRightOperand);
             }
         }
 
@@ -348,14 +349,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         private void addExtendingConfigurations(String[] confs, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
+                boolean useDefaultMappingToGuessRightOperand) {
             for (int i = 0; i < confs.length; i++) {
-                addExtendingConfigurations(confs[i], dd, useDefaultMappingToGuessRightOperande);
+                addExtendingConfigurations(confs[i], dd, useDefaultMappingToGuessRightOperand);
             }
         }
 
         private void addExtendingConfigurations(String conf, DefaultDependencyDescriptor dd,
-                boolean useDefaultMappingToGuessRightOperande) {
+                boolean useDefaultMappingToGuessRightOperand) {
             Set configsToAdd = new HashSet();
             Configuration[] configs = md.getConfigurations();
             for (int i = 0; i < configs.length; i++) {
@@ -365,13 +366,13 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                         String configName = configs[i].getName();
                         configsToAdd.add(configName);
                         addExtendingConfigurations(configName, dd,
-                            useDefaultMappingToGuessRightOperande);
+                            useDefaultMappingToGuessRightOperand);
                     }
                 }
             }
 
             String[] confs = (String[]) configsToAdd.toArray(new String[0]);
-            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperande);
+            parseDepsConfs(confs, dd, useDefaultMappingToGuessRightOperand);
         }
 
         protected DependencyDescriptor getDefaultConfMappingDescriptor() {
@@ -451,7 +452,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
     }
 
-    public static class Parser extends AbstractParser {
+    public static class Parser extends AbstractParser implements LexicalHandler {
         public enum State {
             NONE,
             INFO,
@@ -491,6 +492,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private StringBuffer buffer;
         private String descriptorVersion;
         private String[] publicationsDefaultConf;
+        private boolean hasGradleMetadataRedirect;
         final Map<String, String> properties;
 
         public Parser(DescriptorParseContext parseContext, IvyModuleDescriptorConverter moduleDescriptorConverter, ExternalResource res, URL descriptorURL, ImmutableModuleIdentifierFactory moduleIdentifierFactory, IvyMutableModuleMetadataFactory metadataFactory, Map<String, String> properties) {
@@ -1281,6 +1283,46 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private PatternMatcher getMatcher(String matcherName) {
             return PatternMatchers.getInstance().getMatcher(matcherName);
         }
+
+        // Handler to detect Gradle metadata redirects
+
+        @Override
+        public void startDTD(String name, String publicId, String systemId) throws SAXException {
+
+        }
+
+        @Override
+        public void endDTD() throws SAXException {
+
+        }
+
+        @Override
+        public void startEntity(String name) throws SAXException {
+
+        }
+
+        @Override
+        public void endEntity(String name) throws SAXException {
+
+        }
+
+        @Override
+        public void startCDATA() throws SAXException {
+
+        }
+
+        @Override
+        public void endCDATA() throws SAXException {
+
+        }
+
+        @Override
+        public void comment(char[] ch, int start, int length) throws SAXException {
+            String comment = new String(ch, start, length);
+            if (comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+                hasGradleMetadataRedirect = true;
+            }
+        }
     }
 
     public static class ParserHelper {
@@ -1349,6 +1391,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
                 try {
                     SAXParser parser = newSAXParser(schema, schemaStream);
+                    parser.setProperty("http://xml.org/sax/properties/lexical-handler", handler);
                     parser.parse(xmlStream, handler);
                 } finally {
                     Thread.currentThread().setContextClassLoader(original);

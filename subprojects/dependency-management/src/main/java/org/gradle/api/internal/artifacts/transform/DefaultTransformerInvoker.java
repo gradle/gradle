@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -80,6 +80,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFingerprinter dependencyFingerprinter;
+    private final FileCollectionFactory fileCollectionFactory;
     private final OutputFileCollectionFingerprinter outputFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
@@ -90,6 +91,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
                                      FileCollectionFingerprinter dependencyFingerprinter,
+                                     FileCollectionFactory fileCollectionFactory,
                                      OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                      ProjectFinder projectFinder,
@@ -99,6 +101,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
         this.dependencyFingerprinter = dependencyFingerprinter;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.outputFingerprinter = outputFileCollectionFingerprinter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.projectFinder = projectFinder;
@@ -106,7 +109,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependenciesInternal dependencies, TransformationSubject subject) {
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File primaryInput, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
@@ -122,6 +125,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     workspace,
                     identityString,
                     workspaceProvider.getExecutionHistoryStore(),
+                    fileCollectionFactory,
                     primaryInput,
                     primaryInputFingerprint,
                     dependencies,
@@ -197,7 +201,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final File primaryInput;
         private final String identityString;
         private final ExecutionHistoryStore executionHistoryStore;
-        private final ArtifactTransformDependenciesInternal dependencies;
+        private final FileCollectionFactory fileCollectionFactory;
+        private final ArtifactTransformDependencies dependencies;
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final OutputFileCollectionFingerprinter outputFingerprinter;
@@ -208,13 +213,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             TransformationWorkspace workspace,
             String identityString,
             ExecutionHistoryStore executionHistoryStore,
+            FileCollectionFactory fileCollectionFactory,
             File primaryInput,
             CurrentFileCollectionFingerprint primaryInputFingerprint,
-            ArtifactTransformDependenciesInternal dependencies,
+            ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
             OutputFileCollectionFingerprinter outputFingerprinter
         ) {
             this.implementationSnapshot = implementationSnapshot;
+            this.fileCollectionFactory = fileCollectionFactory;
             this.primaryInput = primaryInput;
             this.transformer = transformer;
             this.workspace = workspace;
@@ -245,7 +252,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = ImmutableList.copyOf(transformer.transform(primaryInput, outputDir, dependencies));
+            ImmutableList<File> result = transformer.transform(primaryInput, outputDir, dependencies);
             writeResultsFile(outputDir, resultsFile, result);
             return ExecutionOutcome.EXECUTED;
         }
@@ -304,8 +311,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, ImmutableFileCollection.of(workspace.getOutputDirectory()));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, ImmutableFileCollection.of(workspace.getResultsFile()));
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, fileCollectionFactory.fixed(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, fileCollectionFactory.fixed(workspace.getResultsFile()));
         }
 
         @Override
@@ -374,8 +381,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {
-            CurrentFileCollectionFingerprint outputFingerprint = outputFingerprinter.fingerprint(ImmutableFileCollection.of(workspace.getOutputDirectory()));
-            CurrentFileCollectionFingerprint resultsFileFingerprint = outputFingerprinter.fingerprint(ImmutableFileCollection.of(workspace.getResultsFile()));
+            CurrentFileCollectionFingerprint outputFingerprint = outputFingerprinter.fingerprint(fileCollectionFactory.fixed(workspace.getOutputDirectory()));
+            CurrentFileCollectionFingerprint resultsFileFingerprint = outputFingerprinter.fingerprint(fileCollectionFactory.fixed(workspace.getResultsFile()));
             return ImmutableSortedMap.of(
                 OUTPUT_DIRECTORY_PROPERTY_NAME, outputFingerprint,
                 RESULTS_FILE_PROPERTY_NAME, resultsFileFingerprint);

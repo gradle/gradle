@@ -25,16 +25,18 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
-    def "can publish java-library with dependencies"() {
+    def "can publish java-library with dependencies (runtime last)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
         createBuildScripts("""
             dependencies {
-                api "org.test:foo:+"
-                implementation "org.test:bar:+"
+                api "org.test:foo:[1.0,1.0]"
+                runtimeOnly "org.test:bar:+"
+                runtimeOnly "org.test:foo:+"
             }
             publishing {
                 publications {
@@ -54,14 +56,14 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
-            dependency("org.test:foo:1.0") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.test:foo:1.1") {
                 exists()
             }
             dependency("org.test:bar:1.1") {
@@ -72,7 +74,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         and:
         resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
         }
 
         and:
@@ -87,13 +89,88 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
         }
 
         where:
         [apiMapping, runtimeMapping] << ([
-                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
-                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")]
+                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)"), apiJarsUsingUsage(), apiJarsUsingUsage("fromResolutionOf('compileClasspath')"), apiJarsUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)"), runtimeJarsUsingUsage(), runtimeJarsUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeJarsUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
+        ].combinations() + [[allVariants(), noop()]])
+    }
+
+    @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
+    def "can publish java-library with dependencies (runtime first)"() {
+        given:
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
+
+        createBuildScripts("""
+            dependencies {
+                api "org.test:foo:[1.0,1.0]"
+                runtimeOnly "org.test:bar:+"
+                runtimeOnly "org.test:foo:+"
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            $runtimeMapping
+                            $apiMapping
+                        }
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.assertPublished()
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            dependency("org.test:foo:1.0") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("org.test:foo:1.1") {
+                exists()
+            }
+            dependency("org.test:bar:1.1") {
+                exists()
+            }
+            noMoreDependencies()
+        }
+
+        and:
+        resolveArtifacts(javaLibrary) {
+            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+        }
+
+        and:
+        resolveApiArtifacts(javaLibrary) {
+            withModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+            }
+        }
+
+        and:
+        resolveRuntimeArtifacts(javaLibrary) {
+            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+        }
+
+        where:
+        [apiMapping, runtimeMapping] << ([
+                [apiUsingUsage(), apiUsingUsage("fromResolutionOf('compileClasspath')"), apiUsingUsage("fromResolutionOf(project.configurations.compileClasspath)"), apiJarsUsingUsage(), apiJarsUsingUsage("fromResolutionOf('compileClasspath')"), apiJarsUsingUsage("fromResolutionOf(project.configurations.compileClasspath)")],
+                [runtimeUsingUsage(), runtimeUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)"), runtimeJarsUsingUsage(), runtimeJarsUsingUsage("fromResolutionOf('runtimeClasspath')"), runtimeJarsUsingUsage("fromResolutionOf(project.configurations.runtimeClasspath)")],
         ].combinations() + [[allVariants(), noop()]])
     }
 
@@ -136,13 +213,13 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency("org.test:foo:1.0") {
                 exists()
             }
@@ -222,7 +299,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -238,7 +315,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.artifactId.text() == 'bar'
             assert it.version.text() == '1.1'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -319,7 +396,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
                 exists()
             }
@@ -335,7 +412,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.artifactId.text() == 'bar'
             assert it.version.text() == '[1.0, 2.0)'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
                 exists()
             }
@@ -410,7 +487,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         then:
         javaLibrary.assertPublished()
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.0") {
                 exists()
             }
@@ -433,7 +510,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.version.text() == '1.1'
             assert it.scope.text() == 'import'
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {
                 exists()
             }
@@ -455,6 +532,14 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
     private static String apiUsingUsage(String config = "fromResolutionResult()") {
         """ usage("java-api") { $config } """
+    }
+
+    private static String apiJarsUsingUsage(String config = "fromResolutionResult()") {
+        """ usage("java-api-jars") { $config } """
+    }
+
+    private static String runtimeJarsUsingUsage(String config = "fromResolutionResult()") {
+        """ usage("java-runtime-jars") { $config } """
     }
 
     private static String runtimeUsingUsage(String config = "fromResolutionResult()") {

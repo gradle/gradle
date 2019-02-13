@@ -48,12 +48,9 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.DynamicPropertyNamer;
-import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.MutationGuards;
-import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.api.internal.artifacts.Module;
@@ -86,6 +83,9 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.extensibility.NoConventionMapping;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -241,7 +241,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         }
 
         services = serviceRegistryFactory.createFor(this);
-        taskContainer = services.newInstance(TaskContainerInternal.class);
+        taskContainer = services.get(TaskContainerInternal.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).injectAndDecorateLenient(services));
         if (parent != null) {
@@ -881,7 +881,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @Override
     public ConfigurableFileCollection files(Object... paths) {
-        return getLayout().configurableFiles(paths);
+        return getObjects().fileCollection().from(paths);
     }
 
     @Override
@@ -1090,7 +1090,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Inject
-    protected ProcessOperations getProcessOperations() {
+    public ProcessOperations getProcessOperations() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
@@ -1435,12 +1435,6 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     // These are here just so that ProjectInternal can implement FileOperations to work around https://github.com/gradle/gradle/issues/6027
-
-    @Override
-    @Deprecated
-    public ConfigurableFileCollection configurableFiles() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     @Deprecated

@@ -148,14 +148,9 @@ You'll find that the new Gradle build includes the following:
 
  * All the custom repositories that are specified in the POM
  * Your external and inter-project dependencies
- * The appropriate plugins to build the project (limited to one or more of the <<maven_plugin#maven_plugin,Maven>>, <<java_plugin#java_plugin,Java>> and <<war_plugin#war_plugin,War>> Plugins)
+ * The appropriate plugins to build the project (limited to one or more of the <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins)
  
 See the <<build_init_plugin#sec:pom_maven_conversion_,Build Init Plugin chapter>> for a complete list of the automatic conversion features.
-
-[NOTE]
-====
-You should replace the Maven Plugin (`id 'maven'`) in the build script (`build.gradle`) with the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
-====
 
 One thing to bear in mind is that assemblies are not automatically converted.
 They aren't necessarily problematic to convert, but you will need to do some manual work.
@@ -293,6 +288,26 @@ If you want to share published artifacts via the filesystem, consider configurin
 
 You might also be interested in learning about Gradle's own <<dependency_cache#dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
+[[migmvn:controlling_dep_versions]]
+=== Controlling dependency versions
+
+The existence of transitive dependencies means that you can very easily end up with multiple versions of the same dependency in your dependency graph.
+By default, Gradle will pick the newest version of a dependency in the graph, but that's not always the right solution.
+That's why it provides several mechanisms for controlling which version of a given dependency is resolved.
+
+On a per-project basis, you can use:
+
+ * <<managing_transitive_dependencies#sec:dependency_constraints,Dependency constraints>>
+ * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
+ * <<managing_transitive_dependencies#sec:enforcing_dependency_version,Version forcing>>
+
+There are even more, specialized options listed in the <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> chapter.
+
+If you want to ensure consistency of versions across all projects in a multi-project build, similar to how the `<dependencyManagement>` block in Maven works, you can use the <<java_platform_plugin#java_platform_plugin,Java Platform Plugin>>.
+This allows you declare a set of dependency constraints that can be applied to multiple projects.
+You can even publish the platform as a Maven BOM or using Gradle's metadata format.
+See the plugin page for more information on how to do that, and in particular the section on <<java_platform_plugin#sec:java_platform_consumption,Consuming platforms>> to see how you can apply a platform to other projects in the same build.
+
 
 [[migmvn:excluding_deps]]
 === Excluding transitive dependencies
@@ -305,8 +320,7 @@ If you want to exclude a dependency for reasons unrelated to versions, then chec
 It shows you how to attach an exclusion either to an entire configuration (often the most appropriate solution) or to a dependency.
 You can even easily apply an exclusion to all configurations.
 
-If you're more interested in controlling which version of a dependency is actually resolved, then Gradle has better options than exclusions.
-Consider <<managing_transitive_dependencies#sec:dependency_constraints,using dependency constraints>> or <<managing_transitive_dependencies#sec:enforcing_dependency_version,forcing a particular version>>.
+If you're more interested in controlling which version of a dependency is actually resolved, see the previous section.
 
 [[migmvn:optional_deps]]
 === Handling optional dependencies
@@ -319,9 +333,7 @@ There are two sides to optional dependencies:
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.
 
-As for publishing dependencies as optional, Gradle has no built-in support at this time.
-However, you can use the https://plugins.gradle.org/plugin/nebula.optional-base[Nebula Optional Base Plugin] to get the required behavior.
-Alternatively, you can use the link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPom.html#org.gradle.api.publish.maven.MavenPom:withXml(org.gradle.api.Action)[MavenPom.withXML()] method to customize the generated POM.
+As for publishing dependencies as optional, Gradle provides a richer model called <<feature_variants#feature_variants, feature variants>>, which will let you declare the "optional features" your library provides.
 
 [[migmvn:using_boms]]
 == Using bills of materials (BOMs)
@@ -342,7 +354,7 @@ include::sample[dir="userguide/mavenMigration/importBom/kotlin",files="build.gra
 
 You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<managing_transitive_dependencies#sec:bom_import,importing version recommendations from a Maven BOM>>.
 
-NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. However, `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
+NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. Both `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
 
 [[migmvn:multimodule_builds]]
 == Migrating multi-module builds (project aggregation)
@@ -419,7 +431,7 @@ You can then conditionally apply one of those profile scripts based on a <<build
 
 The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
 
-.Mimicing the behavior of Maven profiles in Gradle
+.Mimicking the behavior of Maven profiles in Gradle
 ====
 include::sample[dir="userguide/mavenMigration/profiles/groovy",files="build.gradle;profile-default.gradle;profile-test.gradle;profile-prod.gradle"]
 include::sample[dir="userguide/mavenMigration/profiles/kotlin",files="build.gradle.kts;profile-default.gradle.kts;profile-test.gradle.kts;profile-prod.gradle.kts"]

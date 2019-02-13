@@ -85,13 +85,13 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         for (Attribute<?> attribute : consumerAttributes.keySet()) {
             allAttributes.put(attribute.getName(), attribute);
         }
-        ImmutableAttributes immmutableConsumer = consumerAttributes.asImmutable();
+        ImmutableAttributes immutableConsumer = consumerAttributes.asImmutable();
         ImmutableAttributes immutableProducer = producerAttributes.asImmutable();
         formatter.startChildren();
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
             String attributeName = attribute.getName();
-            AttributeValue<Object> consumerValue = immmutableConsumer.findEntry(untyped);
+            AttributeValue<Object> consumerValue = immutableConsumer.findEntry(untyped);
             AttributeValue<?> producerValue = immutableProducer.findEntry(attribute.getName());
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {

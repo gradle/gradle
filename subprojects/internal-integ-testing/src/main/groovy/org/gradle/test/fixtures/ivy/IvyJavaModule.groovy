@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.ivy
 
+
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.test.fixtures.file.TestFile
@@ -61,11 +62,11 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('api').dependencies.empty
+            assert parsedModuleMetadata.variant('apiElements').dependencies.empty
             assert parsedIvy.dependencies.findAll { it.value.conf == 'compile' }.isEmpty()
         } else {
-            assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedIvy.assertConfigurationDependsOn('compile', expected)
         }
     }
@@ -73,10 +74,10 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     @Override
     void assertRuntimeDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('runtime').dependencies.empty
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
             assert parsedIvy.dependencies.findAll { it.value.conf == 'runtime' }.isEmpty()
         } else {
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedIvy.assertConfigurationDependsOn('runtime', expected)
         }
 
@@ -111,9 +112,9 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
         backingModule.assertArtifactsPublished(expectedArtifacts as String[])
 
         // Verify Gradle metadata particulars
-        assert backingModule.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert backingModule.parsedModuleMetadata.variant('api').files*.name == [backingModule.jarFile.name]
-        assert backingModule.parsedModuleMetadata.variant('runtime').files*.name == [backingModule.jarFile.name]
+        assert backingModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+        assert backingModule.parsedModuleMetadata.variant('apiElements').files*.name == [backingModule.jarFile.name]
+        assert backingModule.parsedModuleMetadata.variant('runtimeElements').files*.name == [backingModule.jarFile.name]
     }
 
     void assertNotPublished() {
@@ -122,5 +123,10 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
 
     TestFile getModuleDir() {
         backingModule.moduleDir
+    }
+
+    IvyJavaModule removeGradleMetadataRedirection() {
+        backingModule.removeGradleMetadataRedirection()
+        this
     }
 }

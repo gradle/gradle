@@ -263,7 +263,7 @@ public class BuildScriptBuilder {
      *
      * @return The body of the configuration action for the task.
      */
-    public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
+    public ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
         block.tasksRegistrations.add(registration);
         return registration.body;
@@ -997,7 +997,7 @@ public class BuildScriptBuilder {
         final String comment;
         final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        TaskRegistration(String comment, String taskName, String taskType) {
+        TaskRegistration(@Nullable String comment, String taskName, String taskType) {
             this.comment = comment;
             this.taskName = taskName;
             this.taskType = taskType;
@@ -1246,7 +1246,7 @@ public class BuildScriptBuilder {
         //
         // > Boolean accessor methods (where the name of the getter starts with is and the name of
         // > the setter starts with set) are represented as properties which have the same name as
-        // > the getter method. Boolean properties are visibile with a `is` prefix in Kotlin
+        // > the getter method. Boolean properties are visible with a `is` prefix in Kotlin
         //
         // https://kotlinlang.org/docs/reference/java-interop.html#getters-and-setters
         //

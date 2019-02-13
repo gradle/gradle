@@ -17,7 +17,6 @@
 
 package org.gradle.api.internal.file
 
-import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
@@ -27,21 +26,14 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
-import org.gradle.process.ExecResult
-import org.gradle.process.internal.ExecException
-import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -59,16 +51,15 @@ class DefaultFileOperationsTest extends Specification {
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
-    private final ExecFactory execFactory = TestFiles.execFactory()
     private final TextResourceLoader textResourceLoader = Mock()
+    private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
-
-    private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, execFactory, textResourceLoader)
-    }
-
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    private DefaultFileOperations instance(FileResolver resolver = resolver) {
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem())
+    }
 
     def resolvesFile() {
         when:
@@ -94,46 +85,27 @@ class DefaultFileOperationsTest extends Specification {
         fileOperations.uri('path') == uri
     }
 
-    def resolvesFilesInOrder() {
-        when:
-        def fileCollection = fileOperations.configurableFiles('a', 'b', 'c')
-
-        then:
-        fileCollection instanceof DefaultConfigurableFileCollection
-        fileCollection.from as List == ['a', 'b', 'c']
-        fileCollection.resolver.is(resolver)
-        fileCollection.buildDependency.resolver.is(taskResolver)
+    def usesFactoryToCreateConfigurableFileCollection() {
+        def fileCollection = Mock(ConfigurableFileCollection)
 
         when:
-        def files = fileCollection.files
+        def result = fileOperations.configurableFiles('a', 'b', 'c')
+
         then:
-        1 * resolver.resolve('a') >> new File('a')
-        then:
-        1 * resolver.resolve('b') >> new File('b')
-        then:
-        1 * resolver.resolve('c') >> new File('c')
-        then:
-        files*.name as List == ['a', 'b', 'c']
-        0 * _
+        result == fileCollection
+        1 * fileCollectionFactory.configurableFiles() >> fileCollection
+        1 * fileCollection.from('a', 'b', 'c') >> fileCollection
     }
 
-    def resolvesImmutableFilesInOrder() {
-        when:
-        def fileCollection = fileOperations.immutableFiles('a', 'b', 'c')
-
-        then:
-        fileCollection instanceof ImmutableFileCollection
+    def usesFactoryToCreateImmutableFiles() {
+        def fileCollection = Mock(FileCollectionInternal)
 
         when:
-        def files = fileCollection.files
-        files*.name as List == ['a', 'b', 'c']
+        def result = fileOperations.immutableFiles('a', 'b', 'c')
 
         then:
-        1 * resolver.resolve('a') >> new File('a')
-        then:
-        1 * resolver.resolve('b') >> new File('b')
-        then:
-        1 * resolver.resolve('c') >> new File('c')
+        result == fileCollection
+        1 * fileCollectionFactory.resolving('a', 'b', 'c') >> fileCollection
     }
 
     def createsFileTree() {
@@ -262,104 +234,8 @@ class DefaultFileOperationsTest extends Specification {
         return file
     }
 
-    def javaexec() {
-        File testFile = tmpDir.file("someFile")
-        fileOperations = instance(resolver())
-        List files = ClasspathUtil.getClasspath(getClass().classLoader).asFiles
-
-        when:
-        ExecResult result = fileOperations.javaexec {
-            classpath(files as Object[])
-            main = SomeMain.name
-            args testFile.absolutePath
-        }
-
-        then:
-        testFile.isFile()
-        result.exitValue == 0
-    }
-
-    def javaexecWithNonZeroExitValueShouldThrowException() {
-        fileOperations = instance(resolver())
-
-        when:
-        fileOperations.javaexec {
-            main = 'org.gradle.UnknownMain'
-        }
-
-        then:
-        thrown(ExecException)
-    }
-
-    def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = instance(resolver())
-
-        when:
-        ExecResult result = fileOperations.javaexec {
-            main = 'org.gradle.UnknownMain'
-            ignoreExitValue = true
-        }
-
-        then:
-        result.exitValue != 0
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def exec() {
-        fileOperations = instance(resolver())
-        File testFile = tmpDir.file("someFile")
-
-        when:
-        ExecResult result = fileOperations.exec {
-            executable = "touch"
-            workingDir = tmpDir.getTestDirectory()
-            args testFile.name
-        }
-
-        then:
-        testFile.isFile()
-        result.exitValue == 0
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def execWithNonZeroExitValueShouldThrowException() {
-        fileOperations = instance(resolver())
-
-        when:
-        fileOperations.exec {
-            executable = "touch"
-            workingDir = tmpDir.getTestDirectory()
-            args tmpDir.testDirectory.name + "/nonExistingDir/someFile"
-        }
-
-        then:
-        thrown(ExecException)
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = instance(resolver())
-
-        when:
-        ExecResult result = fileOperations.exec {
-            ignoreExitValue = true
-            executable = "touch"
-            workingDir = tmpDir.getTestDirectory()
-            args tmpDir.testDirectory.name + "/nonExistingDir/someFile"
-        }
-
-        then:
-        result.exitValue != 0
-    }
-
     def resolver() {
         return TestFiles.resolver(tmpDir.testDirectory)
-    }
-
-    class SomeMain {
-        static void main(String[] args) {
-            FileUtils.touch(new File(args[0]))
-        }
     }
 }
 

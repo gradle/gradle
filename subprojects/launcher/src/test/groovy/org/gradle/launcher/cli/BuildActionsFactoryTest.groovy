@@ -15,15 +15,9 @@
  */
 package org.gradle.launcher.cli
 
-import org.gradle.StartParameter
 import org.gradle.cli.CommandLineParser
-import org.gradle.cli.SystemPropertiesCommandLineConverter
-import org.gradle.initialization.DefaultCommandLineConverter
-import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.internal.Factory
 import org.gradle.internal.invocation.BuildActionRunner
-import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -31,16 +25,12 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
-import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
-import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter
-import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter
-import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.exec.InProcessBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -53,16 +43,14 @@ class BuildActionsFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
     ServiceRegistry loggingServices = Mock()
-    PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
-    PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
-    JvmVersionDetector jvmVersionDetector = Stub()
-    ParametersConverter parametersConverter = new ParametersConverter(
-        Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
-        Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
-        new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
-        propertiesToDaemonParametersConverter)
+    boolean useCurrentProcess
 
-    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices) {
+        @Override
+        def boolean canUseCurrentProcess(DaemonParameters requiredBuildParameters) {
+            return useCurrentProcess
+        }
+    }
 
     def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
@@ -77,10 +65,6 @@ class BuildActionsFactoryTest extends Specification {
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
         when:
-        propertiesToStartParameterConverter.convert(_, _) >> { args ->
-            def startParameter = (StartParameter) args[1]
-            startParameter.setMaxWorkerCount(3)
-        }
         RunBuildAction action = convert('--max-workers=5')
 
         then:
@@ -104,6 +88,9 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def "does not use daemon when no-daemon command line option issued"() {
+        given:
+        useCurrentProcess = true
+
         when:
         def action = convert('--no-daemon', 'args')
 
@@ -135,13 +122,9 @@ class BuildActionsFactoryTest extends Specification {
         action instanceof ForegroundDaemonAction
     }
 
-    def "executes with single use daemon if java home is not current"() {
+    def "executes with single use daemon if current process cannot be used"() {
         given:
-        def javaHome = tmpDir.file("java-home")
-        javaHome.file("bin/java").createFile()
-        javaHome.file("bin/java.exe").createFile()
-        def jvm = Jvm.forHome(javaHome)
-        propertiesToDaemonParametersConverter.convert(_, _) >> { Map p, DaemonParameters params -> params.jvm = jvm }
+        useCurrentProcess = false
 
         when:
         def action = convert('--no-daemon')
@@ -163,11 +146,8 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isInProcess(def action) {
-        def delegate = action.executer
-        while (delegate.hasProperty("delegate")) {
-            delegate = delegate.delegate
-        }
-        assert delegate instanceof InProcessBuildActionExecuter
+        assert action instanceof RunBuildAction
+        assert action.executer instanceof SetupLoggingActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

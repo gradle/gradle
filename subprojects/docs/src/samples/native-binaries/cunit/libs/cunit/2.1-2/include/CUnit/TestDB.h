@@ -159,14 +159,14 @@ typedef CU_Suite* CU_pSuite;          /**< Pointer to a CUnit suite. */
  *  CU_TestRegistry, CU_pTestRegistry
  *-----------------------------------------------------------------*/
 /** CUnit test registry data type.
- *  CU_TestRegisty is the repository for suites containing unit tests.  
+ *  CU_TestRegistry is the repository for suites containing unit tests.  
  *  The test registry maintains a count of the number of CU_Suite 
  *  objects contained in the registry, as well as a count of the total 
  *  number of CU_Test objects associated with those suites.  It also 
  *  holds a pointer to the head of the linked list of CU_Suite objects.
  *  <br /><br />
  *
- *  With this structure, the user will normally add suites implictly to 
+ *  With this structure, the user will normally add suites implicitly to 
  *  the internal test registry using CU_add_suite(), and then add tests 
  *  to each suite using CU_add_test().  Test runs are then initiated 
  *  using one of the appropriate functions in TestRun.c via one of the 

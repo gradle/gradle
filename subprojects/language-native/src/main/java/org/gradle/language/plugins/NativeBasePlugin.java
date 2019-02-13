@@ -20,10 +20,12 @@ import org.gradle.api.*;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.PublishableComponent;
 import org.gradle.api.component.SoftwareComponent;
@@ -31,6 +33,9 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.transform.UnzipTransform;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -73,6 +78,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.DIRECTORY_TYPE;
+import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ZIP_TYPE;
 import static org.gradle.language.cpp.CppBinary.LINKAGE_ATTRIBUTE;
 
 /**
@@ -131,6 +138,12 @@ public class NativeBasePlugin implements Plugin<Project> {
         addTasksForComponentWithExecutable(tasks, buildDirectory, components);
         addTasksForComponentWithSharedLibrary(tasks, buildDirectory, components);
         addTasksForComponentWithStaticLibrary(tasks, buildDirectory, components);
+
+        // Add incoming artifact transforms
+        final DependencyHandler dependencyHandler = project.getDependencies();
+        final ObjectFactory objects = project.getObjects();
+
+        addHeaderZipTransform(dependencyHandler, objects);
 
         // Add outgoing configurations and publications
         final ConfigurationContainer configurations = project.getConfigurations();
@@ -418,6 +431,16 @@ public class NativeBasePlugin implements Plugin<Project> {
             extractSymbols.getSymbolFile().set(symbolLocation);
             extractSymbols.getTargetPlatform().set(currentPlatform);
             extractSymbols.getToolChain().set(toolChain);
+        });
+    }
+
+    private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
+        dependencyHandler.registerTransform(variantTransform -> {
+            variantTransform.artifactTransform(UnzipTransform.class);
+            variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
+            variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
+            variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
+            variantTransform.getTo().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
         });
     }
 

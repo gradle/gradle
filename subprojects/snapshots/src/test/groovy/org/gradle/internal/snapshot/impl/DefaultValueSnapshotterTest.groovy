@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.Named
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -626,6 +627,25 @@ class DefaultValueSnapshotterTest extends Specification {
         def copy = isolated.isolate()
         !copy.is(value)
         copy.prop1 == "a"
+    }
+
+    def "creates isolated ConfigurableFileCollection"() {
+        def empty = TestFiles.fileCollectionFactory().configurableFiles()
+        def files1 = TestFiles.fileCollectionFactory().configurableFiles()
+        files1.from(new File("a").absoluteFile)
+
+        expect:
+        def isolatedEmpty = snapshotter.isolate(empty)
+        isolatedEmpty instanceof IsolatedFileCollection
+        def copyEmpty = isolatedEmpty.isolate()
+        !copyEmpty.is(empty)
+        copyEmpty.files as List == []
+
+        def isolated = snapshotter.isolate(files1)
+        isolated instanceof IsolatedFileCollection
+        def copy = isolated.isolate()
+        !copy.is(files1)
+        copy.files == files1.files
     }
 
     def "creates snapshot for serializable type"() {

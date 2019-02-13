@@ -16,11 +16,14 @@
 
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.base.Joiner;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonStartupCommunication;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+
+import java.util.List;
 
 public class DaemonGreeter {
     private final DocumentationRegistry documentationRegistry;
@@ -29,10 +32,10 @@ public class DaemonGreeter {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public DaemonStartupInfo parseDaemonOutput(String output) {
+    public DaemonStartupInfo parseDaemonOutput(String output, List<String> startupArgs) {
         DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
         if (!startupCommunication.containsGreeting(output)) {
-            throw new GradleException(prepareMessage(output));
+            throw new GradleException(prepareMessage(output, startupArgs));
         }
         String[] lines = output.split("\n");
         //Assuming that the diagnostics were printed out to the last line. It's not bullet-proof but seems to be doing fine.
@@ -40,13 +43,14 @@ public class DaemonGreeter {
         return startupCommunication.readDiagnostics(lastLine);
     }
 
-    private String prepareMessage(String output) {
+    private String prepareMessage(String output, List<String> startupArgs) {
         StringBuilder sb = new StringBuilder();
         sb.append(DaemonMessages.UNABLE_TO_START_DAEMON);
         sb.append("\nThis problem might be caused by incorrect configuration of the daemon.");
         sb.append("\nFor example, an unrecognized jvm option is used.");
         sb.append("\nPlease refer to the User Manual chapter on the daemon at ");
         sb.append(documentationRegistry.getDocumentationFor("gradle_daemon"));
+        sb.append("\nProcess command line: ").append(Joiner.on(" ").join(startupArgs));
         sb.append("\nPlease read the following process output to find out more:");
         sb.append("\n-----------------------\n");
         sb.append(output);

@@ -240,7 +240,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         public Object execute(InputStream inputStream, ExternalResourceMetaData metaData) throws IOException {
             destination = temporaryFileProvider.createTemporaryFile("gradle_download", "bin");
             this.metaData = metaData;
-            LOGGER.debug("Downloading {} to {}", source, destination);
+            LOGGER.info("Downloading {} to {}", source, destination);
             if (destination.getParentFile() != null) {
                 GFileUtils.mkdirs(destination.getParentFile());
             }

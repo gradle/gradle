@@ -93,6 +93,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
 
         and:
+        1 * services.find(InstantiatorFactory) >> null
         0 * services._
     }
 
@@ -130,6 +131,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         def obj = create(BeanWithServices, services)
 
         then:
+        1 * services.find(InstantiatorFactory) >> null
         0 * services._
 
         when:

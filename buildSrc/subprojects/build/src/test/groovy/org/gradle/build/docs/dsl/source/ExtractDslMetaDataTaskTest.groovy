@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.build.docs.dsl.source
+
 import org.gradle.api.Project
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
@@ -33,13 +34,32 @@ class ExtractDslMetaDataTaskTest extends Specification {
         task.destFile?.delete()
     }
 
-    def extractsClassMetaData() {
+    def extractionIsDeterministic() {
+        given:
+        writeSources()
+
+        when:
+        task.extract()
+        String firstMd5 = task.destFile.bytes.md5()
+        task.extract()
+        String secondMd5 = task.destFile.bytes.md5()
+
+        then:
+        firstMd5 == secondMd5
+    }
+
+    void writeSources() {
         task.source testFile('org/gradle/test/JavaClass.java')
         task.source testFile('org/gradle/test/JavaInterface.java')
         task.source testFile('org/gradle/test/A.java')
         task.source testFile('org/gradle/test/CombinedInterface.java')
         task.source testFile('org/gradle/test/Interface1.java')
         task.source testFile('org/gradle/test/Interface2.java')
+    }
+
+    def extractsClassMetaData() {
+        given:
+        writeSources()
 
         when:
         task.extract()
@@ -62,6 +82,10 @@ class ExtractDslMetaDataTaskTest extends Specification {
         javaInterface.superClassName == null
         javaInterface.interfaceNames == ['org.gradle.test.Interface1', 'org.gradle.test.Interface2']
         javaInterface.annotationTypeNames == []
+    }
+
+    String md5(File file) {
+        return file.bytes.md5()
     }
 
     def extractsPropertyMetaData() {

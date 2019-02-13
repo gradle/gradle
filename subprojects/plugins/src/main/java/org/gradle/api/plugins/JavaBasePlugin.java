@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -26,19 +26,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
-import org.gradle.api.attributes.AttributeCompatibilityRule;
-import org.gradle.api.attributes.AttributeDisambiguationRule;
-import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -56,12 +50,12 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.model.RuleBasedPluginListener;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
@@ -78,15 +72,24 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
     public static final String DOCUMENTATION_GROUP = "documentation";
 
-    private final Instantiator instantiator;
+    /**
+     * A list of known artifact types which are known to prevent from
+     * publication.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    public static final Set<String> UNPUBLISHABLE_VARIANT_ARTIFACTS = ImmutableSet.of(
+            ArtifactTypeDefinition.JVM_CLASS_DIRECTORY,
+            ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY,
+            ArtifactTypeDefinition.DIRECTORY_TYPE
+    );
+
     private final ObjectFactory objectFactory;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 
     @Inject
-    public JavaBasePlugin(Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.instantiator = instantiator;
+    public JavaBasePlugin(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
     }
 
     public void apply(final ProjectInternal project) {
@@ -113,7 +116,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, instantiator, collectionCallbackActionDecorator);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, objectFactory);
         project.getConvention().getPlugins().put("java", javaConvention);
         project.getExtensions().add(SourceSetContainer.class, "sourceSets", javaConvention.getSourceSets());
         project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project);
@@ -131,21 +134,11 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureSchema(ProjectInternal project) {
         AttributesSchema attributesSchema = project.getDependencies().getAttributesSchema();
-        AttributeMatchingStrategy<Usage> matchingStrategy = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
-        matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
-        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
-            @Override
-            public void execute(ActionConfiguration actionConfiguration) {
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_CLASSES));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
-            }
-        });
-
+        JavaEcosystemSupport.configureSchema(attributesSchema, objectFactory);
         project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
     }
+
+
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
@@ -392,89 +385,5 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             }
         });
         test.workingDir(project.getProjectDir());
-    }
-
-    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
-        final Usage javaApi;
-        final Usage javaApiClasses;
-        final Usage javaRuntimeJars;
-        final Usage javaRuntimeClasses;
-        final Usage javaRuntimeResources;
-
-        final ImmutableSet<Usage> javaApiAndJavaApiClasses;
-        final ImmutableSet<Usage> javaApiAndJavaRuntimeJars;
-        final ImmutableSet<Usage> javaRuntimeJarsAndJavaRuntimeClassesAndJavaRuntimeResources;
-
-        @Inject
-        UsageDisambiguationRules(Usage javaApi, Usage javaApiClasses, Usage javaRuntimeJars, Usage javaRuntimeClasses, Usage javaRuntimeResources) {
-            this.javaApi = javaApi;
-            this.javaApiClasses = javaApiClasses;
-            this.javaRuntimeJars = javaRuntimeJars;
-            this.javaRuntimeClasses = javaRuntimeClasses;
-            this.javaRuntimeResources = javaRuntimeResources;
-            this.javaApiAndJavaApiClasses = ImmutableSet.of(javaApi, javaApiClasses);
-            this.javaApiAndJavaRuntimeJars = ImmutableSet.of(javaApi, javaRuntimeJars);
-            this.javaRuntimeJarsAndJavaRuntimeClassesAndJavaRuntimeResources = ImmutableSet.of(javaRuntimeJars, javaRuntimeClasses, javaRuntimeResources);
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<Usage> details) {
-            if (details.getCandidateValues().equals(javaApiAndJavaApiClasses)) {
-                details.closestMatch(javaApiClasses);
-            } else if (details.getConsumerValue() == null) {
-                if (details.getCandidateValues().equals(javaApiAndJavaRuntimeJars)) {
-                    // Use the Jars when nothing has been requested
-                    details.closestMatch(javaRuntimeJars);
-                } else if (details.getCandidateValues().equals(javaRuntimeJarsAndJavaRuntimeClassesAndJavaRuntimeResources)) {
-                    // Use the Jars when nothing has been requested
-                    details.closestMatch(javaRuntimeJars);
-                }
-            } else if (details.getConsumerValue() != null) {
-                Usage requested = details.getConsumerValue();
-                if ((requested.getName().equals(Usage.JAVA_API) || requested.getName().equals(Usage.JAVA_API_CLASSES)) && details.getCandidateValues().equals(javaApiAndJavaRuntimeJars)) {
-                    // Prefer the API over the runtime when the API has been requested
-                    details.closestMatch(javaApi);
-                }
-            }
-        }
-    }
-
-    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
-        @Override
-        public void execute(CompatibilityCheckDetails<Usage> details) {
-            if (details.getConsumerValue().getName().equals(Usage.JAVA_API)) {
-                if (details.getProducerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
-                    details.compatible();
-                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                    // Can use the runtime Jars if present, but prefer Java API
-                    details.compatible();
-                }
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_API_CLASSES)) {
-                if (details.getProducerValue().getName().equals(Usage.JAVA_API)) {
-                    // Can use the Java API if present, but prefer Java API classes
-                    details.compatible();
-                } else if (details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                    // Can use the Java runtime jars if present, but prefer Java API classes
-                    details.compatible();
-                }
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                details.compatible();
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                // Can use the Java runtime jars if present, but prefer Java runtime classes
-                details.compatible();
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME_JARS)) {
-                // Can use the Java runtime jars if present, but prefer Java runtime resources
-                details.compatible();
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_CLASSES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
-                // Can use the Java runtime if present, but prefer Java runtime classes
-                details.compatible();
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_RESOURCES) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
-                // Can use the Java runtime if present, but prefer Java runtime resources
-                details.compatible();
-            } else if (details.getConsumerValue().getName().equals(Usage.JAVA_RUNTIME_JARS) && details.getProducerValue().getName().equals(Usage.JAVA_RUNTIME)) {
-                // Can use the Java runtime if present, but prefer Java runtime jar
-                details.compatible();
-            }
-        }
     }
 }

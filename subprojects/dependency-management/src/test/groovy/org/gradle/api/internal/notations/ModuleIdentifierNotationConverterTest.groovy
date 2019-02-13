@@ -36,7 +36,7 @@ class ModuleIdentifierNotationConverterTest extends Specification {
     }
     @Subject parser = NotationParserBuilder.toType(ModuleIdentifier).fromCharSequence(new ModuleIdentifierNotationConverter(moduleIdentifierFactory)).toComposite()
 
-    def "parses module identifer notation"() {
+    def "parses module identifier notation"() {
         expect:
         parser.parseNotation("org.gradle:gradle-core") == newId("org.gradle", "gradle-core")
         parser.parseNotation(" foo:bar ") == newId("foo", "bar")

@@ -389,7 +389,7 @@ project(':contrib') {
 
           sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
-          appDirName = 'nonExistingAppDir'
+          appDirName = 'nonexistentAppDir'
 
           eclipse.wtp.component {
             resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
@@ -405,7 +405,7 @@ project(':contrib') {
         assert component.contains('xxxResource')
         assert !component.contains('yyyResource')
 
-        assert !component.contains('nonExistingAppDir')
+        assert !component.contains('nonexistentAppDir')
     }
 
     @Test

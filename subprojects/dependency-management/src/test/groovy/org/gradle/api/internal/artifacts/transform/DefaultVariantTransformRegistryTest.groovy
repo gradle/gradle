@@ -17,19 +17,27 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.ArtifactTransformAction
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
+import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -41,16 +49,25 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def transformerInvoker = Mock(TransformerInvoker)
+    def valueSnapshotter = Mock(ValueSnapshotter)
+    def propertyWalker = Mock(PropertyWalker)
+    def inspectionSchemeFactory = Stub(InspectionSchemeFactory) {
+        inspectionScheme(_) >> Stub(InspectionScheme) {
+            getPropertyWalker() >> propertyWalker
+        }
+    }
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, isolatableFactory, classLoaderHierarchyHasher, transformerInvoker)
+    def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
+    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, instantiatorFactory, transformerInvoker, valueSnapshotter, inspectionSchemeFactory, domainObjectContextProjectStateHandler)
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory)
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
 
-    def "creates registration without parameters"() {
+    def "creates legacy registration without parameters"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -64,11 +81,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() == null
-        registration.transformationStep.transformer.parameters.isolate() == []
+        registration.transformationStep.transformer.isolatableParameters.isolate() == []
     }
 
-    def "creates registration with parameters"() {
+    def "creates legacy registration with parameters"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
@@ -84,8 +100,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.config.isolate() == null
-        registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
+        registration.transformationStep.transformer.isolatableParameters.isolate() == ["EXTRA_1", "EXTRA_2"]
     }
 
     def "delegates are DSL decorated but not extensible when registering without config object"() {
@@ -109,12 +124,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
         !(config instanceof ExtensionAware)
     }
 
-    def "creates registration with annotated config object and without parameters"() {
+    def "creates registration with annotated parameters object"() {
         when:
-        registry.registerTransform(TestTransformConfig) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            assert it.actionClass == TestArtifactTransform
         }
 
         then:
@@ -122,17 +136,15 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == []
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
+        registration.transformationStep.transformer.parameterObject instanceof TestTransform
     }
 
-    def "creates registration with unannotated config object and without parameters"() {
+    def "creates registration with with action"() {
         when:
-        registry.registerTransform(UnAnnotatedTestTransformConfig) {
+        registry.registerTransformAction(TestArtifactTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.actionClass = TestArtifactTransform
         }
 
         then:
@@ -140,38 +152,17 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransform
-        registration.transformationStep.transformer.config.isolate() instanceof UnAnnotatedTestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == []
-    }
-
-    def "creates registration with annotated config object and parameters"() {
-        when:
-        registry.registerTransform(TestTransformConfig) {
-            it.from.attribute(TEST_ATTRIBUTE, "FROM")
-            it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.params = ["EXTRA_1", "EXTRA_2"]
-            it.actionClass = TestArtifactTransformWithParams
-        }
-
-        then:
-        registry.transforms.size() == 1
-        def registration = registry.transforms[0]
-        registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
-        registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransformWithParams
-        registration.transformationStep.transformer.config.isolate() instanceof TestTransformConfig
-        registration.transformationStep.transformer.parameters.isolate() == ["EXTRA_1", "EXTRA_2"]
+        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
+        registration.transformationStep.transformer.parameterObject == null
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
         def registration
 
         when:
-        registry.registerTransform(TestTransformConfig) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
-            it.actionClass = TestArtifactTransform
             registration = it
         }
 
@@ -204,7 +195,18 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: an ArtifactTransform must be provided.'
+        e.message == 'Could not register transform: an artifact transform action must be provided.'
+        e.cause == null
+    }
+
+    def "fails when registering unannotated parameter type"() {
+        when:
+        registry.registerTransform(UnAnnotatedTestTransformConfig) {
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register transform: an artifact transform action must be provided.'
         e.cause == null
     }
 
@@ -221,7 +223,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when no from attributes are provided for registration"() {
+    def "fails when no from attributes are provided for legacy registration"() {
         when:
         registry.registerTransform {
             it.to.attribute(TEST_ATTRIBUTE, "to")
@@ -234,7 +236,25 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when no to attributes are provided for registration"() {
+    @Unroll
+    def "fails when no from attributes are provided for #method"() {
+        when:
+        registry."$method"(argument) {
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: at least one 'from' attribute must be provided."
+        e.cause == null
+
+        where:
+        method                    | argument
+        "registerTransform"       | TestTransform
+        "registerTransformAction" | TestArtifactTransformAction
+    }
+
+    def "fails when no to attributes are provided for legacy registration"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "from")
@@ -247,7 +267,25 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when to attributes are not a subset of from attributes"() {
+    @Unroll
+    def "fails when no to attributes are provided for #method"() {
+        when:
+        registry."${method}"(argument) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: at least one 'to' attribute must be provided."
+        e.cause == null
+
+        where:
+        method                    | argument
+        "registerTransform"       | TestTransform
+        "registerTransformAction" | TestArtifactTransformAction
+    }
+
+    def "fails when to attributes are not a subset of from attributes for legacy registration"() {
         when:
         registry.registerTransform {
             it.from.attribute(TEST_ATTRIBUTE, "from")
@@ -263,8 +301,29 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    @TransformAction(TestArtifactTransform)
-    static class TestTransformConfig {
+    @Unroll
+    def "fails when to attributes are not a subset of from attributes for #method"() {
+        when:
+        registry."$method"(argument) {
+            it.from.attribute(TEST_ATTRIBUTE, "from")
+            it.from.attribute(Attribute.of("from2", String), "from")
+            it.to.attribute(TEST_ATTRIBUTE, "to")
+            it.to.attribute(Attribute.of("other", Integer), 12)
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
+        e.cause == null
+
+        where:
+        method                    | argument
+        "registerTransform"       | TestTransform
+        "registerTransformAction" | TestArtifactTransformAction
+    }
+
+    @TransformAction(TestArtifactTransformAction)
+    static class TestTransform {
         String value
     }
 
@@ -276,6 +335,12 @@ class DefaultVariantTransformRegistryTest extends Specification {
         @Override
         List<File> transform(File input) {
             throw new UnsupportedOperationException()
+        }
+    }
+
+    static class TestArtifactTransformAction implements ArtifactTransformAction {
+        @Override
+        void transform(ArtifactTransformOutputs outputs) {
         }
     }
 

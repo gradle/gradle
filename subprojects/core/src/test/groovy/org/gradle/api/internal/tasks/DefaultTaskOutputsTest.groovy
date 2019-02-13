@@ -17,14 +17,13 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.file.PathToFileResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -53,26 +52,18 @@ class DefaultTaskOutputsTest extends Specification {
             }
         }
     }
-    private final PathToFileResolver resolver = [
-        resolve: { temporaryFolder.file(it) },
-        newResolver: { resolver }
-    ] as PathToFileResolver
+    private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
-    def project = Stub(ProjectInternal) {
-        getFileFileResolver() >> resolver
-    }
     def task = Mock(TaskInternal) {
         getName() >> "task"
         toString() >> "task 'task'"
-        getProject() >> project
-        getProject() >> project
         getOutputs() >> { outputs }
         getInputs() >> Stub(TaskInputsInternal)
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], new TestCrossBuildInMemoryCacheFactory())), resolver)
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [] as Set, new TestCrossBuildInMemoryCacheFactory())), fileCollectionFactory)
 
     void hasNoOutputsByDefault() {
         setup:

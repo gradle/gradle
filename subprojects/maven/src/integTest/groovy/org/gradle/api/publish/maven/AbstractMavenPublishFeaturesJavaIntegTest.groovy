@@ -16,11 +16,14 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 abstract class AbstractMavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishIntegTest {
-    MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
+    MavenFileModule module = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+    MavenJavaModule javaLibrary = javaLibrary(module)
 
     def setup() {
         createBuildScripts("""
@@ -52,5 +55,14 @@ abstract class AbstractMavenPublishFeaturesJavaIntegTest extends AbstractMavenPu
 $append
 """
 
+    }
+
+    @Override
+    protected ExecutionResult run(String... tasks) {
+        try {
+            return super.run(tasks)
+        } finally {
+            module.removeGradleMetadataRedirection()
+        }
     }
 }

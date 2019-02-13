@@ -52,4 +52,6 @@ public interface PlatformToolProvider extends ToolProvider {
     SystemLibraries getSystemLibraries(ToolType compilerType);
 
     CommandLineToolSearchResult locateTool(ToolType compilerType);
+
+    boolean isSupported();
 }

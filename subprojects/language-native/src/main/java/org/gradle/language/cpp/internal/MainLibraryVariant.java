@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -37,11 +38,13 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final Configuration dependencies;
     private final DomainObjectSet<SoftwareComponent> variants;
+    private final AttributeContainer attributeContainer;
 
-    public MainLibraryVariant(String name, Usage usage, Configuration dependencies, CollectionCallbackActionDecorator decorator) {
+    public MainLibraryVariant(String name, Usage usage, Configuration dependencies, AttributeContainer attributeContainer, CollectionCallbackActionDecorator decorator) {
         this.name = name;
         this.usage = usage;
         this.dependencies = dependencies;
+        this.attributeContainer = attributeContainer;
         this.variants = new DefaultDomainObjectSet<SoftwareComponent>(SoftwareComponent.class, decorator);
     }
 
@@ -52,7 +55,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.of(new DefaultUsageContext(name, artifacts, dependencies));
+        return ImmutableSet.of(new DefaultUsageContext(name, attributeContainer, artifacts, dependencies));
     }
 
     @Override
@@ -70,4 +73,6 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     public void addVariant(SoftwareComponent variant) {
         variants.add(variant);
     }
+
+
 }

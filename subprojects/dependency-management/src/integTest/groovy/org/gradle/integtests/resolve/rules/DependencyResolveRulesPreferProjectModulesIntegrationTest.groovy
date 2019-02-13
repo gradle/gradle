@@ -120,7 +120,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                 }
 
                 ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")', 'baseConf', 'projectId("ModuleC")')}
-                // 'preferProjectModules()' is not inehrited from 'baseConf'
+                // 'preferProjectModules()' is not inherited from 'baseConf'
                 // and hence the higher version is picked from repo
                 ${AbstractProjectDependencyConflictResolutionIntegrationSpec.check('ModuleC', 'projectId("ModuleC")', 'conf', 'moduleId("myorg", "ModuleC", "2.0")')}
             }

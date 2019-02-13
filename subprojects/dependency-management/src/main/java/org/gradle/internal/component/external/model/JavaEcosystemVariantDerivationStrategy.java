@@ -16,11 +16,14 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+
+import java.util.Collections;
 
 public class JavaEcosystemVariantDerivationStrategy implements VariantDerivationStrategy {
     @Override
@@ -37,6 +40,12 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             return ImmutableList.of(
+                    // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
+                    // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
+                    // to use generic JAVA_API and JAVA_RUNTIME attributes, instead of more precise JAVA_API_JARS and JAVA_RUNTIME_JARS
+                    // because of the platform aspect (which aren't jars but "something"). Using JAVA_API_JARS for the library part and
+                    // JAVA_API for the platform would lead to selection of the platform when we don't want them (in other words in a single
+                    // component we cannot mix precise usages with more generic ones)
                 libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
                 libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false),
@@ -54,12 +63,21 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
 
     private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
+        ModuleComponentIdentifier componentId = conf.getComponentId();
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
-        metadata = metadata.withConstraintsOnly();
+        ImmutableCapability shadowed = new ImmutableCapability(
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
+        );
+        metadata = metadata
+                .withConstraintsOnly()
+                .withCapabilities(Collections.singletonList(new DefaultShadowedCapability(shadowed, "-derived-platform")));
         if (enforcedPlatform) {
             metadata = metadata.withForcedDependencies();
         }
         return metadata;
     }
+
 }

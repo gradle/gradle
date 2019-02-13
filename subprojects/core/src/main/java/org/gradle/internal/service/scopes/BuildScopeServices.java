@@ -32,6 +32,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.component.DefaultComponentTypeRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -61,9 +62,7 @@ import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactor
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
-import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
@@ -149,6 +148,7 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
@@ -246,10 +246,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator);
     }
 
-    protected PropertyWalker createPropertyWalker(TypeMetadataStore typeMetadataStore) {
-        return new DefaultPropertyWalker(typeMetadataStore);
-    }
-
     protected ITaskFactory createITaskFactory(Instantiator instantiator, TaskClassInfoStore taskClassInfoStore, PropertyWalker propertyWalker) {
         return new AnnotationProcessingTaskFactory(
             instantiator,
@@ -303,6 +299,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Instantiator.class),
             get(ScriptHandlerFactory.class),
             get(PluginRequestApplicator.class),
+            get(FileSystem.class),
             get(FileLookup.class),
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
@@ -312,6 +309,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(StreamHasher.class),
             get(FileHasher.class),
             get(ExecFactory.class),
+            get(FileCollectionFactory.class),
             get(AutoAppliedPluginHandler.class));
     }
 

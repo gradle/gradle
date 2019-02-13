@@ -40,16 +40,16 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         run "publish"
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureApi") {
+        javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureRuntime") {
+        javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
             assert files*.name == ['publishTest-1.9.jar']
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
@@ -99,20 +99,22 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         """
 
         when:
-        javaLibrary = javaLibrary(mavenRepo.module(group, name, version))
+        def mod = mavenRepo.module(group, name, version)
+        javaLibrary = javaLibrary(mod)
         run "publish"
+        mod.removeGradleMetadataRedirection()
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureApi") {
+        javaLibrary.parsedModuleMetadata.variant("featureApiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("featureRuntime") {
+        javaLibrary.parsedModuleMetadata.variant("featureRuntimeElements") {
             assert files*.name == ["${name}-${version}.jar"]
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()

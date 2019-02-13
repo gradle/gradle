@@ -27,7 +27,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.AbstractUsageContext;
+import org.gradle.api.plugins.internal.AbstractUsageContext;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
@@ -39,10 +39,6 @@ public class DefaultUsageContext extends AbstractUsageContext implements Named {
     private final Set<? extends DependencyConstraint> dependencyConstraints;
     private final Set<ExcludeRule> globalExcludes;
 
-    DefaultUsageContext(String name, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-        this(name, configuration.getAttributes(), artifacts, configuration);
-    }
-
     public DefaultUsageContext(UsageContext usageContext, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         this(usageContext.getName(), usageContext.getAttributes(), artifacts, configuration);
     }
@@ -51,7 +47,7 @@ public class DefaultUsageContext extends AbstractUsageContext implements Named {
         this(name, attributes, null, null);
     }
 
-    private DefaultUsageContext(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+    public DefaultUsageContext(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         super(((AttributeContainerInternal)attributes).asImmutable(), Cast.uncheckedCast(artifacts));
         this.name = name;
         if (configuration != null) {

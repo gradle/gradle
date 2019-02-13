@@ -17,25 +17,20 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 
 import java.util.Collection;
 
-public class DefaultTaskValidationContext implements TaskValidationContext {
+public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
     private final FileResolver resolver;
-    private final Collection<String> messages;
 
     public DefaultTaskValidationContext(FileResolver resolver, Collection<String> messages) {
+        super(messages);
         this.resolver = resolver;
-        this.messages = messages;
     }
 
     @Override
     public FileResolver getResolver() {
         return resolver;
-    }
-
-    @Override
-    public void recordValidationMessage(String message) {
-        messages.add(message);
     }
 }

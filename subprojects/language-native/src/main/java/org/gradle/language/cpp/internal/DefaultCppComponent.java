@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -41,7 +40,6 @@ import java.util.concurrent.Callable;
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
     private final String name;
-    private final FileOperations fileOperations;
     private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
     private final Property<String> baseName;
@@ -50,12 +48,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     private final SetProperty<TargetMachine> targetMachines;
 
     @Inject
-    public DefaultCppComponent(String name, FileOperations fileOperations, ObjectFactory objectFactory) {
-        super(fileOperations);
+    public DefaultCppComponent(String name, ObjectFactory objectFactory) {
+        super(objectFactory);
         this.name = name;
-        this.fileOperations = fileOperations;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = fileOperations.configurableFiles();
+        privateHeaders = objectFactory.fileCollection();
         privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
         baseName = objectFactory.property(String.class);
         names = Names.of(name);
@@ -74,11 +71,11 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
-        return fileOperations.immutableFiles(new Callable<Object>() {
+        return getProjectLayout().files(new Callable<Object>() {
             @Override
             public Object call() {
                 if (dirs.getFrom().isEmpty()) {
-                    return fileOperations.immutableFiles(conventionLocation);
+                    return getProjectLayout().getProjectDirectory().dir(conventionLocation);
                 }
                 return dirs;
             }

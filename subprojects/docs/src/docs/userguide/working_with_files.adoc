@@ -247,7 +247,7 @@ As with filtering, you can also apply renaming to a subset of files by configuri
 == Deleting files and directories
 
 You can easily delete files and directories using either the link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete] task or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:delete(org.gradle.api.Action)[Project.delete(org.gradle.api.Action)] method.
-In both cases, you specify which files and directories to delete in a way supported by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)], and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)] methods.
+In both cases, you specify which files and directories to delete in a way supported by the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] method.
 
 For example, the following task deletes the entire contents of a build's output directory:
 
@@ -525,7 +525,7 @@ Not only does `from()` accept multiple arguments, it also allows several differe
  * A `FileCollection` or `FileTree` — all files in the collection are included in the copy
  * A task — the files or directories that form a task's <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> are included
 
-In fact, `from()` accepts all the same arguments as link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)], link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object...)], and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#configurableFiles-java.lang.Object++...++-[ProjectLayout.configurableFiles(java.lang.Object...)], so see those methods for a more detailed list of acceptable types.
+In fact, `from()` accepts all the same arguments as link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] so see that method for a more detailed list of acceptable types.
 
 Something else to consider is what type of thing a file path refers to:
 

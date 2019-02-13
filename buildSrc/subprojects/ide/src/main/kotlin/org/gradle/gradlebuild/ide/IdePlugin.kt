@@ -240,6 +240,8 @@ open class IdePlugin : Plugin<Project> {
                             "core" -> afterSync(tasks.getByName("pluginsManifest"), tasks.getByName("implementationPluginsManifest"))
                             "docs" -> afterSync(tasks.getByName("defaultImports"))
                             "internalIntegTesting" -> afterSync(tasks.getByName("prepareVersionsInfo"))
+                            "kotlinCompilerEmbeddable" -> afterSync(tasks.getByName("classes"))
+                            "kotlinDsl" -> afterSync(tasks["generateExtensions"])
                         }
                     }
                 }

@@ -54,7 +54,7 @@ dependencies {
     integTestRuntime(project(":toolingApiBuilders"))
     integTestRuntime(project(":ivy"))
 
-    crossVersionTestRuntime("org.gradle:gradle-kotlin-dsl:${BuildEnvironment.gradleKotlinDslVersion}")
+    crossVersionTestRuntime(project(":kotlinDsl"))
     crossVersionTestRuntime(project(":buildComparison"))
     crossVersionTestRuntime(project(":ivy"))
     crossVersionTestRuntime(project(":maven"))

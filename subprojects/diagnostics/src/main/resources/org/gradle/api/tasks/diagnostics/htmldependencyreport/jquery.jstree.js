@@ -508,7 +508,7 @@
 					});
 				}
 				if(done) { 
-					// TODO: find a more elegant approach to syncronizing returning requests
+					// TODO: find a more elegant approach to synchronizing returning requests
 					if(this.data.core.reopen) { clearTimeout(this.data.core.reopen); }
 					this.data.core.reopen = setTimeout(function () { _this.__callback({}, _this); }, 50);
 					this.data.core.refreshing = false;
@@ -2225,7 +2225,7 @@
 			}
 
 			// maybe use a scrolling parent element instead of document?
-			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse poisition is n/a
+			if(e.type === "mousemove") { // thought of adding scroll in order to move the helper, but mouse position is n/a
 				var d = $(document), t = d.scrollTop(), l = d.scrollLeft();
 				if(e.pageY - t < 20) { 
 					if(sti && dir1 === "down") { clearInterval(sti); sti = false; }
@@ -3452,7 +3452,7 @@
 				this.data.search.str = str;
 
 				if(!skip_async && s.ajax !== false && this.get_container_ul().find("li.jstree-closed:not(:has(ul)):eq(0)").length > 0) {
-					this.search.supress_callback = true;
+					this.search.suppress_callback = true;
 					error_func = function () { };
 					success_func = function (d, t, x) {
 						var sf = this.get_settings().search.ajax.success; 

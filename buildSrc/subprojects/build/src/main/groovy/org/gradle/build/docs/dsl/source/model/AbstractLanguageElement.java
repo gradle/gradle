@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class AbstractLanguageElement implements LanguageElement, Serializable {
     private String rawCommentText;
@@ -61,5 +62,23 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
         for (int i = 0; i < annotationNames.size(); i++) {
             annotationNames.set(i, transformer.transform(annotationNames.get(i)));
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AbstractLanguageElement that = (AbstractLanguageElement) o;
+        return Objects.equals(rawCommentText, that.rawCommentText) &&
+            Objects.equals(annotationNames, that.annotationNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rawCommentText, annotationNames);
     }
 }

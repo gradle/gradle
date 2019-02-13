@@ -46,6 +46,13 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
 
         buildFile << """
 def artifactType = Attribute.of('artifactType', String)
+                   
+@TransformAction(TestTransformAction)
+interface TestTransform {
+    @Input
+    String getTransformName()
+    void setTransformName(String name)
+}
 
 allprojects {
     repositories {
@@ -66,41 +73,40 @@ allprojects {
     }
 
     dependencies {
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'size')
-            artifactTransform(TestTransform) {
-                params('Single step transform')
+            parameters {
+                transformName = 'Single step transform'
             }
         }
 
         // Multi step transform
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'intermediate')
-            artifactTransform(TestTransform) {
-                params('Transform step 1')
+            parameters {
+                transformName = 'Transform step 1'
             }
         }
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'intermediate')
             to.attribute(artifactType, 'final')
-            artifactTransform(TestTransform) {
-                params('Transform step 2')
+            parameters {
+                transformName = 'Transform step 2'
             }
         }
 
         //Multi step transform, without dependencies at step 1
-        registerTransform {
+        registerTransformAction(SimpleTransform) {
             from.attribute(artifactType, 'jar')
             to.attribute(artifactType, 'middle')
-            artifactTransform(SimpleTransform)
         }
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'middle')
             to.attribute(artifactType, 'end')
-            artifactTransform(TestTransform) {
-                params('Transform step 2')
+            parameters {
+                transformName = 'Transform step 2'
             }
         }
     }
@@ -128,7 +134,6 @@ project(':app') {
 }
 
 import javax.inject.Inject
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 
 class Producer extends DefaultTask {
     @OutputFile
@@ -140,40 +145,43 @@ class Producer extends DefaultTask {
     }
 }
 
-class TestTransform extends ArtifactTransform {
+abstract class TestTransformAction implements ArtifactTransformAction {
 
-    ArtifactTransformDependencies artifactDependencies
-    String transformName
+    @TransformParameters
+    abstract TestTransform getParameters()
 
-    @Inject
-    TestTransform(String transformName, ArtifactTransformDependencies artifactDependencies) {
-        this.transformName = transformName
-        this.artifactDependencies = artifactDependencies
-    }
-    
-    List<File> transform(File input) {
-        println "\${transformName} received dependencies files \${artifactDependencies.files*.name} for processing \${input.name}"
-        assert artifactDependencies.files.every { it.exists() }
+    @PrimaryInputDependencies
+    abstract FileCollection getPrimaryInputDependencies()
 
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
+    @PrimaryInput
+    abstract File getInput()
+
+    void transform(ArtifactTransformOutputs outputs) {
+        println "\${parameters.transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
+        assert primaryInputDependencies.every { it.exists() }
+
+        def output = outputs.file(input.name + ".txt")
+        def workspace = output.parentFile
+        assert workspace.directory && workspace.list().length == 0
         println "Transforming \${input.name} to \${output.name}"
         output.text = String.valueOf(input.length())
-        return [output]
     }
 }
 
-class SimpleTransform extends ArtifactTransform {
+abstract class SimpleTransform implements ArtifactTransformAction {
 
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
+    @PrimaryInput
+    abstract File getInput()
+
+    void transform(ArtifactTransformOutputs outputs) {
+        def output = outputs.file(input.name + ".txt")
+        def workspace = output.parentFile
+        assert workspace.directory && workspace.list().length == 0
         println "Transforming without dependencies \${input.name} to \${output.name}"
         if (input.name == System.getProperty("failTransformOf")) {
             throw new RuntimeException("Cannot transform")
         }
         output.text = String.valueOf(input.length())
-        return [output]
     }
 }
 """
@@ -203,6 +211,36 @@ project(':app') {
         output.count('Transforming') == 5
         output.contains('Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar')
         output.contains('Single step transform received dependencies files [hamcrest-core-1.3.jar] for processing junit-4.11.jar')
+    }
+
+    def "transform can access file dependencies as a set of files when using ArtifactView"() {
+
+        given:
+
+        buildFile << """
+project(':common') {
+
+    dependencies {
+        implementation files("otherLib.jar")
+    }
+
+    task resolve(type: Copy) {
+        def artifacts = configurations.implementation.incoming.artifactView {
+            attributes { it.attribute(artifactType, 'size') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/libs"
+    }
+}
+"""
+
+        when:
+        executer.withArgument("--parallel")
+        run "common:resolve"
+
+        then:
+        output.count('Transforming') == 1
+        output.contains('Single step transform received dependencies files [] for processing otherLib.jar')
     }
 
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
@@ -332,26 +370,26 @@ project(':app') {
         def outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 5
-        outputLines.any { it ==~ /Skipping TestTransform: .*lib.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 5
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*lib.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
 
-        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 0
+        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 0
 
         when:
         run "resolve", "--info"
         outputLines = output.readLines()
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransform: .* as it is up-to-date./ } == 3
-        outputLines.any { it ==~ /Skipping TestTransform: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransform: .*hamcrest-core-1.3.jar as it is up-to-date./ }
+        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 3
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
+        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
 
-        outputLines.count { it ==~ /TestTransform: .* is not up-to-date because:/ } == 2
-        outputLines.any { it ==~ /TestTransform: .*lib.jar is not up-to-date because:/ }
-        outputLines.any { it ==~ /TestTransform: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
+        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 2
+        outputLines.any { it ==~ /TestTransformAction: .*lib.jar is not up-to-date because:/ }
+        outputLines.any { it ==~ /TestTransformAction: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
         assertTransformationsExecuted(
             singleStep('slf4j-api-1.7.25.jar'),
             singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
@@ -438,9 +476,6 @@ project(':app') {
 
             transformStep1(libWithSlf4New),
             transformStep2(libWithSlf4New),
-            // Looks like we execute this second step once with the first step having dependencies slf4j-api-1.7.26.jar and once with dependencies slf4j-api-1.7.25.jar
-            // TODO wolfs: Schedule only the right transformations, not transformations with mixed dependencies which cannot be re-used by anything.
-            transformStep2(libWithSlf4New)
         )
 
         def outputLines = output.readLines()
@@ -449,11 +484,9 @@ project(':app') {
         def libTransformWithOldSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar")
         def libTransformWithNewSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar")
         ![app1Resolve, app2Resolve, libTransformWithOldSlf4j, libTransformWithNewSlf4j].contains(-1)
-        // scheduled transformation, executed before the resolve task
+        // scheduled transformations, executed before the resolve task
         assert libTransformWithOldSlf4j < app1Resolve
-        // immediate transformation, we do not distinguish between transformations with different dependency graphs, so we only schedule the transformation once.
-        // TODO wolfs: should be scheduled as well
-        assert libTransformWithNewSlf4j > app2Resolve
+        assert libTransformWithNewSlf4j < app2Resolve
     }
 
     def "transform does not execute when dependencies cannot be found"() {

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Issue
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -396,5 +397,86 @@ task resolveTestClasses {
 
         and:
         output.count("Transforming") == 0
+    }
+
+    @Issue("gradle/gradle#8363")
+    def "attribute compatible transform but insufficient will not be selected"() {
+        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+
+        given:
+        buildFile << """
+def artifactType = Attribute.of('artifactType', String)
+def minified = Attribute.of('minified', Boolean)
+
+apply plugin: 'java'
+
+allprojects {
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+dependencies {
+    implementation 'test:test:1.3'
+    
+    artifactTypes.getByName("jar") {
+        attributes.attribute(minified, false)
+    }
+    
+    registerTransform {
+        from.attribute(artifactType, 'jar')
+        to.attribute(artifactType, 'size')
+        artifactTransform(FileSizer)
+    }
+    
+    registerTransform {
+        from.attribute(minified, false)
+        to.attribute(minified, true)
+        artifactTransform(Minifier)
+    }
+}
+
+class Minifier extends ArtifactTransform {
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name + ".min")
+        println "Minifying \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+class FileSizer extends ArtifactTransform {
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name + ".txt")
+        println "Sizing \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+task resolve(type: Copy) {
+    def artifacts = configurations.compileClasspath.incoming.artifactView {
+        attributes { it.attribute(minified, true) }
+    }.artifacts
+    from artifacts.artifactFiles
+    into "\${buildDir}/libs"
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Minifying") == 1
+        output.count('minified=true')
+        output.count('Sizing') == 0
     }
 }

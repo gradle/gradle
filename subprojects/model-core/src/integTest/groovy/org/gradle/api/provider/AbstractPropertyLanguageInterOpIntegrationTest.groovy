@@ -38,9 +38,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         }
         buildfile.text = kotlinDslBuildSrcScript + buildfile.text
         if (!hasKotlin) {
-            executer.beforeExecute {
-                expectDeprecationWarning()
-            }
             hasKotlin = true
         }
     }

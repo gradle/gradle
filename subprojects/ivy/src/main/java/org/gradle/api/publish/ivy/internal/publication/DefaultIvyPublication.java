@@ -94,13 +94,15 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final static Logger LOG = Logging.getLogger(DefaultIvyPublication.class);
 
     private static final String API_VARIANT = "api";
+    private static final String API_ELEMENTS_VARIANT = "apiElements";
     private static final String RUNTIME_VARIANT = "runtime";
+    private static final String RUNTIME_ELEMENTS_VARIANT = "runtimeElements";
     private static final Comparator<String> VARIANT_ORDERING = (left, right) -> {
         // API first
-        if (API_VARIANT.equals(left)) {
+        if (API_VARIANT.equals(left) || API_ELEMENTS_VARIANT.equals(left)) {
             return -1;
         }
-        if (API_VARIANT.equals(right)) {
+        if (API_VARIANT.equals(right) || API_ELEMENTS_VARIANT.equals(right)) {
             return 1;
         }
         return left.compareTo(right);
@@ -122,7 +124,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private Task moduleDescriptorGenerator;
-    private IvyArtifact gradleModuleDescriptorArtifact;
+    private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
     private SoftwareComponentInternal component;
     private boolean alias;
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
@@ -301,10 +303,10 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private String mapUsage(String name) {
-        if (API_VARIANT.equals(name)) {
+        if (API_VARIANT.equals(name) || API_ELEMENTS_VARIANT.equals(name)) {
             return "compile";
         }
-        if (RUNTIME_VARIANT.equals(name)) {
+        if (RUNTIME_VARIANT.equals(name) || RUNTIME_ELEMENTS_VARIANT.equals(name)) {
             return "runtime";
         }
         return name;
@@ -426,8 +428,25 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 return artifact.getFile().exists();
             }
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts);
+        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<IvyArtifact>() {
+            @Override
+            public boolean isSatisfiedBy(IvyArtifact element) {
+                if (gradleModuleDescriptorArtifact == element) {
+                    // We temporarily want to allow skipping the publication of Gradle module metadata
+                    return gradleModuleDescriptorArtifact.isEnabled();
+                }
+                return true;
+            }
+        });
         return new IvyNormalizedPublication(name, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
+    }
+
+    @Override
+    public boolean writeGradleMetadataMarker() {
+        if (canPublishModuleMetadata() && gradleModuleDescriptorArtifact != null && gradleModuleDescriptorArtifact.isEnabled()) {
+            return true;
+        }
+        return false;
     }
 
     private boolean canPublishModuleMetadata() {

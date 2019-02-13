@@ -376,7 +376,7 @@ project(":project2") {
         sorted[1].groupId == "commons-io"
         sorted[1].artifactId == "*"
 
-        project2.parsedModuleMetadata.variant('api') {
+        project2.parsedModuleMetadata.variant('apiElements') {
             dependency('org.gradle.test:project1:1.0') {
                 exists()
                 hasExclude('*', 'commons-collections')
@@ -446,8 +446,8 @@ project(":library") {
         when:
         run "publish"
 
-        def platformModule = mavenRepo.module("org.test", "platform", "1.0")
-        def libraryModule = mavenRepo.module("org.test", "library", "1.0")
+        def platformModule = mavenRepo.module("org.test", "platform", "1.0").removeGradleMetadataRedirection()
+        def libraryModule = mavenRepo.module("org.test", "library", "1.0").removeGradleMetadataRedirection()
 
         then:
         platformModule.parsedPom.packaging == 'pom'
@@ -463,7 +463,7 @@ project(":library") {
         libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:")
         libraryModule.parsedPom.scopes.compile.assertDependencyManagement()
         libraryModule.parsedPom.scopes['import'].expectDependencyManagement("org.test:platform:1.0").hasType('pom')
-        libraryModule.parsedModuleMetadata.variant('api') {
+        libraryModule.parsedModuleMetadata.variant('apiElements') {
             dependency("org.test:bar:").exists()
             dependency("org.test:platform:1.0").exists()
             noMoreDependencies()

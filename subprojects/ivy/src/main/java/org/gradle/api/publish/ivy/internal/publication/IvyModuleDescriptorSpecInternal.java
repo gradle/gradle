@@ -50,4 +50,6 @@ public interface IvyModuleDescriptorSpecInternal extends IvyModuleDescriptorSpec
     List<IvyModuleDescriptorLicense> getLicenses();
 
     IvyModuleDescriptorDescription getDescription();
+
+    boolean writeGradleMetadataMarker();
 }

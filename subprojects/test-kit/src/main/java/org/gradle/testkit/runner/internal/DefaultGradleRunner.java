@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
+import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
@@ -74,12 +75,16 @@ public class DefaultGradleRunner extends GradleRunner {
     }
 
     private static TestKitDirProvider calculateTestKitDirProvider(SystemProperties systemProperties) {
-        Map<String, String> systemPropertiesMap = systemProperties.asMap();
-        if (systemPropertiesMap.containsKey(TEST_KIT_DIR_SYS_PROP)) {
-            return new ConstantTestKitDirProvider(new File(systemPropertiesMap.get(TEST_KIT_DIR_SYS_PROP)));
-        } else {
-            return new TempTestKitDirProvider(systemProperties);
-        }
+        return systemProperties.withSystemProperties(new Factory<TestKitDirProvider>() {
+            @Override
+            public TestKitDirProvider create() {
+                if (System.getProperties().containsKey(TEST_KIT_DIR_SYS_PROP)) {
+                    return new ConstantTestKitDirProvider(new File(System.getProperty(TEST_KIT_DIR_SYS_PROP)));
+                } else {
+                    return new TempTestKitDirProvider(systemProperties);
+                }
+            }
+        });
     }
 
     public TestKitDirProvider getTestKitDirProvider() {

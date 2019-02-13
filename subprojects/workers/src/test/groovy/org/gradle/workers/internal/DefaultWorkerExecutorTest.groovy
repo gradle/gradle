@@ -16,27 +16,26 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.file.PathToFileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.work.AsyncWorkTracker
 import org.gradle.internal.work.ConditionalExecution
 import org.gradle.internal.work.ConditionalExecutionQueue
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerConfiguration
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Unroll
 
 @UsesNativeServices
 class DefaultWorkerExecutorTest extends Specification {
     @Rule RedirectStdOutAndErr output = new RedirectStdOutAndErr()
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)
@@ -44,12 +43,11 @@ class DefaultWorkerExecutorTest extends Specification {
     def buildOperationWorkerRegistry = Mock(WorkerLeaseRegistry)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def fileResolver = Mock(PathToFileResolver)
+    def forkOptionsFactory = TestFiles.execFactory(temporaryFolder.testDirectory)
     def workerDirectoryProvider = Stub(WorkerDirectoryProvider) {
-        getWorkingDirectory() >> { temporaryFolder.root }
+        getWorkingDirectory() >> { temporaryFolder.testDirectory }
     }
     def runnable = Mock(Runnable)
-    def instantiatorFactory = Mock(InstantiatorFactory)
     def executionQueueFactory = Mock(WorkerExecutionQueueFactory)
     def executionQueue = Mock(ConditionalExecutionQueue)
     def worker = Mock(Worker)
@@ -57,15 +55,13 @@ class DefaultWorkerExecutorTest extends Specification {
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
-        _ * fileResolver.resolve(_ as File) >> { files -> files[0] }
-        _ * fileResolver.resolve(_ as String) >> { files -> new File(files[0]) }
         _ * executionQueueFactory.create() >> executionQueue
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, fileResolver, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
         given:
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
 
         expect:
         configuration.isolationMode == IsolationMode.AUTO
@@ -96,7 +92,7 @@ class DefaultWorkerExecutorTest extends Specification {
     }
 
     def "can convert javaForkOptions to daemonForkOptions"() {
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
 
         given:
         configuration.forkOptions { options ->
@@ -104,7 +100,7 @@ class DefaultWorkerExecutorTest extends Specification {
             options.maxHeapSize = "128m"
             options.systemProperty("foo", "bar")
             options.jvmArgs("-foo")
-            options.bootstrapClasspath(new File("/foo"))
+            options.bootstrapClasspath("foo")
             options.debug = true
         }
 
@@ -116,13 +112,13 @@ class DefaultWorkerExecutorTest extends Specification {
         daemonForkOptions.javaForkOptions.maxHeapSize == "128m"
         daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Dfoo=bar")
         daemonForkOptions.javaForkOptions.allJvmArgs.contains("-foo")
-        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Xbootclasspath:${File.separator}foo".toString())
+        daemonForkOptions.javaForkOptions.allJvmArgs.contains("-Xbootclasspath:${temporaryFolder.file('foo')}".toString())
         daemonForkOptions.javaForkOptions.allJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
     }
 
     def "can add to classpath on executor"() {
         given:
-        WorkerConfiguration configuration = new DefaultWorkerConfiguration(fileResolver)
+        WorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory)
         def foo = new File("/foo")
         configuration.classpath([foo])
 

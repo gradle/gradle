@@ -22,6 +22,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
@@ -125,6 +126,7 @@ class GradleUserHomeScopeServicesTest extends WorkspaceTest {
         expectParentServiceLocated(ClassLoaderRegistry)
         expectParentServiceLocated(DirectoryFileTreeFactory)
         expectParentServiceLocated(StreamHasher)
+        expectParentServiceLocated(FileCollectionFactory)
 
         expect:
         findsAndCachesService(serviceType)

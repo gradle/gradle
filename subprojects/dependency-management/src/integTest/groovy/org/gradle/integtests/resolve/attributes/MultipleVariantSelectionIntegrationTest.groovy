@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RequiredFeatures(
@@ -258,10 +260,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('org:test:1.0', 'org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2'])
                     }
                     module('org:test:1.0') {
-                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', custom: 'c2'])
+                        variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars', custom: 'c2'])
                     }
                 }
             }
@@ -354,7 +356,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     byConflictResolution('between versions 1.0 and 1.1')
                     // the following assertion is true but limitations to the test fixtures make it hard to check
                     //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c2'
                     artifact group: 'org', module: 'foo', version: '1.1', classifier: 'c3'
                 }
@@ -443,7 +445,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         then:
         failure.assertHasCause("""Multiple incompatible variants of org:foo:1.1 were selected:
    - Variant org:foo:1.1 variant altruntime has attributes {custom=c3, org.gradle.status=${defaultStatus()}}
-   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime}""")
+   - Variant org:foo:1.1 variant runtime has attributes {custom=c2, org.gradle.status=${defaultStatus()}, org.gradle.usage=java-runtime-jars}""")
 
     }
 
@@ -582,7 +584,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.0 and 1.1')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
                     artifact group: 'org', module: 'foo', version: '1.0', classifier: 'c2'
                 }
                 module('org:bar:1.0') {
@@ -629,7 +631,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime'])
+                    variant('runtime', ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime-jars'])
                     artifact group: 'org', module: 'foo', version: '1.0'
                 }
                 module('org:foo:1.0') {
@@ -721,6 +723,69 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:blah:1.0')
+    }
+
+    @Ignore
+    @Issue("https://github.com/gradle/gradle/issues/8386")
+    def "selects a variant with different attribute value but matching transform"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('usage', 'api')
+                    attribute('format', 'foo')
+                }
+                variant('runtime') {
+                    attribute('usage', 'runtime')
+                }
+            }
+        }
+
+        buildFile << """
+            configurations {
+                conf {
+                    attributes {
+                        attribute(Attribute.of("usage", String), "api")
+                        attribute(Attribute.of("format", String), "bar")
+                    }
+                }
+            }
+            
+            dependencies {
+                conf('org:test:1.0')
+                
+                registerTransform {
+                    artifactTransform(FooToBar.class)
+                    from.attribute(Attribute.of("usage", String), "api")
+                    from.attribute(Attribute.of("format", String), "foo")
+                    to.attribute(Attribute.of("usage", String), "api")
+                    to.attribute(Attribute.of("format", String), "bar")
+                }
+            }
+            
+            class FooToBar extends ArtifactTransform {
+                public List<File> transform(File fooFile) {
+                    return java.util.Collections.singletonList(fooFile)
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0') {
+                    variant('api', ['org.gradle.status': defaultStatus(), usage: 'api', format: 'foo'])
+                }
+            }
+        }
     }
 
     static Closure<String> defaultStatus() {

@@ -127,14 +127,29 @@ class MultiParentClassLoaderTest extends Specification {
         0 * visitor._
     }
 
-    def "equals and hashcode"() {
+    def "hash code is identity based"() {
+        given:
         def c1 = new URLClassLoader()
         def c2 = new CachingClassLoader(c1)
-        expect:
-        new MultiParentClassLoader(c1, c2) == new MultiParentClassLoader(c1, c2)
-        new MultiParentClassLoader(c1, c2).hashCode() == new MultiParentClassLoader(c1, c2).hashCode()
+        def loader = new MultiParentClassLoader(c1)
+        def hash = loader.hashCode()
 
-        new MultiParentClassLoader(c1, c2) != new MultiParentClassLoader(c1, c2, new URLClassLoader())
-        new MultiParentClassLoader(c1, c2).hashCode() != new MultiParentClassLoader(c1, c2, new URLClassLoader()).hashCode()
+        when:
+        loader.addParent(c2)
+
+        then:
+        loader.hashCode() == hash
+    }
+
+    def "equality is identity based"() {
+        given:
+        def c1 = new URLClassLoader()
+        def c2 = new CachingClassLoader(c1)
+        def loader1 = new MultiParentClassLoader(c1, c2)
+        def loader2 = new MultiParentClassLoader(c1, c2)
+
+        expect:
+        loader1 == loader1
+        loader2 != loader1
     }
 }

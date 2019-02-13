@@ -16,6 +16,9 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import spock.lang.Unroll
+
 class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIntegTest {
     def setup() {
         buildFile << """
@@ -542,4 +545,53 @@ class TestCapability implements Capability {
         }
     }
 
+    @Unroll
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
+        publishModuleMetadata = enableFeaturePreview
+
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        if (enableFeaturePreview) {
+            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
+        }
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+            generateMetadataFileForIvyPublication.enabled = $enabled
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = ivyRepo.module('group', 'publishTest', '1.0')
+        module.hasGradleMetadataRedirectionMarker() == hasMarker
+
+        where:
+        enableFeaturePreview | enabled | hasMarker
+        false                | false   | false
+        false                | true    | true       // component with variants is published independently of feature preview
+        true                 | false   | false
+        true                 | true    | true
+    }
 }

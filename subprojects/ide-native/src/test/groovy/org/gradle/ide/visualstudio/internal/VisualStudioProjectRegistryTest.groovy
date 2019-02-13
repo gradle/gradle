@@ -19,14 +19,19 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileResolver = Mock(FileResolver)
     def ideArtifactRegistry = Mock(IdeArtifactRegistry)
-    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP)
+    def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP, TestUtil.objectFactory(), new DefaultProviderFactory())
 
     def "creates a matching visual studio project configuration for target binary"() {
         def executableBinary = targetBinary("vsConfig")
@@ -53,7 +58,8 @@ class VisualStudioProjectRegistryTest extends Specification {
             metadata = m
         }
         metadata.name == "mainExe"
-        metadata.configurations == ["vsConfig|Win32"]
+        metadata.configurations*.name == ["vsConfig|Win32"]
+        metadata.configurations*.buildable == [true]
     }
 
     def "returns same visual studio project configuration for native binaries that share project name"() {
@@ -83,9 +89,9 @@ class VisualStudioProjectRegistryTest extends Specification {
     }
 
     def "visual studio project contains sources for native binaries for all configurations"() {
-        def sourceCommon = new File("source")
-        def source1 = new File("source1")
-        def source2 = new File("source2")
+        def sourceCommon = file("source")
+        def source1 = file("source1")
+        def source2 = file("source2")
         def executableBinary1 = targetBinary("vsConfig1", sourceCommon, source1)
         def executableBinary2 = targetBinary("vsConfig2", sourceCommon, source2)
 
@@ -95,7 +101,7 @@ class VisualStudioProjectRegistryTest extends Specification {
 
         then:
         def vsProject = registry.getProjectConfiguration(executableBinary1).project
-        vsProject.sourceFiles == [sourceCommon, source1, source2] as Set
+        vsProject.sourceFiles.files == [sourceCommon, source1, source2] as Set
     }
 
     private VisualStudioTargetBinary targetBinary(String variant, File... sources) {
@@ -111,9 +117,14 @@ class VisualStudioProjectRegistryTest extends Specification {
         targetBinary.variantDimensions >> [variant]
         return targetBinary
     }
+
     private FileCollection fileCollection(File... files = []) {
         return Stub(FileCollection) {
             getFiles() >> (files as Set)
         }
+    }
+
+    private File file(Object... path) {
+        return tmpDir.file(path)
     }
 }

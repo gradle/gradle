@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -27,6 +26,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
@@ -56,6 +56,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     def executionHistoryStore = new TestExecutionHistoryStore()
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
+    def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def stringInterner = new StringInterner()
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
@@ -77,7 +78,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         findProject(_, _) >> childProject
     }
 
-    def dependencies = Stub(ArtifactTransformDependenciesInternal) {
+    def dependencies = Stub(ArtifactTransformDependencies) {
         getFiles() >> []
         fingerprint(_ as FileCollectionFingerprinter) >> { FileCollectionFingerprinter fingerprinter -> fingerprinter.empty() }
     }
@@ -88,6 +89,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         artifactTransformListener,
         transformationWorkspaceProvider,
         dependencyFingerprinter,
+        fileCollectionFactory,
         outputFilesFingerprinter,
         classloaderHasher,
         projectFinder,
@@ -123,8 +125,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-            return transformationAction.apply(primaryInput, outputDir)
+        ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+            return ImmutableList.copyOf(transformationAction.apply(primaryInput, outputDir))
         }
 
         @Override
@@ -133,8 +135,16 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        void isolateParameters() {
+        }
+
+        @Override
         String getDisplayName() {
             return "Test transformer"
+        }
+
+        @Override
+        void visitDependencies(TaskDependencyResolveContext context) {
         }
     }
 

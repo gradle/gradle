@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
+import org.gradle.internal.reflect.ParameterValidationContext;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -32,12 +33,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
     }
 
     @Override
-    public void visitProperties(PropertyVisitor visitor, Object bean) {
+    public void visitProperties(Object bean, ParameterValidationContext validationContext, PropertyVisitor visitor) {
         Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<RuntimeBeanNode<?>>();
         queue.add(nodeFactory.createRoot(bean));
         while (!queue.isEmpty()) {
             RuntimeBeanNode<?> node = queue.remove();
-            node.visitNode(visitor, queue, nodeFactory);
+            node.visitNode(visitor, queue, nodeFactory, validationContext);
         }
     }
 }

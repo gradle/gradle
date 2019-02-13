@@ -33,7 +33,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -44,20 +44,20 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
         """
 
         when:
         run "publish"
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("optionalFeature") {
+        javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElements") {
             dependency('org', 'optionaldep', '1.0')
             noMoreDependencies()
         }
@@ -85,69 +85,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
     }
 
-    def "doesn't allow publishing a feature without capability"() {
-        mavenRepo.module('org', 'optionaldep', '1.0').publish()
-
-        given:
-        buildFile << """
-            configurations {
-                optionalFeatureImplementation
-                optionalFeatureRuntimeElements {
-                    extendsFrom optionalFeatureImplementation
-                    canBeResolved = false
-                    canBeConsumed = true
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                }
-                compileClasspath.extendsFrom(optionalFeatureImplementation)
-            }
-            
-            dependencies {
-                optionalFeatureImplementation 'org:optionaldep:1.0'
-            }
-            
-            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
-        """
-
-        when:
-        fails "publish"
-
-        then:
-        failure.assertHasCause("Cannot publish feature variant optionalFeature because configuration optionalFeatureRuntimeElements doesn't declare any capability")
-    }
-
-    def "reasonable error message when declaring a variant which name already exists"() {
-        given:
-        buildFile << """
-            configurations {
-                optionalFeatureImplementation
-                optionalFeatureRuntimeElements {
-                    extendsFrom optionalFeatureImplementation
-                    canBeResolved = false
-                    canBeConsumed = true
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-                    }
-                    outgoing.capability("org:optional-feature:\${version}")
-                }
-                compileClasspath.extendsFrom(optionalFeatureImplementation)
-            }
-            
-            dependencies {
-                optionalFeatureImplementation 'org:optionaldep:1.0'
-            }
-            
-            components.java.addFeatureVariantFromConfiguration('api', configurations.optionalFeatureRuntimeElements)
-        """
-
-        when:
-        fails "publish"
-
-        then:
-        failure.assertHasCause("Cannot add feature variant 'api' as a variant with the same name is already registered")
-    }
-
     def "can group dependencies by feature"() {
         mavenRepo.module('org', 'optionaldep-g1', '1.0').publish()
         mavenRepo.module('org', 'optionaldep1-g2', '1.0').publish()
@@ -162,7 +99,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
@@ -174,7 +111,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature2:\${version}")
                 }
@@ -187,25 +124,25 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeature2Implementation 'org:optionaldep2-g2:1.0'
             }
             
-            components.java.addFeatureVariantFromConfiguration('optionalFeature1', configurations.optionalFeature1RuntimeElements)
-            components.java.addFeatureVariantFromConfiguration('optionalFeature2', configurations.optionalFeature2RuntimeElements)
+            components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements, { it.mapToMavenScope('compile', true) })
+            components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements, { it.mapToMavenScope('compile', true) })
         """
 
         when:
         run "publish"
 
         then:
-        javaLibrary.parsedModuleMetadata.variant("api") {
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("runtime") {
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("optionalFeature1") {
+        javaLibrary.parsedModuleMetadata.variant("optionalFeature1RuntimeElements") {
             dependency('org', 'optionaldep-g1', '1.0')
             noMoreDependencies()
         }
-        javaLibrary.parsedModuleMetadata.variant("optionalFeature2") {
+        javaLibrary.parsedModuleMetadata.variant("optionalFeature2RuntimeElements") {
             dependency('org', 'optionaldep1-g2', '1.0')
             dependency('org', 'optionaldep2-g2', '1.0')
             noMoreDependencies()
@@ -237,7 +174,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -248,7 +185,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addFeatureVariantFromConfiguration('optionalFeature', configurations.optionalFeatureRuntimeElements)
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
             
             artifacts {
                 optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
@@ -278,15 +215,15 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     optionalFeatureFileName ,
                     "publishTest-1.9.pom",
                     "publishTest-1.9.module")
-            javaLibrary.parsedModuleMetadata.variant("api") {
+            javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 assert files*.name == ["publishTest-1.9.jar"]
                 noMoreDependencies()
             }
-            javaLibrary.parsedModuleMetadata.variant("runtime") {
+            javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
                 assert files*.name == ["publishTest-1.9.jar"]
                 noMoreDependencies()
             }
-            javaLibrary.parsedModuleMetadata.variant("optionalFeature") {
+            javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElements") {
                 assert files*.name == [optionalFeatureFileName]
                 dependency('org', 'optionaldep', '1.0')
                 noMoreDependencies()
@@ -318,5 +255,162 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
 
     }
 
+    def "can publish java-library with a feature from a configuration with more than one outgoing variant"() {
+        mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
+        given:
+        buildFile << """
+            configurations {
+                optionalFeatureImplementation
+                optionalFeatureRuntimeElements {
+                    extendsFrom optionalFeatureImplementation
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                    }
+                    outgoing.capability("org:optional-feature:\${version}")
+                }
+                compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+            
+            dependencies {
+                optionalFeatureImplementation 'org:optionaldep:1.0'
+            }
+            
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
+            
+            def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
+            alt.attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-alt'))
+            }
+            def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
+            task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
+            alt.artifact(file:altFile, builtBy: 'createFile')
+            
+        """
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElements") {
+            dependency('org', 'optionaldep', '1.0')
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElementsAlternate") {
+            dependency('org', 'optionaldep', '1.0')
+            noMoreDependencies()
+        }
+        javaLibrary.parsedPom.scope('compile') {
+            assertOptionalDependencies('org:optionaldep:1.0')
+        }
+        javaLibrary.parsedPom.hasNoScope('runtime')
+
+        and:
+        resolveArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+        resolveApiArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+        resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+
+        resolveRuntimeArtifacts(javaLibrary) {
+            optionalFeatureCapabilities << "org:optional-feature:1.0"
+            withModuleMetadata {
+                expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar"
+            }
+            withoutModuleMetadata {
+                shouldFail {
+                    // documents the current behavior
+                    assertHasCause("Unable to find a variant of org.gradle.test:publishTest:1.9 providing the requested capability org:optional-feature:1.0")
+                }
+            }
+        }
+    }
+
+    def "can publish java-library with a feature from a configuration with more than one outgoing variant and filter out variants"() {
+        mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
+
+        given:
+        buildFile << """
+            configurations {
+                optionalFeatureImplementation
+                optionalFeatureRuntimeElements {
+                    extendsFrom optionalFeatureImplementation
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                    }
+                    outgoing.capability("org:optional-feature:\${version}")
+                }
+                compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+            
+            dependencies {
+                optionalFeatureImplementation 'org:optionaldep:1.0'
+            }
+            
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                if (it.configurationVariant.name != 'alternate') {
+                    it.skip()
+                } else {
+                    it.mapToMavenScope('compile', true)
+                } 
+            }
+            
+            def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
+            alt.attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-jars'))
+            }
+            def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
+            task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
+            alt.artifact(file:altFile, builtBy: 'createFile')
+            
+        """
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            noMoreDependencies()
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            noMoreDependencies()
+        }
+        !javaLibrary.parsedModuleMetadata.variants.name.contains('optionalFeatureRuntimeElements')
+        javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElementsAlternate") {
+            dependency('org', 'optionaldep', '1.0')
+            files.name == ['publishTest-1.9-alt.jar']
+            noMoreDependencies()
+        }
+        javaLibrary.parsedPom.scope('compile') {
+            assertOptionalDependencies('org:optionaldep:1.0')
+        }
+        javaLibrary.parsedPom.hasNoScope('runtime')
+
+        and:
+        resolveArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+        resolveApiArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+        resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
+
+        resolveRuntimeArtifacts(javaLibrary) {
+            optionalFeatureCapabilities << "org:optional-feature:1.0"
+            withModuleMetadata {
+                // the first file comes from the fact the test fixture adds 2 dependencies (main component, optional feature)
+                expectFiles "publishTest-1.9.jar", "publishTest-1.9-alt.jar", "optionaldep-1.0.jar"
+            }
+            withoutModuleMetadata {
+                shouldFail {
+                    // documents the current behavior
+                    assertHasCause("Unable to find a variant of org.gradle.test:publishTest:1.9 providing the requested capability org:optional-feature:1.0")
+                }
+            }
+        }
+    }
 }

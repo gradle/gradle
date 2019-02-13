@@ -74,7 +74,7 @@ data class CIBuildModel (
             Stage(StageNames.HISTORICAL_PERFORMANCE,
                     trigger = Trigger.weekly,
                     performanceTests = listOf(
-                            PerformanceTestType.historical)),
+                        PerformanceTestType.historical, PerformanceTestType.flakinessDetection)),
             Stage(StageNames.EXPERIMENTAL,
                     trigger = Trigger.never,
                     runsIndependent = true,
@@ -170,6 +170,7 @@ data class CIBuildModel (
             GradleSubproject("kotlinDslPlugins", unitTests = true, functionalTests = true),
             GradleSubproject("kotlinDslTestFixtures", unitTests = true, functionalTests = false),
             GradleSubproject("kotlinDslIntegTests", unitTests = false, functionalTests = true),
+            GradleSubproject("kotlinCompilerEmbeddable", unitTests = false, functionalTests = false),
 
             GradleSubproject("architectureTest", unitTests = false, functionalTests = false),
             GradleSubproject("distributionsDependencies", unitTests = false, functionalTests = false),
@@ -286,6 +287,7 @@ enum class JvmVendor {
 enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {
     test("PerformanceTest", 420, "defaults"),
     experiment("PerformanceExperiment", 420, "defaults"),
+    flakinessDetection("FlakinessDetection", 420, "flakiness-detection-commit"),
     historical("FullPerformanceTest", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
     fun asId(model : CIBuildModel): String {

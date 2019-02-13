@@ -140,7 +140,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                     public Object call() throws Exception {
                         FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                         // Jansi is required to log errors when generating Groovydoc
-                        ConfigurableFileCollection jansi = project.getLayout().configurableFiles(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                        ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
                         return groovyClasspath.plus(jansi);
                     }
                 });

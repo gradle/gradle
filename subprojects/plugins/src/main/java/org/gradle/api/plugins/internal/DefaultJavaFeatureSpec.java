@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithFeatures;
+import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
@@ -93,14 +93,26 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     @Override
     public void create() {
-        setupConfigurations(isMainSourceSet(sourceSet));
+        setupConfigurations(sourceSet);
     }
 
-    private void setupConfigurations(boolean isMainSourceSet) {
-        String apiConfigurationName = name + "Api";
-        String implConfigurationName = name + "Implementation";
-        String apiElementsConfigurationName = apiConfigurationName + "Elements";
-        String runtimeElementsConfigurationName = name + "RuntimeElements";
+    private void setupConfigurations(SourceSet sourceSet) {
+        String apiConfigurationName;
+        String implConfigurationName;
+        String apiElementsConfigurationName;
+        String runtimeElementsConfigurationName;
+        boolean mainSourceSet = isMainSourceSet(sourceSet);
+        if (mainSourceSet) {
+            apiConfigurationName = name + "Api";
+            implConfigurationName = name + "Implementation";
+            apiElementsConfigurationName = apiConfigurationName + "Elements";
+            runtimeElementsConfigurationName = name + "RuntimeElements";
+        } else {
+            apiConfigurationName = sourceSet.getApiConfigurationName();
+            implConfigurationName = sourceSet.getImplementationConfigurationName();
+            apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
+            runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
+        }
         final Configuration api = bucket("API", apiConfigurationName);
         Configuration impl = bucket("Implementation", implConfigurationName);
         impl.extendsFrom(api);
@@ -108,8 +120,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         apiElements.extendsFrom(api);
         final Configuration runtimeElements = export(runtimeElementsConfigurationName);
         runtimeElements.extendsFrom(impl);
-        configureUsage(apiElements, Usage.JAVA_API);
-        configureUsage(runtimeElements, Usage.JAVA_RUNTIME);
+        configureUsage(apiElements, Usage.JAVA_API_JARS);
+        configureUsage(runtimeElements, Usage.JAVA_RUNTIME_JARS);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
@@ -119,7 +131,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         Provider<JavaCompile> javaCompile = tasks.named(javaCompileTaskName, JavaCompile.class);
         registerClassesDirVariant(javaCompile, objectFactory, apiElements);
 
-        if (isMainSourceSet) {
+        if (mainSourceSet) {
             // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
             configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
             configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
@@ -128,10 +140,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         pluginManager.withPlugin("maven-publish", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin plugin) {
-                final ComponentWithFeatures component = findComponent();
+                final AdhocComponentWithVariants component = findComponent();
                 if (component != null) {
-                    component.addFeatureVariantFromConfiguration(name + "Api", apiElements);
-                    component.addFeatureVariantFromConfiguration(name + "Runtime", runtimeElements);
+                    component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
+                    component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
                 }
             }
         });
@@ -143,7 +155,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             tasks.register(jarTaskName, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
-                    jar.setDescription("Assembles a jar archive containing the classes of the '" + name +"' feature.");
+                    jar.setDescription("Assembles a jar archive containing the classes of the '" + name + "' feature.");
                     jar.setGroup(BasePlugin.BUILD_GROUP);
                     jar.from(sourceSet.getOutput());
                     jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name));
@@ -154,10 +166,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configuration.getArtifacts().add(new LazyPublishArtifact(jar));
     }
 
-    private ComponentWithFeatures findComponent() {
+    private AdhocComponentWithVariants findComponent() {
         SoftwareComponent component = components.findByName("java");
-        if (component instanceof ComponentWithFeatures) {
-            return (ComponentWithFeatures) component;
+        if (component instanceof AdhocComponentWithVariants) {
+            return (AdhocComponentWithVariants) component;
         }
         return null;
     }
@@ -196,4 +208,5 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         SourceSet mainSourceSet = javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         return mainSourceSet.equals(sourceSet);
     }
+
 }

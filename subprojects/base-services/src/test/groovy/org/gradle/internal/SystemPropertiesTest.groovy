@@ -18,10 +18,60 @@ package org.gradle.internal
 
 import spock.lang.Specification
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+
 class SystemPropertiesTest extends Specification {
     def "can be queried for standard system properties"() {
         expect:
-        SystemProperties.instance.standardProperties.contains("os.name")
-        !SystemProperties.instance.standardProperties.contains("foo.bar")
+        SystemProperties.instance.isStandardProperty("os.name")
+        !SystemProperties.instance.isStandardProperty("foo.bar")
+    }
+
+    def "prohibits concurrent reads of Java Home while factory is busy"() {
+        def repeat = 100
+        def initialJavaHomePath = SystemProperties.instance.javaHomeDir.path
+        def temporaryJavaHomePath = initialJavaHomePath + "-2"
+
+        def valuesSeenByFactory = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
+
+        def factory = new Factory<Object>() {
+            @Override
+            Object create() {
+                valuesSeenByFactory.add(SystemProperties.instance.javaHomeDir.path)
+                return new Object()
+            }
+        }
+
+        def latch = new CountDownLatch(2)
+
+        new Thread(new Runnable() {
+            @Override
+            void run() {
+                for (int i = 0; i < repeat; i++) {
+                    SystemProperties.instance.withJavaHome(new File(temporaryJavaHomePath), factory)
+                }
+                latch.countDown()
+            }
+        }).start()
+
+        def valuesSeenByAnotherThread = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>())
+
+        new Thread(new Runnable() {
+            @Override
+            void run() {
+                for (int i = 0; i < repeat; i++) {
+                    valuesSeenByAnotherThread.add(SystemProperties.instance.javaHomeDir.path)
+                }
+
+                latch.countDown()
+            }
+        }).start()
+
+        latch.await()
+
+        expect:
+        valuesSeenByFactory == Collections.singleton(temporaryJavaHomePath)
+        valuesSeenByAnotherThread == Collections.singleton(initialJavaHomePath)
     }
 }

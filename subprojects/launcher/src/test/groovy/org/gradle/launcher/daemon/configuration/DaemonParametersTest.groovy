@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
@@ -29,7 +30,7 @@ class DaemonParametersTest extends Specification {
     final DaemonParameters parameters = parameters()
 
     private DaemonParameters parameters() {
-        new DaemonParameters(new BuildLayoutParameters())
+        new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())
     }
 
     def "has reasonable default values"() {
@@ -132,5 +133,19 @@ class DaemonParametersTest extends Specification {
 
         then:
         !daemonParameters.enabled
+    }
+
+    def "honors Gradle user home dir"() {
+        setup:
+        def userHomeDir = new File('userDir')
+        BuildLayoutParameters layoutParams = new BuildLayoutParameters()
+        layoutParams.gradleUserHomeDir = userHomeDir
+        def parametersWithBaseDir = new DaemonParameters(layoutParams, TestFiles.fileCollectionFactory())
+
+        when:
+        def result = parametersWithBaseDir.baseDir
+
+        then:
+        result == new File(userHomeDir, 'daemon')
     }
 }

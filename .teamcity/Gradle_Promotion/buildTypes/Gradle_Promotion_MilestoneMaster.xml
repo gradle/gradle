@@ -16,12 +16,11 @@
     <build-runners>
       <runner id="RUNNER_1073" name="Promote" type="gradle-runner">
         <parameters>
-          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.step.mode" value="default" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -i &quot;-PgitUserName=%gitUserName%&quot; &quot;-PgitUserEmail=%gitUserEmail%&quot; -Igradle/buildScanInit.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="-PuseBuildReceipt -i &quot;-PgitUserName=%gitUserName%&quot; &quot;-PgitUserEmail=%gitUserEmail%&quot; -Igradle/buildScanInit.gradle --build-cache &quot;-Dgradle.cache.remote.url=%gradle.cache.remote.url%&quot; &quot;-Dgradle.cache.remote.username=%gradle.cache.remote.username%&quot; &quot;-Dgradle.cache.remote.password=%gradle.cache.remote.password%&quot;" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="promoteMilestone -s -PconfirmationCode=milestone" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>

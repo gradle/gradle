@@ -51,6 +51,7 @@ testFixtures {
 
 tasks {
     register("updateInitPluginTemplateVersionFile") {
+        group = "Build init"
         doLast {
 
             val versionProperties = Properties()

@@ -184,9 +184,12 @@ class CIConfigIntegrationTests {
 
     @Test
     fun allSubprojectsAreListed() {
-        val m = CIBuildModel()
+        val knownSubProjectNames = CIBuildModel().subProjects.map { it.asDirectoryName() }
         subProjectFolderList().forEach {
-            assertTrue(m.subProjects.map { it.asDirectoryName() }.contains(it.name), "Not defined: $it")
+            assertTrue(
+                it.name in knownSubProjectNames,
+                "Not defined: $it"
+            )
         }
     }
 

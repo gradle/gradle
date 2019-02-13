@@ -47,7 +47,7 @@ class BaseDirFileResolverTest {
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(TestFiles.fileSystem(), baseDir, TestFiles.getPatternSetFactory())
+        baseDirConverter = new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }
@@ -62,7 +62,7 @@ class BaseDirFileResolverTest {
         baseDirConverter.resolve(TEST_PATH, PathValidation.NONE)
     }
 
-    @Test public void testPathValidationWithNonExistingFile() {
+    @Test public void testPathValidationWithNonexistentFile() {
         try {
             baseDirConverter.resolve(testFile.name, PathValidation.FILE)
             fail()
@@ -86,7 +86,7 @@ class BaseDirFileResolverTest {
         baseDirConverter.resolve(testFile.name, PathValidation.FILE)
     }
 
-    @Test public void testPathValidationWithNonExistingDirectory() {
+    @Test public void testPathValidationWithNonexistentDirectory() {
         try {
             baseDirConverter.resolve(testDir.name, PathValidation.DIRECTORY)
             fail()
@@ -117,7 +117,7 @@ class BaseDirFileResolverTest {
         baseDirConverter.resolve(testFile.name, PathValidation.EXISTS)
     }
 
-    @Test public void testExistsPathValidationWithNonExistingDir() {
+    @Test public void testExistsPathValidationWithNonexistentDir() {
         try {
             baseDirConverter.resolve(testDir.name, PathValidation.EXISTS)
             fail()
@@ -126,7 +126,7 @@ class BaseDirFileResolverTest {
         }
     }
 
-    @Test public void testExistsPathValidationWithNonExistingFile() {
+    @Test public void testExistsPathValidationWithNonexistentFile() {
         try {
             baseDirConverter.resolve(testFile.name, PathValidation.EXISTS)
             fail()

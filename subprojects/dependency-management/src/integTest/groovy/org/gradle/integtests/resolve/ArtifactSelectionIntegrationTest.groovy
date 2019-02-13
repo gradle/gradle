@@ -720,6 +720,7 @@ task show {
             project(':lib') {
                 configurations {
                     compile {
+                        attributes.attribute(buildType, 'n/a')
                         outgoing {
                             variants {
                                 debug {
@@ -763,6 +764,7 @@ task show {
         failure.assertHasCause("""More than one variant of project :lib matches the consumer attributes:
   - Configuration ':lib:compile':
       - Required artifactType 'jar' and found compatible value 'jar'.
+      - Found buildType 'n/a' but wasn't required.
       - Required usage 'api' and found compatible value 'api'.
   - Configuration ':lib:compile' variant debug:
       - Required artifactType 'jar' and found compatible value 'jar'.

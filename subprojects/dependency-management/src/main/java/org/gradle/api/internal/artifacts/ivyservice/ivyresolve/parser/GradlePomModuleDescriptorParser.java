@@ -88,7 +88,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         return POM_PACKAGING.equals(pomReader.getPackaging());
     }
 
-    protected MutableMavenModuleResolveMetadata doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
+    protected ParseResult<MutableMavenModuleResolveMetadata> doParseDescriptor(DescriptorParseContext parserSettings, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException, SAXException {
         PomReader pomReader = new PomReader(resource, moduleIdentifierFactory);
         GradlePomModuleDescriptorBuilder mdBuilder = new GradlePomModuleDescriptorBuilder(pomReader, gradleVersionSelectorScheme, mavenVersionSelectorScheme);
 
@@ -105,7 +105,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
             metadata.setPackaging(pomReader.getPackaging());
             metadata.setRelocated(false);
         }
-        return metadata;
+        return ParseResult.of(metadata, pomReader.hasGradleMetadataMarker());
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {
@@ -151,7 +151,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
     private void addDependencies(GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) {
         for (PomDependencyMgt dependencyMgt : pomReader.getDependencyMgt().values()) {
-            mdBuilder.addConstraint(dependencyMgt);
+            if (!isDependencyImportScoped(dependencyMgt)) {
+                mdBuilder.addConstraint(dependencyMgt);
+            }
         }
 
         for (PomDependencyData dependency : pomReader.getDependencies().values()) {

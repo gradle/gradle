@@ -23,7 +23,6 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -34,7 +33,6 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
@@ -45,7 +43,7 @@ import org.gradle.api.internal.project.DefaultAntBuilderFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.tasks.DefaultTaskContainerFactory
+import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskStatistics
 import org.gradle.api.logging.LoggingManager
@@ -56,6 +54,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -66,7 +65,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.process.internal.ExecFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry
@@ -76,7 +74,6 @@ import spock.lang.Specification
 
 class ProjectScopeServicesTest extends Specification {
     ProjectInternal project = Mock()
-    ConfigurationContainer configurationContainer = Mock()
     GradleInternal gradle = Mock()
     DependencyManagementServices dependencyManagementServices = Mock()
     ITaskFactory taskFactory = Mock()
@@ -143,13 +140,17 @@ class ProjectScopeServicesTest extends Specification {
         1 * plugin2.registerProjectServices(_)
     }
 
-    def "provides a TaskContainerFactory"() {
+    def "provides a TaskContainer"() {
+        expectTaskContainerCreated()
+
+        expect:
+        registry.get(TaskContainerInternal) instanceof DefaultTaskContainer
+    }
+
+    private expectTaskContainerCreated() {
         def instantiator = Stub(Instantiator)
         1 * instantiatorFactory.injectAndDecorate(registry) >> instantiator
         1 * taskFactory.createChild({ it.is project }, instantiator) >> Stub(ITaskFactory)
-
-        expect:
-        registry.getFactory(TaskContainerInternal) instanceof DefaultTaskContainerFactory
     }
 
     def "provides a ToolingModelBuilderRegistry"() {
@@ -192,8 +193,7 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a FileOperations instance"() {
-        _ * parent.get(ExecFactory) >> TestFiles.execFactory()
-        1 * project.tasks
+        expectTaskContainerCreated()
 
         expect:
         provides(FileOperations, DefaultFileOperations)

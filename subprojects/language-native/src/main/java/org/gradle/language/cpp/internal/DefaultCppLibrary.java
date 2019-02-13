@@ -19,12 +19,15 @@ package org.gradle.language.cpp.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -55,11 +58,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, FileOperations fileOperations, ConfigurationContainer configurations, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(name, fileOperations, objectFactory);
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
-        publicHeaders = fileOperations.configurableFiles();
+        publicHeaders = objectFactory.fileCollection();
         publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
 
         linkage = objectFactory.setProperty(Linkage.class);
@@ -73,8 +76,12 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         apiElements.extendsFrom(dependencies.getApiDependencies());
         apiElements.setCanBeResolved(false);
         apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+        apiElements.getAttributes().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.DIRECTORY_TYPE);
 
-        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, collectionCallbackActionDecorator);
+        AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
+        publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+        publicationAttributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, ArtifactTypeDefinition.ZIP_TYPE);
+        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, collectionCallbackActionDecorator);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

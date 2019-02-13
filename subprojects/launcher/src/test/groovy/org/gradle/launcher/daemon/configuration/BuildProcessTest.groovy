@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.configuration
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.process.internal.JvmOptions
@@ -36,13 +36,12 @@ class BuildProcessTest extends Specification {
     @Rule
     final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
 
-    private def fileResolver = Mock(FileResolver)
+    private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
-
 
     def "current and requested build vm match if vm arguments match"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "256m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -56,7 +55,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm do not match if vm arguments differ"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -70,7 +69,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if java home matches"() {
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
         buildProcess.configureForBuild(buildParameters(currentJvm))
@@ -80,7 +79,7 @@ class BuildProcessTest extends Specification {
     def "all requested immutable jvm arguments and all immutable system properties need to match"() {
         given:
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
 
         when:
@@ -96,7 +95,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if no arguments are requested"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -111,7 +110,7 @@ class BuildProcessTest extends Specification {
 
     def "current VM does not match if it was started with the default client heap size"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.maxHeapSize = "64m"
         def defaultRequest = buildParameters(null as Iterable)
 
@@ -129,7 +128,7 @@ class BuildProcessTest extends Specification {
         def requestWithDefaults = buildParameters((Iterable) null)
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
         requestWithDefaults.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
@@ -138,7 +137,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if only mutable arguments are requested"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -153,7 +152,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if only mutable arguments vary"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:
@@ -174,7 +173,7 @@ class BuildProcessTest extends Specification {
         debugDisabled.setDebug(false)
 
         when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
         !buildProcess.configureForBuild(debugEnabled)
@@ -185,7 +184,7 @@ class BuildProcessTest extends Specification {
         given:
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
         def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
-        def currentJvmOptions = new JvmOptions(fileResolver)
+        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:
@@ -205,7 +204,7 @@ class BuildProcessTest extends Specification {
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
 
         when:
-        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        BuildProcess buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
         buildProcess.configureForBuild(buildParameters([], [ "file.encoding" : Charset.defaultCharset().name() ]))
@@ -217,7 +216,7 @@ class BuildProcessTest extends Specification {
         def parameters = buildParameters(["-Dfoo=bar", "-Dbaz"])
 
         then:
-        new BuildProcess(currentJvm, new JvmOptions(fileResolver)).configureForBuild(parameters)
+        new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory)).configureForBuild(parameters)
 
         and:
         System.getProperty('foo') == 'bar'
@@ -229,7 +228,7 @@ class BuildProcessTest extends Specification {
         def emptyBuildParameters = buildParameters([])
 
         when:
-        new BuildProcess(currentJvm, new JvmOptions(fileResolver)).configureForBuild(emptyBuildParameters)
+        new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory)).configureForBuild(emptyBuildParameters)
 
         then:
         !emptyBuildParameters.getEffectiveJvmArgs().containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
@@ -240,7 +239,7 @@ class BuildProcessTest extends Specification {
         def parametersWithDefaults = buildParameters(DaemonParameters.DEFAULT_JVM_ARGS)
 
         when:
-        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileResolver))
+        def buildProcess = new BuildProcess(currentJvm, new JvmOptions(fileCollectionFactory))
 
         then:
         !buildProcess.configureForBuild(parametersWithDefaults)
@@ -254,8 +253,8 @@ class BuildProcessTest extends Specification {
         return buildParameters(currentJvm, jvmArgs, extraSystemProperties)
     }
 
-    private static DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = [], Map<String, String> extraSystemProperties = Collections.emptyMap()) {
-        def parameters = new DaemonParameters(new BuildLayoutParameters(), extraSystemProperties)
+    private DaemonParameters buildParameters(JavaInfo jvm, Iterable<String> jvmArgs = [], Map<String, String> extraSystemProperties = Collections.emptyMap()) {
+        def parameters = new DaemonParameters(new BuildLayoutParameters(), fileCollectionFactory, extraSystemProperties)
         parameters.setJvm(jvm)
         if (jvmArgs != null) {
             parameters.setJvmArgs(jvmArgs)

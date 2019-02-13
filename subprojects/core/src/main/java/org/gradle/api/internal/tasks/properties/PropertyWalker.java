@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.reflect.ParameterValidationContext;
+
 /**
  * Walks properties declared by the type.
  */
 public interface PropertyWalker {
-    void visitProperties(PropertyVisitor visitor, Object instance);
+    void visitProperties(Object instance, ParameterValidationContext validationContext, PropertyVisitor visitor);
 }

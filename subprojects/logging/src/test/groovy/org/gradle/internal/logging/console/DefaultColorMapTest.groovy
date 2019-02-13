@@ -57,7 +57,7 @@ class DefaultColorMapTest extends Specification {
         this.map = new DefaultColorMap()
         Ansi ansi = Mock()
 
-        when: 'A color is requested for SuccessHeder which is overridden'
+        when: 'A color is requested for SuccessHeader which is overridden'
         def color = map.getColourFor(Style.SuccessHeader)
         color.on(ansi)
 

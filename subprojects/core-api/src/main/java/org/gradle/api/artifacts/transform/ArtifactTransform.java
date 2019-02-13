@@ -25,16 +25,8 @@ import java.util.List;
  * <p>Implementations must provide a public constructor. The constructor may optionally accept parameters, in which case it must be annotated with {@link javax.inject.Inject}. The following parameters are available:</p>
  *
  * <ul>
- * <li>{@link ArtifactTransformDependencies} parameter to receive the dependencies of the file to be transformed.</li>
- * <li>The object provided by {@link ArtifactTransformSpec#getConfiguration()}.</li>
  * <li>The objects provided to {@link org.gradle.api.ActionConfiguration#setParams(Object...)}.</li>
  * </ul>
- *
- * <p>A property annotated with {@link javax.inject.Inject} and whose type is {@link ArtifactTransformDependencies} will receive the dependencies of the file to be transformed.
- *
- * <p>A property annotated with {@link PrimaryInput} will receive the <em>primary input</em> location, which is the file or directory that the transform should be applied to.
- *
- * <p>A property annotated with {@link Workspace} will receive the <em>workspace</em> location, which is the directory that the transform should write its output files to.
  *
  * @since 3.4
  */

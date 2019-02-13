@@ -29,21 +29,14 @@ final class KotlinDslVersion {
         URL resource = loader.getResource("gradle-kotlin-dsl-versions.properties");
         checkNotNull(resource, "Gradle Kotlin DSL versions manifest was not found");
         Properties versions = GUtil.loadProperties(resource);
-        return new KotlinDslVersion(versions.getProperty("provider"), versions.getProperty("kotlin"));
+        return new KotlinDslVersion(versions.getProperty("kotlin"));
     }
 
-    private final String provider;
     private final String kotlin;
 
-    private KotlinDslVersion(String provider, String kotlin) {
-        checkNotNull(provider, "Kotlin DSL Provider version was not found");
+    private KotlinDslVersion(String kotlin) {
         checkNotNull(kotlin, "Kotlin version was not found");
-        this.provider = provider;
         this.kotlin = kotlin;
-    }
-
-    String getProviderVersion() {
-        return provider;
     }
 
     String getKotlinVersion() {

@@ -27,9 +27,8 @@ import javax.tools.JavaCompiler
 
 class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     Factory<? extends File> currentJvmJavaHomeFactory = Mock()
-    Factory<? extends File> systemPropertiesJavaHomeFactory = Mock()
     Factory<? extends JavaCompiler> systemJavaCompilerFactory = Mock()
-    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory(currentJvmJavaHomeFactory, systemPropertiesJavaHomeFactory, systemJavaCompilerFactory)
+    JavaHomeBasedJavaCompilerFactory factory = new JavaHomeBasedJavaCompilerFactory(currentJvmJavaHomeFactory, systemJavaCompilerFactory)
     JavaCompiler javaCompiler = Mock()
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
@@ -41,7 +40,6 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
 
         then:
         1 * currentJvmJavaHomeFactory.create() >> javaHome
-        1 * systemPropertiesJavaHomeFactory.create() >> javaHome
         1 * systemJavaCompilerFactory.create() >> javaCompiler
         javaCompiler == expectedJavaCompiler
     }
@@ -54,7 +52,6 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
 
         then:
         1 * currentJvmJavaHomeFactory.create() >> javaHome
-        1 * systemPropertiesJavaHomeFactory.create() >> javaHome
         1 * systemJavaCompilerFactory.create() >> null
         Throwable t = thrown(RuntimeException)
         t.message == 'Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.'
@@ -70,7 +67,6 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
 
         then:
         1 * currentJvmJavaHomeFactory.create() >> realJavaHome
-        1 * systemPropertiesJavaHomeFactory.create() >> javaHomeFromToolProvidersPointOfView
         1 * systemJavaCompilerFactory.create() >> {
             assert SystemProperties.instance.javaHomeDir == realJavaHome
             javaCompiler

@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformDependencies;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * The actual code which needs to be executed to transform a file.
  *
  * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
  */
-public interface Transformer extends Describable {
-    Class<? extends ArtifactTransform> getImplementationClass();
+public interface Transformer extends Describable, TaskDependencyContainer {
+    Class<?> getImplementationClass();
 
     ImmutableAttributes getFromAttributes();
 
@@ -40,7 +40,7 @@ public interface Transformer extends Describable {
      */
     boolean requiresDependencies();
 
-    List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
+    ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -48,4 +48,6 @@ public interface Transformer extends Describable {
      * This includes the parameters and the implementation.
      */
     HashCode getSecondaryInputHash();
+
+    void isolateParameters();
 }

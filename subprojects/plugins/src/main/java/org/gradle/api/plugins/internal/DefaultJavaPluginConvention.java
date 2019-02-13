@@ -19,7 +19,6 @@ package org.gradle.api.plugins.internal;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
@@ -32,7 +31,6 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
 import java.io.File;
@@ -54,9 +52,9 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
-    public DefaultJavaPluginConvention(ProjectInternal project, Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
         this.project = project;
-        sourceSets = instantiator.newInstance(DefaultSourceSetContainer.class, project.getFileResolver(), project.getTasks(), instantiator, project.getServices().get(ObjectFactory.class), collectionCallbackActionDecorator);
+        sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;

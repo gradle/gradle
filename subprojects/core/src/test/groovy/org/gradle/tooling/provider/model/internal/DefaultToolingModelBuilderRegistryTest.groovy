@@ -28,34 +28,34 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
     final def projectStateRegistry = Stub(ProjectStateRegistry) {
         withLenientState(_) >> { args -> args[0].create() }
     }
-    final def registy = new DefaultToolingModelBuilderRegistry(new TestBuildOperationExecutor(), projectStateRegistry)
+    final def registry = new DefaultToolingModelBuilderRegistry(new TestBuildOperationExecutor(), projectStateRegistry)
 
     def "finds model builder for requested model"() {
         def builder1 = Mock(ToolingModelBuilder)
         def builder2 = Mock(ToolingModelBuilder)
 
         given:
-        registy.register(builder1)
-        registy.register(builder2)
+        registry.register(builder1)
+        registry.register(builder2)
 
         and:
         builder1.canBuild("model") >> false
         builder2.canBuild("model") >> true
 
         expect:
-        def actualBuilder = registy.getBuilder("model")
+        def actualBuilder = registry.getBuilder("model")
         actualBuilder instanceof DefaultToolingModelBuilderRegistry.BuildOperationWrappingToolingModelBuilder
         actualBuilder.delegate == builder2
     }
 
     def "includes a simple implementation for the Void model"() {
         expect:
-        registy.getBuilder(Void.class.name).buildAll(Void.class.name, Mock(ProjectInternal)) == null
+        registry.getBuilder(Void.class.name).buildAll(Void.class.name, Mock(ProjectInternal)) == null
     }
 
     def "fails when no builder is available for requested model"() {
         when:
-        registy.getBuilder("model")
+        registry.getBuilder("model")
 
         then:
         UnknownModelException e = thrown()
@@ -67,15 +67,15 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         def builder2 = Mock(ToolingModelBuilder)
 
         given:
-        registy.register(builder1)
-        registy.register(builder2)
+        registry.register(builder1)
+        registry.register(builder2)
 
         and:
         builder1.canBuild("model") >> true
         builder2.canBuild("model") >> true
 
         when:
-        registy.getBuilder("model")
+        registry.getBuilder("model")
 
         then:
         UnsupportedOperationException e = thrown()
@@ -86,16 +86,16 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         def builder = Mock(ParameterizedToolingModelBuilder)
 
         given:
-        registy.register(builder)
+        registry.register(builder)
 
         and:
         builder.canBuild("model") >> true
 
         when:
-        registy.getBuilder("model")
+        registry.getBuilder("model")
 
         then:
-        def foundBuilder = registy.getBuilder("model")
+        def foundBuilder = registry.getBuilder("model")
         foundBuilder instanceof DefaultToolingModelBuilderRegistry.ParameterizedBuildOperationWrappingToolingModelBuilder
         foundBuilder.delegate == builder
         foundBuilder.delegate instanceof ParameterizedToolingModelBuilder

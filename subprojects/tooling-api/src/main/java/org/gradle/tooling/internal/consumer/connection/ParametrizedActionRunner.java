@@ -23,10 +23,10 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 
-class ParametrizedActionRunner extends CancellableActionRunner {
+class ParameterizedActionRunner extends CancellableActionRunner {
     private final InternalParameterAcceptingConnection executor;
 
-    ParametrizedActionRunner(InternalParameterAcceptingConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
+    ParameterizedActionRunner(InternalParameterAcceptingConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer, VersionDetails versionDetails) {
         super(null, exceptionTransformer, versionDetails);
         this.executor = executor;
     }

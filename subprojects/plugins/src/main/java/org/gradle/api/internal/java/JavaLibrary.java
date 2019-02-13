@@ -17,26 +17,19 @@
 package org.gradle.api.internal.java;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.ComponentWithFeatures;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.internal.java.usagecontext.FeatureConfigurationUsageContext;
+import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 import org.gradle.api.internal.java.usagecontext.LazyConfigurationUsageContext;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,8 +39,11 @@ import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_N
 
 /**
  * A SoftwareComponent representing a library that runs on a java virtual machine.
+ *
+ *  @deprecated Replaced by the {@link org.gradle.api.component.AdhocComponentWithVariants public software component API}
  */
-public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInternal {
+@Deprecated
+public class JavaLibrary implements SoftwareComponentInternal {
 
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final UsageContext runtimeUsage;
@@ -55,7 +51,7 @@ public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInte
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
-    private List<OptionalFeatureMapping> optionalFeatures;
+    private List<ConfigurationVariantMapping> featureVariants;
 
     @Inject
     public JavaLibrary(ObjectFactory objectFactory, ConfigurationContainer configurations, ImmutableAttributesFactory attributesFactory, PublishArtifact artifact) {
@@ -79,15 +75,15 @@ public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInte
     }
 
     public Set<UsageContext> getUsages() {
-        if (optionalFeatures == null) {
+        if (featureVariants == null) {
             return ImmutableSet.of(runtimeUsage, compileUsage);
         }
-        ImmutableSet.Builder<UsageContext> builder = ImmutableSet.builderWithExpectedSize(2 + optionalFeatures.size());
+        ImmutableSet.Builder<UsageContext> builder = ImmutableSet.builderWithExpectedSize(2 + featureVariants.size());
         builder.add(runtimeUsage);
         builder.add(compileUsage);
-        for (OptionalFeatureMapping mapping : optionalFeatures) {
+        for (ConfigurationVariantMapping mapping : featureVariants) {
             mapping.validate();
-            builder.add(mapping.toUsageContext());
+            mapping.collectUsageContexts(builder);
         }
         return builder.build();
     }
@@ -102,50 +98,4 @@ public class JavaLibrary implements ComponentWithFeatures, SoftwareComponentInte
         return new LazyConfigurationUsageContext("api", API_ELEMENTS_CONFIGURATION_NAME, artifacts, configurations, attributes);
     }
 
-    @Override
-    public void addFeatureVariantFromConfiguration(String name, Configuration outgoingConfiguration) {
-        if (optionalFeatures == null) {
-            optionalFeatures = Lists.newArrayListWithExpectedSize(2);
-        }
-        assertNoDuplicateVariant(name);
-        optionalFeatures.add(new OptionalFeatureMapping(name, outgoingConfiguration));
-    }
-
-    private void assertNoDuplicateVariant(String name) {
-        if ("runtime".equals(name) || "api".equals(name) ||
-                Lists.transform(optionalFeatures, OptionalFeatureMapping.VARIANT_NAME).contains(name)) {
-            throw new InvalidUserDataException("Cannot add feature variant '" + name + "' as a variant with the same name is already registered");
-        }
-    }
-
-    private static class OptionalFeatureMapping {
-        private static final Function<OptionalFeatureMapping, String> VARIANT_NAME = new Function<OptionalFeatureMapping, String>() {
-            @Override
-            public String apply(OptionalFeatureMapping input) {
-                return input.variantName;
-            }
-        };
-
-        private final String variantName;
-        private final Configuration outgoingConfiguration;
-
-        private OptionalFeatureMapping(String variantName, Configuration outgoingConfiguration) {
-            this.variantName = variantName;
-            this.outgoingConfiguration = outgoingConfiguration;
-        }
-
-        UsageContext toUsageContext() {
-            return new FeatureConfigurationUsageContext(
-                    variantName,
-                    outgoingConfiguration
-            );
-        }
-
-        public void validate() {
-            Collection<? extends Capability> capabilities = outgoingConfiguration.getOutgoing().getCapabilities();
-            if (capabilities.isEmpty()) {
-                throw new InvalidUserDataException("Cannot publish feature variant " + variantName + " because configuration " + outgoingConfiguration.getName() + " doesn't declare any capability");
-            }
-        }
-    }
 }

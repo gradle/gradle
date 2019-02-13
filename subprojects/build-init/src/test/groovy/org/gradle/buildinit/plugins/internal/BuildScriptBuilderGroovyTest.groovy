@@ -30,7 +30,7 @@ class BuildScriptBuilderGroovyTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    def fileResolver = new BaseDirFileResolver(TestFiles.fileSystem(), tmpDir.testDirectory, TestFiles.patternSetFactory)
+    def fileResolver = new BaseDirFileResolver(tmpDir.testDirectory, TestFiles.patternSetFactory)
     def builder = new BuildScriptBuilder(GROOVY, fileResolver, "build")
 
     def outputFile = tmpDir.file("build.gradle")

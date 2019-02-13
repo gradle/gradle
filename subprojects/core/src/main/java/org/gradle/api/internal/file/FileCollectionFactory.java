@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 public interface FileCollectionFactory {
     /**
@@ -29,29 +31,76 @@ public interface FileCollectionFactory {
      *
      * The collection is live, so that the contents are queried as required on query of the collection.
      */
-    FileCollection create(MinimalFileSet contents);
+    FileCollectionInternal create(MinimalFileSet contents);
 
     /**
      * Creates a {@link FileCollection} with the given contents, and built by the given tasks.
      *
      * The collection is live, so that the contents are queried as required on query of the collection.
      */
-    FileCollection create(TaskDependency builtBy, MinimalFileSet contents);
+    FileCollectionInternal create(TaskDependency builtBy, MinimalFileSet contents);
 
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollection empty(String displayName);
+    FileCollectionInternal empty(String displayName);
+
+    /**
+     * Creates an empty {@link FileCollection}
+     */
+    FileCollectionInternal empty();
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      */
-    FileCollection fixed(String displayName, File... files);
+    FileCollectionInternal fixed(File... files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     */
+    FileCollectionInternal fixed(Collection<File> files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     */
+    FileCollectionInternal fixed(String displayName, File... files);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * The collection is not live. The provided {@link Iterable} is queried on construction and discarded.
      */
+    // TODO - should return FileCollectionInternal, but Kotlin-dsl uses this method and the compiled bytecode expects FileCollection
     FileCollection fixed(String displayName, Collection<File> files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * The collection is live and resolves the files on each query.
+     */
+    FileCollectionInternal resolving(String displayName, List<?> files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * The collection is live and resolves the files on each query.
+     */
+    FileCollectionInternal resolving(String displayName, Object... files);
+
+    /**
+     * Creates a {@link FileCollection} with the given files as content.
+     *
+     * The collection is live and resolves the files on each query.
+     */
+    FileCollectionInternal resolving(Object... files);
+
+    /**
+     * Creates an empty {@link ConfigurableFileCollection} instance.
+     */
+    ConfigurableFileCollection configurableFiles(String displayName);
+
+    /**
+     * Creates an empty {@link ConfigurableFileCollection} instance.
+     */
+    ConfigurableFileCollection configurableFiles();
 }
