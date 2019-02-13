@@ -23,12 +23,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
      * Caller should add elements to the 'inputFiles' property to make them inputs to the transform
      */
     def setupBuildWithTransformFileInputs() {
-        buildFile << """
-            def makeGreenParameters(project, params) { 
-                params.someFiles.from { project.inputFiles }
-            }
-        """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                someFiles.from { project.inputFiles }
+            """)
+        }
         buildFile << """
             @TransformAction(MakeGreenAction)
             interface MakeGreen {
@@ -120,10 +119,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
-                task tool(type: Producer) {
-                    outputFile = file("build/tool-\${project.name}.jar")
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.outputFile)                
+                ext.inputFiles = files(tool.output)                
             }
 
             project(':a') {

@@ -20,7 +20,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
-    def "reruns transform when project artifact content or name or path changes"() {
+    def "re-runs transform when project artifact file content or name or path changes"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers()
         buildFile << """
@@ -126,7 +126,130 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "reruns transform when input artifact changes from file to missing"() {
+    def "re-runs transform when project artifact directory content or name or path changes"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithConfigurableProducers {
+            produceDirs()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            abstract class MakeGreen implements ArtifactTransformAction {
+                @PrimaryInput
+                abstract File getInput()
+                
+                void transform(ArtifactTransformOutputs outputs) {
+                    if (input.exists()) {
+                        println "processing \${input.name}"
+                    } else {
+                        println "processing missing \${input.name}"
+                    }
+                    def output = outputs.file(input.name + ".green")
+                    output.text = "green"
+                }
+            }
+        """
+
+        when:
+        succeeds(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b-dir")
+        outputContains("processing c-dir")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        succeeds(":a:resolve")
+
+        then: // no change, should be up-to-date
+        result.assertTasksSkipped(":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new")
+        succeeds(":a:resolve")
+
+        then: // directory content has changed (file renamed)
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b-dir")
+        outputContains("processing c-dir")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new")
+        succeeds(":a:resolve")
+
+        then: // no change, should be up-to-date
+        result.assertTasksSkipped(":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new")
+        succeeds(":a:resolve")
+
+        then: // directory content has changed (file contents changed)
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b-dir")
+        outputContains("processing c-dir")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new")
+        succeeds(":a:resolve")
+
+        then: // no change, should be up-to-date
+        result.assertTasksSkipped(":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue")
+        succeeds(":a:resolve")
+
+        then: // directory name has changed
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b-blue")
+        outputContains("processing c-blue")
+        outputContains("result = [b-blue.green, c-blue.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue")
+        succeeds(":a:resolve")
+
+        then: // no change, should be up-to-date
+        result.assertTasksSkipped(":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        outputContains("result = [b-blue.green, c-blue.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue", "-PproducerOutputDir=out")
+        succeeds(":a:resolve")
+
+        then: // directory path has changed
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b-blue")
+        outputContains("processing c-blue")
+        outputContains("result = [b-blue.green, c-blue.green]")
+
+        when:
+        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue", "-PproducerOutputDir=out")
+        succeeds(":a:resolve")
+
+        then: // no change, should be up-to-date
+        result.assertTasksSkipped(":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        outputContains("result = [b-blue.green, c-blue.green]")
+    }
+
+    def "re-runs transform when input artifact file changes from file to missing"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers()
         buildFile << """
@@ -436,13 +559,13 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
 
     def "can attach @PathSensitive(NAME_ONLY) to input artifact property for external artifact"() {
         setupBuildWithConfigurableProducers()
-        def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
         lib1.artifactFile.text = "lib"
-        def lib2 = mavenRepo.module("group2", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        def lib2 = withColorVariants(mavenRepo.module("group2", "lib", "1.0")).publish()
         lib2.artifactFile.text = "lib"
-        def lib3 = mavenRepo.module("group2", "lib", "1.1").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        def lib3 = withColorVariants(mavenRepo.module("group2", "lib", "1.1")).publish()
         lib3.artifactFile.text = "lib"
-        def lib4 = mavenRepo.module("group2", "lib2", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
+        def lib4 = withColorVariants(mavenRepo.module("group2", "lib2", "1.0")).publish()
         lib4.artifactFile.text = "lib2"
 
         buildFile << """
@@ -517,14 +640,21 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
      * Caller should provide an implementation of `MakeGreen` transform action
      */
     void setupBuildWithConfigurableProducers() {
-        setupBuildWithColorTransformAction()
+        setupBuildWithConfigurableProducers {}
+    }
+
+    /**
+     * Caller should provide an implementation of `MakeGreen` transform action
+     */
+    void setupBuildWithConfigurableProducers(@DelegatesTo(Builder) Closure cl) {
+        setupBuildWithColorTransformAction(cl)
         buildFile << """
             allprojects {
                 afterEvaluate {
                     if (project.hasProperty('producerOutputDir')) {
                         buildDir = project.file(producerOutputDir)
                     }
-                    tasks.withType(Producer) {
+                    tasks.withType(FileProducer) {
                         if (project.hasProperty('produceNothing')) {
                             content = ""
                         } else if (project.hasProperty('producerContent')) {
@@ -533,9 +663,28 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
                             content = project.name
                         }
                         if (project.hasProperty('producerFileName')) {
-                            outputFile = layout.buildDir.file("\${project.name}-\${producerFileName}.jar")
+                            output = layout.buildDir.file("\${project.name}-\${producerFileName}.jar")
                         } else {
-                            outputFile = layout.buildDir.file("\${project.name}.jar")
+                            output = layout.buildDir.file("\${project.name}.jar")
+                        }
+                    }
+                    tasks.withType(DirProducer) {
+                        if (project.hasProperty('produceNothing')) {
+                            content = ""
+                        } else if (project.hasProperty('producerContent')) {
+                            content = project.name + '-' + project.producerContent
+                        } else {
+                            content = project.name
+                        }
+                        if (project.hasProperty('producerName')) {
+                            names = [project.producerName]
+                        } else {
+                            names = [project.name]
+                        }
+                        if (project.hasProperty('producerFileName')) {
+                            output = layout.buildDir.dir("\${project.name}-\${producerFileName}")
+                        } else {
+                            output = layout.buildDir.dir("\${project.name}-dir")
                         }
                     }
                 }
