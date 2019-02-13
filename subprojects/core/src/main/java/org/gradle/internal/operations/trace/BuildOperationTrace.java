@@ -252,7 +252,8 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     public static BuildOperationTree read(String basePath) {
-        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
+        File logFile = logFile(basePath);
+        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile);
         return new BuildOperationTree(roots);
     }
 
@@ -267,6 +268,7 @@ public class BuildOperationTrace implements Stoppable {
             Files.asCharSource(logFile, Charsets.UTF_8).readLines(new LineProcessor<Void>() {
                 @Override
                 public boolean processLine(@SuppressWarnings("NullableProblems") String line) {
+                    System.out.println("line = " + line);
                     Map<String, ?> map = uncheckedCast(slurper.parseText(line));
                     if (map.containsKey("startTime")) {
                         SerializedOperationStart serialized = new SerializedOperationStart(map);

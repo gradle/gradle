@@ -149,8 +149,25 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             it.hasDetailsOfType(ExecuteTaskBuildOperationType.Details) && it.details.taskPath == ":resolve"
         }
 
+        println "#### roots ="
+        operations.operations.roots.each{
+            println it
+        }
+
+
+        println "#### roots ="
+        operations.operations.each {}.each{
+            println it
+        }
+
         def runBuildProgress = operations.only('Run build').progress
-        def threadedProgress = runBuildProgress.find {it.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}" }
+        operations.operations.records.values().each {
+            println "it.displayName = $it.displayName"
+            it.progress.each {
+                println "it.details. = $it.details"
+            }
+        }
+        def threadedProgress = runBuildProgress.find { it.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}" }
         threadedProgress.details.category == 'system.out'
         threadedProgress.details.spans.size == 1
         threadedProgress.details.spans[0].styleName == 'Normal'
