@@ -41,12 +41,13 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
-import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
@@ -68,6 +69,7 @@ import java.util.stream.Collectors;
 public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
 
     private final Object parameterObject;
+    private final FingerprintingStrategy fingerprintingStrategy;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
@@ -80,9 +82,10 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, FingerprintingStrategy fingerprintingStrategy, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
+        this.fingerprintingStrategy = fingerprintingStrategy;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
@@ -103,6 +106,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
                 isolateExclusively();
             }
         };
+    }
+
+    @Override
+    public FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+        return fingerprintingStrategy;
     }
 
     public boolean requiresDependencies() {

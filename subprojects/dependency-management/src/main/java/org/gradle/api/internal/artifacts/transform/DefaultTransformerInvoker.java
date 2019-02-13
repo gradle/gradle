@@ -47,7 +47,6 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
@@ -114,11 +113,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
         FileSystemLocationSnapshot primaryInputSnapshot = fileSystemSnapshotter.snapshot(primaryInput);
-        TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, transformer, dependenciesFingerprint);
+        String normalizedInputPath = transformer.getPrimaryInputFingerprintingStrategy().normalizePath(primaryInputSnapshot);
+        TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, primaryInputSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
-                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), AbsolutePathFingerprintingStrategy.INCLUDE_MISSING);
                 ImplementationSnapshot implementationSnapshot = ImplementationSnapshot.of(transformer.getImplementationClass(), classLoaderHierarchyHasher);
+                CurrentFileCollectionFingerprint primaryInputFingerprint = DefaultCurrentFileCollectionFingerprint.from(ImmutableList.of(primaryInputSnapshot), transformer.getPrimaryInputFingerprintingStrategy());
                 TransformerExecution execution = new TransformerExecution(
                     transformer,
                     implementationSnapshot,
@@ -138,15 +138,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         });
     }
 
-    private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot primaryInputSnapshot, String primaryInputPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
-            ? getImmutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint)
+            ? getImmutableTransformationIdentity(primaryInputPath, primaryInputSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(primaryInputSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private TransformationWorkspaceIdentity getImmutableTransformationIdentity(String primaryInputPath, FileSystemLocationSnapshot primaryInputSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new ImmutableTransformationWorkspaceIdentity(
-            primaryInputSnapshot.getAbsolutePath(),
+            primaryInputPath,
             primaryInputSnapshot.getHash(),
             transformer.getSecondaryInputHash(),
             dependenciesFingerprint.getHash()
@@ -448,14 +448,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    public static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
-        private final String primaryInputAbsolutePath;
+    private static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
+        private final String primaryInputPath;
         private final HashCode primaryInputHash;
         private final HashCode secondaryInputHash;
         private final HashCode dependenciesHash;
 
-        public ImmutableTransformationWorkspaceIdentity(String primaryInputAbsolutePath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
-            this.primaryInputAbsolutePath = primaryInputAbsolutePath;
+        public ImmutableTransformationWorkspaceIdentity(String primaryInputPath, HashCode primaryInputHash, HashCode secondaryInputHash, HashCode dependenciesHash) {
+            this.primaryInputPath = primaryInputPath;
             this.primaryInputHash = primaryInputHash;
             this.secondaryInputHash = secondaryInputHash;
             this.dependenciesHash = dependenciesHash;
@@ -464,9 +464,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public String getIdentity() {
             Hasher hasher = Hashing.newHasher();
-            hasher.putHash(secondaryInputHash);
-            hasher.putString(primaryInputAbsolutePath);
+            hasher.putString(primaryInputPath);
             hasher.putHash(primaryInputHash);
+            hasher.putHash(secondaryInputHash);
             hasher.putHash(dependenciesHash);
             return hasher.hash().toString();
         }
@@ -485,13 +485,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (!primaryInputHash.equals(that.primaryInputHash)) {
                 return false;
             }
+            if (!primaryInputPath.equals(that.primaryInputPath)) {
+                return false;
+            }
             if (!secondaryInputHash.equals(that.secondaryInputHash)) {
                 return false;
             }
-            if (!dependenciesHash.equals(that.dependenciesHash)) {
-                return false;
-            }
-            return primaryInputAbsolutePath.equals(that.primaryInputAbsolutePath);
+            return dependenciesHash.equals(that.dependenciesHash);
         }
 
         @Override

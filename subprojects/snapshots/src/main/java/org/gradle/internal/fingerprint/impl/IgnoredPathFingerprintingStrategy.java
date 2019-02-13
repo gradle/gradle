@@ -40,6 +40,11 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     }
 
     @Override
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+        return "";
+    }
+
+    @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();

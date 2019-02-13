@@ -41,4 +41,6 @@ public interface FingerprintingStrategy {
     String getIdentifier();
 
     CurrentFileCollectionFingerprint getEmptyFingerprint();
+
+    String normalizePath(FileSystemLocationSnapshot snapshot);
 }

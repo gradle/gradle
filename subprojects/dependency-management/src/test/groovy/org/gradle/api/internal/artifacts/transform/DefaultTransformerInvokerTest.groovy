@@ -31,7 +31,9 @@ import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
@@ -132,6 +134,11 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         @Override
         HashCode getSecondaryInputHash() {
             return secondaryInputsHash
+        }
+
+        @Override
+        FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+            return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING
         }
 
         @Override
