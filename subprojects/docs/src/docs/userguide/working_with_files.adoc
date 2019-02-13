@@ -173,7 +173,9 @@ include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=u
 include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-example]"]
 ====
 
-As with a normal copy, you can control which files are unpacked via filters and even rename files as they are unpacked. Sometimes you'll only need to unpack a subset of the archive. In that case, you can use api:org.gradle.api.tasks.AbstractCopyTask#eachFile(org.gradle.api.Action)[] to apply an action to each file as it is about to be copied into its destination. You can change the relative path of the files to the another root, like so:
+As with a normal copy, you can control which files are unpacked via <<#sec:filtering_files,filters>> and even <<#sec:renaming_files,rename files>> as they are unpacked.
+
+More advanced processing can be handled by the link:{groovyDslPath}/org.gradle.api.tasks.AbstractCopyTask#eachFile(org.gradle.api.Action)[eachFile()] method. For example, you might need to extract different subtrees of the archive into different paths within the destination directory. The following sample uses the method to extract the files within the archive's `libs` directory into the root destination directory, rather than into `$destDir/libs`:
 
 .Unpacking a subset of a ZIP file
 ====
