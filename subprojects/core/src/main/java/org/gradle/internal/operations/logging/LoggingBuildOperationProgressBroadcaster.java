@@ -26,10 +26,9 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
-
-import static org.gradle.internal.operations.DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE;
 
 /**
  * Emits build operation progress for events that represent logging.
@@ -60,15 +59,14 @@ import static org.gradle.internal.operations.DefaultBuildOperationIdFactory.ROOT
  */
 public class LoggingBuildOperationProgressBroadcaster implements Stoppable, OutputEventListener {
 
-    private final static OperationIdentifier ROOT_BUILD_OPERATION_ID = new OperationIdentifier(ROOT_BUILD_OPERATION_ID_VALUE);
-
     private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationListener buildOperationListener;
+
+    private OperationIdentifier rootBuildOperation;
 
     public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationListener buildOperationListener) {
         this.outputEventListenerManager = outputEventListenerManager;
         this.buildOperationListener = buildOperationListener;
-
         outputEventListenerManager.setListener(this);
     }
 
@@ -78,7 +76,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
             OperationIdentifier operationIdentifier = renderableOutputEvent.getBuildOperationId();
             if (operationIdentifier == null) {
-                operationIdentifier = ROOT_BUILD_OPERATION_ID;
+                operationIdentifier = rootBuildOperation;
             }
             if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
                 emit(renderableOutputEvent, operationIdentifier);
@@ -90,7 +88,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
             }
             OperationIdentifier operationIdentifier = progressStartEvent.getBuildOperationId();
             if (operationIdentifier == null) {
-                operationIdentifier = ROOT_BUILD_OPERATION_ID;
+                operationIdentifier = rootBuildOperation;
             }
             emit(progressStartEvent, operationIdentifier);
         }
@@ -106,5 +104,9 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     @Override
     public void stop() {
         outputEventListenerManager.removeListener(this);
+    }
+
+    public void rootBuildOperationStarted() {
+        rootBuildOperation = CurrentBuildOperationRef.instance().getId();
     }
 }
