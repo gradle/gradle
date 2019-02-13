@@ -36,7 +36,14 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
     @Shared
     def operationId = Mock(OperationIdentifier)
 
+    @Shared
+    def fallbackOperationId = Mock(OperationIdentifier)
+
     LoggingBuildOperationProgressBroadcaster bridge = new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationListener)
+
+    def setup() {
+        bridge.rootBuildOperation = fallbackOperationId
+    }
 
     @Unroll
     def "forwards #eventType with operationId"() {
@@ -55,7 +62,7 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
         then:
         1 * buildOperationListener.progress(_, _) >> {
-            assert it[0] != null
+            assert it[0] == fallbackOperationId
             assert it[1].details == eventWithFallbackBuildOperationId
         }
 

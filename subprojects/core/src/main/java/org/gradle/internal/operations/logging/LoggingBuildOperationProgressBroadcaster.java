@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.logging;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
@@ -62,7 +63,8 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationListener buildOperationListener;
 
-    private OperationIdentifier rootBuildOperation;
+    @VisibleForTesting
+    OperationIdentifier rootBuildOperation;
 
     public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationListener buildOperationListener) {
         this.outputEventListenerManager = outputEventListenerManager;
