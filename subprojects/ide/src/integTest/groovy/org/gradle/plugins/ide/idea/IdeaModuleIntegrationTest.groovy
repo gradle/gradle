@@ -157,6 +157,8 @@ sourceSets {
         def source = iml.component.content.sourceFolder.find { it.@url.text().contains('src/main/java') }
         def testSource = iml.component.content.sourceFolder.find { it.@url.text().contains('src/test/java') }
 
+        assert source
+        assert testSource
         assert source.@type.text() != 'java-resource'
         assert testSource.@type.text() != 'java-test-resource'
     }
