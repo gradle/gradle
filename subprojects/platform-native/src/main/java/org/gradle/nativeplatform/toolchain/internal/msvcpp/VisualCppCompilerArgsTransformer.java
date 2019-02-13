@@ -73,7 +73,7 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
 
     /**
      * Returns compiler specific language option
-     * @return compiler language option or empty string if the language does not require it
+     * @return compiler language option or null if the language does not require it
      */
     protected String getLanguageOption() {
         return null;
