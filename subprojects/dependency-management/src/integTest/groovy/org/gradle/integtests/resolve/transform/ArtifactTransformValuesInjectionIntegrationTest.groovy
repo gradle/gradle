@@ -98,12 +98,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -149,12 +149,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -199,12 +199,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -248,12 +248,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -303,12 +303,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -443,12 +443,12 @@ abstract class MakeGreen extends ArtifactTransform {
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
         buildFile << """
-            def makeGreenParameters(project, params) {
-                params.extension = 'green'
-            }
-            
             project(':a') {
                 dependencies {
                     implementation project(':b')
