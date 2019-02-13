@@ -329,10 +329,8 @@ org:leaf:1.0
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflicts between the following modules:
-   - org:leaf2:1.5
-   - org:leaf2:2.5
-   - org:leaf2:1.0
+        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+   - org:leaf2 between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
    variant "runtime" [
@@ -404,10 +402,8 @@ org:leaf2:1.5 -> 2.5
         run "dependencyInsight", "--dependency", "leaf2", "--configuration", "conf"
 
         then:
-        outputContains """Dependency resolution failed because of conflicts between the following modules:
-   - org:leaf2:1.5
-   - org:leaf2:2.5
-   - org:leaf2:1.0
+        outputContains """Dependency resolution failed because of conflict(s) on the following module(s):
+   - org:leaf2 between versions 1.5, 2.5 and 1.0
 
 org:leaf2:2.5
    variant "runtime" [

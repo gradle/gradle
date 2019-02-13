@@ -70,7 +70,7 @@ project(':tool') {
 
         expect:
         runAndFail("tool:dependencies")
-        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
+        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
     void "strict conflict resolution should pass when no conflicts"() {
@@ -1104,7 +1104,7 @@ task checkDeps(dependsOn: configurations.compile) {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
+        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
     def "upgrades version when one of the ranges is disjoint"() {
@@ -1175,7 +1175,7 @@ task checkDeps(dependsOn: configurations.compile) {
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString('A conflict was found between the following modules:'))
+        failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
     def "chooses highest version of all versions fully included within range"() {
