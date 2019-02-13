@@ -150,14 +150,11 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
 
         def runBuildProgress = operations.only('Run build').progress
-        runBuildProgress.size() > 0
-        runBuildProgress[0].details.logLevel == 'QUIET'
-        runBuildProgress[0].details.category == 'system.out'
-        runBuildProgress[0].details.spans.size == 1
-        runBuildProgress[0].details.spans[0].styleName == 'Normal'
-        runBuildProgress[0].details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}"
-
-
+        def threadedProgress = runBuildProgress.find {it.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}" }
+        threadedProgress.details.category == 'system.out'
+        threadedProgress.details.spans.size == 1
+        threadedProgress.details.spans[0].styleName == 'Normal'
+        threadedProgress.details.spans[0].text == "from classes task external thread${getPlatformLineSeparator()}"
     }
 
     def "captures output from buildSrc"() {
