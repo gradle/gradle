@@ -117,10 +117,9 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     @Override
     public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransformAction transformAction = newTransformAction(primaryInput, dependencies);
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(outputDir);
+        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(primaryInput, outputDir);
         transformAction.transform(transformOutputs);
-        ImmutableList<File> outputs = transformOutputs.getRegisteredOutputs();
-        return validateOutputs(primaryInput, outputDir, outputs);
+        return transformOutputs.getRegisteredOutputs();
     }
 
     @Override

@@ -106,7 +106,7 @@ class Resolve extends Copy {
                 }
                 
                 void transform(ArtifactTransformOutputs outputs) {
-                    def output = outputs.registerOutput(input.name + ".txt")
+                    def output = outputs.file(input.name + ".txt")
                     def counter = parameters.counter
                     println "Transforming \${input.name} to \${output.name}"
                     output.withWriter { out ->

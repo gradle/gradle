@@ -49,6 +49,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
@@ -85,6 +86,7 @@ public abstract class DefaultScript extends BasicScript {
         } else {
             Instantiator instantiator = services.get(Instantiator.class);
             FileLookup fileLookup = services.get(FileLookup.class);
+            FileSystem fileSystem = services.get(FileSystem.class);
             DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
             StreamHasher streamHasher = services.get(StreamHasher.class);
             FileHasher fileHasher = services.get(FileHasher.class);
@@ -93,9 +95,9 @@ public abstract class DefaultScript extends BasicScript {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
                 FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
-                fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(resolver, null));
+                fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(resolver, null), fileSystem);
             } else {
-                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory);
+                fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem);
             }
             processOperations = services.get(ExecFactory.class);
         }

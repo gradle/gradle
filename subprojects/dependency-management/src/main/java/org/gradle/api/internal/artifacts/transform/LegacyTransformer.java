@@ -51,14 +51,24 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+    public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(primaryInput);
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }
-        return validateOutputs(primaryInput, outputDir, ImmutableList.copyOf(outputs));
+        validateOutputs(primaryInput, outputDir, outputs);
+        return ImmutableList.copyOf(outputs);
+    }
+
+    private static void validateOutputs(File primaryInput, File outputDir, List<File> outputs) {
+        String inputFilePrefix = primaryInput.getPath() + File.separator;
+        String outputDirPrefix = outputDir.getPath() + File.separator;
+        for (File output : outputs) {
+            ArtifactTransformOutputsInternal.validateOutputExists(output);
+            ArtifactTransformOutputsInternal.determineOutputLocationType(output, primaryInput, inputFilePrefix, outputDir, outputDirPrefix);
+        }
     }
 
     @Override

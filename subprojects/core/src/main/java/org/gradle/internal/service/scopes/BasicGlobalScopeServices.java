@@ -40,7 +40,6 @@ import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.process.internal.DefaultExecActionFactory;
@@ -95,8 +94,8 @@ public class BasicGlobalScopeServices {
         return lookup.getFileResolver();
     }
 
-    FileLookup createFileLookup(FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
-        return new DefaultFileLookup(fileSystem, patternSetFactory);
+    FileLookup createFileLookup(Factory<PatternSet> patternSetFactory) {
+        return new DefaultFileLookup(patternSetFactory);
     }
 
     FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver) {

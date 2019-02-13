@@ -83,7 +83,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
 
-    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
+    def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, TestFiles.fileSystem(), fileLookup,
         directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), providerFactory, textResourceLoader,
         streamHasher, fileHasher, execFactory, Stub(FileCollectionFactory), autoAppliedPluginHandler)
 

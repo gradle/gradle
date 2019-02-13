@@ -31,7 +31,7 @@ public class DefaultResourceHandler implements ResourceHandler {
 
     public DefaultResourceHandler(FileOperations fileOperations, ResourceResolver resourceResolver, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
         this.resourceResolver = resourceResolver;
-        textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceLoader);
+        this.textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceLoader);
     }
 
     public ReadableResourceInternal gzip(Object path) {

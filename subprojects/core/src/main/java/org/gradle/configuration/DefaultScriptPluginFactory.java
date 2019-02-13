@@ -48,6 +48,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -82,6 +83,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
+    private final FileSystem fileSystem;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -89,6 +91,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       Instantiator instantiator,
                                       ScriptHandlerFactory scriptHandlerFactory,
                                       PluginRequestApplicator pluginRequestApplicator,
+                                      FileSystem fileSystem,
                                       FileLookup fileLookup,
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
@@ -106,6 +109,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.instantiator = instantiator;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.pluginRequestApplicator = pluginRequestApplicator;
+        this.fileSystem = fileSystem;
         this.fileLookup = fileLookup;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
@@ -160,6 +164,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(Instantiator.class, instantiator);
             services.add(ScriptHandler.class, scriptHandler);
             services.add(FileLookup.class, fileLookup);
+            services.add(FileSystem.class, fileSystem);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);

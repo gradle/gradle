@@ -125,8 +125,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-            return transformationAction.apply(primaryInput, outputDir)
+        ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+            return ImmutableList.copyOf(transformationAction.apply(primaryInput, outputDir))
         }
 
         @Override

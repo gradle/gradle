@@ -45,7 +45,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource;
-import org.gradle.process.internal.ExecFactory;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -69,14 +68,8 @@ public class DefaultFileOperations implements FileOperations {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
 
-    @Deprecated //used by the Kotlin DSL
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, ExecFactory execFactory, @Nullable TextResourceLoader textResourceLoader) {
-        this(fileResolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(fileResolver, taskResolver));
-    }
-
-    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory) {
+    public DefaultFileOperations(FileResolver fileResolver, @Nullable TaskResolver taskResolver, @Nullable TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, @Nullable TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem) {
         this.fileCollectionFactory = fileCollectionFactory;
-        FileSystem fileSystem = fileLookup.getFileSystem();
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
@@ -85,7 +78,7 @@ public class DefaultFileOperations implements FileOperations {
         this.resourceHandler = new DefaultResourceHandler(this, new DefaultResourceResolver(fileResolver, fileSystem), temporaryFileProvider, textResourceLoader);
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup, directoryFileTreeFactory);
+        this.fileCopier = new FileCopier(this.instantiator, fileSystem, this.fileResolver, fileLookup, directoryFileTreeFactory);
         this.fileSystem = fileSystem;
         this.deleter = new Deleter(fileResolver, fileSystem);
     }

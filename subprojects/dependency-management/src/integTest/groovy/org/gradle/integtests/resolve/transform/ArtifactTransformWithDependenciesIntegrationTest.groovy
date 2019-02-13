@@ -160,7 +160,7 @@ abstract class TestTransformAction implements ArtifactTransformAction {
         println "\${parameters.transformName} received dependencies files \${primaryInputDependencies*.name} for processing \${input.name}"
         assert primaryInputDependencies.every { it.exists() }
 
-        def output = outputs.registerOutput(input.name + ".txt")
+        def output = outputs.file(input.name + ".txt")
         def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
         println "Transforming \${input.name} to \${output.name}"
@@ -174,7 +174,7 @@ abstract class SimpleTransform implements ArtifactTransformAction {
     abstract File getInput()
 
     void transform(ArtifactTransformOutputs outputs) {
-        def output = outputs.registerOutput(input.name + ".txt")
+        def output = outputs.file(input.name + ".txt")
         def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
         println "Transforming without dependencies \${input.name} to \${output.name}"
