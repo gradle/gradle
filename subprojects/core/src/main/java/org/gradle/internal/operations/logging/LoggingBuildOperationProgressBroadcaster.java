@@ -76,8 +76,12 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
             OperationIdentifier operationIdentifier = renderableOutputEvent.getBuildOperationId();
             if (operationIdentifier == null) {
+                if (rootBuildOperation == null) {
+                    return;
+                }
                 operationIdentifier = rootBuildOperation;
             }
+
             if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
                 emit(renderableOutputEvent, operationIdentifier);
             }
@@ -87,7 +91,7 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
                 return; // If the event has no logging header, it doesn't manifest as console output.
             }
             OperationIdentifier operationIdentifier = progressStartEvent.getBuildOperationId();
-            if (operationIdentifier == null) {
+            if (operationIdentifier == null && rootBuildOperation != null) {
                 operationIdentifier = rootBuildOperation;
             }
             emit(progressStartEvent, operationIdentifier);
