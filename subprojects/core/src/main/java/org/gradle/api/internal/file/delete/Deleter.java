@@ -42,7 +42,7 @@ public class Deleter {
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
-    private static final int MAX_REPORTED_PATHS = 32;
+    static final int MAX_REPORTED_PATHS = 16;
 
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
