@@ -243,7 +243,7 @@ class DeleterTest extends Specification {
         def ex = thrown UnableToDeleteFileException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              Child files failed to delete! Is something holding files in the target directory?
+              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
               - $nonDeletable
         """.stripIndent().trim()
     }
@@ -279,7 +279,7 @@ class DeleterTest extends Specification {
         def ex = thrown UnableToDeleteFileException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              New files were found after failure! Is something concurrently writing into the target directory?
+              ${Deleter.HELP_NEW_CHILDREN}
               - $newFile
         """.stripIndent().trim()
     }
@@ -314,9 +314,9 @@ class DeleterTest extends Specification {
         def ex = thrown UnableToDeleteFileException
         normaliseLineSeparators(ex.message) == """
             Unable to delete directory '$targetDir'
-              Child files failed to delete! Is something holding files in the target directory?
+              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
               - $nonDeletable
-              New files were found after failure! Is something concurrently writing into the target directory?
+              ${Deleter.HELP_NEW_CHILDREN}
               - $newFile
         """.stripIndent().trim()
     }
@@ -356,12 +356,12 @@ class DeleterTest extends Specification {
         def normalizedMessage = normaliseLineSeparators(ex.message)
         normalizedMessage.startsWith("""
             Unable to delete directory '$targetDir'
-              Child files failed to delete! Is something holding files in the target directory?
+              ${Deleter.HELP_FAILED_DELETE_CHILDREN}
               - $targetDir${File.separator}zzz-
         """.stripIndent().trim())
         normalizedMessage.contains("-zzz.txt\n  " + """
               - and more ...
-              New files were found after failure! Is something concurrently writing into the target directory?
+              ${Deleter.HELP_NEW_CHILDREN}
               - $targetDir${File.separator}aaa-
         """.stripIndent(12).trim())
         normalizedMessage.endsWith("-aaa.txt\n  - and more ...")

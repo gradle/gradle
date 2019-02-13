@@ -56,9 +56,9 @@ In this release, plugin authors can use the `ObjectFactory.fileCollection()` met
 
 ## Better help message on delete operation failure
 
-The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide with a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and, concurrent writes.
+The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
 
-The help message now displays each failed path, handy to identify which process might be holding files, and also new paths found in a directory after failure, handy to spot concurrent writes.
+The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -44,6 +44,9 @@ public class Deleter {
 
     private static final int MAX_REPORTED_PATHS = 32;
 
+    static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+    static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
+
     public Deleter(FileResolver fileResolver, FileSystem fileSystem) {
         this.fileResolver = fileResolver;
         this.fileSystem = fileSystem;
@@ -161,7 +164,7 @@ public class Deleter {
             String absolutePath = file.getAbsolutePath();
             failedPaths.remove(absolutePath);
             if (!failedPaths.isEmpty()) {
-                help.append("\n  Child files failed to delete! Is something holding files in the target directory?");
+                help.append("\n  ").append(HELP_FAILED_DELETE_CHILDREN);
                 for (String failed : failedPaths) {
                     help.append("\n  - ").append(failed);
                 }
@@ -172,7 +175,7 @@ public class Deleter {
 
             Collection<String> newPaths = listNewPaths(startTime, file);
             if (!newPaths.isEmpty()) {
-                help.append("\n  New files were found after failure! Is something concurrently writing into the target directory?");
+                help.append("\n  ").append(HELP_NEW_CHILDREN);
                 for (String newPath : newPaths) {
                     help.append("\n  - ").append(newPath);
                 }
