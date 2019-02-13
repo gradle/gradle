@@ -22,7 +22,7 @@ trait ArtifactTransformTestFixture {
     abstract TestFile getBuildFile()
 
     /**
-     * Each project produces 'blue' variants, and has a task that resolves the 'green' variant.
+     * Each project produces 'blue' variants, and has a `resolve` task that resolves the 'green' variant.
      * Caller will need to register transforms that produce 'green' from 'blue'
      */
     void setupBuildWithColorAttributes() {
@@ -37,7 +37,7 @@ allprojects {
         }
     }
     task producer(type: Producer) {
-        outputFile = file("build/\${project.name}.jar")
+        outputFile = layout.buildDir.file("\${project.name}.jar")
     }
     artifacts {
         implementation producer.outputFile
@@ -56,10 +56,17 @@ allprojects {
 class Producer extends DefaultTask {
     @OutputFile
     RegularFileProperty outputFile = project.objects.fileProperty()
+    @Input
+    String content = "content" // set to empty string to delete file
 
     @TaskAction
     def go() {
-        outputFile.get().asFile.text = "output"
+        def file = outputFile.get().asFile
+        if (content.empty) {
+            file.delete()
+        } else {
+            file.text = content
+        }
     }
 }
 
@@ -67,7 +74,7 @@ class Producer extends DefaultTask {
     }
 
     /**
-     * Each project produces 'blue' variants, and has a task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
+     * Each project produces 'blue' variants, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
      * Caller will need to provide an implementation of 'MakeGreen' transform action
      */
     void setupBuildWithColorTransformAction() {
@@ -85,7 +92,7 @@ allprojects {
     }
 
     /**
-     * Each project produces 'blue' variants, and has a task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
+     * Each project produces 'blue' variants, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
      * Caller will need to provide an implementation of 'MakeGreen' transform configuration and a `makeGreenParameters()` method to apply to the configuration object
      */
     void setupBuildWithColorTransform() {

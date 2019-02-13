@@ -93,6 +93,11 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
     }
 
     @Override
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+        return "";
+    }
+
+    @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         HashSet<String> processedEntries = new HashSet<String>();
@@ -174,7 +179,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
             delegate.postVisitDirectory();
         }
     }
-
 
     @Nullable
     private HashCode fingerprintRootFile(RegularFileSnapshot fileSnapshot) {

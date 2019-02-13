@@ -23,7 +23,7 @@ import spock.lang.IgnoreIf
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
-class ArtifactTransformIsolationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'

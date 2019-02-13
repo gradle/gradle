@@ -60,8 +60,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files('a.txt', 'b.txt')
             }
-        """
-        buildFile << """
             
             project(':a') {
                 dependencies {
@@ -99,12 +97,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools 'test:tool-a:1.2'
                     tools 'test:tool-b:1.2'
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }
@@ -132,8 +125,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
                 ext.inputFiles = files(tool.outputFile)                
             }
-        """
-        buildFile << """
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -191,12 +183,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools project(':d')
                     tools project(':e')
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }
@@ -254,12 +241,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools 'test:tool-a:1.2'
                     tools 'test:tool-b:1.2'
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }

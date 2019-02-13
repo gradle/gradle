@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -74,6 +76,11 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     @Override
     public HashCode getSecondaryInputHash() {
         return secondaryInputsHash;
+    }
+
+    @Override
+    public FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+        return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
     }
 
     @Override

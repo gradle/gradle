@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
+import org.gradle.api.artifacts.transform.PrimaryInput;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -26,10 +27,17 @@ import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContex
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
 
@@ -80,11 +88,40 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
                 validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
         }
+        PathSensitivity pathSensitivity = PathSensitivity.ABSOLUTE;
+        for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
+            if (propertyMetadata.getPropertyType().equals(PrimaryInput.class)) {
+                // Should ask the annotation handler to figure this out instead
+                PathSensitive annotation = propertyMetadata.getAnnotation(PathSensitive.class);
+                if (annotation != null) {
+                    pathSensitivity = annotation.value();
+                }
+                break;
+            }
+        }
+        // Should reuse the registry to make this decision
+        // Should retain this on the metadata rather than calculate on each invocation
+        FingerprintingStrategy fingerprintingStrategy;
+        switch (pathSensitivity) {
+            case NONE:
+                fingerprintingStrategy = IgnoredPathFingerprintingStrategy.INSTANCE;
+                break;
+            case NAME_ONLY:
+                fingerprintingStrategy = NameOnlyFingerprintingStrategy.INSTANCE;
+                break;
+            case RELATIVE:
+            case ABSOLUTE:
+                fingerprintingStrategy = AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
+                break;
+            default:
+                throw new IllegalArgumentException();
+        }
 
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
             from,
+            fingerprintingStrategy,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,

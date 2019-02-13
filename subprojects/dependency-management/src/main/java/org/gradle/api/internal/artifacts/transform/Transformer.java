@@ -21,6 +21,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -50,4 +51,6 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     HashCode getSecondaryInputHash();
 
     void isolateParameters();
+
+    FingerprintingStrategy getPrimaryInputFingerprintingStrategy();
 }
