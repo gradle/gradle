@@ -21,15 +21,19 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
+import io.mockk.unmockkObject
+import io.mockk.unmockkStatic
 import org.gradle.api.Action
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecResult
 import org.gradle.testfixtures.ProjectBuilder
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
 
 class DetermineBaselinesTest {
+    private
     val project = ProjectBuilder.builder().build()
 
     @Before
@@ -41,6 +45,13 @@ class DetermineBaselinesTest {
         mockkStatic("org.gradle.plugins.performance.PerformanceTestPluginKt")
 
         mockkObject(project)
+    }
+
+    @After
+    fun cleanUp() {
+        unmockkStatic("org.gradle.kotlin.dsl.Kotlin_dsl_upstream_candidatesKt")
+        unmockkStatic("org.gradle.plugins.performance.PerformanceTestPluginKt")
+        unmockkObject(project)
     }
 
     @Test

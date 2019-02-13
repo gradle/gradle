@@ -11,7 +11,6 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:6.0")
     implementation("com.google.code.gson:gson:2.7")
     testImplementation("junit:junit:4.12")
-    testImplementation("com.nhaarman:mockito-kotlin:1.6.0")
     testImplementation("io.mockk:mockk:1.8.13")
 }
 
