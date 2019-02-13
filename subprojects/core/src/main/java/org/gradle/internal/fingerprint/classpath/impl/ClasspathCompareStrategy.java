@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.classpath.impl;
 
+import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.FileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -24,6 +25,7 @@ import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.fingerprint.impl.AbstractFingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,56 +43,129 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
     @Override
     protected boolean doVisitChangesSince(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots, String propertyTitle, boolean includeAdded) {
-        Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries = currentSnapshots.entrySet().iterator();
-        Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries = previousSnapshots.entrySet().iterator();
-        while (true) {
-            if (currentEntries.hasNext()) {
-                Map.Entry<String, FileSystemLocationFingerprint> current = currentEntries.next();
-                String currentAbsolutePath = current.getKey();
-                if (previousEntries.hasNext()) {
-                    Map.Entry<String, FileSystemLocationFingerprint> previous = previousEntries.next();
-                    FileSystemLocationFingerprint currentFingerprint = current.getValue();
-                    FileSystemLocationFingerprint previousFingerprint = previous.getValue();
-                    String currentNormalizedPath = currentFingerprint.getNormalizedPath();
-                    String previousNormalizedPath = previousFingerprint.getNormalizedPath();
-                    if (currentNormalizedPath.equals(previousNormalizedPath)) {
-                        if (!currentFingerprint.getNormalizedContentHash().equals(previousFingerprint.getNormalizedContentHash())) {
-                            if (!visitor.visitChange(
-                                FileChange.modified(currentAbsolutePath, propertyTitle,
-                                    previousFingerprint.getType(),
-                                    currentFingerprint.getType()
-                                ))) {
-                                return false;
-                            }
-                        }
-                    } else {
-                        String previousAbsolutePath = previous.getKey();
-                        if (!visitor.visitChange(FileChange.removed(previousAbsolutePath, propertyTitle, previousFingerprint.getType()))) {
-                            return false;
-                        }
-                        if (includeAdded) {
-                            if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType()))) {
-                                return false;
-                            }
-                        }
-                    }
-                } else {
-                    if (includeAdded) {
-                        if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, current.getValue().getType()))) {
-                            return false;
-                        }
-                    }
+        TrackingVisitor trackingVisitor = new TrackingVisitor(visitor);
+        ChangeState changeState = new ChangeState(propertyTitle, includeAdded, trackingVisitor, currentSnapshots, previousSnapshots);
+
+        while (trackingVisitor.isConsumeMore() && changeState.hasMoreToProcess()) {
+            changeState.processChange();
+        }
+        return trackingVisitor.isConsumeMore();
+    }
+
+    private static class TrackingVisitor implements ChangeVisitor {
+        private final ChangeVisitor visitor;
+        private boolean consumeMore = true;
+
+        private TrackingVisitor(ChangeVisitor visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public boolean visitChange(Change change) {
+            if (consumeMore) {
+                consumeMore = visitor.visitChange(change);
+            }
+            return consumeMore;
+        }
+
+        public boolean isConsumeMore() {
+            return consumeMore;
+        }
+    }
+
+    private static class ChangeState {
+        private Map.Entry<String, FileSystemLocationFingerprint> current;
+        private Map.Entry<String, FileSystemLocationFingerprint> previous;
+        private final boolean includeAdded;
+        private final ChangeVisitor changeConsumer;
+        private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> currentEntries;
+        private final Map<String, FileSystemLocationFingerprint> currentSnapshots;
+        private final Iterator<Map.Entry<String, FileSystemLocationFingerprint>> previousEntries;
+        private final Map<String, FileSystemLocationFingerprint> previousSnapshots;
+        private final String propertyTitle;
+
+        private ChangeState(String propertyTitle, boolean includeAdded, ChangeVisitor changeConsumer, Map<String, FileSystemLocationFingerprint> currentSnapshots, Map<String, FileSystemLocationFingerprint> previousSnapshots) {
+            this.propertyTitle = propertyTitle;
+            this.includeAdded = includeAdded;
+            this.changeConsumer = changeConsumer;
+            this.currentEntries = currentSnapshots.entrySet().iterator();
+            this.currentSnapshots = currentSnapshots;
+            this.previousEntries = previousSnapshots.entrySet().iterator();
+            this.previousSnapshots = previousSnapshots;
+            this.current = nextEntry(currentEntries);
+            this.previous = nextEntry(previousEntries);
+        }
+
+        void processChange() {
+            if (current == null) {
+                if (previous != null) {
+                    removed();
                 }
-            } else {
-                if (previousEntries.hasNext()) {
-                    Map.Entry<String, FileSystemLocationFingerprint> previousEntry = previousEntries.next();
-                    if (!visitor.visitChange(FileChange.removed(previousEntry.getKey(), propertyTitle, previousEntry.getValue().getType()))) {
-                        return false;
+                return;
+            }
+            if (previous == null) {
+                added();
+                return;
+            }
+            FileSystemLocationFingerprint currentFingerprint = current.getValue();
+            FileSystemLocationFingerprint previousFingerprint = previous.getValue();
+            String currentNormalizedPath = currentFingerprint.getNormalizedPath();
+            String previousNormalizedPath = previousFingerprint.getNormalizedPath();
+            if (!currentNormalizedPath.equals(previousNormalizedPath)) {
+                removed();
+                added();
+                return;
+            }
+            if (currentFingerprint.getNormalizedContentHash().equals(previousFingerprint.getNormalizedContentHash())) {
+                current = nextEntry(currentEntries);
+                previous = nextEntry(previousEntries);
+                return;
+            }
+            if (currentNormalizedPath.isEmpty()) {
+                String currentAbsolutePath = current.getKey();
+                String previousAbsolutePath = previous.getKey();
+                if (!currentAbsolutePath.equals(previousAbsolutePath)) {
+                    if (!currentSnapshots.containsKey(previousAbsolutePath)) {
+                        removed();
+                        return;
                     }
-                } else {
-                    return true;
+                    if (!previousSnapshots.containsKey(currentAbsolutePath)) {
+                        added();
+                        return;
+                    }
+                    removed();
+                    added();
+                    return;
                 }
             }
+            modified();
+        }
+
+        void added() {
+            if (includeAdded) {
+                changeConsumer.visitChange(FileChange.added(current.getKey(), propertyTitle, current.getValue().getType()));
+            }
+            current = nextEntry(currentEntries);
+        }
+
+        void removed() {
+            changeConsumer.visitChange(FileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType()));
+            previous = nextEntry(previousEntries);
+        }
+
+        void modified() {
+            changeConsumer.visitChange(FileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType()));
+            previous = nextEntry(previousEntries);
+            current = nextEntry(currentEntries);
+        }
+
+        @Nullable
+        private <T> T nextEntry(Iterator<T> iterator) {
+            return iterator.hasNext() ? iterator.next() : null;
+        }
+
+        public boolean hasMoreToProcess() {
+            return current != null || previous != null;
         }
     }
 

@@ -170,6 +170,66 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         CLASSPATH  | false
     }
 
+    def "addition of jar elements"() {
+        expect:
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456)],
+            [jar1: jar(1234), jar3: jar(3456)]
+        ) == [added("jar2")]
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
+            [jar1: jar(1234), jar4: jar(4567), jar5: jar(5678)]
+        ) == [added("jar2"), added("jar3")]
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)],
+            [jar1: jar(1234), jar3: jar(3456), jar5: jar(5678)]
+        ) == [added("jar2"), added("jar4")]
+    }
+
+    def "removal of jar elements"() {
+        expect:
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar3: jar(3456)],
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456)]
+        ) == [removed("jar2")]
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar4: jar(4567), jar5: jar(5678)],
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)]
+        ) == [removed("jar2"), removed("jar3")]
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar3: jar(3456), jar5: jar(5678)],
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678)]
+        ) == [removed("jar2"), removed("jar4")]
+    }
+
+    def "modification of jar in same path"() {
+        expect:
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(4567), jar4: jar(5678)],
+            [jar1: jar(1234), jar2: jar(3456), jar3: jar(4568), jar4: jar(5678)]
+        ) == [modified("jar2"), modified("jar3")]
+    }
+
+    def "jar never modified for different paths"() {
+        expect:
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), 'new-jar2': jar(2345), jar3: jar(4567), jar4: jar(5678)],
+            [jar1: jar(1234), 'old-jar2': jar(3456), jar3: jar(4568), jar4: jar(5678)]
+        ) == [removed("old-jar2"), added("new-jar2"), modified("jar3")]
+    }
+
+    def "complex jar changes"() {
+        expect:
+        changes(CLASSPATH, true,
+            [jar2: jar(2345), jar1: jar(1234), jar3: jar(3456), jar5: jar(5680), jar7: jar(7890)],
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678), jar6: jar(6789), jar7: jar(7890)]
+        ) == [removed('jar1'), added('jar2'), removed('jar2'), added('jar1'), removed('jar4'), modified('jar5'), removed('jar6')]
+        changes(CLASSPATH, true,
+            [jar1: jar(1234), jar2: jar(2345), jar3: jar(3456), jar4: jar(4567), jar5: jar(5678), jar6: jar(6789), jar7: jar(7890)],
+            [jar2: jar(2345), jar1: jar(1234), jar3: jar(3456), jar5: jar(5680), jar7: jar(7890)]
+        ) == [removed('jar2'), added('jar1'), removed('jar1'), added('jar2'), added('jar4'), modified('jar5'), added('jar6')]
+    }
+
     def changes(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
         strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
@@ -186,6 +246,10 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
+    def jar(int hashCode = 0x1234abcd) {
+        return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
+    }
+
     def added(String path) {
         FileChange.added(path, "test", FileType.RegularFile)
     }
@@ -194,7 +258,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         FileChange.removed(path, "test", FileType.RegularFile)
     }
 
-    def modified(String path, FileType previous, FileType current) {
+    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
         FileChange.modified(path, "test", previous, current)
     }
 }
