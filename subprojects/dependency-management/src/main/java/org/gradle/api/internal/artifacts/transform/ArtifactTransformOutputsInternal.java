@@ -24,7 +24,7 @@ import java.io.File;
 
 public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
 
-    static OutputLocationType validateOutputLocation(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
+    static OutputLocationType determineOutputLocationType(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
         if (output.equals(primaryInput)) {
             return OutputLocationType.INPUT_ARTIFACT;
         }

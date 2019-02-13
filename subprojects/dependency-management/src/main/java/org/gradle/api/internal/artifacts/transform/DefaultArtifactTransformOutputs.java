@@ -78,7 +78,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
         File output = resolver.resolve(path);
-        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.validateOutputLocation(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.determineOutputLocationType(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
         if (outputLocationType == OutputLocationType.WORKSPACE) {
             prepareOutputLocation.accept(output);
         }
