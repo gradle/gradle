@@ -108,7 +108,7 @@ fun writeSourceCodeForPluginSpecBuildersFor(
         writePluginAccessorsSourceCodeTo(
             sourceFile,
             pluginAccessorsFor(pluginDescriptorsClassPath),
-            accessibility = "internal ",
+            accessibility = "internal\n",
             header = fileHeaderFor(packageName)
         )
     }
