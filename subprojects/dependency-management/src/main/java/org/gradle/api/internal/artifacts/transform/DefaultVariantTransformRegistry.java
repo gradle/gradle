@@ -21,10 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
 import org.gradle.api.artifacts.transform.AssociatedTransformAction;
 import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
@@ -87,14 +87,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T extends ArtifactTransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction) {
+    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction) {
         ActionRegistration registration = instantiatorFactory.decorateLenient().newInstance(ActionRegistration.class, immutableAttributesFactory);
         registrationAction.execute(registration);
 
         register(registration, actionType, null);
     }
 
-    private <T> void register(RecordingRegistration registration, Class<? extends ArtifactTransformAction> actionType, @Nullable T parameterObject) {
+    private <T> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
         validateActionType(actionType);
         validateAttributes(registration);
         try {
@@ -183,7 +183,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     @NonExtensible
     public static class TypedRegistration<T> extends RecordingRegistration implements ParameterizedArtifactTransformSpec<T> {
         private final T parameterObject;
-        Class<? extends ArtifactTransformAction> actionType;
+        Class<? extends TransformAction> actionType;
 
         public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);

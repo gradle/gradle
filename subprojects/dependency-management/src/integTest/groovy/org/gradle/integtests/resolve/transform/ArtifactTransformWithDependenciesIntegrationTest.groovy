@@ -103,7 +103,7 @@ project(':app') {
 
 import javax.inject.Inject
 
-abstract class TestTransformAction implements ArtifactTransformAction {
+abstract class TestTransformAction implements TransformAction {
 
     @TransformParameters
     abstract TestTransform getParameters()
@@ -126,7 +126,7 @@ abstract class TestTransformAction implements ArtifactTransformAction {
     }
 }
 
-abstract class SimpleTransform implements ArtifactTransformAction {
+abstract class SimpleTransform implements TransformAction {
 
     @InputArtifact
     abstract File getInput()
@@ -411,7 +411,7 @@ allprojects {
     }
 }
 
-abstract class NoneTransformAction implements ArtifactTransformAction {
+abstract class NoneTransformAction implements TransformAction {
     @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
     abstract FileCollection getInputArtifactDependencies()
 

@@ -21,9 +21,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -65,7 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
+public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     private final Object parameterObject;
     private final Class<? extends FileNormalizer> fileNormalizer;
@@ -75,14 +75,14 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     private final ValueSnapshotter valueSnapshotter;
     private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
-    private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
+    private final InstanceFactory<? extends TransformAction> instanceFactory;
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, Class<? extends FileNormalizer> inputArtifactNormalizer, Class<? extends FileNormalizer> dependenciesNormalizer, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
+    public DefaultTransformer(Class<? extends TransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, Class<? extends FileNormalizer> inputArtifactNormalizer, Class<? extends FileNormalizer> dependenciesNormalizer, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
         this.fileNormalizer = inputArtifactNormalizer;
@@ -130,7 +130,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     @Override
     public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransformAction transformAction = newTransformAction(inputArtifact, dependencies);
+        TransformAction transformAction = newTransformAction(inputArtifact, dependencies);
         DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(inputArtifact, outputDir);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
@@ -232,7 +232,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         return ModelType.of(parameterClass).getDisplayName();
     }
 
-    private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
+    private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
         ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatable().getIsolatableParameters().isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services);
     }

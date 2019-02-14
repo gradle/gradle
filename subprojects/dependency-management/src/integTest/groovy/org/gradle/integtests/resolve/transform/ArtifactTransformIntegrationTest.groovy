@@ -808,7 +808,7 @@ $fileSizer
                 }
             }
             
-            abstract class IdentityTransform implements ArtifactTransformAction {
+            abstract class IdentityTransform implements TransformAction {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -1558,7 +1558,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class TransformAction implements ArtifactTransformAction {
+            class FailingTransformAction implements TransformAction {
                 void transform(ArtifactTransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1580,7 +1580,7 @@ Found the following transforms:
                     }}
                 }
             }
-            ${declareTransformAction('TransformAction')}
+            ${declareTransformAction('FailingTransformAction')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1628,8 +1628,8 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class TransformAction implements ArtifactTransformAction {
-                void transform(ArtifactTransformOutputs outputs) {
+            class DirectoryTransformAction implements TransformAction {
+                void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
                     outputFile.text = "output"
@@ -1638,7 +1638,7 @@ Found the following transforms:
                     new File(outputDir, "in-dir.txt").text = "another output"
                 }
             }
-            ${declareTransformAction('TransformAction')}
+            ${declareTransformAction('DirectoryTransformAction')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1666,7 +1666,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class TransformAction implements ArtifactTransformAction {
+            abstract class MyTransformAction implements TransformAction {
                 @InputArtifact
                 abstract File getInput() 
 
@@ -1677,7 +1677,7 @@ Found the following transforms:
                 }
             }
             dependencies {
-                registerTransformAction(TransformAction) {
+                registerTransformAction(MyTransformAction) {
                     from.attribute(artifactType, 'directory')
                     to.attribute(artifactType, 'size')
                 }
@@ -1744,7 +1744,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            class SomewhereElseTransform implements ArtifactTransformAction {
+            class SomewhereElseTransform implements TransformAction {
                 static def output
                 void transform(ArtifactTransformOutputs outputs) {
                     def outputFile = outputs.file(output)
@@ -1959,7 +1959,7 @@ Found the following transforms:
                 void setInput(CustomType input)
             }
               
-            class CustomAction implements ArtifactTransformAction { 
+            class CustomAction implements TransformAction { 
                 void transform(ArtifactTransformOutputs outputs) {  }
             }
             

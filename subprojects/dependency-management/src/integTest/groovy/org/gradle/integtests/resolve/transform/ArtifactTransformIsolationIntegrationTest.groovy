@@ -92,7 +92,7 @@ class Resolve extends Copy {
                 void setCounter(Counter counter)
             }
 
-            abstract class CountRecorderAction implements ArtifactTransformAction {
+            abstract class CountRecorderAction implements TransformAction {
                 private final Counter counter;
                             
                 @TransformParameters

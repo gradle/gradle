@@ -336,7 +336,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                 void setSuffix(String suffix)
             }
 
-            abstract class FileSizerAction implements ArtifactTransformAction {
+            abstract class FileSizerAction implements TransformAction {
                 @TransformParameters
                 abstract FileSizer getParameters()
                 @InputArtifactDependencies

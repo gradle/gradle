@@ -34,7 +34,7 @@ import org.gradle.api.Incubating;
  * @since 5.3
  */
 @Incubating
-public interface ArtifactTransformAction {
+public interface TransformAction {
     /**
      * Executes the transform.
      *

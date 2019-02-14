@@ -71,7 +71,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
@@ -123,7 +123,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setMissingInput(String missing)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
@@ -172,7 +172,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
@@ -221,7 +221,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
@@ -268,7 +268,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
@@ -323,7 +323,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @${annotation.simpleName}
                 String getBad() { }
                 
@@ -364,7 +364,7 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
@@ -463,7 +463,7 @@ abstract class MakeGreen extends ArtifactTransform {
                 void setExtension(String value)
             }
             
-            class MakeGreenAction implements ArtifactTransformAction {
+            class MakeGreenAction implements TransformAction {
                 private MakeGreen conf
                 
                 @Inject
@@ -500,7 +500,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @InputArtifact
     abstract FileCollection getDependencies()
     
@@ -534,7 +534,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @Inject
     abstract File getWorkspace()
     

@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.ArtifactTransformAction
 import org.gradle.api.artifacts.transform.ArtifactTransformOutputs
 import org.gradle.api.artifacts.transform.AssociatedTransformAction
+import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
@@ -133,13 +133,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
+        registration.transformationStep.transformer.implementationClass == TestTransformAction
         registration.transformationStep.transformer.parameterObject instanceof TestTransform
     }
 
     def "creates registration with with action"() {
         when:
-        registry.registerTransformAction(TestArtifactTransformAction) {
+        registry.registerTransformAction(TestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -149,7 +149,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestArtifactTransformAction
+        registration.transformationStep.transformer.implementationClass == TestTransformAction
         registration.transformationStep.transformer.parameterObject == null
     }
 
@@ -248,7 +248,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         where:
         method                    | argument
         "registerTransform"       | TestTransform
-        "registerTransformAction" | TestArtifactTransformAction
+        "registerTransformAction" | TestTransformAction
     }
 
     def "fails when no to attributes are provided for legacy registration"() {
@@ -279,7 +279,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         where:
         method                    | argument
         "registerTransform"       | TestTransform
-        "registerTransformAction" | TestArtifactTransformAction
+        "registerTransformAction" | TestTransformAction
     }
 
     def "fails when to attributes are not a subset of from attributes for legacy registration"() {
@@ -316,10 +316,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
         where:
         method                    | argument
         "registerTransform"       | TestTransform
-        "registerTransformAction" | TestArtifactTransformAction
+        "registerTransformAction" | TestTransformAction
     }
 
-    @AssociatedTransformAction(TestArtifactTransformAction)
+    @AssociatedTransformAction(TestTransformAction)
     static class TestTransform {
         String value
     }
@@ -335,7 +335,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static class TestArtifactTransformAction implements ArtifactTransformAction {
+    static class TestTransformAction implements TransformAction {
         @Override
         void transform(ArtifactTransformOutputs outputs) {
         }

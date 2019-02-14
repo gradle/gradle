@@ -1499,7 +1499,7 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
                 Number getValue()
                 void setValue(Number value)
             }
-            abstract class FileSizerAction implements ArtifactTransformAction {
+            abstract class FileSizerAction implements TransformAction {
                 @TransformParameters
                 abstract FileSizer getParameters()
 

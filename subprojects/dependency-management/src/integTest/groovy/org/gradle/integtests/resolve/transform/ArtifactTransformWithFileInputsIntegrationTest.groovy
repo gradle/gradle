@@ -35,7 +35,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 ConfigurableFileCollection getSomeFiles()
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
@@ -150,7 +150,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
-            abstract class MakeRedAction implements ArtifactTransformAction {
+            abstract class MakeRedAction implements TransformAction {
                 @InputArtifact
                 abstract File getInput()
                 
