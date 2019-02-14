@@ -175,12 +175,21 @@ include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[ta
 
 As with a normal copy, you can control which files are unpacked via <<#sec:filtering_files,filters>> and even <<#sec:renaming_files,rename files>> as they are unpacked.
 
-More advanced processing can be handled by the link:{groovyDslPath}/org.gradle.api.tasks.AbstractCopyTask#eachFile(org.gradle.api.Action)[eachFile()] method. For example, you might need to extract different subtrees of the archive into different paths within the destination directory. The following sample uses the method to extract the files within the archive's `libs` directory into the root destination directory, rather than into `$destDir/libs`:
+More advanced processing can be handled by the link:{groovyDslPath}/org.gradle.api.tasks.AbstractCopyTask#eachFile(org.gradle.api.Action)[eachFile()] method. For example, you might need to extract different subtrees of the archive into different paths within the destination directory. The following sample uses the method to extract the files within the archive's `libs` directory into the root destination directory, rather than into a `libs` subdirectory:
 
 .Unpacking a subset of a ZIP file
 ====
 include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=unpack-archive-subset-example]"]
 include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-subset-example]"]
+====
+<1> Extracting only the files under `libs` directly into the destination directory
+<2> Remap the extracting files to a different path into the destination directory by dropping the `libs` segment from the file path
+<3> See Caution note below
+
+[CAUTION]
+====
+You can not change the destination path of empty directories with this technique.
+You can learn more in https://github.com/gradle/gradle/issues/2940[this issue].
 ====
 
 If you're a Java developer and are wondering why there is no `jarTree()` method, that's because `zipTree()` works perfectly well for JARs, WARs and EARs.

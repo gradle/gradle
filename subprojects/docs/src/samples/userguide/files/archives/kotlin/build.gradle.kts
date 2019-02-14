@@ -17,14 +17,11 @@ tasks.register<Copy>("unpackFiles") {
 // tag::unpack-archive-subset-example[]
 tasks.register<Copy>("unpackLibsDirectory") {
     from(zipTree("src/resources/thirdPartyResources.zip")) {
-        // We are extracting only the files under `libs` directly inside `build/resources`
-        include("libs/**")
-        includeEmptyDirs = false
+        include("libs/**")  // <1>
         eachFile {
-            // We create a new relative path to file inside the archive to be used during the extraction.
-            //   The new path drop the `libs` segment from the file path.
-            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
+            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())  // <2>
         }
+        includeEmptyDirs = false  // <3>
     }
     into("$buildDir/resources")
 }
