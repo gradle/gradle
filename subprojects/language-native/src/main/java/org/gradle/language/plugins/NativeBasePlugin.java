@@ -16,7 +16,11 @@
 
 package org.gradle.language.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -435,8 +439,7 @@ public class NativeBasePlugin implements Plugin<Project> {
     }
 
     private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
-        dependencyHandler.registerTransform(variantTransform -> {
-            variantTransform.artifactTransform(UnzipTransform.class);
+        dependencyHandler.registerTransformAction(UnzipTransform.class, variantTransform -> {
             variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
             variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
             variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);
