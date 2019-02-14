@@ -22,10 +22,10 @@ import org.gradle.api.attributes.AttributeContainer;
 /**
  * Base configuration for artifact transform registrations.
  *
- * @since 5.2
+ * @since 5.3
  */
 @Incubating
-public interface ArtifactTransformSpec {
+public interface TransformSpec {
     /**
      * Attributes that match the variant that is consumed.
      */

@@ -20,9 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
-import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -452,7 +452,7 @@ public interface DependencyHandler {
      * @since 5.2
      */
     @Incubating
-    <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction);
+    <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedTransformSpec<T>> registrationAction);
 
     /**
      * Registers an artifact transform without a parameter object.
@@ -461,7 +461,7 @@ public interface DependencyHandler {
      * @since 5.3
      */
     @Incubating
-    <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction);
+    <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction);
 
     /**
      * Declares a dependency on a platform. If the target coordinates represent multiple
