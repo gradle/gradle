@@ -47,7 +47,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeConsumed = true
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
-                        attribute(DependencyPacking.PACKING, project.objects.named(DependencyPacking, DependencyPacking.EXTERNAL))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -79,11 +79,11 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
+                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external']
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }
@@ -101,7 +101,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeConsumed = true
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
-                        attribute(DependencyPacking.PACKING, project.objects.named(DependencyPacking, DependencyPacking.EXTERNAL))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')
@@ -126,7 +126,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.packing':'external']
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external']
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

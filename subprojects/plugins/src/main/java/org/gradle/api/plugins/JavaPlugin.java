@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.DependencyPacking;
+import org.gradle.api.attributes.java.Bundling;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -61,8 +61,8 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
-import static org.gradle.api.attributes.java.DependencyPacking.EXTERNAL;
-import static org.gradle.api.attributes.java.DependencyPacking.PACKING;
+import static org.gradle.api.attributes.java.Bundling.EXTERNAL;
+import static org.gradle.api.attributes.java.Bundling.BUNDLING_ATTRIBUTE;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -438,7 +438,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.setCanBeResolved(false);
         apiElementsConfiguration.setCanBeConsumed(true);
         apiElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_JARS));
-        apiElementsConfiguration.getAttributes().attribute(PACKING, objectFactory.named(DependencyPacking.class, EXTERNAL));
+        apiElementsConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
         apiElementsConfiguration.extendsFrom(runtimeConfiguration);
 
         Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
@@ -447,7 +447,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.setCanBeResolved(false);
         runtimeElementsConfiguration.setDescription("Elements of runtime for main.");
         runtimeElementsConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS));
-        runtimeElementsConfiguration.getAttributes().attribute(PACKING, objectFactory.named(DependencyPacking.class, EXTERNAL));
+        runtimeElementsConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);

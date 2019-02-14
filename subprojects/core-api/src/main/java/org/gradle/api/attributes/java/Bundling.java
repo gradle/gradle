@@ -24,15 +24,18 @@ import org.gradle.api.attributes.Attribute;
  * There are currently 3 supported modes:
  * <ul>
  *     <li>external, the default, where transitive dependencies are found as jars</li>
- *     <li>fatjar, where dependencies are found inside the component jar, but using the same packages as the original dependencies</li>
+ *     <li>embedded, where dependencies are found inside the component jar, but using the same packages as the original dependencies</li>
  *     <li>shadowed, where dependencies are found inside the component jar, but repackaged in different packages to avoid name clashes</li>
  * </ul>
+ *
+ * While this is mainly aimed for "jars", this can also be used for other types of artifacts, especially
+ * if you think about documentation or sources (zips).
  *
  * @since 5.3
  */
 @Incubating
-public interface DependencyPacking extends Named {
-    Attribute<DependencyPacking> PACKING = Attribute.of("org.gradle.dependency.packing", DependencyPacking.class);
+public interface Bundling extends Named {
+    Attribute<Bundling> BUNDLING_ATTRIBUTE = Attribute.of("org.gradle.dependency.bundling", Bundling.class);
 
     /**
      * The most common case: dependencies are provided as individual jars.
@@ -40,13 +43,13 @@ public interface DependencyPacking extends Named {
     String EXTERNAL = "external";
 
     /**
-     * Dependencies are packaged as a fat jar.
+     * Dependencies are packaged <i>within</i> the main component artifact.
      */
-    String FATJAR = "fatjar";
+    String EMBEDDED = "embedded";
 
     /**
-     * Dependencies are packaged as a fat jar and repackaged in order to
-     * avoid package name conflicts.
+     * Dependencies are packaged <i>within</i> the main component artifact
+     * but also repackaged in order to avoid package name conflicts.
      */
     String SHADOWED = "shadowed";
 

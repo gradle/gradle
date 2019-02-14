@@ -26,7 +26,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.DependencyPacking;
+import org.gradle.api.attributes.java.Bundling;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
 
@@ -49,9 +49,9 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
-        AttributeMatchingStrategy<DependencyPacking> packingSchema = attributesSchema.attribute(DependencyPacking.PACKING);
-        packingSchema.getCompatibilityRules().add(PackingCompatibilityRules.class);
-        packingSchema.getDisambiguationRules().add(PackingDisambiguationRules.class);
+        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
+        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
+        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
     }
 
     @VisibleForTesting
@@ -202,17 +202,17 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class PackingCompatibilityRules implements AttributeCompatibilityRule<DependencyPacking>, ReusableAction {
+    public static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
                 // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
-                DependencyPacking.FATJAR,
-                DependencyPacking.SHADOWED
+                Bundling.EMBEDDED,
+                Bundling.SHADOWED
         );
 
         @Override
-        public void execute(CompatibilityCheckDetails<DependencyPacking> details) {
-            DependencyPacking consumerValue = details.getConsumerValue();
-            DependencyPacking producerValue = details.getProducerValue();
+        public void execute(CompatibilityCheckDetails<Bundling> details) {
+            Bundling consumerValue = details.getConsumerValue();
+            Bundling producerValue = details.getProducerValue();
             if (consumerValue == null) {
                 // consumer didn't express any preference, everything fits
                 details.compatible();
@@ -220,13 +220,13 @@ public abstract class JavaEcosystemSupport {
             }
             String consumerValueName = consumerValue.getName();
             String producerValueName = producerValue.getName();
-            if (DependencyPacking.EXTERNAL.equals(consumerValueName)) {
+            if (Bundling.EXTERNAL.equals(consumerValueName)) {
                 if (COMPATIBLE_WITH_EXTERNAL.contains(producerValueName)) {
                     details.compatible();
                 }
-            } else if (DependencyPacking.FATJAR.equals(consumerValueName)) {
+            } else if (Bundling.EMBEDDED.equals(consumerValueName)) {
                 // asking for a fat jar. If everything available is a shadow jar, that's fine
-                if (DependencyPacking.SHADOWED.equals(producerValueName)) {
+                if (Bundling.SHADOWED.equals(producerValueName)) {
                     details.compatible();
                 }
             }
@@ -234,34 +234,34 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class PackingDisambiguationRules implements AttributeDisambiguationRule<DependencyPacking>, ReusableAction {
+    public static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
 
         @Override
-        public void execute(MultipleCandidatesDetails<DependencyPacking> details) {
-            DependencyPacking consumerValue = details.getConsumerValue();
-            Set<DependencyPacking> candidateValues = details.getCandidateValues();
+        public void execute(MultipleCandidatesDetails<Bundling> details) {
+            Bundling consumerValue = details.getConsumerValue();
+            Set<Bundling> candidateValues = details.getCandidateValues();
             if (candidateValues.contains(consumerValue)) {
                 details.closestMatch(consumerValue);
                 return;
             }
             if (consumerValue == null) {
-                DependencyPacking fatJar = null;
-                for (DependencyPacking candidateValue : candidateValues) {
-                    if (DependencyPacking.EXTERNAL.equals(candidateValue.getName())) {
+                Bundling embedded = null;
+                for (Bundling candidateValue : candidateValues) {
+                    if (Bundling.EXTERNAL.equals(candidateValue.getName())) {
                         details.closestMatch(candidateValue);
                         return;
-                    } else if (DependencyPacking.FATJAR.equals(candidateValue.getName())) {
-                        fatJar = candidateValue;
+                    } else if (Bundling.EMBEDDED.equals(candidateValue.getName())) {
+                        embedded = candidateValue;
                     }
                 }
-                if (fatJar != null) {
-                    details.closestMatch(fatJar);
+                if (embedded != null) {
+                    details.closestMatch(embedded);
                 }
             } else {
                 String consumerValueName = consumerValue.getName();
-                if (DependencyPacking.EXTERNAL.equals(consumerValueName)) {
-                    for (DependencyPacking candidateValue : candidateValues) {
-                        if (DependencyPacking.FATJAR.equals(candidateValue.getName())) {
+                if (Bundling.EXTERNAL.equals(consumerValueName)) {
+                    for (Bundling candidateValue : candidateValues) {
+                        if (Bundling.EMBEDDED.equals(candidateValue.getName())) {
                             details.closestMatch(candidateValue);
                             return;
                         }

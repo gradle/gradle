@@ -1706,8 +1706,8 @@ org:leaf2:1.0
 project :
    variant "compile"
    variant "runtimeElements" [
-      org.gradle.usage              = java-runtime-jars (not requested)
-      org.gradle.dependency.packing = external (not requested)
+      org.gradle.usage               = java-runtime-jars (not requested)
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :
@@ -1804,8 +1804,8 @@ org:leaf2:1.0
         outputContains """
 project :impl
    variant "runtimeElements" [
-      org.gradle.usage              = java-runtime-jars (not requested)
-      org.gradle.dependency.packing = external (not requested)
+      org.gradle.usage               = java-runtime-jars (not requested)
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :impl
@@ -1961,8 +1961,8 @@ org:leaf2:1.0
         outputContains """
 project :api
    variant "apiElements" [
-      org.gradle.usage              = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.packing = external (not requested)
+      org.gradle.usage               = java-api-jars (compatible with: java-api)
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :api
@@ -1977,8 +1977,8 @@ project :api
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage              = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.packing = external (not requested)
+      org.gradle.usage               = java-api-jars (compatible with: java-api)
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :some:deeply:nested
@@ -1992,8 +1992,8 @@ project :some:deeply:nested
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
-      org.gradle.usage              = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.packing = external (not requested)
+      org.gradle.usage               = java-api-jars (compatible with: java-api)
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :some:deeply:nested

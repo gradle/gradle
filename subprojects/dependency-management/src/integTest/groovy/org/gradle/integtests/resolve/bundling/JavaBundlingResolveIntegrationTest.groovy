@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.packing
+package org.gradle.integtests.resolve.bundling
 
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.java.DependencyPacking
+import org.gradle.api.attributes.java.Bundling
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -28,7 +28,7 @@ import spock.lang.Unroll
 @RequiredFeatures(
         [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
-class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         buildFile << """
@@ -48,26 +48,26 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
     }
 
     @Unroll
-    def "defaults to the external dependencies variant (#packing)"() {
+    def "defaults to the external dependencies variant (#bundling)"() {
         given:
         repository {
             'org:transitive:1.0'()
             'org:producer:1.0' {
                 variant('api') {
                     dependsOn('org:transitive:1.0')
-                    attribute DependencyPacking.PACKING.name, 'external'
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, 'external'
                 }
                 variant('runtime') {
                     dependsOn('org:transitive:1.0')
-                    attribute DependencyPacking.PACKING.name, 'external'
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, 'external'
                 }
                 variant('fatApi') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-api-jars'
-                    attribute DependencyPacking.PACKING.name, packing
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
                 variant('fatRuntime') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-runtime-jars'
-                    attribute DependencyPacking.PACKING.name, packing
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
             }
         }
@@ -94,7 +94,7 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
             root(":", ":test:") {
                 module('org:producer:1.0') {
                     variant('api', [
-                            'org.gradle.dependency.packing': 'external',
+                            'org.gradle.dependency.bundling': 'external',
                             'org.gradle.status': defaultStatus(),
                             'org.gradle.usage': 'java-api-jars'
                     ])
@@ -104,30 +104,30 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
         }
 
         where:
-        packing << [DependencyPacking.FATJAR, DependencyPacking.SHADOWED]
+        bundling << [Bundling.EMBEDDED, Bundling.SHADOWED]
     }
 
     @Unroll
-    def "selects the appropriate variant (producer=#packing, requested=#requested, selected=#selected)"() {
+    def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:
         repository {
             'org:transitive:1.0'()
             'org:producer:1.0' {
                 variant('api') {
                     dependsOn('org:transitive:1.0')
-                    attribute DependencyPacking.PACKING.name, 'external'
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, 'external'
                 }
                 variant('runtime') {
                     dependsOn('org:transitive:1.0')
-                    attribute DependencyPacking.PACKING.name, 'external'
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, 'external'
                 }
                 variant('fatApi') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-api-jars'
-                    attribute DependencyPacking.PACKING.name, packing
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
                 variant('fatRuntime') {
                     attribute Usage.USAGE_ATTRIBUTE.name, 'java-runtime-jars'
-                    attribute DependencyPacking.PACKING.name, packing
+                    attribute Bundling.BUNDLING_ATTRIBUTE.name, bundling
                 }
             }
         }
@@ -136,7 +136,7 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
             dependencies {
                 conf("org:producer:1.0") {
                     attributes {
-                        attribute(DependencyPacking.PACKING, objects.named(DependencyPacking, '$requested'))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, '$requested'))
                     }
                 }
             }
@@ -167,7 +167,7 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
                 root(":", ":test:") {
                     module('org:producer:1.0') {
                         variant('fatApi', [
-                                'org.gradle.dependency.packing': selected,
+                                'org.gradle.dependency.bundling': selected,
                                 'org.gradle.status': defaultStatus(),
                                 'org.gradle.usage': 'java-api-jars'
                         ])
@@ -177,11 +177,11 @@ class JavaPackingResolveIntegrationTest extends AbstractModuleDependencyResolveT
         }
 
         where:
-        packing                    | requested                  | selected
-        DependencyPacking.FATJAR   | DependencyPacking.FATJAR   | DependencyPacking.FATJAR
-        DependencyPacking.FATJAR   | DependencyPacking.SHADOWED | null
-        DependencyPacking.SHADOWED | DependencyPacking.FATJAR   | DependencyPacking.SHADOWED
-        DependencyPacking.SHADOWED | DependencyPacking.SHADOWED | DependencyPacking.SHADOWED
+        bundling           | requested         | selected
+        Bundling.EMBEDDED | Bundling.EMBEDDED | Bundling.EMBEDDED
+        Bundling.EMBEDDED | Bundling.SHADOWED | null
+        Bundling.SHADOWED | Bundling.EMBEDDED | Bundling.SHADOWED
+        Bundling.SHADOWED | Bundling.SHADOWED | Bundling.SHADOWED
     }
 
     static Closure<String> defaultStatus() {
