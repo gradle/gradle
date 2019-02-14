@@ -20,7 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
-import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedInputStream;
@@ -40,7 +40,7 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  */
 public interface UnzipTransform extends ArtifactTransformAction {
 
-    @PrimaryInput
+    @InputArtifact
     File getZippedFile();
 
     @Override

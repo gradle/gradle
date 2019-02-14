@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.PrimaryInput;
+import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -90,7 +90,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
         PathSensitivity pathSensitivity = PathSensitivity.ABSOLUTE;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
-            if (propertyMetadata.getPropertyType().equals(PrimaryInput.class)) {
+            if (propertyMetadata.getPropertyType().equals(InputArtifact.class)) {
                 // Should ask the annotation handler to figure this out instead
                 PathSensitive annotation = propertyMetadata.getAnnotation(PathSensitive.class);
                 if (annotation != null) {

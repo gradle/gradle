@@ -41,7 +41,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean requiresDependencies();
 
-    ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
+    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -52,5 +52,5 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     void isolateParameters();
 
-    FingerprintingStrategy getPrimaryInputFingerprintingStrategy();
+    FingerprintingStrategy getInputArtifactFingerprintingStrategy();
 }

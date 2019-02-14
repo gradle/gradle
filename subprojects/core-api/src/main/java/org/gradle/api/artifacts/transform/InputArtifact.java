@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.reflect.InjectionPointQualifier;
 
+import java.io.File;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -27,10 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Attached to a property that should receive the <em>artifact dependencies</em> of the {@link PrimaryInput} of an artifact transform.
- *
- * The order of the files match that of the dependencies in the source artifact view.
- * The type of the injected dependencies is {@link org.gradle.api.file.FileCollection}.
+ * Attached to a property that should receive the <em>input artifact</em> for an artifact transform. This is the artifact that the transform should be applied to.
  *
  * @since 5.3
  */
@@ -38,6 +35,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-@InjectionPointQualifier(supportedTypes = FileCollection.class)
-public @interface PrimaryInputDependencies {
+@InjectionPointQualifier(supportedTypes = File.class)
+public @interface InputArtifact {
 }

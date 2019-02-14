@@ -16,22 +16,22 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 
 import java.lang.annotation.Annotation;
 
-public class PrimaryInputDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
+public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return PrimaryInputDependencies.class;
+        return InputArtifactDependencies.class;
     }
 
     @Override
     public Class<? extends Annotation> getAnnotation() {
-        return PrimaryInputDependencies.class;
+        return InputArtifactDependencies.class;
     }
 
     @Override

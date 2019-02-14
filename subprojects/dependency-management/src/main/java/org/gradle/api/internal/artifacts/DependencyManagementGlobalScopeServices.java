@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.transform.PrimaryInput;
-import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -36,8 +36,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme;
-import org.gradle.api.internal.artifacts.transform.PrimaryInputAnnotationHandler;
-import org.gradle.api.internal.artifacts.transform.PrimaryInputDependenciesAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
+import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
@@ -113,12 +113,12 @@ class DependencyManagementGlobalScopeServices {
         return ProducerGuard.adaptive();
     }
 
-    PrimaryInputAnnotationHandler createPrimaryInputAnnotationHandler() {
-        return new PrimaryInputAnnotationHandler();
+    InputArtifactAnnotationHandler createInputArtifactAnnotationHandler() {
+        return new InputArtifactAnnotationHandler();
     }
 
-    PrimaryInputDependenciesAnnotationHandler createPrimaryInputDependenciesAnnotationHandler() {
-        return new PrimaryInputDependenciesAnnotationHandler();
+    InputArtifactDependenciesAnnotationHandler createInputArtifactDependenciesAnnotationHandler() {
+        return new InputArtifactDependenciesAnnotationHandler();
     }
 
     InjectAnnotationHandler createTransformParametersAnnotationHandler() {
@@ -137,9 +137,9 @@ class DependencyManagementGlobalScopeServices {
     }
 
     ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
-        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class));
+        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, TransformParameters.class));
         InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(PrimaryInput.class, PrimaryInputDependencies.class, TransformParameters.class, Inject.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, TransformParameters.class, Inject.class));
         return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
     }
 }

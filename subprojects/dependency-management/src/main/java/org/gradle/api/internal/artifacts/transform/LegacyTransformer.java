@@ -53,23 +53,23 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
-        List<File> outputs = transformer.transform(primaryInput);
+        List<File> outputs = transformer.transform(inputArtifact);
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }
-        validateOutputs(primaryInput, outputDir, outputs);
+        validateOutputs(inputArtifact, outputDir, outputs);
         return ImmutableList.copyOf(outputs);
     }
 
-    private static void validateOutputs(File primaryInput, File outputDir, List<File> outputs) {
-        String inputFilePrefix = primaryInput.getPath() + File.separator;
+    private static void validateOutputs(File inputArtifact, File outputDir, List<File> outputs) {
+        String inputFilePrefix = inputArtifact.getPath() + File.separator;
         String outputDirPrefix = outputDir.getPath() + File.separator;
         for (File output : outputs) {
             ArtifactTransformOutputsInternal.validateOutputExists(output);
-            ArtifactTransformOutputsInternal.determineOutputLocationType(output, primaryInput, inputFilePrefix, outputDir, outputDirPrefix);
+            ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputFilePrefix, outputDir, outputDirPrefix);
         }
     }
 
@@ -79,7 +79,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
         return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
     }
 
