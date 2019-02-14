@@ -64,6 +64,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -140,7 +141,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected FileResolver createFileResolver(Factory<PatternSet> patternSetFactory) {
-        return new BaseDirFileResolver(get(FileSystem.class), project.getProjectDir(), patternSetFactory);
+        return new BaseDirFileResolver(project.getProjectDir(), patternSetFactory);
     }
 
     protected SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
@@ -155,8 +156,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory);
+    protected DefaultFileOperations createFileOperations(FileResolver fileResolver, TemporaryFileProvider temporaryFileProvider, Instantiator instantiator, FileLookup fileLookup, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher, TextResourceLoader textResourceLoader, FileCollectionFactory fileCollectionFactory, FileSystem fileSystem) {
+        return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory) {
@@ -188,8 +189,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), instantiatorFactory.inject(this), target, buildOperationExecutor, userCodeApplicationContext, decorator);
     }
 
-    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, InstantiatorFactory instantiatorFactory) {
-        return parentFactory.createChild(project, instantiatorFactory.injectAndDecorate(this));
+    protected ITaskFactory createTaskFactory(ITaskFactory parentFactory, TaskScheme taskScheme) {
+        return parentFactory.createChild(project, taskScheme.getInstantiationScheme().withServices(this));
     }
 
     protected TaskInstantiator createTaskInstantiator(ITaskFactory taskFactory) {

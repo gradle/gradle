@@ -23,12 +23,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
      * Caller should add elements to the 'inputFiles' property to make them inputs to the transform
      */
     def setupBuildWithTransformFileInputs() {
-        buildFile << """
-            def makeGreenParameters(project, params) { 
-                params.someFiles.from { project.inputFiles }
-            }
-        """
-        setupBuildWithColorTransform()
+        setupBuildWithColorTransform {
+            params("""
+                someFiles.from { project.inputFiles }
+            """)
+        }
         buildFile << """
             @TransformAction(MakeGreenAction)
             interface MakeGreen {
@@ -39,12 +38,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             abstract class MakeGreenAction implements ArtifactTransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
-                    def output = outputs.registerOutput(input.name + ".green")
+                    def output = outputs.file(input.name + ".green")
                     output.text = "ok"
                 }
             }
@@ -60,8 +59,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             allprojects {
                 ext.inputFiles = files('a.txt', 'b.txt')
             }
-        """
-        buildFile << """
             
             project(':a') {
                 dependencies {
@@ -99,12 +96,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools 'test:tool-a:1.2'
                     tools 'test:tool-b:1.2'
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }
@@ -127,13 +119,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         setupBuildWithTransformFileInputs()
         buildFile << """
             allprojects {
-                task tool(type: Producer) {
-                    outputFile = file("build/tool-\${project.name}.jar")
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.outputFile)                
+                ext.inputFiles = files(tool.output)                
             }
-        """
-        buildFile << """
+
             project(':a') {
                 dependencies {
                     implementation project(':b')
@@ -160,12 +151,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         setupBuildWithTransformFileInputs()
         buildFile << """
             abstract class MakeRedAction implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
                     println "processing \${input.name} wit MakeRedAction"
-                    def output = outputs.registerOutput(input.name + ".red")
+                    def output = outputs.file(input.name + ".red")
                     output.text = "ok"
                 }
             }
@@ -191,12 +182,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools project(':d')
                     tools project(':e')
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }
@@ -254,12 +240,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 dependencies {
                     tools 'test:tool-a:1.2'
                     tools 'test:tool-b:1.2'
-                }
-            }
-"""
-        buildFile << """
-            project(':a') {
-                dependencies {
+
                     implementation project(':b')
                     implementation project(':c')
                 }

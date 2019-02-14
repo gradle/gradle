@@ -495,7 +495,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         then:
         def deps = metadata.dependencies
-        deps.size() == 3
+        deps.size() == 2
         def dep = metadata.dependencies[0]
         dep.selector == moduleId('group-two', 'artifact-two', '1.2')
         dep.scope == MavenScope.Compile

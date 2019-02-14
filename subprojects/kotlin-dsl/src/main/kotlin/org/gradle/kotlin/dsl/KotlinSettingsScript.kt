@@ -26,6 +26,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultFileOperations
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
@@ -40,6 +41,7 @@ import org.gradle.api.tasks.WorkResult
 
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
 import org.gradle.internal.service.ServiceRegistry
@@ -54,7 +56,6 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-import org.gradle.process.internal.ExecFactory
 
 import java.io.File
 import java.net.URI
@@ -436,8 +437,9 @@ fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
 internal
 fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
     val fileLookup = services.get<FileLookup>()
+    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
     return DefaultFileOperations(
-        baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver,
+        fileResolver,
         null,
         null,
         services.get<Instantiator>(),
@@ -445,6 +447,7 @@ fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations
         services.get<DirectoryFileTreeFactory>(),
         services.get<StreamHasher>(),
         services.get<FileHasher>(),
-        services.get<ExecFactory>(),
-        services.get<TextResourceLoader>())
+        services.get<TextResourceLoader>(),
+        DefaultFileCollectionFactory(fileResolver, null),
+        services.get<FileSystem>())
 }

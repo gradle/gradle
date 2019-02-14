@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.ArtifactTransformAction;
+import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
+import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedInputStream;
@@ -26,8 +28,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -38,21 +38,23 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * is located in the output directory of the transform and is named after the zipped file name
  * minus the extension.
  */
-public class UnzipTransform extends ArtifactTransform {
+public interface UnzipTransform extends ArtifactTransformAction {
+
+    @InputArtifact
+    File getZippedFile();
 
     @Override
-    public List<File> transform(File zippedFile) {
-        String unzippedDirName = removeExtension(zippedFile.getName());
-        File unzipDir = new File(getOutputDirectory(), unzippedDirName);
+    default void transform(ArtifactTransformOutputs outputs) {
+        String unzippedDirName = removeExtension(getZippedFile().getName());
+        File unzipDir = outputs.dir(unzippedDirName);
         try {
-            unzipTo(zippedFile, unzipDir);
+            unzipTo(getZippedFile(), unzipDir);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        return Collections.singletonList(unzipDir);
     }
 
-    private void unzipTo(File headersZip, File unzipDir) throws IOException {
+    static void unzipTo(File headersZip, File unzipDir) throws IOException {
         ZipInputStream inputStream = new ZipInputStream(new BufferedInputStream(new FileInputStream(headersZip)));
         try {
             ZipEntry entry;

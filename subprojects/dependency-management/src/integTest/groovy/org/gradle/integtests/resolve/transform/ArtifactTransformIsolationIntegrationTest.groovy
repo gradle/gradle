@@ -23,7 +23,7 @@ import spock.lang.IgnoreIf
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
  */
-class ArtifactTransformIsolationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -98,7 +98,7 @@ class Resolve extends Copy {
                 @TransformParameters
                 abstract CountRecorder getParameters()                  
 
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
 
                 CountRecorderAction() {
@@ -106,7 +106,7 @@ class Resolve extends Copy {
                 }
                 
                 void transform(ArtifactTransformOutputs outputs) {
-                    def output = outputs.registerOutput(input.name + ".txt")
+                    def output = outputs.file(input.name + ".txt")
                     def counter = parameters.counter
                     println "Transforming \${input.name} to \${output.name}"
                     output.withWriter { out ->

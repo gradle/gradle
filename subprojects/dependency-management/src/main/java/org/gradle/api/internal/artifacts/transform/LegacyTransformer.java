@@ -22,10 +22,12 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -39,9 +41,9 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     private final HashCode secondaryInputsHash;
     private final Isolatable<Object[]> isolatableParameters;
 
-    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiatorFactory instantiatorFactory, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
+    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Object[] parameters, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory) {
         super(implementationClass, fromAttributes);
-        this.instantiator = instantiatorFactory.inject();
+        this.instantiator = actionInstantiationScheme.instantiator();
         this.isolatableParameters = isolatableFactory.isolate(parameters);
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
@@ -51,19 +53,34 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
-        List<File> outputs = transformer.transform(primaryInput);
+        List<File> outputs = transformer.transform(inputArtifact);
         if (outputs == null) {
             throw new InvalidUserDataException("Transform returned null result.");
         }
-        return validateOutputs(primaryInput, outputDir, ImmutableList.copyOf(outputs));
+        validateOutputs(inputArtifact, outputDir, outputs);
+        return ImmutableList.copyOf(outputs);
+    }
+
+    private static void validateOutputs(File inputArtifact, File outputDir, List<File> outputs) {
+        String inputFilePrefix = inputArtifact.getPath() + File.separator;
+        String outputDirPrefix = outputDir.getPath() + File.separator;
+        for (File output : outputs) {
+            ArtifactTransformOutputsInternal.validateOutputExists(output);
+            ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputFilePrefix, outputDir, outputDirPrefix);
+        }
     }
 
     @Override
     public HashCode getSecondaryInputHash() {
         return secondaryInputsHash;
+    }
+
+    @Override
+    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
+        return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
     }
 
     @Override

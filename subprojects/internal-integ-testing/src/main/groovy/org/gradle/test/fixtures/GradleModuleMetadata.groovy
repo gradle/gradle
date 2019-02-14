@@ -19,6 +19,7 @@ package org.gradle.test.fixtures
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import groovy.transform.Canonical
+import groovy.transform.EqualsAndHashCode
 import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -386,6 +387,7 @@ class GradleModuleMetadata {
         }
     }
 
+    @EqualsAndHashCode
     static class Coords {
         final String group
         final String module
@@ -416,6 +418,7 @@ class GradleModuleMetadata {
         }
     }
 
+    @EqualsAndHashCode
     static class ModuleReference extends Coords {
         final String url
 
@@ -429,6 +432,7 @@ class GradleModuleMetadata {
         }
     }
 
+    @EqualsAndHashCode
     static class Dependency extends Coords {
         final List<String> excludes
 
@@ -446,6 +450,7 @@ class GradleModuleMetadata {
         }
     }
 
+    @EqualsAndHashCode
     static class DependencyConstraint extends Coords {
         DependencyConstraint(String group, String module, String version, String prefers, String strictly, List<String> rejectedVersions, String reason, Map<String, String> attributes) {
             super(group, module, version, prefers, strictly, rejectedVersions, reason, attributes)

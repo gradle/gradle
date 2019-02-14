@@ -423,4 +423,64 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         dep.constraint
         !dep.transitive
     }
+
+    def 'exclusion on imported BOM is ignored'() {
+        given:
+        def bomFile = tmpDir.file('bom.xml') << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>bom</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-b</groupId>
+                <artifactId>module-b</artifactId>
+                <version>1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-a</groupId>
+    <artifactId>project</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>group-a</groupId>
+                <artifactId>bom</artifactId>
+                <version>1.0</version>
+                <scope>import</scope>
+                <type>pom</type>
+                <exclusions>
+                    <exclusion>
+                        <groupId>group-b</groupId>
+                        <artifactId>module-b</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>
+"""
+        parseContext.getMetaDataArtifact({ it.selector.module == 'bom' }, _, MAVEN_POM) >> asResource(bomFile)
+
+        when:
+        parsePom()
+
+        then:
+        def dep = single(metadata.dependencies)
+        dep.selector == moduleId('group-b', 'module-b', '1.0')
+        dep.constraint
+
+    }
 }

@@ -17,38 +17,72 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
-    private final File workspace;
+    private final Set<File> outputDirectories = new HashSet<>();
+    private final Set<File> outputFiles = new HashSet<>();
+    private final PathToFileResolver resolver;
+    private final File inputArtifact;
+    private final File outputDir;
+    private final String inputArtifactPrefix;
+    private final String outputDirPrefix;
 
-    public DefaultArtifactTransformOutputs(File workspace) {
-        this.workspace = workspace;
-    }
-
-    @Override
-    public File registerOutput(String relativePath) {
-        File outputFile = new File(workspace, relativePath);
-        outputsBuilder.add(outputFile);
-        return outputFile;
-    }
-
-    @Override
-    public void registerOutputFile(File output) {
-        outputsBuilder.add(output);
-    }
-
-    @Override
-    public File registerWorkspaceAsOutputDirectory() {
-        outputsBuilder.add(workspace);
-        return workspace;
+    public DefaultArtifactTransformOutputs(File inputArtifact, File outputDir) {
+        this.resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
+        this.inputArtifact = inputArtifact;
+        this.outputDir = outputDir;
+        this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
+        this.outputDirPrefix = outputDir.getPath() + File.separator;
     }
 
     @Override
     public ImmutableList<File> getRegisteredOutputs() {
-        return outputsBuilder.build();
+        ImmutableList<File> outputs = outputsBuilder.build();
+        for (File output : outputs) {
+            ArtifactTransformOutputsInternal.validateOutputExists(output);
+            if (outputFiles.contains(output) && !output.isFile()) {
+                throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
+            }
+            if (outputDirectories.contains(output) && !output.isDirectory()) {
+                throw new InvalidUserDataException("Transform output directory " + output.getPath() + " must be a directory, but is not.");
+            }
+        }
+        return outputs;
+    }
+
+    @Override
+    public File dir(Object path) {
+        File outputDir = resolveAndRegister(path, location -> GFileUtils.mkdirs(location));
+        outputDirectories.add(outputDir);
+        return outputDir;
+    }
+
+    @Override
+    public File file(Object path) {
+        File outputFile = resolveAndRegister(path, location -> GFileUtils.mkdirs(location.getParentFile()));
+        outputFiles.add(outputFile);
+        return outputFile;
+    }
+
+    private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
+        File output = resolver.resolve(path);
+        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputArtifactPrefix, outputDir, outputDirPrefix);
+        if (outputLocationType == OutputLocationType.WORKSPACE) {
+            prepareOutputLocation.accept(output);
+        }
+        outputsBuilder.add(output);
+        return output;
     }
 }

@@ -40,6 +40,11 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     }
 
     @Override
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+        return snapshot.getName();
+    }
+
+    @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(Iterable<FileSystemSnapshot> roots) {
         final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
         final HashSet<String> processedEntries = new HashSet<String>();

@@ -58,7 +58,7 @@ class DefaultFileOperationsTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory)
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem())
     }
 
     def resolvesFile() {

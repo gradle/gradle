@@ -29,10 +29,10 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -50,7 +50,6 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
-import org.gradle.api.publish.maven.internal.versionmapping.DefaultVariantVersionMappingStrategy;
 import org.gradle.api.publish.maven.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
@@ -61,6 +60,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -122,7 +122,15 @@ public class MavenPublishPlugin implements Plugin<Project> {
         project.getExtensions().configure(PublishingExtension.class, new Action<PublishingExtension>() {
             @Override
             public void execute(PublishingExtension extension) {
-                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(dependencyMetaDataProvider, instantiatorFactory.decorateLenient(), fileResolver, collectionCallbackActionDecorator, project.getConfigurations(), project.getPluginManager(), project.getExtensions()));
+                extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
+                        dependencyMetaDataProvider,
+                        instantiatorFactory.decorateLenient(),
+                        fileResolver,
+                        collectionCallbackActionDecorator,
+                        project.getConfigurations(),
+                        project.getPluginManager(),
+                        project.getExtensions(),
+                        (AttributesSchemaInternal) project.getDependencies().getAttributesSchema()));
                 realizePublishingTasksLater(project, extension);
             }
         });
@@ -243,6 +251,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final ConfigurationContainer configurations;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
+        private final AttributesSchemaInternal attributesSchema;
 
         private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
                                         Instantiator instantiator,
@@ -250,7 +259,8 @@ public class MavenPublishPlugin implements Plugin<Project> {
                                         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                         ConfigurationContainer configurations,
                                         PluginManager plugins,
-                                        ExtensionContainer extensionContainer) {
+                                        ExtensionContainer extensionContainer,
+                                        AttributesSchemaInternal attributesSchema) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
@@ -258,12 +268,17 @@ public class MavenPublishPlugin implements Plugin<Project> {
             this.configurations = configurations;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
+            this.attributesSchema = attributesSchema;
         }
 
         public MavenPublication create(final String name) {
             MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
             NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
-            VersionMappingStrategyInternal versionMappingStrategy = instantiator.newInstance(DefaultVersionMappingStrategy.class, objectFactory, configurations);
+            VersionMappingStrategyInternal versionMappingStrategy = instantiator.newInstance(DefaultVersionMappingStrategy.class,
+                    objectFactory,
+                    configurations,
+                    attributesSchema,
+                    immutableAttributesFactory);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
             return instantiator.newInstance(
                     DefaultMavenPublication.class,
@@ -285,20 +300,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
             plugins.withPlugin("org.gradle.java", plugin -> {
                 SourceSet mainSourceSet = extensionContainer.getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
                 // setup the default configurations used when mapping to resolved versions
-                versionMappingStrategy.usage(Usage.JAVA_API_JARS, strategy -> {
-                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
-                    mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getCompileClasspathConfigurationName()));
-                });
-                versionMappingStrategy.usage(Usage.JAVA_RUNTIME_JARS, strategy -> {
-                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
-                    mapping.setTargetConfiguration(configurations.getByName(mainSourceSet.getRuntimeClasspathConfigurationName()));
-                });
+                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, mainSourceSet.getCompileClasspathConfigurationName());
+                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, mainSourceSet.getRuntimeClasspathConfigurationName());
             });
             plugins.withPlugin("org.gradle.java-platform", plugin -> {
-                versionMappingStrategy.allVariants(strategy -> {
-                    DefaultVariantVersionMappingStrategy mapping = (DefaultVariantVersionMappingStrategy) strategy;
-                    mapping.setTargetConfiguration(configurations.getByName(JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME));
-                });
+                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
+                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
             });
         }
 

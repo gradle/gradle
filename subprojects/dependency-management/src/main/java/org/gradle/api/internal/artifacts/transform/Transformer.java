@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * The actual code which needs to be executed to transform a file.
@@ -40,7 +41,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean requiresDependencies();
 
-    List<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies);
+    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -50,4 +51,6 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     HashCode getSecondaryInputHash();
 
     void isolateParameters();
+
+    FingerprintingStrategy getInputArtifactFingerprintingStrategy();
 }

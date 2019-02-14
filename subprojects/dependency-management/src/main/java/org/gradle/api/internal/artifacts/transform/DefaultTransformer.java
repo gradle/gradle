@@ -22,8 +22,8 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.PrimaryInput;
-import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -41,12 +41,13 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
-import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceLookup;
@@ -68,10 +69,11 @@ import java.util.stream.Collectors;
 public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
 
     private final Object parameterObject;
+    private final FingerprintingStrategy fingerprintingStrategy;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
-    private final PropertyWalker propertyWalker;
+    private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
     private final DomainObjectProjectStateHandler projectStateHandler;
@@ -80,15 +82,16 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker propertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme instantiationScheme) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, FingerprintingStrategy fingerprintingStrategy, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
+        this.fingerprintingStrategy = fingerprintingStrategy;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
-        this.propertyWalker = propertyWalker;
-        this.instanceFactory = instantiationScheme.forType(implementationClass);
-        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
+        this.parameterPropertyWalker = parameterPropertyWalker;
+        this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
+        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
@@ -105,6 +108,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         };
     }
 
+    @Override
+    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
+        return fingerprintingStrategy;
+    }
+
     public boolean requiresDependencies() {
         return requiresDependencies;
     }
@@ -115,12 +123,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     @Override
-    public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransformAction transformAction = newTransformAction(primaryInput, dependencies);
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(outputDir);
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+        ArtifactTransformAction transformAction = newTransformAction(inputArtifact, dependencies);
+        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(inputArtifact, outputDir);
         transformAction.transform(transformOutputs);
-        ImmutableList<File> outputs = transformOutputs.getRegisteredOutputs();
-        return validateOutputs(primaryInput, outputDir, outputs);
+        return transformOutputs.getRegisteredOutputs();
     }
 
     @Override
@@ -155,7 +162,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, propertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
@@ -236,12 +243,12 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         public TransformServiceLookup(File inputFile, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(new InjectionPoint(PrimaryInput.class, File.class, inputFile));
+            builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
             if (parameters != null) {
                 builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(new InjectionPoint(PrimaryInputDependencies.class, artifactTransformDependencies.getFiles()));
+                builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
             }
             this.injectionPoints = builder.build();
         }

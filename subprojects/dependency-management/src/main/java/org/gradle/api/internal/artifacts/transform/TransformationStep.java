@@ -60,12 +60,12 @@ public class TransformationStep implements Transformation {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
-        ImmutableList<File> primaryInputs = subjectToTransform.getFiles();
+        ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
         transformer.isolateParameters();
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
-            for (File primaryInput : primaryInputs) {
-                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, primaryInput, dependencies, subjectToTransform);
+            for (File inputArtifact : inputArtifacts) {
+                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, inputArtifact, dependencies, subjectToTransform);
 
                 if (result.getFailure().isPresent()) {
                     return Try.failure(result.getFailure().get());

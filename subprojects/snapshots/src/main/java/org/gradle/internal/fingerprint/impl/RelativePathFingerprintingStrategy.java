@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -39,6 +40,15 @@ public class RelativePathFingerprintingStrategy extends AbstractFingerprintingSt
     public RelativePathFingerprintingStrategy(StringInterner stringInterner) {
         super("RELATIVE_PATH", NormalizedPathFingerprintCompareStrategy.INSTANCE);
         this.stringInterner = stringInterner;
+    }
+
+    @Override
+    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+        if (snapshot.getType() == FileType.Directory) {
+            return "";
+        } else {
+            return snapshot.getName();
+        }
     }
 
     @Override
