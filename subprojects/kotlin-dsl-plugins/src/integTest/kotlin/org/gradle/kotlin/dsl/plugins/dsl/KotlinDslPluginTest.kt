@@ -26,7 +26,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api dependency is added`() {
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
@@ -47,7 +46,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -102,7 +100,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -195,7 +192,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
@@ -290,7 +286,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
 
-        withSettingsIn("buildSrc", pluginManagementBlock)
+        withDefaultSettingsIn("buildSrc")
 
         withBuildScriptIn("buildSrc", """
 
@@ -327,7 +323,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
 
             task("test") {

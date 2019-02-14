@@ -27,7 +27,6 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
     @Before
     fun setupPluginTest() {
         requireGradleDistributionOnEmbeddedExecuter()
-        withDefaultSettings()
     }
 
     protected

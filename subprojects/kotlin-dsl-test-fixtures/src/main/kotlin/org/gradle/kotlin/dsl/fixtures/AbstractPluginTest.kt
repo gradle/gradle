@@ -1,7 +1,11 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.util.TextUtil.normaliseFileSeparators
+
+import org.junit.Before
+
 import java.io.File
+
 import java.util.Properties
 
 
@@ -10,6 +14,11 @@ import java.util.Properties
  * You must apply the `kotlin-dsl-plugin-bundle` plugin for this to work.
  */
 open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
+
+    @Before
+    fun setUpDefaultSetttings() {
+        withDefaultSettings()
+    }
 
     override val defaultSettingsScript: String
         get() = pluginManagementBlock

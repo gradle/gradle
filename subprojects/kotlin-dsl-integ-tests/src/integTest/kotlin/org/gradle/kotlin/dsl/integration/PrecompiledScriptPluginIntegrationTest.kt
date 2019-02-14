@@ -14,7 +14,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
@@ -44,9 +43,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val secondLocation = "second-location"
         val cacheDir = newDir("cache-dir")
 
-        withSettingsIn(firstLocation, """
+        withDefaultSettingsIn(firstLocation).appendText("""
             rootProject.name = "test"
-            $pluginManagementBlock
             buildCache {
                 local<DirectoryBuildCache> {
                     directory = file("${cacheDir.normalisedPath}")
@@ -86,7 +84,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins { `kotlin-dsl` }
             repositories { jcenter() }

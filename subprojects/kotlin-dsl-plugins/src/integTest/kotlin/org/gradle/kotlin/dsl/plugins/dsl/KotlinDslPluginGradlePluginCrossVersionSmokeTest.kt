@@ -80,7 +80,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin>()
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
