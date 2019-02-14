@@ -23,10 +23,16 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.time.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.List;
 
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
@@ -36,6 +42,10 @@ public class Deleter {
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
+    static final int MAX_REPORTED_PATHS = 16;
+
+    static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
+    static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
     public Deleter(FileResolver fileResolver, FileSystem fileSystem) {
         this.fileResolver = fileResolver;
@@ -69,6 +79,16 @@ public class Deleter {
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
+        long startTime = Time.currentTimeMillis();
+        Collection<String> failedPaths = new ArrayList<String>();
+        deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
+        if (!failedPaths.isEmpty()) {
+            throwWithHelpMessage(startTime, file, deleteSpec, failedPaths, false);
+        }
+    }
+
+    private void deleteRecursively(long startTime, File baseDir, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths) {
+
         if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
             File[] contents = file.listFiles();
 
@@ -78,20 +98,25 @@ public class Deleter {
             }
 
             for (File item : contents) {
-                doDeleteInternal(item, deleteSpec);
+                deleteRecursively(startTime, baseDir, item, deleteSpec, failedPaths);
             }
         }
 
-        if (!file.delete() && file.exists()) {
-            handleFailedDelete(file);
+        if (!deleteFile(file)) {
+            handleFailedDelete(file, failedPaths);
+
+            // Fail fast
+            if (failedPaths.size() == MAX_REPORTED_PATHS) {
+                throwWithHelpMessage(startTime, baseDir, deleteSpec, failedPaths, true);
+            }
         }
     }
 
-    private boolean isRunGcOnFailedDelete() {
-        return OperatingSystem.current().isWindows();
+    protected boolean deleteFile(File file) {
+        return file.delete() && !file.exists();
     }
 
-    private void handleFailedDelete(File file) {
+    private void handleFailedDelete(File file, Collection<String> failedPaths) {
         // This is copied from Ant (see org.apache.tools.ant.util.FileUtils.tryHardToDelete).
         // It mentions that there is a bug in the Windows JDK impls that this is a valid
         // workaround for. I've been unable to find a definitive reference to this bug.
@@ -105,8 +130,81 @@ public class Deleter {
             Thread.currentThread().interrupt();
         }
 
-        if (!file.delete() && file.exists()) {
-            throw new UnableToDeleteFileException(file);
+        if (!deleteFile(file)) {
+            failedPaths.add(file.getAbsolutePath());
         }
+    }
+
+    private boolean isRunGcOnFailedDelete() {
+        return OperatingSystem.current().isWindows();
+    }
+
+    private void throwWithHelpMessage(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
+        throw new UnableToDeleteFileException(file, buildHelpMessageForFailedDelete(startTime, file, deleteSpec, failedPaths, more));
+    }
+
+    private String buildHelpMessageForFailedDelete(long startTime, File file, DeleteSpecInternal deleteSpec, Collection<String> failedPaths, boolean more) {
+
+        boolean isSymlink = fileSystem.isSymlink(file);
+        boolean isDirectory = file.isDirectory();
+
+        StringBuilder help = new StringBuilder("Unable to delete ");
+        if (isSymlink) {
+            help.append("symlink to ");
+        }
+        if (isDirectory) {
+            help.append("directory ");
+        } else {
+            help.append("file ");
+        }
+        help.append('\'').append(file).append('\'');
+
+        if (isDirectory && (deleteSpec.isFollowSymlinks() || !isSymlink)) {
+
+            String absolutePath = file.getAbsolutePath();
+            failedPaths.remove(absolutePath);
+            if (!failedPaths.isEmpty()) {
+                help.append("\n  ").append(HELP_FAILED_DELETE_CHILDREN);
+                for (String failed : failedPaths) {
+                    help.append("\n  - ").append(failed);
+                }
+                if (more) {
+                    help.append("\n  - and more ...");
+                }
+            }
+
+            Collection<String> newPaths = listNewPaths(startTime, file);
+            if (!newPaths.isEmpty()) {
+                help.append("\n  ").append(HELP_NEW_CHILDREN);
+                for (String newPath : newPaths) {
+                    help.append("\n  - ").append(newPath);
+                }
+                if (newPaths.size() == MAX_REPORTED_PATHS) {
+                    help.append("\n  - and more ...");
+                }
+            }
+        }
+        return help.toString();
+    }
+
+    private Collection<String> listNewPaths(long startTime, File directory) {
+        List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
+        Deque<File> stack = new ArrayDeque<File>();
+        stack.push(directory);
+        while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
+            File current = stack.pop();
+            if (!current.equals(directory) && current.lastModified() >= startTime) {
+                paths.add(current.getAbsolutePath());
+            }
+            if (current.isDirectory()) {
+                File[] children = current.listFiles();
+                if (children != null) {
+                    for (File child : children) {
+                        stack.push(child);
+                    }
+                }
+            }
+        }
+        return paths;
     }
 }

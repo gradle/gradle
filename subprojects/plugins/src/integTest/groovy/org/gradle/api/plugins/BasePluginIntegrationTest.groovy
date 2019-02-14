@@ -15,9 +15,12 @@
  */
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.file.delete.Deleter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -37,7 +40,9 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         fails "clean"
 
         then:
-        failure.assertHasCause("Unable to delete file")
+        failure.assertHasCause("Unable to delete directory '${file('build')}'")
+        failure.assertThatCause(containsString(Deleter.HELP_FAILED_DELETE_CHILDREN))
+        failure.assertThatCause(containsString(file("build/newFile").absolutePath))
 
         cleanup:
         lock?.release()
