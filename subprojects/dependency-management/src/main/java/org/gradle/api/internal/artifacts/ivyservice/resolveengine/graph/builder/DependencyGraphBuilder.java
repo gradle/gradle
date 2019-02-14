@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -49,6 +50,7 @@ import org.gradle.api.internal.attributes.CompatibilityRule;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
@@ -206,7 +208,8 @@ public class DependencyGraphBuilder {
                         for (ComponentState version : versions) {
                             List<NodeState> nodes = version.getNodes();
                             for (NodeState nodeState : nodes) {
-                                if (nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
+                                // Collect nodes as implicit capability providers if different than current node, selected and not having explicit capabilities
+                                if (node != nodeState && nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
                                     implicitProvidersForCapability.add(nodeState);
                                 }
                             }
@@ -347,7 +350,13 @@ public class DependencyGraphBuilder {
             ComponentState selected = module.getSelected();
             if (selected != null) {
                 if (selected.isRejected()) {
-                    GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                    Pair<Capability, Collection<NodeState>> capabilityConflict = selected.getRejectedForCapabilityConflict();
+                    GradleException error;
+                    if (capabilityConflict != null) {
+                        error = new GradleException(formatCapabilityRejectMessage(module.getId(), capabilityConflict));
+                    } else {
+                        error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                    }
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
@@ -363,6 +372,16 @@ public class DependencyGraphBuilder {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
+    }
+
+    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        StringBuilder sb = new StringBuilder("Module '");
+        sb.append(id).append("' has been rejected:\n");
+        sb.append("   Cannot select module with conflict on ");
+        Capability capability = capabilityConflict.left;
+        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
+        sb.append(capabilityConflict.getRight());
+        return sb.toString();
     }
 
     /**

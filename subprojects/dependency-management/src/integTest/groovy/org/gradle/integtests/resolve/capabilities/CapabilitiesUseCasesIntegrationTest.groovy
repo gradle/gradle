@@ -107,7 +107,12 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 }
             }
         } else {
-            failure.assertHasCause("Cannot choose between cglib:cglib-nodep:3.2.5 and cglib:cglib:3.2.5 because they provide the same capability: cglib:cglib:3.2.5")
+            def variant = 'runtime'
+            if (!isGradleMetadataEnabled() && useIvy()) {
+                variant = 'default'
+            }
+            failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
         }
 
         where:
@@ -217,7 +222,16 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Cannot choose between org.apache:groovy-all:1.0 and org.apache:groovy:1.0 because they provide the same capability: org.apache:groovy:1.0")
+            def variant = 'runtime'
+            if (!isGradleMetadataEnabled() && useIvy()) {
+                variant = 'default'
+            }
+            failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy:1.0' also provided by [org.apache:groovy-all:1.0($variant)]""")
+            failure.assertHasCause("""Module 'org.apache:groovy-json' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by [org.apache:groovy-all:1.0($variant)]""")
+            failure.assertHasCause("""Module 'org.apache:groovy-all' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by [org.apache:groovy-json:1.0($variant)]""")
         }
 
         where:
@@ -330,7 +344,16 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Cannot choose between org.apache:groovy-all:1.0 and org.apache:groovy:1.0 because they provide the same capability: org.apache:groovy:1.0")
+            def variant = 'runtime'
+            if (!isGradleMetadataEnabled() && useIvy()) {
+                variant = 'default'
+            }
+            failure.assertHasCause("""Module 'org.apache:groovy' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy:1.0' also provided by [org.apache:groovy-all:1.0($variant)]""")
+            failure.assertHasCause("""Module 'org.apache:groovy-json' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by [org.apache:groovy-all:1.0($variant)]""")
+            failure.assertHasCause("""Module 'org.apache:groovy-all' has been rejected:
+   Cannot select module with conflict on capability 'org.apache:groovy-json:1.0' also provided by [org.apache:groovy-json:1.0($variant)]""")
         }
 
         where:
@@ -480,7 +503,10 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
                 }
             }
         } else {
-            failure.assertHasCause("Cannot choose between org:testA:1.0 and org:testB:1.0 because they provide the same capability: org.test:cap:1.0")
+            failure.assertHasCause("""Module 'org:testA' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:testB:1.0(runtime)]""")
+            failure.assertHasCause("""Module 'org:testB' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:testA:1.0(runtime)]""")
         }
 
         where:

@@ -198,7 +198,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org:test:1.0")
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org:test:1.0' also provided by [org:test:1.0(api), org:test:1.0(runtime)]""")
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
@@ -255,7 +256,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         if (conflict) {
-            failure.assertHasCause("Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org.test:cap:1.0")
+            failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:test:1.0(runtime), org:test:1.0(api)]""")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
@@ -512,7 +514,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("Cannot choose between org:foo:1.1 variant api and org:foo:1.1 variant runtime because they provide the same capability: org:foo:1.1")
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
+   Cannot select module with conflict on capability 'org:foo:1.1' also provided by [org:foo:1.1(runtime), org:foo:1.1(api)]""")
 
     }
 
@@ -676,7 +679,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:foo:1.0')
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
+   Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:bar:1.0(runtime)]""")
+        failure.assertHasCause("""Module 'org:bar' has been rejected:
+   Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:foo:1.0(runtime)]""")
     }
 
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
@@ -722,7 +728,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause('Cannot choose between org:bar:1.0 and org:foo:1.0 because they provide the same capability: org:blah:1.0')
+        failure.assertHasCause("""Module 'org:foo' has been rejected:
+   Cannot select module with conflict on capability 'org:blah:1.0' also provided by [org:bar:1.0(runtime)]""")
+        failure.assertHasCause("""Module 'org:bar' has been rejected:
+   Cannot select module with conflict on capability 'org:blah:1.0' also provided by [org:foo:1.0(runtime)]""")
     }
 
     @Ignore

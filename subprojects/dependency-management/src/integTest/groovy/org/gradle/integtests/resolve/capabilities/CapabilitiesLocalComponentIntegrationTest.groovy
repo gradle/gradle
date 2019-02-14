@@ -48,10 +48,11 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        fails 'dependencies'
+        fails 'compileJava'
 
         then:
-        failure.assertHasCause("Cannot choose between :test:unspecified and test:b:unspecified because they provide the same capability: org:capability:1.0")
+        failure.assertHasCause("""Module 'test:b' has been rejected:
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(compileClasspath)]""")
     }
 
 }

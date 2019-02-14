@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -72,6 +73,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     private boolean rejected;
     private boolean root;
+    private Pair<Capability, Collection<NodeState>> capabilityReject;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
@@ -132,8 +134,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    public ModuleResolveState getModule() {
+    ModuleResolveState getModule() {
         return module;
+    }
+
+    public void selectAndRestartModule() {
+        module.restart(this);
     }
 
     @Override
@@ -336,12 +342,33 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public void reject() {
         this.rejected = true;
+    }
 
+    public void rejectForCapabilityConflict(Pair<Capability, Collection<NodeState>> capabilityReject) {
+        this.rejected = true;
+        if (this.capabilityReject == null) {
+            this.capabilityReject = capabilityReject;
+        } else {
+            mergeCapabilityRejects(capabilityReject);
+        }
+    }
+
+    private void mergeCapabilityRejects(Pair<Capability, Collection<NodeState>> capabilityReject) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capabilityReject.getLeft())) {
+            this.capabilityReject.getRight().addAll(capabilityReject.getRight());
+        } else {
+            this.capabilityReject = capabilityReject;
+        }
     }
 
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    public Pair<Capability, Collection<NodeState>> getRejectedForCapabilityConflict() {
+        return capabilityReject;
     }
 
     @Override
