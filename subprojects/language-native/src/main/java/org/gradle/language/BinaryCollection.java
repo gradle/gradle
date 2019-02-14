@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * A collection of binaries that are created and configured as they are required.
  *
- * <p>Each element in this collection passes through several states. The element is created and becomes 'known'. The element is passed to any actions registered using {@link #whenElementKnown(Action)}. The element is then configured using any actions registered using {@link #configureEach(Action)} and becomes 'finalized'. The element is passed to any actions registered using {@link #whenElementFinalized(Action)}. Elements are created and configured only when required.
+ * <p>Each element in this collection passes through several states. The element is created and becomes 'known'. The element is passed to any actions registered using {@link #whenElementKnown(Action)}. The element is then configured using any actions registered using {@link #configureEach(Action)} and becomes 'finalized'. Elements are created and configured only when required.
  *
  * @param <T> type of the elements in this container.
  * @since 4.5
