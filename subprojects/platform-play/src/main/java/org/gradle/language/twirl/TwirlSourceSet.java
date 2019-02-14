@@ -112,7 +112,7 @@ public interface TwirlSourceSet extends LanguageSourceSet {
      *
      * @param constructorAnnotations additional imports
      *
-     * @since 4.2
+     * @since 5.3
      */
     void setConstructorAnnotations(List<String> constructorAnnotations);
 
