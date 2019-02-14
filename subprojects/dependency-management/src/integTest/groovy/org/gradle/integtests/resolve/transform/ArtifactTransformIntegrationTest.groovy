@@ -809,7 +809,7 @@ $fileSizer
             }
             
             abstract class IdentityTransform implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -1667,7 +1667,7 @@ Found the following transforms:
             }
 
             abstract class TransformAction implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput() 
 
                 void transform(ArtifactTransformOutputs outputs) {

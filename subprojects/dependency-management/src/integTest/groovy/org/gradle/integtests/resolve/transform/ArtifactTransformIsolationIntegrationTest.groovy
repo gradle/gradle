@@ -98,7 +98,7 @@ class Resolve extends Copy {
                 @TransformParameters
                 abstract CountRecorder getParameters()                  
 
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
 
                 CountRecorderAction() {

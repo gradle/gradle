@@ -32,7 +32,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -140,7 +140,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -261,7 +261,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -324,7 +324,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements ArtifactTransformAction {
                 @PathSensitive(PathSensitivity.NONE)
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -403,7 +403,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements ArtifactTransformAction {
                 @PathSensitive(PathSensitivity.NAME_ONLY)
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -499,7 +499,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements ArtifactTransformAction {
                 @PathSensitive(PathSensitivity.NONE)
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -586,7 +586,7 @@ class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements ArtifactTransformAction {
                 @PathSensitive(PathSensitivity.NAME_ONLY)
-                @PrimaryInput
+                @InputArtifact
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {

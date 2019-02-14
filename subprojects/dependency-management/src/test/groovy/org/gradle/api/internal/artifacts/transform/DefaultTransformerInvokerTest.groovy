@@ -127,8 +127,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-            return ImmutableList.copyOf(transformationAction.apply(primaryInput, outputDir))
+        ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+            return ImmutableList.copyOf(transformationAction.apply(inputArtifact, outputDir))
         }
 
         @Override
@@ -137,7 +137,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+        FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
             return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING
         }
 
@@ -157,8 +157,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "executes transformations in workspace (#transformationType)"(TransformationType transformationType) {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         def transformer = TestTransformer.create { input, outputDir ->
             def outputFile = new File(outputDir, input.name)
             outputFile.text = input.text + "transformed"
@@ -166,7 +166,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, primaryInput, dependencies, dependency(transformationType, primaryInput))
+        def result = invoker.invoke(transformer, inputArtifact, dependencies, dependency(transformationType, inputArtifact))
 
         then:
         result.get().size() == 1
@@ -178,8 +178,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     def "up-to-date on second run"() {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         int transformerInvocations = 0
         def transformer = TestTransformer.create { input, outputDir ->
             transformerInvocations++
@@ -189,7 +189,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
 
         then:
         transformerInvocations == 1
@@ -197,7 +197,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
         then:
         transformerInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -205,8 +205,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     def "re-runs transform when previous execution failed"() {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         def failure = new RuntimeException("broken")
         int transformerInvocations = 0
         def transformer = TestTransformer.create { input, outputDir ->
@@ -221,7 +221,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        def result = invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
 
         then:
         transformerInvocations == 1
@@ -231,7 +231,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         wrappedFailure.cause == failure
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
         then:
         transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -239,8 +239,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     def "re-runs transform when output has been modified"() {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         File outputFile = null
         int transformerInvocations = 0
         def transformer = TestTransformer.create { input, outputDir ->
@@ -252,7 +252,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
         then:
         transformerInvocations == 1
         outputFile?.isFile()
@@ -261,15 +261,15 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         outputFile.text = "changed"
         fileSystemMirror.beforeBuildFinished()
 
-        invoker.invoke(transformer, primaryInput, dependencies, TransformationSubject.initial(primaryInput))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
         then:
         transformerInvocations == 2
     }
 
     @Unroll
     def "different workspace for different secondary inputs (#transformationType)"(TransformationType transformationType) {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         def workspaces = new HashSet<File>()
         def transformationAction = { File input, File workspace ->
             workspaces.add(workspace)
@@ -280,10 +280,10 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         def transformer1 = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
         def transformer2 = TestTransformer.create(HashCode.fromInt(4321), transformationAction)
 
-        def subject = dependency(transformationType, primaryInput)
+        def subject = dependency(transformationType, inputArtifact)
         when:
-        invoker.invoke(transformer1, primaryInput, dependencies, subject)
-        invoker.invoke(transformer2, primaryInput, dependencies, subject)
+        invoker.invoke(transformer1, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer2, inputArtifact, dependencies, subject)
 
         then:
         workspaces.size() == 2
@@ -294,10 +294,10 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
     @Unroll
     def "different workspace for different primary input paths (#transformationType)"(TransformationType transformationType) {
-        def primaryInput1 = temporaryFolder.file("input1")
-        primaryInput1.text = "my input"
-        def primaryInput2 = temporaryFolder.file("input2")
-        primaryInput1.text = "my input"
+        def inputArtifact1 = temporaryFolder.file("input1")
+        inputArtifact1.text = "my input"
+        def inputArtifact2 = temporaryFolder.file("input2")
+        inputArtifact1.text = "my input"
         def workspaces = new HashSet<File>()
         def transformationAction = { File input, File workspace ->
             workspaces.add(workspace)
@@ -307,14 +307,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
         def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
         when:
-        invoker.invoke(transformer, primaryInput1, dependencies, dependency(transformationType, primaryInput1))
+        invoker.invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1))
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
-        primaryInput1.text = "changed"
-        invoker.invoke(transformer, primaryInput2, dependencies, dependency(transformationType, primaryInput2))
+        inputArtifact1.text = "changed"
+        invoker.invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2))
 
         then:
         workspaces.size() == 2
@@ -324,8 +324,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     def "different workspace for different immutable primary inputs"() {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         def workspaces = new HashSet<File>()
         def transformationAction = { File input, File workspace ->
             workspaces.add(workspace)
@@ -334,25 +334,25 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
             return ImmutableList.of(outputFile)
         }
         def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
-        def subject = immutableDependency(primaryInput)
+        def subject = immutableDependency(inputArtifact)
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
-        primaryInput.text = "changed"
-        invoker.invoke(transformer, primaryInput, dependencies, subject)
+        inputArtifact.text = "changed"
+        invoker.invoke(transformer, inputArtifact, dependencies, subject)
 
         then:
         workspaces.size() == 2
     }
 
     def "same workspace for different mutable primary inputs"() {
-        def primaryInput = temporaryFolder.file("input")
-        primaryInput.text = "my input"
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
         def workspaces = new HashSet<File>()
         def transformationAction = { File input, File workspace ->
             workspaces.add(workspace)
@@ -361,17 +361,17 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
             return ImmutableList.of(outputFile)
         }
         def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
-        def subject = mutableDependency(primaryInput)
+        def subject = mutableDependency(inputArtifact)
 
         when:
-        invoker.invoke(transformer, primaryInput, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
-        primaryInput.text = "changed"
-        invoker.invoke(transformer, primaryInput, dependencies, subject)
+        inputArtifact.text = "changed"
+        invoker.invoke(transformer, inputArtifact, dependencies, subject)
 
         then:
         workspaces.size() == 1

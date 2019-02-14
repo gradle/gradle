@@ -34,16 +34,16 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
     private final Set<File> outputDirectories = new HashSet<>();
     private final Set<File> outputFiles = new HashSet<>();
     private final PathToFileResolver resolver;
-    private final File primaryInput;
+    private final File inputArtifact;
     private final File outputDir;
-    private final String primaryInputPrefix;
+    private final String inputArtifactPrefix;
     private final String outputDirPrefix;
 
-    public DefaultArtifactTransformOutputs(File primaryInput, File outputDir) {
+    public DefaultArtifactTransformOutputs(File inputArtifact, File outputDir) {
         this.resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
-        this.primaryInput = primaryInput;
+        this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
-        this.primaryInputPrefix = primaryInput.getPath() + File.separator;
+        this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
         this.outputDirPrefix = outputDir.getPath() + File.separator;
     }
 
@@ -78,7 +78,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
         File output = resolver.resolve(path);
-        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.determineOutputLocationType(output, primaryInput, primaryInputPrefix, outputDir, outputDirPrefix);
+        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputArtifactPrefix, outputDir, outputDirPrefix);
         if (outputLocationType == OutputLocationType.WORKSPACE) {
             prepareOutputLocation.accept(output);
         }

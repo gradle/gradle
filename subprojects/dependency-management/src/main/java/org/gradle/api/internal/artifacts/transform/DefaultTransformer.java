@@ -22,8 +22,8 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.PrimaryInput;
-import org.gradle.api.artifacts.transform.PrimaryInputDependencies;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -91,7 +91,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         this.valueSnapshotter = valueSnapshotter;
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
-        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(PrimaryInputDependencies.class);
+        this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
@@ -109,7 +109,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     @Override
-    public FingerprintingStrategy getPrimaryInputFingerprintingStrategy() {
+    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
         return fingerprintingStrategy;
     }
 
@@ -123,9 +123,9 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     @Override
-    public ImmutableList<File> transform(File primaryInput, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransformAction transformAction = newTransformAction(primaryInput, dependencies);
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(primaryInput, outputDir);
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+        ArtifactTransformAction transformAction = newTransformAction(inputArtifact, dependencies);
+        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(inputArtifact, outputDir);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
     }
@@ -243,12 +243,12 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         public TransformServiceLookup(File inputFile, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(new InjectionPoint(PrimaryInput.class, File.class, inputFile));
+            builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
             if (parameters != null) {
                 builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(new InjectionPoint(PrimaryInputDependencies.class, artifactTransformDependencies.getFiles()));
+                builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
             }
             this.injectionPoints = builder.build();
         }

@@ -24,8 +24,8 @@ import java.io.File;
 
 public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
 
-    static OutputLocationType determineOutputLocationType(File output, File primaryInput, String primaryInputPrefix, File outputDir, String outputDirPrefix) {
-        if (output.equals(primaryInput)) {
+    static OutputLocationType determineOutputLocationType(File output, File inputArtifact, String inputArtifactPrefix, File outputDir, String outputDirPrefix) {
+        if (output.equals(inputArtifact)) {
             return OutputLocationType.INPUT_ARTIFACT;
         }
         if (output.equals(outputDir)) {
@@ -34,7 +34,7 @@ public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutpu
         if (output.getPath().startsWith(outputDirPrefix)) {
             return OutputLocationType.WORKSPACE;
         }
-        if (output.getPath().startsWith(primaryInputPrefix)) {
+        if (output.getPath().startsWith(inputArtifactPrefix)) {
             return OutputLocationType.INPUT_ARTIFACT;
         }
         throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
