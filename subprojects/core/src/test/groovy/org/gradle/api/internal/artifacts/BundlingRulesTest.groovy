@@ -18,18 +18,18 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.attributes.java.DependencyPacking
+import org.gradle.api.attributes.java.Bundling
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.attributes.java.DependencyPacking.EXTERNAL
-import static org.gradle.api.attributes.java.DependencyPacking.FATJAR
-import static org.gradle.api.attributes.java.DependencyPacking.SHADOWED
+import static org.gradle.api.attributes.java.Bundling.EXTERNAL
+import static org.gradle.api.attributes.java.Bundling.EMBEDDED
+import static org.gradle.api.attributes.java.Bundling.SHADOWED
 
-class DependencyPackingRulesTest extends Specification {
-    private JavaEcosystemSupport.PackingCompatibilityRules compatibilityRules = new JavaEcosystemSupport.PackingCompatibilityRules()
-    private JavaEcosystemSupport.PackingDisambiguationRules disambiguationRules = new JavaEcosystemSupport.PackingDisambiguationRules()
+class BundlingRulesTest extends Specification {
+    private JavaEcosystemSupport.BundlingCompatibilityRules compatibilityRules = new JavaEcosystemSupport.BundlingCompatibilityRules()
+    private JavaEcosystemSupport.BundlingDisambiguationRules disambiguationRules = new JavaEcosystemSupport.BundlingDisambiguationRules()
 
     @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")
     def "check compatibility rules"() {
@@ -39,8 +39,8 @@ class DependencyPackingRulesTest extends Specification {
         compatibilityRules.execute(details)
 
         then:
-        1 * details.getConsumerValue() >> packing(consumer)
-        1 * details.getProducerValue() >> packing(producer)
+        1 * details.getConsumerValue() >> bundling(consumer)
+        1 * details.getProducerValue() >> bundling(producer)
 
         if (compatible && !(consumer == producer)) {
             1 * details.compatible()
@@ -51,19 +51,19 @@ class DependencyPackingRulesTest extends Specification {
         where:
         consumer | producer | compatible
         null     | EXTERNAL | true
-        null     | FATJAR   | true
+        null     | EMBEDDED | true
         null     | SHADOWED | true
 
         EXTERNAL | EXTERNAL | true
-        EXTERNAL | FATJAR   | true
+        EXTERNAL | EMBEDDED | true
         EXTERNAL | SHADOWED | true
 
-        FATJAR   | EXTERNAL | false
-        FATJAR   | FATJAR   | true
-        FATJAR   | SHADOWED | true
+        EMBEDDED | EXTERNAL | false
+        EMBEDDED | EMBEDDED | true
+        EMBEDDED | SHADOWED | true
 
         SHADOWED | EXTERNAL | false
-        SHADOWED | FATJAR   | false
+        SHADOWED | EMBEDDED | false
         SHADOWED | SHADOWED | true
 
     }
@@ -76,31 +76,31 @@ class DependencyPackingRulesTest extends Specification {
         disambiguationRules.execute(details)
 
         then:
-        1 * details.getConsumerValue() >> packing(consumer)
-        1 * details.getCandidateValues() >> candidates.collect { packing(it) }
+        1 * details.getConsumerValue() >> bundling(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { bundling(it) }
         1 * details.closestMatch({ it.name == expected })
 
         where:
-        consumer | candidates                   | expected
-        null     | [EXTERNAL, FATJAR, SHADOWED] | EXTERNAL
-        null     | [EXTERNAL, FATJAR]           | EXTERNAL
-        null     | [EXTERNAL, SHADOWED]         | EXTERNAL
-        null     | [FATJAR, SHADOWED]           | FATJAR
+        consumer | candidates                     | expected
+        null     | [EXTERNAL, EMBEDDED, SHADOWED] | EXTERNAL
+        null     | [EXTERNAL, EMBEDDED]           | EXTERNAL
+        null     | [EXTERNAL, SHADOWED]           | EXTERNAL
+        null     | [EMBEDDED, SHADOWED]           | EMBEDDED
 
-        EXTERNAL | [EXTERNAL, FATJAR, SHADOWED] | EXTERNAL
-        EXTERNAL | [EXTERNAL, FATJAR]           | EXTERNAL
-        EXTERNAL | [EXTERNAL, SHADOWED]         | EXTERNAL
-        EXTERNAL | [FATJAR, SHADOWED]           | FATJAR
+        EXTERNAL | [EXTERNAL, EMBEDDED, SHADOWED] | EXTERNAL
+        EXTERNAL | [EXTERNAL, EMBEDDED]           | EXTERNAL
+        EXTERNAL | [EXTERNAL, SHADOWED]           | EXTERNAL
+        EXTERNAL | [EMBEDDED, SHADOWED]           | EMBEDDED
 
-        FATJAR   | [FATJAR, SHADOWED]           | FATJAR
+        EMBEDDED | [EMBEDDED, SHADOWED]           | EMBEDDED
 
     }
 
-    private DependencyPacking packing(String name) {
+    private Bundling bundling(String name) {
         if (name == null) {
             null
         } else {
-            TestUtil.objectFactory().named(DependencyPacking, name)
+            TestUtil.objectFactory().named(Bundling, name)
         }
     }
 }
