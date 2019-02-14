@@ -1,0 +1,117 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[using_gradle_from_ides]]
+= Using Gradle from IDEs
+
+Many people use an IDE for their development and good integration with the build tool is important. While we can't go into the detail of how to use every IDE with Gradle, we can show you the basics of what most integrations look like and, most importantly, how they relate to the command line (since most of this user manual refers to command line usage).
+
+[[ides:importing_builds]]
+== Importing Gradle builds
+
+Before you can run a Gradle build from your IDE, you will first need to import it. The build describes not just how to build a piece of software, but also how it's structured. The IDE needs to map that structure to its own model.
+
+[CAUTION]
+====
+Visual Studio does not support direct importing of Gradle builds, so you will need Gradle to generate the appropriate solution and project files for you, as described in <<native_software#native_binaries:visual_studio,Visual Studio IDE Integration>>.
+====
+
+You should read your IDE's documentation for instructions on how to import a Gradle build — for example https://www.jetbrains.com/help/idea/gradle.html#gradle_import[IntelliJ's]. In particular, you should pay attention to how your build is mapped to the IDE's project structure.
+
+As a base example, consider importing a Gradle build into Eclipse using https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship]. The import wizard allows you to do this via a Gradle-specific "Existing Gradle Project" option. Just specify the path to the build's root directory when given the option and (ideally) specify that you want to use the Gradle wrapper (see the info box for more information on this).
+
+If the build doesn't have a wrapper, then Eclipse gives you the option to use a specific version of Gradle. Depending on the IDE you are using, you may have to resort to <<installation#installation,installing Gradle locally>> and using that. Regardless of the option you end up using, the build will appear in the IDE in the same way.
+
+[NOTE]
+.About the Gradle Wrapper
+====
+The Gradle Wrapper is a mechanism that allows you to run a Gradle build without installing Gradle yourself. All you need is a JDK installed locally. You can see whether a build has a Gradle wrapper or not by the presence of `gradlew` and/or `gradlew.bat` files in the build's root directory.
+
+Every Gradle build should ideally have a Wrapper because not only does it mean users can run the build without installing Gradle first, but it also ensures that the build is run with the right _version_ of Gradle. You can learn more about the Wrapper and how to generate it for a build in <<gradle_wrapper#gradle_wrapper,the reference>>.
+====
+
+Once you've imported a build, you will see one or more projects appear in your IDE. How many you see will depend on both the build and the IDE you're using. For example, here's how the Java multi-project Gradle sample -- available with https://github.com/gradle/gradle/tree/master/subprojects/docs/src/samples/java/multiproject/groovy[Groovy DSL] or https://github.com/gradle/gradle/tree/master/subprojects/docs/src/samples/java/multiproject/kotlin[Kotlin DSL] build scripts -- appears in Eclipse, with each Gradle project mapping to an Eclipse project:
+
+image::eclipse-imported-gradle-build-projects.png[width=603]
+
+Note how the hierarchy of the original Gradle build has been flattened out and ordered alphabetically. IntelliJ takes a different approach and creates a single project representing the root Gradle project and uses _modules_ for the subprojects.
+
+However the IDE structures the projects of the imported build, your interaction with the underlying Gradle build is similar across IDEs. And that typically happens through Gradle tasks, which we talk about next.
+
+[[ides:interacting_with_tasks]]
+== Interacting with Gradle tasks
+
+<<what_is_gradle#2_the_core_model_is_based_on_tasks,Gradle tasks>> are what do the actual work of the build and so if you want to compile your project or run the full suite of tests or do a full build, you need to run tasks. The main IDEs (Eclipse, IntelliJ, Android Studio) all have a dedicated IDE view or window that allows you to see all the available build tasks and to run them.
+
+Here is an example Gradle task view in Eclipse for the Java multiproject sample linked earlier:
+
+image::eclipse-gradle-tasks-view.png[width=633]
+
+Here, the projects are displayed in their defined hierarchy and the tasks are grouped together under various headings. Those headings represent _task groups_, which are just a means for build authors to categorize the tasks.
+
+[[ides:running_tasks]]
+=== Running tasks
+
+You can run a task by simply double-clicking on it. If you want to run the task just for a specific project, then you double-click on the task listed under that project. But if you want to run a given task in _all_ the projects, then you need to double-click on the one listed under the build-wide groups, which are pointed out in the screenshot above.
+
+These options correspond to the following Gradle command lines:
+
+ * `gradle :api:check` -- Runs the `check` task just for the `api` project
+ * `gradle check` -- Runs the `check` task in all projects
+
+The first uses a _task path_ to specify, which is like a file path for the project hierarchy with the ':' at the start representing the root project. 
+
+[[ides:passing_task_arguments]]
+=== Passing arguments to tasks
+
+Many Gradle tasks support options. From the command line, this looks like the following:
+
+----
+$ gradle dependencies --configuration=implementation
+----
+
+IDEs don't yet understand what options a specific tasks supports, but at least some IDEs allow you to run a task with specific options with a little effort. This typically involves you creating a dedicated run configuration. Here's an example in Eclipse of creating a run configuration for the `dependencies` task:
+
+image::eclipse-create-task-run-configuration.png[width=631]
+
+Once you have created the run configuration and can edit it, you need to add the options you want _to the task name_, as shown here:
+
+image::eclipse-add-task-options.png[width=502]
+
+You will now be able to run that configuration, which will run the specified task with the given options.
+
+[[ides:understanding_classpaths]]
+== Understanding project classpaths
+
+In order to offer error checking and auto-completion for source files, IDEs need to set up appropriate classpaths. They do this by asking Gradle for a project's dependencies and add those to its own classpath containers. What this means for you is that you need to ensure that the IDE requests that information each time the build changes in a way that affects those classpaths.
+
+The most common changes that impact IDEs' classpaths are modifications of a Gradle project's dependencies, whether it's removing one, changing the version, or adding a whole new one. But there are other changes you need to consider as well, such as the addition or removal of plugins that affect the dependency configurations.
+
+One option for keeping the IDE in sync with the Gradle build is to configure automatic synchronization when a build script changes. The major downside to this approach is that it can be time consuming and most changes to the build don't have an impact on the IDE. Therefore it's better in general to manually synchronize when you know a change to the build will affect the IDE classpaths or if you think it might.
+
+As a general rule of thumb, if anything related to dependency management changes in the build, manually synchronize the IDE with the build. In Eclipse this is done by right-clicking on a project and then selecting the "Gradle" submenu followed by "Refresh Gradle Project", as shown here:
+
+image::eclipse-refresh-gradle-project.png[width=514]
+
+In IntelliJ IDEA, use the "Refresh all Gradle projects" button in the Gradle view -- it looks like a standard refresh icon.
+
+== Running tests and applications
+
+Most IDEs -- at least for the JVM -- will allow you to run unit tests and application classes directly, without running the relevant Gradle tasks. This usually works perfectly well as the IDEs add the build's dependencies to the classpaths of tests and applications. However, there are potential issue because of the way IDEs do this.
+
+Gradle has a rich model for describing dependencies and what each of them are needed for. So you can easily make sure that a task has only the absolute minimum number of dependencies it needs to run. A common example is the clear separation between the dependencies required by the main source code and those required by the tests. You also have a clear separation in each case between the compile and runtime dependencies.
+
+IDEs are less flexible. For example, all dependencies, regardless of what they are for, are often bundled together and used in the classpaths of tests and applications. This can occasionally cause conflicts between dependencies. In such cases, it's best to rely on the Gradle tasks to run the tests and any application classes.
+
+It's worth pointing out that IntelliJ allows you to create modules for each source set, which is particularly helpful in ensuring that the main and test classpaths are kept separate from one another.

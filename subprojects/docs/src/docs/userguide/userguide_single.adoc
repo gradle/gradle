@@ -55,6 +55,8 @@ include::migrating_from_ant.adoc[leveloffset=+2]
 [[part:running_builds]]
 == Running Gradle Builds
 
+include::using_gradle_from_ides.adoc[leveloffset=+2]
+
 include::build_environment.adoc[leveloffset=+2]
 
 include::gradle_daemon.adoc[leveloffset=+2]
