@@ -48,7 +48,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes()
         buildFile << """
                    
-@TransformAction(TestTransformAction)
+@AssociatedTransformAction(TestTransformAction)
 interface TestTransform {
     @Input
     String getTransformName()

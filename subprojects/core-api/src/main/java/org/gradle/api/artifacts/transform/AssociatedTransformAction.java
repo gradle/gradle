@@ -26,11 +26,11 @@ import java.lang.annotation.Target;
 /**
  * Attached to an artifact transform parameter type to declare the corresponding {@link ArtifactTransformAction} implementation to use.
  *
- * @since 5.2
+ * @since 5.3
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface TransformAction {
+public @interface AssociatedTransformAction {
     Class<? extends ArtifactTransformAction> value();
 }

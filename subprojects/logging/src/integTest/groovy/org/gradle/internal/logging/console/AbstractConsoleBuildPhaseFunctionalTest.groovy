@@ -329,7 +329,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
                   
-            @TransformAction(FileSizerAction)
+            @AssociatedTransformAction(FileSizerAction)
             interface FileSizer {
                 @Input
                 String getSuffix()

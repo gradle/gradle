@@ -85,7 +85,7 @@ class Resolve extends Copy {
 
         given:
         buildFile << """
-            @TransformAction(CountRecorderAction)
+            @AssociatedTransformAction(CountRecorderAction)
             interface CountRecorder {
                 @Input
                 Counter getCounter()

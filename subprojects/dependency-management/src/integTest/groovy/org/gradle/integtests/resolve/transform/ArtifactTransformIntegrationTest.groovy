@@ -1952,7 +1952,7 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            @TransformAction(CustomAction)
+            @AssociatedTransformAction(CustomAction)
             interface Custom {
                 @Input
                 CustomType getInput()

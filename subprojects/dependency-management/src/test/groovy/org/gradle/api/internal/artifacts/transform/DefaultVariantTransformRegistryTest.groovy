@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform
 import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.ArtifactTransformAction
 import org.gradle.api.artifacts.transform.ArtifactTransformOutputs
-import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.AssociatedTransformAction
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
@@ -319,7 +319,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         "registerTransformAction" | TestArtifactTransformAction
     }
 
-    @TransformAction(TestArtifactTransformAction)
+    @AssociatedTransformAction(TestArtifactTransformAction)
     static class TestTransform {
         String value
     }
