@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
+import org.gradle.api.artifacts.transform.TransformOutputs;
 
 import java.io.File;
 
-public interface ArtifactTransformOutputsInternal extends ArtifactTransformOutputs {
+public interface TransformOutputsInternal extends TransformOutputs {
 
     static OutputLocationType determineOutputLocationType(File output, File inputArtifact, String inputArtifactPrefix, File outputDir, String outputDirPrefix) {
         if (output.equals(inputArtifact)) {

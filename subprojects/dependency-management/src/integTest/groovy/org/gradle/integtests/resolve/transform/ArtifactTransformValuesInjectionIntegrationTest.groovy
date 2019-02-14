@@ -77,7 +77,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + "." + parameters.extension)
                     output.text = "ok"
@@ -127,7 +127,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -176,7 +176,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -225,7 +225,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -280,7 +280,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @InputFile @InputArtifact @InputArtifactDependencies
                 File getConflictingAnnotations() { } 
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -327,7 +327,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @${annotation.simpleName}
                 String getBad() { }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -370,7 +370,7 @@ abstract class MakeGreen implements TransformAction {
     @InputArtifact
     abstract File getInput()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
         def output = outputs.file(input.name + ".green")
         output.text = "ok"
@@ -471,7 +471,7 @@ abstract class MakeGreen extends ArtifactTransform {
                     this.conf = conf
                 }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                 }
             }
 """
@@ -504,7 +504,7 @@ abstract class MakeGreen implements TransformAction {
     @InputArtifact
     abstract FileCollection getDependencies()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         dependencies.files
         throw new RuntimeException("broken")
     }
@@ -538,7 +538,7 @@ abstract class MakeGreen implements TransformAction {
     @Inject
     abstract File getWorkspace()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         workspace
         throw new RuntimeException("broken")
     }

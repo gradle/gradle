@@ -41,7 +41,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = "ok"
@@ -154,7 +154,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} wit MakeRedAction"
                     def output = outputs.file(input.name + ".red")
                     output.text = "ok"

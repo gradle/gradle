@@ -812,7 +812,7 @@ $fileSizer
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println("Transforming")
                     outputs.file(input)
                 }
@@ -1559,7 +1559,7 @@ Found the following transforms:
             }
 
             class FailingTransformAction implements TransformAction {
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
                             return """
@@ -1670,7 +1670,7 @@ Found the following transforms:
                 @InputArtifact
                 abstract File getInput() 
 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "Hello?"
                     def output = outputs.${method}(new File(input, "some/dir/does-not-exist"))
                     assert !output.parentFile.directory
@@ -1746,7 +1746,7 @@ Found the following transforms:
 
             class SomewhereElseTransform implements TransformAction {
                 static def output
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)
                     outputFile.text = "123"
                 }
@@ -1960,7 +1960,7 @@ Found the following transforms:
             }
               
             class CustomAction implements TransformAction { 
-                void transform(ArtifactTransformOutputs outputs) {  }
+                void transform(TransformOutputs outputs) {  }
             }
             
             dependencies {

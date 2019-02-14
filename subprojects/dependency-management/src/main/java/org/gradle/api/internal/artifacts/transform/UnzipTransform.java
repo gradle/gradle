@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.artifacts.transform.ArtifactTransformOutputs;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedInputStream;
@@ -44,7 +44,7 @@ public interface UnzipTransform extends TransformAction {
     File getZippedFile();
 
     @Override
-    default void transform(ArtifactTransformOutputs outputs) {
+    default void transform(TransformOutputs outputs) {
         String unzippedDirName = removeExtension(getZippedFile().getName());
         File unzipDir = outputs.dir(unzippedDirName);
         try {

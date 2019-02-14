@@ -344,7 +344,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                 @InputArtifact
                 abstract File getInput()
 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     ${server.callFromBuild('size-transform')}
                     File output = outputs.registerOutput(input.name + parameters.suffix)
                     output.text = String.valueOf(input.length())

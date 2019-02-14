@@ -1506,7 +1506,7 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
 ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
                 }
             }

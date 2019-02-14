@@ -105,7 +105,7 @@ class Resolve extends Copy {
                     println "Creating CountRecorder"
                 }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     def output = outputs.file(input.name + ".txt")
                     def counter = parameters.counter
                     println "Transforming \${input.name} to \${output.name}"

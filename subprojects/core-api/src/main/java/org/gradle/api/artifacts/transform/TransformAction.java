@@ -40,5 +40,5 @@ public interface TransformAction {
      *
      * @param outputs Receives the outputs of the transform.
      */
-    void transform(ArtifactTransformOutputs outputs);
+    void transform(TransformOutputs outputs);
 }
