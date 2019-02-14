@@ -392,7 +392,7 @@ class CapabilitiesUseCasesIntegrationTest extends AbstractModuleDependencyResolv
 
         then:
         if (failOnVersionConflict) {
-            failure.assertHasCause("Cannot choose between asm:asm:3.0 and org.ow2.asm:asm:4.0 because they provide the same capability: asm:asm:3.0, asm:asm:4.0")
+            failure.assertHasCause("Conflict(s) found for the following module(s):\n  - org.ow2.asm:asm latest version of capability asm:asm")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {

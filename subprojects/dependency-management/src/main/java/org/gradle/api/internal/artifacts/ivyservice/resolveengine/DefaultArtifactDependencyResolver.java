@@ -128,7 +128,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
         ResolveContextToComponentResolver requestResolver = createResolveContextConverter();
         ModuleConflictHandler conflictHandler = createModuleConflictHandler(resolutionStrategy, globalRules);
-        DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy);
+        DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler();
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
         return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, globalRules.getModuleMetadataProcessor().getModuleReplacements(), applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme, versionComparator.asVersionComparator(), versionParser);
@@ -167,12 +167,10 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }
 
-    private DefaultCapabilitiesConflictHandler createCapabilitiesConflictHandler(ResolutionStrategyInternal resolutionStrategy) {
+    private DefaultCapabilitiesConflictHandler createCapabilitiesConflictHandler() {
         DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler();
-        if (resolutionStrategy.getConflictResolution() != ConflictResolution.strict) {
-            handler.registerResolver(new UpgradeCapabilityResolver());
-            handler.registerResolver(new LastCandidateCapabilityResolver());
-        }
+        handler.registerResolver(new UpgradeCapabilityResolver());
+        handler.registerResolver(new LastCandidateCapabilityResolver());
         return handler;
     }
 
