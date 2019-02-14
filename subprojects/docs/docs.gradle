@@ -352,6 +352,7 @@ def distDocs = tasks.register("distDocs", CacheableAsciidoctorTask) {
 }
 
 asciidoctorj {
+    version = '1.5.8.1'
     noDefaultRepositories = true
 }
 
