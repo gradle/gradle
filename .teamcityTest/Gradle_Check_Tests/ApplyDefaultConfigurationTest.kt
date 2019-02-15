@@ -1,6 +1,6 @@
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
-import configurations.applyFunctionalTestDefaults
+import configurations.applyTestDefaults
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -76,8 +76,8 @@ class ApplyDefaultConfigurationTest {
         "myParam, false, '--no-daemon'",
         "''     , false, '--no-daemon'"
     ])
-    fun `can apply defaults to linux functional test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyFunctionalTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
+    fun `can apply defaults to linux test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
+        applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
@@ -96,8 +96,8 @@ class ApplyDefaultConfigurationTest {
         "myParam, false, '--no-daemon'",
         "''     , false, '--no-daemon'"
     ])
-    fun `can apply defaults to windows functional test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyFunctionalTestDefaults(buildModel, buildType, "myTask", os = OS.windows, extraParameters = extraParameters, daemon = daemon)
+    fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
+        applyTestDefaults(buildModel, buildType, "myTask", os = OS.windows, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
