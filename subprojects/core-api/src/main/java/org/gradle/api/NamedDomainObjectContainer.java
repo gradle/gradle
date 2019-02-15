@@ -98,7 +98,7 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
     /**
      * Defines a new object, which will be created when it is required. A object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that methods will eagerly create he object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the object, regardless of whether that object is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the object.
      * @return A {@link Provider} that whose value will be the object, when queried.
