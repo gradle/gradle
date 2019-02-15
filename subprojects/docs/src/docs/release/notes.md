@@ -8,6 +8,7 @@ We would like to thank the following community contributors to this release of G
 [Raman Gupta](https://github.com/rocketraman),
 [Florian Dreier](https://github.com/DreierF),
 [Kenzie Togami](https://github.com/kenzierocks),
+[Ricardo Pereira](https://github.com/thc202),
 ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
