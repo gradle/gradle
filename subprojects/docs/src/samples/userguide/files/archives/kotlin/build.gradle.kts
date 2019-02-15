@@ -14,6 +14,19 @@ tasks.register<Copy>("unpackFiles") {
 }
 // end::unpack-archive-example[]
 
+// tag::unpack-archive-subset-example[]
+tasks.register<Copy>("unpackLibsDirectory") {
+    from(zipTree("src/resources/thirdPartyResources.zip")) {
+        include("libs/**")  // <1>
+        eachFile {
+            relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())  // <2>
+        }
+        includeEmptyDirs = false  // <3>
+    }
+    into("$buildDir/resources")
+}
+// end::unpack-archive-subset-example[]
+
 // tag::zip[]
 tasks.register<Zip>("zip") {
     from("src/dist")
