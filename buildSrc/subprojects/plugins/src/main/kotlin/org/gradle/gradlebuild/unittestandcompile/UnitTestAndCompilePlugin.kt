@@ -42,6 +42,7 @@ import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import testLibrary
 import java.util.concurrent.Callable
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.jar.Attributes
 
 
@@ -88,7 +89,18 @@ enum class ModuleType(val compatibility: JavaVersion) {
 }
 
 
+/**
+ * By default, we run an extra build step ("GRADLE_RERUNNER") which runs all test classes failed in the previous build step ("GRADLE_RUNNER").
+ * However, if previous test failures are too many (>10), this is probably not caused by flainess.
+ * In this case, we simply skip the GRADLE_RERUNNER step
+ */
+const val tooManyTestFailuresThreshold = 10
+
+
 class UnitTestAndCompilePlugin : Plugin<Project> {
+    private
+    val allTestFailuresCount = AtomicInteger(0)
+
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
 
@@ -191,9 +203,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         val previousFailedTestClasses = mutableSetOf<String>()
         serializer.read {
             if (failuresCount > 0) {
+                allTestFailuresCount.addAndGet(failuresCount)
                 previousFailedTestClasses.add(className)
             }
         }
+
         previousFailedTestClasses
     }
 
@@ -221,7 +235,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Test.onlyRunPreviousFailedClassesIfNecessary() {
         if (project.stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
             val previousFailedClasses = getPreviousFailedTestClasses()
-            if (previousFailedClasses.isEmpty()) {
+            if (previousFailedClasses.isEmpty() || allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
                 enabled = false
             } else {
                 previousFailedClasses.forEach { filter.includeTestsMatching(it) }
