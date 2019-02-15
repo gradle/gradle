@@ -27,9 +27,9 @@ import org.gradle.api.Incubating;
  *
  * <p>A property annotated with {@link TransformParameters} will receive the object provided by {@link ParameterizedArtifactTransformSpec#getParameters()}.
  *
- * <p>A property annotated with {@link InputArtifact} will receive the <em>primary input</em> location, which is the file or directory that the transform should be applied to.
+ * <p>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.
  *
- * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its primary input.
+ * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.
  *
  * @since 5.3
  */
