@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
-import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.CapabilityInternal;
 
 import java.util.ArrayDeque;
@@ -210,7 +209,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             @Override
                             public void reject() {
                                 ComponentState component = node.getComponent();
-                                component.rejectForCapabilityConflict(Pair.of(capability, conflictedNodes(node, conflict.nodes)));
+                                component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
                                 component.selectAndRestartModule();
                             }
                         });
