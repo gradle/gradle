@@ -21,21 +21,34 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class Jdk7SymlinkTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder
 
-     @Requires(TestPrecondition.SYMLINKS)
+    @Requires(TestPrecondition.SYMLINKS)
     def 'on symlink supporting system, it will return true for supported symlink'() {
         expect:
         new Jdk7Symlink().isSymlinkSupported()
     }
 
-     @Requires(TestPrecondition.NO_SYMLINKS)
+    @Requires(TestPrecondition.NO_SYMLINKS)
     def 'on non symlink supporting system, it will return false for supported symlink'() {
         expect:
         !new WindowsJdk7Symlink().isSymlinkSupported()
+    }
+
+    @Unroll
+    def 'deletes test files after symlink support test with #implementationClass'() {
+        expect:
+        listSymlinkTestFiles().findAll { !it.delete() }.empty
+        implementationClass.newInstance()
+        implementationClass
+        listSymlinkTestFiles().empty
+
+        where:
+        implementationClass << [Jdk7Symlink, WindowsJdk7Symlink]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -54,5 +67,15 @@ class Jdk7SymlinkTest extends Specification {
 
         then:
         symlink.isSymlink(new File(testDirectory, 'testDir'))
+    }
+
+    private static List<File> listSymlinkTestFiles() {
+        def tempDir = new File(System.getProperty("java.io.tmpdir"))
+        return tempDir.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File pathname) {
+                return pathname.name.startsWith("symlink") && (pathname.name.endsWith("test") || pathname.name.endsWith("test_link"))
+            }
+        })
     }
 }
