@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 [Stefan M.](https://github.com/StefMa), [Evgeny Mandrikov](https://github.com/Godin), [Simon Legner](https://github.com/simon04),  
 [Raman Gupta](https://github.com/rocketraman),
 [Florian Dreier](https://github.com/DreierF),
+[Kenzie Togami](https://github.com/kenzierocks),
 ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
