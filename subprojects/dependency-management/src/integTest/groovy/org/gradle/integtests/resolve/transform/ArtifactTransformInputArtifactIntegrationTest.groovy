@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.resolve.transform
 
-
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import spock.lang.Unroll
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
-    def "re-runs transform when project artifact file content or name or path changes"() {
+    @Unroll
+    def "can attach #description to input artifact property with project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers()
         buildFile << """
@@ -32,7 +34,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @InputArtifact
+                @InputArtifact ${annotation}
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -124,9 +126,15 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
         outputDoesNotContain("processing")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        description                                | annotation
+        "no sensitivity"                           | ""
+        "@PathSensitive(PathSensitivity.ABSOLUTE)" | "@PathSensitive(PathSensitivity.ABSOLUTE)"
     }
 
-    def "re-runs transform when project artifact directory content or name or path changes"() {
+    @Unroll
+    def "can attach #description to input artifact property with project artifact directory"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers {
             produceDirs()
@@ -140,7 +148,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @InputArtifact
+                @InputArtifact ${annotation}
                 abstract File getInput()
                 
                 void transform(ArtifactTransformOutputs outputs) {
@@ -247,6 +255,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         result.assertTasksSkipped(":b:producer", ":c:producer")
         outputDoesNotContain("processing")
         outputContains("result = [b-blue.green, c-blue.green]")
+
+        where:
+        description                                | annotation
+        "no sensitivity"                           | ""
+        "@PathSensitive(PathSensitivity.ABSOLUTE)" | "@PathSensitive(PathSensitivity.ABSOLUTE)"
     }
 
     def "re-runs transform when input artifact file changes from file to missing"() {
@@ -390,7 +403,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
     }
 
-    def "can attach @PathSensitive(NONE) to input artifact property for project artifact directory"() {
+    @Unroll
+    def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact directory"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers {
             produceDirs()
@@ -404,7 +418,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PathSensitive(PathSensitivity.NONE)
+                @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
                 
@@ -479,9 +493,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
         outputDoesNotContain("processing")
         outputContains("result = [b-dir.green, c-dir.green]")
+
+        where:
+        sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NONE]
     }
 
-    def "can attach @PathSensitive(NAME_ONLY) to input artifact property for project artifact file"() {
+    @Unroll
+    def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers()
         buildFile << """
@@ -493,7 +511,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
                 
@@ -559,6 +577,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
         outputDoesNotContain("processing")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
     def "can attach @PathSensitive(NAME_ONLY) to input artifact property for project artifact directory"() {
@@ -740,7 +761,8 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [new-lib.green]")
     }
 
-    def "can attach @PathSensitive(NAME_ONLY) to input artifact property for external artifact"() {
+    @Unroll
+    def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
         setupBuildWithConfigurableProducers()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
         lib1.artifactFile.text = "lib"
@@ -768,7 +790,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             abstract class MakeGreen implements ArtifactTransformAction {
-                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
                 
@@ -817,6 +839,9 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("processing lib-1.0.jar")
         outputDoesNotContain("processing lib2")
         outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
+
+        where:
+        sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
     /**
