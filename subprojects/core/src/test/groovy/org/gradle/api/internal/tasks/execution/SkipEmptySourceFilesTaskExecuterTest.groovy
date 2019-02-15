@@ -61,7 +61,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, target)
     final stringInterner = new StringInterner()
     final fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), stringInterner, TestFiles.fileSystem(), new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([])))
-    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
+    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
 
     def 'skips task when sourceFiles are empty and previous output is empty'() {
         def afterPreviousExecution = Mock(AfterPreviousExecutionState)
