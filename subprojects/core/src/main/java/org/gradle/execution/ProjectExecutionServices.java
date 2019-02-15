@@ -16,7 +16,6 @@
 
 package org.gradle.execution;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
@@ -50,7 +49,6 @@ import org.gradle.api.internal.tasks.execution.StartSnapshotTaskInputsBuildOpera
 import org.gradle.api.internal.tasks.execution.TaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.annotations.FileFingerprintingPropertyAnnotationHandler;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.tasks.DefaultTaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
@@ -67,16 +65,10 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -88,9 +80,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
     public ProjectExecutionServices(ProjectInternal project) {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
-
-    private static final ImmutableList<? extends Class<? extends FileCollectionFingerprinter>> BUILT_IN_FINGERPRINTER_TYPES = ImmutableList.of(
-        AbsolutePathFileCollectionFingerprinter.class, RelativePathFileCollectionFingerprinter.class, NameOnlyFileCollectionFingerprinter.class, IgnoredPathFileCollectionFingerprinter.class, OutputFileCollectionFingerprinter.class);
 
     TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
         return listenerManager.getBroadcaster(TaskActionListener.class);
@@ -162,7 +151,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return executer;
     }
 
-    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
+    // Overrides the global ClasspathFingerPrinter
+    ClasspathFingerprinter createClasspathFingerprinter(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
             fileSystemSnapshotter,
@@ -175,18 +165,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultTaskFingerprinter(fingerprinterRegistry);
     }
 
-    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(
-        ServiceRegistry serviceRegistry,
-        List<FileFingerprintingPropertyAnnotationHandler> handlers
-    ) {
-        ImmutableList.Builder<FileCollectionFingerprinter> fingerprinterImplementations = ImmutableList.builder();
-        for (Class<? extends FileCollectionFingerprinter> builtInFingerprinterType : BUILT_IN_FINGERPRINTER_TYPES) {
-            fingerprinterImplementations.add(serviceRegistry.get(builtInFingerprinterType));
-        }
-        for (FileFingerprintingPropertyAnnotationHandler handler : handlers) {
-            fingerprinterImplementations.add(serviceRegistry.get(handler.getFingerprinterImplementationType()));
-        }
-        return new DefaultFileCollectionFingerprinterRegistry(fingerprinterImplementations.build());
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
     }
 
     TaskExecutionModeResolver createExecutionModeResolver(
