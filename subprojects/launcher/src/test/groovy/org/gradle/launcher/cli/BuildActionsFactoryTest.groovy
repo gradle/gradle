@@ -17,14 +17,11 @@ package org.gradle.launcher.cli
 
 import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
-import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
@@ -42,7 +39,7 @@ class BuildActionsFactoryTest extends Specification {
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    ServiceRegistry loggingServices = Mock()
+    ServiceRegistry loggingServices = new DefaultServiceRegistry()
     boolean useCurrentProcess
 
     BuildActionsFactory factory = new BuildActionsFactory(loggingServices) {
@@ -53,14 +50,13 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     def setup() {
-        _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
-        _ * loggingServices.get(ProgressLoggerFactory) >> Mock(ProgressLoggerFactory)
-        _ * loggingServices.getAll(BuildActionRunner) >> []
-        _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
-        _ * loggingServices.get(FileSystem) >> Mock(FileSystem)
-        _ * loggingServices.getFactory(LoggingManagerInternal) >> Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
-        _ * loggingServices.getAll(PluginServiceRegistry) >> []
-        _ * loggingServices.getAll(_) >> []
+        def factory = Mock(Factory) { _ * create() >> Mock(LoggingManagerInternal) }
+        loggingServices.add(OutputEventListener, Mock(OutputEventListener))
+        loggingServices.add(StyledTextOutputFactory, Mock(StyledTextOutputFactory))
+        loggingServices.addProvider(new Object() {
+            Factory<LoggingManagerInternal> createFactory() {
+                return factory
+            }})
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
