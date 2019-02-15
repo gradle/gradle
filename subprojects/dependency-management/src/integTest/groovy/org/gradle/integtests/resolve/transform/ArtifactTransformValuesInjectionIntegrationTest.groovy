@@ -39,7 +39,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "transform can receive parameters, workspace and primary input via abstract getter"() {
+    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """

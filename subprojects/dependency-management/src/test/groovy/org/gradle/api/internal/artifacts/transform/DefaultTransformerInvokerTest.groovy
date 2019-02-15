@@ -293,7 +293,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
     }
 
     @Unroll
-    def "different workspace for different primary input paths (#transformationType)"(TransformationType transformationType) {
+    def "different workspace for different input artifact paths (#transformationType)"(TransformationType transformationType) {
         def inputArtifact1 = temporaryFolder.file("input1")
         inputArtifact1.text = "my input"
         def inputArtifact2 = temporaryFolder.file("input2")
@@ -323,7 +323,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         transformationType << TransformationType.values()
     }
 
-    def "different workspace for different immutable primary inputs"() {
+    def "different workspace for different immutable input artifacts"() {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         def workspaces = new HashSet<File>()
@@ -350,7 +350,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         workspaces.size() == 2
     }
 
-    def "same workspace for different mutable primary inputs"() {
+    def "same workspace for different mutable input artifacts"() {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         def workspaces = new HashSet<File>()

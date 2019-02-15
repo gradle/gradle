@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
-class ArtifactTransformArtifactInputIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     def "re-runs transform when project artifact file content or name or path changes"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithConfigurableProducers()

@@ -45,9 +45,9 @@ public abstract class ArtifactTransform {
     }
 
     /**
-     * Transforms the given <em>primary input</em> file or directory and returns the result.
+     * Transforms the given <em>input artifact</em> file or directory and returns the result.
      *
-     * @param input The primary input file or directory.
+     * @param input The input file or directory.
      * @return The output files or directories. Can return an empty list.
      */
     public abstract List<File> transform(File input);
