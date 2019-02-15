@@ -182,9 +182,9 @@ More advanced processing can be handled by the link:{groovyDslPath}/org.gradle.a
 include::sample[dir="userguide/files/archives/groovy",files="build.gradle[tags=unpack-archive-subset-example]"]
 include::sample[dir="userguide/files/archives/kotlin",files="build.gradle.kts[tags=unpack-archive-subset-example]"]
 ====
-<1> Extracting only the files under `libs` directly into the destination directory
-<2> Remap the extracting files to a different path into the destination directory by dropping the `libs` segment from the file path
-<3> See Caution note below
+<1> Extracts only the subset of files that reside in the `libs` directory
+<2> Remaps the path of the extracting files into the destination directory by dropping the `libs` segment from the file path
+<3> Ignores the empty directories resulting from the remapping, see Caution note below
 
 [CAUTION]
 ====
