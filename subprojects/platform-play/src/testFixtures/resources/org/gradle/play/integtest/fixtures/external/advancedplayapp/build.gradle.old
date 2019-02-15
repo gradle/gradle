@@ -1,0 +1,15 @@
+plugins {
+    id 'org.gradle.playframework' version '0.3'
+}
+
+// repositories added in PlayApp class
+
+sourceSets {
+    main {
+        twirl {
+            defaultImports = org.gradle.playframework.sourcesets.TwirlImports.JAVA
+            srcDir "templates"
+            include "jva/**/*"
+        }
+    }
+}
