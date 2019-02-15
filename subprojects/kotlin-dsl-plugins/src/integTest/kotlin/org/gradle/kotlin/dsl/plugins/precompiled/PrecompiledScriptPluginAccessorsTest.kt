@@ -31,6 +31,8 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -143,6 +145,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
+    @LeaksFileHandles("TDB")
     @Test
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
