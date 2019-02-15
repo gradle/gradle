@@ -156,7 +156,7 @@ public class EclipseWtpPlugin extends IdePlugin {
 
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName("runtime"));
+                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
                 component.setClassesDeployPath("/");
                 ((IConventionAware) component).getConventionMapping().map("libDeployPath", new Callable<String>() {
                     @Override
@@ -179,7 +179,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 Set<Configuration> libConfigurations = component.getLibConfigurations();
                 Set<Configuration> minusConfigurations = component.getMinusConfigurations();
 
-                libConfigurations.add(project.getConfigurations().getByName("runtime"));
+                libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
                 minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
                 component.setClassesDeployPath("/WEB-INF/classes");
                 ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
