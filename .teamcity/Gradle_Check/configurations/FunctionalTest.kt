@@ -23,7 +23,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
             "coverageJvmVendor" to testCoverage.vendor.name,
             "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
-    applyDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
+    applyFunctionalTestDefaults(model, this, testTask, notQuick = !quickTest, os = testCoverage.os,
             extraParameters = (
                     listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""")
                             + buildScanTags.map { buildScanTag(it) }
