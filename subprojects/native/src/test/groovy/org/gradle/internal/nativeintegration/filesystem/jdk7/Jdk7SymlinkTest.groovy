@@ -44,7 +44,6 @@ class Jdk7SymlinkTest extends Specification {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty
         implementationClass.newInstance()
-        implementationClass
         listSymlinkTestFiles().empty
 
         where:
