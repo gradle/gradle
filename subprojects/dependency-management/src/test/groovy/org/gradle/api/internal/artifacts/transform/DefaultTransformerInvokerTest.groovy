@@ -27,13 +27,14 @@ import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocatio
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.tasks.FileNormalizer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
-import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
@@ -60,9 +61,9 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
-    def stringInterner = new StringInterner()
-    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
-    def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter)
+    def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
+    def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileSystemSnapshotter)
+    def registry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter, outputFilesFingerprinter])
 
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(1234)
@@ -90,9 +91,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         fileSystemSnapshotter,
         artifactTransformListener,
         transformationWorkspaceProvider,
-        dependencyFingerprinter,
+        registry,
         fileCollectionFactory,
-        outputFilesFingerprinter,
         classloaderHasher,
         projectFinder,
         true
@@ -137,8 +137,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
-            return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING
+        Class<? extends FileNormalizer> getInputArtifactNormalizer() {
+            return AbsolutePathInputNormalizer
         }
 
         @Override

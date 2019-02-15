@@ -151,7 +151,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return executer;
     }
 
-    // Overrides the global ClasspathFingerPrinter
+    // Overrides the global ClasspathFingerPrinter, currently need to have the parent parameter
     ClasspathFingerprinter createClasspathFingerprinter(ClasspathFingerprinter parent, ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner, InputNormalizationHandlerInternal inputNormalizationHandler) {
         return new DefaultClasspathFingerprinter(
             resourceSnapshotterCacheService,
