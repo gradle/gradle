@@ -253,7 +253,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
     /**
      * Defines a new task, which will be created when it is required. A task is 'required' when the task is located using query methods such as {@link TaskCollection#getByName(java.lang.String)}, when the task is added to the task graph for execution or when {@link Provider#get()} is called on the return value of this method.
      *
-     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that methods will eagerly create he task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
+     * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the task.
      * @return A {@link Provider} that whose value will be the task, when queried.
