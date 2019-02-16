@@ -91,8 +91,8 @@ enum class ModuleType(val compatibility: JavaVersion) {
 
 /**
  * By default, we run an extra build step ("GRADLE_RERUNNER") which runs all test classes failed in the previous build step ("GRADLE_RUNNER").
- * However, if previous test failures are too many (>10), this is probably not caused by flainess.
- * In this case, we simply skip the GRADLE_RERUNNER step
+ * However, if previous test failures are too many (>10), this is probably not caused by flakiness.
+ * In this case, we simply skip the GRADLE_RERUNNER step.
  */
 const val tooManyTestFailuresThreshold = 10
 
