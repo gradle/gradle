@@ -73,7 +73,7 @@ allprojects {
         def view = configurations.implementation.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.files
-        dependsOn view
+        inputs.files view
         doLast {
             println "result = \${view.files.name}"
         }
@@ -158,7 +158,7 @@ allprojects {
 
     /**
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
-     * Caller will need to provide an implementation of 'MakeGreen' transform configuration and use {@link TransformBuilder#paramsConfig(java.lang.String)} to specify the configuration to
+     * Caller will need to provide an implementation of 'MakeGreen' transform configuration and use {@link TransformBuilder#params(java.lang.String)} to specify the configuration to
      * apply to the parameters.
      */
     void setupBuildWithColorTransform(@DelegatesTo(TransformBuilder) Closure cl) {
