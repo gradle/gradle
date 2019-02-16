@@ -22,7 +22,6 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -104,19 +103,28 @@ public class IvyPublishPlugin implements Plugin<Project> {
     private void createTasksLater(final Project project, final PublishingExtension publishingExtension, final DirectoryProperty buildDir) {
         final TaskContainer tasks = project.getTasks();
         final NamedDomainObjectSet<IvyPublicationInternal> publications = publishingExtension.getPublications().withType(IvyPublicationInternal.class);
+        final NamedDomainObjectList<IvyArtifactRepository> repositories = publishingExtension.getRepositories().withType(IvyArtifactRepository.class);
+        repositories.all(repository -> tasks.register(publishAllToSingleRepoTaskName(repository), publish -> {
+            publish.setDescription("Publishes all Maven publications produced by this project to the " + repository.getName() + " repository.");
+            publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+        }));
+
         publications.all(new Action<IvyPublicationInternal>() {
             @Override
             public void execute(IvyPublicationInternal publication) {
                 final String publicationName = publication.getName();
                 createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir);
                 createGenerateMetadataTask(project, tasks, publication, publications, buildDir);
-                createPublishTaskForEachRepository(tasks, publishingExtension, publication, publicationName);
+                createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
             }
         });
     }
 
-    private void createPublishTaskForEachRepository(final TaskContainer tasks, PublishingExtension publishingExtension, final IvyPublicationInternal publication, final String publicationName) {
-        NamedDomainObjectList<IvyArtifactRepository> repositories = publishingExtension.getRepositories().withType(IvyArtifactRepository.class);
+    private String publishAllToSingleRepoTaskName(IvyArtifactRepository repository) {
+        return "publishAllPublicationsTo" + capitalize(repository.getName()) + "Repository";
+    }
+
+    private void createPublishTaskForEachRepository(final TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, NamedDomainObjectList<IvyArtifactRepository> repositories) {
         repositories.all(new Action<IvyArtifactRepository>() {
             @Override
             public void execute(IvyArtifactRepository repository) {
@@ -128,20 +136,14 @@ public class IvyPublishPlugin implements Plugin<Project> {
     }
 
     private void createPublishToRepositoryTask(TaskContainer tasks, final IvyPublicationInternal publication, final String publicationName, final IvyArtifactRepository repository, final String repositoryName, final String publishTaskName) {
-        tasks.register(publishTaskName, PublishToIvyRepository.class, new Action<PublishToIvyRepository>() {
-            public void execute(PublishToIvyRepository publishTask) {
-                publishTask.setPublication(publication);
-                publishTask.setRepository(repository);
-                publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
-            }
+        tasks.register(publishTaskName, PublishToIvyRepository.class, publishTask -> {
+            publishTask.setPublication(publication);
+            publishTask.setRepository(repository);
+            publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+            publishTask.setDescription("Publishes Ivy publication '" + publicationName + "' to Ivy repository '" + repositoryName + "'.");
         });
-        tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.dependsOn(publishTaskName);
-            }
-        });
+        tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME, task -> task.dependsOn(publishTaskName));
+        tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
     }
 
     private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {

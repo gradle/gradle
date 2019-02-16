@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven.plugins
 
+
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
@@ -173,6 +174,24 @@ class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.tasks["generatePomFileForTestPublication"].destination == new File(newBuildDir, "publications/test/pom-default.xml")
+    }
+
+    def "creates publish tasks for all publications in a repository"() {
+        when:
+        publishing.publications.create("test", MavenPublication)
+        publishing.publications.create("test2", MavenPublication)
+        publishing.repositories { maven { url = "http://foo.com" } }
+        publishing.repositories { maven { name='other'; url = "http://bar.com" } }
+
+        then:
+        project.tasks["publishAllPublicationsToMavenRepository"].dependsOn.containsAll([
+                "publishTestPublicationToMavenRepository",
+                "publishTest2PublicationToMavenRepository"
+        ])
+        project.tasks["publishAllPublicationsToOtherRepository"].dependsOn.containsAll([
+                "publishTestPublicationToOtherRepository",
+                "publishTest2PublicationToOtherRepository"
+        ])
     }
 
     interface TestComponent extends SoftwareComponentInternal, ComponentWithVariants {
