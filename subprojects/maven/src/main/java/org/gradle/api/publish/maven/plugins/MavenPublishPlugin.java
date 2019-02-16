@@ -143,6 +143,12 @@ public class MavenPublishPlugin implements Plugin<Project> {
 
         final TaskProvider<Task> publishLifecycleTask = tasks.named(PublishingPlugin.PUBLISH_LIFECYCLE_TASK_NAME);
         final TaskProvider<Task> publishLocalLifecycleTask = tasks.named(PUBLISH_LOCAL_LIFECYCLE_TASK_NAME);
+        final NamedDomainObjectList<MavenArtifactRepository> repositories = extension.getRepositories().withType(MavenArtifactRepository.class);
+
+        repositories.all(repository -> tasks.register(publishAllToSingleRepoTaskName(repository), publish -> {
+            publish.setDescription("Publishes all Maven publications produced by this project to the " + repository.getName() + " repository.");
+            publish.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+        }));
 
         mavenPublications.all(new Action<MavenPublicationInternal>() {
             @Override
@@ -150,36 +156,31 @@ public class MavenPublishPlugin implements Plugin<Project> {
                 createGenerateMetadataTask(tasks, publication, mavenPublications, buildDirectory);
                 createGeneratePomTask(tasks, publication, buildDirectory, project);
                 createLocalInstallTask(tasks, publishLocalLifecycleTask, publication);
-                createPublishTasksForEachMavenRepo(tasks, extension, publishLifecycleTask, publication);
+                createPublishTasksForEachMavenRepo(tasks, publishLifecycleTask, publication, repositories);
             }
         });
     }
 
-    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, PublishingExtension extension, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication) {
+    private String publishAllToSingleRepoTaskName(MavenArtifactRepository repository) {
+        return "publishAllPublicationsTo" + capitalize(repository.getName()) + "Repository";
+    }
+
+    private void createPublishTasksForEachMavenRepo(final TaskContainer tasks, final TaskProvider<Task> publishLifecycleTask, final MavenPublicationInternal publication, final NamedDomainObjectList<MavenArtifactRepository> repositories) {
         final String publicationName = publication.getName();
-        NamedDomainObjectList<MavenArtifactRepository> repositories = extension.getRepositories().withType(MavenArtifactRepository.class);
         repositories.all(new Action<MavenArtifactRepository>() {
             @Override
             public void execute(final MavenArtifactRepository repository) {
                 final String repositoryName = repository.getName();
-
                 final String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
+                tasks.register(publishTaskName, PublishToMavenRepository.class, publishTask -> {
+                    publishTask.setPublication(publication);
+                    publishTask.setRepository(repository);
+                    publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
+                    publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
 
-                tasks.register(publishTaskName, PublishToMavenRepository.class, new Action<PublishToMavenRepository>() {
-                    public void execute(PublishToMavenRepository publishTask) {
-                        publishTask.setPublication(publication);
-                        publishTask.setRepository(repository);
-                        publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                        publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
-
-                    }
                 });
-                publishLifecycleTask.configure(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        task.dependsOn(publishTaskName);
-                    }
-                });
+                publishLifecycleTask.configure(task -> task.dependsOn(publishTaskName));
+                tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
             }
         });
     }
@@ -219,7 +220,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     // are mapped to some attributes, which can be used in the version mapping strategy.
                     // This is only required for POM publication, because the variants have _implicit_ attributes that we want explicit for matching
                     generatePomTask.withCompileScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_JARS)))
-                                   .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
+                            .withRuntimeScopeAttributes(immutableAttributesFactory.of(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_JARS)));
                 });
             }
         });
