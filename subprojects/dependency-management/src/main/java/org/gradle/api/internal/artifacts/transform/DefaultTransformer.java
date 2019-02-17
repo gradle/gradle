@@ -69,6 +69,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private final Object parameterObject;
     private final Class<? extends FileNormalizer> fileNormalizer;
+    private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
@@ -81,10 +82,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, Class<? extends FileNormalizer> fileNormalizer, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
+    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, Class<? extends FileNormalizer> inputArtifactNormalizer, Class<? extends FileNormalizer> dependenciesNormalizer, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
-        this.fileNormalizer = fileNormalizer;
+        this.fileNormalizer = inputArtifactNormalizer;
+        this.dependenciesNormalizer = dependenciesNormalizer;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
@@ -110,6 +112,11 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     @Override
     public Class<? extends FileNormalizer> getInputArtifactNormalizer() {
         return fileNormalizer;
+    }
+
+    @Override
+    public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+        return dependenciesNormalizer;
     }
 
     public boolean requiresDependencies() {

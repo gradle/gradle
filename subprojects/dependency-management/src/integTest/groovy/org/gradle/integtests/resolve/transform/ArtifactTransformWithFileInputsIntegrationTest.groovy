@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
-     * Caller should add elements to the 'inputFiles' property to make them inputs to the transform
+     * Caller should add define an 'inputFiles' property to define the inputs to the transform
      */
     def setupBuildWithTransformFileInputs() {
         setupBuildWithColorTransform {

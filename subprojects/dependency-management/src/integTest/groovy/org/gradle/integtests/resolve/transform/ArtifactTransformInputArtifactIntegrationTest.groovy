@@ -20,11 +20,13 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import spock.lang.Unroll
 
+import java.util.regex.Pattern
+
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     @Unroll
     def "can attach #description to input artifact property with project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -50,81 +52,77 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new")
+        executer.withArguments("-PbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new")
+        executer.withArguments("-PbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new", "-PproducerOutputDir=out")
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new", "-PproducerOutputDir=out")
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new", "-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // new file name, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue.jar")
-        outputContains("processing c-blue.jar")
-        outputContains("result = [b-blue.jar.green, c-blue.jar.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerContent=new", "-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.jar.green, c-blue.jar.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         where:
@@ -136,7 +134,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     @Unroll
     def "can attach #description to input artifact property with project artifact directory"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers {
+        setupBuildWithColorTransformAction {
             produceDirs()
         }
         buildFile << """
@@ -168,93 +166,87 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-dir")
-        outputContains("processing c-dir")
+        transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new")
+        executer.withArguments("-PbName=new")
         succeeds(":a:resolve")
 
         then: // directory content has changed (file renamed)
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-dir")
-        outputContains("processing c-dir")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new")
+        executer.withArguments("-PbName=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new")
+        executer.withArguments("-PbName=new", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // directory content has changed (file contents changed)
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-dir")
-        outputContains("processing c-dir")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new")
+        executer.withArguments("-PbName=new", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue")
+        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // directory name has changed
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue")
+        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue", "-PproducerOutputDir=out")
+        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue", "-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // directory path has changed
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
 
         when:
-        executer.withArguments("-PproducerName=new", "-PproducerContent=new", "-PproducerFileName=blue", "-PproducerOutputDir=out")
+        executer.withArguments("-PbName=new", "-PbContent=new", "-PbDirName=b-blue", "-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         where:
         description                                | annotation
@@ -264,7 +256,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "re-runs transform when input artifact file changes from file to missing"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -294,39 +286,37 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
-        then:
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
+        then: // no changes
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        succeeds(":a:resolve", "-PproduceNothing")
+        succeeds(":a:resolve", "-PbProduceNothing")
 
-        then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing missing b.jar")
-        outputContains("processing missing c.jar")
+        then: // file is missing, should run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("missing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // seen these before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
     def "can attach @PathSensitive(NONE) to input artifact property for project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -353,60 +343,58 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        transformed("b.jar", "c.jar")
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out")
+        executer.withArguments("-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue.jar")
-        outputContains("processing c-blue.jar")
-        outputContains("result = [b-new.green, c-new.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue.jar")
+        outputContains("result = [b-new.green, c.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-new.green, c-new.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-new.green, c.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.green, c.green]")
     }
 
     @Unroll
     def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact directory"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers {
+        setupBuildWithColorTransformAction {
             produceDirs()
         }
         buildFile << """
@@ -435,63 +423,60 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-dir")
-        outputContains("processing c-dir")
+        transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out")
+        executer.withArguments("-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new", "-PproducerName=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         where:
@@ -501,7 +486,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     @Unroll
     def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -528,54 +513,51 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b.jar")
-        outputContains("processing c.jar")
+        transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out")
+        executer.withArguments("-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
         succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue.jar")
-        outputContains("processing c-blue.jar")
-        outputContains("result = [b-blue.jar.green, c-blue.jar.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue.jar")
-        outputContains("processing c-blue.jar")
-        outputContains("result = [b-blue.jar.green, c-blue.jar.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.jar.green, c-blue.jar.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         where:
@@ -584,7 +566,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
     def "can attach @PathSensitive(NAME_ONLY) to input artifact property for project artifact directory"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithConfigurableProducers {
+        setupBuildWithColorTransformAction {
             produceDirs()
         }
         buildFile << """
@@ -613,69 +595,65 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-dir")
-        outputContains("processing c-dir")
+        transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out")
+        executer.withArguments("-PbOutputDir=out")
         succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
         succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksSkipped(":b:producer", ":c:producer")
-        outputDoesNotContain("processing")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        executer.withArguments("-PproducerOutputDir=out", "-PproducerFileName=blue", "-PproducerContent=new", "-PproducerName=new")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputContains("processing b-blue")
-        outputContains("processing c-blue")
-        outputContains("result = [b-blue.green, c-blue.green]")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue")
+        outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
-        outputDoesNotContain("processing")
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
     }
 
     def "can attach @PathSensitive(NONE) to input artifact property for external artifact"() {
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         def lib1 = mavenRepo.module("group1", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
         lib1.artifactFile.text = "lib"
         def lib2 = mavenRepo.module("group2", "lib", "1.0").adhocVariants().variant('runtime', [color: 'blue']).withModuleMetadata().publish()
@@ -718,29 +696,28 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":resolve")
 
         then:
-        outputContains("processing lib-1.0.jar")
-        outputContains("processing lib2-1.0.jar")
+        transformed("lib-1.0.jar", "lib2-1.0.jar")
         outputContains("result = [lib.green, lib2.green]")
 
         when:
         succeeds(":resolve")
 
         then: // no change, should be up-to-date
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [lib.green, lib2.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.0")
 
         then: // path change, should be up-to-date
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [lib.green, lib2.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.1")
 
         then: // name change, should be up-to-date
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [lib.green, lib2.green]")
 
         when:
@@ -748,8 +725,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":resolve")
 
         then: // content change, should run
-        outputContains("processing lib-1.0.jar")
-        outputDoesNotContain("processing lib2")
+        transformed("lib-1.0.jar")
         outputContains("result = [new-lib.green, lib2.green]")
 
         when:
@@ -757,13 +733,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":resolve")
 
         then: // duplicate content
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [new-lib.green]")
     }
 
     @Unroll
     def "can attach @PathSensitive(#sensitivity) to input artifact property for external artifact"() {
-        setupBuildWithConfigurableProducers()
+        setupBuildWithColorTransformAction()
         def lib1 = withColorVariants(mavenRepo.module("group1", "lib", "1.0")).publish()
         lib1.artifactFile.text = "lib"
         def lib2 = withColorVariants(mavenRepo.module("group2", "lib", "1.0")).publish()
@@ -806,29 +782,28 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":resolve")
 
         then:
-        outputContains("processing lib-1.0.jar")
-        outputContains("processing lib2-1.0.jar")
+        transformed("lib-1.0.jar", "lib2-1.0.jar")
         outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve")
 
         then: // no change, should be up-to-date
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.0")
 
         then: // path change, should be up-to-date
-        outputDoesNotContain("processing")
+        transformed()
         outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         when:
         succeeds(":resolve", "-PexternalCoords=group2:lib:1.1")
 
         then: // name change, should run
-        outputContains("processing lib-1.1.jar")
+        transformed("lib-1.1.jar")
         outputContains("result = [lib-1.1.jar.green, lib2-1.0.jar.green]")
 
         when:
@@ -836,68 +811,21 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":resolve")
 
         then: // content change, should run
-        outputContains("processing lib-1.0.jar")
-        outputDoesNotContain("processing lib2")
+        transformed("lib-1.0.jar")
         outputContains("result = [lib-1.0.jar.green, lib2-1.0.jar.green]")
 
         where:
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    /**
-     * Caller should provide an implementation of `MakeGreen` transform action
-     */
-    void setupBuildWithConfigurableProducers() {
-        setupBuildWithConfigurableProducers {}
-    }
-
-    /**
-     * Caller should provide an implementation of `MakeGreen` transform action
-     */
-    void setupBuildWithConfigurableProducers(@DelegatesTo(Builder) Closure cl) {
-        setupBuildWithColorTransformAction(cl)
-        buildFile << """
-            allprojects {
-                afterEvaluate {
-                    if (project.hasProperty('producerOutputDir')) {
-                        buildDir = project.file(producerOutputDir)
-                    }
-                    tasks.withType(FileProducer) {
-                        if (project.hasProperty('produceNothing')) {
-                            content = ""
-                        } else if (project.hasProperty('producerContent')) {
-                            content = project.name + '-' + project.producerContent
-                        } else {
-                            content = project.name
-                        }
-                        if (project.hasProperty('producerFileName')) {
-                            output = layout.buildDir.file("\${project.name}-\${producerFileName}.jar")
-                        } else {
-                            output = layout.buildDir.file("\${project.name}.jar")
-                        }
-                    }
-                    tasks.withType(DirProducer) {
-                        if (project.hasProperty('produceNothing')) {
-                            content = ""
-                        } else if (project.hasProperty('producerContent')) {
-                            content = project.name + '-' + project.producerContent
-                        } else {
-                            content = project.name
-                        }
-                        if (project.hasProperty('producerName')) {
-                            names = [project.producerName]
-                        } else {
-                            names = [project.name]
-                        }
-                        if (project.hasProperty('producerFileName')) {
-                            output = layout.buildDir.dir("\${project.name}-\${producerFileName}")
-                        } else {
-                            output = layout.buildDir.dir("\${project.name}-dir")
-                        }
-                    }
-                }
+    void transformed(String... expected) {
+        def actual = output.readLines().inject([]) { items, line ->
+            def matcher = Pattern.compile("processing\\s+(.+)").matcher(line)
+            if (matcher.find()) {
+                items.add(matcher.group(1))
             }
-        """
+            return items
+        }
+        assert actual.sort() == (expected as List).sort()
     }
-
 }
