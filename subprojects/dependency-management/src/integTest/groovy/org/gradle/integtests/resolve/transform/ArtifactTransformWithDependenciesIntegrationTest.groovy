@@ -286,41 +286,209 @@ project(':common') {
         )
     }
 
-    def "transform with changed dependencies are re-executed"() {
+    def "transform with changed set of dependencies are re-executed"() {
         given:
         setupBuildWithSingleStep()
 
-        run ":app:resolveGreen", "-PuseOldDependencyVersion"
-
         when:
-        run ":app:resolveGreen", "-PuseOldDependencyVersion", "--info"
-        def outputLines = output.readLines()
+        run ":app:resolveGreen"
 
         then:
-        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 5
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*lib.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
-
-        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 0
-
-        when:
-        run ":app:resolveGreen", "--info"
-        outputLines = output.readLines()
-
-        then:
-        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 3
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
-
-        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 2
-        outputLines.any { it ==~ /TestTransformAction: .*lib.jar is not up-to-date because:/ }
-        outputLines.any { it ==~ /TestTransformAction: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
         assertTransformationsExecuted(
             singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
             singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
         )
+
+        when:
+        run ":app:resolveGreen", "-PuseOldDependencyVersion"
+
+        then: // new version, should run
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.24.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.24.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PuseOldDependencyVersion"
+
+        then: // no changes, should be up-to-date
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        assertTransformationsExecuted()
+    }
+
+    def "transform with changed project file dependencies content or path are re-executed"() {
+        given:
+        setupBuildWithSingleStep()
+
+        when:
+        run ":app:resolveGreen"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // new path, should re-run
+        result.assertTasksNotSkipped(":common:producer")
+        assertTransformationsExecuted(
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // new name, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+
+        then: // new content, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted()
+    }
+
+    def "can attach @PathSensitive(NONE) to dependencies property"() {
+        given:
+        buildFile << """
+allprojects {
+    dependencies {
+        registerTransformAction(NoneTransformAction) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+        }
+    }
+}
+
+abstract class NoneTransformAction implements ArtifactTransformAction {
+    @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
+    abstract FileCollection getInputArtifactDependencies()
+
+    @InputArtifact
+    abstract File getInput()
+
+    void transform(ArtifactTransformOutputs outputs) {
+        println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
+
+        def output = outputs.file(input.name + ".txt")
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+    }
+}
+
+"""
+
+        when:
+        run ":app:resolveGreen"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // new path, should skip consumer
+        result.assertTasksNotSkipped(":common:producer")
+        assertTransformationsExecuted(
+            singleStep('common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // new name, should skip consumer
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+
+        then: // new content, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted()
     }
 
     def "transforms with different dependencies in multiple dependency graphs are executed"() {

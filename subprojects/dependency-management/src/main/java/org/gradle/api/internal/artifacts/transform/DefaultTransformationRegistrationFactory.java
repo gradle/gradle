@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -89,14 +90,19 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Class<? extends FileNormalizer> fileNormaliser = AbsolutePathInputNormalizer.class;
+        Class<? extends FileNormalizer> inputArtifactNormalizer = AbsolutePathInputNormalizer.class;
+        Class<? extends FileNormalizer> dependenciesNormalizer = AbsolutePathInputNormalizer.class;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             if (propertyMetadata.getPropertyType().equals(InputArtifact.class)) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
-                fileNormaliser = visitor.normalizer;
-                break;
+                inputArtifactNormalizer = visitor.normalizer;
+            }
+            if (propertyMetadata.getPropertyType().equals(InputArtifactDependencies.class)) {
+                NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                dependenciesNormalizer = visitor.normalizer;
             }
         }
 
@@ -104,7 +110,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             implementation,
             parameterObject,
             from,
-            fileNormaliser,
+            inputArtifactNormalizer,
+            dependenciesNormalizer,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,

@@ -142,6 +142,11 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+            return AbsolutePathInputNormalizer
+        }
+
+        @Override
         void isolateParameters() {
         }
 

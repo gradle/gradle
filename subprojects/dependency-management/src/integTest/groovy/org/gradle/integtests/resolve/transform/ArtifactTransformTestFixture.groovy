@@ -32,7 +32,9 @@ trait ArtifactTransformTestFixture {
 
     /**
      * Each project produces a 'blue' variant containing a single file, and has a `resolve` task that resolves the 'green' variant.
-     * Caller will need to register transforms that produce 'green' from 'blue'
+     * Caller will need to register transforms that produce 'green' from 'blue'.
+     *
+     * See {@link Builder#produceFiles()} for details of the output files.
      */
     void setupBuildWithColorAttributes() {
         setupBuildWithColorAttributes(new Builder())
@@ -65,6 +67,9 @@ allprojects {
     }
     task producer(type: ${builder.producerTaskClassName}) {
         ${builder.producerConfig}
+    }
+    afterEvaluate {
+        ${builder.producerConfigOverrides}
     }
     artifacts {
         implementation producer.output
@@ -124,7 +129,9 @@ class DirProducer extends DefaultTask {
 
     /**
      * Each project produces a 'blue' variant that contains a single file, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
-     * Caller will need to provide an implementation of 'MakeGreen' transform action
+     * Caller will need to provide an implementation of 'MakeGreen' transform action.
+     *
+     * See {@link Builder#produceFiles()} for details of the output files.
      */
     void setupBuildWithColorTransformAction() {
         setupBuildWithColorTransformAction {}
@@ -151,6 +158,8 @@ allprojects {
     /**
      * Each project produces a 'blue' variant containing a single file, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
      * Caller will need to provide an implementation of 'MakeGreen' transform configuration. Does not apply any configuration to this type.
+     *
+     * See {@link Builder#produceFiles()} for details of the output files.
      */
     void setupBuildWithColorTransform() {
         setupBuildWithColorTransform {}
@@ -185,28 +194,76 @@ allprojects { p ->
     static class Builder {
         String producerTaskClassName
         String producerConfig
+        String producerConfigOverrides
 
         Builder() {
             produceFiles()
         }
 
         /**
-         * Specifies that each project produce a single file as output.
+         * Specifies that each project produce a single file as output. Adds some system properties that can be used to override certain configuration:
+         *
+         * ${project.name}OutputDir - changes the build directory of the given project.
+         * ${project.name}FileName - changes the output file name.
+         * ${project.name}ProduceNothing - deletes the output file instead of writing to it.
+         * ${project.name}Content - changes the text to write to the output file.
          */
         void produceFiles() {
             producerTaskClassName = "FileProducer"
             producerConfig = """
                 output = layout.buildDir.file("\${project.name}.jar")
+                content = project.name
+            """.stripIndent()
+            producerConfigOverrides = """
+                if (project.hasProperty("\${project.name}OutputDir")) {
+                    buildDir = project.file(project.property("\${project.name}OutputDir"))
+                }
+                tasks.withType(FileProducer) {
+                    if (project.hasProperty("\${project.name}ProduceNothing")) {
+                        content = ""
+                    } else if (project.hasProperty("\${project.name}Content")) {
+                        content = project.property("\${project.name}Content")
+                    }
+                    if (project.hasProperty("\${project.name}FileName")) {
+                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
+                    }
+                }
             """.stripIndent()
         }
 
         /**
-         * Specifies that each project produce a single directory as output.
+         * Specifies that each project produce a single directory as output. Adds some system properties that can be used to override certain configuration:
+         *
+         * ${project.name}OutputDir - changes the build directory of the given project.
+         * ${project.name}DirName - changes the output directory name.
+         * ${project.name}ProduceNothing - deletes the output directory instead of writing to it.
+         * ${project.name}Name - changes the name of the file to write to in the directory
+         * ${project.name}Content - changes the text to write to the output file.
          */
         void produceDirs() {
             producerTaskClassName = "DirProducer"
             producerConfig = """
                 output = layout.buildDir.dir("\${project.name}-dir")
+                content = project.name  
+                names = [project.name]
+            """.stripIndent()
+            producerConfigOverrides = """
+                if (project.hasProperty("\${project.name}OutputDir")) {
+                    buildDir = project.file(project.property("\${project.name}OutputDir"))
+                }
+                tasks.withType(DirProducer) {
+                    if (project.hasProperty("\${project.name}ProduceNothing")) {
+                        content = ""
+                    } else if (project.hasProperty("\${project.name}Content")) {
+                        content = project.property("\${project.name}Content")
+                    }
+                    if (project.hasProperty("\${project.name}Name")) {
+                        names = [project.property("\${project.name}Name")]
+                    }
+                    if (project.hasProperty("\${project.name}DirName")) {
+                        output = layout.buildDir.dir(project.property("\${project.name}DirName"))
+                    }
+                }
             """.stripIndent()
         }
     }

@@ -44,7 +44,6 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputFileChanges;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -80,7 +79,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
-    private final FileCollectionFingerprinter dependencyFingerprinter;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileCollectionFingerprinter outputFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -105,13 +103,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.projectFinder = projectFinder;
         this.useTransformationWorkspaces = useTransformationWorkspaces;
-        // Assume absolute for now
-        dependencyFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(AbsolutePathInputNormalizer.class);
         outputFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
     }
 
     @Override
     public Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
+        FileCollectionFingerprinter dependencyFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);

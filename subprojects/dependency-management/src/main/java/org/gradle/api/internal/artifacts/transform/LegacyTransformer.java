@@ -84,6 +84,11 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+        return AbsolutePathInputNormalizer.class;
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
     }
 
