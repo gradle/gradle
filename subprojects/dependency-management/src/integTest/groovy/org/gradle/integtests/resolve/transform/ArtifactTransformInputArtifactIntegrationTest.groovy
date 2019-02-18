@@ -23,6 +23,40 @@ import spock.lang.Unroll
 import java.util.regex.Pattern
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+    def "transform does not execute when project artifact cannot be built"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            project(':b') {
+                tasks.producer.doLast { throw new RuntimeException('broken') }
+            }
+            
+            abstract class MakeGreen implements TransformAction {
+                @InputArtifact
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                }
+            }
+        """
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        transformed("c.jar")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Execution failed for task ':b:producer'.")
+        failure.assertHasCause("broken")
+    }
+
     @Unroll
     def "can attach #description to input artifact property with project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"

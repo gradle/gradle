@@ -567,6 +567,7 @@ abstract class NoneTransformAction implements TransformAction {
         then:
         assertTransformationsExecuted()
         failure.assertResolutionFailure(":app:implementation")
+        failure.assertHasFailures(1)
         failure.assertThatCause(Matchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
@@ -590,6 +591,7 @@ abstract class NoneTransformAction implements TransformAction {
 
         then:
         failure.assertResolutionFailure(":app:implementation")
+        failure.assertHasFailures(1)
         failure.assertThatCause(Matchers.containsString("Could not download cant-be-downloaded-4.3.jar (test:cant-be-downloaded:4.3)"))
 
         assertTransformationsExecuted(
@@ -613,6 +615,7 @@ abstract class NoneTransformAction implements TransformAction {
 
         then:
         failure.assertResolutionFailure(":app:implementation")
+        failure.assertHasFailures(1)
         failure.assertThatCause(Matchers.containsString("Failed to transform artifact 'slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)'"))
 
         assertTransformationsExecuted(
@@ -628,7 +631,7 @@ abstract class NoneTransformAction implements TransformAction {
         )
     }
 
-    def "transform does not execute when task from dependencies fails"() {
+    def "transform does not execute when dependencies cannot be built"() {
         given:
         setupBuildWithTwoSteps()
         buildFile << """
@@ -645,6 +648,7 @@ abstract class NoneTransformAction implements TransformAction {
         then:
         assertTransformationsExecuted()
         failure.assertHasDescription("Execution failed for task ':common:producer'")
+        failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }
 

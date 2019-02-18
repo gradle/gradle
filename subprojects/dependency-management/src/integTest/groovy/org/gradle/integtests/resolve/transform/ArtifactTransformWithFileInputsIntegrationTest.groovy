@@ -257,6 +257,39 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    def "transform does not execute when file inputs cannot be built"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithTransformFileInputs()
+        buildFile << """
+            allprojects {
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
+                    doLast { throw new RuntimeException('broken') }
+                }
+                ext.inputFiles = files(tool.output)                
+            }
+
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        result.assertTasksExecuted(":a:tool")
+        outputDoesNotContain("processing")
+        failure.assertHasDescription("Execution failed for task ':a:tool'.")
+        failure.assertHasFailures(1)
+        failure.assertHasCause("broken")
+    }
+
     @Unroll
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
