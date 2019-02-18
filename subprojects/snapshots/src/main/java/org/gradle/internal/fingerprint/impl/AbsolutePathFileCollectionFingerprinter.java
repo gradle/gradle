@@ -16,15 +16,14 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
-public class AbsolutePathFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter {
+public class AbsolutePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public AbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, stringInterner, fileSystemSnapshotter);
+    public AbsolutePathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        super(AbsolutePathFingerprintingStrategy.INCLUDE_MISSING, fileSystemSnapshotter);
     }
 
     @Override

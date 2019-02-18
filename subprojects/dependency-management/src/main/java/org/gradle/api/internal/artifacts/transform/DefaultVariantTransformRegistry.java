@@ -21,10 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.ArtifactTransformAction;
-import org.gradle.api.artifacts.transform.ArtifactTransformSpec;
-import org.gradle.api.artifacts.transform.ParameterizedArtifactTransformSpec;
+import org.gradle.api.artifacts.transform.AssociatedTransformAction;
+import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
@@ -78,7 +78,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedArtifactTransformSpec<T>> registrationAction) {
+    public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
         T parameterObject = parametersInstantiationScheme.withServices(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
@@ -87,14 +87,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T extends ArtifactTransformAction> void registerTransformAction(Class<T> actionType, Action<? super ArtifactTransformSpec> registrationAction) {
+    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction) {
         ActionRegistration registration = instantiatorFactory.decorateLenient().newInstance(ActionRegistration.class, immutableAttributesFactory);
         registrationAction.execute(registration);
 
         register(registration, actionType, null);
     }
 
-    private <T> void register(RecordingRegistration registration, Class<? extends ArtifactTransformAction> actionType, @Nullable T parameterObject) {
+    private <T> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
         validateActionType(actionType);
         validateAttributes(registration);
         try {
@@ -127,7 +127,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    public static abstract class RecordingRegistration implements ArtifactTransformSpec {
+    public static abstract class RecordingRegistration implements TransformSpec {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
 
@@ -181,16 +181,16 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @NonExtensible
-    public static class TypedRegistration<T> extends RecordingRegistration implements ParameterizedArtifactTransformSpec<T> {
+    public static class TypedRegistration<T> extends RecordingRegistration implements ParameterizedTransformSpec<T> {
         private final T parameterObject;
-        Class<? extends ArtifactTransformAction> actionType;
+        Class<? extends TransformAction> actionType;
 
         public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
             this.parameterObject = parameterObject;
-            TransformAction transformAction = parameterObject.getClass().getAnnotation(TransformAction.class);
-            if (transformAction != null) {
-                actionType = transformAction.value();
+            AssociatedTransformAction associatedTransformAction = parameterObject.getClass().getAnnotation(AssociatedTransformAction.class);
+            if (associatedTransformAction != null) {
+                actionType = associatedTransformAction.value();
             }
         }
 

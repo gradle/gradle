@@ -21,9 +21,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -68,8 +68,8 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         String inputFilePrefix = inputArtifact.getPath() + File.separator;
         String outputDirPrefix = outputDir.getPath() + File.separator;
         for (File output : outputs) {
-            ArtifactTransformOutputsInternal.validateOutputExists(output);
-            ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputFilePrefix, outputDir, outputDirPrefix);
+            TransformOutputsInternal.validateOutputExists(output);
+            TransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputFilePrefix, outputDir, outputDirPrefix);
         }
     }
 
@@ -79,8 +79,13 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
-        return AbsolutePathFingerprintingStrategy.INCLUDE_MISSING;
+    public Class<? extends FileNormalizer> getInputArtifactNormalizer() {
+        return AbsolutePathInputNormalizer.class;
+    }
+
+    @Override
+    public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+        return AbsolutePathInputNormalizer.class;
     }
 
     @Override

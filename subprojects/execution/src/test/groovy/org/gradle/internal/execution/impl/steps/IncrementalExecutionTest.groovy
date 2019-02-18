@@ -73,8 +73,8 @@ class IncrementalExecutionTest extends Specification {
     def fileHasher = new TestFileHasher()
     def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(new StringInterner(), snapshotter)
-    def outputFingerprinter = new OutputFileCollectionFingerprinter(new StringInterner(), snapshotter)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
+    def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
         @Override

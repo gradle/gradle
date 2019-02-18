@@ -245,7 +245,7 @@ All of them match the consumer attributes:
 
     }
 
-    def "should not select variant whenever 2 variants provide more than one extra attributes"() {
+    def "should select the variant matching most closely the requested attributes when they provide more than one extra attributes"() {
         given:
         component(
                 variant("first", attributes('org.gradle.usage': 'java-api', extra: 'v1', other: true)),
@@ -259,18 +259,7 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        AmbiguousConfigurationSelectionException e = thrown()
-        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
-  - first
-  - second
-All of them match the consumer attributes:
-  - Variant 'first' capability org:lib:1.0:
-      - Found extra 'v1' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-      - Found other 'true' but wasn't required.
-  - Variant 'second' capability org:lib:1.0:
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
-      - Found other 'true' but wasn't required.''')
+        selected.name == 'second'
 
     }
 

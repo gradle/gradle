@@ -55,6 +55,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         outputContains """project :$expectedProject
    variant "$expectedVariant" [
       $expectedAttributes
+      org.gradle.dependency.bundling = external (not requested)
    ]
 
 project :$expectedProject
@@ -62,8 +63,8 @@ project :$expectedProject
 
         where:
         configuration      | expectedProject | expectedVariant   | expectedAttributes
-        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage = java-api-jars (compatible with: java-api)'
-        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage = java-runtime-jars (compatible with: java-runtime)'
+        'compileClasspath' | 'b'             | 'apiElements'     | 'org.gradle.usage               = java-api-jars (compatible with: java-api)'
+        'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime-jars (compatible with: java-runtime)'
     }
 
     def "shows published variant details"() {

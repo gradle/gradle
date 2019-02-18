@@ -17,6 +17,8 @@ package org.gradle.internal.fingerprint;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public interface FileCollectionFingerprinter {
     /**
@@ -30,7 +32,17 @@ public interface FileCollectionFingerprinter {
     CurrentFileCollectionFingerprint fingerprint(FileCollection files);
 
     /**
+     * Creates a fingerprint of the contents of the given roots.
+     */
+    CurrentFileCollectionFingerprint fingerprint(Iterable<? extends FileSystemSnapshot> roots);
+
+    /**
      * Returns an empty fingerprint.
      */
     CurrentFileCollectionFingerprint empty();
+
+    /**
+     * Returns the normalized path to use for the given root
+     */
+    String normalizePath(FileSystemLocationSnapshot root);
 }

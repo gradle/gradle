@@ -17,22 +17,20 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.attributes.AttributeContainer;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Base configuration for artifact transform registrations.
+ * Attached to an artifact transform parameter type to declare the corresponding {@link TransformAction} implementation to use.
  *
- * @since 5.2
+ * @since 5.3
  */
 @Incubating
-public interface ArtifactTransformSpec {
-    /**
-     * Attributes that match the variant that is consumed.
-     */
-    AttributeContainer getFrom();
-
-    /**
-     * Attributes that match the variant that is produced.
-     */
-    AttributeContainer getTo();
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface AssociatedTransformAction {
+    Class<? extends TransformAction> value();
 }

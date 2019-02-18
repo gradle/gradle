@@ -18,19 +18,27 @@ package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Attached to an artifact transform parameter type to declare the corresponding {@link ArtifactTransformAction} implementation to use.
+ * Interface for artifact transform actions.
  *
- * @since 5.2
+ * <p>Implementations must provide a public constructor.</p>
+ *
+ * <p>Implementations can receive parameters by using annotated abstract getter methods.</p>
+ *
+ * <p>A property annotated with {@link TransformParameters} will receive the object provided by {@link ParameterizedTransformSpec#getParameters()}.
+ *
+ * <p>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.
+ *
+ * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.
+ *
+ * @since 5.3
  */
 @Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface TransformAction {
-    Class<? extends ArtifactTransformAction> value();
+public interface TransformAction {
+    /**
+     * Executes the transform.
+     *
+     * @param outputs Receives the outputs of the transform.
+     */
+    void transform(TransformOutputs outputs);
 }

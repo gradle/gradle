@@ -61,7 +61,7 @@ A platform is a set of modules aimed to be used together. There are different ca
 - runtime environment: a set of libraries known to work well together. e.g., the Spring Platform, recommending versions for both Spring and components that work well with Spring.
 - deployment environment: Java runtime, application server, ...
 
-In addition Gradle defines <<sec:virtual_platform,virtual platforms>>.
+In addition Gradle defines <<managing_transitive_dependencies#sec:virtual_platform,virtual platforms>>.
 
 [NOTE]
 ====

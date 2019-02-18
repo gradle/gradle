@@ -5,6 +5,10 @@ This release features [1](), [2](), ... [n](), and more.
 We would like to thank the following community contributors to this release of Gradle:
 
 [Stefan M.](https://github.com/StefMa), [Evgeny Mandrikov](https://github.com/Godin), [Simon Legner](https://github.com/simon04),  
+[Raman Gupta](https://github.com/rocketraman),
+[Florian Dreier](https://github.com/DreierF),
+[Kenzie Togami](https://github.com/kenzierocks),
+[Ricardo Pereira](https://github.com/thc202),
 ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
@@ -53,6 +57,12 @@ In this release, plugin authors can use the `ObjectFactory.fileCollection()` met
 ## Default JaCoCo version upgraded to 0.8.3
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
+
+## Better help message on delete operation failure
+
+The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
+
+The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -59,9 +59,12 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.filewatch.PendingChangesManager;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -97,6 +100,7 @@ import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -173,24 +177,28 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultFileSystemSnapshotter(hasher, stringInterner, fileSystem, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new AbsolutePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
     RelativePathFileCollectionFingerprinter createRelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
         return new RelativePathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
     }
 
-    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new NameOnlyFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    NameOnlyFileCollectionFingerprinter createNameOnlyFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new NameOnlyFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
-    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new IgnoredPathFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    IgnoredPathFileCollectionFingerprinter createIgnoredPathFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new IgnoredPathFileCollectionFingerprinter(fileSystemSnapshotter);
     }
 
-    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+    OutputFileCollectionFingerprinter createOutputFileCollectionFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+        return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+    }
+
+    FileCollectionFingerprinterRegistry createFileCollectionFingerprinterRegistry(List<FileCollectionFingerprinter> fingerprinters) {
+        return new DefaultFileCollectionFingerprinterRegistry(fingerprinters);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(ResourceSnapshotterCacheService globalCache, CrossBuildFileHashCache store, WellKnownFileLocations wellKnownFileLocations) {

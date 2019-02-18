@@ -16,32 +16,35 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.util.ToBeImplemented
+import spock.lang.Unroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
-     * Caller should add elements to the 'inputFiles' property to make them inputs to the transform
+     * Caller should add define an 'inputFiles' property to define the inputs to the transform
      */
-    def setupBuildWithTransformFileInputs() {
+    def setupBuildWithTransformFileInputs(String inputAnnotations = "@InputFiles") {
         setupBuildWithColorTransform {
             params("""
                 someFiles.from { project.inputFiles }
             """)
         }
         buildFile << """
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
-                @Input
+                $inputAnnotations
                 ConfigurableFileCollection getSomeFiles()
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = "ok"
@@ -150,11 +153,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
-            abstract class MakeRedAction implements ArtifactTransformAction {
+            abstract class MakeRedAction implements TransformAction {
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} wit MakeRedAction"
                     def output = outputs.file(input.name + ".red")
                     output.text = "ok"
@@ -255,6 +258,124 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
 //        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", "c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar, tool-b.jar]")
         outputContains("processing c.jar using [tool-a.jar, tool-b.jar]")
+        outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    @Unroll
+    def "can use input path sensitivity #pathSensitivity for parameter object"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithTransformFileInputs("@PathSensitive(PathSensitivity.$pathSensitivity) @InputFiles")
+        buildFile << """
+            allprojects {
+                ext.inputFiles = files(rootProject.file(project.property('fileName')))
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+        """
+        def (first, second, third) = files
+
+        when:
+        def firstFilePath = first[0]
+        def firstFile = file(firstFilePath)
+        firstFile.text = first[1]
+        run(":a:resolve", "-PfileName=${firstFilePath}")
+        then:
+        outputContains("processing b.jar using [$firstFile.name]")
+        outputContains("processing c.jar using [$firstFile.name]")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        file(second[0]).text = second[1]
+        run(":a:resolve", "-PfileName=${second[0]}")
+        then:
+        outputDoesNotContain("Transform artifact")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        def thirdFilePath = third[0]
+        def thirdFile = file(thirdFilePath)
+        thirdFile.text = third[1]
+        run(":a:resolve", "-PfileName=${thirdFilePath}")
+        then:
+        outputContains("processing b.jar using [$thirdFile.name]")
+        outputContains("processing c.jar using [$thirdFile.name]")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        pathSensitivity           | files
+        PathSensitivity.NONE      | [['first', 'foo'], ['second', 'foo'], ['third', 'bar']]
+        PathSensitivity.NAME_ONLY | [['first/input', 'foo'], ['second/input', 'foo'], ['third/input1', 'foo']]
+        PathSensitivity.RELATIVE  | [['first/input', 'foo'], ['second/input', 'foo'], ['third/input1', 'foo']]
+        PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
+    }
+
+    @ToBeImplemented
+    def "can use classpath normalization for parameter object"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithTransformFileInputs("@Classpath")
+        buildFile << """
+            allprojects {
+                ext.inputFiles = files(rootProject.file("inputDir"), rootProject.file("input.jar"))
+            }
+            
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+                normalization {
+                    runtimeClasspath {
+                        ignore("**/ignored.txt")
+                    }
+                }
+            }
+        """
+        def inputDir = file("inputDir")
+        inputDir.mkdirs()
+        def inputJar = file("input.jar")
+        def jarSources = file("jarDir")
+        jarSources.mkdirs()
+
+        when:
+        inputDir.file("org/gradle/input.txt").text = "input.txt"
+        inputDir.file("org/gradle/ignored.txt").text = "some"
+        jarSources.file("some/other/ignored.txt").text = "other"
+        jarSources.zipTo(inputJar)
+        run(":a:resolve")
+        then:
+        outputContains("processing b.jar using [${inputDir.name}, ${inputJar.name}]")
+        outputContains("processing c.jar using [${inputDir.name}, ${inputJar.name}]")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        inputDir.file("other/ignored.txt").text = "ignored as well"
+        jarSources.file("some/other/ignored.txt").text = "ignored change"
+        jarSources.zipTo(inputJar)
+        run(":a:resolve")
+        then:
+        // TODO: Should not report changes
+        // outputDoesNotContain("Transform artifact")
+        outputContains("processing b.jar using [${inputDir.name}, ${inputJar.name}]")
+        outputContains("processing c.jar using [${inputDir.name}, ${inputJar.name}]")
+
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        jarSources.file("new/input/file.txt").text = "new input"
+        jarSources.zipTo(inputJar)
+        run(":a:resolve")
+        then:
+        outputContains("processing b.jar using [${inputDir.name}, ${inputJar.name}]")
+        outputContains("processing c.jar using [${inputDir.name}, ${inputJar.name}]")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 }

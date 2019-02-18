@@ -21,16 +21,19 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.transform.ArtifactTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
@@ -41,7 +44,9 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -66,29 +71,49 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAction> {
+public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     private final Object parameterObject;
-    private final FingerprintingStrategy fingerprintingStrategy;
+    private final Class<? extends FileNormalizer> fileNormalizer;
+    private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
     private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
-    private final InstanceFactory<? extends ArtifactTransformAction> instanceFactory;
+    private final InstanceFactory<? extends TransformAction> instanceFactory;
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
 
     private IsolatableParameters isolatable;
 
-    public DefaultTransformer(Class<? extends ArtifactTransformAction> implementationClass, @Nullable Object parameterObject, ImmutableAttributes fromAttributes, FingerprintingStrategy fingerprintingStrategy, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, IsolatableFactory isolatableFactory, ValueSnapshotter valueSnapshotter, PropertyWalker parameterPropertyWalker, DomainObjectProjectStateHandler projectStateHandler, InstantiationScheme actionInstantiationScheme) {
+    public DefaultTransformer(
+        Class<? extends TransformAction> implementationClass,
+        @Nullable Object parameterObject,
+        ImmutableAttributes fromAttributes,
+        Class<? extends FileNormalizer> inputArtifactNormalizer,
+        Class<? extends FileNormalizer> dependenciesNormalizer,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        IsolatableFactory isolatableFactory,
+        ValueSnapshotter valueSnapshotter,
+        FileCollectionFactory fileCollectionFactory,
+        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+        PropertyWalker parameterPropertyWalker,
+        DomainObjectProjectStateHandler projectStateHandler,
+        InstantiationScheme actionInstantiationScheme
+    ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
-        this.fingerprintingStrategy = fingerprintingStrategy;
+        this.fileNormalizer = inputArtifactNormalizer;
+        this.dependenciesNormalizer = dependenciesNormalizer;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
@@ -109,8 +134,13 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
     }
 
     @Override
-    public FingerprintingStrategy getInputArtifactFingerprintingStrategy() {
-        return fingerprintingStrategy;
+    public Class<? extends FileNormalizer> getInputArtifactNormalizer() {
+        return fileNormalizer;
+    }
+
+    @Override
+    public Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
+        return dependenciesNormalizer;
     }
 
     public boolean requiresDependencies() {
@@ -124,8 +154,8 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     @Override
     public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
-        ArtifactTransformAction transformAction = newTransformAction(inputArtifact, dependencies);
-        DefaultArtifactTransformOutputs transformOutputs = new DefaultArtifactTransformOutputs(inputArtifact, outputDir);
+        TransformAction transformAction = newTransformAction(inputArtifact, dependencies);
+        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifact, outputDir);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
     }
@@ -162,7 +192,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
@@ -170,11 +200,14 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
     private static void fingerprintParameters(
         ValueSnapshotter valueSnapshotter,
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        FileCollectionFactory fileCollectionFactory,
         PropertyWalker propertyWalker,
         Hasher hasher,
         Object parameterObject
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         List<String> validationMessages = new ArrayList<>();
         DefaultParameterValidationContext validationContext = new DefaultParameterValidationContext(validationMessages);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
@@ -204,7 +237,10 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
 
             @Override
             public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                throw new UnsupportedOperationException("File input properties are not yet supported");
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileNormalizer);
+                FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
+                inputFileParameterFingerprintsBuilder.put(propertyName, fingerprint);
             }
         });
 
@@ -219,6 +255,10 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
             hasher.putString(entry.getKey());
             entry.getValue().appendToHasher(hasher);
         }
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileParameterFingerprintsBuilder.build().entrySet()) {
+            hasher.putString(entry.getKey());
+            hasher.putHash(entry.getValue().getHash());
+        }
     }
 
     private static String getParameterObjectDisplayName(Object parameterObject) {
@@ -226,7 +266,7 @@ public class DefaultTransformer extends AbstractTransformer<ArtifactTransformAct
         return ModelType.of(parameterClass).getDisplayName();
     }
 
-    private ArtifactTransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
+    private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
         ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatable().getIsolatableParameters().isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services);
     }

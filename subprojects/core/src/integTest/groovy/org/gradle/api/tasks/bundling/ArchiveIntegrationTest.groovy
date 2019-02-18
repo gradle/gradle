@@ -15,13 +15,16 @@
  */
 package org.gradle.api.tasks.bundling
 
+
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
+import org.junit.Assume
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.equalTo
 
@@ -726,6 +729,49 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run "shouldRun"
         then:
         ":tar" in executedTasks
+    }
+
+    @Issue("https://github.com/gradle/gradle#1108")
+    @Unroll
+    def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
+        Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
+
+        given:
+        createZip("test.zip") {
+            dir1 {
+                file "file1.txt"
+            }
+            dir2 {
+                file "file2.txt"
+                file "file3.txt"
+                dir3 {}
+            }
+        }
+
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from(zipTree("test.zip")) {
+                    include "dir2/**"
+                    includeEmptyDirs = ${includeEmptyDirs}
+                    eachFile { fcd ->
+                        fcd.relativePath = new RelativePath(!fcd.isDirectory(), fcd.relativePath.segments.drop(1))
+                    }
+                }
+                into buildDir
+            }
+        """
+
+        when:
+        run "copy"
+
+        then:
+        file("build").assertHasDescendants(expectedDescendants)
+
+        where:
+        includeEmptyDirs | expectedDescendants
+        true             | ["file2.txt", "file3.txt", "dir3"]
+        false            | ["file2.txt", "file3.txt"]
     }
 
     private def createTar(String name, Closure cl) {

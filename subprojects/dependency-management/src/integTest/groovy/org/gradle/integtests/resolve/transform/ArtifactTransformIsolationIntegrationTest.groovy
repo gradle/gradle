@@ -85,14 +85,14 @@ class Resolve extends Copy {
 
         given:
         buildFile << """
-            @TransformAction(CountRecorderAction)
+            @AssociatedTransformAction(CountRecorderAction)
             interface CountRecorder {
                 @Input
                 Counter getCounter()
                 void setCounter(Counter counter)
             }
 
-            abstract class CountRecorderAction implements ArtifactTransformAction {
+            abstract class CountRecorderAction implements TransformAction {
                 private final Counter counter;
                             
                 @TransformParameters
@@ -105,7 +105,7 @@ class Resolve extends Copy {
                     println "Creating CountRecorder"
                 }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     def output = outputs.file(input.name + ".txt")
                     def counter = parameters.counter
                     println "Transforming \${input.name} to \${output.name}"

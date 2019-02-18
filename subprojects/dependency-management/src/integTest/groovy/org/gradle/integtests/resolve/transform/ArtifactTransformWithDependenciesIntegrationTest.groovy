@@ -30,24 +30,25 @@ import javax.annotation.Nonnull
 import java.util.regex.Pattern
 
 @IgnoreIf({ GradleContextualExecuter.parallel})
-class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def setup() {
         settingsFile << """
             rootProject.name = 'transform-deps'
             include 'common', 'lib', 'app'
         """
-        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.24").publish().allowAll()
-        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.25").publish().allowAll()
-        mavenHttpRepo.module("junit", "junit", "4.11")
+        withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.24")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.25")).publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("junit", "junit", "4.11"))
                 .dependsOn("hamcrest", "hamcrest-core", "1.3")
-                .publish().allowAll()
-        mavenHttpRepo.module("hamcrest", "hamcrest-core", "1.3").publish().allowAll()
+                .publish()
+                .allowAll()
+        withColorVariants(mavenHttpRepo.module("hamcrest", "hamcrest-core", "1.3")).publish().allowAll()
 
+        setupBuildWithColorAttributes()
         buildFile << """
-def artifactType = Attribute.of('artifactType', String)
                    
-@TransformAction(TestTransformAction)
+@AssociatedTransformAction(TestTransformAction)
 interface TestTransform {
     @Input
     String getTransformName()
@@ -56,59 +57,26 @@ interface TestTransform {
 
 allprojects {
     repositories {
-        maven { url = '${mavenHttpRepo.uri}' }
-    }
-    configurations {
-        implementation {
-            canBeConsumed = false
-            attributes.attribute(artifactType, 'jar')
+        maven { 
+            url = '${mavenHttpRepo.uri}' 
+            metadataSources { gradleMetadata() }
         }
-        "default" { extendsFrom implementation }
-    }
-    task producer(type: Producer) {
-        outputFile = file("build/\${project.name}.jar")
-    }
-    artifacts {
-        implementation producer.outputFile
     }
 
     dependencies {
-        registerTransform(TestTransform) {
-            from.attribute(artifactType, 'jar')
-            to.attribute(artifactType, 'size')
-            parameters {
-                transformName = 'Single step transform'
+        artifactTypes {
+            jar {
+                attributes.attribute(color, 'blue')
             }
         }
+    }
 
-        // Multi step transform
-        registerTransform(TestTransform) {
-            from.attribute(artifactType, 'jar')
-            to.attribute(artifactType, 'intermediate')
-            parameters {
-                transformName = 'Transform step 1'
-            }
-        }
-        registerTransform(TestTransform) {
-            from.attribute(artifactType, 'intermediate')
-            to.attribute(artifactType, 'final')
-            parameters {
-                transformName = 'Transform step 2'
-            }
-        }
-
-        //Multi step transform, without dependencies at step 1
-        registerTransformAction(SimpleTransform) {
-            from.attribute(artifactType, 'jar')
-            to.attribute(artifactType, 'middle')
-        }
-        registerTransform(TestTransform) {
-            from.attribute(artifactType, 'middle')
-            to.attribute(artifactType, 'end')
-            parameters {
-                transformName = 'Transform step 2'
-            }
-        }
+    task resolveGreen(type: Copy) {
+        def artifacts = configurations.implementation.incoming.artifactView {
+            attributes { it.attribute(color, 'green') }
+        }.artifacts
+        from artifacts.artifactFiles
+        into "\${buildDir}/green"
     }
 }
 
@@ -135,17 +103,7 @@ project(':app') {
 
 import javax.inject.Inject
 
-class Producer extends DefaultTask {
-    @OutputFile
-    RegularFileProperty outputFile = project.objects.fileProperty()
-
-    @TaskAction
-    def go() {
-        outputFile.get().asFile.text = "output"
-    }
-}
-
-abstract class TestTransformAction implements ArtifactTransformAction {
+abstract class TestTransformAction implements TransformAction {
 
     @TransformParameters
     abstract TestTransform getParameters()
@@ -156,7 +114,7 @@ abstract class TestTransformAction implements ArtifactTransformAction {
     @InputArtifact
     abstract File getInput()
 
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         println "\${parameters.transformName} received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
         assert inputArtifactDependencies.every { it.exists() }
 
@@ -168,12 +126,12 @@ abstract class TestTransformAction implements ArtifactTransformAction {
     }
 }
 
-abstract class SimpleTransform implements ArtifactTransformAction {
+abstract class SimpleTransform implements TransformAction {
 
     @InputArtifact
     abstract File getInput()
 
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         def output = outputs.file(input.name + ".txt")
         def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
@@ -187,25 +145,74 @@ abstract class SimpleTransform implements ArtifactTransformAction {
 """
     }
 
-    def "transform can access artifact dependencies as a set of files when using ArtifactView"() {
-
-        given:
-
+    void setupBuildWithSingleStep() {
         buildFile << """
-project(':app') {
-    task resolve(type: Copy) {
-        def artifacts = configurations.implementation.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'size') }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
+allprojects {
+    dependencies {
+        registerTransform(TestTransform) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+            parameters {
+                transformName = 'Single step transform'
+            }
+        }
     }
 }
 """
+    }
+
+    void setupBuildWithFirstStepThatDoesNotUseDependencies() {
+        buildFile << """
+allprojects {
+    dependencies {
+        //Multi step transform, without dependencies at step 1
+        registerTransformAction(SimpleTransform) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'yellow')
+        }
+        registerTransform(TestTransform) {
+            from.attribute(color, 'yellow')
+            to.attribute(color, 'green')
+            parameters {
+                transformName = 'Transform step 2'
+            }
+        }
+    }
+}
+"""
+    }
+
+    void setupBuildWithTwoSteps() {
+        buildFile << """
+allprojects {
+    dependencies {
+        // Multi step transform
+        registerTransform(TestTransform) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'yellow')
+            parameters {
+                transformName = 'Transform step 1'
+            }
+        }
+        registerTransform(TestTransform) {
+            from.attribute(color, 'yellow')
+            to.attribute(color, 'green')
+            parameters {
+                transformName = 'Transform step 2'
+            }
+        }
+    }
+}
+"""
+    }
+
+    def "transform can access artifact dependencies as a set of files when using ArtifactView"() {
+        given:
+        setupBuildWithSingleStep()
 
         when:
         executer.withArgument("--parallel")
-        run "resolve"
+        run ":app:resolveGreen"
 
         then:
         output.count('Transforming') == 5
@@ -214,29 +221,19 @@ project(':app') {
     }
 
     def "transform can access file dependencies as a set of files when using ArtifactView"() {
-
         given:
-
+        setupBuildWithSingleStep()
         buildFile << """
 project(':common') {
-
     dependencies {
         implementation files("otherLib.jar")
-    }
-
-    task resolve(type: Copy) {
-        def artifacts = configurations.implementation.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'size') }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
     }
 }
 """
 
         when:
         executer.withArgument("--parallel")
-        run "common:resolve"
+        run "common:resolveGreen"
 
         then:
         output.count('Transforming') == 1
@@ -244,25 +241,12 @@ project(':common') {
     }
 
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
-
         given:
-
-        buildFile << """
-project(':app') {
-    task resolve(type: Copy) {
-        def artifacts = configurations.implementation.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'end') }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-    }
-}
-
-"""
+        setupBuildWithFirstStepThatDoesNotUseDependencies()
 
         when:
         executer.withArgument("--parallel")
-        run "resolve"
+        run "app:resolveGreen"
 
         then:
         assertTransformationsExecuted(
@@ -280,25 +264,12 @@ project(':app') {
     }
 
     def "transform can access artifact dependencies, in previous transform step, as set of files when using ArtifactView"() {
-
         given:
-
-        buildFile << """
-project(':app') {
-    task resolve(type: Copy) {
-        def artifacts = configurations.implementation.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'final') }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-    }
-}
-
-"""
+        setupBuildWithTwoSteps()
 
         when:
         executer.withArgument("--parallel")
-        run "resolve"
+        run "app:resolveGreen"
 
         then:
         assertTransformationsExecuted(
@@ -315,123 +286,218 @@ project(':app') {
         )
     }
 
-    def "transform can access artifact dependencies as a set of files when using configuration attributes"() {
-
+    def "transform with changed set of dependencies are re-executed"() {
         given:
-
-        buildFile << """
-project(':app') {
-    configurations {
-        sizeConf {
-            attributes.attribute(artifactType, 'size')
-            extendsFrom implementation
-        }
-    }
-
-    task resolve(type: Copy) {
-        def artifacts = configurations.sizeConf.incoming.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-    }
-}
-"""
+        setupBuildWithSingleStep()
 
         when:
-        executer.withArgument("--parallel")
-        run "resolve"
+        run ":app:resolveGreen"
 
         then:
         assertTransformationsExecuted(
-            singleStep('common.jar'),
+            singleStep('slf4j-api-1.7.25.jar'),
             singleStep('hamcrest-core-1.3.jar'),
-            singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar'),
             singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
-            singleStep('slf4j-api-1.7.25.jar'),
-        )
-    }
-
-    def "transform with changed dependencies are re-executed"() {
-        given:
-        buildFile << """
-project(':app') {
-    task resolve(type: Copy) {
-        def artifacts = configurations.implementation.incoming.artifactView {
-            attributes { it.attribute(artifactType, 'size') }
-        }.artifacts
-        from artifacts.artifactFiles
-        into "\${buildDir}/libs"
-    }
-}
-"""
-        run "resolve", "-PuseOldDependencyVersion"
-
-        when:
-        run "resolve", "-PuseOldDependencyVersion", "--info"
-        def outputLines = output.readLines()
-
-        then:
-        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 5
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*lib.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*slf4j-api-1.7.24.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
-
-        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 0
-
-        when:
-        run "resolve", "--info"
-        outputLines = output.readLines()
-
-        then:
-        outputLines.count { it ==~ /Skipping TestTransformAction: .* as it is up-to-date./ } == 3
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*junit-4.11.jar as it is up-to-date./ }
-        outputLines.any { it ==~ /Skipping TestTransformAction: .*hamcrest-core-1.3.jar as it is up-to-date./ }
-
-        outputLines.count { it ==~ /TestTransformAction: .* is not up-to-date because:/ } == 2
-        outputLines.any { it ==~ /TestTransformAction: .*lib.jar is not up-to-date because:/ }
-        outputLines.any { it ==~ /TestTransformAction: .*slf4j-api-1.7.25.jar is not up-to-date because:/ }
-        assertTransformationsExecuted(
-            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('common.jar'),
             singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
         )
+
+        when:
+        run ":app:resolveGreen", "-PuseOldDependencyVersion"
+
+        then: // new version, should run
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.24.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.24.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PuseOldDependencyVersion"
+
+        then: // no changes, should be up-to-date
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        assertTransformationsExecuted()
+    }
+
+    def "transform with changed project file dependencies content or path are re-executed"() {
+        given:
+        setupBuildWithSingleStep()
+
+        when:
+        run ":app:resolveGreen"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // new path, should re-run
+        result.assertTasksNotSkipped(":common:producer")
+        assertTransformationsExecuted(
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // new name, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+
+        then: // new content, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted()
+    }
+
+    def "can attach @PathSensitive(NONE) to dependencies property"() {
+        given:
+        buildFile << """
+allprojects {
+    dependencies {
+        registerTransformAction(NoneTransformAction) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+        }
+    }
+}
+
+abstract class NoneTransformAction implements TransformAction {
+    @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
+    abstract FileCollection getInputArtifactDependencies()
+
+    @InputArtifact
+    abstract File getInput()
+
+    void transform(TransformOutputs outputs) {
+        println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
+
+        def output = outputs.file(input.name + ".txt")
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+    }
+}
+
+"""
+
+        when:
+        run ":app:resolveGreen"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // new path, should skip consumer
+        result.assertTasksNotSkipped(":common:producer")
+        assertTransformationsExecuted(
+            singleStep('common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // new name, should skip consumer
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+
+        then: // new content, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted()
     }
 
     def "transforms with different dependencies in multiple dependency graphs are executed"() {
         given:
-        mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26").publish().allowAll()
+        withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26")).publish().allowAll()
         settingsFile << "include('app2')"
+        setupBuildWithTwoSteps()
         buildFile << """
-            project(':app') {
-                task resolveSize(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs/size"
-                }
-                task resolveInter(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'intermediate') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs/intermediate"
-                }         
-            }
             project(':app2') {
-                task resolveSize(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs/size"
-                }
-                task resolveFinal(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'final') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs/final"
-                }         
                 dependencies {
                     implementation 'junit:junit:4.11'
                     implementation 'org.slf4j:slf4j-api:1.7.26'
@@ -448,19 +514,10 @@ project(':app') {
         def libWithSlf4New = ['lib.jar': [slf4jNew, common]]
 
         when:
-        run "resolveSize", "resolveInter", "resolveFinal"
+        run ":app:resolveGreen", ":app2:resolveGreen"
+
         then:
         assertTransformationsExecuted(
-            singleStep(common),
-            singleStep(hamcrest),
-            singleStep(junit411),
-
-            singleStep(slf4jOld),
-            singleStep(libWithSlf4Old),
-
-            singleStep(slf4jNew),
-            singleStep(libWithSlf4New),
-
             transformStep1(common),
             transformStep2(common),
             transformStep1(hamcrest),
@@ -469,7 +526,10 @@ project(':app') {
             transformStep2(junit411),
 
             transformStep1(slf4jOld),
+            transformStep2(slf4jOld),
+
             transformStep1(libWithSlf4Old),
+            transformStep2(libWithSlf4Old),
 
             transformStep1(slf4jNew),
             transformStep2(slf4jNew),
@@ -479,10 +539,10 @@ project(':app') {
         )
 
         def outputLines = output.readLines()
-        def app1Resolve = outputLines.indexOf("> Task :app:resolveSize")
-        def app2Resolve = outputLines.indexOf("> Task :app2:resolveSize")
-        def libTransformWithOldSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar")
-        def libTransformWithNewSlf4j = outputLines.indexOf("Single step transform received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar")
+        def app1Resolve = outputLines.indexOf("> Task :app:resolveGreen")
+        def app2Resolve = outputLines.indexOf("> Task :app2:resolveGreen")
+        def libTransformWithOldSlf4j = outputLines.indexOf("Transform step 1 received dependencies files [slf4j-api-1.7.25.jar, common.jar] for processing lib.jar")
+        def libTransformWithNewSlf4j = outputLines.indexOf("Transform step 1 received dependencies files [slf4j-api-1.7.26.jar, common.jar] for processing lib.jar")
         ![app1Resolve, app2Resolve, libTransformWithOldSlf4j, libTransformWithNewSlf4j].contains(-1)
         // scheduled transformations, executed before the resolve task
         assert libTransformWithOldSlf4j < app1Resolve
@@ -492,17 +552,8 @@ project(':app') {
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
+        setupBuildWithTwoSteps()
         buildFile << """
-            project(':app') {
-                task resolve(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
-            }        
-            
             project(':lib') {
                 dependencies {
                     implementation "unknown:not-found:4.3"
@@ -511,7 +562,7 @@ project(':app') {
         """
 
         when:
-        fails "resolve"
+        fails ":app:resolveGreen"
 
         then:
         assertTransformationsExecuted()
@@ -521,21 +572,12 @@ project(':app') {
 
     def "transform does not execute when dependencies cannot be downloaded"() {
         given:
-        def cantBeDownloaded = mavenHttpRepo.module("test", "cant-be-downloaded", "4.3").publish()
-        cantBeDownloaded.pom.allowGetOrHead()
+        def cantBeDownloaded = withColorVariants(mavenHttpRepo.module("test", "cant-be-downloaded", "4.3")).publish()
+        cantBeDownloaded.moduleMetadata.allowGetOrHead()
         cantBeDownloaded.artifact.expectDownloadBroken()
+        setupBuildWithTwoSteps()
 
         buildFile << """
-            project(':app') {
-                task resolve(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
-            }        
-            
             project(':lib') {
                 dependencies {
                     implementation "test:cant-be-downloaded:4.3"
@@ -544,40 +586,34 @@ project(':app') {
         """
 
         when:
-        fails "resolve"
+        fails ":app:resolveGreen"
 
         then:
         failure.assertResolutionFailure(":app:implementation")
-        failure.assertThatCause(Matchers.containsString("Could not download cant-be-downloaded.jar (test:cant-be-downloaded:4.3)"))
+        failure.assertThatCause(Matchers.containsString("Could not download cant-be-downloaded-4.3.jar (test:cant-be-downloaded:4.3)"))
 
         assertTransformationsExecuted(
-            singleStep('common.jar'),
-            singleStep('slf4j-api-1.7.25.jar'),
-            singleStep('hamcrest-core-1.3.jar'),
-            singleStep('junit-4.11.jar': ['hamcrest-core-1.3.jar'])
+            transformStep1('common.jar'),
+            transformStep1('slf4j-api-1.7.25.jar'),
+            transformStep1('hamcrest-core-1.3.jar'),
+            transformStep1('junit-4.11.jar': ['hamcrest-core-1.3.jar']),
+            transformStep2('common.jar'),
+            transformStep2('slf4j-api-1.7.25.jar'),
+            transformStep2('hamcrest-core-1.3.jar'),
+            transformStep2('junit-4.11.jar': ['hamcrest-core-1.3.jar'])
         )
     }
 
     def "transform does not execute when dependencies cannot be transformed"() {
         given:
-        buildFile << """
-            project(':app') {
-                task resolve(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'end') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
-            }        
-        """
+        setupBuildWithFirstStepThatDoesNotUseDependencies()
 
         when:
-        fails "resolve", '-DfailTransformOf=slf4j-api-1.7.25.jar'
+        fails ":app:resolveGreen", '-DfailTransformOf=slf4j-api-1.7.25.jar'
 
         then:
         failure.assertResolutionFailure(":app:implementation")
-        failure.assertThatCause(Matchers.containsString("Failed to transform artifact 'slf4j-api.jar (org.slf4j:slf4j-api:1.7.25)'"))
+        failure.assertThatCause(Matchers.containsString("Failed to transform artifact 'slf4j-api-1.7.25.jar (org.slf4j:slf4j-api:1.7.25)'"))
 
         assertTransformationsExecuted(
             simpleTransform('common.jar'),
@@ -594,17 +630,8 @@ project(':app') {
 
     def "transform does not execute when task from dependencies fails"() {
         given:
+        setupBuildWithTwoSteps()
         buildFile << """
-            project(':app') {
-                task resolve(type: Copy) {
-                    def artifacts = configurations.implementation.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                    from artifacts.artifactFiles
-                    into "\${buildDir}/libs"
-                }
-            }        
-            
             project(':common') {
                 producer.doLast {
                     throw new RuntimeException("broken")
@@ -613,7 +640,7 @@ project(':app') {
         """
 
         when:
-        fails "resolve"
+        fails ":app:resolveGreen"
 
         then:
         assertTransformationsExecuted()

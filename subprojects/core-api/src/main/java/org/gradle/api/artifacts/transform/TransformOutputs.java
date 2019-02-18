@@ -32,7 +32,7 @@ import java.io.File;
  */
 @Incubating
 @HasInternalProtocol
-public interface ArtifactTransformOutputs {
+public interface TransformOutputs {
     /**
      * Registers an output directory.
      * For a relative path, a location for the output directory is provided.

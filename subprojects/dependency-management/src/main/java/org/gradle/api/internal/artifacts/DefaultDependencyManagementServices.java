@@ -86,7 +86,6 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -125,7 +124,7 @@ import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.impl.steps.TimeoutStep;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -190,8 +189,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             };
         }
 
-        OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter, StringInterner stringInterner) {
-            return new OutputFileCollectionFingerprinter(stringInterner, fileSystemSnapshotter);
+        OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
+            return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
         }
 
         /**
@@ -259,10 +258,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,
-                                                    // For now we assume absolute paths when dealing with dependencies
-                                                    AbsolutePathFileCollectionFingerprinter dependencyFingerprinter,
+                                                    FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
                                                     FileCollectionFactory fileCollectionFactory,
-                                                    OutputFileCollectionFingerprinter outputFileCollectionFingerprinter,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                                     ProjectFinder projectFinder,
                                                     FeaturePreviews featurePreviews) {
@@ -271,17 +268,38 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileSystemSnapshotter,
                 artifactTransformListener,
                 transformationWorkspaceProvider,
-                dependencyFingerprinter,
+                fileCollectionFingerprinterRegistry,
                 fileCollectionFactory,
-                outputFileCollectionFingerprinter,
                 classLoaderHierarchyHasher,
                 projectFinder,
                 featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS)
             );
         }
 
-        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder, ArtifactTransformParameterScheme parameterScheme, ArtifactTransformActionScheme actionScheme) {
-            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder), parameterScheme, actionScheme);
+        TransformationRegistrationFactory createTransformationRegistrationFactory(
+            IsolatableFactory isolatableFactory,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TransformerInvoker transformerInvoker,
+            ValueSnapshotter valueSnapshotter,
+            ProjectStateRegistry projectStateRegistry,
+            DomainObjectContext domainObjectContext,
+            ProjectFinder projectFinder,
+            ArtifactTransformParameterScheme parameterScheme,
+            ArtifactTransformActionScheme actionScheme,
+            FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+            FileCollectionFactory fileCollectionFactory
+        ) {
+            return new DefaultTransformationRegistrationFactory(
+                isolatableFactory,
+                classLoaderHierarchyHasher,
+                transformerInvoker,
+                valueSnapshotter,
+                fileCollectionFactory,
+                fileCollectionFingerprinterRegistry,
+                new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder),
+                parameterScheme,
+                actionScheme
+            );
         }
 
         VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {

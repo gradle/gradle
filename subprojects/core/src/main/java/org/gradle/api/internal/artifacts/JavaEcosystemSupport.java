@@ -26,6 +26,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.Bundling;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
 
@@ -34,9 +35,9 @@ import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<Usage> matchingStrategy = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
-        matchingStrategy.getCompatibilityRules().add(UsageCompatibilityRules.class);
-        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
+        AttributeMatchingStrategy<Usage> usageSchema = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
+        usageSchema.getCompatibilityRules().add(UsageCompatibilityRules.class);
+        usageSchema.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
             @Override
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
@@ -48,9 +49,10 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
+        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
+        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
+        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
     }
-
-
 
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
@@ -195,6 +197,76 @@ public abstract class JavaEcosystemSupport {
             if (consumerValue.equals(Usage.JAVA_RUNTIME_JARS) && producerValue.equals(Usage.JAVA_RUNTIME)) {
                 // Can use the Java runtime if present, but prefer Java runtime jar
                 details.compatible();
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
+        private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
+                // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
+                Bundling.EMBEDDED,
+                Bundling.SHADOWED
+        );
+
+        @Override
+        public void execute(CompatibilityCheckDetails<Bundling> details) {
+            Bundling consumerValue = details.getConsumerValue();
+            Bundling producerValue = details.getProducerValue();
+            if (consumerValue == null) {
+                // consumer didn't express any preference, everything fits
+                details.compatible();
+                return;
+            }
+            String consumerValueName = consumerValue.getName();
+            String producerValueName = producerValue.getName();
+            if (Bundling.EXTERNAL.equals(consumerValueName)) {
+                if (COMPATIBLE_WITH_EXTERNAL.contains(producerValueName)) {
+                    details.compatible();
+                }
+            } else if (Bundling.EMBEDDED.equals(consumerValueName)) {
+                // asking for a fat jar. If everything available is a shadow jar, that's fine
+                if (Bundling.SHADOWED.equals(producerValueName)) {
+                    details.compatible();
+                }
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
+
+        @Override
+        public void execute(MultipleCandidatesDetails<Bundling> details) {
+            Bundling consumerValue = details.getConsumerValue();
+            Set<Bundling> candidateValues = details.getCandidateValues();
+            if (candidateValues.contains(consumerValue)) {
+                details.closestMatch(consumerValue);
+                return;
+            }
+            if (consumerValue == null) {
+                Bundling embedded = null;
+                for (Bundling candidateValue : candidateValues) {
+                    if (Bundling.EXTERNAL.equals(candidateValue.getName())) {
+                        details.closestMatch(candidateValue);
+                        return;
+                    } else if (Bundling.EMBEDDED.equals(candidateValue.getName())) {
+                        embedded = candidateValue;
+                    }
+                }
+                if (embedded != null) {
+                    details.closestMatch(embedded);
+                }
+            } else {
+                String consumerValueName = consumerValue.getName();
+                if (Bundling.EXTERNAL.equals(consumerValueName)) {
+                    for (Bundling candidateValue : candidateValues) {
+                        if (Bundling.EMBEDDED.equals(candidateValue.getName())) {
+                            details.closestMatch(candidateValue);
+                            return;
+                        }
+                    }
+                }
             }
         }
     }

@@ -21,10 +21,10 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
-public class RelativePathFileCollectionFingerprinter extends AbstractPathOnlyFileCollectionFingerprinter {
+public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
     public RelativePathFileCollectionFingerprinter(StringInterner stringInterner, FileSystemSnapshotter fileSystemSnapshotter) {
-        super(new RelativePathFingerprintingStrategy(stringInterner), stringInterner, fileSystemSnapshotter);
+        super(new RelativePathFingerprintingStrategy(stringInterner), fileSystemSnapshotter);
     }
 
     @Override

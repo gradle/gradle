@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
+import javax.inject.Inject
 
 
 const val defaultBaseline = "defaults"
@@ -32,7 +33,10 @@ const val forceDefaultBaseline = "force-defaults"
 const val flakinessDetectionCommitBaseline = "flakiness-detection-commit"
 
 
-open class DetermineBaselines : DefaultTask() {
+open class DetermineBaselines @Inject constructor(isDistributed: Boolean) : DefaultTask() {
+    @Internal
+    val distributed: Boolean = isDistributed
+
     @Internal
     val configuredBaselines = project.objects.property<String>()
 
@@ -44,13 +48,22 @@ open class DetermineBaselines : DefaultTask() {
         if (configuredBaselines.getOrElse("") == forceDefaultBaseline) {
             determinedBaselines.set(defaultBaseline)
         } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
-            determinedBaselines.set(currentCommitBaseline())
+            determinedBaselines.set(determineFlakinessDetectionBaseline())
         } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(configuredBaselines)
         }
     }
+
+    /**
+     * Coordinator build doesn't resolve to real commit version, they just pass "flakiness-detection-commit" as it is to worker build
+     * "flakiness-detection-commit" is resolved to real commit id in worker build to disable build cache.
+     *
+     * @see PerformanceTest#NON_CACHEABLE_VERSIONS
+     */
+    private
+    fun determineFlakinessDetectionBaseline() = if (distributed) flakinessDetectionCommitBaseline else currentCommitBaseline()
 
     private
     fun currentBranchIsMasterOrRelease() = project.determineCurrentBranch() in listOf("master", "release")

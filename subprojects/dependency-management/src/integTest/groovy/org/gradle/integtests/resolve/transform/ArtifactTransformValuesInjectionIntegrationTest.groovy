@@ -39,7 +39,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "transform can receive parameters, workspace and primary input via abstract getter"() {
+    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -64,20 +64,20 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + "." + parameters.extension)
                     output.text = "ok"
@@ -111,7 +111,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 String getExtension()
                 void setExtension(String value)
@@ -123,11 +123,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setMissingInput(String missing)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -162,7 +162,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 String getExtension()
@@ -172,11 +172,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -212,7 +212,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 String getExtension()
                 void setExtension(String value)
@@ -221,11 +221,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -261,14 +261,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 
@@ -280,7 +280,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @InputFile @InputArtifact @InputArtifactDependencies
                 File getConflictingAnnotations() { } 
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -316,18 +316,18 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @${annotation.simpleName}
                 String getBad() { }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
             }
@@ -364,13 +364,13 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
     abstract File getInput()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
         def output = outputs.file(input.name + ".green")
         output.text = "ok"
@@ -456,14 +456,14 @@ abstract class MakeGreen extends ArtifactTransform {
                 }
             }
             
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            class MakeGreenAction implements ArtifactTransformAction {
+            class MakeGreenAction implements TransformAction {
                 private MakeGreen conf
                 
                 @Inject
@@ -471,7 +471,7 @@ abstract class MakeGreen extends ArtifactTransform {
                     this.conf = conf
                 }
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                 }
             }
 """
@@ -500,11 +500,11 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @InputArtifact
     abstract FileCollection getDependencies()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         dependencies.files
         throw new RuntimeException("broken")
     }
@@ -534,11 +534,11 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements ArtifactTransformAction {
+abstract class MakeGreen implements TransformAction {
     @Inject
     abstract File getWorkspace()
     
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         workspace
         throw new RuntimeException("broken")
     }

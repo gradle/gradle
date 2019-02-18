@@ -25,13 +25,11 @@ import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
-public class CompileClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler, FileFingerprintingPropertyAnnotationHandler {
+public class CompileClasspathPropertyAnnotationHandler implements OverridingPropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return CompileClasspath.class;
@@ -40,11 +38,6 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     @Override
     public Class<? extends Annotation> getOverriddenAnnotationType() {
         return InputFiles.class;
-    }
-
-    @Override
-    public Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType() {
-        return CompileClasspathFingerprinter.class;
     }
 
     @Override

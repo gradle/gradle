@@ -206,6 +206,7 @@ Limitations of the current implementation include:
 
 * No support for included builds that have publications that don't mirror the project default configuration. See <<#included_build_substitution_limitations,Cases where composite builds won't work>>.
 * Software model based native builds are not supported. (Binary dependencies are not yet supported for native builds).
+* Multiple composite builds may conflict when run in parallel, if more than one includes the same build. Gradle does not share the project lock of a shared composite build to between Gradle invocation to prevent concurrent execution.
 
 Improvements we have planned for upcoming releases include:
 

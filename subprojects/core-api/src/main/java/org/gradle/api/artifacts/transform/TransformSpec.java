@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.api.artifacts.transform;
 
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
+import org.gradle.api.Incubating;
+import org.gradle.api.attributes.AttributeContainer;
 
-public interface FileFingerprintingPropertyAnnotationHandler extends PropertyAnnotationHandler {
-    Class<? extends FileCollectionFingerprinter> getFingerprinterImplementationType();
+/**
+ * Base configuration for artifact transform registrations.
+ *
+ * @since 5.3
+ */
+@Incubating
+public interface TransformSpec {
+    /**
+     * Attributes that match the variant that is consumed.
+     */
+    AttributeContainer getFrom();
+
+    /**
+     * Attributes that match the variant that is produced.
+     */
+    AttributeContainer getTo();
 }

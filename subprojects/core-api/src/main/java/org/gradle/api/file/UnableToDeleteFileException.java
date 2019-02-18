@@ -16,6 +16,7 @@
 
 package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -27,10 +28,23 @@ public class UnableToDeleteFileException extends UncheckedIOException {
 
     private final File file;
 
+    /**
+     * Creates exception with file, a reasonable message is used.
+     */
     public UnableToDeleteFileException(File file) {
         super(toMessage(file));
         this.file = file;
+    }
 
+    /**
+     * Creates exception with file and message.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    public UnableToDeleteFileException(File file, String message) {
+        super(message);
+        this.file = file;
     }
 
     public File getFile() {
