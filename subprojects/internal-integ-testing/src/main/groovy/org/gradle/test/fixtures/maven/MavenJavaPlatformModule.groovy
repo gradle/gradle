@@ -41,9 +41,9 @@ class MavenJavaPlatformModule extends DelegatingMavenModule<MavenFileModule> imp
         super.assertPublished()
 
         // Verify Gradle metadata particulars
-        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['api', 'runtime'] as Set
-        assert mavenModule.parsedModuleMetadata.variant('api').files.empty
-        assert mavenModule.parsedModuleMetadata.variant('runtime').files.empty
+        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+        assert mavenModule.parsedModuleMetadata.variant('apiElements').files.empty
+        assert mavenModule.parsedModuleMetadata.variant('runtimeElements').files.empty
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == 'pom'
@@ -58,11 +58,11 @@ class MavenJavaPlatformModule extends DelegatingMavenModule<MavenFileModule> imp
     @Override
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('api').dependencies.empty
+            assert parsedModuleMetadata.variant('apiElements').dependencies.empty
             assert parsedPom.scopes.compile == null
         } else {
-            assert parsedModuleMetadata.variant('api').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtime').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedPom.scopes.compile.assertDependsOn(mavenizeDependencies(expected))
         }
     }

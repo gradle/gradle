@@ -73,11 +73,11 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         javaPlatform.assertPublished()
-        javaPlatform.parsedModuleMetadata.variant("api") {
+        javaPlatform.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:foo:1.0")
             noMoreDependencies()
         }
-        javaPlatform.parsedModuleMetadata.variant("runtime") {
+        javaPlatform.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:foo:1.0")
             constraint("org.test:bar:1.0")
             noMoreDependencies()
@@ -121,11 +121,11 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         javaPlatform.assertPublished()
-        javaPlatform.parsedModuleMetadata.variant("api") {
+        javaPlatform.parsedModuleMetadata.variant("apiElements") {
             constraint("org.gradle.test:core:1.9")
             noMoreDependencies()
         }
-        javaPlatform.parsedModuleMetadata.variant("runtime") {
+        javaPlatform.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.gradle.test:core:1.9")
             constraint("org.gradle.test:utils:1.9")
             noMoreDependencies()
@@ -175,12 +175,12 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         javaPlatform.assertPublished()
-        javaPlatform.parsedModuleMetadata.variant("api") {
+        javaPlatform.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:foo:1.1")
             dependency("org.test:foo:1.1")
             noMoreDependencies()
         }
-        javaPlatform.parsedModuleMetadata.variant("runtime") {
+        javaPlatform.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:foo:1.1")
             dependency("org.test:foo:1.1")
             noMoreDependencies()

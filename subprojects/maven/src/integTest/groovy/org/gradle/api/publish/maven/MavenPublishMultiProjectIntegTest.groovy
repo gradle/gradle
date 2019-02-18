@@ -453,7 +453,7 @@ project(":library") {
         platformModule.parsedPom.packaging == 'pom'
         platformModule.parsedPom.scopes.compile.assertDependsOn("org.test:foo:1.0")
         platformModule.parsedPom.scopes.compile.assertDependencyManagement("org.test:bar:1.1")
-        platformModule.parsedModuleMetadata.variant('api') {
+        platformModule.parsedModuleMetadata.variant('apiElements') {
             dependency("org.test:foo:1.0").exists()
             constraint("org.test:bar:1.1").exists()
             noMoreDependencies()
