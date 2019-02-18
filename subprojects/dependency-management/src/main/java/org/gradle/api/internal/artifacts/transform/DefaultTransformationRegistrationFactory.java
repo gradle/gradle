@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -35,6 +36,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -55,6 +57,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final PropertyWalker parametersPropertyWalker;
     private final DomainObjectProjectStateHandler domainObjectProjectStateHandler;
     private final TypeMetadataStore actionMetadataStore;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
     private final InstantiationScheme actionInstantiationScheme;
     private final InstantiationScheme legacyActionInstantiationScheme;
 
@@ -63,6 +67,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         TransformerInvoker transformerInvoker,
         ValueSnapshotter valueSnapshotter,
+        FileCollectionFactory fileCollectionFactory,
+        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         DomainObjectProjectStateHandler domainObjectProjectStateHandler,
         ArtifactTransformParameterScheme parameterScheme,
         ArtifactTransformActionScheme actionScheme
@@ -71,6 +77,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.transformerInvoker = transformerInvoker;
         this.valueSnapshotter = valueSnapshotter;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
         this.legacyActionInstantiationScheme = actionScheme.getLegacyInstantiationScheme();
@@ -115,6 +123,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,
+            fileCollectionFactory,
+            fileCollectionFingerprinterRegistry,
             parametersPropertyWalker,
             domainObjectProjectStateHandler,
             actionInstantiationScheme);

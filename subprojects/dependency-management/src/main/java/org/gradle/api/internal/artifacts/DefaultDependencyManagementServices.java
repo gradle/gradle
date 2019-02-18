@@ -276,8 +276,30 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             );
         }
 
-        TransformationRegistrationFactory createTransformationRegistrationFactory(IsolatableFactory isolatableFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, InstantiatorFactory instantiatorFactory, TransformerInvoker transformerInvoker, ValueSnapshotter valueSnapshotter, ProjectStateRegistry projectStateRegistry, DomainObjectContext domainObjectContext, ProjectFinder projectFinder, ArtifactTransformParameterScheme parameterScheme, ArtifactTransformActionScheme actionScheme) {
-            return new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder), parameterScheme, actionScheme);
+        TransformationRegistrationFactory createTransformationRegistrationFactory(
+            IsolatableFactory isolatableFactory,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            TransformerInvoker transformerInvoker,
+            ValueSnapshotter valueSnapshotter,
+            ProjectStateRegistry projectStateRegistry,
+            DomainObjectContext domainObjectContext,
+            ProjectFinder projectFinder,
+            ArtifactTransformParameterScheme parameterScheme,
+            ArtifactTransformActionScheme actionScheme,
+            FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
+            FileCollectionFactory fileCollectionFactory
+        ) {
+            return new DefaultTransformationRegistrationFactory(
+                isolatableFactory,
+                classLoaderHierarchyHasher,
+                transformerInvoker,
+                valueSnapshotter,
+                fileCollectionFactory,
+                fileCollectionFingerprinterRegistry,
+                new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder),
+                parameterScheme,
+                actionScheme
+            );
         }
 
         VariantTransformRegistry createArtifactTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory attributesFactory, ServiceRegistry services, TransformationRegistrationFactory transformationRegistrationFactory, ArtifactTransformParameterScheme parameterScheme) {
