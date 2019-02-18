@@ -140,8 +140,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO - should run the producer task
-//        result.assertTasksExecuted("a:tool", "b:producer", "c:producer", "a:resolve")
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar]")
         outputContains("processing c.jar using [tool-a.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -196,9 +195,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO wolfs: Build dependencies of transforms required by the parameters are not discovered
-        // result.assertTasksExecuted(":b:producer", ":c:producer", , ":d:producer", ":e:producer", ":a:resolve")
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
         outputContains("processing b.jar using [d.jar.red, e.jar.red]")
         outputContains("processing c.jar using [d.jar.red, e.jar.red]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -254,8 +251,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO - should run the producer tasks
-//        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", "c:producer", ":a:resolve")
+        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar, tool-b.jar]")
         outputContains("processing c.jar using [tool-a.jar, tool-b.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
