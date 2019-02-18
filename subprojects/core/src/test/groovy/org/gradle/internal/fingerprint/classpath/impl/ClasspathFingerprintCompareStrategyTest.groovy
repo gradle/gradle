@@ -246,7 +246,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
-    def jar(int hashCode = 0x1234abcd) {
+    def jar(int hashCode) {
         return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
     }
 
