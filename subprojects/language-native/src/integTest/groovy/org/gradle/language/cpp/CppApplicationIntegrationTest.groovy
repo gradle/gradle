@@ -217,7 +217,6 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         given:
         app.writeToProject(testDirectory)
         file("src/main/cpp/ignore.swift") << 'broken!'
-        file("src/main/cpp/ignore.c") << 'broken!'
         file("src/main/cpp/ignore.m") << 'broken!'
         file("src/main/cpp/ignore.h") << 'broken!'
         file("src/main/cpp/ignore.java") << 'broken!'
