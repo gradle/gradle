@@ -44,8 +44,9 @@ abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec> imp
 
     protected void addToolSpecificArgs(T spec, List<String> args) {
         String languageOption = getLanguageOption();
-        if (languageOption != null)
-        	args.add(languageOption);
+        if (languageOption != null) {
+            args.add(languageOption);
+        }
         args.add("/nologo");
         args.add("/c");
         if (spec.isDebuggable()) {
