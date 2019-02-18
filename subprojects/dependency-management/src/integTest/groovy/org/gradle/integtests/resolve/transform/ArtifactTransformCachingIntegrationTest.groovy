@@ -1493,20 +1493,20 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
 
     String registerFileSizerWithParameterObject(String fileValue) {
         """                 
-            @TransformAction(FileSizerAction)
+            @AssociatedTransformAction(FileSizerAction)
             interface FileSizer {
                 @Input
                 Number getValue()
                 void setValue(Number value)
             }
-            abstract class FileSizerAction implements ArtifactTransformAction {
+            abstract class FileSizerAction implements TransformAction {
                 @TransformParameters
                 abstract FileSizer getParameters()
 
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
 ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
                 }
             }

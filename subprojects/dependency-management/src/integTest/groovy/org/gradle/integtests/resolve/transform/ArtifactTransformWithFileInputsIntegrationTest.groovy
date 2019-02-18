@@ -29,19 +29,19 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """)
         }
         buildFile << """
-            @TransformAction(MakeGreenAction)
+            @AssociatedTransformAction(MakeGreenAction)
             interface MakeGreen {
                 @Input
                 ConfigurableFileCollection getSomeFiles()
             }
             
-            abstract class MakeGreenAction implements ArtifactTransformAction {
+            abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = "ok"
@@ -150,11 +150,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
-            abstract class MakeRedAction implements ArtifactTransformAction {
+            abstract class MakeRedAction implements TransformAction {
                 @InputArtifact
                 abstract File getInput()
                 
-                void transform(ArtifactTransformOutputs outputs) {
+                void transform(TransformOutputs outputs) {
                     println "processing \${input.name} wit MakeRedAction"
                     def output = outputs.file(input.name + ".red")
                     output.text = "ok"

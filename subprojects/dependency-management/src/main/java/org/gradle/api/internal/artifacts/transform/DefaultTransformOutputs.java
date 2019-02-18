@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputsInternal {
+public class DefaultTransformOutputs implements TransformOutputsInternal {
 
     private final ImmutableList.Builder<File> outputsBuilder = ImmutableList.builder();
     private final Set<File> outputDirectories = new HashSet<>();
@@ -39,7 +39,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
     private final String inputArtifactPrefix;
     private final String outputDirPrefix;
 
-    public DefaultArtifactTransformOutputs(File inputArtifact, File outputDir) {
+    public DefaultTransformOutputs(File inputArtifact, File outputDir) {
         this.resolver = new BaseDirFileResolver(outputDir, PatternSets.getNonCachingPatternSetFactory());
         this.inputArtifact = inputArtifact;
         this.outputDir = outputDir;
@@ -51,7 +51,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
     public ImmutableList<File> getRegisteredOutputs() {
         ImmutableList<File> outputs = outputsBuilder.build();
         for (File output : outputs) {
-            ArtifactTransformOutputsInternal.validateOutputExists(output);
+            TransformOutputsInternal.validateOutputExists(output);
             if (outputFiles.contains(output) && !output.isFile()) {
                 throw new InvalidUserDataException("Transform output file " + output.getPath() + " must be a file, but is not.");
             }
@@ -78,7 +78,7 @@ public class DefaultArtifactTransformOutputs implements ArtifactTransformOutputs
 
     private File resolveAndRegister(Object path, Consumer<File> prepareOutputLocation) {
         File output = resolver.resolve(path);
-        OutputLocationType outputLocationType = ArtifactTransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputArtifactPrefix, outputDir, outputDirPrefix);
+        OutputLocationType outputLocationType = TransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputArtifactPrefix, outputDir, outputDirPrefix);
         if (outputLocationType == OutputLocationType.WORKSPACE) {
             prepareOutputLocation.accept(output);
         }

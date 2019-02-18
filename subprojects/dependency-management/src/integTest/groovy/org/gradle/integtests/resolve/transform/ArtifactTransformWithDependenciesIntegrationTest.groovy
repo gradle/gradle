@@ -48,7 +48,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes()
         buildFile << """
                    
-@TransformAction(TestTransformAction)
+@AssociatedTransformAction(TestTransformAction)
 interface TestTransform {
     @Input
     String getTransformName()
@@ -103,7 +103,7 @@ project(':app') {
 
 import javax.inject.Inject
 
-abstract class TestTransformAction implements ArtifactTransformAction {
+abstract class TestTransformAction implements TransformAction {
 
     @TransformParameters
     abstract TestTransform getParameters()
@@ -114,7 +114,7 @@ abstract class TestTransformAction implements ArtifactTransformAction {
     @InputArtifact
     abstract File getInput()
 
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         println "\${parameters.transformName} received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
         assert inputArtifactDependencies.every { it.exists() }
 
@@ -126,12 +126,12 @@ abstract class TestTransformAction implements ArtifactTransformAction {
     }
 }
 
-abstract class SimpleTransform implements ArtifactTransformAction {
+abstract class SimpleTransform implements TransformAction {
 
     @InputArtifact
     abstract File getInput()
 
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         def output = outputs.file(input.name + ".txt")
         def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
@@ -411,14 +411,14 @@ allprojects {
     }
 }
 
-abstract class NoneTransformAction implements ArtifactTransformAction {
+abstract class NoneTransformAction implements TransformAction {
     @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
     abstract FileCollection getInputArtifactDependencies()
 
     @InputArtifact
     abstract File getInput()
 
-    void transform(ArtifactTransformOutputs outputs) {
+    void transform(TransformOutputs outputs) {
         println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
 
         def output = outputs.file(input.name + ".txt")
