@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
@@ -278,12 +279,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
         """
-        def (first, second, third) = files.entrySet()
+        def (first, second, third) = files
 
         when:
-        def firstFilePath = first.key
+        def firstFilePath = first[0]
         def firstFile = file(firstFilePath)
-        firstFile.text = first.value
+        firstFile.text = first[1]
         run(":a:resolve", "-PfileName=${firstFilePath}")
         then:
         outputContains("processing b.jar using [$firstFile.name]")
@@ -291,16 +292,16 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        file(second.key).text = second.value
-        run(":a:resolve", "-PfileName=${second.key}")
+        file(second[0]).text = second[1]
+        run(":a:resolve", "-PfileName=${second[0]}")
         then:
         outputDoesNotContain("Transform artifact")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        def thirdFilePath = third.key
+        def thirdFilePath = third[0]
         def thirdFile = file(thirdFilePath)
-        thirdFile.text = third.value
+        thirdFile.text = third[1]
         run(":a:resolve", "-PfileName=${thirdFilePath}")
         then:
         outputContains("processing b.jar using [$thirdFile.name]")
@@ -308,10 +309,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
 
         where:
-        pathSensitivity | files
-        "NONE"          | [first: 'foo', second: 'foo', third: 'bar']
-        "NAME_ONLY"     | ['first/input': 'foo', 'second/input': 'foo', 'third/input1': 'foo']
-        "RELATIVE"      | ['first/input': 'foo', 'second/input': 'foo', 'third/input1': 'foo']
+        pathSensitivity           | files
+        PathSensitivity.NONE      | [['first', 'foo'], ['second', 'foo'], ['third', 'bar']]
+        PathSensitivity.NAME_ONLY | [['first/input', 'foo'], ['second/input', 'foo'], ['third/input1', 'foo']]
+        PathSensitivity.RELATIVE  | [['first/input', 'foo'], ['second/input', 'foo'], ['third/input1', 'foo']]
+        PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
     @ToBeImplemented
