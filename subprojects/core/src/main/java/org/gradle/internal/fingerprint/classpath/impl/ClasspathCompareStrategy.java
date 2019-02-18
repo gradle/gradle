@@ -101,44 +101,38 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
                 if (previous != null) {
                     removed();
                 }
-                return;
-            }
-            if (previous == null) {
+            } else if (previous == null) {
                 added();
-                return;
-            }
-            FileSystemLocationFingerprint currentFingerprint = current.getValue();
-            FileSystemLocationFingerprint previousFingerprint = previous.getValue();
-            String currentNormalizedPath = currentFingerprint.getNormalizedPath();
-            String previousNormalizedPath = previousFingerprint.getNormalizedPath();
-            if (!currentNormalizedPath.equals(previousNormalizedPath)) {
-                removed();
-                added();
-                return;
-            }
-            if (currentFingerprint.getNormalizedContentHash().equals(previousFingerprint.getNormalizedContentHash())) {
-                current = nextEntry(currentEntries);
-                previous = nextEntry(previousEntries);
-                return;
-            }
-            if (currentNormalizedPath.isEmpty()) {
-                String currentAbsolutePath = current.getKey();
-                String previousAbsolutePath = previous.getKey();
-                if (!currentAbsolutePath.equals(previousAbsolutePath)) {
-                    if (!currentSnapshots.containsKey(previousAbsolutePath)) {
-                        removed();
-                        return;
-                    }
-                    if (!previousSnapshots.containsKey(currentAbsolutePath)) {
-                        added();
-                        return;
-                    }
+            } else {
+                FileSystemLocationFingerprint currentFingerprint = current.getValue();
+                FileSystemLocationFingerprint previousFingerprint = previous.getValue();
+                String currentNormalizedPath = currentFingerprint.getNormalizedPath();
+                String previousNormalizedPath = previousFingerprint.getNormalizedPath();
+                if (!currentNormalizedPath.equals(previousNormalizedPath)) {
                     removed();
                     added();
-                    return;
+                } else if (currentFingerprint.getNormalizedContentHash().equals(previousFingerprint.getNormalizedContentHash())) {
+                    current = nextEntry(currentEntries);
+                    previous = nextEntry(previousEntries);
+                } else if (currentNormalizedPath.isEmpty()) {
+                    String currentAbsolutePath = current.getKey();
+                    String previousAbsolutePath = previous.getKey();
+                    if (!currentAbsolutePath.equals(previousAbsolutePath)) {
+                        if (!currentSnapshots.containsKey(previousAbsolutePath)) {
+                            removed();
+                        } else if (!previousSnapshots.containsKey(currentAbsolutePath)) {
+                            added();
+                        } else {
+                            removed();
+                            added();
+                        }
+                    } else {
+                        modified();
+                    }
+                } else {
+                    modified();
                 }
             }
-            modified();
         }
 
         void added() {
