@@ -101,7 +101,7 @@ abstract class AbstractSmokeTest extends Specification {
         static gradleVersions = "0.20.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.3"
+        static playframework = "0.4"
     }
 
     static class Versions implements Iterable<String> {
