@@ -35,12 +35,7 @@ testFixtures {
 }
 
 tasks.register("executableJar", Jar) {
-    // gradle-wrapper.jar will be part of the plugins.jar - so it needs to be identical for now
-    reproducibleFileOrder = true
-    preserveFileTimestamps = false
     archiveName = 'gradle-wrapper.jar'
-    fileMode = 0644
-    dirMode = 0755
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
         attributes([(Attributes.Name.IMPLEMENTATION_TITLE.toString()): "Gradle Wrapper"])

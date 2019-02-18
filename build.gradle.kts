@@ -386,3 +386,13 @@ tasks.register<Zip>("allIncubationReportsZip") {
 }
 
 fun Project.collectAllIncubationReports() = subprojects.flatMap { it.tasks.withType(IncubatingApiReportTask::class) }
+
+// Ensure the archives produced are reproducible
+allprojects {
+    tasks.withType<AbstractArchiveTask>().configureEach {
+        isPreserveFileTimestamps = false
+        isReproducibleFileOrder = true
+        dirMode = Integer.parseInt("0755", 8)
+        fileMode = Integer.parseInt("0644", 8)
+    }
+}
