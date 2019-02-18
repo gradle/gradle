@@ -110,7 +110,7 @@ public class PropertyExtractor {
                     // Discard overridden property type annotations when an overriding annotation is also present
                     Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
 
-                    recordAnnotations(propertyMetadata, overriddenAnnotations, propertyTypeAnnotations);
+                    recordAnnotations(propertyMetadata, overriddenAnnotations, declaredAnnotations, propertyTypeAnnotations);
                 }
             }
         });
@@ -186,12 +186,16 @@ public class PropertyExtractor {
         });
     }
 
-    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
+    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> overriddenAnnotations, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
         Set<Class<? extends Annotation>> declaredPropertyTypes = Sets.newLinkedHashSet();
-        for (Annotation annotation : annotations) {
+        for (Annotation annotation : overriddenAnnotations) {
             if (propertyTypeAnnotations.contains(annotation.annotationType())) {
                 declaredPropertyTypes.add(annotation.annotationType());
+                property.addAnnotation(annotation);
             }
+        }
+
+        for (Annotation annotation : annotations) {
             property.addAnnotation(annotation);
         }
 
