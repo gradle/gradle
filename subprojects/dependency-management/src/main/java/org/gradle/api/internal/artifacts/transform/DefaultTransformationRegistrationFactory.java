@@ -101,13 +101,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         Class<? extends FileNormalizer> inputArtifactNormalizer = AbsolutePathInputNormalizer.class;
         Class<? extends FileNormalizer> dependenciesNormalizer = AbsolutePathInputNormalizer.class;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
-            if (propertyMetadata.getPropertyType().equals(InputArtifact.class)) {
+            if (propertyMetadata.getAnnotation(InputArtifact.class) != null) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
             }
-            if (propertyMetadata.getPropertyType().equals(InputArtifactDependencies.class)) {
+            if (propertyMetadata.getAnnotation(InputArtifactDependencies.class) != null) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;
