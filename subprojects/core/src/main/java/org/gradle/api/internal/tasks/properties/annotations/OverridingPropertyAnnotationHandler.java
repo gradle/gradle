@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableList;
+
 import java.lang.annotation.Annotation;
 
 public interface OverridingPropertyAnnotationHandler extends PropertyAnnotationHandler {
     /**
      * Returns the annotation type this annotation is allowed to override when declared on the same property.
      */
-    Class<? extends Annotation> getOverriddenAnnotationType();
+    ImmutableList<Class<? extends Annotation>> getOverriddenAnnotationTypes();
 }

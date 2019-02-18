@@ -139,7 +139,7 @@ class DependencyManagementGlobalScopeServices {
     ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, TransformParameters.class));
         InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, TransformParameters.class, Inject.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, TransformParameters.class, Inject.class, Classpath.class, CompileClasspath.class));
         return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
     }
 }

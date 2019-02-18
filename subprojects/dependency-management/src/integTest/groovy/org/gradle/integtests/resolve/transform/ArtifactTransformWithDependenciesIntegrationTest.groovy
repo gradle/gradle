@@ -21,10 +21,13 @@ import com.google.common.collect.ImmutableSortedMultiset
 import com.google.common.collect.Iterables
 import com.google.common.collect.Multiset
 import groovy.transform.Canonical
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
@@ -489,6 +492,103 @@ abstract class NoneTransformAction implements TransformAction {
         then: // have seen these inputs before
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
+    }
+
+    @Unroll
+    def "can attach @#classpathAnnotation to dependencies property"() {
+        given:
+        buildFile << """
+allprojects {
+    dependencies {
+        registerTransformAction(ClasspathTransformAction) {
+            from.attribute(color, 'blue')
+            to.attribute(color, 'green')
+        }
+    }
+}
+
+abstract class ClasspathTransformAction implements TransformAction {
+    @InputArtifactDependencies @Classpath
+    abstract FileCollection getInputArtifactDependencies()
+
+    @InputArtifact
+    abstract File getInput()
+
+    void transform(TransformOutputs outputs) {
+        println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
+
+        def output = outputs.file(input.name + ".txt")
+        println "Transforming \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+    }
+}
+
+"""
+
+        when:
+        run ":app:resolveGreen"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out"
+
+        then: // new path, should skip consumer
+        result.assertTasksNotSkipped(":common:producer")
+        assertTransformationsExecuted(
+            singleStep('common.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // new name, should skip consumer
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar"
+
+        then: // no changes, should be up-to-date
+        result.assertTasksNotSkipped()
+        assertTransformationsExecuted()
+
+        when:
+        run ":app:resolveGreen", "-PcommonOutputDir=out", "-PcommonFileName=common-blue.jar", "-PcommonContent=new"
+
+        then: // new content, should re-run
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted(
+            singleStep('common-blue.jar'),
+// TODO: In order to detect the change, actual jars need to be produced.
+//  singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+        )
+
+        when:
+        run ":app:resolveGreen"
+
+        then: // have seen these inputs before
+        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        assertTransformationsExecuted()
+
+        where:
+        classpathAnnotation << [Classpath, CompileClasspath]
     }
 
     def "transforms with different dependencies in multiple dependency graphs are executed"() {
