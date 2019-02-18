@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -42,6 +43,7 @@ import org.gradle.internal.serialize.Encoder;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * Serializer for {@link ModuleComponentResolveMetadata}.
@@ -105,10 +107,10 @@ public class ModuleComponentResolveMetadataSerializer extends AbstractSerializer
         writeOwners(encoder, value.getPlatformOwners());
         if (transformed instanceof RealisedIvyModuleResolveMetadata) {
             ivySerializationHelper.writeRealisedVariantsData(encoder, transformed);
-            ivySerializationHelper.writeRealisedConfigurationsData(encoder, transformed);
+            ivySerializationHelper.writeRealisedConfigurationsData(encoder, transformed, Collections.emptyMap());
         } else if (transformed instanceof RealisedMavenModuleResolveMetadata) {
             mavenSerializationHelper.writeRealisedVariantsData(encoder, transformed);
-            mavenSerializationHelper.writeRealisedConfigurationsData(encoder, transformed);
+            mavenSerializationHelper.writeRealisedConfigurationsData(encoder, transformed, Maps.newHashMap());
         } else {
             throw new IllegalStateException("Unexpected realised module component resolve metadata type: " + transformed.getClass());
         }

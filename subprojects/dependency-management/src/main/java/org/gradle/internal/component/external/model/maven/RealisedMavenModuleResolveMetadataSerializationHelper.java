@@ -57,10 +57,10 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
     }
 
     @Override
-    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed) throws IOException {
-        super.writeRealisedConfigurationsData(encoder, transformed);
+    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
+        super.writeRealisedConfigurationsData(encoder, transformed, deduplicationDependencyCache);
         if (transformed instanceof RealisedMavenModuleResolveMetadata) {
-            writeDerivedVariants(encoder, (RealisedMavenModuleResolveMetadata) transformed);
+            writeDerivedVariants(encoder, (RealisedMavenModuleResolveMetadata) transformed, deduplicationDependencyCache);
         }
     }
 
@@ -74,13 +74,14 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         }
         ImmutableList<AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl> realisedVariants = builder.build();
 
-        Map<String, ConfigurationMetadata> configurations = readMavenConfigurations(decoder, resolveMetadata);
-        ImmutableList<ConfigurationMetadata> derivedVariants = readDerivedVariants(decoder, resolveMetadata);
+        Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache = Maps.newHashMap();
+        Map<String, ConfigurationMetadata> configurations = readMavenConfigurations(decoder, resolveMetadata, deduplicationDependencyCache);
+        ImmutableList<ConfigurationMetadata> derivedVariants = readDerivedVariants(decoder, resolveMetadata, deduplicationDependencyCache);
 
         return new RealisedMavenModuleResolveMetadata(resolveMetadata, realisedVariants, derivedVariants, configurations);
     }
 
-    protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration) throws IOException {
+    protected void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         List<? extends DependencyMetadata> dependencies = configuration.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyMetadata dependency: dependencies) {
@@ -100,7 +101,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
                 ExternalDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();
                 if (dependencyDescriptor instanceof MavenDependencyDescriptor) {
                     encoder.writeByte(MAVEN_DEPENDENCY_METADATA);
-                    writeMavenDependency(encoder, (MavenDependencyDescriptor) dependencyDescriptor);
+                    writeMavenDependency(encoder, (MavenDependencyDescriptor) dependencyDescriptor, deduplicationDependencyCache);
                 } else {
                     throw new IllegalStateException("Unknown type of dependency descriptor: " + dependencyDescriptor.getClass());
                 }
@@ -109,24 +110,24 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         }
     }
 
-    private void writeDerivedVariants(Encoder encoder, RealisedMavenModuleResolveMetadata metadata) throws IOException {
+    private void writeDerivedVariants(Encoder encoder, RealisedMavenModuleResolveMetadata metadata, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         ImmutableList<? extends ConfigurationMetadata> derivedVariants = metadata.getDerivedVariants();
         encoder.writeSmallInt(derivedVariants.size());
         for (ConfigurationMetadata derivedVariant : derivedVariants) {
             writeConfiguration(encoder, derivedVariant);
-            writeDerivedVariantExtra(encoder, derivedVariant);
+            writeDerivedVariantExtra(encoder, derivedVariant, deduplicationDependencyCache);
         }
     }
 
-    private void writeDerivedVariantExtra(Encoder encoder, ConfigurationMetadata derivedVariant) throws IOException {
+    private void writeDerivedVariantExtra(Encoder encoder, ConfigurationMetadata derivedVariant, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         encoder.writeBoolean(derivedVariant.isTransitive());
         encoder.writeBoolean(derivedVariant.isVisible());
         writeStringSet(encoder, derivedVariant.getHierarchy());
         writeMavenExcludeRules(encoder, derivedVariant.getExcludes());
-        writeDependencies(encoder, derivedVariant);
+        writeDependencies(encoder, derivedVariant, deduplicationDependencyCache);
     }
 
-    private Map<String, ConfigurationMetadata> readMavenConfigurations(Decoder decoder, DefaultMavenModuleResolveMetadata metadata) throws IOException {
+    private Map<String, ConfigurationMetadata> readMavenConfigurations(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
 
         int configurationsCount = decoder.readSmallInt();
@@ -140,14 +141,14 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(),
                 hierarchy, RealisedMavenModuleResolveMetadata.getArtifactsForConfiguration(metadata.getId(), configurationName), ImmutableList.<ExcludeMetadata>of(), attributes, capabilities);
-            ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata);
+            ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, metadata, configurationMetadata, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
             configurations.put(configurationName, configurationMetadata);
         }
         return configurations;
     }
 
-    private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, RealisedConfigurationMetadata configurationMetadata) throws IOException {
+    private ImmutableList<ModuleDependencyMetadata> readDependencies(Decoder decoder, DefaultMavenModuleResolveMetadata metadata, RealisedConfigurationMetadata configurationMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
         int dependenciesCount = decoder.readSmallInt();
         if (dependenciesCount == 0) {
@@ -166,7 +167,7 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
                     md = readDependencyMetadata(decoder);
                     break;
                 case MAVEN_DEPENDENCY_METADATA:
-                    MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder);
+                    MavenDependencyDescriptor mavenDependencyDescriptor = readMavenDependency(decoder, deduplicationDependencyCache);
                     ModuleDependencyMetadata dependencyMetadata = RealisedMavenModuleResolveMetadata.contextualize(configurationMetadata, metadata.getId(), mavenDependencyDescriptor);
                     md = dependencyMetadata.withReason(decoder.readNullableString());
                     break;
@@ -183,19 +184,19 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         return builder.build();
     }
 
-    private ImmutableList<ConfigurationMetadata> readDerivedVariants(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata) throws IOException {
+    private ImmutableList<ConfigurationMetadata> readDerivedVariants(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         int derivedVariantsCount = decoder.readSmallInt();
         if (derivedVariantsCount == 0) {
             return ImmutableList.of();
         }
         ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
         for (int i=0; i<derivedVariantsCount; i++) {
-            builder.add(readDerivedVariant(decoder, resolveMetadata));
+            builder.add(readDerivedVariant(decoder, resolveMetadata, deduplicationDependencyCache));
         }
         return builder.build();
     }
 
-    private ConfigurationMetadata readDerivedVariant(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata) throws IOException {
+    private ConfigurationMetadata readDerivedVariant(Decoder decoder, DefaultMavenModuleResolveMetadata resolveMetadata, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
         String name = decoder.readString();
         ImmutableAttributes attributes = attributeContainerSerializer.read(decoder);
         ImmutableCapabilities immutableCapabilities = readCapabilities(decoder);
@@ -214,27 +215,44 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             attributes,
             immutableCapabilities
         );
-        ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized);
+        ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, resolveMetadata, realized, deduplicationDependencyCache);
         realized.setDependencies(dependencies);
         return realized;
 
     }
 
-    private MavenDependencyDescriptor readMavenDependency(Decoder decoder) throws IOException {
-        ModuleComponentSelector requested = getComponentSelectorSerializer().read(decoder);
-        IvyArtifactName artifactName = readNullableArtifact(decoder);
-        List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
-        MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-        MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
-        return new MavenDependencyDescriptor(scope, type, requested, artifactName, mavenExcludes);
+    private MavenDependencyDescriptor readMavenDependency(Decoder decoder, Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {
+        if (decoder.readBoolean()) {
+            MavenDependencyDescriptor mavenDependencyDescriptor = deduplicationDependencyCache.get(decoder.readSmallInt());
+            assert mavenDependencyDescriptor != null;
+            return mavenDependencyDescriptor;
+        } else {
+            int mapping = decoder.readSmallInt();
+            ModuleComponentSelector requested = getComponentSelectorSerializer().read(decoder);
+            IvyArtifactName artifactName = readNullableArtifact(decoder);
+            List<ExcludeMetadata> mavenExcludes = readMavenExcludes(decoder);
+            MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
+            MavenDependencyType type = MavenDependencyType.values()[decoder.readSmallInt()];
+            MavenDependencyDescriptor mavenDependencyDescriptor = new MavenDependencyDescriptor(scope, type, requested, artifactName, mavenExcludes);
+            deduplicationDependencyCache.put(mapping, mavenDependencyDescriptor);
+            return mavenDependencyDescriptor;
+        }
     }
 
-    private void writeMavenDependency(Encoder encoder, MavenDependencyDescriptor mavenDependency) throws IOException {
-        getComponentSelectorSerializer().write(encoder, mavenDependency.getSelector());
-        writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
-        writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
-        encoder.writeSmallInt(mavenDependency.getScope().ordinal());
-        encoder.writeSmallInt(mavenDependency.getType().ordinal());
+    private void writeMavenDependency(Encoder encoder, MavenDependencyDescriptor mavenDependency, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
+        int nextMapping = deduplicationDependencyCache.size();
+        Integer mapping = deduplicationDependencyCache.putIfAbsent(mavenDependency, nextMapping);
+        encoder.writeBoolean(mapping != null);
+        if (mapping != null) {
+            encoder.writeSmallInt(mapping);
+        } else {
+            encoder.writeSmallInt(nextMapping);
+            getComponentSelectorSerializer().write(encoder, mavenDependency.getSelector());
+            writeNullableArtifact(encoder, mavenDependency.getDependencyArtifact());
+            writeMavenExcludeRules(encoder, mavenDependency.getAllExcludes());
+            encoder.writeSmallInt(mavenDependency.getScope().ordinal());
+            encoder.writeSmallInt(mavenDependency.getType().ordinal());
+        }
     }
 
 }
