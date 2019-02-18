@@ -90,7 +90,7 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 #### Java Ecosystem specific attributes
 
 - `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.java.Bundling` for more details. Value must be a string.
-- `org.gradle.component.category` indicates the type of component (library or platform). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library.
+- `org.gradle.component.category` indicates the type of component (library or platform). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
 
 #### Native ecosystem specific attributes
 
