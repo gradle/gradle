@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Interner;
+import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -54,7 +55,7 @@ public class ModuleMetadataStore {
             try {
                 StringDeduplicatingDecoder decoder = new StringDeduplicatingDecoder(new KryoBackedDecoder(new FileInputStream(resource.getFile())), stringInterner);
                 try {
-                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory);
+                    return moduleMetadataSerializer.read(decoder, moduleIdentifierFactory, Maps.newHashMap());
                 } finally {
                     decoder.close();
                 }
@@ -72,7 +73,7 @@ public class ModuleMetadataStore {
                 try {
                     KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
                     try {
-                        moduleMetadataSerializer.write(encoder, metadata);
+                        moduleMetadataSerializer.write(encoder, metadata, Maps.newHashMap());
                     } finally {
                         encoder.close();
                     }
