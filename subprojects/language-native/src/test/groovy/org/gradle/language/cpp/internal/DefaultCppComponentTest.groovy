@@ -50,10 +50,12 @@ class DefaultCppComponentTest extends Specification {
         def f1 = tmpDir.createFile("a.cpp")
         def f2 = tmpDir.createFile("b.c++")
         def f3 = tmpDir.createFile("c.cc")
+        def f4 = tmpDir.createFile("d.cxx")
+        def f5 = tmpDir.createFile("e.c")
 
         expect:
-        component.source.from(f1, f2, f3)
-        component.cppSource.files == [f1, f2, f3] as Set
+        component.source.from(f1, f2, f3, f4, f5)
+        component.cppSource.files == [f1, f2, f3, f4, f5] as Set
     }
 
     def "can include source files from a directory"() {
@@ -61,12 +63,14 @@ class DefaultCppComponentTest extends Specification {
         def f1 = d.createFile("a.cpp")
         def f2 = d.createFile("nested/b.cpp")
         def f3 = d.createFile("c.cc")
+        def f4 = d.createFile("nested/d.c")
+        def f5 = d.createFile("nested/e.cxx")
         d.createFile("ignore.txt")
         d.createFile("other/ignore.txt")
 
         expect:
         component.source.from(d)
-        component.cppSource.files == [f1, f2, f3] as Set
+        component.cppSource.files == [f1, f2, f3, f4, f5] as Set
     }
 
     def "uses source layout convention when no other source files specified"() {
@@ -87,6 +91,7 @@ class DefaultCppComponentTest extends Specification {
     def "does not use the convention when specified directory is empty"() {
         tmpDir.createFile("src/main/cpp/a.cpp")
         tmpDir.createFile("src/main/cpp/nested/b.cpp")
+        tmpDir.createFile("src/main/cpp/nested/nested/c.c")
         def d = tmpDir.createDir("other")
 
         expect:
