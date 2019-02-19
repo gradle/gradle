@@ -250,6 +250,7 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
+    @Ignore
     def "reports new child files after failure to delete directory"() {
 
         given:
@@ -324,6 +325,7 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
+    @Ignore
     def "fails fast and reports a reasonable number of paths after failure to delete directory"() {
 
         given: 'more existing files than the cap'
