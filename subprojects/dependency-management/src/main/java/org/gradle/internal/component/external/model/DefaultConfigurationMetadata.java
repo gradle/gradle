@@ -121,9 +121,11 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
         ImmutableList<ModuleDependencyMetadata> filtered = super.getConfigDependencies();
         switch (dependencyFilter) {
             case CONSTRAINTS_ONLY:
+            case FORCED_CONSTRAINTS_ONLY:
                 filtered = withConstraints(true, filtered);
                 break;
             case DEPENDENCIES_ONLY:
+            case FORCED_DEPENDENCIES_ONLY:
                 filtered = withConstraints(false, filtered);
                 break;
         }
@@ -167,7 +169,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     }
 
     public DefaultConfigurationMetadata withConstraintsOnly() {
-        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), getArtifacts(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.constraintsOnly());
+        return new DefaultConfigurationMetadata(getComponentId(), getName(), isTransitive(), isVisible(), getHierarchy(), ImmutableList.of(), componentMetadataRules, getExcludes(), super.getAttributes(), lazyConfigDependencies(), dependencyFilter.constraintsOnly());
     }
 
     private Factory<List<ModuleDependencyMetadata>> lazyConfigDependencies() {
