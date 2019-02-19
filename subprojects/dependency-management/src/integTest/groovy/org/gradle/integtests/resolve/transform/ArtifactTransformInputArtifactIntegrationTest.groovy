@@ -48,6 +48,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
+        executer.withArgument("--continue")
         fails(":a:resolve")
 
         then:

@@ -280,10 +280,11 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
 """
 
         when:
+        executer.withArgument("--continue")
         fails(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":a:tool")
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
         failure.assertHasDescription("Execution failed for task ':a:tool'.")
         failure.assertHasFailures(1)
