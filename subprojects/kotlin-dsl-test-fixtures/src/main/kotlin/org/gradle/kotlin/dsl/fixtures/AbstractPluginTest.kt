@@ -23,7 +23,7 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
     override val defaultSettingsScript: String
         get() = pluginManagementBlock
 
-    protected
+    private
     val pluginManagementBlock by lazy {
         """
             pluginManagement {
@@ -33,7 +33,7 @@ open class AbstractPluginTest : AbstractKotlinIntegrationTest() {
         """
     }
 
-    protected
+    private
     val pluginRepositoriesBlock by lazy {
         """
             repositories {

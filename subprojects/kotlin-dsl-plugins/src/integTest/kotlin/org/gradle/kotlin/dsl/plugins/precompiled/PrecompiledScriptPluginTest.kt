@@ -185,15 +185,12 @@ class PrecompiledScriptPluginTest : AbstractPrecompiledScriptPluginTest() {
                     """)
                 }
 
-                withFile("settings.gradle.kts", """
-
-                    $pluginManagementBlock
-
-                """)
+                withFile("settings.gradle.kts", defaultSettingsScript)
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithKotlinDslPlugin())
+                    scriptWithKotlinDslPlugin()
+                )
             }
         }
 
@@ -253,11 +250,7 @@ class PrecompiledScriptPluginTest : AbstractPrecompiledScriptPluginTest() {
                     """)
                 }
 
-                withFile("settings.gradle.kts", """
-
-                    $pluginManagementBlock
-
-                """)
+                withFile("settings.gradle.kts", defaultSettingsScript)
 
                 withFile("build.gradle.kts", """
 
