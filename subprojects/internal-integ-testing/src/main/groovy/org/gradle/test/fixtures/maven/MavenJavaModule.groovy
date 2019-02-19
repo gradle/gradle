@@ -16,6 +16,9 @@
 
 package org.gradle.test.fixtures.maven
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.java.Bundling
+import org.gradle.api.attributes.java.TargetJavaPlatform
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
@@ -26,6 +29,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     MavenJavaModule(MavenFileModule mavenModule) {
         super(mavenModule)
         this.mavenModule = mavenModule
+        this.mavenModule.attributes[TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE.name] = JavaVersion.current().majorVersion
     }
 
     @Override
@@ -49,8 +53,17 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
         // Verify Gradle metadata particulars
         assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
-        assert mavenModule.parsedModuleMetadata.variant('apiElements').files*.name == [artifact('jar')]
-        assert mavenModule.parsedModuleMetadata.variant('runtimeElements').files*.name == [artifact('jar')]
+        def apiElements = mavenModule.parsedModuleMetadata.variant('apiElements')
+        def runtimeElements = mavenModule.parsedModuleMetadata.variant('runtimeElements')
+
+        assert apiElements.files*.name == [artifact('jar')]
+        assert runtimeElements.files*.name == [artifact('jar')]
+
+        // Verify it contains some expected attributes
+        assert apiElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
+        assert apiElements.attributes.containsKey(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE.name)
+        assert runtimeElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
+        assert runtimeElements.attributes.containsKey(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE.name)
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == null

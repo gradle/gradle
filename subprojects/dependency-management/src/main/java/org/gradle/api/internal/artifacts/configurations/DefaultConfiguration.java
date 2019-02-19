@@ -96,6 +96,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -217,6 +218,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DisplayName displayName;
     private CollectionCallbackActionDecorator callbackActionDecorator;
     private UserCodeApplicationContext userCodeApplicationContext;
+
+    private Action<? super ConfigurationInternal> beforeLocking;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
@@ -870,9 +873,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public void beforeLocking(Action<? super ConfigurationInternal> action) {
+        if (canBeMutated) {
+            if (beforeLocking != null) {
+                beforeLocking = Actions.composite(beforeLocking, action);
+            } else {
+                beforeLocking = action;
+            }
+        }
+    }
+
+    @Override
     public void preventFromFurtherMutation() {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
+            if (beforeLocking != null) {
+                beforeLocking.execute(this);
+                beforeLocking = null;
+            }
             AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
             outgoing.preventFromFurtherMutation();

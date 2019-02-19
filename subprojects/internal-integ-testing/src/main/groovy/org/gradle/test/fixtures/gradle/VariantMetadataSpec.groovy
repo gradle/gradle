@@ -64,4 +64,8 @@ class VariantMetadataSpec {
     void constraint(String group, String module, String version, String reason = null, Map<String, ?> attributes=[:]) {
         dependencyConstraints << new DependencyConstraintSpec(group, module, version, null, null, null, reason, attributes)
     }
+
+    void artifact(String name) {
+        artifacts << new FileSpec(name)
+    }
 }

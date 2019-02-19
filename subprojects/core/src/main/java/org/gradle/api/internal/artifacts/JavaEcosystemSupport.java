@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -27,6 +28,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.java.TargetJavaPlatform;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
 
@@ -35,6 +37,31 @@ import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        configureUsage(attributesSchema, objectFactory);
+        configureBundling(attributesSchema);
+        configureTargetPlatform(attributesSchema);
+    }
+
+    private static void configureTargetPlatform(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE);
+        targetPlatformSchema.getCompatibilityRules().add(TargetPlatformCompatibilityRules.class);
+        targetPlatformSchema.getDisambiguationRules().add(TargetPlatformDisambiguationRules.class, new Action<ActionConfiguration>() {
+            @Override
+            public void execute(ActionConfiguration config) {
+                // by default we will reject any producer which version is higher than
+                // the current Gradle runtime (if the consumer says nothing)
+                config.params(Integer.valueOf(JavaVersion.current().getMajorVersion()));
+            }
+        });
+    }
+
+    private static void configureBundling(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
+        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
+        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
+    }
+
+    private static void configureUsage(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         AttributeMatchingStrategy<Usage> usageSchema = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
         usageSchema.getCompatibilityRules().add(UsageCompatibilityRules.class);
         usageSchema.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
@@ -49,9 +76,6 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
-        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
-        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
-        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
     }
 
     @VisibleForTesting
@@ -270,4 +294,58 @@ public abstract class JavaEcosystemSupport {
             }
         }
     }
+
+    @VisibleForTesting
+    public static class TargetPlatformCompatibilityRules implements AttributeCompatibilityRule<Integer>, ReusableAction {
+        @Override
+        public void execute(CompatibilityCheckDetails<Integer> details) {
+            Integer consumerLevel = details.getConsumerValue();
+            Integer producerLevel = details.getProducerValue();
+            if (consumerLevel == null || producerLevel == null) {
+                details.compatible();
+                return;
+            }
+            if (producerLevel <= consumerLevel) {
+                details.compatible();
+            } else {
+                details.incompatible();
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class TargetPlatformDisambiguationRules implements AttributeDisambiguationRule<Integer>, ReusableAction {
+        private final int minimalPlatformVersion;
+
+        @Inject
+        public TargetPlatformDisambiguationRules(int minimalPlatformVersion) {
+            this.minimalPlatformVersion = minimalPlatformVersion;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<Integer> details) {
+            Integer consumerLevel = details.getConsumerValue();
+            boolean checkMinimalBound = false;
+            if (consumerLevel == null) {
+                consumerLevel = minimalPlatformVersion;
+                checkMinimalBound = true;
+            }
+            int selected = Integer.MAX_VALUE;
+            int diff = Integer.MAX_VALUE;
+            for (Integer producerLevel : details.getCandidateValues()) {
+                if (checkMinimalBound && producerLevel<minimalPlatformVersion) {
+                    continue;
+                }
+                int ndiff = Math.abs(consumerLevel - producerLevel);
+                if (ndiff < diff) {
+                    selected = producerLevel;
+                    diff = ndiff;
+                }
+            }
+            if (selected != Integer.MAX_VALUE) {
+                details.closestMatch(selected);
+            }
+        }
+    }
+
 }

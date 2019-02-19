@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -58,6 +59,11 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * Converts this configuration to an {@link OutgoingVariant} view. The view may not necessarily be immutable.
      */
     OutgoingVariant convertToOutgoingVariant();
+
+    /**
+     * Registers an action to execute before locking for further mutation.
+     */
+    void beforeLocking(Action<? super ConfigurationInternal> action);
 
     void preventFromFurtherMutation();
 

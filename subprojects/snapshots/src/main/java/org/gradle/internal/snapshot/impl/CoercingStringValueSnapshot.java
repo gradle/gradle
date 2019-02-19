@@ -41,6 +41,9 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
         if (Named.class.isAssignableFrom(type)) {
             return type.cast(instantiator.named(type.asSubclass(Named.class), getValue()));
         }
+        if (Integer.class.equals(type)) {
+            return type.cast(Integer.valueOf(getValue()));
+        }
         return null;
     }
 }

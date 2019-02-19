@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -56,6 +57,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
    variant "$expectedVariant" [
       $expectedAttributes
       org.gradle.dependency.bundling = external
+      org.gradle.java.min.platform   = ${JavaVersion.current().majorVersion} (not requested)
    ]
 
 project :$expectedProject
