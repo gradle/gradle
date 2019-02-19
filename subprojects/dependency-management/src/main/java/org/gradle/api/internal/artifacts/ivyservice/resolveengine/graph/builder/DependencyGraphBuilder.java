@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -72,6 +71,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -413,13 +413,13 @@ public class DependencyGraphBuilder {
     }
 
     private static boolean compatible(CompatibilityRule<Object> rule, Object v1, Object v2) {
+        if (Objects.equals(v1, v2)) {
+            // Equal values are compatible
+            return true;
+        }
         DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<>(v1, v2);
         rule.execute(result);
-        if (!result.hasResult()) {
-            // the rule said nothing, so we use equality
-            return Objects.equal(v1, v2);
-        }
-        return result.isCompatible();
+        return result.hasResult() && result.isCompatible();
     }
 
     private void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {
