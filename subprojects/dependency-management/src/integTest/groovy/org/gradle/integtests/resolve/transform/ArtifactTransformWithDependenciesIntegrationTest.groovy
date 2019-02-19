@@ -47,8 +47,10 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
                 .publish()
                 .allowAll()
         withColorVariants(mavenHttpRepo.module("hamcrest", "hamcrest-core", "1.3")).publish().allowAll()
+    }
 
-        setupBuildWithColorAttributes()
+    void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
+        setupBuildWithColorAttributes(cl)
         buildFile << """
                    
 @AssociatedTransformAction(TestTransformAction)
@@ -149,6 +151,7 @@ abstract class SimpleTransform implements TransformAction {
     }
 
     void setupBuildWithSingleStep() {
+        setupBuildWithNoSteps()
         buildFile << """
 allprojects {
     dependencies {
@@ -165,6 +168,7 @@ allprojects {
     }
 
     void setupBuildWithFirstStepThatDoesNotUseDependencies() {
+        setupBuildWithNoSteps()
         buildFile << """
 allprojects {
     dependencies {
@@ -186,6 +190,7 @@ allprojects {
     }
 
     void setupBuildWithTwoSteps() {
+        setupBuildWithNoSteps()
         buildFile << """
 allprojects {
     dependencies {
@@ -404,6 +409,7 @@ project(':common') {
 
     def "can attach @PathSensitive(NONE) to dependencies property"() {
         given:
+        setupBuildWithNoSteps()
         buildFile << """
 allprojects {
     dependencies {
@@ -495,8 +501,11 @@ abstract class NoneTransformAction implements TransformAction {
     }
 
     @Unroll
-    def "can attach @#classpathAnnotation to dependencies property"() {
+    def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
+        setupBuildWithNoSteps {
+            produceJars()
+        }
         buildFile << """
 allprojects {
     dependencies {
@@ -508,7 +517,7 @@ allprojects {
 }
 
 abstract class ClasspathTransformAction implements TransformAction {
-    @InputArtifactDependencies @Classpath
+    @InputArtifactDependencies @${classpathAnnotation.simpleName}
     abstract FileCollection getInputArtifactDependencies()
 
     @InputArtifact
@@ -576,8 +585,7 @@ abstract class ClasspathTransformAction implements TransformAction {
         result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
-// TODO: In order to detect the change, actual jars need to be produced.
-//  singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar'),
+            singleStep('lib.jar','slf4j-api-1.7.25.jar', 'common-blue.jar')
         )
 
         when:

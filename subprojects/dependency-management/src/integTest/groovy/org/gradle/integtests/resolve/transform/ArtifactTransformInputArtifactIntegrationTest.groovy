@@ -854,9 +854,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    def "can attach #annotation to input artifact property with project artifact file"() {
+    def "can attach @#annotation to input artifact property with project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
-        setupBuildWithColorTransformAction()
+        setupBuildWithColorTransformAction {
+            produceJars()
+        }
         buildFile << """
             project(':a') {
                 dependencies {
