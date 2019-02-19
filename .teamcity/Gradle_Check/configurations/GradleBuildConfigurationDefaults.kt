@@ -24,15 +24,17 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-fun gradleParameters(os: OS = OS.linux, daemon: Boolean = true, isContinue: Boolean = true): List<String> =
-    listOf(
-        "-PmaxParallelForks=%maxParallelForks%",
-        "-s",
-        if (daemon) "--daemon" else "--no-daemon",
-        if (isContinue) "--continue" else "",
-        """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-        "-Dorg.gradle.internal.tasks.createops",
-        "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
+fun gradleParameterString(daemon: Boolean = true) = gradleParameters(daemon).joinToString(separator = " ")
+
+fun gradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+        listOf(
+                "-PmaxParallelForks=%maxParallelForks%",
+                "-s",
+                if (daemon) "--daemon" else "--no-daemon",
+                if (isContinue) "--continue" else "",
+                """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
+                "-Dorg.gradle.internal.tasks.createops",
+                "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
 
 
 val m2CleanScriptUnixLike = """
@@ -106,74 +108,127 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
-    applyDefaultSettings(buildType, os, timeout)
-
-    val gradleParameterString = gradleParameters(os, daemon).joinToString(separator = " ")
-
-    val buildScanTags = model.buildScanTags + listOfNotNull(buildType.stage?.id)
-
-    val gradleParamList = listOf(gradleParameterString) +
-        buildType.buildCache.gradleParameters(os) +
-        listOf(extraParameters) +
-        "-PteamCityUsername=%teamcity.username.restbot%" +
-        "-PteamCityPassword=%teamcity.password.restbot%" +
-        "-PteamCityBuildId=%teamcity.build.id%" +
-        buildScanTags.map { buildScanTag(it) }
-
-    buildType.steps {
-        fun addKillProcessStep(stepName: String) {
-            if (os == OS.windows) {
-                gradleWrapper {
-                    name = stepName
-                    executionMode = BuildStep.ExecutionMode.ALWAYS
-                    tasks = "killExistingProcessesStartedByGradle"
-                    gradleParams = gradleParameterString
-                }
-            }
-        }
-
-        gradleWrapper {
-            name = "GRADLE_RUNNER"
-            tasks = "clean $gradleTasks"
-            gradleParams = gradleParamList.joinToString(separator = " ")
-        }
-
-        addKillProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE")
-
-        gradleWrapper {
-            name = "GRADLE_RERUNNER"
-            tasks = "$gradleTasks"
-            executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
-            gradleParams = (gradleParamList + "-PonlyPreviousFailedTestClasses=true").joinToString(separator = " ")
-        }
-
-        addKillProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN")
-    }
-
-    buildType.steps.extraSteps()
-
-    buildType.steps {
+private
+fun BaseGradleBuildType.checkCleanM2Step(os: OS = OS.linux) {
+    steps {
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = if (os == OS.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
         }
+    }
+}
+
+private
+fun BaseGradleBuildType.verifyTestFilesCleanupStep(daemon: Boolean = true) {
+    steps {
         gradleWrapper {
             name = "VERIFY_TEST_FILES_CLEANUP"
             tasks = "verifyTestFilesCleanup"
-            gradleParams = gradleParameterString
+            gradleParams = gradleParameterString(daemon)
         }
+    }
+}
 
+private
+fun BaseGradleBuildType.tagBuildStep(model: CIBuildModel, daemon: Boolean = true) {
+    steps {
         if (model.tagBuilds) {
             gradleWrapper {
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                gradleParams = "$gradleParameterString -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+                gradleParams = "${gradleParameterString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
             }
         }
     }
+}
+
+private
+fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: OS = OS.linux, extraParameters: String = "", daemon: Boolean = true) {
+    val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+
+    steps {
+        gradleWrapper {
+            name = "GRADLE_RUNNER"
+            tasks = "clean $gradleTasks"
+            gradleParams = (
+                    listOf(gradleParameterString(daemon)) +
+                            this@gradleRunnerStep.buildCache.gradleParameters(os) +
+                            listOf(extraParameters) +
+                            "-PteamCityUsername=%teamcity.username.restbot%" +
+                            "-PteamCityPassword=%teamcity.password.restbot%" +
+                            "-PteamCityBuildId=%teamcity.build.id%" +
+                            buildScanTags.map { configurations.buildScanTag(it) }
+                    ).joinToString(separator = " ")
+        }
+    }
+}
+
+private
+fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: OS = OS.linux, extraParameters: String = "", daemon: Boolean = true) {
+    val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+
+    steps {
+        gradleWrapper {
+            name = "GRADLE_RERUNNER"
+            tasks = gradleTasks
+            executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
+            gradleParams = (
+                    listOf(gradleParameterString(daemon)) +
+                            this@gradleRerunnerStep.buildCache.gradleParameters(os) +
+                            listOf(extraParameters) +
+                            "-PteamCityUsername=%teamcity.username.restbot%" +
+                            "-PteamCityPassword=%teamcity.password.restbot%" +
+                            "-PteamCityBuildId=%teamcity.build.id%" +
+                            buildScanTags.map { configurations.buildScanTag(it) } +
+                            "-PrerunFailedTests=true"
+                    ).joinToString(separator = " ")
+        }
+    }
+}
+
+private
+fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: OS = OS.linux, daemon: Boolean = true) {
+    if (os == OS.windows) {
+        steps {
+            gradleWrapper {
+                name = stepName
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                tasks = "killExistingProcessesStartedByGradle"
+                gradleParams = gradleParameterString(daemon)
+            }
+        }
+    }
+}
+
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    applyDefaultSettings(buildType, os, timeout)
+
+    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
+
+    buildType.steps.extraSteps()
+
+    buildType.checkCleanM2Step(os)
+    buildType.verifyTestFilesCleanupStep(daemon)
+    buildType.tagBuildStep(model, daemon)
+
+    applyDefaultDependencies(model, buildType, notQuick)
+}
+
+fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    applyDefaultSettings(buildType, os, timeout)
+
+    buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
+    buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
+    buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
+    buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)
+
+    buildType.steps.extraSteps()
+
+    buildType.checkCleanM2Step(os)
+    buildType.verifyTestFilesCleanupStep(daemon)
+    buildType.tagBuildStep(model, daemon)
 
     applyDefaultDependencies(model, buildType, notQuick)
 }
