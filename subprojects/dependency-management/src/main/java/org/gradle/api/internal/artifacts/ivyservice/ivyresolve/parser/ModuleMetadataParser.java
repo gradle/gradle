@@ -51,6 +51,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
+import static com.google.gson.stream.JsonToken.NUMBER;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class ModuleMetadataParser {
@@ -390,6 +391,9 @@ public class ModuleMetadataParser {
             if (reader.peek() == BOOLEAN) {
                 boolean attrValue = reader.nextBoolean();
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Boolean.class), attrValue);
+            } else if (reader.peek() == NUMBER) {
+                Integer attrValue = reader.nextInt();
+                attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Integer.class), attrValue);
             } else {
                 String attrValue = reader.nextString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));

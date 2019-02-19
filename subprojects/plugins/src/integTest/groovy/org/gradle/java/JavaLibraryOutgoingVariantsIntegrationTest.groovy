@@ -16,6 +16,7 @@
 
 package org.gradle.java
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -80,8 +81,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
 
         when:
         buildFile << """
@@ -98,8 +99,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
     }
 
     @Unroll
@@ -118,8 +119,8 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-api-classes}")
-        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-api-classes}")
 
         when:
         buildFile << """
@@ -136,8 +137,8 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-api-classes}")
-        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-api-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-api-classes}")
 
         where:
         usage                                          | _
@@ -161,8 +162,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
 
         when:
         buildFile << """
@@ -179,8 +180,8 @@ project(':consumer') {
         outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
 
         where:
         usage                                           | _
@@ -202,8 +203,8 @@ project(':consumer') {
         result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         outputContains("files: [java.jar, file-dep.jar, api-1.0.jar, compile-1.0.jar, other-java.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
-        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
-        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-jars}")
+        outputContains("java.jar (project :java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
+        outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-jars}")
     }
 
     def "provides runtime classes variant"() {
@@ -222,8 +223,8 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-classes}")
-        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-classes}")
 
         when:
         buildFile << """
@@ -240,8 +241,8 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-classes}")
-        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-classes}")
+        outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-classes}")
     }
 
     def "provides runtime resources variant"() {
@@ -260,8 +261,8 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar}")
-        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-resources}")
-        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-resources}")
 
         when:
         buildFile << """
@@ -278,7 +279,11 @@ project(':consumer') {
         outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.usage=java-runtime-jars}")
         outputContains("compile.jar (test:compile:1.0) {artifactType=jar, org.gradle.usage=java-runtime-jars}")
-        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-resources}")
-        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :other-java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-resources}")
+        outputContains("main (project :java) {artifactType=java-resources-directory, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.usage=java-runtime-resources}")
+    }
+
+    static String defaultTargetPlatform() {
+        "org.gradle.java.min.platform=${JavaVersion.current().majorVersion}"
     }
 }

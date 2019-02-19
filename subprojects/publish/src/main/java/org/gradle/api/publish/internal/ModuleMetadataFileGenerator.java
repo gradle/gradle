@@ -328,6 +328,9 @@ public class ModuleMetadataFileGenerator {
             if (value instanceof Boolean) {
                 Boolean b = (Boolean) value;
                 jsonWriter.value(b);
+            } else if (value instanceof Integer) {
+                Integer i = (Integer) value;
+                jsonWriter.value(i);
             } else if (value instanceof String) {
                 String s = (String) value;
                 jsonWriter.value(s);

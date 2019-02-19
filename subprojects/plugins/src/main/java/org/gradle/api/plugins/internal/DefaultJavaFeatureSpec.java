@@ -23,11 +23,14 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.java.TargetJavaPlatform;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.BasePlugin;
@@ -127,6 +130,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configureUsage(runtimeElements, Usage.JAVA_RUNTIME_JARS);
         configurePacking(apiElements);
         configurePacking(runtimeElements);
+        configureTargetPlatform(apiElements);
+        configureTargetPlatform(runtimeElements);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
@@ -149,6 +154,20 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
                 if (component != null) {
                     component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
                     component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
+                }
+            }
+        });
+    }
+
+    private void configureTargetPlatform(Configuration configuration) {
+        ((ConfigurationInternal)configuration).beforeLocking(new Action<ConfigurationInternal>() {
+            @Override
+            public void execute(ConfigurationInternal configuration) {
+                String majorVersion = javaPluginConvention.getTargetCompatibility().getMajorVersion();
+                AttributeContainerInternal attributes = configuration.getAttributes();
+                // If nobody said anything about this variant's target platform, use whatever the convention says
+                if (!attributes.contains(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)) {
+                    attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
                 }
             }
         });
