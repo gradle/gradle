@@ -60,7 +60,7 @@ libraries.guava =               [coordinates: 'com.google.guava:guava', version:
 libraries.inject =              [coordinates: 'javax.inject:javax.inject', version: '1']
 libraries.ivy =                 [coordinates: 'org.apache.ivy:ivy', version: '2.3.0',
                                  because: '2.4.0 contains a breaking change in DefaultModuleDescriptor.getExtraInfo(), cf. https://issues.apache.org/jira/browse/IVY-1457']
-libraries.jackson_core =        [coordinates: 'com.fasterxml.jackson.core:jackson-core', version: '2.9.6']
+libraries.jackson_core =        [coordinates: 'com.fasterxml.jackson.core:jackson-core', version: '2.9.8']
 libraries.jackson_annotations = [coordinates: 'com.fasterxml.jackson.core:jackson-annotations', version: libraries.jackson_core.version]
 libraries.jackson_databind =    [coordinates: 'com.fasterxml.jackson.core:jackson-databind', version: libraries.jackson_core.version]
 libraries.jansi =               [coordinates: 'org.fusesource.jansi:jansi', version: '1.17.1']

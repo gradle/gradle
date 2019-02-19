@@ -25,6 +25,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 
 /**
  * An {@link BuildActionRunner} that wraps all work in a build operation.
@@ -46,6 +47,7 @@ public class RunAsBuildOperationBuildActionRunner implements BuildActionRunner {
             public Result call(BuildOperationContext context) {
                 checkDeprecations((StartParameterInternal)buildController.getGradle().getStartParameter());
                 buildController.getGradle().getServices().get(IncludedBuildControllers.class).rootBuildOperationStarted();
+                buildController.getGradle().getServices().get(LoggingBuildOperationProgressBroadcaster.class).rootBuildOperationStarted();
                 Result result = delegate.run(action, buildController);
                 context.setResult(RESULT);
                 if (result.getBuildFailure() != null) {

@@ -13,12 +13,12 @@ import model.StageName
 import model.StageNames
 import model.TestCoverage
 import model.TestType
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Test
 import projects.RootProject
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class CIConfigIntegrationTests {
     @Test

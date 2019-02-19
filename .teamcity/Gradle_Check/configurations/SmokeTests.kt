@@ -15,7 +15,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
         param("env.JAVA_HOME", buildJavaHome)
     }
 
-    applyDefaults(
+    applyTestDefaults(
             model,
             this,
             "smokeTest:smokeTest",

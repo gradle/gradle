@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.transform.InputArtifact;
+import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -36,8 +39,8 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
-    public Class<? extends Annotation> getOverriddenAnnotationType() {
-        return InputFiles.class;
+    public ImmutableList<Class<? extends Annotation>> getOverriddenAnnotationTypes() {
+        return ImmutableList.of(InputFiles.class, InputArtifact.class, InputArtifactDependencies.class);
     }
 
     @Override

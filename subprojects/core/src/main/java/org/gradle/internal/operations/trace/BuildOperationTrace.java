@@ -252,7 +252,8 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     public static BuildOperationTree read(String basePath) {
-        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
+        File logFile = logFile(basePath);
+        List<BuildOperationRecord> roots = readLogToTreeRoots(logFile);
         return new BuildOperationTree(roots);
     }
 

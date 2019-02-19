@@ -104,7 +104,9 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         ImmutableSetMultimap.Builder<Class<? extends Annotation>, Class<? extends Annotation>> builder = ImmutableSetMultimap.builder();
         for (PropertyAnnotationHandler handler : allAnnotationHandlers) {
             if (handler instanceof OverridingPropertyAnnotationHandler) {
-                builder.put(((OverridingPropertyAnnotationHandler) handler).getOverriddenAnnotationType(), handler.getAnnotationType());
+                for (Class<? extends Annotation> overriddenAnnotationType : ((OverridingPropertyAnnotationHandler) handler).getOverriddenAnnotationTypes()) {
+                    builder.put(overriddenAnnotationType, handler.getAnnotationType());
+                }
             }
         }
         return builder.build();

@@ -19,6 +19,9 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+
 trait ArtifactTransformTestFixture {
     abstract TestFile getBuildFile()
 
@@ -31,21 +34,12 @@ trait ArtifactTransformTestFixture {
     }
 
     /**
-     * Each project produces a 'blue' variant containing a single file, and has a `resolve` task that resolves the 'green' variant.
-     * Caller will need to register transforms that produce 'green' from 'blue'.
-     *
-     * See {@link Builder#produceFiles()} for details of the output files.
-     */
-    void setupBuildWithColorAttributes() {
-        setupBuildWithColorAttributes(new Builder())
-    }
-
-    /**
      * Each project produces 'blue' variants and has a `resolve` task that resolves the 'green' variant. The 'blue' variant will contain
-     * whatever is defined by the given closure on the supplied {@link Builder}. Defaults to producing a file.
+     * whatever is defined by the given closure on the supplied {@link Builder}.
+     * By default each variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to register transforms that produce 'green' from 'blue'
      */
-    void setupBuildWithColorAttributes(@DelegatesTo(Builder) Closure cl) {
+    void setupBuildWithColorAttributes(@DelegatesTo(Builder) Closure cl = {}) {
         def builder = new Builder()
         builder.produceFiles()
         cl.delegate = builder
@@ -124,24 +118,38 @@ class DirProducer extends DefaultTask {
         }
     }
 }
+
+import ${JarOutputStream.name}
+import ${ZipEntry.name}
+
+class JarProducer extends DefaultTask {
+    @OutputFile
+    final RegularFileProperty output = project.objects.fileProperty()
+    @Input
+    String content = "content"
+
+    @TaskAction
+    def go() {
+        def file = output.get().asFile
+        file.withOutputStream {
+            def jarFile = new JarOutputStream(it)
+            def entry = new ZipEntry("thing.class")
+            entry.time = 123L
+            jarFile.putNextEntry(entry)
+            jarFile << content
+            jarFile.close()
+        }
+    }
+}
 """
     }
 
     /**
-     * Each project produces a 'blue' variant that contains a single file, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
-     * Caller will need to provide an implementation of 'MakeGreen' transform action.
-     *
-     * See {@link Builder#produceFiles()} for details of the output files.
-     */
-    void setupBuildWithColorTransformAction() {
-        setupBuildWithColorTransformAction {}
-    }
-
-    /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
+     * By default the variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to provide an implementation of 'MakeGreen' transform action
      */
-    void setupBuildWithColorTransformAction(@DelegatesTo(Builder) Closure cl) {
+    void setupBuildWithColorTransformAction(@DelegatesTo(Builder) Closure cl = {}) {
         setupBuildWithColorAttributes(cl)
         buildFile << """
 allprojects {
@@ -156,21 +164,12 @@ allprojects {
     }
 
     /**
-     * Each project produces a 'blue' variant containing a single file, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
-     * Caller will need to provide an implementation of 'MakeGreen' transform configuration. Does not apply any configuration to this type.
-     *
-     * See {@link Builder#produceFiles()} for details of the output files.
-     */
-    void setupBuildWithColorTransform() {
-        setupBuildWithColorTransform {}
-    }
-
-    /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a 'MakeGreen' transform that converts 'blue' to 'green'.
+     * By default the variant will contain a single file,  this can be configured using the supplied {@link Builder}.
      * Caller will need to provide an implementation of 'MakeGreen' transform configuration and use {@link TransformBuilder#params(java.lang.String)} to specify the configuration to
      * apply to the parameters.
      */
-    void setupBuildWithColorTransform(@DelegatesTo(TransformBuilder) Closure cl) {
+    void setupBuildWithColorTransform(@DelegatesTo(TransformBuilder) Closure cl = {}) {
         def builder = new TransformBuilder()
         cl.delegate = builder
         cl.call()
@@ -219,6 +218,32 @@ allprojects { p ->
                     buildDir = project.file(project.property("\${project.name}OutputDir"))
                 }
                 tasks.withType(FileProducer) {
+                    if (project.hasProperty("\${project.name}ProduceNothing")) {
+                        content = ""
+                    } else if (project.hasProperty("\${project.name}Content")) {
+                        content = project.property("\${project.name}Content")
+                    }
+                    if (project.hasProperty("\${project.name}FileName")) {
+                        output = layout.buildDir.file(project.property("\${project.name}FileName"))
+                    }
+                }
+            """.stripIndent()
+        }
+
+        /**
+         * Specifies that each project produce a single JAR as output.
+         */
+        void produceJars() {
+            producerTaskClassName = "JarProducer"
+            producerConfig = """
+                output = layout.buildDir.file("\${project.name}.jar")
+                content = project.name
+            """.stripIndent()
+            producerConfigOverrides = """
+                if (project.hasProperty("\${project.name}OutputDir")) {
+                    buildDir = project.file(project.property("\${project.name}OutputDir"))
+                }
+                tasks.withType(JarProducer) {
                     if (project.hasProperty("\${project.name}ProduceNothing")) {
                         content = ""
                     } else if (project.hasProperty("\${project.name}Content")) {

@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
-    private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(2);
+    private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(3);
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = Maps.newHashMap();
     private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
 
@@ -128,7 +128,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                 return;
             }
         }
-        throw new RuntimeException("Cannot choose between " + prettifyCandidates(conflict) + " because they provide the same capability: " + prettifyCapabilities(conflict));
     }
 
     @Override
@@ -206,11 +205,24 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             public void select() {
                                 selected = node;
                             }
+
+                            @Override
+                            public void reject() {
+                                ComponentState component = node.getComponent();
+                                component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
+                                component.selectAndRestartModule();
+                            }
                         });
                     }
                 }
             }
             return candidates.build();
+        }
+
+        private Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
+            List<NodeState> conflictedNodes = Lists.newArrayList(nodes);
+            conflictedNodes.remove(node);
+            return conflictedNodes;
         }
 
         @Override

@@ -23,6 +23,41 @@ import spock.lang.Unroll
 import java.util.regex.Pattern
 
 class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+    def "transform does not execute when project artifact cannot be built"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            project(':b') {
+                tasks.producer.doLast { throw new RuntimeException('broken') }
+            }
+            
+            abstract class MakeGreen implements TransformAction {
+                @InputArtifact
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                }
+            }
+        """
+
+        when:
+        executer.withArgument("--continue")
+        fails(":a:resolve")
+
+        then:
+        transformed("c.jar")
+        failure.assertHasFailures(1)
+        failure.assertHasDescription("Execution failed for task ':b:producer'.")
+        failure.assertHasCause("broken")
+    }
+
     @Unroll
     def "can attach #description to input artifact property with project artifact file"() {
         settingsFile << "include 'a', 'b', 'c'"
@@ -816,6 +851,96 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         where:
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
+    }
+
+    @Unroll
+    def "can attach @#annotation to input artifact property with project artifact file"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction {
+            produceJars()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            abstract class MakeGreen implements TransformAction {
+                @InputArtifact @${annotation}
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        when:
+        succeeds(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        transformed("b.jar", "c.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        succeeds(":a:resolve")
+
+        then: // no change, should be up to date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new")
+        succeeds(":a:resolve")
+
+        then: // new content, should run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new")
+        succeeds(":a:resolve")
+
+        then: // no change, should be up to date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
+        succeeds(":a:resolve")
+
+        then: // path has changed, transforms up-to-date
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        succeeds(":a:resolve")
+
+        then: // new file name, transforms up-to-date
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        succeeds(":a:resolve")
+
+        then: // have already seen these artifacts before
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        annotation << ["Classpath", "CompileClasspath"]
     }
 
     void transformed(String... expected) {

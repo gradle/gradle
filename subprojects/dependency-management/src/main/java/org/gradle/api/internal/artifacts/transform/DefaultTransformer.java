@@ -55,6 +55,7 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -161,6 +162,21 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (isolateAction != null) {
+            context.add(isolateAction);
+        }
+        if (parameterObject != null) {
+            parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
+                @Override
+                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                    context.maybeAdd(value.call());
+                }
+            });
+        }
+    }
+
+    @Override
     public void isolateParameters() {
         if (isolatable == null) {
             if (!projectStateHandler.hasMutableProjectState()) {
@@ -179,7 +195,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             try {
                 isolatable = doIsolateParameters();
             } catch (Exception e) {
-                throw new VariantTransformConfigurationException(String.format("Cannot isolate parameters %s of artifact transform %s", parameterObject,  ModelType.of(getImplementationClass()).getDisplayName()), e);
+                throw new VariantTransformConfigurationException(String.format("Cannot isolate parameters %s of artifact transform %s", parameterObject, ModelType.of(getImplementationClass()).getDisplayName()), e);
             }
         });
     }
@@ -294,8 +310,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         }
 
         @Nullable
-        private
-        Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
+        private Object find(Type serviceType, @Nullable Class<? extends Annotation> annotatedWith) {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
             for (InjectionPoint injectionPoint : injectionPoints) {
                 if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
@@ -378,15 +393,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         public HashCode getSecondaryInputsHash() {
             return secondaryInputsHash;
         }
+
         public Isolatable<?> getIsolatableParameters() {
             return isolatableParameters;
-        }
-    }
-
-    @Override
-    public void visitDependencies(TaskDependencyResolveContext context) {
-        if (isolateAction != null) {
-            context.add(isolateAction);
         }
     }
 }

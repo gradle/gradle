@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations.logging;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.events.CategorisedOutputEvent;
 import org.gradle.internal.logging.events.LogEvent;
@@ -26,6 +27,7 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 
@@ -61,10 +63,12 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     private final OutputEventListenerManager outputEventListenerManager;
     private final BuildOperationListener buildOperationListener;
 
+    @VisibleForTesting
+    OperationIdentifier rootBuildOperation;
+
     public LoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationListener buildOperationListener) {
         this.outputEventListenerManager = outputEventListenerManager;
         this.buildOperationListener = buildOperationListener;
-
         outputEventListenerManager.setListener(this);
     }
 
@@ -72,21 +76,27 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     public void onOutput(OutputEvent event) {
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent renderableOutputEvent = (RenderableOutputEvent) event;
-            if (renderableOutputEvent.getBuildOperationId() == null) {
-                return;
+            OperationIdentifier operationIdentifier = renderableOutputEvent.getBuildOperationId();
+            if (operationIdentifier == null) {
+                if (rootBuildOperation == null) {
+                    return;
+                }
+                operationIdentifier = rootBuildOperation;
             }
+
             if (renderableOutputEvent instanceof StyledTextOutputEvent || renderableOutputEvent instanceof LogEvent) {
-                emit(renderableOutputEvent, renderableOutputEvent.getBuildOperationId());
+                emit(renderableOutputEvent, operationIdentifier);
             }
         } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            if (progressStartEvent.getBuildOperationId() == null) {
-                return;
-            }
             if (progressStartEvent.getLoggingHeader() == null) {
                 return; // If the event has no logging header, it doesn't manifest as console output.
             }
-            emit(progressStartEvent, progressStartEvent.getBuildOperationId());
+            OperationIdentifier operationIdentifier = progressStartEvent.getBuildOperationId();
+            if (operationIdentifier == null && rootBuildOperation != null) {
+                operationIdentifier = rootBuildOperation;
+            }
+            emit(progressStartEvent, operationIdentifier);
         }
     }
 
@@ -100,5 +110,9 @@ public class LoggingBuildOperationProgressBroadcaster implements Stoppable, Outp
     @Override
     public void stop() {
         outputEventListenerManager.removeListener(this);
+    }
+
+    public void rootBuildOperationStarted() {
+        rootBuildOperation = CurrentBuildOperationRef.instance().getId();
     }
 }

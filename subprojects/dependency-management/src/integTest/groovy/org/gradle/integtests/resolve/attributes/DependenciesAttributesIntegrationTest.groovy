@@ -199,7 +199,8 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot choose between org:test:1.0 variant api and org:test:1.0 variant runtime because they provide the same capability: org:test:1.0""")
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org:test:1.0' also provided by [org:test:1.0(api), org:test:1.0(runtime)]""")
     }
 
     @RequiredFeatures(

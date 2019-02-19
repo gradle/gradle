@@ -38,6 +38,7 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
         ComponentIdentifier getId();
         void evict();
         void select();
+        void reject();
     }
 
     interface Resolver {

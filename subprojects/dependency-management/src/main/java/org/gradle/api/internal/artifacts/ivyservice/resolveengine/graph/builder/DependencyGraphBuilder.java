@@ -206,7 +206,8 @@ public class DependencyGraphBuilder {
                         for (ComponentState version : versions) {
                             List<NodeState> nodes = version.getNodes();
                             for (NodeState nodeState : nodes) {
-                                if (nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
+                                // Collect nodes as implicit capability providers if different than current node, selected and not having explicit capabilities
+                                if (node != nodeState && nodeState.isSelected() && doesNotDeclareExplicitCapability(nodeState)) {
                                     implicitProvidersForCapability.add(nodeState);
                                 }
                             }
@@ -347,7 +348,7 @@ public class DependencyGraphBuilder {
             ComponentState selected = module.getSelected();
             if (selected != null) {
                 if (selected.isRejected()) {
-                    GradleException error = new GradleException(new RejectedModuleMessageBuilder().buildFailureMessage(module));
+                    GradleException error = new GradleException(selected.getRejectedErrorMessage());
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.

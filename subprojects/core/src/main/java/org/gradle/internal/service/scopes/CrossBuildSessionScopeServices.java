@@ -95,6 +95,10 @@ public class CrossBuildSessionScopeServices implements Closeable {
         return buildOperationListenerManager;
     }
 
+    LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster() {
+        return loggingBuildOperationProgressBroadcaster;
+    }
+
     BuildOperationExecutor createBuildOperationExecutor() {
         // Wrap to prevent exposing Stoppable, as we don't want to stop at this scope
         return new DelegatingBuildOperationExecutor(services.get(BuildOperationExecutor.class));

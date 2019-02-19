@@ -1,14 +1,31 @@
+log4j:log4j:1.2.16 FAILED
+   Failures:
+      - Could not resolve log4j:log4j:1.2.16.
+          - Module 'log4j:log4j' has been rejected:
+               Cannot select module with conflict on capability 'org.slf4j:slf4j-capability:1.0' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
 
-FAILURE: Build failed with an exception.
+log4j:log4j:1.2.16 FAILED
+\--- org.apache.zookeeper:zookeeper:3.4.9
+     \--- compileClasspath
 
-* What went wrong:
-Execution failed for task ':dependencyInsight'.
-> Could not resolve all dependencies for configuration ':compileClasspath'.
-   > Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
+org.slf4j:log4j-over-slf4j:1.7.10 FAILED
+   Failures:
+      - Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
+          - Module 'org.slf4j:log4j-over-slf4j' has been rejected:
+               Cannot select module with conflict on capability 'org.slf4j:slf4j-capability:1.0' also provided by [log4j:log4j:1.2.16(compile)]
 
-* Try:
-Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+org.slf4j:log4j-over-slf4j:1.7.10 FAILED
+\--- compileClasspath
 
-* Get more help at https://help.gradle.org
+org.slf4j:slf4j-log4j12:1.6.1
+   variant "compile" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-api
+      org.gradle.component.category = library (not requested)
+   ]
 
-BUILD FAILED in 0s
+org.slf4j:slf4j-log4j12:1.6.1
+\--- org.apache.zookeeper:zookeeper:3.4.9
+     \--- compileClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.

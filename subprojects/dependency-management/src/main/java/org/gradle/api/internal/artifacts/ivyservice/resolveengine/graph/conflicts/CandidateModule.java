@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 
 import java.util.Collection;
 
@@ -34,4 +35,6 @@ public interface CandidateModule {
      * Candidate versions of this module. Many times, it has only single version.
      */
     Collection<? extends ComponentResolutionState> getVersions();
+
+    void restart(ComponentState selected);
 }

@@ -24,11 +24,14 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
-import org.gradle.api.internal.java.JavaPlatform;
+import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 
+import javax.inject.Inject;
 import java.util.Set;
 
 /**
@@ -81,11 +84,17 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
             "Found dependencies in the '%s' configuration.";
 
+    private final SoftwareComponentFactory softwareComponentFactory;
+
+    @Inject
+    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
+        this.softwareComponentFactory = softwareComponentFactory;
+    }
+
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
-        createSoftwareComponent(project);
         configureExtension(project);
         addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
@@ -99,8 +108,11 @@ public class JavaPlatformPlugin implements Plugin<Project> {
                 .add(PlatformSupport.PreferRegularPlatform.class);
     }
 
-    private boolean createSoftwareComponent(Project project) {
-        return project.getComponents().add(project.getObjects().newInstance(JavaPlatform.class, project.getConfigurations()));
+    private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
+        AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
+        project.getComponents().add(component);
+        component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
+        component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
     }
 
     private void createConfigurations(Project project) {
@@ -118,6 +130,8 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtimeElements);
         declareConfigurationUsage(project, classpath, Usage.JAVA_RUNTIME);
+
+        createSoftwareComponent(project, apiElements, runtimeElements);
     }
 
     private Configuration createConsumableRuntime(Project project, Configuration apiElements, String name, String platformKind) {

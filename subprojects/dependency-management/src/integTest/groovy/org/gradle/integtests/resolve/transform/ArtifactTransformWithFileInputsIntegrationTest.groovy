@@ -140,8 +140,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO - should run the producer task
-//        result.assertTasksExecuted("a:tool", "b:producer", "c:producer", "a:resolve")
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar]")
         outputContains("processing c.jar using [tool-a.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -196,9 +195,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO wolfs: Build dependencies of transforms required by the parameters are not discovered
-        // result.assertTasksExecuted(":b:producer", ":c:producer", , ":d:producer", ":e:producer", ":a:resolve")
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
         outputContains("processing b.jar using [d.jar.red, e.jar.red]")
         outputContains("processing c.jar using [d.jar.red, e.jar.red]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -254,11 +251,44 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        // TODO - should run the producer tasks
-//        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", "c:producer", ":a:resolve")
+        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar, tool-b.jar]")
         outputContains("processing c.jar using [tool-a.jar, tool-b.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
+    def "transform does not execute when file inputs cannot be built"() {
+        settingsFile << """
+                include 'a', 'b', 'c'
+            """
+        setupBuildWithTransformFileInputs()
+        buildFile << """
+            allprojects {
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
+                    doLast { throw new RuntimeException('broken') }
+                }
+                ext.inputFiles = files(tool.output)                
+            }
+
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+"""
+
+        when:
+        executer.withArgument("--continue")
+        fails(":a:resolve")
+
+        then:
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer")
+        outputDoesNotContain("processing")
+        failure.assertHasDescription("Execution failed for task ':a:tool'.")
+        failure.assertHasFailures(1)
+        failure.assertHasCause("broken")
     }
 
     @Unroll

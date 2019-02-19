@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -72,6 +74,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     private boolean rejected;
     private boolean root;
+    private Pair<Capability, Collection<NodeState>> capabilityReject;
 
     ComponentState(Long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
@@ -132,8 +135,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
-    public ModuleResolveState getModule() {
+    ModuleResolveState getModule() {
         return module;
+    }
+
+    public void selectAndRestartModule() {
+        module.restart(this);
     }
 
     @Override
@@ -336,12 +343,48 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public void reject() {
         this.rejected = true;
+    }
 
+    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
+        this.rejected = true;
+        if (this.capabilityReject == null) {
+            this.capabilityReject = Pair.of(capability, conflictedNodes);
+        } else {
+            mergeCapabilityRejects(capability, conflictedNodes);
+        }
+    }
+
+    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capability)) {
+            this.capabilityReject.getRight().addAll(conflictedNodes);
+        } else {
+            this.capabilityReject = Pair.of(capability, conflictedNodes);
+        }
     }
 
     @Override
     public boolean isRejected() {
         return rejected;
+    }
+
+    public String getRejectedErrorMessage() {
+        if (capabilityReject != null) {
+            return formatCapabilityRejectMessage(module.getId(), capabilityReject);
+        } else {
+            return new RejectedModuleMessageBuilder().buildFailureMessage(module);
+        }
+
+    }
+
+    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        StringBuilder sb = new StringBuilder("Module '");
+        sb.append(id).append("' has been rejected:\n");
+        sb.append("   Cannot select module with conflict on ");
+        Capability capability = capabilityConflict.left;
+        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
+        sb.append(capabilityConflict.getRight());
+        return sb.toString();
     }
 
     @Override

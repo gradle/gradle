@@ -1,16 +1,21 @@
-> Task :consumer:dependencyInsight FAILED
 
-FAILURE: Build failed with an exception.
+> Task :consumer:dependencyInsight
+project :producer FAILED
+   Failures:
+      - Could not resolve project :producer.
+          - Module 'org.gradle.demo:producer' has been rejected:
+               Cannot select module with conflict on capability 'org.gradle.demo:producer-db-support:1.0' also provided by [org.gradle.demo:producer:1.0(postgresSupportRuntimeElements), org.gradle.demo:producer:1.0(mysqlSupportRuntimeElements)]
 
-* What went wrong:
-Execution failed for task ':consumer:dependencyInsight'.
-> Could not resolve all dependencies for configuration ':consumer:runtimeClasspath'.
-   > Cannot choose between org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and org.gradle.demo:producer:1.0 variant postgresSupportRuntimeElements because they provide the same capability: org.gradle.demo:producer-db-support:1.0
+project :producer FAILED
+\--- runtimeClasspath
 
-* Try:
-Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+project :producer FAILED
+\--- runtimeClasspath
 
-* Get more help at https://help.gradle.org
+project :producer FAILED
+\--- runtimeClasspath
 
-BUILD FAILED in 0s
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

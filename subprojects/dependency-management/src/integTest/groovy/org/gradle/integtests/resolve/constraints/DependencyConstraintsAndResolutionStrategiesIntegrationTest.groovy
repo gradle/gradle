@@ -90,9 +90,8 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """A conflict was found between the following modules:
-  - org:foo:1.0
-  - org:foo:1.1"""
+        failure.assertHasCause """Conflict(s) found for the following module(s):
+  - org:foo between versions 1.0 and 1.1"""
     }
 
     void "dependency substitution rules are applied to dependency constraints"() {
