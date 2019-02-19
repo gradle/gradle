@@ -222,8 +222,8 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
                 .dependsOn("org", "foo", "1.0")
                 .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) {
-            useDefaultArtifacts = false
-        }
+                    useDefaultArtifacts = false
+                }
                 .dependsOn("org", "foo", "1.0")
                 .publish()
         def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
