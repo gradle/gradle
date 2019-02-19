@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -214,7 +213,6 @@ class DeleterTest extends Specification {
         "symlink to directory" | true        | true
     }
 
-    @Ignore
     def "reports failed to delete child files after failure to delete directory"() {
 
         given:
@@ -250,7 +248,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "reports new child files after failure to delete directory"() {
 
         given:
@@ -287,7 +284,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "reports both failed to delete and new child files after failure to delete directory"() {
         given:
         def targetDir = tmpDir.createDir("target")
@@ -325,7 +321,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "fails fast and reports a reasonable number of paths after failure to delete directory"() {
 
         given: 'more existing files than the cap'
