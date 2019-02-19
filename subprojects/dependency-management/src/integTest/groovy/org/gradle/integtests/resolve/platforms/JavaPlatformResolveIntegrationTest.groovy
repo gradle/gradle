@@ -221,7 +221,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 .adhocVariants()
                 .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
                 .dependsOn("org", "foo", "1.0")
-                .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false}
+                .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.COMPONENT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
                 .dependsOn("org", "foo", "1.0")
                 .publish()
         def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
@@ -310,6 +312,37 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     }
 
+    @Issue("gradle/gradle#8548")
+    def "enforced platforms should not have any dependency"() {
+        def top = mavenHttpRepo.module("org", "top", "1.0")
+                .dependsOn("org", "leaf", "1.0")
+                .publish()
+        def leaf = mavenHttpRepo.module("org", "leaf", "1.0").publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                api enforcedPlatform("org:top:1.0")
+            }
+        """
+        checkConfiguration("compileClasspath")
+
+        top.pom.expectGet()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:top:1.0") {
+                    variant("enforced-platform-compile", [
+                            'org.gradle.component.category': 'enforced-platform',
+                            'org.gradle.status': 'release',
+                            'org.gradle.usage': 'java-api'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
 
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)

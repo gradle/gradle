@@ -628,6 +628,7 @@ include 'other'
                 module("bom:bom:1.0") {
                     configuration = 'platform-runtime'
                     constraint("org:xml:2.0", "org:xml:1.0")
+                    noArtifacts()
                 }
                 module("root:root:1.0") {
                     module('org:webapp:1.0') {
@@ -855,6 +856,7 @@ include 'other'
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
                     constraint('org:kotlin:2.7.9')
+                    noArtifacts()
                 }
             }
         }
