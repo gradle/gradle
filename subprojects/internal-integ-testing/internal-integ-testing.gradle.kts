@@ -34,7 +34,11 @@ dependencies {
     compile(library("jackson_annotations"))
     compile(library("jackson_databind"))
     compile(library("ivy"))
-    testLibraries("sshd").forEach { compile(gradle5Platform(it)) }
+    testLibraries("sshd").forEach {
+        // we depend on both the platform and the library
+        compile(it)
+        compile(platform(it))
+    }
     compile(library("gson"))
     compile(library("joda"))
     compile(library("jsch"))
