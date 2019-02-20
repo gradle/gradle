@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
@@ -35,7 +36,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter delete = new Deleter(resolver, fileSystem())
+    Deleter delete = new Deleter(resolver, fileSystem(), Time.clock())
 
     def doesNotDeleteFilesInsideSymlinkDir() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
