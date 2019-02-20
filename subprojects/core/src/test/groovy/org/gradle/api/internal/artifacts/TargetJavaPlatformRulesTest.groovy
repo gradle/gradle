@@ -36,8 +36,8 @@ class TargetJavaPlatformRulesTest extends Specification {
     def setup() {
         AttributesSchema schema = new DefaultAttributesSchema(Stub(ComponentAttributeMatcher), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
-        compatibilityRules = schema.compatibilityRules(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)
-        disambiguationRules = schema.disambiguationRules(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)
+        compatibilityRules = schema.compatibilityRules(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)
+        disambiguationRules = schema.disambiguationRules(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)
     }
 
     @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")

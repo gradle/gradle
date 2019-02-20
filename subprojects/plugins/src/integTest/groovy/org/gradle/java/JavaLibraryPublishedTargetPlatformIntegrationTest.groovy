@@ -50,27 +50,27 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
                 .adhocVariants()
                 .variant("apiElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '6',
+                'org.gradle.jvm.platform': '6',
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("apiElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '7',
+                'org.gradle.jvm.platform': '7',
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("apiElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '9',
+                'org.gradle.jvm.platform': '9',
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk9.jar') })
                 .variant("runtimeElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '6',
+                'org.gradle.jvm.platform': '6',
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("runtimeElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '7',
+                'org.gradle.jvm.platform': '7',
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("runtimeElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.java.min.platform': '9',
+                'org.gradle.jvm.platform': '9',
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk9.jar') })
                 .publish()
 
@@ -78,7 +78,7 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
 
     def "can fail resolution if producer doesn't have appropriate target version"() {
         buildFile << """
-            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, 5)
+            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, 5)
         """
 
         when:
@@ -91,17 +91,17 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
         failure.assertHasCause('''Unable to find a matching variant of org:producer:1.0:
   - Variant 'apiElementsJdk6' capability org:producer:1.0:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.java.min.platform '5' and found incompatible value '6'.
+      - Required org.gradle.jvm.platform '5' and found incompatible value '6'.
       - Found org.gradle.status 'release' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk7' capability org:producer:1.0:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.java.min.platform '5' and found incompatible value '7'.
+      - Required org.gradle.jvm.platform '5' and found incompatible value '7'.
       - Found org.gradle.status 'release' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk9' capability org:producer:1.0:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.java.min.platform '5' and found incompatible value '9'.
+      - Required org.gradle.jvm.platform '5' and found incompatible value '9'.
       - Found org.gradle.status 'release' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.''')
     }
@@ -109,7 +109,7 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
     @Unroll
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         buildFile << """
-            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, $requested)
+            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, $requested)
         """
 
         when:
@@ -125,7 +125,7 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
                 module('org:producer:1.0') {
                     variant(expected, [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.java.min.platform': selected,
+                            'org.gradle.jvm.platform': selected,
                             'org.gradle.usage': 'java-api-jars',
                             'org.gradle.status': 'release'
                     ])
