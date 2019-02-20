@@ -93,6 +93,13 @@ The method `ProjectLayout.configurableFiles()` is now deprecated, and will be re
 
 ### Breaking changes
 
+#### Bugfixes in platform resolution
+
+There was a bug from Gradle 5.0 to 5.2.1 (included) where enforced platforms would potentially include dependencies instead of constraints.
+This would happen whenever a POM file defined both dependencies and "constraints" (via `<dependencyManagement>`) and that you used `enforcedPlatform`.
+Gradle 5.3 fixes this bug, meaning that you might have differences in the resolution result if you relied on this broken behavior.
+Similarly, Gradle 5.3 will no longer try to download jars for `platform` and `enforcedPlatform` dependencies (as they should only bring in constraints).
+
 <!-- summary and links -->
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_5.3) to learn about breaking changes and considerations when upgrading to Gradle 5.3.

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
+import com.google.common.collect.Maps
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -95,12 +96,12 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     private MutableModuleComponentResolveMetadata deserialize(byte[] serializedForm) {
-        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedForm)), moduleIdentifierFactory)
+        serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(serializedForm)), moduleIdentifierFactory, Maps.newHashMap())
     }
 
     private byte[] serialize(MutableModuleComponentResolveMetadata metadata) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
-        serializer.write(new OutputStreamBackedEncoder(baos), metadata.asImmutable())
+        serializer.write(new OutputStreamBackedEncoder(baos), metadata.asImmutable(), Maps.newHashMap())
         baos.toByteArray()
     }
 

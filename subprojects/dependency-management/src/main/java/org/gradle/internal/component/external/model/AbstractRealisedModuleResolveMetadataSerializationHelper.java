@@ -82,12 +82,12 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         }
     }
 
-    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed) throws IOException {
+    public void writeRealisedConfigurationsData(Encoder encoder, AbstractRealisedModuleComponentResolveMetadata transformed, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException {
         encoder.writeSmallInt(transformed.getConfigurationNames().size());
         for (String configurationName: transformed.getConfigurationNames()) {
             ConfigurationMetadata configuration = transformed.getConfiguration(configurationName);
             writeConfiguration(encoder, configuration);
-            writeDependencies(encoder, configuration);
+            writeDependencies(encoder, configuration, deduplicationDependencyCache);
         }
     }
 
@@ -147,7 +147,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         return ImmutableCapabilities.of(rawCapabilities);
     }
 
-    protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration) throws IOException;
+    protected abstract void writeDependencies(Encoder encoder, ConfigurationMetadata configuration, Map<ExternalDependencyDescriptor, Integer> deduplicationDependencyCache) throws IOException;
 
     private void writeCapabilities(Encoder encoder, List<? extends Capability> capabilities) throws IOException {
         encoder.writeSmallInt(capabilities.size());

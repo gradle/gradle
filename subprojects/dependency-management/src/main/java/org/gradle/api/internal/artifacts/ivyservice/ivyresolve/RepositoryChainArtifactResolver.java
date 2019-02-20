@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Transformers;
@@ -61,6 +63,16 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         if (component.getSource() == null) {
             // virtual components have no source
             return NO_ARTIFACTS;
+        }
+        if (configuration.getArtifacts().isEmpty()) {
+            // checks if it's a derived platform
+            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(PlatformSupport.COMPONENT_CATEGORY);
+            if (componentTypeEntry.isPresent()) {
+                String value = componentTypeEntry.get();
+                if (PlatformSupport.REGULAR_PLATFORM.equals(value) || PlatformSupport.ENFORCED_PLATFORM.equals(value)) {
+                    return NO_ARTIFACTS;
+                }
+            }
         }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSource());
         ComponentResolveMetadata unpackedComponent = unpackSource(component);

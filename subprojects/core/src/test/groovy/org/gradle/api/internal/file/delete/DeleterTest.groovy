@@ -20,15 +20,16 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.time.Time
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.util.function.Function
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -147,7 +148,7 @@ class DeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteAction(FOLLOW_SYMLINKS, link)).getDidWork()
+        boolean didWork = delete.delete(deleteSpecActionFor(FOLLOW_SYMLINKS, link)).getDidWork()
 
         then:
         !link.exists()
@@ -169,7 +170,7 @@ class DeleterTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(deleteAction(followSymlinks, link)).getDidWork()
+        boolean didWork = delete.delete(deleteSpecActionFor(followSymlinks, link)).getDidWork()
 
         then:
         !link.exists()
@@ -188,11 +189,8 @@ class DeleterTest extends Specification {
         }
 
         given:
-        delete = new Deleter(resolver, fileSystem()) {
-            @Override
-            protected boolean deleteFile(File file) {
-                return false
-            }
+        delete = deleterWithDeletionAction { file ->
+            return DeletionAction.FAILURE
         }
 
         and:
@@ -214,7 +212,6 @@ class DeleterTest extends Specification {
         "symlink to directory" | true        | true
     }
 
-    @Ignore
     def "reports failed to delete child files after failure to delete directory"() {
 
         given:
@@ -223,14 +220,11 @@ class DeleterTest extends Specification {
         def nonDeletable = targetDir.createFile("delete.no")
 
         and:
-        delete = new Deleter(resolver, fileSystem()) {
-            @Override
-            protected boolean deleteFile(File file) {
-                if (file.canonicalFile == nonDeletable.canonicalFile) {
-                    return false
-                }
-                return super.deleteFile(file)
+        delete = deleterWithDeletionAction { file ->
+            if (file.canonicalFile == nonDeletable.canonicalFile) {
+                return DeletionAction.FAILURE
             }
+            return DeletionAction.CONTINUE
         }
 
         when:
@@ -250,7 +244,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "reports new child files after failure to delete directory"() {
 
         given:
@@ -259,15 +252,11 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = new Deleter(resolver, fileSystem()) {
-            @Override
-            protected boolean deleteFile(File file) {
-                if (file.canonicalFile == triggerFile.canonicalFile) {
-                    newFile.text = ""
-                    newFile.setLastModified(Time.currentTimeMillis() + 1)
-                }
-                return super.deleteFile(file)
+        delete = deleterWithDeletionAction { file ->
+            if (file.canonicalFile == triggerFile.canonicalFile) {
+                createNewFiles(newFile)
             }
+            return DeletionAction.CONTINUE
         }
 
         when:
@@ -287,7 +276,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "reports both failed to delete and new child files after failure to delete directory"() {
         given:
         def targetDir = tmpDir.createDir("target")
@@ -295,15 +283,12 @@ class DeleterTest extends Specification {
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = new Deleter(resolver, fileSystem()) {
-            @Override
-            protected boolean deleteFile(File file) {
-                if (file.canonicalFile == nonDeletable.canonicalFile) {
-                    newFile.text = ""
-                    return false
-                }
-                return super.deleteFile(file)
+        delete = deleterWithDeletionAction { file ->
+            if (file.canonicalFile == nonDeletable.canonicalFile) {
+                createNewFiles(newFile)
+                return DeletionAction.FAILURE
             }
+            return DeletionAction.CONTINUE
         }
 
         when:
@@ -325,7 +310,6 @@ class DeleterTest extends Specification {
         """.stripIndent().trim()
     }
 
-    @Ignore
     def "fails fast and reports a reasonable number of paths after failure to delete directory"() {
 
         given: 'more existing files than the cap'
@@ -336,13 +320,10 @@ class DeleterTest extends Specification {
         and: 'a deleter that cannot delete, records deletion requests and creates new files'
         def triedToDelete = [] as Set<File>
         def newFiles = tooManyRange.collect { targetDir.file("aaa-${it}-aaa.txt") }
-        delete = new Deleter(resolver, fileSystem()) {
-            @Override
-            protected boolean deleteFile(File file) {
-                triedToDelete << file
-                newFiles.each { it.text = "" }
-                return false;
-            }
+        delete = deleterWithDeletionAction { file ->
+            triedToDelete << file
+            createNewFiles(newFiles as File[])
+            return DeletionAction.FAILURE
         }
 
         when:
@@ -373,7 +354,36 @@ class DeleterTest extends Specification {
         normalizedMessage.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
     }
 
-    def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {
+    private static enum DeletionAction {
+        FAILURE, SUCCESS, CONTINUE
+    }
+
+    private Deleter deleterWithDeletionAction(final Function<File, DeletionAction> deletionAction) {
+        return new Deleter(resolver, fileSystem()) {
+
+            @Override
+            protected boolean deleteFile(File file) {
+                switch (deletionAction.apply(file)) {
+                    case DeletionAction.SUCCESS:
+                        return true
+                    case DeletionAction.FAILURE:
+                        return false
+                    case DeletionAction.CONTINUE:
+                        return super.deleteFile(file)
+                }
+            }
+        }
+    }
+
+    private static void createNewFiles(File... files) {
+        // Set last modified a bit in the future in order for existing test files to be considered old comparatively
+        files.each {
+            it.text = ""
+            it.setLastModified(System.currentTimeMillis() + (OperatingSystem.current().isWindows() ? 500 : 250))
+        }
+    }
+
+    private static Action<? super DeleteSpec> deleteSpecActionFor(final boolean followSymlinks, final Object... paths) {
         return new Action<DeleteSpec>() {
             @Override
             void execute(DeleteSpec spec) {
