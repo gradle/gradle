@@ -166,7 +166,7 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
-    def "can create instance of interface with read-only FileCollection property"() {
+    def "can create instance of interface with read-only ConfigurableFileCollection property"() {
         buildFile << """
             interface Thing {
                 ConfigurableFileCollection getValue()
@@ -176,6 +176,114 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
             assert thing.value.files.empty
             thing.value.from("a.txt")
             assert thing.value.files as List == [file("a.txt")]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only Property property"() {
+        buildFile << """
+            interface Thing {
+                Property<String> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == null
+            thing {
+                value = "value"
+            }
+            assert thing.value.get() == "value"
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only RegularFileProperty property"() {
+        buildFile << """
+            interface Thing {
+                RegularFileProperty getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == null
+            thing {
+                value = file("thing.txt")
+            }
+            assert thing.value.get() == layout.projectDir.file("thing.txt")
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only DirectoryProperty property"() {
+        buildFile << """
+            interface Thing {
+                DirectoryProperty getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == null
+            thing {
+                value = file("thing.txt")
+            }
+            assert thing.value.get() == layout.projectDir.dir("thing.txt")
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only ListProperty property"() {
+        buildFile << """
+            interface Thing {
+                ListProperty<String> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == []
+            thing {
+                value = ["thing"]
+            }
+            assert thing.value.get() == ["thing"]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only SetProperty property"() {
+        buildFile << """
+            interface Thing {
+                SetProperty<String> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == [] as Set
+            thing {
+                value = ["thing"]
+            }
+            assert thing.value.get() == ["thing"] as Set
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can create instance of interface with read-only MapProperty property"() {
+        buildFile << """
+            interface Thing {
+                MapProperty<String, String> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.getOrNull() == [:]
+            thing {
+                value = [a: "b"]
+            }
+            assert thing.value.get() == [a: "b"]
         """
 
         expect:

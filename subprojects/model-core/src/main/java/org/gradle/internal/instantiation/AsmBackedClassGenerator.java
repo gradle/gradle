@@ -26,6 +26,8 @@ import groovy.lang.MetaProperty;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
@@ -36,6 +38,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -64,6 +70,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -943,17 +950,49 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
-            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ObjectFactory.class).fileCollection(); } return <field> }
+            // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ObjectFactory.class).<factory-method>(xxx); } return <field> }
             Type propType = Type.getType(property.getType());
             addLazyGetter(getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), null, propFieldName(property), propType, methodVisitor -> {
-                // GENERATE services.get(ProjectLayout.class)
+                // GENERATE services.get(ObjectFactory.class)
                 putServiceRegistryOnStack(methodVisitor);
                 methodVisitor.visitLdcInsn(OBJECT_FACTORY_TYPE);
                 methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, SERVICE_LOOKUP_TYPE.getInternalName(), "get", RETURN_OBJECT_FROM_TYPE, true);
                 methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, OBJECT_FACTORY_TYPE.getInternalName());
 
-                // GENERATE objectFactory.configurableFiles()
-                methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileCollection", RETURN_CONFIGURABLE_FILE_COLLECTION, true);
+                if (property.getType().equals(ConfigurableFileCollection.class)) {
+                    // GENERATE objectFactory.fileCollection()
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileCollection", RETURN_CONFIGURABLE_FILE_COLLECTION, true);
+                } else if (property.getType().equals(RegularFileProperty.class)) {
+                    // GENERATE objectFactory.fileProperty()
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileProperty", Type.getMethodDescriptor(Type.getType(RegularFileProperty.class)), true);
+                } else if (property.getType().equals(DirectoryProperty.class)) {
+                    // GENERATE objectFactory.directoryProperty()
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "directoryProperty", Type.getMethodDescriptor(Type.getType(DirectoryProperty.class)), true);
+                } else if (property.getType().equals(Property.class)) {
+                    // GENERATE objectFactory.property(type)
+                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    methodVisitor.visitLdcInsn(Type.getType(elementType));
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "property", Type.getMethodDescriptor(Type.getType(Property.class), CLASS_TYPE), true);
+                } else if (property.getType().equals(ListProperty.class)) {
+                    // GENERATE objectFactory.listProperty(type)
+                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    methodVisitor.visitLdcInsn(Type.getType(elementType));
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "listProperty", Type.getMethodDescriptor(Type.getType(ListProperty.class), CLASS_TYPE), true);
+                } else if (property.getType().equals(SetProperty.class)) {
+                    // GENERATE objectFactory.setProperty(type)
+                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    methodVisitor.visitLdcInsn(Type.getType(elementType));
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "setProperty", Type.getMethodDescriptor(Type.getType(SetProperty.class), CLASS_TYPE), true);
+                } else if (property.getType().equals(MapProperty.class)) {
+                    // GENERATE objectFactory.setProperty(type)
+                    Class<?> keyType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
+                    Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[1];
+                    methodVisitor.visitLdcInsn(Type.getType(keyType));
+                    methodVisitor.visitLdcInsn(Type.getType(elementType));
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "mapProperty", Type.getMethodDescriptor(Type.getType(MapProperty.class), CLASS_TYPE, CLASS_TYPE), true);
+                } else {
+                    throw new IllegalArgumentException();
+                }
             });
         }
 
