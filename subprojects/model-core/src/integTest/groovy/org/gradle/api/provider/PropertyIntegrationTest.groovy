@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.ConventionTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -444,6 +445,29 @@ project.extensions.create("some", SomeExtension)
         outputContains("Using method ObjectFactory.property() method to create a property of type Directory has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.directoryProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type RegularFile has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.fileProperty() method instead.")
         outputContains("Using method ObjectFactory.property() method to create a property of type Map<K, V> has been deprecated. This will fail with an error in Gradle 6.0. Please use the ObjectFactory.mapProperty() method instead.")
+    }
+
+    def "throws exception when using convention mapping"() {
+        given:
+        buildFile << """
+            class ConventionTask extends ${ConventionTask.canonicalName} {
+                private final Property<String> customProp = project.objects.property(String)
+
+                Property<String> getCustomProp() {
+                    return customProp
+                }
+            }
+
+            task convention(type: ConventionTask) {
+                conventionMapping("customProp") {
+                    return project.objects.property(String).value("test")
+                }
+            }
+        """
+
+        expect:
+        fails "convention"
+        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
     }
 
     def taskTypeWritesPropertyValueToFile() {

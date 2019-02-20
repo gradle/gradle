@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.ConventionTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -401,5 +402,51 @@ task wrongPropertyElementTypeApi {
         """
         expect:
         succeeds("verify")
+    }
+
+    def "throws exception when using convention mapping with ListProperty type"() {
+        given:
+        buildFile << """
+            class ConventionTask extends ${ConventionTask.canonicalName} {
+                private final ListProperty<String> customProp = project.objects.listProperty(String)
+
+                ListProperty<String> getCustomProp() {
+                    return customProp
+                }
+            }
+
+            task convention(type: ConventionTask) {
+                conventionMapping("customProp") {
+                    return project.objects.listProperty(String).value(["mapped value"])
+                }
+            }
+        """
+
+        expect:
+        fails "convention"
+        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
+    }
+
+    def "throws exception when using convention mapping with SetProperty type"() {
+        given:
+        buildFile << """
+            class ConventionTask extends ${ConventionTask.canonicalName} {
+                private final SetProperty<String> customProp = project.objects.setProperty(String)
+
+                SetProperty<String> getCustomProp() {
+                    return customProp
+                }
+            }
+
+            task convention(type: ConventionTask) {
+                conventionMapping("customProp") {
+                    return project.objects.setProperty(String).value(["mapped value"] as Set)
+                }
+            }
+        """
+
+        expect:
+        fails "convention"
+        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
     }
 }

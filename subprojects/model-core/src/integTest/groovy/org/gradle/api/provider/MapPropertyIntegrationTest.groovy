@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.ConventionTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -556,5 +557,28 @@ task thing {
 
         expect:
         succeeds('verify')
+    }
+
+    def "throws exception when using convention mapping"() {
+        given:
+        buildFile << """
+            class ConventionTask extends ${ConventionTask.canonicalName} {
+                private final MapProperty<String, String> customProp = project.objects.mapProperty(String, String)
+
+                MapProperty<String, String> getCustomProp() {
+                    return customProp
+                }
+            }
+
+            task convention(type: ConventionTask) {
+                conventionMapping("customProp") {
+                    return project.objects.mapProperty(String, String).value(["mapped":"value"])
+                }
+            }
+        """
+
+        expect:
+        fails "convention"
+        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
     }
 }
