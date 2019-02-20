@@ -65,6 +65,23 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            FixedDirectory other = (FixedDirectory) obj;
+            return value.equals(other.value);
+        }
+
+        @Override
+        public int hashCode() {
+            return value.hashCode();
+        }
+
+        @Override
         public File getAsFile() {
             return value;
         }
@@ -106,6 +123,23 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         @Override
         public String toString() {
             return file.toString();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            FixedFile other = (FixedFile) obj;
+            return other.file.equals(file);
+        }
+
+        @Override
+        public int hashCode() {
+            return file.hashCode();
         }
 
         @Override

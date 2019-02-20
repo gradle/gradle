@@ -25,6 +25,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.util.Matchers.strictlyEquals
+
 class DefaultProjectLayoutTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -558,6 +560,26 @@ class DefaultProjectLayoutTest extends Specification {
 
         file1.getAsFile() == projectDir.file("build/a")
         file2.getAsFile() == projectDir.file("build/b")
+    }
+
+    def "directories are equal when their paths are equal"() {
+        expect:
+        def dir = layout.projectDirectory.dir("child")
+        strictlyEquals(dir, layout.projectDirectory.dir("child"))
+
+        dir != layout.projectDirectory.dir("other")
+        dir != layout.projectDirectory.dir("child/child2")
+        dir != layout.projectDirectory.file("child")
+    }
+
+    def "regular files are equal when their paths are equal"() {
+        expect:
+        def file = layout.projectDirectory.file("child")
+        strictlyEquals(file, layout.projectDirectory.file("child"))
+
+        file != layout.projectDirectory.file("other")
+        file != layout.projectDirectory.file("child/child2")
+        file != layout.projectDirectory.dir("child")
     }
 
     def "can wrap File provider"() {

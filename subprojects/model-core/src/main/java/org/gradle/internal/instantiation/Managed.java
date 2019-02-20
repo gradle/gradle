@@ -17,7 +17,7 @@
 package org.gradle.internal.instantiation;
 
 /**
- * Mixed into each generated class, to mark it as fully managed.
+ * Mixed into generated classes whose state is fully managed.
  */
 public interface Managed {
     /**
