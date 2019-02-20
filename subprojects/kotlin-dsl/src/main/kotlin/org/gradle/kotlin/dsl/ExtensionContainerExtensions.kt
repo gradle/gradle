@@ -73,6 +73,7 @@ inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?,
  * @throws IllegalArgumentException When an extension with the given name already exists.
  *
  * @see [ExtensionContainer.add]
+ * @since 5.0
  */
 @Incubating
 @Suppress("extension_shadowed_by_member")
@@ -90,6 +91,7 @@ inline fun <reified T : Any> ExtensionContainer.add(name: String, extension: T) 
  * @return the created instance
  *
  * @see [ExtensionContainer.create]
+ * @since 5.0
  */
 @Incubating
 inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg constructionArguments: Any): T =
@@ -104,6 +106,7 @@ inline fun <reified T : Any> ExtensionContainer.create(name: String, vararg cons
  * @throws UnknownDomainObjectException when no matching extension can be found
  *
  * @see [ExtensionContainer.getByType]
+ * @since 5.0
  */
 @Incubating
 inline fun <reified T : Any> ExtensionContainer.getByType(): T =
@@ -117,6 +120,7 @@ inline fun <reified T : Any> ExtensionContainer.getByType(): T =
  * @return the extension or null if not found
  *
  * @see [ExtensionContainer.findByType]
+ * @since 5.0
  */
 @Incubating
 inline fun <reified T : Any> ExtensionContainer.findByType(): T? =
@@ -130,6 +134,7 @@ inline fun <reified T : Any> ExtensionContainer.findByType(): T? =
  * @param action the configuration action
  *
  * @see [ExtensionContainer.configure]
+ * @since 5.0
  */
 @Incubating
 inline fun <reified T : Any> ExtensionContainer.configure(noinline action: T.() -> Unit) {
