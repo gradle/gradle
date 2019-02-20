@@ -64,6 +64,7 @@ class CacheStepTest extends Specification {
         originMetadata == cachedOriginMetadata
         finalOutputs == outputsFromCache
 
+        1 * buildCacheController.isEnabled() >> true
         1 * cacheHandler.load(_) >> Optional.of(loadMetadata)
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
@@ -85,6 +86,7 @@ class CacheStepTest extends Specification {
         result == executionResult
         !result.reused
 
+        1 * buildCacheController.isEnabled() >> true
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> executionResult
         1 * cacheHandler.store(_)
@@ -106,10 +108,28 @@ class CacheStepTest extends Specification {
         result == failedResult
         !result.reused
 
+        1 * buildCacheController.isEnabled() >> true
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegateStep.execute(_) >> failedResult
         _ * unitOfWork.displayName >> "Display name"
         0 * cacheHandler.store(_)
+        0 * _
+    }
+
+    def "executes when caching is disabled"() {
+        def executionResult = new CurrentSnapshotResult() {
+            final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
+            final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
+            final boolean reused = false
+        }
+        when:
+        def result = cacheStep.execute(context)
+        then:
+        result == executionResult
+
+        1 * buildCacheController.isEnabled() >> false
+        1 * delegateStep.execute(_) >> executionResult
         0 * _
     }
 }
