@@ -23,7 +23,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -95,7 +94,7 @@ class IncrementalExecutionTest extends Specification {
             return HashCode.fromInt(1234)
         }
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, new NamedObjectInstantiator())
+    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")

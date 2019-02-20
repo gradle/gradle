@@ -22,7 +22,7 @@ import org.gradle.internal.hash.Hasher;
 
 import java.util.List;
 
-public class AbstractListSnapshot<T extends Hashable> implements Hashable {
+class AbstractListSnapshot<T extends Hashable> implements Hashable {
     protected final ImmutableList<T> elements;
 
     public AbstractListSnapshot(ImmutableList<T> elements) {

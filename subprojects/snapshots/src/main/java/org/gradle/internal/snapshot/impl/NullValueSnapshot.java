@@ -23,7 +23,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 
-public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
+class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     public static final NullValueSnapshot INSTANCE = new NullValueSnapshot();
 
     private NullValueSnapshot() {

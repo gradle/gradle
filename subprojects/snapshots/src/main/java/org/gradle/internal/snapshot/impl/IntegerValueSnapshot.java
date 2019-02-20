@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.Hasher;
 
-public class IntegerValueSnapshot extends AbstractIsolatableScalarValue<Integer> {
+class IntegerValueSnapshot extends AbstractIsolatableScalarValue<Integer> {
     public IntegerValueSnapshot(Integer value) {
         super(value);
     }

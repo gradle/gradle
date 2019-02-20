@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
-public class IsolatedManagedTypeSnapshot extends AbstractManagedTypeSnapshot<Isolatable<?>> implements Isolatable<Object> {
+class IsolatedManagedTypeSnapshot extends AbstractManagedTypeSnapshot<Isolatable<?>> implements Isolatable<Object> {
     private final Managed.Factory factory;
     private final Class<?> targetType;
 

@@ -21,7 +21,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
-public class AbstractMapSnapshot<T extends Hashable> implements Hashable {
+class AbstractMapSnapshot<T extends Hashable> implements Hashable {
     protected final ImmutableList<Pair<T, T>> entries;
 
     public AbstractMapSnapshot(ImmutableList<Pair<T, T>> entries) {

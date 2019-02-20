@@ -163,14 +163,6 @@ class SnapshotSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes provider properties"() {
-        def original = new ProviderSnapshot(string("123"))
-        write(original)
-
-        expect:
-        original == written
-    }
-
     def "serializes managed type properties"() {
         def original = new ManagedTypeSnapshot("named", integer(123))
         write(original)
