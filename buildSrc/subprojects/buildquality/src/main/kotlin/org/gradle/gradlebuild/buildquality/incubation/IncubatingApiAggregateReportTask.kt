@@ -50,7 +50,7 @@ open class IncubatingApiAggregateReportTask
     @TaskAction
     fun generateReport() {
         workerExecutor.submit(GenerateReport::class.java) {
-            isolationMode = IsolationMode.CLASSLOADER
+            isolationMode = IsolationMode.NONE
             params(reports, htmlReportFile.asFile.get())
         }
     }
