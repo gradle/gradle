@@ -16,18 +16,33 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.attributes.java.TargetJavaPlatform
+import org.gradle.api.internal.attributes.CompatibilityCheckResult
+import org.gradle.api.internal.attributes.CompatibilityRule
+import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DisambiguationRule
+import org.gradle.api.internal.attributes.MultipleCandidatesResult
+import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.util.SnapshotTestUtil
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class TargetJavaPlatformRulesTest extends Specification {
-    private JavaEcosystemSupport.TargetPlatformCompatibilityRules compatibilityRules = new JavaEcosystemSupport.TargetPlatformCompatibilityRules()
-    private JavaEcosystemSupport.TargetPlatformDisambiguationRules disambiguationRules = new JavaEcosystemSupport.TargetPlatformDisambiguationRules(8)
+    private CompatibilityRule<Object> compatibilityRules
+    private DisambiguationRule<Object> disambiguationRules
+
+    def setup() {
+        AttributesSchema schema = new DefaultAttributesSchema(Stub(ComponentAttributeMatcher), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
+        compatibilityRules = schema.compatibilityRules(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)
+        disambiguationRules = schema.disambiguationRules(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)
+    }
 
     @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")
     def "check compatibility rules"() {
-        CompatibilityCheckDetails details = Mock(CompatibilityCheckDetails)
+        CompatibilityCheckResult details = Mock(CompatibilityCheckResult)
 
         when:
         compatibilityRules.execute(details)
@@ -44,10 +59,6 @@ class TargetJavaPlatformRulesTest extends Specification {
 
         where:
         consumer | producer | compatible
-        null     | 5        | true
-        null     | 6        | true
-        null     | 11       | true
-
         8        | 6        | true
         8        | 7        | true
         8        | 8        | true
@@ -58,21 +69,19 @@ class TargetJavaPlatformRulesTest extends Specification {
 
     @Unroll("disamgiguates when consumer=#consumer and candidates=#candidates chooses=#expected")
     def "check disambiguation rules"() {
-        MultipleCandidatesDetails details = Mock(MultipleCandidatesDetails)
+        MultipleCandidatesResult details = Mock()
 
         when:
         disambiguationRules.execute(details)
 
         then:
-        1 * details.getConsumerValue() >> consumer
         1 * details.getCandidateValues() >> candidates
         1 * details.closestMatch(expected)
+        1 * details.hasResult()
+        0 * details._
 
         where:
         consumer | candidates | expected
-        null     | [4, 8, 11] | 8
-        null     | [11, 8]    | 8
-
         6        | [6]        | 6
         7        | [6, 7]     | 7
         8        | [6, 7]     | 7
