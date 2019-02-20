@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -41,7 +41,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final ExternalResourceRepository resourceRepository = Mock()
     final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
     final MetaDataParser pomParser = Stub()
-    final ModuleMetadataParser metadataParser = Stub()
+    final GradleModuleMetadataParser metadataParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = new MavenMutableModuleMetadataFactory(moduleIdentifierFactory, AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator(), TestUtil.featurePreviews())

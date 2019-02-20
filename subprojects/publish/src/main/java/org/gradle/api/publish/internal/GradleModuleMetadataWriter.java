@@ -38,7 +38,7 @@ import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -69,17 +69,17 @@ import java.util.TreeMap;
  * <p>Whenever you change this class, make sure you also:</p>
  *
  * <ul>
- * <li>Update the corresponding {@link ModuleMetadataParser module metadata parser}</li>
+ * <li>Update the corresponding {@link GradleModuleMetadataParser module metadata parser}</li>
  * <li>Update the module metadata specification (subprojects/docs/src/docs/design/gradle-module-metadata-specification.md)</li>
  * <li>Update {@link org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetadataSerializer the module metadata serializer} </li>
  * <li>Add a sample for the module metadata serializer test, to make sure that serialized metadata is idempotent</li>
  * </ul>
  */
-public class ModuleMetadataFileGenerator {
+public class GradleModuleMetadataWriter {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
 
-    public ModuleMetadataFileGenerator(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver) {
+    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.projectDependencyResolver = projectDependencyResolver;
     }
@@ -257,7 +257,7 @@ public class ModuleMetadataFileGenerator {
 
     private void writeFormat(JsonWriter jsonWriter) throws IOException {
         jsonWriter.name("formatVersion");
-        jsonWriter.value(ModuleMetadataParser.FORMAT_VERSION);
+        jsonWriter.value(GradleModuleMetadataParser.FORMAT_VERSION);
     }
 
     private void writeVariantHostedInAnotherModule(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, UsageContext variant, JsonWriter jsonWriter) throws IOException {

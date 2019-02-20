@@ -54,13 +54,13 @@ import static com.google.gson.stream.JsonToken.END_OBJECT;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
-public class ModuleMetadataParser {
+public class GradleModuleMetadataParser {
     public static final String FORMAT_VERSION = "1.0";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final ExcludeRuleConverter excludeRuleConverter;
 
-    public ModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
+    public GradleModuleMetadataParser(ImmutableAttributesFactory attributesFactory, ImmutableModuleIdentifierFactory moduleIdentifierFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
         this.excludeRuleConverter = new DefaultExcludeRuleConverter(moduleIdentifierFactory);
