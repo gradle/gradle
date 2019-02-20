@@ -21,8 +21,14 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.CollectionPropertyInternal;
+import org.gradle.api.internal.provider.DefaultMapProperty;
+import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -47,9 +53,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
     private final ValueVisitor<ValueSnapshot> valueSnapshotValueVisitor;
     private final ValueVisitor<Isolatable<?>> isolatableValueVisitor;
 
-    public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher, NamedObjectInstantiator namedObjectInstantiator) {
+    public DefaultValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHasher) {
         valueSnapshotValueVisitor = new ValueSnapshotVisitor(classLoaderHasher);
-        isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, namedObjectInstantiator);
+        isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher);
     }
 
     @Override
@@ -146,9 +152,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
         if (value instanceof Provider) {
             Provider<?> provider = (Provider) value;
-            Object providerValue = provider.get();
+            Object providerValue = provider.getOrNull();
             T providerValueSnapshot = processValue(providerValue, visitor);
-            return visitor.provider(providerValue, providerValueSnapshot);
+            return visitor.provider(provider, providerValueSnapshot);
         }
         if (value instanceof Managed) {
             Managed managed = (Managed) value;
@@ -224,7 +230,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         T map(ImmutableList<Pair<T, T>> elements);
 
-        T provider(Object value, T snapshot);
+        T provider(Provider<?> provider, T snapshot);
 
         T fromFileCollection(ConfigurableFileCollection files);
 
@@ -304,8 +310,8 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         }
 
         @Override
-        public ValueSnapshot provider(Object value, ValueSnapshot snapshot) {
-            return new ProviderSnapshot(snapshot);
+        public ValueSnapshot provider(Provider<?> provider, ValueSnapshot snapshot) {
+            return snapshot;
         }
 
         @Override
@@ -351,11 +357,9 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
     private static class IsolatableVisitor implements ValueVisitor<Isolatable<?>> {
         private final ClassLoaderHierarchyHasher classLoaderHasher;
-        private final NamedObjectInstantiator namedObjectInstantiator;
 
-        IsolatableVisitor(ClassLoaderHierarchyHasher classLoaderHasher, NamedObjectInstantiator namedObjectInstantiator) {
+        IsolatableVisitor(ClassLoaderHierarchyHasher classLoaderHasher) {
             this.classLoaderHasher = classLoaderHasher;
-            this.namedObjectInstantiator = namedObjectInstantiator;
         }
 
         @Override
@@ -425,12 +429,25 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> serialized(Object value, byte[] serializedValue) {
-            return new IsolatableSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
+            return new IsolatedSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
         }
 
         @Override
-        public Isolatable<?> provider(Object value, Isolatable<?> snapshot) {
-            throw new IsolationException(value);
+        public Isolatable<?> provider(Provider<?> provider, Isolatable<?> snapshot) {
+            if (provider instanceof Property) {
+                return new IsolatedProperty(((ProviderInternal<?>)provider).getType(), snapshot);
+            }
+            if (provider instanceof ListProperty) {
+                return new IsolatedListProperty(((CollectionPropertyInternal<?, ?>) provider).getElementType(), snapshot);
+            }
+            if (provider instanceof SetProperty) {
+                return new IsolatedSetProperty(((CollectionPropertyInternal<?, ?>) provider).getElementType(), snapshot);
+            }
+            if (provider instanceof MapProperty) {
+                DefaultMapProperty<?, ?> mapProperty = (DefaultMapProperty<?, ?>) provider;
+                return new IsolatedMapProperty(mapProperty.getKeyType(), mapProperty.getValueType(), snapshot);
+            }
+            return new IsolatedProvider(snapshot);
         }
 
         @Override

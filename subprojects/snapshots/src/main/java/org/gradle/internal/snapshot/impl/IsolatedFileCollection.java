@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
-public class IsolatedFileCollection implements Isolatable<ConfigurableFileCollection> {
+class IsolatedFileCollection implements Isolatable<ConfigurableFileCollection> {
     private final Set<File> files;
 
     public IsolatedFileCollection(ConfigurableFileCollection files) {

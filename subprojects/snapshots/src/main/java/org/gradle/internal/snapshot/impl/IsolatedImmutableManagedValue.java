@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
-public class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Managed> {
+class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Managed> {
     public IsolatedImmutableManagedValue(Managed managed) {
         super(managed);
     }

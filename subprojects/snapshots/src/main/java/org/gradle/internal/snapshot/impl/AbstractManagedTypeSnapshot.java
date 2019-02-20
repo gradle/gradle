@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
-public class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable {
+class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable {
     protected final T state;
 
     public AbstractManagedTypeSnapshot(T state) {

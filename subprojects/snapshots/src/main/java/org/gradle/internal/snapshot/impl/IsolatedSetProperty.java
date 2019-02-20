@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,26 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.api.internal.provider.DefaultSetProperty;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
-/**
- * A isolated immutable scalar value. Should only be used for immutable JVM provided or core Gradle types.
- *
- * @param <T>
- */
-abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarValueSnapshot<T> implements Isolatable<T> {
-    public AbstractIsolatableScalarValue(T value) {
+class IsolatedSetProperty extends IsolatedProvider {
+    private final Class<?> type;
+
+    public IsolatedSetProperty(Class<?> type, Isolatable<?> value) {
         super(value);
-    }
-
-    @Override
-    public ValueSnapshot asSnapshot() {
-        return this;
-    }
-
-    @Override
-    public T isolate() {
-        return getValue();
+        this.type = type;
     }
 
     @Nullable
     @Override
-    public <S> S coerce(Class<S> type) {
-        if (type.isInstance(getValue())) {
-            return type.cast(getValue());
-        }
-        return null;
+    public SetProperty<Object> isolate() {
+        DefaultSetProperty<Object> property = new DefaultSetProperty<>((Class<Object>) type);
+        property.set((Set<?>) value.isolate());
+        return property;
     }
 }
