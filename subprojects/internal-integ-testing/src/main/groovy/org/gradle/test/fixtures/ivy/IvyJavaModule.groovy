@@ -30,7 +30,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     IvyJavaModule(IvyFileModule backingModule) {
         super(backingModule)
         this.backingModule = backingModule
-        this.backingModule.attributes[TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE.name] = JavaVersion.current().majorVersion
+        this.backingModule.attributes[TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE.name] = JavaVersion.current().majorVersion
     }
 
     @Override

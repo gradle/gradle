@@ -49,7 +49,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
-                        attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
+                        attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
                     }
                     outgoing.capability('org:lib-fixtures:1.0')
                 }
@@ -81,11 +81,11 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.java.min.platform': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.platform': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.java.min.platform': JavaVersion.current().majorVersion]
+                    variant "testFixtures", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.platform': JavaVersion.current().majorVersion]
                     artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
                 }
             }
@@ -104,7 +104,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
-                        attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
+                        attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
                     }
                     outgoing.capability('test:lib:1.0')
                     outgoing.capability('test:lib-fixtures:1.0')
@@ -129,7 +129,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.java.min.platform': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.platform': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

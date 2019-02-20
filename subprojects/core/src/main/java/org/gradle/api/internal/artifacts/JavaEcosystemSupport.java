@@ -49,13 +49,13 @@ public abstract class JavaEcosystemSupport {
         String majorVersion = version.getMajorVersion();
         AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
         // If nobody said anything about this variant's target platform, use whatever the convention says
-        if (!attributes.contains(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)) {
-            attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
+        if (!attributes.contains(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)) {
+            attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
         }
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE);
+        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE);
         targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
         targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.<Integer>natural());
     }

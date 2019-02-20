@@ -166,8 +166,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
                 String majorVersion = javaPluginConvention.getTargetCompatibility().getMajorVersion();
                 AttributeContainerInternal attributes = configuration.getAttributes();
                 // If nobody said anything about this variant's target platform, use whatever the convention says
-                if (!attributes.contains(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)) {
-                    attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
+                if (!attributes.contains(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)) {
+                    attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
                 }
             }
         });

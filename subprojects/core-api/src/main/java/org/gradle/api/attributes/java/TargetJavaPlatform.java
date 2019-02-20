@@ -30,5 +30,5 @@ public interface TargetJavaPlatform {
     /**
      * The minimal target platform for a Java library. Any consumer below this version would not be able to consume it.
      */
-    Attribute<Integer> MINIMAL_TARGET_PLATFORM_ATTRIBUTE = Attribute.of("org.gradle.java.min.platform", Integer.class);
+    Attribute<Integer> TARGET_PLATFORM_ATTRIBUTE = Attribute.of("org.gradle.jvm.platform", Integer.class);
 }

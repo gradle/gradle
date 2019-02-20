@@ -284,6 +284,6 @@ project(':consumer') {
     }
 
     static String defaultTargetPlatform() {
-        "org.gradle.java.min.platform=${JavaVersion.current().majorVersion}"
+        "org.gradle.jvm.platform=${JavaVersion.current().majorVersion}"
     }
 }
