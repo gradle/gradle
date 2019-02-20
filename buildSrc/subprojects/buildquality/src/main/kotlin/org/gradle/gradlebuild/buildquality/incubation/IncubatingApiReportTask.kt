@@ -29,13 +29,17 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
+import parser.KotlinSourceParser
 import java.io.File
 import javax.inject.Inject
 
 
 @CacheableTask
 open class IncubatingApiReportTask
-    @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+@Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
 
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -87,74 +91,23 @@ class Analyzer @Inject constructor(
         val versionToIncubating = mutableMapOf<String, MutableSet<String>>()
         srcDirs.forEach { srcDir ->
             if (srcDir.exists()) {
-                val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
+                val sourceFileParser = CompositeSourceFileParser(listOf(
+                    JavaSourceFileParser(srcDir),
+                    KotlinSourceFileParser(srcDir)
+                ))
                 srcDir.walkTopDown().forEach {
-                    if (it.name.endsWith(".java")) {
-                        try {
-                            parseJavaFile(it, versionToIncubating, solver)
-                        } catch (e: Exception) {
-                            println("Unable to parse $it: ${e.message}")
+                    try {
+                        sourceFileParser.parseSourceFile(it).forEach { (version, incubating) ->
+                            versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
                         }
+                    } catch (e: Exception) {
+                        throw Exception("Unable to parse $it: ${e.message}")
                     }
                 }
             }
         }
         generateTextReport(versionToIncubating)
         generateHtmlReport(versionToIncubating)
-    }
-
-    private
-    fun parseJavaFile(file: File, versionToIncubating: MutableMap<String, MutableSet<String>>, solver: JavaSymbolSolver) =
-        JavaParser.parse(file).run {
-            solver.inject(this)
-            findAll(Node::class.java)
-                .filter {
-                    it is NodeWithAnnotations<*> &&
-                        it.annotations.any { it.nameAsString == "Incubating" }
-                }.map {
-                    val node = it as NodeWithAnnotations<*>
-                    val version = findVersionFromJavadoc(node)
-                        ?: "Not found"
-                    Pair(version, nodeName(it, this, file))
-                }.forEach {
-                    versionToIncubating.getOrPut(it.first) {
-                        mutableSetOf()
-                    }.add(it.second)
-                }
-        }
-
-
-    private
-    fun findVersionFromJavadoc(node: NodeWithAnnotations<*>): String? = if (node is NodeWithJavadoc<*>) {
-        node.javadoc.map {
-            it.blockTags.find {
-                it.tagName == "since"
-            }?.content?.elements?.find {
-                it is JavadocSnippet
-            }?.toText()
-        }.orElse(null)
-    } else {
-        null
-    }
-
-    private
-    fun nodeName(it: Node?, unit: CompilationUnit, file: File) = when (it) {
-        is EnumDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is ClassOrInterfaceDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is MethodDeclaration -> tryResolve({ it.resolve().qualifiedSignature }) { inferClassName(unit) }
-        is AnnotationDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
-        is NodeWithSimpleName<*> -> it.nameAsString
-        else -> unit.primaryTypeName.orElse(file.name)
-    }
-
-    private
-    fun inferClassName(unit: CompilationUnit) = "${unit.packageDeclaration.map { it.nameAsString }.orElse("")}.${unit.primaryTypeName.orElse("")}"
-
-    private
-    inline fun tryResolve(resolver: () -> String, or: () -> String) = try {
-        resolver()
-    } catch (e: Throwable) {
-        or()
     }
 
     private
@@ -224,4 +177,124 @@ class Analyzer @Inject constructor(
 
     private
     fun String.escape() = replace("<", "&lt;").replace(">", "&gt;")
+}
+
+
+private
+typealias VersionsToIncubating = Map<String, MutableSet<String>>
+
+
+private
+interface SourceFileParser {
+
+    fun parseSourceFile(sourceFile: File): VersionsToIncubating
+}
+
+
+private
+class CompositeSourceFileParser(private val sourceFileParsers: List<SourceFileParser>) : SourceFileParser {
+
+    override fun parseSourceFile(sourceFile: File): VersionsToIncubating =
+        sourceFileParsers.flatMap { it.parseSourceFile(sourceFile).entries }.associate { it.key to it.value }
+}
+
+
+private
+class JavaSourceFileParser(srcDir: File) : SourceFileParser {
+
+    private
+    val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
+
+    override fun parseSourceFile(sourceFile: File): VersionsToIncubating {
+        val versionToIncubating = mutableMapOf<String, MutableSet<String>>()
+        if (!sourceFile.name.endsWith(".java")) {
+            return versionToIncubating
+        }
+        JavaParser.parse(sourceFile).run {
+            solver.inject(this)
+            findAll(Node::class.java)
+                .filter {
+                    it is NodeWithAnnotations<*> &&
+                        it.annotations.any { it.nameAsString == "Incubating" }
+                }.map {
+                    val node = it as NodeWithAnnotations<*>
+                    val version = findVersionFromJavadoc(node)
+                        ?: "Not found"
+                    Pair(version, nodeName(it, this, sourceFile))
+                }.forEach {
+                    versionToIncubating.getOrPut(it.first) {
+                        mutableSetOf()
+                    }.add(it.second)
+                }
+        }
+        return versionToIncubating
+    }
+
+    private
+    fun findVersionFromJavadoc(node: NodeWithAnnotations<*>): String? = if (node is NodeWithJavadoc<*>) {
+        node.javadoc.map {
+            it.blockTags.find {
+                it.tagName == "since"
+            }?.content?.elements?.find {
+                it is JavadocSnippet
+            }?.toText()
+        }.orElse(null)
+    } else {
+        null
+    }
+
+    private
+    fun nodeName(it: Node?, unit: CompilationUnit, file: File) = when (it) {
+        is EnumDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
+        is ClassOrInterfaceDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
+        is MethodDeclaration -> tryResolve({ it.resolve().qualifiedSignature }) { inferClassName(unit) }
+        is AnnotationDeclaration -> tryResolve({ it.resolve().qualifiedName }) { inferClassName(unit) }
+        is NodeWithSimpleName<*> -> it.nameAsString
+        else -> unit.primaryTypeName.orElse(file.name)
+    }
+
+    private
+    fun inferClassName(unit: CompilationUnit) = "${unit.packageDeclaration.map { it.nameAsString }.orElse("")}.${unit.primaryTypeName.orElse("")}"
+
+    private
+    inline fun tryResolve(resolver: () -> String, or: () -> String) = try {
+        resolver()
+    } catch (e: Throwable) {
+        or()
+    }
+}
+
+
+private
+class KotlinSourceFileParser(srcDir: File) : SourceFileParser {
+
+    override fun parseSourceFile(sourceFile: File): VersionsToIncubating {
+
+        val versionToIncubating = mutableMapOf<String, MutableSet<String>>()
+
+        if (!sourceFile.name.endsWith(".kt")) {
+            return versionToIncubating
+        }
+
+        KotlinSourceParser().mapParsedKotlinFiles(sourceFile) { ktFile ->
+            ktFile.collectDescendantsOfType<KtNamedDeclaration>().forEach { declaration ->
+                if (declaration.annotationEntries.any { it.shortName?.asString() == "Incubating" }) {
+                    var name = (declaration as? KtCallableDeclaration)?.typeParameterList?.let { "${it.text} " } ?: ""
+                    name += declaration.fqName!!.asString()
+                    if (declaration is KtCallableDeclaration) {
+                        name += declaration.valueParameterList?.text ?: ""
+                        if (declaration.receiverTypeReference != null) {
+                            name += " with ${declaration.receiverTypeReference!!.text} receiver"
+                        }
+                        if (declaration.parent == ktFile) {
+                            name += ", top-level in ${sourceFile.name}"
+                        }
+                    }
+                    val since = declaration.docComment?.getDefaultSection()?.findTagsByName("since")?.singleOrNull()?.getContent() ?: "Not found"
+                    versionToIncubating.getOrPut(since) { mutableSetOf() }.add(name)
+                }
+            }
+        }
+        return versionToIncubating
+    }
 }
