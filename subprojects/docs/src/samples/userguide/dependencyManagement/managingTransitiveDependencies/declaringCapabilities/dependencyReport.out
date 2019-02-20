@@ -25,6 +25,7 @@ org.slf4j:slf4j-log4j12:1.6.1
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
+         org.gradle.jvm.platform = 11
    ]
 
 org.slf4j:slf4j-log4j12:1.6.1
