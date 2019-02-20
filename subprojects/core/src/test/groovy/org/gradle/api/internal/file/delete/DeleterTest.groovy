@@ -15,15 +15,13 @@
  */
 package org.gradle.api.internal.file.delete
 
-import org.gradle.api.Action
-import org.gradle.api.file.DeleteSpec
+
 import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
@@ -36,8 +34,6 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 import static org.junit.Assume.assumeTrue
 
 class DeleterTest extends Specification {
-    static final boolean FOLLOW_SYMLINKS = true;
-
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
@@ -109,76 +105,6 @@ class DeleterTest extends Specification {
 
         then:
         !didWork
-    }
-
-    @Requires([TestPrecondition.UNIX_DERIVATIVE])
-    def doesNotDeleteFilesInsideSymlinkDir() {
-        given:
-        def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
-        def originalDir = keepTxt.parentFile
-        def link = new File(tmpDir.getTestDirectory(), "link")
-
-        when:
-        fileSystem().createSymbolicLink(link, originalDir)
-
-        then:
-        link.exists()
-
-        when:
-        boolean didWork = delete.delete(link)
-
-        then:
-        !link.exists()
-        originalDir.assertExists()
-        keepTxt.assertExists()
-        didWork
-    }
-
-    @Requires([TestPrecondition.UNIX_DERIVATIVE])
-    def deletesFilesInsideSymlinkDirWhenNeeded() {
-        given:
-        def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
-        def originalDir = keepTxt.parentFile
-        def link = new File(tmpDir.getTestDirectory(), "link")
-
-        when:
-        fileSystem().createSymbolicLink(link, originalDir)
-
-        then:
-        link.exists()
-
-        when:
-        boolean didWork = delete.delete(deleteSpecActionFor(FOLLOW_SYMLINKS, link)).getDidWork()
-
-        then:
-        !link.exists()
-        keepTxt.assertDoesNotExist()
-        didWork
-    }
-
-    @Unroll
-    @Requires([TestPrecondition.SYMLINKS])
-    def "does not follow symlink to a file when followSymlinks is #followSymlinks"() {
-        given:
-        def originalFile = tmpDir.createFile("originalFile", "keep.txt")
-        def link = new File(tmpDir.getTestDirectory(), "link")
-
-        when:
-        fileSystem().createSymbolicLink(link, originalFile)
-
-        then:
-        link.exists()
-
-        when:
-        boolean didWork = delete.delete(deleteSpecActionFor(followSymlinks, link)).getDidWork()
-
-        then:
-        !link.exists()
-        originalFile.assertExists()
-        didWork
-
-        where:
-        followSymlinks << [true, false]
     }
 
     @Unroll
@@ -380,15 +306,6 @@ class DeleterTest extends Specification {
         files.each {
             it.text = ""
             it.setLastModified(System.currentTimeMillis() + (OperatingSystem.current().isWindows() ? 500 : 250))
-        }
-    }
-
-    private static Action<? super DeleteSpec> deleteSpecActionFor(final boolean followSymlinks, final Object... paths) {
-        return new Action<DeleteSpec>() {
-            @Override
-            void execute(DeleteSpec spec) {
-                spec.delete(paths).setFollowSymlinks(followSymlinks)
-            }
         }
     }
 }
