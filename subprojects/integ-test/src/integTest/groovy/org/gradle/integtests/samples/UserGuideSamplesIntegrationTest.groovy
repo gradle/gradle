@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.samples
 
+import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer
@@ -27,8 +29,11 @@ import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalize
 import org.gradle.samples.test.runner.GradleSamplesRunner
 import org.gradle.samples.test.runner.SampleModifiers
 import org.gradle.samples.test.runner.SamplesOutputNormalizers
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 import org.junit.runner.RunWith
 
 @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -43,6 +48,9 @@ import org.junit.runner.RunWith
 ])
 @SampleModifiers([SetMirrorsSampleModifier, MoreMemorySampleModifier])
 class UserGuideSamplesIntegrationTest {
+    @Rule
+    SetSystemProperties setSystemPropertiesRule
+
     /*
     Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.
 
@@ -59,4 +67,11 @@ class UserGuideSamplesIntegrationTest {
      To run a subset of samples, use a more fine-grained test filter like
         ./gradlew :integtest:integTest --tests "UserGuideSamplesIntegrationTest.*native*"
     */
+    def setup() {
+        def buildContext = IntegrationTestBuildContext.INSTANCE
+        TestFile generatedApiJarCacheDir = buildContext.getGradleGeneratedApiJarCacheDir();
+        if (generatedApiJarCacheDir != null) {
+            System.setProperty(DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY, generatedApiJarCacheDir.getAbsolutePath());
+        }
+    }
 }
