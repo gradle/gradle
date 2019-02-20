@@ -24,7 +24,6 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultPropertyState
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.Provider
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -501,19 +500,16 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for provider type"() {
-        def value = Stub(Provider)
-        value.getOrNull() >> "123"
-        def value2 = Stub(Provider)
-        value2.getOrNull() >> "123"
-        def value3 = Stub(Provider)
-        value3.getOrNull() >> "12"
+        def value = Providers.of("123")
+        def value2 = Providers.of("123")
+        def value3 = Providers.of("12")
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot == snapshotter.snapshot("123")
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value2)
         snapshot != snapshotter.snapshot(value3)
+        snapshot != snapshotter.snapshot("123")
     }
 
     def "creates isolated provider"() {
@@ -522,7 +518,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedProvider
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.get().is(originalValue)
@@ -535,7 +531,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedProperty
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.get().is(originalValue)
@@ -548,7 +544,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedListProperty
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.get() == ["123"]
@@ -562,7 +558,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedSetProperty
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.get() == ["123"] as Set
@@ -576,7 +572,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedMapProperty
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.get() == [a: 1, b: 2]
@@ -616,7 +612,7 @@ class DefaultValueSnapshotterTest extends Specification {
         def spec = new FilteringClassLoader.Spec()
         spec.allowClass(Named)
         spec.allowPackage("org.gradle.api.internal.model") // mixed into the implementation
-        spec.allowPackage("org.gradle.internal.instantiation") // mixed into the implementation
+        spec.allowPackage("org.gradle.internal.state") // mixed into the implementation
         def filter = new FilteringClassLoader(getClass().classLoader, spec)
         def loader = new GroovyClassLoader(filter)
         loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
@@ -666,7 +662,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedTypeSnapshot
+        snapshot instanceof ManagedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -680,7 +676,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedManagedTypeSnapshot
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.prop1 == "a"
@@ -699,7 +695,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedTypeSnapshot
+        snapshot instanceof ManagedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -713,7 +709,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolated = snapshotter.isolate(original)
-        isolated instanceof IsolatedManagedTypeSnapshot
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(original)
         copy.prop1 == "a"
@@ -726,13 +722,13 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)
-        isolatedEmpty instanceof IsolatedFileCollection
+        isolatedEmpty instanceof IsolatedManagedValue
         def copyEmpty = isolatedEmpty.isolate()
         !copyEmpty.is(empty)
         copyEmpty.files as List == []
 
         def isolated = snapshotter.isolate(files1)
-        isolated instanceof IsolatedFileCollection
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(files1)
         copy.files == files1.files
@@ -1007,18 +1003,15 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for provider type from candidate"() {
-        def value = Stub(Provider)
-        value.getOrNull() >> "123"
-        def value2 = Stub(Provider)
-        value2.getOrNull() >> "123"
-        def value3 = Stub(Provider)
-        value3.getOrNull() >> "12"
+        def value = Providers.of("123")
+        def value2 = Providers.of("123")
+        def value3 = Providers.of("12")
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        areTheSame(snapshot, "123")
         areTheSame(snapshot, value2)
         areNotTheSame(snapshot, value3)
+        areNotTheSame(snapshot, "123")
     }
 
     def "creates snapshot for named managed type from candidate"() {

@@ -164,7 +164,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes managed type properties"() {
-        def original = new ManagedTypeSnapshot("named", integer(123))
+        def original = new ManagedValueSnapshot("named", integer(123))
         write(original)
 
         expect:

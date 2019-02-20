@@ -52,6 +52,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;

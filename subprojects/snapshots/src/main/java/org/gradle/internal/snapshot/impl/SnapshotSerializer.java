@@ -102,7 +102,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             case MANAGED_SNAPSHOT:
                 className = decoder.readString();
                 ValueSnapshot state = read(decoder);
-                return new ManagedTypeSnapshot(className, state);
+                return new ManagedValueSnapshot(className, state);
             case IMMUTABLE_MANAGED_SNAPSHOT:
                 className = decoder.readString();
                 String value = decoder.readString();
@@ -213,9 +213,9 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
             ImmutableManagedValueSnapshot valueSnapshot = (ImmutableManagedValueSnapshot) snapshot;
             encoder.writeString(valueSnapshot.getClassName());
             encoder.writeString(valueSnapshot.getValue());
-        } else if (snapshot instanceof ManagedTypeSnapshot) {
+        } else if (snapshot instanceof ManagedValueSnapshot) {
             encoder.writeSmallInt(MANAGED_SNAPSHOT);
-            ManagedTypeSnapshot managedTypeSnapshot = (ManagedTypeSnapshot) snapshot;
+            ManagedValueSnapshot managedTypeSnapshot = (ManagedValueSnapshot) snapshot;
             encoder.writeString(managedTypeSnapshot.getClassName());
             write(encoder, managedTypeSnapshot.getState());
         } else {

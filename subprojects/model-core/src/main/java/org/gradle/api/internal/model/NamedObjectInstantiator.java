@@ -28,7 +28,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.internal.instantiation.Managed;
+import org.gradle.internal.state.Managed;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.inspect.FormattingValidationProblemCollector;
 import org.gradle.model.internal.inspect.ValidationProblemCollector;
@@ -106,6 +106,9 @@ public class NamedObjectInstantiator implements Managed.Factory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
+        if (!Named.class.isAssignableFrom(type)) {
+            return null;
+        }
         return named(Cast.uncheckedCast(type), (String) state);
     }
 
