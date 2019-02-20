@@ -52,6 +52,8 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
 
+    private boolean autoTargetJvm = true;
+
     public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
         this.project = project;
         sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
@@ -178,5 +180,15 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     @Override
     public ProjectInternal getProject() {
         return project;
+    }
+
+    @Override
+    public void disableAutoTargetJvm() {
+        this.autoTargetJvm = false;
+    }
+
+    @Override
+    public boolean isAutoTargetJvmDisabled() {
+        return !autoTargetJvm;
     }
 }
