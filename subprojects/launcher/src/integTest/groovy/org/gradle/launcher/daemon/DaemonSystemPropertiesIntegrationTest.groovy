@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.api.JavaVersion
 import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
@@ -235,6 +236,7 @@ task verify {
     def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
         setup:
         executer.requireGradleDistribution()
+        boolean java9orAbove = JavaVersion.current().java9Compatible
 
         buildScript """
             import java.lang.management.ManagementFactory
@@ -248,7 +250,13 @@ task verify {
                     println "Initial Heap: " + memBean.heapMemoryUsage.init
                     assert memBean.heapMemoryUsage.init == 256 * 1024 * 1024
                     println "    Max Heap: " + memBean.heapMemoryUsage.max 
-                    assert memBean.heapMemoryUsage.max == 512 * 1024 * 1024
+
+                    // Java 8 does not report max heap size exactly matching the command line setting
+                    if ($java9orAbove) {
+                        assert memBean.heapMemoryUsage.max == 512 * 1024 * 1024
+                    } else {
+                        assert memBean.heapMemoryUsage.max > 256 * 1024 * 1024
+                    }
                 }
             }
         """
