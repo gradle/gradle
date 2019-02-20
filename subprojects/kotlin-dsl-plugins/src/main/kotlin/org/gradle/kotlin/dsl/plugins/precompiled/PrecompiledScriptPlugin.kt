@@ -35,7 +35,7 @@ import java.io.File
 
 
 internal
-data class ScriptPlugin(internal val scriptFile: File) {
+data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 
     val scriptFileName: String = scriptFile.name
 
@@ -104,8 +104,11 @@ data class ScriptPlugin(internal val scriptFile: File) {
     }
 
     val hash by lazy {
-        Hashing.hashString(scriptFile.readText())
+        Hashing.hashString(scriptText)
     }
+
+    val scriptText: String
+        get() = scriptFile.readText()
 
     private
     fun packagePrefixed(id: String) =

@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
-import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 
@@ -53,7 +53,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     @get:Internal
     internal
-    lateinit var plugins: List<ScriptPlugin>
+    lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -113,7 +113,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         metadataOutputDir.get().asFile.resolve(scriptPlugin.script.hashString)
 
     private
-    fun scriptWithPluginsBlock(plugin: ScriptPlugin): ScriptWithPluginsBlock? {
+    fun scriptWithPluginsBlock(plugin: PrecompiledScriptPlugin): ScriptWithPluginsBlock? {
         if (plugin.scriptType != KotlinScriptType.PROJECT) return null
         return null
     }
@@ -142,7 +142,7 @@ data class HashedProjectSchema(
 
 internal
 data class ScriptWithPluginsBlock(
-    val script: ScriptPlugin,
+    val script: PrecompiledScriptPlugin,
     val pluginsBlock: PluginsBlock
 )
 
@@ -163,4 +163,4 @@ data class PluginApplication(
 
 
 internal
-fun scriptPluginFilesOf(list: List<ScriptPlugin>) = list.map { it.scriptFile }.toSet()
+fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()

@@ -26,7 +26,15 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
+import org.gradle.kotlin.dsl.execution.Program
+import org.gradle.kotlin.dsl.execution.ProgramKind
+import org.gradle.kotlin.dsl.execution.ProgramParser
+import org.gradle.kotlin.dsl.execution.ProgramSource
+import org.gradle.kotlin.dsl.execution.ProgramTarget
+
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
+
+import org.gradle.kotlin.dsl.support.KotlinScriptType
 
 import java.io.File
 
@@ -43,7 +51,7 @@ open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var plugins: List<ScriptPlugin>
+    lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -55,6 +63,57 @@ open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
     @TaskAction
     fun extract() {
         outputDir.withOutputDirectory {
+            extractPrecompiledScriptPluginPluginsTo(it, plugins)
         }
     }
 }
+
+
+internal
+fun extractPrecompiledScriptPluginPluginsTo(outputDir: File, scriptPlugins: List<PrecompiledScriptPlugin>) {
+    for (scriptPlugin in scriptPlugins) {
+        pluginsBlockOf(scriptPlugin)?.let {
+            writePluginsBlockTo(outputDir, scriptPlugin, it)
+        }
+    }
+}
+
+
+private
+fun pluginsBlockOf(scriptPlugin: PrecompiledScriptPlugin): Program.Plugins? =
+    when (scriptPlugin.scriptType) {
+        KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin))
+        else -> null
+    }
+
+
+private
+fun pluginsBlockOf(program: Program): Program.Plugins? =
+    when (program) {
+        is Program.Plugins -> program
+        is Program.Stage1Sequence -> program.plugins
+        is Program.Staged -> pluginsBlockOf(program.stage1)
+        else -> null
+    }
+
+
+private
+fun parse(scriptPlugin: PrecompiledScriptPlugin): Program = ProgramParser.parse(
+    ProgramSource(scriptPlugin.scriptFileName, scriptPlugin.scriptText),
+    ProgramKind.TopLevel,
+    ProgramTarget.Project
+)
+
+
+private
+fun writePluginsBlockTo(outputDir: File, scriptPlugin: PrecompiledScriptPlugin, program: Program.Plugins) {
+    outputDir.resolve(scriptPlugin.scriptFileName).writeText(
+        lineNumberPreservingTextOf(program)
+    )
+}
+
+
+private
+fun lineNumberPreservingTextOf(program: Program.Plugins): String = program.fragment.run {
+    source.map { it.subText(0..range.endInclusive).preserve(range) }
+}.text

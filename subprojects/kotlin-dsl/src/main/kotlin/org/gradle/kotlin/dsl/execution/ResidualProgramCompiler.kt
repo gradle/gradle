@@ -227,8 +227,8 @@ class ResidualProgramCompiler(
             compileStage1(
                 plugins.fragment.source.map {
                     it.preserve(
-                        buildscript.fragment.section.wholeRange,
-                        plugins.fragment.section.wholeRange)
+                        buildscript.fragment.range,
+                        plugins.fragment.range)
                 },
                 buildscriptWithPluginsScriptDefinition,
                 pluginsBlockClassPath
@@ -467,7 +467,7 @@ class ResidualProgramCompiler(
     private
     fun compilePlugins(program: Program.Plugins) =
         compileStage1(
-            program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
+            program.fragment.source.map { it.preserve(program.fragment.range) },
             pluginsScriptDefinition,
             pluginsBlockClassPath
         )

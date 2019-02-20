@@ -143,7 +143,7 @@ class PrecompiledScriptPlugins : Plugin<Project> {
 
 
 private
-fun Project.enableScriptCompilationOf(scriptPlugins: List<ScriptPlugin>) {
+fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
     dependencies {
         "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
@@ -257,7 +257,7 @@ fun Project.implicitImports(): List<String> =
 
 
 private
-fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<ScriptPlugin>) {
+fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
     declareScriptPlugins(scriptPlugins)
 
@@ -266,10 +266,10 @@ fun Project.exposeScriptsAsGradlePlugins(scriptPlugins: List<ScriptPlugin>) {
 
 
 private
-fun Project.collectScriptPlugins(): List<ScriptPlugin> =
+fun Project.collectScriptPlugins(): List<PrecompiledScriptPlugin> =
     pluginSourceSet.allSource.matching {
         it.include("**/*.gradle.kts")
-    }.map(::ScriptPlugin)
+    }.map(::PrecompiledScriptPlugin)
 
 
 private
@@ -283,7 +283,7 @@ val Project.gradlePlugin
 
 
 private
-fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
+fun Project.declareScriptPlugins(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
     configure<GradlePluginDevelopmentExtension> {
         for (scriptPlugin in scriptPlugins) {
@@ -297,7 +297,7 @@ fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
 
 
 private
-fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
+fun Project.generatePluginAdaptersFor(scriptPlugins: List<PrecompiledScriptPlugin>) {
 
     codeGenerationTask<GenerateScriptPluginAdapters>("plugins", "generateScriptPluginAdapters") {
         plugins = scriptPlugins

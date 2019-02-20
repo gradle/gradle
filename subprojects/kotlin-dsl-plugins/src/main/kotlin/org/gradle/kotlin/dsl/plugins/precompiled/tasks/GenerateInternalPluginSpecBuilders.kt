@@ -25,7 +25,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
 
 import java.io.File
 
@@ -38,7 +38,7 @@ open class GenerateInternalPluginSpecBuilders : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var plugins: List<ScriptPlugin>
+    lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)

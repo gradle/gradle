@@ -22,7 +22,7 @@ class ScriptPluginTest : TestWithTempFiles() {
             newFile("my-script.gradle.kts")
 
         assertThat(
-            ScriptPlugin(script).id,
+            PrecompiledScriptPlugin(script).id,
             equalTo("my-script"))
     }
 
@@ -37,7 +37,7 @@ class ScriptPluginTest : TestWithTempFiles() {
             """)
 
         assertThat(
-            ScriptPlugin(script).id,
+            PrecompiledScriptPlugin(script).id,
             equalTo("org.acme.my-script"))
     }
 
@@ -59,7 +59,7 @@ class ScriptPluginTest : TestWithTempFiles() {
 
     private
     fun implementationClassForScriptNamed(fileName: String) =
-        ScriptPlugin(newFile(fileName)).implementationClass
+        PrecompiledScriptPlugin(newFile(fileName)).implementationClass
 
     @Test
     fun `plugin adapter is written to package sub-dir and starts with correct package declaration`() {
@@ -74,7 +74,7 @@ class ScriptPluginTest : TestWithTempFiles() {
         val outputDir =
             root.resolve("output")
 
-        ScriptPlugin(script)
+        PrecompiledScriptPlugin(script)
             .writeScriptPluginAdapterTo(outputDir)
 
         val expectedFile =
@@ -94,7 +94,7 @@ class ScriptPluginTest : TestWithTempFiles() {
         val outputDir =
             root.resolve("output").apply { mkdir() }
 
-        ScriptPlugin(script)
+        PrecompiledScriptPlugin(script)
             .writeScriptPluginAdapterTo(outputDir)
 
         val expectedFile =
@@ -119,7 +119,7 @@ class ScriptPluginTest : TestWithTempFiles() {
             newFile("my-script.gradle.kts", "/*\r\n */\r\npackage org.acme\r\n")
 
         assertThat(
-            ScriptPlugin(script).packageName,
+            PrecompiledScriptPlugin(script).packageName,
             equalTo("org.acme"))
     }
 

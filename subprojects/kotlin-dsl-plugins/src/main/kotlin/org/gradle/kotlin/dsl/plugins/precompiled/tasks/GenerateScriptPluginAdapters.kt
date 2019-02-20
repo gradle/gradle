@@ -25,7 +25,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.kotlin.dsl.plugins.precompiled.ScriptPlugin
+import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
@@ -40,7 +40,7 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:Internal
     internal
-    lateinit var plugins: List<ScriptPlugin>
+    lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
@@ -62,7 +62,7 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
 
 
 internal
-fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
+fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     val (packageDir, packageDeclaration) =
         packageName?.let { packageName ->

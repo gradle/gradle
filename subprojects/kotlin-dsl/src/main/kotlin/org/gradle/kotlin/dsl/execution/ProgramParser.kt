@@ -75,8 +75,8 @@ object ProgramParser {
             sourceWithoutComments.map {
                 it.erase(
                     listOfNotNull(
-                        buildscriptFragment?.section?.wholeRange,
-                        pluginsFragment?.section?.wholeRange))
+                        buildscriptFragment?.range,
+                        pluginsFragment?.range))
             }
 
         val stage2 = remainingSource
