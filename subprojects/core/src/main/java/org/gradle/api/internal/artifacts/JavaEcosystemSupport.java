@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -44,15 +44,8 @@ public abstract class JavaEcosystemSupport {
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE);
-        targetPlatformSchema.getCompatibilityRules().add(TargetPlatformCompatibilityRules.class);
-        targetPlatformSchema.getDisambiguationRules().add(TargetPlatformDisambiguationRules.class, new Action<ActionConfiguration>() {
-            @Override
-            public void execute(ActionConfiguration config) {
-                // by default we will reject any producer which version is higher than
-                // the current Gradle runtime (if the consumer says nothing)
-                config.params(Integer.valueOf(JavaVersion.current().getMajorVersion()));
-            }
-        });
+        targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
+        targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.<Integer>natural());
     }
 
     private static void configureBundling(AttributesSchema attributesSchema) {
@@ -291,59 +284,6 @@ public abstract class JavaEcosystemSupport {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    @VisibleForTesting
-    public static class TargetPlatformCompatibilityRules implements AttributeCompatibilityRule<Integer>, ReusableAction {
-        @Override
-        public void execute(CompatibilityCheckDetails<Integer> details) {
-            Integer consumerLevel = details.getConsumerValue();
-            Integer producerLevel = details.getProducerValue();
-            if (consumerLevel == null || producerLevel == null) {
-                details.compatible();
-                return;
-            }
-            if (producerLevel <= consumerLevel) {
-                details.compatible();
-            } else {
-                details.incompatible();
-            }
-        }
-    }
-
-    @VisibleForTesting
-    public static class TargetPlatformDisambiguationRules implements AttributeDisambiguationRule<Integer>, ReusableAction {
-        private final int minimalPlatformVersion;
-
-        @Inject
-        public TargetPlatformDisambiguationRules(int minimalPlatformVersion) {
-            this.minimalPlatformVersion = minimalPlatformVersion;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<Integer> details) {
-            Integer consumerLevel = details.getConsumerValue();
-            boolean checkMinimalBound = false;
-            if (consumerLevel == null) {
-                consumerLevel = minimalPlatformVersion;
-                checkMinimalBound = true;
-            }
-            int selected = Integer.MAX_VALUE;
-            int diff = Integer.MAX_VALUE;
-            for (Integer producerLevel : details.getCandidateValues()) {
-                if (checkMinimalBound && producerLevel<minimalPlatformVersion) {
-                    continue;
-                }
-                int ndiff = Math.abs(consumerLevel - producerLevel);
-                if (ndiff < diff) {
-                    selected = producerLevel;
-                    diff = ndiff;
-                }
-            }
-            if (selected != Integer.MAX_VALUE) {
-                details.closestMatch(selected);
             }
         }
     }
