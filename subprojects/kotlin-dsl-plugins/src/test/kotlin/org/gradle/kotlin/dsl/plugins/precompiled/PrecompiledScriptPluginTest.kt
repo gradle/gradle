@@ -13,7 +13,7 @@ import org.junit.Test
 import java.io.File
 
 
-class ScriptPluginTest : TestWithTempFiles() {
+class PrecompiledScriptPluginTest : TestWithTempFiles() {
 
     @Test
     fun `plugin id is derived from script file name`() {

@@ -33,7 +33,7 @@ import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class PrecompiledScriptPluginTest : AbstractPrecompiledScriptPluginTest() {
+class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
