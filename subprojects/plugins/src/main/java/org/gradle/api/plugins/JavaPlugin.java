@@ -31,14 +31,13 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.java.TargetJavaPlatform;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.java.JavaLibraryPlatform;
@@ -479,12 +478,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         ((ConfigurationInternal)outgoing).beforeLocking(new Action<ConfigurationInternal>() {
             @Override
             public void execute(ConfigurationInternal configuration) {
-                String majorVersion = convention.getTargetCompatibility().getMajorVersion();
-                AttributeContainerInternal attributes = configuration.getAttributes();
-                // If nobody said anything about this variant's target platform, use whatever the convention says
-                if (!attributes.contains(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE)) {
-                    attributes.attribute(TargetJavaPlatform.MINIMAL_TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
-                }
+                JavaEcosystemSupport.configureDefaultTargetPlatform(configuration, convention.getTargetCompatibility());
             }
         });
     }
