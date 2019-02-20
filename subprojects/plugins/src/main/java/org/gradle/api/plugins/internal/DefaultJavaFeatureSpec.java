@@ -17,6 +17,7 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -103,6 +104,9 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     }
 
     private void setupConfigurations(SourceSet sourceSet) {
+        if (sourceSet == null) {
+            throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
+        }
         String apiConfigurationName;
         String implConfigurationName;
         String apiElementsConfigurationName;
