@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.cache.internal.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 @Issue("GRADLE-2460")
 class DaemonSystemPropertiesIntegrationTest extends DaemonIntegrationSpec {
@@ -228,6 +229,42 @@ task verify {
         then:
         output.contains("verified = 200")
         daemons(gradleVersion).daemons.size() == 2
+    }
+
+    @Unroll
+    def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
+        setup:
+        executer.requireGradleDistribution()
+
+        buildScript """
+            import java.lang.management.ManagementFactory
+            import java.lang.management.MemoryMXBean
+            
+            println "GRADLE_VERSION: " + gradle.gradleVersion
+
+            task verify {
+                doFirst {
+                    MemoryMXBean memBean = ManagementFactory.getMemoryMXBean()
+                    println "Initial Heap: " + memBean.heapMemoryUsage.init
+                    assert memBean.heapMemoryUsage.init == 256 * 1024 * 1024
+                    println "    Max Heap: " + memBean.heapMemoryUsage.max 
+                    assert memBean.heapMemoryUsage.max == 512 * 1024 * 1024
+                }
+            }
+        """
+
+        when:
+        // This prevents the executer fixture from adding "default" values to the build jvm options
+        executer.useOnlyRequestedJvmOpts()
+        executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: javaToolOptions)
+        run "verify"
+
+        then:
+        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
+        daemons(gradleVersion).daemons.size() == 1
+
+        where:
+        javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
 
     String tempFolder(String folderName) {
