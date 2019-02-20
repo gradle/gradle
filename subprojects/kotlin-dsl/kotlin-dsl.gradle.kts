@@ -75,6 +75,10 @@ val apiExtensionsOutputDir = file("src/generated/kotlin")
 val publishedKotlinDslPluginVersion = "1.2.2" // TODO:kotlin-dsl
 
 tasks {
+    withType(Test::class.java).configureEach { 
+       outputs.upToDateWhen { false }
+       outputs.cacheIf { false }
+    }
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputFile = apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")

@@ -46,6 +46,8 @@ testFixtures {
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 integTestTasks.configureEach {
     libsRepository.required = true
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
 }
 
 testFilesCleanup {
