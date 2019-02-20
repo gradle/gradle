@@ -34,6 +34,8 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -41,6 +43,7 @@ import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,6 +58,8 @@ import static com.google.gson.stream.JsonToken.NUMBER;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
+    private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
+
     public static final String FORMAT_VERSION = "1.0";
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
@@ -70,6 +75,7 @@ public class GradleModuleMetadataParser {
         resource.withContent(new Transformer<Void, InputStream>() {
             @Override
             public Void transform(InputStream inputStream) {
+                String version = null;
                 try {
                     JsonReader reader = new JsonReader(new InputStreamReader(inputStream, "utf-8"));
                     reader.beginObject();
@@ -83,14 +89,18 @@ public class GradleModuleMetadataParser {
                     if (reader.peek() != JsonToken.STRING) {
                         throw new RuntimeException("The 'formatVersion' value should have a string value.");
                     }
-                    String version = reader.nextString();
-                    if (!version.equals(FORMAT_VERSION)) {
-                        throw new RuntimeException(String.format("Unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s only.", version, FORMAT_VERSION));
-                    }
+                    version = reader.nextString();
                     consumeTopLevelElements(reader, metadata);
-                    metadata.setContentHash(HashUtil.createHash(resource.getFile(), "MD5"));
+                    File file = resource.getFile();
+                    metadata.setContentHash(HashUtil.createHash(file, "MD5"));
+                    if (!FORMAT_VERSION.equals(version)) {
+                        LOGGER.debug("Unrecognized metadata format version '%s' found in '%s'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
+                    }
                     return null;
                 } catch (Exception e) {
+                    if (version != null && !FORMAT_VERSION.equals(version)) {
+                        throw new MetaDataParseException("module metadata", resource, String.format("unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s.", version, FORMAT_VERSION), e);
+                    }
                     throw new MetaDataParseException("module metadata", resource, e);
                 }
             }
@@ -162,7 +172,6 @@ public class GradleModuleMetadataParser {
             }
         }
         reader.endObject();
-
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
         AttributeValue<String> entry = attributes.findEntry(PlatformSupport.COMPONENT_CATEGORY);
