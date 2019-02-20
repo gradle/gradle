@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser.FORMAT_VERSION
+import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
 class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")

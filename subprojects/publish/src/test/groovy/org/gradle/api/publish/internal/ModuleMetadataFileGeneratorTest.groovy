@@ -28,7 +28,7 @@ import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -64,7 +64,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
-    def generator = new ModuleMetadataFileGenerator(new BuildInvocationScopeId(buildId), projectDependencyResolver)
+    def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver)
 
     def "writes file for component with no variants"() {
         def writer = new StringWriter()
@@ -76,7 +76,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -104,7 +104,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -162,7 +162,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -292,7 +292,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -463,7 +463,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -559,7 +559,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -619,7 +619,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",
@@ -684,7 +684,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "url": "../../module/1.2/module-1.2.module",
     "group": "group",
@@ -745,7 +745,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
 
         then:
         writer.toString() == """{
-  "formatVersion": "${ModuleMetadataParser.FORMAT_VERSION}",
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
   "component": {
     "group": "group",
     "module": "module",

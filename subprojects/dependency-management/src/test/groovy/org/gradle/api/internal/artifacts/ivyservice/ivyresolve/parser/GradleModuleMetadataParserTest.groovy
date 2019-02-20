@@ -34,12 +34,12 @@ import spock.lang.Specification
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class ModuleMetadataParserTest extends Specification {
+class GradleModuleMetadataParserTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def parser = new ModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
+    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
     VersionConstraint emptyConstraint() {
         DefaultImmutableVersionConstraint.of()
