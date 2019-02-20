@@ -121,8 +121,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 @Input
                 String getMissingInput()
                 void setMissingInput(String missing)
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
             }
             
+            @CacheableTransformAction
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
@@ -142,6 +145,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
+        failure.assertHasCause("Property 'inputFiles' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
     }
 
     @Unroll
@@ -268,6 +272,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
+            @CacheableTransformAction
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
@@ -277,6 +282,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 
                 File notAnnotated 
 
+                @InputArtifact
+                abstract File getAbsolutePathSensitivity() 
+
+                @InputArtifactDependencies
+                abstract File getAbsolutePathSensitivityDependencies() 
+
+                @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputFile @InputArtifact @InputArtifactDependencies
                 File getConflictingAnnotations() { } 
                 
@@ -296,6 +308,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @InputArtifact, @InputArtifactDependencies.")
         failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
         failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
+        failure.assertHasCause("Property 'absolutePathSensitivity' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
+        failure.assertHasCause("Property 'absolutePathSensitivityDependencies' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
     }
 
     @Unroll

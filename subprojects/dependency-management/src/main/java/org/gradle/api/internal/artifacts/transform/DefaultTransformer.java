@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.transform.CacheableTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -45,6 +44,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -99,6 +99,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         ImmutableAttributes fromAttributes,
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
+        boolean cacheable,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
         ValueSnapshotter valueSnapshotter,
@@ -120,7 +121,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
-        this.cacheable = implementationClass.isAnnotationPresent(CacheableTransformAction.class);
+        this.cacheable = cacheable;
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
@@ -135,6 +136,12 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 isolateExclusively();
             }
         };
+    }
+
+    public static void validateInputFileNormalizer(String propertyName, Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
+        if (cacheable && normalizer == AbsolutePathInputNormalizer.class) {
+            parameterValidationContext.recordValidationMessage(null, propertyName, "must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs");
+        }
     }
 
     @Override
@@ -216,7 +223,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
@@ -228,7 +235,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         FileCollectionFactory fileCollectionFactory,
         PropertyWalker propertyWalker,
         Hasher hasher,
-        Object parameterObject
+        Object parameterObject,
+        boolean cacheable
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
@@ -261,6 +269,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
             @Override
             public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileNormalizer);
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);

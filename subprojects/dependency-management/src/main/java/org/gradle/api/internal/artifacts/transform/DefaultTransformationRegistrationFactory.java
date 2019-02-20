@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.CacheableTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -90,12 +91,9 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable Object parameterObject) {
         List<String> validationMessages = new ArrayList<>();
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
-        actionMetadata.collectValidationFailures(null, new DefaultParameterValidationContext(validationMessages));
-        if (!validationMessages.isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
-        }
+        DefaultParameterValidationContext parameterValidationContext = new DefaultParameterValidationContext(validationMessages);
+        actionMetadata.collectValidationFailures(null, parameterValidationContext);
+        boolean cacheable = implementation.isAnnotationPresent(CacheableTransformAction.class);
 
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = AbsolutePathInputNormalizer.class;
@@ -106,20 +104,27 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
+                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, parameterValidationContext);
             }
             if (propertyMetadata.getAnnotation(InputArtifactDependencies.class) != null) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;
+                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, parameterValidationContext);
             }
         }
-
+        if (!validationMessages.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
+                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
+        }
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
             from,
             inputArtifactNormalizer,
             dependenciesNormalizer,
+            cacheable,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,
