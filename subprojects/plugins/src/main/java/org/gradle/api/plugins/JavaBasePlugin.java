@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -58,6 +59,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
@@ -266,6 +268,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
 
         Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
@@ -286,6 +289,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
         runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        runtimeClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));

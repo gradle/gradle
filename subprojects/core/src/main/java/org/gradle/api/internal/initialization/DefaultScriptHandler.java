@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -112,6 +113,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
             classpathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
+            classpathConfiguration.getAttributes().attribute(Bundling.BUNDLING_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Bundling.class, Bundling.EXTERNAL));
         }
     }
 

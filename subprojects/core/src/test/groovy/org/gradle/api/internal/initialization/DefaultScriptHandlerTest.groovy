@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.attributes.AttributesSchema
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.attributes.AttributeContainerInternal
@@ -53,8 +54,9 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
+        2 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         0 * configurationContainer._
         0 * depMgmtServices._
     }
@@ -67,8 +69,9 @@ class DefaultScriptHandlerTest extends Specification {
         then:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
+        2 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         0 * configurationContainer._
         0 * depMgmtServices._
@@ -99,8 +102,9 @@ class DefaultScriptHandlerTest extends Specification {
         and:
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
+        2 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * classpathResolver.resolveClassPath(configuration) >> classpath
     }
 
@@ -128,8 +132,9 @@ class DefaultScriptHandlerTest extends Specification {
         1 * depMgmtServices.dependencyHandler >> dependencyHandler
         1 * depMgmtServices.configurationContainer >> configurationContainer
         1 * configurationContainer.create('classpath') >> configuration
-        1 * configuration.attributes >> attributes
+        2 * configuration.attributes >> attributes
         1 * attributes.attribute(Usage.USAGE_ATTRIBUTE, _ as Usage)
+        1 * attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, _ as Bundling)
         1 * dependencyHandler.add('config', 'dep')
     }
 }
