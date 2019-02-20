@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.transform.CacheableTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -88,6 +89,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
+    private final boolean cacheable;
 
     private IsolatableParameters isolatable;
 
@@ -118,6 +120,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
+        this.cacheable = implementationClass.isAnnotationPresent(CacheableTransformAction.class);
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
@@ -146,6 +149,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     public boolean requiresDependencies() {
         return requiresDependencies;
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return cacheable;
     }
 
     @Override
