@@ -173,7 +173,7 @@ public class Deleter {
                 }
             }
 
-            Collection<String> newPaths = listNewPaths(startTime, file);
+            Collection<String> newPaths = listNewPaths(startTime, file, failedPaths);
             if (!newPaths.isEmpty()) {
                 help.append("\n  ").append(HELP_NEW_CHILDREN);
                 for (String newPath : newPaths) {
@@ -187,14 +187,15 @@ public class Deleter {
         return help.toString();
     }
 
-    private Collection<String> listNewPaths(long startTime, File directory) {
+    private Collection<String> listNewPaths(long startTime, File directory, Collection<String> failedPaths) {
         List<String> paths = new ArrayList<String>(MAX_REPORTED_PATHS);
         Deque<File> stack = new ArrayDeque<File>();
         stack.push(directory);
         while (!stack.isEmpty() && paths.size() < MAX_REPORTED_PATHS) {
             File current = stack.pop();
-            if (!current.equals(directory) && current.lastModified() >= startTime) {
-                paths.add(current.getAbsolutePath());
+            String absolutePath = current.getAbsolutePath();
+            if (!current.equals(directory) && !failedPaths.contains(absolutePath) && current.lastModified() >= startTime) {
+                paths.add(absolutePath);
             }
             if (current.isDirectory()) {
                 File[] children = current.listFiles();
