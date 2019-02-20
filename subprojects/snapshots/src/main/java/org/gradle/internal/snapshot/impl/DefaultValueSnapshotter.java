@@ -20,19 +20,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.provider.CollectionPropertyInternal;
-import org.gradle.api.internal.provider.DefaultMapProperty;
-import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.instantiation.Managed;
+import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.isolation.IsolationException;
@@ -150,27 +141,18 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         if (value instanceof Attribute) {
             return visitor.attributeValue((Attribute<?>) value);
         }
-        if (value instanceof Provider) {
-            Provider<?> provider = (Provider) value;
-            Object providerValue = provider.getOrNull();
-            T providerValueSnapshot = processValue(providerValue, visitor);
-            return visitor.provider(provider, providerValueSnapshot);
-        }
         if (value instanceof Managed) {
             Managed managed = (Managed) value;
             if (managed.immutable()) {
                 return visitor.managedImmutableValue(managed);
             } else {
-                // May be mutable - unpack the state
+                // May (or may not) be mutable - unpack the state
                 T state = processValue(managed.unpackState(), visitor);
                 return visitor.managedValue(managed, state);
             }
         }
         if (value instanceof Isolatable) {
             return visitor.fromIsolatable((Isolatable<?>) value);
-        }
-        if (value instanceof ConfigurableFileCollection) {
-            return visitor.fromFileCollection((ConfigurableFileCollection) value);
         }
 
         // Fall back to serialization
@@ -229,10 +211,6 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         T set(ImmutableSet<T> elements);
 
         T map(ImmutableList<Pair<T, T>> elements);
-
-        T provider(Provider<?> provider, T snapshot);
-
-        T fromFileCollection(ConfigurableFileCollection files);
 
         T serialized(Object value, byte[] serializedValue);
     }
@@ -301,22 +279,12 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public ValueSnapshot managedValue(Managed value, ValueSnapshot state) {
-            return new ManagedTypeSnapshot(value.publicType().getName(), state);
+            return new ManagedValueSnapshot(value.publicType().getName(), state);
         }
 
         @Override
         public ValueSnapshot fromIsolatable(Isolatable<?> value) {
             return value.asSnapshot();
-        }
-
-        @Override
-        public ValueSnapshot provider(Provider<?> provider, ValueSnapshot snapshot) {
-            return snapshot;
-        }
-
-        @Override
-        public ValueSnapshot fromFileCollection(ConfigurableFileCollection files) {
-            throw new UnsupportedOperationException("Not implemented");
         }
 
         @Override
@@ -419,7 +387,7 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
 
         @Override
         public Isolatable<?> managedValue(Managed value, Isolatable<?> state) {
-            return new IsolatedManagedTypeSnapshot(value.publicType(), value.managedFactory(), state);
+            return new IsolatedManagedValue(value.publicType(), value.managedFactory(), state);
         }
 
         @Override
@@ -430,29 +398,6 @@ public class DefaultValueSnapshotter implements ValueSnapshotter, IsolatableFact
         @Override
         public Isolatable<?> serialized(Object value, byte[] serializedValue) {
             return new IsolatedSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue, value.getClass());
-        }
-
-        @Override
-        public Isolatable<?> provider(Provider<?> provider, Isolatable<?> snapshot) {
-            if (provider instanceof Property) {
-                return new IsolatedProperty(((ProviderInternal<?>)provider).getType(), snapshot);
-            }
-            if (provider instanceof ListProperty) {
-                return new IsolatedListProperty(((CollectionPropertyInternal<?, ?>) provider).getElementType(), snapshot);
-            }
-            if (provider instanceof SetProperty) {
-                return new IsolatedSetProperty(((CollectionPropertyInternal<?, ?>) provider).getElementType(), snapshot);
-            }
-            if (provider instanceof MapProperty) {
-                DefaultMapProperty<?, ?> mapProperty = (DefaultMapProperty<?, ?>) provider;
-                return new IsolatedMapProperty(mapProperty.getKeyType(), mapProperty.getValueType(), snapshot);
-            }
-            return new IsolatedProvider(snapshot);
-        }
-
-        @Override
-        public Isolatable<?> fromFileCollection(ConfigurableFileCollection files) {
-            return new IsolatedFileCollection(files);
         }
 
         @Override

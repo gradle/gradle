@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.state.Managed;
 
 import java.io.File;
 
@@ -50,13 +51,41 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         return new DefaultRegularFileVar(fileResolver);
     }
 
-    static class FixedDirectory implements Directory {
+    static class FixedDirectory implements Directory, Managed {
         private final File value;
         final FileResolver fileResolver;
 
         FixedDirectory(File value, FileResolver fileResolver) {
             this.value = value;
             this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public boolean immutable() {
+            return true;
+        }
+
+        @Override
+        public Class<?> publicType() {
+            return Directory.class;
+        }
+
+        @Override
+        public Factory managedFactory() {
+            return new Factory() {
+                @Override
+                public <T> T fromState(Class<T> type, Object state) {
+                    if (!type.isAssignableFrom(Directory.class)) {
+                        return null;
+                    }
+                    return type.cast(new FixedDirectory((File) state, fileResolver));
+                }
+            };
+        }
+
+        @Override
+        public Object unpackState() {
+            return value;
         }
 
         @Override
@@ -113,11 +142,39 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class FixedFile implements RegularFile {
+    static class FixedFile implements RegularFile, Managed {
         private final File file;
 
         FixedFile(File file) {
             this.file = file;
+        }
+
+        @Override
+        public boolean immutable() {
+            return true;
+        }
+
+        @Override
+        public Class<?> publicType() {
+            return RegularFile.class;
+        }
+
+        @Override
+        public Factory managedFactory() {
+            return new Factory() {
+                @Override
+                public <T> T fromState(Class<T> type, Object state) {
+                    if (!type.isAssignableFrom(RegularFile.class)) {
+                        return null;
+                    }
+                    return type.cast(new FixedFile((File) state));
+                }
+            };
+        }
+
+        @Override
+        public Object unpackState() {
+            return file;
         }
 
         @Override
@@ -200,12 +257,30 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         public abstract void set(File file);
     }
 
-    static class DefaultRegularFileVar extends AbstractFileVar<RegularFile> implements RegularFileProperty {
+    static class DefaultRegularFileVar extends AbstractFileVar<RegularFile> implements RegularFileProperty, Managed {
         private final PathToFileResolver fileResolver;
 
         DefaultRegularFileVar(PathToFileResolver fileResolver) {
             super(RegularFile.class);
             this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public Class<?> publicType() {
+            return RegularFileProperty.class;
+        }
+
+        @Override
+        public Factory managedFactory() {
+            return new Factory() {
+                @Override
+                public <T> T fromState(Class<T> type, Object state) {
+                    if (!type.isAssignableFrom(RegularFileProperty.class)) {
+                        return null;
+                    }
+                    return type.cast(new DefaultRegularFileVar(fileResolver).value((RegularFile) state));
+                }
+            };
         }
 
         @Override
@@ -252,7 +327,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
     }
 
-    static class DefaultDirectoryVar extends AbstractFileVar<Directory> implements DirectoryProperty {
+    static class DefaultDirectoryVar extends AbstractFileVar<Directory> implements DirectoryProperty, Managed {
         private final FileResolver resolver;
 
         DefaultDirectoryVar(FileResolver resolver) {
@@ -264,6 +339,24 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
             super(Directory.class);
             this.resolver = resolver;
             resolveAndSet(value);
+        }
+
+        @Override
+        public Class<?> publicType() {
+            return DirectoryProperty.class;
+        }
+
+        @Override
+        public Factory managedFactory() {
+            return new Factory() {
+                @Override
+                public <T> T fromState(Class<T> type, Object state) {
+                    if (!type.isAssignableFrom(DirectoryProperty.class)) {
+                        return null;
+                    }
+                    return type.cast(new DefaultDirectoryVar(resolver).value((Directory) state));
+                }
+            };
         }
 
         @Override

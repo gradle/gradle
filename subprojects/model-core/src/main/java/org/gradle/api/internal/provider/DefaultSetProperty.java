@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -31,6 +32,27 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     @Override
     protected Set<T> fromValue(Collection<T> values) {
         return ImmutableSet.copyOf(values);
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return SetProperty.class;
+    }
+
+    @Override
+    public Factory managedFactory() {
+        return new Factory() {
+            @Nullable
+            @Override
+            public <S> S fromState(Class<S> type, Object state) {
+                if (!type.isAssignableFrom(SetProperty.class)) {
+                    return null;
+                }
+                DefaultSetProperty<T> property = new DefaultSetProperty<>(DefaultSetProperty.this.getElementType());
+                property.set((Set<T>) state);
+                return type.cast(property);
+            }
+        };
     }
 
     @Override

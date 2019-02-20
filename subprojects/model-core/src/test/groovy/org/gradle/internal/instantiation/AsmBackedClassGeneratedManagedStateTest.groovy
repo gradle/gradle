@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instantiation
 
+import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.ClassRule

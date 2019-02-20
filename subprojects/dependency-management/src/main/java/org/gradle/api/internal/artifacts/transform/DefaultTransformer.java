@@ -53,7 +53,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.instantiation.Managed;
+import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;

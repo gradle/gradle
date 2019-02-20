@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.instantiation.Managed;
+import org.gradle.internal.state.Managed;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
@@ -43,9 +43,6 @@ class IsolatedImmutableManagedValue extends AbstractIsolatableScalarValue<Manage
         if (type.isInstance(getValue())) {
             return type.cast(getValue());
         }
-        if (type.getName().equals(getValue().publicType().getName())) {
-            return type.cast(getValue().managedFactory().fromState(type, getValue().unpackState()));
-        }
-        return null;
+        return type.cast(getValue().managedFactory().fromState(type, getValue().unpackState()));
     }
 }

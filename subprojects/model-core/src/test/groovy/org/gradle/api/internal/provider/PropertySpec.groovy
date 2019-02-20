@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
+import org.gradle.internal.state.Managed
 
 import java.util.concurrent.Callable
 
@@ -821,6 +822,32 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
         then:
         property.get() == someValue()
+    }
+
+    def "can unpack state and recreate instance"() {
+        given:
+        def property = propertyWithNoValue()
+
+        expect:
+        property instanceof Managed
+        !property.immutable()
+        def state = property.unpackState()
+        def copy = property.managedFactory().fromState(property.publicType(), state)
+        !copy.is(property)
+        !copy.present
+        copy.getOrNull() == null
+
+        property.set(someValue())
+        copy.getOrNull() == null
+
+        def state2 = property.unpackState()
+        def copy2 = property.managedFactory().fromState(property.publicType(), state2)
+        !copy2.is(property)
+        copy2.get() == someValue()
+
+        property.set(someOtherValue())
+        copy.getOrNull() == null
+        copy2.get() == someValue()
     }
 
     static class Thing {}
