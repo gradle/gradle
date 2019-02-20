@@ -89,6 +89,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         spec.create();
     }
 
+    @Override
+    public void disableAutoTargetJvm() {
+        convention.disableAutoTargetJvm();
+    }
+
     private static String validateFeatureName(String name) {
         if (!VALID_FEATURE_NAME.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());

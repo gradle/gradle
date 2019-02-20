@@ -121,4 +121,53 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
 
         expected = "apiElementsJdk$selected"
     }
+
+    def "can disable automatic setting of target JVM attribute"() {
+        file("producer/build.gradle") << """
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_7
+            }
+        """
+        buildFile << """
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_6
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("""Unable to find a matching variant of project :producer:
+  - Variant 'apiElements' capability test:producer:unspecified:
+      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+  - Variant 'runtimeElements' capability test:producer:unspecified:
+      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
+
+        when:
+        buildFile << """
+            java {
+                disableAutoTargetJvm()
+            }
+        """
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                project(':producer', 'test:producer:') {
+                    variant("apiElements", [
+                            'org.gradle.dependency.bundling': 'external',
+                            'org.gradle.jvm.platform': '7',
+                            'org.gradle.usage':'java-api-jars'
+                    ])
+                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                }
+            }
+        }
+    }
 }
