@@ -77,7 +77,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
@@ -126,7 +125,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskContext.getExecutionTime() >> 1
         1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(cacheKey, task, outputFingerprints, 1) >> storeCommand
 
@@ -187,7 +185,6 @@ class SkipCachedTaskExecuterTest extends Specification {
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskContext.getExecutionTime() >> 1
         1 * cacheKey.getDisplayName() >> "cache key"
         1 * taskContext.getTaskExecutionMode() >> taskExecutionMode
         1 * buildCacheCommandFactory.createStore(*_)
