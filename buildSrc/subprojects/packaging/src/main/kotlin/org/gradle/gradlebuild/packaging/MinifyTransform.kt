@@ -17,30 +17,52 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.common.io.Files
-import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.AssociatedTransformAction
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
-import javax.inject.Inject
 
 
-open class MinifyTransform @Inject constructor(
-    private val keepClassesByArtifact: Map<String, Set<String>>
-) : ArtifactTransform() {
+@AssociatedTransformAction(MinifyTransformAction::class)
+interface MinifyTransform {
+    @get:Input
+    var keepClassesByArtifact: Map<String, Set<String>>
+}
 
-    override fun transform(artifact: File) =
-        keepClassesByArtifact.asSequence()
-            .firstOrNull { (key, _) -> artifact.name.startsWith(key) }
-            ?.value?.let { keepClasses -> listOf(minify(artifact, keepClasses)) }
-            ?: listOf(artifact)
+
+abstract class MinifyTransformAction : TransformAction {
+    @get:TransformParameters
+    abstract val parameters: MinifyTransform
+
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    @get:InputArtifact
+    abstract val artifact: File
+
+    override fun transform(outputs: TransformOutputs) {
+        for (entry in parameters.keepClassesByArtifact) {
+            if (artifact.name.startsWith(entry.key)) {
+                val nameWithoutExtension = Files.getNameWithoutExtension(artifact.path)
+                minify(artifact, entry.value, outputs.file("$nameWithoutExtension-min.jar"))
+                return
+            }
+        }
+        outputs.file(artifact)
+    }
 
     private
-    fun minify(artifact: File, keepClasses: Set<String>): File {
-        val jarFile = outputDirectory.resolve("${Files.getNameWithoutExtension(artifact.path)}-min.jar")
-        val classesDir = outputDirectory.resolve("classes")
-        val manifestFile = outputDirectory.resolve("MANIFEST.MF")
+    fun minify(artifact: File, keepClasses: Set<String>, jarFile: File): File {
+        val tempDirectory = java.nio.file.Files.createTempDirectory(jarFile.name).toFile()
+        val classesDir = tempDirectory.resolve("classes")
+        val manifestFile = tempDirectory.resolve("MANIFEST.MF")
         val classGraph = JarAnalyzer("", keepClasses, keepClasses, setOf()).analyze(artifact, classesDir, manifestFile)
 
         createJar(classGraph, classesDir, manifestFile, jarFile)

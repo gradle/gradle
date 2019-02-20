@@ -17,9 +17,14 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
-import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.AssociatedTransformAction
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import java.io.File
-import javax.inject.Inject
 
 
 private
@@ -38,19 +43,35 @@ private
 const val manifestFileName = "MANIFEST.MF"
 
 
-open class ShadeClassesTransform @Inject constructor(
-    private val shadowPackage: String,
-    private val keepPackages: Set<String>,
-    private val unshadedPackages: Set<String>,
-    private val ignorePackages: Set<String>
-) : ArtifactTransform() {
+@AssociatedTransformAction(ShadeClassesTransformAction::class)
+interface ShadeClassesTransform {
+    @get:Input
+    var shadowPackage: String
+    @get:Input
+    var keepPackages: Set<String>
+    @get:Input
+    var unshadedPackages: Set<String>
+    @get:Input
+    var ignoredPackages: Set<String>
+}
 
-    override fun transform(input: File): List<File> {
+
+abstract class ShadeClassesTransformAction : TransformAction {
+
+    @get:TransformParameters
+    abstract val parameters: ShadeClassesTransform
+
+    @get:Classpath
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        val outputDirectory = outputs.dir("shadedClasses")
         val classesDir = outputDirectory.resolve(relocatedClassesDirName)
         classesDir.mkdir()
         val manifestFile = outputDirectory.resolve(manifestFileName)
 
-        val classGraph = JarAnalyzer(shadowPackage, keepPackages, unshadedPackages, ignorePackages).analyze(input, classesDir, manifestFile)
+        val classGraph = JarAnalyzer(parameters.shadowPackage, parameters.keepPackages, parameters.unshadedPackages, parameters.ignoredPackages).analyze(input, classesDir, manifestFile)
 
         outputDirectory.resolve(classTreeFileName).bufferedWriter().use {
             Gson().toJson(classGraph.getDependencies(), it)
@@ -58,36 +79,48 @@ open class ShadeClassesTransform @Inject constructor(
         outputDirectory.resolve(entryPointsFileName).bufferedWriter().use {
             Gson().toJson(classGraph.entryPoints.map { it.outputClassFilename }, it)
         }
-
-        return listOf(outputDirectory)
     }
 }
 
 
-open class FindClassTrees : ArtifactTransform() {
-    override fun transform(input: File): List<File> {
-        return listOf(input.resolve(classTreeFileName))
+abstract class FindClassTrees : TransformAction {
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        outputs.file(input.resolve(classTreeFileName))
     }
 }
 
 
-open class FindEntryPoints : ArtifactTransform() {
-    override fun transform(input: File): List<File> {
-        return listOf(input.resolve(entryPointsFileName))
+abstract class FindEntryPoints : TransformAction {
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        outputs.file(input.resolve(entryPointsFileName))
     }
 }
 
 
-open class FindRelocatedClasses : ArtifactTransform() {
-    override fun transform(input: File): List<File> {
-        return listOf(input.resolve(relocatedClassesDirName))
+abstract class FindRelocatedClasses : TransformAction {
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        outputs.dir(input.resolve(relocatedClassesDirName))
     }
 }
 
 
-open class FindManifests : ArtifactTransform() {
-    override fun transform(input: File): List<File> {
+abstract class FindManifests : TransformAction {
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
         val manifest = input.resolve(manifestFileName)
-        return listOf(manifest).filter { it.exists() }
+        if (manifest.exists()) {
+            outputs.file(manifest)
+        }
     }
 }
