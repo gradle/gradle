@@ -4,7 +4,9 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[Stefan M.](https://github.com/StefMa), [Evgeny Mandrikov](https://github.com/Godin), [Simon Legner](https://github.com/simon04),  
+[Stefan M.](https://github.com/StefMa), 
+[Evgeny Mandrikov](https://github.com/Godin), 
+[Simon Legner](https://github.com/simon04),  
 [Raman Gupta](https://github.com/rocketraman),
 [Florian Dreier](https://github.com/DreierF),
 [Kenzie Togami](https://github.com/kenzierocks),
@@ -58,6 +60,10 @@ In this release, plugin authors can use the `ObjectFactory.fileCollection()` met
 ## Default JaCoCo version upgraded to 0.8.3
 
 [The JaCoCo plugin](userguide/jacoco_plugin.html) has been upgraded to use [JaCoCo version 0.8.3](http://www.jacoco.org/jacoco/trunk/doc/changes.html) instead of 0.8.2 by default.
+
+## Default Checkstyle version upgraded to 8.17
+
+[The Checkstyle plugin](userguide/checkstyle_plugin.html) has been upgraded to use [Checkstyle version 8.17](http://checkstyle.sourceforge.net/releasenotes.html#Release_8.17) by default.
 
 ## Better help message on delete operation failure
 
