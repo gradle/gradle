@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.java.TargetJavaPlatform;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
@@ -166,8 +166,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
                 String majorVersion = javaPluginConvention.getTargetCompatibility().getMajorVersion();
                 AttributeContainerInternal attributes = configuration.getAttributes();
                 // If nobody said anything about this variant's target platform, use whatever the convention says
-                if (!attributes.contains(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)) {
-                    attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
+                if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
+                    attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
                 }
             }
         });
