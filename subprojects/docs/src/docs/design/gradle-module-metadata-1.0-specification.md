@@ -87,10 +87,11 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 - `org.gradle.usage` indicates the purpose of the variant. See the `org.gradle.api.attributes.Usage` class for more details. Value must be a string.
 - `org.gradle.status` indicates the kind of release: one of `release` or `integration`.
 - `org.gradle.component.category` indicates the type of component (library or platform). This attribute is mostly used to disambiguate Maven POM files derived either as a platform or a library. Value must be a string.
+- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.Bundling` for more details. Value must be a string.
 
 #### Java Ecosystem specific attributes
 
-- `org.gradle.dependency.bundling` indicates how dependencies of the variant are bundled. Either externally, embedded or shadowed. See the `org.gradle.api.attributes.java.Bundling` for more details. Value must be a string.
+- `org.gradle.jvm.version` indicated the minimal target JVM version of a library. For example is built for java 8, its minimal target is `8`. If it's a multi-release jar for Java 9, 10 and 11, it's minimal target is `9`. Value must be an integer corresponding to the Java version.
 
 #### Native ecosystem specific attributes
 
