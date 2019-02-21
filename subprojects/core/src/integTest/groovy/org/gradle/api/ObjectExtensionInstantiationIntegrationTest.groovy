@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -147,23 +148,33 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasCause("Too many parameters provided for constructor for class Thing. Expected 2, received 3.")
     }
 
-    def "can create instance of interface with mutable property"() {
+    @Unroll
+    def "can create instance of interface with mutable property of type #type"() {
         buildFile << """
             interface Thing {
-                String getValue()
-                void setValue(String value)
+                ${type} getValue()
+                void setValue(${type} value)
             }
             
             extensions.create("thing", Thing)
-            assert thing.value == null
+            assert thing.value == ${defaultValue}
             thing {
-                value = "123"
+                value = ${newValue}
             }
-            assert thing.value == "123"
+            assert thing.value == ${newValue}
         """
 
         expect:
         succeeds()
+
+        where:
+        type           | defaultValue | newValue
+        "String"       | null         | "'123'"
+        "List<String>" | null         | "['a', 'b', 'c']"
+        "boolean"      | false        | true
+        "Boolean"      | null         | true
+        "int"          | 0            | 12
+        "Integer"      | null         | 12
     }
 
     def "can create instance of interface with read-only ConfigurableFileCollection property"() {

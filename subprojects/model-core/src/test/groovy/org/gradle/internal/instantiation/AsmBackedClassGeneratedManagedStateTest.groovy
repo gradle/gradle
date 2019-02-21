@@ -23,6 +23,7 @@ import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Unroll
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.Bean
@@ -123,6 +124,19 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         !copy2.is(bean)
         copy2.name == "name"
         copy2.numbers == [12] as Set
+    }
+
+    def canConstructInstanceOfInterfaceWithPrimitivePropertyGetterAndSetter() {
+        def bean = create(InterfacePrimitiveBean)
+
+        expect:
+        !bean.prop1
+        bean.setProp1(true)
+        bean.prop1
+
+        bean.prop2 == 0
+        bean.setProp2(12)
+        bean.prop2 == 12
     }
 
     def canConstructInstanceOfInterfaceWithFileCollectionGetter() {
