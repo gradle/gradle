@@ -29,7 +29,7 @@ public class FeaturePreviews {
         IMPROVED_POM_SUPPORT(false),
         GRADLE_METADATA(true),
         STABLE_PUBLISHING(false),
-        INCREMENTAL_ARTIFACT_TRANSFORMATIONS(true);
+        INCREMENTAL_ARTIFACT_TRANSFORMATIONS(false);
 
         public static Feature withName(String name) {
             try {

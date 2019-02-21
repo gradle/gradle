@@ -20,8 +20,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableIncrementalArtifactTransformations
-
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
@@ -34,7 +32,6 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
             include 'util'
             include 'app'
         """
-        enableIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """ 
             import java.nio.file.Files
