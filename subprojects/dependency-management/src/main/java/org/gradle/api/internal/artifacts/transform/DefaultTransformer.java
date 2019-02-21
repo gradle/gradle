@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -53,7 +54,6 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;
@@ -300,8 +300,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static String getParameterObjectDisplayName(Object parameterObject) {
-        Class<?> parameterClass = parameterObject instanceof Managed ? ((Managed) parameterObject).publicType() : parameterObject.getClass();
-        return ModelType.of(parameterClass).getDisplayName();
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
     private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {

@@ -20,4 +20,5 @@ package org.gradle.api.internal;
  * Marker interface for types that are runtime generated subclasses by {@link ClassGenerator}
  */
 public interface GeneratedSubclass {
+    Class<?> publicType();
 }
