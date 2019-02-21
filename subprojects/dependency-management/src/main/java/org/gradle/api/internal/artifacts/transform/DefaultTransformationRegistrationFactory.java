@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -96,8 +96,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransformAction.class);
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Class<? extends FileNormalizer> inputArtifactNormalizer = AbsolutePathInputNormalizer.class;
-        Class<? extends FileNormalizer> dependenciesNormalizer = AbsolutePathInputNormalizer.class;
+        Class<? extends FileNormalizer> inputArtifactNormalizer = null;
+        Class<? extends FileNormalizer> dependenciesNormalizer = null;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             if (propertyMetadata.getAnnotation(InputArtifact.class) != null) {
                 // Should ask the annotation handler to figure this out instead
@@ -122,8 +122,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             implementation,
             parameterObject,
             from,
-            inputArtifactNormalizer,
-            dependenciesNormalizer,
+            FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
+            FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
             cacheable,
             classLoaderHierarchyHasher,
             isolatableFactory,
@@ -174,7 +174,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private Class<? extends FileNormalizer> normalizer;
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             this.normalizer = fileNormalizer;
         }
     }

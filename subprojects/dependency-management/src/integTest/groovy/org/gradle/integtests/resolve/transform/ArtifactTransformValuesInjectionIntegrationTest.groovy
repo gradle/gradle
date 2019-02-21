@@ -122,7 +122,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 String getMissingInput()
                 void setMissingInput(String missing)
                 @InputFiles
-                ConfigurableFileCollection getInputFiles()
+                ConfigurableFileCollection getNoPathSensitivity()
+                @PathSensitive(PathSensitivity.ABSOLUTE)
+                @InputFiles
+                ConfigurableFileCollection getAbsolutePathSensitivity()
             }
             
             @CacheableTransformAction
@@ -145,7 +148,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
-        failure.assertHasCause("Property 'inputFiles' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
+        failure.assertHasCause("Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
+        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
     }
 
     @Unroll
@@ -283,8 +287,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 File notAnnotated 
 
                 @InputArtifact
-                abstract File getAbsolutePathSensitivity() 
+                abstract File getNoPathSensitivity() 
 
+                @PathSensitive(PathSensitivity.ABSOLUTE)
                 @InputArtifactDependencies
                 abstract File getAbsolutePathSensitivityDependencies() 
 
@@ -308,8 +313,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @InputArtifact, @InputArtifactDependencies.")
         failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
         failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
-        failure.assertHasCause("Property 'absolutePathSensitivity' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
-        failure.assertHasCause("Property 'absolutePathSensitivityDependencies' must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs.")
+        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
+        failure.assertHasCause("Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
     }
 
     @Unroll

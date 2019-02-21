@@ -138,9 +138,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         };
     }
 
-    public static void validateInputFileNormalizer(String propertyName, Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
-        if (cacheable && normalizer == AbsolutePathInputNormalizer.class) {
-            parameterValidationContext.recordValidationMessage(null, propertyName, "must not have absolute path sensitivity declared. Use a different normalization for cacheable transform inputs");
+    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
+        if (cacheable) {
+            if (normalizer == AbsolutePathInputNormalizer.class) {
+                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
+            }
+            if (normalizer == null) {
+                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
+            }
         }
     }
 
@@ -184,7 +189,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         if (parameterObject != null) {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     context.maybeAdd(value.call());
                 }
             });
@@ -268,9 +273,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             }
 
             @Override
-            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileNormalizer);
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(FileParameterUtils.normalizerOrDefault(fileNormalizer));
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
                 inputFileParameterFingerprintsBuilder.put(propertyName, fingerprint);

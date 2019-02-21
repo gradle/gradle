@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
+
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;
 
@@ -36,7 +38,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitInputFileProperty(propertyName, optional, skipWhenEmpty, fileNormalizer, value, filePropertyType);
         }
