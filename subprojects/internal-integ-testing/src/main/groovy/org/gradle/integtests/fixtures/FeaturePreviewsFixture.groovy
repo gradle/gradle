@@ -21,7 +21,7 @@ import org.gradle.api.internal.FeaturePreviews.Feature
 class FeaturePreviewsFixture {
 
     static def activeFeatures() {
-        EnumSet.of(Feature.GRADLE_METADATA, Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS)
+        EnumSet.of(Feature.GRADLE_METADATA)
     }
 
     static def inactiveFeatures() {
@@ -33,12 +33,6 @@ class FeaturePreviewsFixture {
     static void enableGradleMetadata(File settings) {
         settings << """
 enableFeaturePreview("GRADLE_METADATA")
-"""
-    }
-
-    static void enableIncrementalArtifactTransformations(File settings) {
-        settings << """
-enableFeaturePreview("INCREMENTAL_ARTIFACT_TRANSFORMATIONS")
 """
     }
 }
