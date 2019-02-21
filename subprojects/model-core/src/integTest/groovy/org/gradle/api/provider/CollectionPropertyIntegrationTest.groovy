@@ -40,6 +40,31 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    def "can define task with abstract ListProperty getter"() {
+        given:
+        buildFile << """
+            abstract class ATask extends DefaultTask {
+                @Input
+                abstract ListProperty<String> getProp()
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", ATask) {
+                prop = ["a", "b", "c"]
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = [a, b, c]")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << """
