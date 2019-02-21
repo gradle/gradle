@@ -261,8 +261,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
                                                     FileCollectionFactory fileCollectionFactory,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                                    ProjectFinder projectFinder,
-                                                    FeaturePreviews featurePreviews) {
+                                                    ProjectFinder projectFinder
+        ) {
             return new DefaultTransformerInvoker(
                 workExecutor,
                 fileSystemSnapshotter,
@@ -271,8 +271,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileCollectionFingerprinterRegistry,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
-                projectFinder,
-                featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS)
+                projectFinder
             );
         }
 
