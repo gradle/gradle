@@ -41,6 +41,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import testLibrary
+import java.lang.IllegalStateException
 import java.util.concurrent.Callable
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.jar.Attributes
@@ -235,7 +236,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Test.onlyRunPreviousFailedClassesIfNecessary() {
         if (project.stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
             val previousFailedClasses = getPreviousFailedTestClasses()
-            if (previousFailedClasses.isEmpty() || allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
+            if (allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
+                throw IllegalStateException("Too many failures (${allTestFailuresCount.get()}) in first run!")
+            } else if (previousFailedClasses.isEmpty()) {
                 enabled = false
             } else {
                 previousFailedClasses.forEach { filter.includeTestsMatching(it) }

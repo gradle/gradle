@@ -117,7 +117,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, getGradleStep("GRADLE_RERUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PrerunFailedTests=true", getGradleStep("GRADLE_RERUNNER").gradleParams)
+        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true", getGradleStep("GRADLE_RERUNNER").gradleParams)
         assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
         assertEquals("myTask", getGradleStep("GRADLE_RERUNNER").tasks)
     }
