@@ -643,6 +643,10 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
 
+| `@link:{javadocPath}/org/gradle/api/tasks/ReplacedBy.html[ReplacedBy]`
+| Any type
+| Indicates that the property has been replaced by another and should be ignored as an input or output.
+
 | [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.

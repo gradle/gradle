@@ -50,6 +50,7 @@ import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.ReplacedBy;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -87,6 +88,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
+    }
+
+    PropertyAnnotationHandler createReplacedByAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(ReplacedBy.class);
     }
 
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {

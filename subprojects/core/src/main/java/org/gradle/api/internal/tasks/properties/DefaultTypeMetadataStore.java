@@ -38,6 +38,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.ReplacedBy;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;

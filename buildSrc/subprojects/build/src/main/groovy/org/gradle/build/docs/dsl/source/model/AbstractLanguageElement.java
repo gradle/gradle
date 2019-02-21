@@ -26,6 +26,7 @@ import java.util.Objects;
 public abstract class AbstractLanguageElement implements LanguageElement, Serializable {
     private String rawCommentText;
     private final List<String> annotationNames = new ArrayList<String>();
+    private String replacement;
 
     protected AbstractLanguageElement() {
     }
@@ -56,6 +57,18 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
 
     public boolean isIncubating() {
         return annotationNames.contains("org.gradle.api.Incubating");
+    }
+
+    public boolean isReplaced() {
+        return annotationNames.contains("org.gradle.api.tasks.ReplacedBy");
+    }
+
+    public String getReplacement() {
+        return replacement;
+    }
+
+    public void setReplacement(String replacement) {
+        this.replacement = replacement;
     }
 
     public void resolveTypes(Transformer<String, String> transformer) {
