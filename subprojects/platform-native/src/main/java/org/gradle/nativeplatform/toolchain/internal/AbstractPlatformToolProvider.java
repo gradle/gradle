@@ -213,7 +213,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     protected Compiler<?> createSymbolExtractor() {
-        throw unavailableTool("Symbol extracter is not available");
+        throw unavailableTool("Symbol extractor is not available");
     }
 
     protected Compiler<?> createStripper() {
