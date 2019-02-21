@@ -2006,7 +2006,7 @@ project :some:deeply:nested
 project :some:deeply:nested
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.bundling = external (not requested)
+      org.gradle.dependency.bundling = external
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2221,7 +2221,7 @@ org:foo -> $selected
 
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
-         org.gradle.jvm.version        = ${JavaVersion.current().majorVersion}
+         org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
    Selection reasons:
       - By constraint : ${rejected}${reason}

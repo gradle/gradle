@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
-class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractIntegrationSpec {
+class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractIntegrationSpec {
     ResolveTestFixture resolve
 
     def setup() {
@@ -58,11 +58,11 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
         then:
         failure.assertHasCause('''Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
     }
@@ -140,11 +140,11 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
         then:
         failure.assertHasCause("""Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
 

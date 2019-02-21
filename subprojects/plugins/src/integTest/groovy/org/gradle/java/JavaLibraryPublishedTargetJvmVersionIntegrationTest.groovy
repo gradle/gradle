@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
 
-class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     ResolveTestFixture resolve
     MavenHttpModule module
 
@@ -90,20 +90,35 @@ class JavaLibraryPublishedTargetPlatformIntegrationTest extends AbstractHttpDepe
         then:
         failure.assertHasCause('''Unable to find a matching variant of org:producer:1.0:
   - Variant 'apiElementsJdk6' capability org:producer:1.0:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '5' and found incompatible value '6'.
       - Found org.gradle.status 'release' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk7' capability org:producer:1.0:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '5' and found incompatible value '7'.
       - Found org.gradle.status 'release' but wasn't required.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'apiElementsJdk9' capability org:producer:1.0:
-      - Found org.gradle.dependency.bundling 'external' but wasn't required.
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '5' and found incompatible value '9'.
       - Found org.gradle.status 'release' but wasn't required.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.''')
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+  - Variant 'runtimeElementsJdk6' capability org:producer:1.0:
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.jvm.version '5' and found incompatible value '6'.
+      - Found org.gradle.status 'release' but wasn't required.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+  - Variant 'runtimeElementsJdk7' capability org:producer:1.0:
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.jvm.version '5' and found incompatible value '7'.
+      - Found org.gradle.status 'release' but wasn't required.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+  - Variant 'runtimeElementsJdk9' capability org:producer:1.0:
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.jvm.version '5' and found incompatible value '9'.
+      - Found org.gradle.status 'release' but wasn't required.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
     }
 
     @Unroll

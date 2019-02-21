@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.java.Bundling
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
