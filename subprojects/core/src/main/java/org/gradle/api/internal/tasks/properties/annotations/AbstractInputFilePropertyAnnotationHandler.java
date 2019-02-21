@@ -21,9 +21,9 @@ import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.PropertyMetadata;
 
@@ -36,19 +36,12 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         PathSensitive pathSensitive = propertyMetadata.getAnnotation(PathSensitive.class);
-        final PathSensitivity pathSensitivity;
-        if (pathSensitive == null) {
-            // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
-            // https://guides.gradle.org/using-build-cache/#relocatability
-            pathSensitivity = PathSensitivity.ABSOLUTE;
-        } else {
-            pathSensitivity = pathSensitive.value();
-        }
+        Class<? extends FileNormalizer> fileNormalizer = pathSensitive == null ? null : FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitive.value());
         visitor.visitInputFileProperty(
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
-            FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitivity),
+            fileNormalizer,
             value,
             getFilePropertyType()
         );

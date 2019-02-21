@@ -1850,9 +1850,12 @@ project :impl
         outputContains """
 org:leaf4:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 org:leaf4:1.0
@@ -1884,9 +1887,12 @@ org:leaf4:1.0
         outputContains """
 org:leaf1:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 org:leaf1:1.0
@@ -1900,9 +1906,12 @@ org:leaf1:1.0
         outputContains """
 org:leaf2:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 org:leaf2:1.0
@@ -1958,7 +1967,7 @@ org:leaf2:1.0
 project :api
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.bundling = external (not requested)
+      org.gradle.dependency.bundling = external
    ]
 
 project :api
@@ -1974,7 +1983,7 @@ project :api
 project :some:deeply:nested
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.bundling = external (not requested)
+      org.gradle.dependency.bundling = external
    ]
 
 project :some:deeply:nested
@@ -1989,7 +1998,7 @@ project :some:deeply:nested
 project :some:deeply:nested
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
-      org.gradle.dependency.bundling = external (not requested)
+      org.gradle.dependency.bundling = external
    ]
 
 project :some:deeply:nested
@@ -2037,9 +2046,12 @@ project :some:deeply:nested
         outputContains """
 org:leaf3:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 org:leaf3:1.0
@@ -2137,9 +2149,12 @@ foo:foo:1.0
         then:
         outputContains """org:foo:$selected
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - By constraint : $rejected
@@ -2189,9 +2204,12 @@ org:foo -> $selected
         then:
         outputContains """org:foo:$selected
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - By constraint : ${rejected}${reason}
@@ -2238,9 +2256,12 @@ org:foo -> $selected
         then:
         outputContains """org:foo:$selected
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : ${rejected}${reason}
@@ -2284,9 +2305,12 @@ org:foo:${displayVersion} -> $selected
         then:
         outputContains """org:foo:1.3
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : didn't match versions 2.0, 1.5, 1.4
@@ -2336,9 +2360,12 @@ org:foo:[1.1,1.3] -> 1.3
         then:
         outputContains """org:bar:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
@@ -2348,9 +2375,12 @@ org:bar:{require [1.0,); reject [1.1, 1.2]} -> 1.0
 
 org:foo:1.1
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
@@ -2404,9 +2434,12 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         outputContains """Task :dependencyInsight
 org:bar:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Rejection : 1.2 by rule because version 1.2 is bad
@@ -2417,9 +2450,12 @@ org:bar:[1.0,) -> 1.0
 
 org:foo:1.1
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : rejected version 1.2
@@ -2458,9 +2494,12 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
         outputContains """
 org:leaf:1.0 (by constraint)
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 org:leaf:1.0
@@ -2507,9 +2546,12 @@ org:leaf -> 1.0
         outputContains """
 org.test:leaf:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : first reason
@@ -2685,9 +2727,12 @@ org:foo:[1.0,) FAILED
         outputContains """
 org:foo:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : rejected versions 1.2, 1.1
@@ -2738,9 +2783,12 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
         then:
         outputContains """org.test:leaf:1.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Was requested : first reason
@@ -2799,17 +2847,22 @@ org.test:leaf:1.0
         outputContains """Task :dependencyInsight
 org:foo:1.0
    variant "compile" [
-      color                         = blue
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      color                          = blue
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - Rejection : version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
+          - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
       - Rejection : version 1.1:
           - Attribute 'color' didn't match. Requested 'blue', was: 'green'
+          - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.usage' didn't match. Requested 'java-api', was: not found
 
 org:foo:[1.0,) -> 1.0
@@ -2867,9 +2920,12 @@ org:foo:[1.0,) -> 1.0
         outputContains """> Task :dependencyInsight
 planet:mercury:1.0.2
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - By conflict resolution : between versions 1.0.2 and 1.0.1
@@ -2894,9 +2950,12 @@ planet:mercury:1.0.1 -> 1.0.2
         outputContains """> Task :dependencyInsight
 planet:venus:2.0.1
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
    Selection reasons:
       - By conflict resolution : between versions 2.0.0, 2.0.1 and 1.0
@@ -2921,9 +2980,12 @@ planet:venus:2.0.0 -> 2.0.1
         outputContains """> Task :dependencyInsight
 planet:pluto:1.0.0
    variant "compile" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-api
-      org.gradle.component.category = library (not requested)
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.component.category  = library (not requested)
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
    ]
 
 planet:pluto:1.0.0

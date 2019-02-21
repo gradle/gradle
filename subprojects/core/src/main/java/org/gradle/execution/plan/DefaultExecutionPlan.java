@@ -648,7 +648,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     }
 
                     @Override
-                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                    public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                         mutations.hasFileInputs = true;
                     }
                 });

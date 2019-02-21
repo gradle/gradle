@@ -53,6 +53,11 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public boolean isCacheable() {
+        return false;
+    }
+
+    @Override
     public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);

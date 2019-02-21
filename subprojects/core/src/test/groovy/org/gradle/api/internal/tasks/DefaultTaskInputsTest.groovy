@@ -35,6 +35,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import javax.annotation.Nullable
 import java.util.concurrent.Callable
 
 class DefaultTaskInputsTest extends Specification {
@@ -297,7 +298,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -326,7 +327,7 @@ class DefaultTaskInputsTest extends Specification {
         def inputFiles = [:]
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 inputFiles[propertyName] = value.call()
             }
         })

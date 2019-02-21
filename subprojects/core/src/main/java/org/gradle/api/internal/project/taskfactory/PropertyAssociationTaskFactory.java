@@ -28,6 +28,8 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.annotation.Nullable;
+
 public class PropertyAssociationTaskFactory implements ITaskFactory {
     private final ITaskFactory delegate;
     private final PropertyWalker propertyWalker;
@@ -62,7 +64,7 @@ public class PropertyAssociationTaskFactory implements ITaskFactory {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             throw new UnsupportedOperationException();
         }
 

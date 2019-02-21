@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.bundling
 
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.java.Bundling
+import org.gradle.api.attributes.Bundling
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures

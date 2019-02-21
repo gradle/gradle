@@ -26,7 +26,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.Bundling;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.model.ObjectFactory;
 

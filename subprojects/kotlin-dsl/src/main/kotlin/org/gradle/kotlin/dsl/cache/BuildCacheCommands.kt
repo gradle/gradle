@@ -72,8 +72,8 @@ class LoadDirectory(
 
             override fun getMetadata() = metadata.run {
                 when (buildInvocationId) {
-                    currentBuildInvocationId -> OriginMetadata.fromCurrentBuild(buildInvocationId, executionTimeMillis)
-                    else -> OriginMetadata.fromPreviousBuild(buildInvocationId, executionTimeMillis)
+                    currentBuildInvocationId -> OriginMetadata(buildInvocationId, executionTimeMillis)
+                    else -> OriginMetadata(buildInvocationId, executionTimeMillis)
                 }
             }
 

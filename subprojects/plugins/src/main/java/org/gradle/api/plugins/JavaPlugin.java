@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.Bundling;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -61,8 +61,8 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
-import static org.gradle.api.attributes.java.Bundling.EXTERNAL;
-import static org.gradle.api.attributes.java.Bundling.BUNDLING_ATTRIBUTE;
+import static org.gradle.api.attributes.Bundling.EXTERNAL;
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>

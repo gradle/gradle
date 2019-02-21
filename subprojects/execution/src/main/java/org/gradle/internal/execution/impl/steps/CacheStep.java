@@ -56,6 +56,9 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
 
     @Override
     public CurrentSnapshotResult execute(C context) {
+        if (!buildCache.isEnabled()) {
+            return executeWithoutCache(context);
+        }
         return context.getCacheHandler()
             .load(cacheKey -> load(context.getWork(), cacheKey))
             .map(loadResult -> (CurrentSnapshotResult) new CurrentSnapshotResult() {

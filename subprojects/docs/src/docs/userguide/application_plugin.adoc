@@ -150,6 +150,11 @@ include::sample[dir="application/groovy",files="build.gradle[tags=executableDir-
 include::sample[dir="application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
 ====
 
+[[sec:application_licensing]]
+== Licensing
+
+The Gradle start scripts that are bundled with your application are licensed under the https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0 Software License]. This does not affect your application, which you can license as you choose.
+
 [[sec:application_convention_properties]]
 == Convention properties (deprecated)
 
