@@ -18,7 +18,7 @@ package org.gradle.test.fixtures.maven
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.java.Bundling
-import org.gradle.api.attributes.java.TargetJavaPlatform
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
@@ -29,7 +29,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     MavenJavaModule(MavenFileModule mavenModule) {
         super(mavenModule)
         this.mavenModule = mavenModule
-        this.mavenModule.attributes[TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE.name] = JavaVersion.current().majorVersion
+        this.mavenModule.attributes[TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name] = JavaVersion.current().majorVersion
     }
 
     @Override
@@ -61,9 +61,9 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
         // Verify it contains some expected attributes
         assert apiElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
-        assert apiElements.attributes.containsKey(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE.name)
+        assert apiElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
         assert runtimeElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
-        assert runtimeElements.attributes.containsKey(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE.name)
+        assert runtimeElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == null

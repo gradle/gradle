@@ -180,5 +180,5 @@ public abstract class JavaPluginConvention {
      * @since 5.3
      */
     @Incubating
-    public abstract boolean isAutoTargetJvmDisabled();
+    public abstract boolean getAutoTargetJvmDisabled();
 }

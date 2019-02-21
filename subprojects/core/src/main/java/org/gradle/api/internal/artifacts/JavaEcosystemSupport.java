@@ -30,7 +30,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.java.TargetJavaPlatform;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -49,13 +49,13 @@ public abstract class JavaEcosystemSupport {
         String majorVersion = version.getMajorVersion();
         AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
         // If nobody said anything about this variant's target platform, use whatever the convention says
-        if (!attributes.contains(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)) {
-            attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, Integer.valueOf(majorVersion));
+        if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
         }
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE);
+        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
         targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.<Integer>natural());
     }

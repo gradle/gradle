@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.attributes.java.TargetJavaPlatform
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.attributes.CompatibilityCheckResult
 import org.gradle.api.internal.attributes.CompatibilityRule
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -29,15 +29,15 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class TargetJavaPlatformRulesTest extends Specification {
+class TargetJvmVersionRulesTest extends Specification {
     private CompatibilityRule<Object> compatibilityRules
     private DisambiguationRule<Object> disambiguationRules
 
     def setup() {
         AttributesSchema schema = new DefaultAttributesSchema(Stub(ComponentAttributeMatcher), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
-        compatibilityRules = schema.compatibilityRules(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)
-        disambiguationRules = schema.disambiguationRules(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE)
+        compatibilityRules = schema.compatibilityRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+        disambiguationRules = schema.disambiguationRules(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
     }
 
     @Unroll("compatibility consumer=#consumer producer=#producer compatible=#compatible")

@@ -305,7 +305,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         return new Action<ConfigurationInternal>() {
             @Override
             public void execute(ConfigurationInternal conf) {
-                if (!convention.isAutoTargetJvmDisabled()) {
+                if (!convention.getAutoTargetJvmDisabled()) {
                     JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
                 }
             }

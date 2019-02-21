@@ -188,7 +188,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     }
 
     @Override
-    public boolean isAutoTargetJvmDisabled() {
+    public boolean getAutoTargetJvmDisabled() {
         return !autoTargetJvm;
     }
 }

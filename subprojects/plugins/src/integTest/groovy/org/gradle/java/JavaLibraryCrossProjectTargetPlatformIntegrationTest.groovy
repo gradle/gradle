@@ -49,7 +49,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
             }
         """
         buildFile << """
-            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, 6)
+            configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 6)
         """
 
         when:
@@ -59,11 +59,11 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
         failure.assertHasCause('''Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
     }
 
@@ -71,7 +71,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
         file('producer/build.gradle') << """
             // avoid test noise so that typically version 8 is not selected when running on JDK 8
-            configurations.apiElements.attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, 1000)
+            configurations.apiElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
             
             [6, 7, 9].each { v ->
                 configurations {
@@ -81,7 +81,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
                         attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api-jars'))
                             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, 'external'))
-                            attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, v)
+                            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, v)
                         }
                     }
                 }
@@ -91,7 +91,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
             }
         """
         buildFile << """
-            configurations.compileClasspath.attributes.attribute(TargetJavaPlatform.TARGET_PLATFORM_ATTRIBUTE, $requested)
+            configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, $requested)
         """
 
         when:
@@ -103,7 +103,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
                 project(':producer', 'test:producer:') {
                     variant(expected, [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.platform': selected,
+                            'org.gradle.jvm.version': selected,
                             'org.gradle.usage':'java-api-jars'
                     ])
                     artifact(classifier: "jdk${selected}")
@@ -141,11 +141,11 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
         failure.assertHasCause("""Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Found org.gradle.dependency.bundling 'external' but wasn't required.
-      - Required org.gradle.jvm.platform '6' and found incompatible value '7'.
+      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
 
         when:
@@ -162,7 +162,7 @@ class JavaLibraryCrossProjectTargetPlatformIntegrationTest extends AbstractInteg
                 project(':producer', 'test:producer:') {
                     variant("apiElements", [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.platform': '7',
+                            'org.gradle.jvm.version': '7',
                             'org.gradle.usage':'java-api-jars'
                     ])
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
