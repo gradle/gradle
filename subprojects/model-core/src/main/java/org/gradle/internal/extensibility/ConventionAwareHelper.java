@@ -28,14 +28,12 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.reflect.ClassInspector;
-import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -45,15 +43,13 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
     private final IConventionAware _source;
-    private final Set<String> _propertyNames;
-    private final Map<String, Boolean> _propertyNamesAsProviderMapping;
+    private final Map<String, Boolean> _propertyNames;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
-        this._propertyNamesAsProviderMapping = ClassInspector.inspect(source.getClass()).getProperties().stream().collect(Collectors.toMap(it -> it.getName(), it -> isProviderType(it.getGetters())));
-        this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
+        this._propertyNames = ClassInspector.inspect(source.getClass()).getProperties().stream().collect(Collectors.toMap(it -> it.getName(), it -> isProviderType(it.getGetters())));
     }
 
     private static boolean isProviderType(List<Method> getters) {
@@ -65,10 +61,10 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
-        if (_propertyNamesAsProviderMapping.getOrDefault(propertyName, false)) {
+        if (_propertyNames.getOrDefault(propertyName, false)) {
             throw new InvalidUserDataException("Using convention mapping with Property type is not supported. Use Property#set(...) instead.");
         }
-        if (!_propertyNames.contains(propertyName)) {
+        if (!_propertyNames.containsKey(propertyName)) {
             throw new InvalidUserDataException(
                 "You can't map a property that does not exist: propertyName=" + propertyName);
         }
