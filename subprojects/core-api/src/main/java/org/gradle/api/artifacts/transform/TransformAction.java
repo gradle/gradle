@@ -31,10 +31,13 @@ import org.gradle.api.Incubating;
  *
  * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.
  *
+ * @param <T> Parameter type for the transform action. Should be {@link Void} if the action does not have parameters.
  * @since 5.3
  */
+@SuppressWarnings("unused")
 @Incubating
-public interface TransformAction {
+public interface TransformAction<T> {
+
     /**
      * Executes the transform.
      *

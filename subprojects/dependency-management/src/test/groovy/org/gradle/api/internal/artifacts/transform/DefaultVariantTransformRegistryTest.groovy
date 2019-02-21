@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+
 import org.gradle.api.artifacts.transform.ArtifactTransform
-import org.gradle.api.artifacts.transform.AssociatedTransformAction
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
@@ -38,7 +38,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.inject.Inject
 
@@ -127,7 +126,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "creates registration with annotated parameters object"() {
         when:
-        registry.registerTransform(TestTransform) {
+        registry.registerTransformAction(TestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -141,9 +140,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.transformationStep.transformer.parameterObject instanceof TestTransform
     }
 
-    def "creates registration with with action"() {
+    def "creates registration for parametereless action"() {
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(ParameterlessTestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -153,15 +152,44 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestTransformAction
+        registration.transformationStep.transformer.implementationClass == ParameterlessTestTransformAction
         registration.transformationStep.transformer.parameterObject == null
+    }
+
+    def "cannot configure parameters for parameterless action"() {
+        when:
+        registry.registerTransformAction(ParameterlessTestTransformAction) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.parameters {
+            }
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Cannot configure parameters for parameterless artifact transform.'
+        e.cause == null
+    }
+
+    def "cannot query parameters object for parameterless action"() {
+        when:
+        registry.registerTransformAction(ParameterlessTestTransformAction) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+            it.parameters
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Cannot query parameters for parameterless artifact transform.'
+        e.cause == null
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
         def registration
 
         when:
-        registry.registerTransform(TestTransform) {
+        registry.registerTransformAction(TestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             registration = it
@@ -237,10 +265,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    @Unroll
-    def "fails when no from attributes are provided for #method"() {
+    def "fails when no from attributes are provided for registerTransformAction"() {
         when:
-        registry."$method"(argument) {
+        registry.registerTransformAction(TestTransformAction) {
             it.to.attribute(TEST_ATTRIBUTE, "to")
         }
 
@@ -248,11 +275,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def e = thrown(VariantTransformConfigurationException)
         e.message == "Could not register transform: at least one 'from' attribute must be provided."
         e.cause == null
-
-        where:
-        method                    | argument
-        "registerTransform"       | TestTransform
-        "registerTransformAction" | TestTransformAction
     }
 
     def "fails when no to attributes are provided for legacy registration"() {
@@ -268,10 +290,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    @Unroll
-    def "fails when no to attributes are provided for #method"() {
+    def "fails when no to attributes are provided for registerTransformAction"() {
         when:
-        registry."${method}"(argument) {
+        registry.registerTransformAction(TestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
         }
 
@@ -279,11 +300,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def e = thrown(VariantTransformConfigurationException)
         e.message == "Could not register transform: at least one 'to' attribute must be provided."
         e.cause == null
-
-        where:
-        method                    | argument
-        "registerTransform"       | TestTransform
-        "registerTransformAction" | TestTransformAction
     }
 
     def "fails when to attributes are not a subset of from attributes for legacy registration"() {
@@ -302,10 +318,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    @Unroll
-    def "fails when to attributes are not a subset of from attributes for #method"() {
+    def "fails when to attributes are not a subset of from attributes for registerTransformAction"() {
         when:
-        registry."$method"(argument) {
+        registry.registerTransformAction(TestTransformAction) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.from.attribute(Attribute.of("from2", String), "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
@@ -316,14 +331,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def e = thrown(VariantTransformConfigurationException)
         e.message == "Could not register transform: each 'to' attribute must be included as a 'from' attribute."
         e.cause == null
-
-        where:
-        method                    | argument
-        "registerTransform"       | TestTransform
-        "registerTransformAction" | TestTransformAction
     }
 
-    @AssociatedTransformAction(TestTransformAction)
     static class TestTransform {
         String value
     }
@@ -339,7 +348,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static class TestTransformAction implements TransformAction {
+    static class TestTransformAction implements TransformAction<TestTransform> {
+        @Override
+        void transform(TransformOutputs outputs) {
+        }
+    }
+
+    static class ParameterlessTestTransformAction implements TransformAction<Void> {
         @Override
         void transform(TransformOutputs outputs) {
         }

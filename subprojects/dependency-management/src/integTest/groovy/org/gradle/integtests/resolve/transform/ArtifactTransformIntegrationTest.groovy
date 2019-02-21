@@ -803,7 +803,7 @@ $fileSizer
                 }
             }
             
-            abstract class IdentityTransform implements TransformAction {
+            abstract class IdentityTransform implements TransformAction<Void> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -1553,7 +1553,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class FailingTransformAction implements TransformAction {
+            class FailingTransformAction implements TransformAction<Void> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1623,7 +1623,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class DirectoryTransformAction implements TransformAction {
+            class DirectoryTransformAction implements TransformAction<Void> {
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
@@ -1661,7 +1661,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class MyTransformAction implements TransformAction {
+            abstract class MyTransformAction implements TransformAction<Void> {
                 @InputArtifact
                 abstract File getInput() 
 
@@ -1739,7 +1739,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            class SomewhereElseTransform implements TransformAction {
+            class SomewhereElseTransform implements TransformAction<Void> {
                 static def output
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)
@@ -1947,19 +1947,18 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            @AssociatedTransformAction(CustomAction)
             interface Custom {
                 @Input
                 CustomType getInput()
                 void setInput(CustomType input)
             }
               
-            class CustomAction implements TransformAction { 
+            class CustomAction implements TransformAction<Custom> { 
                 void transform(TransformOutputs outputs) {  }
             }
             
             dependencies {
-                registerTransform(Custom) {
+                registerTransformAction(CustomAction) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                     parameters {

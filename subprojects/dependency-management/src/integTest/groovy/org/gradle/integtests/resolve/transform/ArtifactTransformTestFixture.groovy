@@ -180,7 +180,7 @@ allprojects {
         buildFile << """
 allprojects { p ->
     dependencies {
-        registerTransform(MakeGreen) {
+        registerTransformAction(MakeGreenAction) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
             parameters {

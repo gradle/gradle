@@ -85,14 +85,13 @@ class Resolve extends Copy {
 
         given:
         buildFile << """
-            @AssociatedTransformAction(CountRecorderAction)
             interface CountRecorder {
                 @Input
                 Counter getCounter()
                 void setCounter(Counter counter)
             }
 
-            abstract class CountRecorderAction implements TransformAction {
+            abstract class CountRecorderAction implements TransformAction<CountRecorder> {
                 private final Counter counter;
                             
                 @TransformParameters
@@ -135,7 +134,7 @@ class Resolve extends Copy {
             }
             
             dependencies {
-                registerTransform(CountRecorder) {
+                registerTransformAction(CountRecorderAction) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'firstCount')
                     parameters {
@@ -143,14 +142,14 @@ class Resolve extends Copy {
                     }
                 }
                 buildScriptCounter.increment()
-                registerTransform(CountRecorder) {
+                registerTransformAction(CountRecorderAction) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
                     parameters {
                         counter = buildScriptCounter
                     }
                 }
-                registerTransform(CountRecorder) {
+                registerTransformAction(CountRecorderAction) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'thirdCount')
                     parameters {

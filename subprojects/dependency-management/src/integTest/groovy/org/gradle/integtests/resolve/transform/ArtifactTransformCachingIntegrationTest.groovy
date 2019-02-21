@@ -1480,13 +1480,12 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
 
     String registerFileSizerWithParameterObject(String fileValue) {
         """                 
-            @AssociatedTransformAction(FileSizerAction)
             interface FileSizer {
                 @Input
                 Number getValue()
                 void setValue(Number value)
             }
-            abstract class FileSizerAction implements TransformAction {
+            abstract class FileSizerAction implements TransformAction<FileSizer> {
                 @TransformParameters
                 abstract FileSizer getParameters()
 
@@ -1500,7 +1499,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
     
             allprojects {
                 dependencies {
-                    registerTransform(FileSizer) {
+                    registerTransformAction(FileSizerAction) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         parameters {
@@ -1571,7 +1570,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         """
             allprojects {
                 dependencies {
-                    registerTransform${useParameterObject ? "(FileSizer)" : ""} {
+                    registerTransform${useParameterObject ? "Action(FileSizerAction)" : ""} {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         ${useParameterObject ? "parameters { value = paramValue }" : "artifactTransform(FileSizer) { params(paramValue) }"}

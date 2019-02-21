@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
@@ -220,7 +219,7 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     }
 
     @Override
-    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction) {
+    public <T> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
         transforms.registerTransformAction(actionType, registrationAction);
     }
 

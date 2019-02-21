@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
@@ -40,6 +41,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 
@@ -87,11 +89,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction) {
-        ActionRegistration registration = instantiatorFactory.decorateLenient().newInstance(ActionRegistration.class, immutableAttributesFactory);
+    public <T> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(actionType).getSupertype(TransformAction.class).getType();
+        Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        T parameterObject = (Object.class.equals(parameterType) || Void.class.isAssignableFrom(parameterType)) ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
+        TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 
-        register(registration, actionType, null);
+        register(registration, actionType, parameterObject);
     }
 
     private <T> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
@@ -185,31 +190,31 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         private final T parameterObject;
         Class<? extends TransformAction> actionType;
 
-        public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
+        public TypedRegistration(@Nullable T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
             this.parameterObject = parameterObject;
-            AssociatedTransformAction associatedTransformAction = parameterObject.getClass().getAnnotation(AssociatedTransformAction.class);
-            if (associatedTransformAction != null) {
-                actionType = associatedTransformAction.value();
+            if (parameterObject != null) {
+                AssociatedTransformAction associatedTransformAction = parameterObject.getClass().getAnnotation(AssociatedTransformAction.class);
+                if (associatedTransformAction != null) {
+                    actionType = associatedTransformAction.value();
+                }
             }
         }
 
         @Override
         public T getParameters() {
+            if (parameterObject == null) {
+                throw new VariantTransformConfigurationException("Cannot query parameters for parameterless artifact transform.");
+            }
             return parameterObject;
         }
 
         @Override
         public void parameters(Action<? super T> action) {
+            if (parameterObject == null) {
+                throw new VariantTransformConfigurationException("Cannot configure parameters for parameterless artifact transform.");
+            }
             action.execute(parameterObject);
-        }
-    }
-
-    @NonExtensible
-    public static class ActionRegistration extends RecordingRegistration {
-
-        public ActionRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
-            super(immutableAttributesFactory);
         }
     }
 }
