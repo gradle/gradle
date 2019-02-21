@@ -52,6 +52,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -84,6 +85,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final FileSystem fileSystem;
+    private final Clock clock;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
@@ -102,7 +104,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       FileHasher fileHasher,
                                       ExecFactory execFactory,
                                       FileCollectionFactory fileCollectionFactory,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler) {
+                                      AutoAppliedPluginHandler autoAppliedPluginHandler,
+                                      Clock clock) {
 
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
@@ -121,6 +124,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
+        this.clock = clock;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
@@ -173,6 +177,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
             services.add(FileCollectionFactory.class, fileCollectionFactory);
+            services.add(Clock.class, clock);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
