@@ -290,7 +290,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         from        | to                | result
         "org:test"  | ":foo"            | true
         ":bar"      | "org:test:1.0"    | true
-        "org:test"  | "org:foo:1.0"     | true
+        "org:test"  | "org:foo:1.0"     | false
     }
 
     ComponentSelector createComponent(String componentNotation) {
