@@ -125,7 +125,7 @@ class Jdk7SymlinkTest extends Specification {
         return tempDir.listFiles(new FileFilter() {
             @Override
             boolean accept(File pathname) {
-                return pathname.name.startsWith("symlink") && (pathname.name.endsWith("test") || pathname.name.endsWith("test_link"))
+                return pathname.name.startsWith("symlink") && (pathname.name.endsWith("test") || pathname.name.endsWith("test_link")) && pathname.canWrite()
             }
         })
     }
