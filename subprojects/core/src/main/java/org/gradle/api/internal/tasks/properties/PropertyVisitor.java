@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
+
 /**
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
@@ -33,7 +35,7 @@ public interface PropertyVisitor {
      */
     boolean visitOutputFilePropertiesOnly();
 
-    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
+    void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
     void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
 
@@ -50,7 +52,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
         @Override

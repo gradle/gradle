@@ -71,13 +71,6 @@ public interface TaskExecutionContext {
      */
     long markExecutionTime();
 
-    /**
-     * The previously marked execution time.
-     *
-     * Throws if the execution time was not previously marked.
-     */
-    long getExecutionTime();
-
     @Nullable
     List<String> getUpToDateMessages();
 

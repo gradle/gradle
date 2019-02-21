@@ -18,11 +18,12 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
-class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
+class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, DirectoryBuildCacheFixture {
     def "transform does not execute when project artifact cannot be built"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
@@ -941,6 +942,68 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         where:
         annotation << ["Classpath", "CompileClasspath"]
+    }
+
+    def "result is loaded from the build cache"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction {
+            produceJars()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @CacheableTransformAction
+            abstract class MakeGreen implements TransformAction {
+                @InputArtifact @Classpath
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().succeeds(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        transformed("b.jar", "c.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbTimestamp=5678")
+        succeeds(":a:resolve")
+
+        then: // timestamp change without build cache
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbTimestamp=7890")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // timestamp change, pulled from cache
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbTimestamp=7890")
+        succeeds(":a:resolve")
+
+        then: // no change, up-to-date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
     }
 
     void transformed(String... expected) {

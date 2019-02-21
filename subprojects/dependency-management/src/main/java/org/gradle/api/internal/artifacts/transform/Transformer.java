@@ -41,6 +41,11 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean requiresDependencies();
 
+    /**
+     * Whether the transformer is cacheable.
+     */
+    boolean isCacheable();
+
     ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies);
 
     /**

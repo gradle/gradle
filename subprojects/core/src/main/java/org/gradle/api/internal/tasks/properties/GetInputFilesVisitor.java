@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
@@ -39,11 +40,11 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     }
 
     @Override
-    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+    public void visitInputFileProperty(final String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
-            fileNormalizer,
+            FileParameterUtils.normalizerOrDefault(fileNormalizer),
             new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
             skipWhenEmpty));
         if (skipWhenEmpty) {

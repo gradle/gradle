@@ -37,6 +37,7 @@ import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.util.DeferredUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
@@ -59,6 +60,12 @@ public class FileParameterUtils {
             default:
                 throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
         }
+    }
+
+    public static Class<? extends FileNormalizer> normalizerOrDefault(@Nullable Class<? extends FileNormalizer> fileNormalizer) {
+        // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
+        // https://guides.gradle.org/using-build-cache/#relocatability
+        return fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer;
     }
 
     /**

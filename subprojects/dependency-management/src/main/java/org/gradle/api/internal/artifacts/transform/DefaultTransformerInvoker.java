@@ -56,6 +56,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Timer;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -66,6 +68,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -207,6 +210,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final FileCollectionFingerprinter outputFingerprinter;
+        private final Timer executionTimer;
 
         public TransformerExecution(
             Transformer transformer,
@@ -235,6 +239,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             );
             this.inputFileFingerprints = createInputFileFingerprints(inputArtifactFingerprint, dependenciesFingerprint);
             this.outputFingerprinter = outputFingerprinter;
+            this.executionTimer = Time.startTimer();
         }
 
         private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> createInputFileFingerprints(
@@ -318,8 +323,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public long markExecutionTime() {
-            // TODO Handle execution time
-            return 0;
+            return executionTimer.getElapsedMillis();
         }
 
         @Override
@@ -332,14 +336,30 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public CacheHandler createCacheHandler() {
+            Hasher hasher = Hashing.newHasher();
+            for (Map.Entry<String, ValueSnapshot> entry : inputSnapshots.entrySet()) {
+                hasher.putString(entry.getKey());
+                entry.getValue().appendToHasher(hasher);
+            }
+            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileFingerprints.entrySet()) {
+                hasher.putString(entry.getKey());
+                hasher.putHash(entry.getValue().getHash());
+            }
+            TransformerExecutionBuildCacheKey cacheKey = new TransformerExecutionBuildCacheKey(hasher.hash());
             return new CacheHandler() {
                 @Override
                 public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
-                    return Optional.empty();
+                    if (!transformer.isCacheable()) {
+                        return Optional.empty();
+                    }
+                    return Optional.ofNullable(loader.apply(cacheKey));
                 }
 
                 @Override
                 public void store(Consumer<BuildCacheKey> storer) {
+                    if (transformer.isCacheable()) {
+                        storer.accept(cacheKey);
+                    }
                 }
             };
         }
@@ -396,7 +416,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            throw new UnsupportedOperationException("we don't cache yet");
+            visitor.visitOutputTree(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, workspace.getOutputDirectory());
+            visitor.visitOutputTree(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, workspace.getResultsFile());
         }
 
         @Override
@@ -433,6 +454,24 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             @Override
             public AfterPreviousExecutionState getPreviousExecution() {
                 return afterPreviousExecutionState;
+            }
+        }
+
+        private class TransformerExecutionBuildCacheKey implements BuildCacheKey {
+            private final HashCode hashCode;
+
+            public TransformerExecutionBuildCacheKey(HashCode hashCode) {
+                this.hashCode = hashCode;
+            }
+
+            @Override
+            public String getHashCode() {
+                return hashCode.toString();
+            }
+
+            @Override
+            public String getDisplayName() {
+                return getHashCode() + " for transformer " + TransformerExecution.this.getDisplayName();
             }
         }
     }
