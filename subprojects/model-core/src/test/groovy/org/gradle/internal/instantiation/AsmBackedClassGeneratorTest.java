@@ -1747,6 +1747,32 @@ public class AsmBackedClassGeneratorTest {
         void setNumbers(Set<Number> values);
     }
 
+    public interface InterfacePrimitiveBean {
+        boolean isProp1();
+
+        void setProp1(boolean value);
+
+        int getProp2();
+
+        void setProp2(int value);
+
+        byte getProp3();
+
+        void setProp3(byte value);
+
+        short getProp4();
+
+        void setProp4(short value);
+
+        long getProp5();
+
+        void setProp5(long value);
+
+        double getProp6();
+
+        void setProp6(double value);
+    }
+
     public interface InterfaceFileCollectionBean {
         ConfigurableFileCollection getProp();
     }
