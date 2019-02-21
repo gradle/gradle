@@ -61,6 +61,31 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''
     }
 
+    def "can define task with abstract MapProperty getter"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract MapProperty<String, Number> getProp()
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                prop = [a: 12, b: 4]
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = [a:12, b:4]")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << '''

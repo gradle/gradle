@@ -566,7 +566,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
 
-    def "can define task using abstract FileCollection getter"() {
+    def "can define task with abstract ConfigurableFileCollection getter"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
