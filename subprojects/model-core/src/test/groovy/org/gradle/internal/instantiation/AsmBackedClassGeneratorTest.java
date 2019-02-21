@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
@@ -129,10 +130,19 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInGeneratedSubclassInterface() {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class).getGeneratedClass();
-        assertEquals(GeneratedSubclasses.unpack(generatedClass), Bean.class);
-        assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
+    public void mixesInGeneratedSubclassInterface() throws Exception {
+        Bean bean = newInstance(Bean.class);
+        assertTrue(bean instanceof GeneratedSubclass);
+        assertEquals(Bean.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(Bean.class, GeneratedSubclasses.unpack(bean));
+    }
+
+    @Test
+    public void mixesInGeneratedSubclassInterfaceToInterface() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertTrue(bean instanceof GeneratedSubclass);
+        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean));
     }
 
     @Test

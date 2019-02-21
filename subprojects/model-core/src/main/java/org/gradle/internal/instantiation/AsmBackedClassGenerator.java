@@ -307,6 +307,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type OBJECT_FACTORY_TYPE = Type.getType(ObjectFactory.class);
         private static final Type CONFIGURABLE_FILE_COLLECTION_TYPE = Type.getType(ConfigurableFileCollection.class);
         private static final Type MANAGED_TYPE = Type.getType(Managed.class);
+        private static final Type REGULAR_FILE_PROPERTY_TYPE = Type.getType(RegularFileProperty.class);
+        private static final Type DIRECTORY_PROPERTY_TYPE = Type.getType(DirectoryProperty.class);
+        private static final Type PROPERTY_TYPE = Type.getType(Property.class);
+        private static final Type LIST_PROPERTY_TYPE = Type.getType(ListProperty.class);
+        private static final Type SET_PROPERTY_TYPE = Type.getType(SetProperty.class);
+        private static final Type MAP_PROPERTY = Type.getType(MapProperty.class);
 
         private static final String RETURN_VOID_FROM_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_CLASS_DYNAMIC_OBJECT_INSTANTIATOR = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, CLASS_TYPE, DYNAMIC_OBJECT_TYPE, INSTANTIATOR_TYPE);
@@ -334,6 +340,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = Type.getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = Type.getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_CONFIGURABLE_FILE_COLLECTION = Type.getMethodDescriptor(CONFIGURABLE_FILE_COLLECTION_TYPE);
+        private static final String RETURN_REGULAR_FILE_PROPERTY = Type.getMethodDescriptor(REGULAR_FILE_PROPERTY_TYPE);
+        private static final String RETURN_DIRECTORY_PROPERTY = Type.getMethodDescriptor(DIRECTORY_PROPERTY_TYPE);
+        private static final String RETURN_PROPERTY_FROM_CLASS = Type.getMethodDescriptor(PROPERTY_TYPE, CLASS_TYPE);
+        private static final String RETURN_LIST_PROPERTY_FROM_CLASS = Type.getMethodDescriptor(LIST_PROPERTY_TYPE, CLASS_TYPE);
+        private static final String RETURN_SET_PROPERTY_FROM_CLASS = Type.getMethodDescriptor(SET_PROPERTY_TYPE, CLASS_TYPE);
+        private static final String RETURN_MAP_PROPERTY_FROM_CLASS_CLASS = Type.getMethodDescriptor(MAP_PROPERTY, CLASS_TYPE, CLASS_TYPE);
 
         private static final String[] EMPTY_STRINGS = new String[0];
         private static final Type[] EMPTY_TYPES = new Type[0];
@@ -405,6 +417,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             if (requiresServicesMethod) {
                 generateServiceRegistrySupportMethods();
             }
+            generatePublicTypeMethod();
         }
 
         @Override
@@ -965,32 +978,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileCollection", RETURN_CONFIGURABLE_FILE_COLLECTION, true);
                 } else if (property.getType().equals(RegularFileProperty.class)) {
                     // GENERATE objectFactory.fileProperty()
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileProperty", Type.getMethodDescriptor(Type.getType(RegularFileProperty.class)), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "fileProperty", RETURN_REGULAR_FILE_PROPERTY, true);
                 } else if (property.getType().equals(DirectoryProperty.class)) {
                     // GENERATE objectFactory.directoryProperty()
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "directoryProperty", Type.getMethodDescriptor(Type.getType(DirectoryProperty.class)), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "directoryProperty", RETURN_DIRECTORY_PROPERTY, true);
                 } else if (property.getType().equals(Property.class)) {
                     // GENERATE objectFactory.property(type)
                     Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "property", Type.getMethodDescriptor(Type.getType(Property.class), CLASS_TYPE), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "property", RETURN_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(ListProperty.class)) {
                     // GENERATE objectFactory.listProperty(type)
                     Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "listProperty", Type.getMethodDescriptor(Type.getType(ListProperty.class), CLASS_TYPE), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "listProperty", RETURN_LIST_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(SetProperty.class)) {
                     // GENERATE objectFactory.setProperty(type)
                     Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "setProperty", Type.getMethodDescriptor(Type.getType(SetProperty.class), CLASS_TYPE), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "setProperty", RETURN_SET_PROPERTY_FROM_CLASS, true);
                 } else if (property.getType().equals(MapProperty.class)) {
                     // GENERATE objectFactory.setProperty(type)
                     Class<?> keyType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[0];
                     Class<?> elementType = (Class<?>) ((ParameterizedType) property.getGenericType()).getActualTypeArguments()[1];
                     methodVisitor.visitLdcInsn(Type.getType(keyType));
                     methodVisitor.visitLdcInsn(Type.getType(elementType));
-                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "mapProperty", Type.getMethodDescriptor(Type.getType(MapProperty.class), CLASS_TYPE, CLASS_TYPE), true);
+                    methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, OBJECT_FACTORY_TYPE.getInternalName(), "mapProperty", RETURN_MAP_PROPERTY_FROM_CLASS_CLASS, true);
                 } else {
                     throw new IllegalArgumentException();
                 }
@@ -1034,6 +1047,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
+        private void generatePublicTypeMethod() {
+            // Generate: Class publicType() { ... }
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "publicType", RETURN_CLASS, null, EMPTY_STRINGS);
+            methodVisitor.visitLdcInsn(superclassType);
+            methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
         @Override
         public void addManagedMethods(List<PropertyMetaData> mutableProperties, List<PropertyMetaData> readOnlyProperties) {
             visitor.visitField(PV_FINAL_STATIC, FACTORY_FIELD, Type.getType(Managed.Factory.class).getDescriptor(), null, null);
@@ -1067,13 +1089,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
             }
             methodVisitor.visitInsn(RETURN);
-            methodVisitor.visitMaxs(0, 0);
-            methodVisitor.visitEnd();
-
-            // Generate: Class publicType() { ... }
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "publicType", RETURN_CLASS, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(superclassType);
-            methodVisitor.visitInsn(ARETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
