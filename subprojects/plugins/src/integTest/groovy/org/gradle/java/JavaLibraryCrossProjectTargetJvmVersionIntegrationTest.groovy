@@ -72,6 +72,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         file('producer/build.gradle') << """
             // avoid test noise so that typically version 8 is not selected when running on JDK 8
             configurations.apiElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
+            configurations.runtimeElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
             
             [6, 7, 9].each { v ->
                 configurations {
