@@ -94,6 +94,11 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public boolean isIsolated() {
+        return true;
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
     }
 

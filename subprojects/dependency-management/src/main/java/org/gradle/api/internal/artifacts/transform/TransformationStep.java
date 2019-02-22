@@ -19,12 +19,17 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -32,17 +37,33 @@ import java.io.File;
  *
  * Transforms a subject by invoking a transformer on each of the subjects files.
  */
-public class TransformationStep implements Transformation {
+public class TransformationStep implements Transformation, TaskDependencyContainer {
     private static final Logger LOGGER = LoggerFactory.getLogger(TransformationStep.class);
     public static final Equivalence<? super TransformationStep> FOR_SCHEDULING = Equivalence.identity();
 
-
     private final Transformer transformer;
     private final TransformerInvoker transformerInvoker;
+    private final DomainObjectProjectStateHandler projectStateHandler;
+    private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
+    private final WorkNodeAction isolateAction;
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, DomainObjectProjectStateHandler projectStateHandler) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
+        this.projectStateHandler = projectStateHandler;
+        this.isolationLock = projectStateHandler.newExclusiveOperationLock();
+        this.isolateAction = transformer.isIsolated() ? null : new WorkNodeAction() {
+            @Nullable
+            @Override
+            public Project getProject() {
+                return projectStateHandler.maybeGetOwningProject();
+            }
+
+            @Override
+            public void run() {
+                isolateExclusively();
+            }
+        };
     }
 
     @Override
@@ -61,7 +82,7 @@ public class TransformationStep implements Transformation {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-        transformer.isolateParameters();
+        isolateTransformerParameters();
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File inputArtifact : inputArtifacts) {
@@ -73,6 +94,24 @@ public class TransformationStep implements Transformation {
                 builder.addAll(result.get());
             }
             return Try.successful(subjectToTransform.createSubjectFromResult(builder.build()));
+        });
+    }
+
+    private void isolateTransformerParameters() {
+        if (!transformer.isIsolated()) {
+            if (!projectStateHandler.hasMutableProjectState()) {
+                projectStateHandler.withLenientState(this::isolateExclusively);
+            } else {
+                isolateExclusively();
+            }
+        }
+    }
+
+    private void isolateExclusively() {
+        isolationLock.withLock(() -> {
+            if (!transformer.isIsolated()) {
+                transformer.isolateParameters();
+            }
         });
     }
 
@@ -102,5 +141,13 @@ public class TransformationStep implements Transformation {
 
     public TaskDependencyContainer getDependencies() {
         return transformer;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        if (!transformer.isIsolated()) {
+            context.add(isolateAction);
+        }
+        transformer.visitDependencies(context);
     }
 }

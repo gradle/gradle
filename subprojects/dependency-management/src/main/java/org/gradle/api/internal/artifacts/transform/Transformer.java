@@ -60,4 +60,6 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     Class<? extends FileNormalizer> getInputArtifactNormalizer();
 
     Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer();
+
+    boolean isIsolated();
 }

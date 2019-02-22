@@ -152,6 +152,11 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        boolean isIsolated() {
+            return true
+        }
+
+        @Override
         void isolateParameters() {
         }
 
