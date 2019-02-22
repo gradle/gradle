@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A single transformation step.
@@ -51,13 +52,14 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
     private final ProjectInternal owningProject;
-    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
+    private final FileCollectionFingerprinterRegistry globalFingerprinterRegistry;
+    private final AtomicReference<FileCollectionFingerprinterRegistry> usedFingerprinterRegistry = new AtomicReference<>();
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, DomainObjectProjectStateHandler projectStateHandler, FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, DomainObjectProjectStateHandler projectStateHandler, FileCollectionFingerprinterRegistry globalFingerprinterRegistry) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
         this.projectStateHandler = projectStateHandler;
-        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
+        this.globalFingerprinterRegistry = globalFingerprinterRegistry;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.owningProject = projectStateHandler.maybeGetOwningProject();
         this.isolateAction = transformer.isIsolated() ? null : new WorkNodeAction() {
@@ -69,7 +71,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
 
             @Override
             public void run(@Nullable ServiceRegistry registry) {
-                FileCollectionFingerprinterRegistry fingerprinterRegistry = registry == null ? fileCollectionFingerprinterRegistry : registry.get(FileCollectionFingerprinterRegistry.class);
+                FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(registry == null ? null : registry.get(FileCollectionFingerprinterRegistry.class));
                 isolateExclusively(fingerprinterRegistry);
             }
         };
@@ -91,7 +93,9 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-        FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(services);
+        FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(
+            owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : null
+        );
         isolateTransformerParameters(fingerprinterRegistry);
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
@@ -107,8 +111,9 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         });
     }
 
-    public FileCollectionFingerprinterRegistry getFingerprinterRegistry(@Nullable ProjectExecutionServiceRegistry services) {
-        return owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : fileCollectionFingerprinterRegistry;
+    public FileCollectionFingerprinterRegistry getFingerprinterRegistry(@Nullable FileCollectionFingerprinterRegistry candidate) {
+        usedFingerprinterRegistry.compareAndSet(null, candidate == null ? globalFingerprinterRegistry : candidate);
+        return usedFingerprinterRegistry.get();
     }
 
     private void isolateTransformerParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
