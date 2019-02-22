@@ -32,5 +32,5 @@ import java.lang.annotation.Target
 @Target(ElementType.TYPE)
 @Inherited
 @interface ToolingApiAdditionalClasspath {
-    Class<ToolingApiAdditionalClasspathProvider> value()
+    Class<? extends ToolingApiAdditionalClasspathProvider> value()
 }
