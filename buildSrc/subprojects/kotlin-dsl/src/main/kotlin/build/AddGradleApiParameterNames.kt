@@ -67,7 +67,7 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
     }
 
     dependencies {
-        registerTransform(GradleApiParameterNamesTransform::class) {
+        registerTransform(AddGradleApiParameterNames::class) {
             from.attribute(artifactType, "jar").attribute(minified, true)
             to.attribute(artifactType, jarWithGradleApiParameterNames)
             parameters {
@@ -89,9 +89,9 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
 }
 
 
-@AssociatedTransformAction(GradleApiParameterNamesTransformAction::class)
+@AssociatedTransformAction(AddGradleApiParameterNamesAction::class)
 internal
-interface GradleApiParameterNamesTransform {
+interface AddGradleApiParameterNames {
     @get:Input
     var publicApiIncludes: List<String>
     @get:Input
@@ -100,10 +100,10 @@ interface GradleApiParameterNamesTransform {
 
 
 internal
-abstract class GradleApiParameterNamesTransformAction : TransformAction {
+abstract class AddGradleApiParameterNamesAction : TransformAction {
 
     @get:TransformParameters
-    abstract val parameters: GradleApiParameterNamesTransform
+    abstract val parameters: AddGradleApiParameterNames
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact

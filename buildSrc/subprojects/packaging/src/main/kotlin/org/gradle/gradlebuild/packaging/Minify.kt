@@ -32,16 +32,16 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
-@AssociatedTransformAction(MinifyTransformAction::class)
-interface MinifyTransform {
+@AssociatedTransformAction(MinifyAction::class)
+interface Minify {
     @get:Input
     var keepClassesByArtifact: Map<String, Set<String>>
 }
 
 
-abstract class MinifyTransformAction : TransformAction {
+abstract class MinifyAction : TransformAction {
     @get:TransformParameters
-    abstract val parameters: MinifyTransform
+    abstract val parameters: Minify
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact

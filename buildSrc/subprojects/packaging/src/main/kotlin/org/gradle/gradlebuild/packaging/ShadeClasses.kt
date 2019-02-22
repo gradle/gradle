@@ -43,8 +43,8 @@ private
 const val manifestFileName = "MANIFEST.MF"
 
 
-@AssociatedTransformAction(ShadeClassesTransformAction::class)
-interface ShadeClassesTransform {
+@AssociatedTransformAction(ShadeClassesAction::class)
+interface ShadeClasses {
     @get:Input
     var shadowPackage: String
     @get:Input
@@ -56,10 +56,10 @@ interface ShadeClassesTransform {
 }
 
 
-abstract class ShadeClassesTransformAction : TransformAction {
+abstract class ShadeClassesAction : TransformAction {
 
     @get:TransformParameters
-    abstract val parameters: ShadeClassesTransform
+    abstract val parameters: ShadeClasses
 
     @get:Classpath
     @get:InputArtifact

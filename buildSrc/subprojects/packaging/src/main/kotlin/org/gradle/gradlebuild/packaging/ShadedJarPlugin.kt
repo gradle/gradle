@@ -80,7 +80,7 @@ open class ShadedJarPlugin : Plugin<Project> {
     fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
         afterEvaluate {
             dependencies {
-                registerTransform(ShadeClassesTransform::class) {
+                registerTransform(ShadeClasses::class) {
                     from
                         .attribute(artifactType, "jar")
                         .attribute(minified, true)

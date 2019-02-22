@@ -21,9 +21,7 @@ import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-
 import org.gradle.kotlin.dsl.support.unzipTo
-
 import java.io.File
 
 
@@ -32,7 +30,7 @@ import java.io.File
  * a downloaded ZIP of the Gradle sources, and will return the list of main sources
  * subdirectories for all subprojects.
  */
-abstract class ExtractGradleSourcesTransform : TransformAction {
+abstract class FindGradleSources : TransformAction {
     @get:InputArtifact
     abstract val input: File
 
@@ -61,7 +59,7 @@ abstract class ExtractGradleSourcesTransform : TransformAction {
 }
 
 
-abstract class UnzipDistributionTransform : TransformAction {
+abstract class UnzipDistribution : TransformAction {
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact
     abstract val input: File

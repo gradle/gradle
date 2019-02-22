@@ -23,11 +23,8 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
-
-import org.gradle.kotlin.dsl.create
-
+import org.gradle.kotlin.dsl.*
 import java.io.File
-
 import java.lang.Integer.max
 
 
@@ -72,11 +69,11 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun registerTransforms() {
-        registerTransformAction<UnzipDistributionTransform> {
+        registerTransformAction<UnzipDistribution> {
             from.attribute(artifactType, zipType)
             to.attribute(artifactType, unzippedDistributionType)
         }
-        registerTransformAction<ExtractGradleSourcesTransform> {
+        registerTransformAction<FindGradleSources> {
             from.attribute(artifactType, unzippedDistributionType)
             to.attribute(artifactType, sourceDirectory)
         }
