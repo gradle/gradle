@@ -18,6 +18,7 @@ package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
 import org.gradle.api.artifacts.transform.AssociatedTransformAction
+import org.gradle.api.artifacts.transform.CacheableTransformAction
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -56,6 +57,7 @@ interface ShadeClasses {
 }
 
 
+@CacheableTransformAction
 abstract class ShadeClassesAction : TransformAction {
 
     @get:TransformParameters
