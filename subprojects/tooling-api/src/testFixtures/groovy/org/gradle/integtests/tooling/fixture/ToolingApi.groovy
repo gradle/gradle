@@ -182,7 +182,7 @@ class ToolingApi implements TestRule {
 
         if (gradleUserHomeDir != context.gradleUserHomeDir) {
             // When using an isolated user home, first initialise the Gradle instance using the default user home dir
-            // This sets some some static state that uses files from the use home dir, such as DLLs
+            // This sets some static state that uses files from the user home dir, such as DLLs
             connector.useGradleUserHomeDir(new File(context.gradleUserHomeDir.path))
             def connection = connector.connect()
             try {

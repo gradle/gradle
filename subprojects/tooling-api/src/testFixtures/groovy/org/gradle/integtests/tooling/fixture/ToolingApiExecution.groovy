@@ -58,12 +58,12 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
         // Trying to use @Unroll with a tooling api runner causes NPEs in the test fixtures
         // Fail early with a message until we can fix this properly.
         Unroll unroll = testDetails.getAnnotation(Unroll)
-        if (unroll!=null) {
+        if (unroll != null) {
             throw new IllegalArgumentException("Cannot use @Unroll with Tooling Api tests")
         }
 
         if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
-            //Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
+            // Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
             // This is a real problem on windows due to eager file locking and continuous CI failures.
             // On linux it's a lesser problem - long-lived daemons hung and steal resources but don't lock files.
             // So, for windows we'll only run tests against target gradle that supports ttl
