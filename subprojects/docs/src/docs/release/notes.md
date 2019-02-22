@@ -12,6 +12,7 @@ We would like to thank the following community contributors to this release of G
 [Kenzie Togami](https://github.com/kenzierocks),
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
+[Joe Kutner](https://github.com/jkutner),
 ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
