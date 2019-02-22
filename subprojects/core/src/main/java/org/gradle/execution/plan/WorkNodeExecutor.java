@@ -24,7 +24,7 @@ public class WorkNodeExecutor implements NodeExecutor {
         if (!(node instanceof ActionNode)) {
             return false;
         }
-        ((ActionNode) node).run();
+        ((ActionNode) node).run(services);
         return true;
     }
 }

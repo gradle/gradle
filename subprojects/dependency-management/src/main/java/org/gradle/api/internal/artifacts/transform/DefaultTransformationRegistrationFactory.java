@@ -129,7 +129,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
-            fileCollectionFingerprinterRegistry,
             parametersPropertyWalker,
             actionInstantiationScheme);
 

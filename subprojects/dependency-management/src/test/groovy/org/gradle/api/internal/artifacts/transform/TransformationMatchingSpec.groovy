@@ -95,8 +95,5 @@ class TransformationMatchingSpec extends Specification {
         !chain3.endsWith(chain1)
         !chain2.endsWith(chain3)
         !chain1.endsWith(chain3)
-
-
-
     }
 }

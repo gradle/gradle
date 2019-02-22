@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -55,7 +56,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     HashCode getSecondaryInputHash();
 
-    void isolateParameters();
+    void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry);
 
     Class<? extends FileNormalizer> getInputArtifactNormalizer();
 

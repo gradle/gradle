@@ -33,6 +33,7 @@ import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -156,7 +157,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        void isolateParameters() {
+        void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         }
 
         @Override

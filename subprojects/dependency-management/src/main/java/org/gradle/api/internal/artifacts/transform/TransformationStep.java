@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +68,9 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             }
 
             @Override
-            public void run() {
-                isolateExclusively();
+            public void run(@Nullable ServiceRegistry registry) {
+                FileCollectionFingerprinterRegistry fingerprinterRegistry = registry == null ? fileCollectionFingerprinterRegistry : registry.get(FileCollectionFingerprinterRegistry.class);
+                isolateExclusively(fingerprinterRegistry);
             }
         };
     }
@@ -89,8 +91,8 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
-        FileCollectionFingerprinterRegistry fingerprinterRegistry = owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : fileCollectionFingerprinterRegistry;
-        isolateTransformerParameters();
+        FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(services);
+        isolateTransformerParameters(fingerprinterRegistry);
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File inputArtifact : inputArtifacts) {
@@ -105,20 +107,24 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         });
     }
 
-    private void isolateTransformerParameters() {
+    public FileCollectionFingerprinterRegistry getFingerprinterRegistry(@Nullable ProjectExecutionServiceRegistry services) {
+        return owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : fileCollectionFingerprinterRegistry;
+    }
+
+    private void isolateTransformerParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         if (!transformer.isIsolated()) {
             if (!projectStateHandler.hasMutableProjectState()) {
-                projectStateHandler.withLenientState(this::isolateExclusively);
+                projectStateHandler.withLenientState(() -> isolateExclusively(fingerprinterRegistry));
             } else {
-                isolateExclusively();
+                isolateExclusively(fingerprinterRegistry);
             }
         }
     }
 
-    private void isolateExclusively() {
+    private void isolateExclusively(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         isolationLock.withLock(() -> {
             if (!transformer.isIsolated()) {
-                transformer.isolateParameters();
+                transformer.isolateParameters(fingerprinterRegistry);
             }
         });
     }

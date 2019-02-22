@@ -111,6 +111,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -668,7 +669,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
-            public void run() {
+            public void run(@Nullable ServiceRegistry registry) {
                 resolveExclusively(GRAPH_RESOLVED);
             }
         }, fileCollectionFactory);

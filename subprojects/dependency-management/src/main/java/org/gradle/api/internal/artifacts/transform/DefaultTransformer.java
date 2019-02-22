@@ -79,7 +79,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final IsolatableFactory isolatableFactory;
     private final ValueSnapshotter valueSnapshotter;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
     private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
     private final InstanceFactory<? extends TransformAction> instanceFactory;
@@ -98,7 +97,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         IsolatableFactory isolatableFactory,
         ValueSnapshotter valueSnapshotter,
         FileCollectionFactory fileCollectionFactory,
-        FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme
     ) {
@@ -110,7 +108,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.isolatableFactory = isolatableFactory;
         this.valueSnapshotter = valueSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
@@ -178,15 +175,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     @Override
-    public void isolateParameters() {
+    public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         try {
-            isolatable = doIsolateParameters();
+            isolatable = doIsolateParameters(fingerprinterRegistry);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Cannot isolate parameters %s of artifact transform %s", parameterObject, ModelType.of(getImplementationClass()).getDisplayName()), e);
         }
     }
 
-    protected IsolatableParameters doIsolateParameters() {
+    protected IsolatableParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         Isolatable<Object> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();
@@ -194,7 +191,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
+            fingerprintParameters(valueSnapshotter, fingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);

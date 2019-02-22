@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -103,7 +104,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public void isolateParameters() {
+    public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
     }
 
     private ArtifactTransform newTransformer() {
