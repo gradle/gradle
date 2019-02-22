@@ -81,9 +81,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final WorkExecutor<UpToDateResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
-    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileCollectionFingerprinter outputFingerprinter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
     private final boolean useTransformationWorkspaces;
@@ -92,7 +90,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
-                                     FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry,
                                      FileCollectionFactory fileCollectionFactory,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                                      ProjectFinder projectFinder,
@@ -101,22 +98,20 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
-        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.projectFinder = projectFinder;
         this.useTransformationWorkspaces = useTransformationWorkspaces;
-        outputFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
     }
 
     @Override
-    public Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject) {
-        FileCollectionFingerprinter dependencyFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
+    public Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
         ProjectInternal producerProject = determineProducerProject(subject);
         CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
         FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemSnapshotter.snapshot(inputArtifact);
-        FileCollectionFingerprinter inputArtifactFingerprinter = fileCollectionFingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
+        FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
         return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
@@ -134,7 +129,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     inputArtifactFingerprint,
                     dependencies,
                     dependenciesFingerprint,
-                    outputFingerprinter
+                    fingerprinterRegistry.getFingerprinter(OutputNormalizer.class)
                 );
                 UpToDateResult outcome = workExecutor.execute(execution);
                 return execution.getResult(outcome);

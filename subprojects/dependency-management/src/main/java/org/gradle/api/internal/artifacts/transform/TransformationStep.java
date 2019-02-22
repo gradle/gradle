@@ -21,11 +21,14 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.internal.Try;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,17 +49,21 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
+    private final ProjectInternal owningProject;
+    private final FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry;
 
-    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, DomainObjectProjectStateHandler projectStateHandler) {
+    public TransformationStep(Transformer transformer, TransformerInvoker transformerInvoker, DomainObjectProjectStateHandler projectStateHandler, FileCollectionFingerprinterRegistry fileCollectionFingerprinterRegistry) {
         this.transformer = transformer;
         this.transformerInvoker = transformerInvoker;
         this.projectStateHandler = projectStateHandler;
+        this.fileCollectionFingerprinterRegistry = fileCollectionFingerprinterRegistry;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
+        this.owningProject = projectStateHandler.maybeGetOwningProject();
         this.isolateAction = transformer.isIsolated() ? null : new WorkNodeAction() {
             @Nullable
             @Override
             public Project getProject() {
-                return projectStateHandler.maybeGetOwningProject();
+                return owningProject;
             }
 
             @Override
@@ -77,16 +84,17 @@ public class TransformationStep implements Transformation, TaskDependencyContain
     }
 
     @Override
-    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
         ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
+        FileCollectionFingerprinterRegistry fingerprinterRegistry = owningProject != null && services != null ? services.getProjectService(owningProject, FileCollectionFingerprinterRegistry.class) : fileCollectionFingerprinterRegistry;
         isolateTransformerParameters();
         return dependenciesResolver.forTransformer(transformer).flatMap(dependencies -> {
             ImmutableList.Builder<File> builder = ImmutableList.builder();
             for (File inputArtifact : inputArtifacts) {
-                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, inputArtifact, dependencies, subjectToTransform);
+                Try<ImmutableList<File>> result = transformerInvoker.invoke(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry);
 
                 if (result.getFailure().isPresent()) {
                     return Try.failure(result.getFailure().get());

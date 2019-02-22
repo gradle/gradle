@@ -38,7 +38,7 @@ class TransformationOperation implements RunnableBuildOperation {
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject, dependenciesResolver);
+        result = transformation.transform(subject, dependenciesResolver, null);
     }
 
     @Override
