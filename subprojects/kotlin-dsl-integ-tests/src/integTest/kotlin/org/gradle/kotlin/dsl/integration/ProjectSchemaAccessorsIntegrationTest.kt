@@ -16,9 +16,12 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
+
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.allOf
@@ -26,6 +29,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 
@@ -1139,6 +1143,70 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         build("help").apply {
             assertThat(output, containsString("42"))
         }
+    }
+
+    @Test
+    fun `can access project extension of nested type compiled to Java 11`() {
+
+        assumeJava11()
+
+        withFolders {
+            "buildSrc" {
+                "src/main/java/build" {
+                    withFile("Java11Plugin.java", """
+                        package build;
+
+                        import org.gradle.api.*;
+
+                        public class Java11Plugin implements Plugin<Project> {
+
+                            public static class Java11Extension {}
+
+                            @Override public void apply(Project project) {
+                                project.getExtensions().create("java11", Java11Extension.class);
+                            }
+                        }
+                    """)
+                }
+                withFile("settings.gradle.kts")
+                withFile("build.gradle.kts", """
+                    plugins {
+                        `java-library`
+                        `java-gradle-plugin`
+                    }
+
+                    java {
+                        sourceCompatibility = JavaVersion.VERSION_11
+                        targetCompatibility = JavaVersion.VERSION_11
+                    }
+
+                    gradlePlugin {
+                        plugins {
+                            register("java11") {
+                                id = "java11"
+                                implementationClass = "build.Java11Plugin"
+                            }
+                        }
+                    }
+                """)
+            }
+        }
+
+        withBuildScript("""
+            plugins { id("java11") }
+
+            java11 { println(this.javaClass.name) }
+        """)
+
+        assertThat(
+            build("-q").output,
+            containsString("build.Java11Plugin${'$'}Java11Extension")
+        )
+    }
+
+    private
+    fun assumeJava11() {
+        assumeTrue("Test requires Java 11", JavaVersion.current().isJava11Compatible)
     }
 
     private
