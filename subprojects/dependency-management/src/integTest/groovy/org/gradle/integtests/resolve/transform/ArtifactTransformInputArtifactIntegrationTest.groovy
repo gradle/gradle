@@ -60,8 +60,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         failure.assertHasCause("broken")
     }
 
+    // Documents existing behaviour. The absolute path of the input artifact is baked into the workspace identity
+    // and so when the path changes the outputs are invalidated
     @Unroll
-    def "can attach #description to input artifact property with project artifact file"() {
+    def "can attach #description to input artifact property with project artifact file but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
         buildFile << """
@@ -157,19 +159,22 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before
+        then: // have already seen these artifacts before, but the transform outputs have been been overwritten
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         where:
-        description                                | annotation
-        "no sensitivity"                           | ""
-        "@PathSensitive(PathSensitivity.ABSOLUTE)" | "@PathSensitive(PathSensitivity.ABSOLUTE)"
+        description                                 | annotation
+        "no sensitivity"                            | ""
+        "@PathSensitive(PathSensitivity.ABSOLUTE)"  | "@PathSensitive(PathSensitivity.ABSOLUTE)"
+        "@PathSensitive(PathSensitivity.RELATIVE)"  | "@PathSensitive(PathSensitivity.RELATIVE)"
+        "@PathSensitive(PathSensitivity.NAME_ONLY)" | "@PathSensitive(PathSensitivity.NAME_ONLY)"
+        "@PathSensitive(PathSensitivity.NONE)"      | "@PathSensitive(PathSensitivity.NONE)"
     }
 
     @Unroll
-    def "can attach #description to input artifact property with project artifact directory"() {
+    def "can attach #description to input artifact property with project artifact directory but it has no effect when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
             produceDirs()
@@ -285,10 +290,20 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
+        when:
+        succeeds(":a:resolve")
+
+        then: // have already seen these artifacts before, but the transform outputs have been been overwritten
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-dir")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
         where:
-        description                                | annotation
-        "no sensitivity"                           | ""
-        "@PathSensitive(PathSensitivity.ABSOLUTE)" | "@PathSensitive(PathSensitivity.ABSOLUTE)"
+        description                                 | annotation
+        "no sensitivity"                            | ""
+        "@PathSensitive(PathSensitivity.ABSOLUTE)"  | "@PathSensitive(PathSensitivity.ABSOLUTE)"
+        "@PathSensitive(PathSensitivity.RELATIVE)"  | "@PathSensitive(PathSensitivity.RELATIVE)"
+        "@PathSensitive(PathSensitivity.NAME_ONLY)" | "@PathSensitive(PathSensitivity.NAME_ONLY)"
     }
 
     def "re-runs transform when input artifact file changes from file to missing"() {
@@ -345,13 +360,13 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // seen these before
+        then: // seen these before, but the transform outputs have been overwritten
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    def "can attach @PathSensitive(NONE) to input artifact property for project artifact file"() {
+    def "honors @PathSensitive(NONE) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
         buildFile << """
@@ -362,6 +377,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
+            @CacheableTransformAction
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
@@ -376,7 +392,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
@@ -385,7 +401,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -394,7 +410,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -402,7 +418,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.green, c.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
+        withBuildCache().executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
         succeeds(":a:resolve")
 
         then: // new content, should run
@@ -411,7 +427,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-new.green, c.green]")
 
         when:
-        executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
+        withBuildCache().executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=b-new")
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
@@ -420,7 +436,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-new.green, c.green]")
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -429,7 +445,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact directory"() {
+    def "honors @PathSensitive(#sensitivity) to input artifact property for project artifact directory when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
             produceDirs()
@@ -442,6 +458,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
+            @CacheableTransformAction
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
@@ -456,7 +473,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
@@ -465,7 +482,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -474,7 +491,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -483,7 +500,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -492,7 +509,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
         result.assertTasksNotSkipped(":a:resolve")
@@ -501,7 +518,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -509,7 +526,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -517,11 +534,11 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-dir.green, c-dir.green]")
 
         where:
-        sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NONE]
+        sensitivity << [PathSensitivity.NAME_ONLY, PathSensitivity.RELATIVE]
     }
 
     @Unroll
-    def "can attach @PathSensitive(#sensitivity) to input artifact property for project artifact file"() {
+    def "honors @PathSensitive(#sensitivity) on input artifact property for project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction()
         buildFile << """
@@ -532,6 +549,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
+            @CacheableTransformAction
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
@@ -546,7 +564,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         """
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
@@ -555,7 +573,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -564,7 +582,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -573,7 +591,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -582,7 +600,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbFileName=b-blue.jar", "-PbContent=new")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
         result.assertTasksNotSkipped(":a:resolve")
@@ -590,7 +608,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -601,7 +619,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         sensitivity << [PathSensitivity.RELATIVE, PathSensitivity.NAME_ONLY]
     }
 
-    def "can attach @PathSensitive(NAME_ONLY) to input artifact property for project artifact directory"() {
+    def "honors content changes for @PathSensitive(NONE) on input artifact property for project artifact directory when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
             produceDirs()
@@ -615,7 +633,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
 
             abstract class MakeGreen implements TransformAction {
-                @PathSensitive(PathSensitivity.NAME_ONLY)
+                @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract File getInput()
                 
@@ -639,16 +657,16 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         executer.withArguments("-PbOutputDir=out")
         succeeds(":a:resolve")
 
-        then: // path has changed, but should be up to date
+        then: // path has changed, but path is baked into workspace identity
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
+        transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
         when:
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
         succeeds(":a:resolve")
 
-        then: // name has changed, should run
+        then: // name has changed, but path is baked into workspace identity
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
@@ -675,13 +693,102 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
         succeeds(":a:resolve")
 
-        then: // new content (renamed file), should run
+        then: // new content (renamed file), should not run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
+
+        when:
+        succeeds(":a:resolve")
+
+        then: // have already seen these artifacts before
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b-dir.green, c-dir.green]")
+    }
+
+    def "honors @PathSensitive(NONE) on input artifact property for project artifact directory when caching"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction {
+            produceDirs()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            @CacheableTransformAction
+            abstract class MakeGreen implements TransformAction {
+                @PathSensitive(PathSensitivity.NONE)
+                @InputArtifact
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.list().length + ".green"
+                }
+            }
+        """
+
+        when:
+        withBuildCache().succeeds(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        transformed("b-dir", "c-dir")
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PbOutputDir=out")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // path has changed, should be up to date
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // name has changed, should be up to date
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b-dir.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // new content, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
         when:
-        succeeds(":a:resolve")
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // no change, should be up to date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
+
+        when:
+        executer.withArguments("-PbOutputDir=out", "-PbDirName=b-blue", "-PbContent=new", "-PbName=new")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // new content (renamed file), should not run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b-blue.green, c-dir.green]")
+
+        when:
+        withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
@@ -856,7 +963,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
     }
 
     @Unroll
-    def "can attach @#annotation to input artifact property with project artifact file"() {
+    def "honors content changes with @#annotation on input artifact property with project artifact file when not caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
             produceJars()
@@ -916,36 +1023,46 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out")
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567")
         succeeds(":a:resolve")
 
-        then: // path has changed, transforms up-to-date
+        then: // timestamp change only, should not run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbContent=new", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out")
         succeeds(":a:resolve")
 
-        then: // new file name, transforms up-to-date
+        then: // path has changed, but path is baked into workspace identity
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        succeeds(":a:resolve")
+
+        then: // new file name, but path is baked into workspace identity
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed("b-blue.jar")
+        outputContains("result = [b-blue.jar.green, c.jar.green]")
 
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before
+        then: // have already seen these artifacts before, but outputs have been overwritten
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
-        transformed()
+        transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         where:
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    def "result is loaded from the build cache"() {
+    @Unroll
+    def "honors @#annotation on input artifact property with project artifact file when caching"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {
             produceJars()
@@ -960,7 +1077,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             
             @CacheableTransformAction
             abstract class MakeGreen implements TransformAction {
-                @InputArtifact @Classpath
+                @InputArtifact @${annotation}
                 abstract File getInput()
                 
                 void transform(TransformOutputs outputs) {
@@ -980,31 +1097,68 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbTimestamp=5678")
-        succeeds(":a:resolve")
+        withBuildCache().succeeds(":a:resolve")
 
-        then: // timestamp change without build cache
+        then: // no change, should be up to date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // new content, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbTimestamp=7890")
+        executer.withArguments("-PbContent=new")
         withBuildCache().succeeds(":a:resolve")
 
-        then: // timestamp change, pulled from cache
+        then: // no change, should be up to date
+        result.assertTasksNotSkipped(":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // timestamp change only, should not run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:
-        executer.withArguments("-PbTimestamp=7890")
-        succeeds(":a:resolve")
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out")
+        withBuildCache().succeeds(":a:resolve")
 
-        then: // no change, up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        then: // path has changed, should not run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbContent=new", "-PbTimestamp=567", "-PbOutputDir=out", "-PbFileName=b-blue.jar")
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // new file name, should not run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        withBuildCache().succeeds(":a:resolve")
+
+        then: // have already seen these artifacts before, should not run
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        annotation << ["Classpath", "CompileClasspath"]
     }
 
     void transformed(String... expected) {
