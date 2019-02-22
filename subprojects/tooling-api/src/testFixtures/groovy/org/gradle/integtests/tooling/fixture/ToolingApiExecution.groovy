@@ -99,8 +99,16 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
         testClassPath << ClasspathUtil.getClasspathForClass(target)
         testClassPath << ClasspathUtil.getClasspathForClass(TestResultHandler)
 
+        testClassPath.addAll(collectAdditionalClasspath())
+
         getTestClassLoader(TEST_CLASS_LOADERS, toolingApi, testClassPath) {
             it.allowResources(target.name.replace('.', '/'))
+        }
+    }
+
+    private List<File> collectAdditionalClasspath() {
+        target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
+            (annotation as ToolingApiAdditionalClasspath).value().newInstance().additionalClasspathFor(gradle)
         }
     }
 
