@@ -23,6 +23,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.time.Clock;
 
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
@@ -58,9 +59,20 @@ public class Delete extends ConventionTask implements DeleteSpec {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Injected Clock.
+     *
+     * @since 5.3
+     */
+    @Inject
+    protected Clock getClock() {
+        // Decoration takes care of the implementation
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     protected void clean() {
-        Deleter deleter = new Deleter(getFileResolver(), getFileSystem());
+        Deleter deleter = new Deleter(getFileResolver(), getFileSystem(), getClock());
         final boolean innerFollowSymLinks = followSymlinks;
         final Object[] paths = delete.toArray();
         setDidWork(deleter.delete(new Action<DeleteSpec>(){

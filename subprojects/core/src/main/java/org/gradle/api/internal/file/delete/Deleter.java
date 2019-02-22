@@ -23,7 +23,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.time.Time;
+import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +37,9 @@ import java.util.List;
 public class Deleter {
     private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
 
-    private FileResolver fileResolver;
-    private FileSystem fileSystem;
+    private final FileResolver fileResolver;
+    private final FileSystem fileSystem;
+    private final Clock clock;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
@@ -47,9 +48,10 @@ public class Deleter {
     static final String HELP_FAILED_DELETE_CHILDREN = "Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.";
     static final String HELP_NEW_CHILDREN = "New files were found. This might happen because a process is still writing to the target directory.";
 
-    public Deleter(FileResolver fileResolver, FileSystem fileSystem) {
+    public Deleter(FileResolver fileResolver, FileSystem fileSystem, Clock clock) {
         this.fileResolver = fileResolver;
         this.fileSystem = fileSystem;
+        this.clock = clock;
     }
 
     public boolean delete(Object... paths) {
@@ -79,7 +81,7 @@ public class Deleter {
     }
 
     private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
-        long startTime = Time.currentTimeMillis();
+        long startTime = clock.getCurrentTime();
         Collection<String> failedPaths = new ArrayList<String>();
         deleteRecursively(startTime, file, file, deleteSpec, failedPaths);
         if (!failedPaths.isEmpty()) {

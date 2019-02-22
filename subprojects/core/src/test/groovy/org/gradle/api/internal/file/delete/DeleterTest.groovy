@@ -19,7 +19,8 @@ package org.gradle.api.internal.file.delete
 import org.gradle.api.file.UnableToDeleteFileException
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.time.Clock
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestPrecondition
@@ -37,7 +38,7 @@ class DeleterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
-    Deleter delete = new Deleter(resolver, fileSystem())
+    Deleter delete = new Deleter(resolver, fileSystem(), Time.clock())
 
     def deletesDirectory() {
         given:
@@ -115,7 +116,7 @@ class DeleterTest extends Specification {
         }
 
         given:
-        delete = deleterWithDeletionAction { file ->
+        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
             return DeletionAction.FAILURE
         }
 
@@ -146,7 +147,7 @@ class DeleterTest extends Specification {
         def nonDeletable = targetDir.createFile("delete.no")
 
         and:
-        delete = deleterWithDeletionAction { file ->
+        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
                 return DeletionAction.FAILURE
             }
@@ -175,12 +176,13 @@ class DeleterTest extends Specification {
         given:
         def targetDir = tmpDir.createDir("target")
         def triggerFile = targetDir.createFile("zzz.txt")
+        FileTime.makeOld(targetDir, triggerFile)
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = deleterWithDeletionAction { file ->
+        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == triggerFile.canonicalFile) {
-                createNewFiles(newFile)
+                FileTime.createNewFile(newFile)
             }
             return DeletionAction.CONTINUE
         }
@@ -206,12 +208,13 @@ class DeleterTest extends Specification {
         given:
         def targetDir = tmpDir.createDir("target")
         def nonDeletable = targetDir.createFile("delete.no")
+        FileTime.makeOld(targetDir, nonDeletable)
 
         and:
         def newFile = targetDir.file("aaa.txt")
-        delete = deleterWithDeletionAction { file ->
+        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
             if (file.canonicalFile == nonDeletable.canonicalFile) {
-                createNewFiles(newFile)
+                FileTime.createNewFile(newFile)
                 return DeletionAction.FAILURE
             }
             return DeletionAction.CONTINUE
@@ -242,13 +245,14 @@ class DeleterTest extends Specification {
         def targetDir = tmpDir.createDir("target")
         def tooManyRange = (1..(Deleter.MAX_REPORTED_PATHS + 10))
         def nonDeletableFiles = tooManyRange.collect { targetDir.createFile("zzz-${it}-zzz.txt") }
+        FileTime.makeOld(nonDeletableFiles + targetDir)
 
         and: 'a deleter that cannot delete, records deletion requests and creates new files'
         def triedToDelete = [] as Set<File>
         def newFiles = tooManyRange.collect { targetDir.file("aaa-${it}-aaa.txt") }
-        delete = deleterWithDeletionAction { file ->
+        delete = FileTime.deleterWithDeletionAction(resolver) { file ->
             triedToDelete << file
-            createNewFiles(newFiles as File[])
+            newFiles.each { FileTime.createNewFile(it) }
             return DeletionAction.FAILURE
         }
 
@@ -280,32 +284,52 @@ class DeleterTest extends Specification {
         normalizedMessage.readLines().size() == Deleter.MAX_REPORTED_PATHS * 2 + 5
     }
 
-    private static enum DeletionAction {
-        FAILURE, SUCCESS, CONTINUE
-    }
+    class FileTime {
 
-    private Deleter deleterWithDeletionAction(final Function<File, DeletionAction> deletionAction) {
-        return new Deleter(resolver, fileSystem()) {
+        static int oldTime = 1000
+        static int startTime = oldTime + 2000
+        static int newTime = startTime + 2000
 
+        static Clock clock = new Clock() {
             @Override
-            protected boolean deleteFile(File file) {
-                switch (deletionAction.apply(file)) {
-                    case DeletionAction.SUCCESS:
-                        return true
-                    case DeletionAction.FAILURE:
-                        return false
-                    case DeletionAction.CONTINUE:
-                        return super.deleteFile(file)
+            long getCurrentTime() {
+                return startTime
+            }
+        }
+
+        static Deleter deleterWithDeletionAction(FileResolver resolver, Function<File, DeletionAction> deletionAction) {
+            new Deleter(resolver, fileSystem(), clock) {
+                @Override
+                protected boolean deleteFile(File file) {
+                    switch (deletionAction.apply(file)) {
+                        case DeletionAction.SUCCESS:
+                            return true
+                        case DeletionAction.FAILURE:
+                            return false
+                        case DeletionAction.CONTINUE:
+                            return super.deleteFile(file)
+                    }
                 }
+            }
+        }
+
+        static void makeOld(Iterable<File> files) {
+            makeOld(files as File[])
+        }
+
+        static void makeOld(File... files) {
+            files.each { it.setLastModified(oldTime) }
+        }
+
+        static void createNewFile(File file) {
+            file.tap {
+                text = ""
+                setLastModified(newTime)
             }
         }
     }
 
-    private static void createNewFiles(File... files) {
-        // Set last modified a bit in the future in order for existing test files to be considered old comparatively
-        files.each {
-            it.text = ""
-            it.setLastModified(System.currentTimeMillis() + (OperatingSystem.current().isWindows() ? 500 : 250))
-        }
+    private static enum DeletionAction {
+        FAILURE, SUCCESS, CONTINUE
     }
 }

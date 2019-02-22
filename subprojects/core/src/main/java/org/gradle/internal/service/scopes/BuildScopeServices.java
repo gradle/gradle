@@ -310,7 +310,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(FileHasher.class),
             get(ExecFactory.class),
             get(FileCollectionFactory.class),
-            get(AutoAppliedPluginHandler.class));
+            get(AutoAppliedPluginHandler.class),
+            get(Clock.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {

@@ -32,6 +32,7 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextResourceLoader
+import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -58,7 +59,7 @@ class DefaultFileOperationsTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
-        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem())
+        instantiator.newInstance(DefaultFileOperations, resolver, taskResolver, temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher,  textResourceLoader, fileCollectionFactory, TestFiles.fileSystem(), Time.clock())
     }
 
     def resolvesFile() {
