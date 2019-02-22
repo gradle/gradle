@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -56,6 +55,8 @@ dependencies {
 
     testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
     testFixturesImplementation(project(":internalIntegTesting"))
+
+    crossVersionTestRuntimeOnly(project(":maven"))
 }
 
 gradlebuildJava {
