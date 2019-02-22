@@ -58,26 +58,31 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
 
     private static ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage) {
         ImmutableAttributes attributes = attributesFactory.libraryWithUsage(originAttributes, usage);
-        return conf.withAttributes(attributes).withoutConstraints();
+        return conf.mutate()
+                .withAttributes(attributes)
+                .withoutConstraints()
+                .build();
     }
 
     private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
         ModuleComponentIdentifier componentId = conf.getComponentId();
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
-        DefaultConfigurationMetadata metadata = conf.withAttributes(prefix + conf.getName(), attributes);
         ImmutableCapability shadowed = new ImmutableCapability(
                 componentId.getGroup(),
                 componentId.getModule(),
                 componentId.getVersion()
         );
-        metadata = metadata
+        DefaultConfigurationMetadata.Builder builder = conf.mutate()
+                .withName(prefix + conf.getName())
+                .withAttributes(attributes)
                 .withConstraintsOnly()
                 .withCapabilities(Collections.singletonList(new DefaultShadowedCapability(shadowed, "-derived-platform")));
+
         if (enforcedPlatform) {
-            metadata = metadata.withForcedDependencies();
+            builder = builder.withForcedDependencies();
         }
-        return metadata;
+        return builder.build();
     }
 
 }
