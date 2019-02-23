@@ -22,7 +22,7 @@ import org.gradle.api.tasks.OutputDirectory
 abstract class ClassPathSensitiveCodeGenerationTask : ClassPathSensitiveTask() {
 
     @get:OutputDirectory
-    var sourceCodeOutputDir = project.objects.directoryProperty()
+    var sourceCodeOutputDir = directoryProperty()
 }
 
 

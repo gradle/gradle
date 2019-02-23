@@ -36,7 +36,7 @@ import java.io.File
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:OutputDirectory
-    var outputDirectory = project.objects.directoryProperty()
+    var outputDirectory = directoryProperty()
 
     @get:Internal
     internal

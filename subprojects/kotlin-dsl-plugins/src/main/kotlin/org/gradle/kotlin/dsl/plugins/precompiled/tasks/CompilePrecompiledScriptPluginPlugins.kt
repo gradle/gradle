@@ -19,21 +19,43 @@ package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+
+import org.gradle.kotlin.dsl.execution.scriptDefinitionFromTemplate
+import org.gradle.kotlin.dsl.plugins.precompiled.implicitImports
+
+import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 
 
 @CacheableTask
 open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
 
     @get:OutputDirectory
-    var outputDir = project.objects.directoryProperty()
+    var outputDir = directoryProperty()
+
+    @get:InputFiles
+    val sourceFiles = sourceDirectorySet(
+        "precompiled-script-plugin-plugins",
+        "Precompiled script plugin plugins"
+    )
+
+    fun sourceDir(dir: Provider<Directory>) = sourceFiles.srcDir(dir)
 
     @TaskAction
     fun compile() {
-        outputDir.withOutputDirectory {
+        outputDir.withOutputDirectory { outputDir ->
+            compileKotlinScriptModuleTo(
+                outputDir,
+                sourceFiles.name,
+                sourceFiles.map { it.path },
+                scriptDefinitionFromTemplate(KotlinPluginsBlock::class, project.implicitImports()),
+                classPathFiles,
+                logger,
+                { it }
+            )
         }
     }
-
-    fun sourceDir(dir: Provider<Directory>) = Unit
 }

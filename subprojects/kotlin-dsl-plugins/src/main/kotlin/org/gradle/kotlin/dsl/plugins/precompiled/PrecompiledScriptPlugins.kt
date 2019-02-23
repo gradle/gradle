@@ -251,7 +251,7 @@ fun resolverEnvironment(implicitImports: List<String>) =
         + "=\"" + implicitImports.joinToString(separator = ":") + "\"")
 
 
-private
+internal
 fun Project.implicitImports(): List<String> =
     serviceOf<ImplicitImports>().list
 

@@ -45,11 +45,11 @@ import java.io.File
 open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGenerationTask() {
 
     @get:OutputDirectory
-    var metadataOutputDir = project.objects.directoryProperty()
+    var metadataOutputDir = directoryProperty()
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    var compiledPluginsBlocksDir = project.objects.directoryProperty()
+    var compiledPluginsBlocksDir = directoryProperty()
 
     @get:Internal
     internal

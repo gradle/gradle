@@ -659,21 +659,27 @@ class ResidualProgramCompiler(
     val buildscriptWithPluginsScriptDefinition
         get() = scriptDefinitionFromTemplate(KotlinBuildscriptAndPluginsBlock::class)
 
+
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
+        scriptDefinitionFromTemplate(template, implicitImports)
+}
 
-        object : KotlinScriptDefinition(template), DependenciesResolver {
 
-            override val dependencyResolver = this
+fun scriptDefinitionFromTemplate(
+    template: KClass<out Any>,
+    implicitImports: List<String>
+): KotlinScriptDefinition = object : KotlinScriptDefinition(template), DependenciesResolver {
 
-            override fun resolve(
-                scriptContents: ScriptContents,
-                environment: Environment
-            ): DependenciesResolver.ResolveResult = DependenciesResolver.ResolveResult.Success(
-                ScriptDependencies(imports = implicitImports),
-                emptyList()
-            )
-        }
+    override val dependencyResolver = this
+
+    override fun resolve(
+        scriptContents: ScriptContents,
+        environment: Environment
+    ): DependenciesResolver.ResolveResult = DependenciesResolver.ResolveResult.Success(
+        ScriptDependencies(imports = implicitImports),
+        emptyList()
+    )
 }
 
 
