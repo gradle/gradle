@@ -123,7 +123,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
     }
 
     def "when build leaks permgen space daemon is expired"() {
-        assumeTrue(version.vendor != JdkVendor.IBM && version.version == "1.7")
+        assumeTrue(version.vendor != JdkVendor.IBM)
 
         when:
         setupBuildScript = permGenLeak

@@ -16,42 +16,49 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
-import org.gradle.api.specs.Spec;
-import org.gradle.util.CollectionUtils;
+import org.gradle.internal.time.Clock;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryType;
 import java.util.List;
-import java.util.Map;
 
 public class GarbageCollectionCheck implements Runnable {
-    final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
-    final List<String> memoryPools;
-    final String garbageCollector;
 
-    public GarbageCollectionCheck(Map<String, SlidingWindow<GarbageCollectionEvent>> events, List<String> memoryPools, String garbageCollector) {
-        this.events = events;
-        this.memoryPools = memoryPools;
-        this.garbageCollector = garbageCollector;
+    private final Clock clock;
+    private final GarbageCollectorMXBean garbageCollectorMXBean;
+
+    private final String heapMemoryPool;
+    private final SlidingWindow<GarbageCollectionEvent> heapEvents;
+
+    private final String nonHeapMemoryPool;
+    private final SlidingWindow<GarbageCollectionEvent> nonHeapEvents;
+
+    public GarbageCollectionCheck(Clock clock, GarbageCollectorMXBean garbageCollectorMXBean, String heapMemoryPool, SlidingWindow<GarbageCollectionEvent> heapEvents, String nonHeapMemoryPool, SlidingWindow<GarbageCollectionEvent> nonHeapEvents) {
+        this.clock = clock;
+        this.garbageCollectorMXBean = garbageCollectorMXBean;
+        this.heapMemoryPool = heapMemoryPool;
+        this.heapEvents = heapEvents;
+        this.nonHeapMemoryPool = nonHeapMemoryPool;
+        this.nonHeapEvents = nonHeapEvents;
     }
 
     @Override
     public void run() {
-        List<GarbageCollectorMXBean> garbageCollectorMXBeans = ManagementFactory.getGarbageCollectorMXBeans();
-        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(garbageCollectorMXBeans, new Spec<GarbageCollectorMXBean>() {
-            @Override
-            public boolean isSatisfiedBy(GarbageCollectorMXBean mbean) {
-                return mbean.getName().equals(garbageCollector);
-            }
-        });
-
         List<MemoryPoolMXBean> memoryPoolMXBeans = ManagementFactory.getMemoryPoolMXBeans();
         for (MemoryPoolMXBean memoryPoolMXBean : memoryPoolMXBeans) {
-            String pool = memoryPoolMXBean.getName();
-            if (memoryPools.contains(pool)) {
-                GarbageCollectionEvent event = new GarbageCollectionEvent(System.currentTimeMillis(), memoryPoolMXBean.getCollectionUsage(), garbageCollectorMXBean.getCollectionCount());
-                events.get(pool).slideAndInsert(event);
+            String poolName = memoryPoolMXBean.getName();
+            if (memoryPoolMXBean.getType() == MemoryType.HEAP && poolName.equals(heapMemoryPool)) {
+                GarbageCollectionEvent latest = heapEvents.latest();
+                long currentCount = garbageCollectorMXBean.getCollectionCount();
+                // There has been a GC event
+                if (latest == null || latest.getCount() != currentCount) {
+                    heapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getCollectionUsage(), currentCount));
+                }
+            }
+            if (memoryPoolMXBean.getType() == MemoryType.NON_HEAP && poolName.equals(nonHeapMemoryPool)) {
+                nonHeapEvents.slideAndInsert(new GarbageCollectionEvent(clock.getCurrentTime(), memoryPoolMXBean.getUsage(), -1));
             }
         }
     }

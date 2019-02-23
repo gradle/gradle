@@ -58,6 +58,7 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
@@ -105,7 +106,8 @@ public class DaemonServices extends DefaultServiceRegistry {
     }
 
     protected DaemonMemoryStatus createDaemonMemoryStatus(DaemonHealthStats healthStats) {
-        return new DaemonMemoryStatus(healthStats);
+        GarbageCollectorMonitoringStrategy strategy = healthStats.getGcStrategy();
+        return new DaemonMemoryStatus(healthStats, strategy.getHeapUsageThreshold(), strategy.getGcRateThreshold(), strategy.getNonHeapUsageThreshold(), strategy.getThrashingThreshold());
     }
 
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {

@@ -20,25 +20,66 @@ import spock.lang.Specification
 
 import java.lang.management.MemoryUsage;
 
-public class GarbageCollectionStatsTest extends Specification {
-    def "correctly calculates garbage collection rate"() {
+class GarbageCollectionStatsTest extends Specification {
+    def "correctly calculates stats for heaps"() {
+        def heapStats = GarbageCollectionStats.forHeap(heapEvents)
         expect:
-        new GarbageCollectionStats(checkStream).rate == (double)8/3
+        heapStats.valid
+        heapStats.gcRate == 3.0d
+        heapStats.maxSizeInBytes == 1000
+        heapStats.usedPercent == 50
     }
 
-    def "correctly calculates average usage"() {
+    def "correctly calculates stats for non-heaps"() {
+        def nonHeapStats = GarbageCollectionStats.forNonHeap(nonHeapEvents)
         expect:
-        new GarbageCollectionStats(checkStream).usage == 73
+        nonHeapStats.valid
+        nonHeapStats.gcRate == 0
+        nonHeapStats.maxSizeInBytes == 1000
+        nonHeapStats.usedPercent == 70
     }
 
-    Set<GarbageCollectionEvent> getCheckStream() {
-        Set<GarbageCollectionEvent> checks = [
-            new GarbageCollectionEvent(1000, new MemoryUsage(0, 250, 1000, 1000), 2),
-            new GarbageCollectionEvent(2000, new MemoryUsage(0, 500, 1000, 1000), 3),
-            new GarbageCollectionEvent(2500, new MemoryUsage(0, 500, 1000, 1000), 3),
-            new GarbageCollectionEvent(3000, new MemoryUsage(0, 750, 1000, 1000), 6),
-            new GarbageCollectionEvent(3500, new MemoryUsage(0, 750, 1000, 1000), 6),
-            new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 10)
+    def "reports invalid when fewer than 5 events are seen"() {
+        expect:
+        !stats.valid
+        stats.maxSizeInBytes == 1000
+        where:
+        stats << [
+                GarbageCollectionStats.forHeap(heapEvents.take(3)),
+                GarbageCollectionStats.forNonHeap(nonHeapEvents.take(3))
+        ]
+    }
+
+    def "reports invalid when no events are seen"() {
+        expect:
+        !stats.valid
+        stats.gcRate == 0
+        stats.maxSizeInBytes == -1
+        stats.usedPercent == 0
+        where:
+        stats << [
+                GarbageCollectionStats.forHeap([]),
+                GarbageCollectionStats.forNonHeap([])
+        ]
+    }
+
+    def getHeapEvents() {
+        return [
+                new GarbageCollectionEvent(0000, new MemoryUsage(0, 100, 1000, 1000), 1),
+                new GarbageCollectionEvent(1000, new MemoryUsage(0, 250, 1000, 1000), 2),
+                new GarbageCollectionEvent(2000, new MemoryUsage(0, 500, 1000, 1000), 3),
+                new GarbageCollectionEvent(3000, new MemoryUsage(0, 750, 1000, 1000), 6),
+                new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 13)
+        ]
+    }
+
+    def getNonHeapEvents() {
+        return [
+                new GarbageCollectionEvent(0000, new MemoryUsage(0, 500, 1000, 1000), 0),
+                new GarbageCollectionEvent(1000, new MemoryUsage(0, 600, 1000, 1000), 0),
+                new GarbageCollectionEvent(2000, new MemoryUsage(0, 700, 1000, 1000), 0),
+                new GarbageCollectionEvent(3000, new MemoryUsage(0, 800, 1000, 1000), 0),
+                new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 0)
         ]
     }
 }
