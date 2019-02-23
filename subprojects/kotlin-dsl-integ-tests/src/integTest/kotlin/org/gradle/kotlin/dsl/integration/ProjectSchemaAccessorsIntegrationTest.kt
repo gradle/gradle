@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.api.JavaVersion
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -29,7 +27,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 
@@ -1202,11 +1199,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             build("-q").output,
             containsString("build.Java11Plugin${'$'}Java11Extension")
         )
-    }
-
-    private
-    fun assumeJava11() {
-        assumeTrue("Test requires Java 11", JavaVersion.current().isJava11Compatible)
     }
 
     private
