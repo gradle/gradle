@@ -120,13 +120,13 @@ class Analyzer @Inject constructor(
         val versionToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
         srcDirs.forEach { srcDir ->
             if (srcDir.exists()) {
-                val sourceFileParser = CompositeVersionsToIncubatingCollector(listOf(
+                val collector = CompositeVersionsToIncubatingCollector(listOf(
                     JavaVersionsToIncubatingCollector(srcDir),
                     KotlinVersionsToIncubatingCollector(srcDir)
                 ))
                 srcDir.walkTopDown().forEach { sourceFile ->
                     try {
-                        sourceFileParser.collectFrom(sourceFile).forEach { (version, incubating) ->
+                        collector.collectFrom(sourceFile).forEach { (version, incubating) ->
                             versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
                         }
                     } catch (e: Exception) {
@@ -241,10 +241,10 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
     val solver = JavaSymbolSolver(CombinedTypeSolver(JavaParserTypeSolver(srcDir), ReflectionTypeSolver()))
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
+
+        if (!sourceFile.name.endsWith(".java")) return emptyMap()
+
         val versionsToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
-        if (!sourceFile.name.endsWith(".java")) {
-            return versionsToIncubating
-        }
         JavaParser.parse(sourceFile).run {
             solver.inject(this)
             findAllIncubating()
@@ -272,16 +272,13 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
         )
 
     private
-    fun findVersionFromJavadoc(node: NodeWithAnnotations<*>): String? = if (node is NodeWithJavadoc<*>) {
-        node.javadoc.map { javadoc ->
+    fun findVersionFromJavadoc(node: NodeWithAnnotations<*>): String? =
+        (node as? NodeWithJavadoc<*>)?.javadoc?.map { javadoc ->
             javadoc.blockTags
                 .find { tag -> tag.tagName == "since" }
                 ?.content?.elements?.find { description -> description is JavadocSnippet }
                 ?.toText()
-        }.orElse(null)
-    } else {
-        null
-    }
+        }?.orElse(null)
 
     private
     fun nodeName(it: Node?, unit: CompilationUnit, file: File) = when (it) {
@@ -311,12 +308,9 @@ class KotlinVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingCo
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
 
+        if (!sourceFile.name.endsWith(".kt")) return emptyMap()
+
         val versionsToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
-
-        if (!sourceFile.name.endsWith(".kt")) {
-            return versionsToIncubating
-        }
-
         KotlinSourceParser().mapParsedKotlinFiles(sourceFile) { ktFile ->
             ktFile.forEachIncubatingDeclaration { declaration ->
                 versionsToIncubating
