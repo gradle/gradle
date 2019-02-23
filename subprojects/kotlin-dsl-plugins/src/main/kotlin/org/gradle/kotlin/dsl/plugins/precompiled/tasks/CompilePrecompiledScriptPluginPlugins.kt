@@ -21,6 +21,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.execution.scriptDefinitionFromTemplate
@@ -36,6 +38,7 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
     @get:OutputDirectory
     var outputDir = directoryProperty()
 
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     val sourceFiles = sourceDirectorySet(
         "precompiled-script-plugin-plugins",
@@ -54,7 +57,7 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
                 scriptDefinitionFromTemplate(KotlinPluginsBlock::class, project.implicitImports()),
                 classPathFiles,
                 logger,
-                { it }
+                { it } // TODO: translate paths
             )
         }
     }
