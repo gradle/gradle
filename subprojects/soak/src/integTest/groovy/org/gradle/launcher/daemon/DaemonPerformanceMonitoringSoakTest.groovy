@@ -103,7 +103,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         when:
         leaksWhenIdle()
         executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000")
-        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
         run()
 
@@ -145,7 +145,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         when:
         leaksWithinOneBuild()
         executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000", "--debug")
-        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
         GradleHandle gradle = executer.start()
 
@@ -179,7 +179,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         try {
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
-                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
                 GradleHandle gradle = executer.start()
                 gradle.waitForExit()
                 if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {
