@@ -36,11 +36,11 @@ public class DaemonHealthStats implements Stoppable {
     private final GarbageCollectionInfo gcInfo;
     private final GarbageCollectionMonitor gcMonitor;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
+    public DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
         this.scheduler = executorFactory.createScheduled("Daemon health stats", 1);
         this.gcInfo = new GarbageCollectionInfo();
-        this.gcMonitor = new GarbageCollectionMonitor(scheduler);
+        this.gcMonitor = new GarbageCollectionMonitor(strategy, scheduler);
     }
 
     @VisibleForTesting
@@ -56,10 +56,6 @@ public class DaemonHealthStats implements Stoppable {
         if (scheduler != null) {
             scheduler.stop();
         }
-    }
-
-    public GarbageCollectorMonitoringStrategy getGcStrategy() {
-        return gcMonitor.getGcStrategy();
     }
 
     public GarbageCollectionStats getHeapStats() {
