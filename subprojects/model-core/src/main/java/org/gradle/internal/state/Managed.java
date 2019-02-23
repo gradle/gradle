@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.internal.state;
+
+import javax.annotation.Nullable;
 
 /**
- * Mixed into each generated class, to mark it as fully managed.
+ * Implemented by types whose state is fully managed by Gradle. Mixed into generated classes whose state is fully managed.
  */
 public interface Managed {
     /**
      * Returns a snapshot of the current state of this object. This can be passed to the {@link Factory#fromState(Class, Object)} method to recreate this object from the snapshot.
      * Note that the state may not be immutable, so should be made isolated to reuse in another context. The state can also be fingerprinted to generate a fingerprint of this object.
+     *
+     * <p><em>Note that currently the state should reference only JVM and core Gradle types when {@link #immutable()} returns true.</em></p>
      */
     Object unpackState();
 
@@ -31,11 +35,23 @@ public interface Managed {
      */
     boolean immutable();
 
+    /**
+     * Returns the public type of this managed instance. Currently is used to identify the implementation.
+     */
     Class<?> publicType();
 
+    /**
+     * Returns the factory that can be used to create new instances of this type.
+     */
     Factory managedFactory();
 
     interface Factory {
+        /**
+         * Creates an instance of the given type from the given state, if possible.
+         *
+         * @return null when the given type is not supported.
+         */
+        @Nullable
         <T> T fromState(Class<T> type, Object state);
     }
 }

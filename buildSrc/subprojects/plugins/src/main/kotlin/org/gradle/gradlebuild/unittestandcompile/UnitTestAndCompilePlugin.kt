@@ -26,6 +26,7 @@ import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.CompileOptions
@@ -41,9 +42,11 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import testLibrary
+import java.lang.IllegalStateException
 import java.util.concurrent.Callable
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.jar.Attributes
+import kotlin.reflect.full.declaredFunctions
 
 
 enum class ModuleType(val compatibility: JavaVersion) {
@@ -235,7 +238,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Test.onlyRunPreviousFailedClassesIfNecessary() {
         if (project.stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
             val previousFailedClasses = getPreviousFailedTestClasses()
-            if (previousFailedClasses.isEmpty() || allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
+            if (allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
+                throw IllegalStateException("Too many failures (${allTestFailuresCount.get()}) in first run!")
+            } else if (previousFailedClasses.isEmpty()) {
                 enabled = false
             } else {
                 previousFailedClasses.forEach { filter.includeTestsMatching(it) }
@@ -304,6 +309,7 @@ open class UnitTestAndCompileExtension(val project: Project) {
             field = value!!
             project.java.targetCompatibility = value.compatibility
             project.java.sourceCompatibility = value.compatibility
+            project.java.disableAutoTargetJvmGradle53()
         }
 
     init {
@@ -312,5 +318,13 @@ open class UnitTestAndCompileExtension(val project: Project) {
                 throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
             }
         }
+    }
+}
+
+
+fun JavaPluginConvention.disableAutoTargetJvmGradle53() {
+    val function = JavaPluginConvention::class.declaredFunctions.find { it.name == "disableAutoTargetJvm" }
+    function?.also {
+        it.call(this)
     }
 }

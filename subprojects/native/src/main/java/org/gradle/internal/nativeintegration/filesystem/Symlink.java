@@ -19,7 +19,7 @@ package org.gradle.internal.nativeintegration.filesystem;
 import java.io.File;
 
 public interface Symlink {
-    boolean isSymlinkSupported();
+    boolean isSymlinkCreationSupported();
 
     void symlink(File link, File target) throws Exception;
 

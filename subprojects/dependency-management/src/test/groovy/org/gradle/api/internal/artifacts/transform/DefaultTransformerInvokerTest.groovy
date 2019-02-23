@@ -127,6 +127,11 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        boolean isCacheable() {
+            return false
+        }
+
+        @Override
         ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
             return ImmutableList.copyOf(transformationAction.apply(inputArtifact, outputDir))
         }

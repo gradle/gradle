@@ -17,17 +17,22 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.Bundling;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -35,6 +40,33 @@ import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
+        configureUsage(attributesSchema, objectFactory);
+        configureBundling(attributesSchema);
+        configureTargetPlatform(attributesSchema);
+    }
+
+    public static void configureDefaultTargetPlatform(HasAttributes configuration, JavaVersion version) {
+        String majorVersion = version.getMajorVersion();
+        AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
+        // If nobody said anything about this variant's target platform, use whatever the convention says
+        if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
+        }
+    }
+
+    private static void configureTargetPlatform(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
+        targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.<Integer>natural());
+    }
+
+    private static void configureBundling(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
+        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
+        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
+    }
+
+    private static void configureUsage(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         AttributeMatchingStrategy<Usage> usageSchema = attributesSchema.attribute(Usage.USAGE_ATTRIBUTE);
         usageSchema.getCompatibilityRules().add(UsageCompatibilityRules.class);
         usageSchema.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
@@ -49,9 +81,6 @@ public abstract class JavaEcosystemSupport {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME_RESOURCES));
             }
         });
-        AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
-        bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
-        bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
     }
 
     @VisibleForTesting
@@ -270,4 +299,5 @@ public abstract class JavaEcosystemSupport {
             }
         }
     }
+
 }

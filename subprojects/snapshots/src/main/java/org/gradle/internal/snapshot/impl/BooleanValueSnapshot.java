@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.Hasher;
 
-public class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean> {
+class BooleanValueSnapshot extends AbstractIsolatableScalarValue<Boolean> {
     public static final BooleanValueSnapshot TRUE = new BooleanValueSnapshot(true);
     public static final BooleanValueSnapshot FALSE = new BooleanValueSnapshot(false);
 

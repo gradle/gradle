@@ -30,7 +30,7 @@ class NativePlatformBackedSymlink implements Symlink {
     }
 
     @Override
-    public boolean isSymlinkSupported() {
+    public boolean isSymlinkCreationSupported() {
         return true;
     }
 

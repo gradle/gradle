@@ -23,6 +23,7 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -88,7 +89,11 @@ public class GradleWrapperMain {
         if (!location.getScheme().equals("file")) {
             throw new RuntimeException(String.format("Cannot determine classpath for wrapper Jar from codebase '%s'.", location));
         }
-        return new File(location.getPath());
+        try {
+            return Paths.get(location).toFile();
+        } catch (NoClassDefFoundError e) {
+            return new File(location.getPath());
+        }
     }
 
     private static File gradleUserHome(ParsedCommandLine options) {

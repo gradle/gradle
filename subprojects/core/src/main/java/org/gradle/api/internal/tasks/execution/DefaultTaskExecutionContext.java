@@ -153,15 +153,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public long getExecutionTime() {
-        if (this.executionTime == null) {
-            throw new IllegalStateException("execution time not yet set");
-        }
-
-        return executionTime;
-    }
-
-    @Override
     @Nullable
     public List<String> getUpToDateMessages() {
         return upToDateMessages;

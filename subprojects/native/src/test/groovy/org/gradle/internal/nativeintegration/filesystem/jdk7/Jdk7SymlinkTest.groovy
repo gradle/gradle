@@ -16,12 +16,17 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7
 
+
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsHardLinks
+import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsJunction
+import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsSymbolicLink
 
 class Jdk7SymlinkTest extends Specification {
 
@@ -30,13 +35,13 @@ class Jdk7SymlinkTest extends Specification {
     @Requires(TestPrecondition.SYMLINKS)
     def 'on symlink supporting system, it will return true for supported symlink'() {
         expect:
-        new Jdk7Symlink().isSymlinkSupported()
+        new Jdk7Symlink().isSymlinkCreationSupported()
     }
 
     @Requires(TestPrecondition.NO_SYMLINKS)
     def 'on non symlink supporting system, it will return false for supported symlink'() {
         expect:
-        !new WindowsJdk7Symlink().isSymlinkSupported()
+        !new WindowsJdk7Symlink().isSymlinkCreationSupported()
     }
 
     @Unroll
@@ -68,12 +73,59 @@ class Jdk7SymlinkTest extends Specification {
         symlink.isSymlink(new File(testDirectory, 'testDir'))
     }
 
+    @Requires(TestPrecondition.WINDOWS)
+    def 'can detect Windows symbolic links as symbolic links'() {
+        def symlink = new WindowsJdk7Symlink()
+        def testDirectory = temporaryFolder.getTestDirectory().createDir()
+
+        when:
+        createWindowsSymbolicLink(new File(testDirectory, 'testFile'), testDirectory.createFile('symFile'))
+
+        then:
+        symlink.isSymlink(new File(testDirectory, 'testFile'))
+
+        when:
+        createWindowsSymbolicLink(new File(testDirectory, 'testDir'), testDirectory.createDir('symDir'))
+
+        then:
+        symlink.isSymlink(new File(testDirectory, 'testDir'))
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def 'does not detect Windows hard links as symbolic links'() {
+        def symlink = new WindowsJdk7Symlink()
+        def testDirectory = temporaryFolder.getTestDirectory().createDir()
+
+        when:
+        createWindowsHardLinks(new File(testDirectory, 'testFile'), testDirectory.createFile('symFile'))
+
+        then:
+        !symlink.isSymlink(new File(testDirectory, 'testFile'))
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def 'can detect Windows junction point as symbolic links'() {
+        def symlink = new WindowsJdk7Symlink()
+        def testDirectory = temporaryFolder.getTestDirectory().createDir()
+
+        when:
+        createWindowsJunction(new File(testDirectory, 'testDir'), testDirectory.createDir('symDir'))
+
+        then:
+        symlink.isSymlink(new File(testDirectory, 'testDir'))
+
+        cleanup:
+        // Need to delete the junction point manually because it's not supported by JDK
+        // See: https://bugs.openjdk.java.net/browse/JDK-8069345
+        new File(testDirectory, 'testDir').delete()
+    }
+
     private static List<File> listSymlinkTestFiles() {
         def tempDir = new File(System.getProperty("java.io.tmpdir"))
         return tempDir.listFiles(new FileFilter() {
             @Override
             boolean accept(File pathname) {
-                return pathname.name.startsWith("symlink") && (pathname.name.endsWith("test") || pathname.name.endsWith("test_link"))
+                return pathname.name.startsWith("symlink") && (pathname.name.endsWith("test") || pathname.name.endsWith("test_link")) && pathname.canWrite()
             }
         })
     }

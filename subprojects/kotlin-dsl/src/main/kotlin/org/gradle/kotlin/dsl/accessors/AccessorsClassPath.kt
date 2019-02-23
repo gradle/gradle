@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -50,7 +52,6 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
-import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
@@ -348,13 +349,13 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
 
 private
-class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
+class HasTypeParameterClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var hasTypeParameters = false
 
     override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
         if (signature != null) {
-            SignatureReader(signature).accept(object : SignatureVisitor(ASM6) {
+            SignatureReader(signature).accept(object : SignatureVisitor(ASM_LEVEL) {
                 override fun visitFormalTypeParameter(name: String) {
                     hasTypeParameters = true
                 }
@@ -365,7 +366,7 @@ class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
 
 
 private
-class KotlinVisibilityClassVisitor : ClassVisitor(ASM6) {
+class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var visibility: Visibility? = null
 
@@ -385,7 +386,7 @@ class KotlinVisibilityClassVisitor : ClassVisitor(ASM6) {
 private
 class ClassDataFromKotlinMetadataAnnotationVisitor(
     private val onClassData: (ProtoBuf.Class) -> Unit
-) : AnnotationVisitor(ASM6) {
+) : AnnotationVisitor(ASM_LEVEL) {
 
     /**
      * @see kotlin.Metadata.data1
@@ -415,7 +416,7 @@ class ClassDataFromKotlinMetadataAnnotationVisitor(
 
 
 private
-class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM6) {
+class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM_LEVEL) {
     override fun visit(name: String?, value: Any?) {
         @Suppress("unchecked_cast")
         output.add(value as T)

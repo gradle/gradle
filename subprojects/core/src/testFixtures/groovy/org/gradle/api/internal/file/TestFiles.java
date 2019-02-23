@@ -29,6 +29,7 @@ import org.gradle.internal.resource.BasicTextResourceLoader;
 import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.time.Time;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -94,7 +95,7 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
-        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoader(), fileCollectionFactory(basedDir), fileSystem());
+        return new DefaultFileOperations(resolver(basedDir), null, temporaryFileProvider, TestUtil.instantiatorFactory().inject(), fileLookup(), directoryFileTreeFactory(), streamHasher(), fileHasher(), textResourceLoader(), fileCollectionFactory(basedDir), fileSystem(), Time.clock());
     }
 
     public static TextResourceLoader textResourceLoader() {

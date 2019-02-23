@@ -16,42 +16,38 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.state.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
-/**
- * Isolates a Serialized value and is a snapshot for that value.
- */
-public class IsolatableSerializedValueSnapshot extends SerializedValueSnapshot implements Isolatable<Object> {
-    private final Class<?> originalClass;
+class IsolatedManagedValue extends AbstractManagedValueSnapshot<Isolatable<?>> implements Isolatable<Object> {
+    private final Managed.Factory factory;
+    private final Class<?> targetType;
 
-    public IsolatableSerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
-        super(implementationHash, serializedValue);
-        this.originalClass = originalClass;
+    public IsolatedManagedValue(Class<?> targetType, Managed.Factory factory, Isolatable<?> state) {
+        super(state);
+        this.targetType = targetType;
+        this.factory = factory;
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return new SerializedValueSnapshot(getImplementationHash(), getValue());
+        return new ManagedValueSnapshot(targetType.getName(), state.asSnapshot());
     }
 
     @Override
     public Object isolate() {
-        return populateClass(originalClass);
+        return factory.fromState(targetType, state.isolate());
     }
 
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        if (type.isAssignableFrom(originalClass)) {
+        if (type.isAssignableFrom(targetType)) {
             return type.cast(isolate());
         }
-        if (type.getName().equals(originalClass.getName())) {
-            return type.cast(populateClass(type));
-        }
-        return null;
+        return type.cast(factory.fromState(type, state.isolate()));
     }
 }

@@ -19,10 +19,10 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
-public class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable {
+class AbstractManagedValueSnapshot<T extends Hashable> implements Hashable {
     protected final T state;
 
-    public AbstractManagedTypeSnapshot(T state) {
+    public AbstractManagedValueSnapshot(T state) {
         this.state = state;
     }
 
@@ -38,7 +38,7 @@ public class AbstractManagedTypeSnapshot<T extends Hashable> implements Hashable
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        AbstractManagedTypeSnapshot other = (AbstractManagedTypeSnapshot) obj;
+        AbstractManagedValueSnapshot other = (AbstractManagedValueSnapshot) obj;
         return state.equals(other.state);
     }
 

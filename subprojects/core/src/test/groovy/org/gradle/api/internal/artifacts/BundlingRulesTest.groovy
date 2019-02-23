@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts
 
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.attributes.java.Bundling
+import org.gradle.api.attributes.Bundling
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.attributes.java.Bundling.EXTERNAL
-import static org.gradle.api.attributes.java.Bundling.EMBEDDED
-import static org.gradle.api.attributes.java.Bundling.SHADOWED
+import static org.gradle.api.attributes.Bundling.EXTERNAL
+import static org.gradle.api.attributes.Bundling.EMBEDDED
+import static org.gradle.api.attributes.Bundling.SHADOWED
 
 class BundlingRulesTest extends Specification {
     private JavaEcosystemSupport.BundlingCompatibilityRules compatibilityRules = new JavaEcosystemSupport.BundlingCompatibilityRules()

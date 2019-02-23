@@ -127,6 +127,8 @@ class JarProducer extends DefaultTask {
     final RegularFileProperty output = project.objects.fileProperty()
     @Input
     String content = "content"
+    @Input
+    long timestamp = 123L
 
     @TaskAction
     def go() {
@@ -134,7 +136,7 @@ class JarProducer extends DefaultTask {
         file.withOutputStream {
             def jarFile = new JarOutputStream(it)
             def entry = new ZipEntry("thing.class")
-            entry.time = 123L
+            entry.time = timestamp
             jarFile.putNextEntry(entry)
             jarFile << content
             jarFile.close()
@@ -251,6 +253,9 @@ allprojects { p ->
                     }
                     if (project.hasProperty("\${project.name}FileName")) {
                         output = layout.buildDir.file(project.property("\${project.name}FileName"))
+                    }
+                    if (project.hasProperty("\${project.name}Timestamp")) {
+                        timestamp = Long.parseLong(project.property("\${project.name}Timestamp"))
                     }
                 }
             """.stripIndent()

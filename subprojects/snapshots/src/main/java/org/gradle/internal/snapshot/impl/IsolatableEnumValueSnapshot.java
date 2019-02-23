@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 /**
  * Isolates an Enum value and is a snapshot for that value.
  */
-public class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
+class IsolatableEnumValueSnapshot extends EnumValueSnapshot implements Isolatable<Enum> {
     private final Enum<?> value;
 
     public IsolatableEnumValueSnapshot(Enum<?> value) {

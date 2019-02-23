@@ -31,6 +31,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -248,7 +249,7 @@ public class DefaultTaskProperties implements TaskProperties {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<ValidatingProperty>();
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
         }
 

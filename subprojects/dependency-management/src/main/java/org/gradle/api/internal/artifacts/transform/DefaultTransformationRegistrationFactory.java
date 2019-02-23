@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.artifacts.transform.CacheableTransformAction;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -35,7 +37,6 @@ import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -90,36 +91,40 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable Object parameterObject) {
         List<String> validationMessages = new ArrayList<>();
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
-        actionMetadata.collectValidationFailures(null, new DefaultParameterValidationContext(validationMessages));
-        if (!validationMessages.isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
-        }
+        DefaultParameterValidationContext parameterValidationContext = new DefaultParameterValidationContext(validationMessages);
+        actionMetadata.collectValidationFailures(null, parameterValidationContext);
+        boolean cacheable = implementation.isAnnotationPresent(CacheableTransformAction.class);
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Class<? extends FileNormalizer> inputArtifactNormalizer = AbsolutePathInputNormalizer.class;
-        Class<? extends FileNormalizer> dependenciesNormalizer = AbsolutePathInputNormalizer.class;
+        Class<? extends FileNormalizer> inputArtifactNormalizer = null;
+        Class<? extends FileNormalizer> dependenciesNormalizer = null;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             if (propertyMetadata.getAnnotation(InputArtifact.class) != null) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 inputArtifactNormalizer = visitor.normalizer;
+                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, parameterValidationContext);
             }
             if (propertyMetadata.getAnnotation(InputArtifactDependencies.class) != null) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
                 actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
                 dependenciesNormalizer = visitor.normalizer;
+                DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, parameterValidationContext);
             }
         }
-
+        if (!validationMessages.isEmpty()) {
+            throw new DefaultMultiCauseException(
+                String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
+                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
+        }
         Transformer transformer = new DefaultTransformer(
             implementation,
             parameterObject,
             from,
-            inputArtifactNormalizer,
-            dependenciesNormalizer,
+            FileParameterUtils.normalizerOrDefault(inputArtifactNormalizer),
+            FileParameterUtils.normalizerOrDefault(dependenciesNormalizer),
+            cacheable,
             classLoaderHierarchyHasher,
             isolatableFactory,
             valueSnapshotter,
@@ -169,7 +174,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private Class<? extends FileNormalizer> normalizer;
 
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
             this.normalizer = fileNormalizer;
         }
     }

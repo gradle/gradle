@@ -27,12 +27,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -58,6 +60,7 @@ import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
@@ -148,7 +151,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
                 ConfigurationContainer configurations = project.getConfigurations();
 
-                defineConfigurationsForSourceSet(sourceSet, configurations);
+                defineConfigurationsForSourceSet(sourceSet, configurations, pluginConvention);
                 definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
@@ -229,7 +232,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
-    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, final JavaPluginConvention convention) {
         String compileConfigurationName = sourceSet.getCompileConfigurationName();
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeConfigurationName = sourceSet.getRuntimeConfigurationName();
@@ -239,6 +242,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String annotationProcessorConfigurationName = sourceSet.getAnnotationProcessorConfigurationName();
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
+        Action<ConfigurationInternal> configureDefaultTargetPlatform = configureDefaultTargetPlatform(convention);
+
 
         Configuration compileConfiguration = configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
@@ -266,6 +271,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
         compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+        ((ConfigurationInternal)compileClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
 
         Configuration annotationProcessorConfiguration = configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
@@ -286,10 +293,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
         runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        runtimeClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+        ((ConfigurationInternal)runtimeClasspathConfiguration).beforeLocking(configureDefaultTargetPlatform);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
+    }
+
+    private Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
+        return new Action<ConfigurationInternal>() {
+            @Override
+            public void execute(ConfigurationInternal conf) {
+                if (!convention.getAutoTargetJvmDisabled()) {
+                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
+                }
+            }
+        };
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {

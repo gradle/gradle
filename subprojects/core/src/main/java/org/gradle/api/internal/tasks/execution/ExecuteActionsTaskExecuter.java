@@ -213,8 +213,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     if (task.isHasCustomActions()) {
                         LOGGER.info("Custom actions are attached to {}.", task);
                     }
-                    if (buildCacheEnabled
-                            && context.isTaskCachingEnabled()
+                    if (context.isTaskCachingEnabled()
                             && context.getTaskExecutionMode().isAllowedToUseCachedResults()
                             && context.getBuildCacheKey().isValid()
                     ) {

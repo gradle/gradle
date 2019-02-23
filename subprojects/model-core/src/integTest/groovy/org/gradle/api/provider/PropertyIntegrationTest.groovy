@@ -60,6 +60,31 @@ task thing(type: SomeTask) {
         skipped(":thing")
     }
 
+    def "can define task with abstract Property getter"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract Property<String> getProp()
+                
+                @TaskAction
+                void go() {
+                    println("prop = \${prop.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                prop = "abc"
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("prop = abc")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << """

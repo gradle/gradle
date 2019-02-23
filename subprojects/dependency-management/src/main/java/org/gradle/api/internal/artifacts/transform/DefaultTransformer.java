@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
@@ -44,6 +45,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -52,7 +54,6 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.instantiation.Managed;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;
@@ -88,6 +89,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final DomainObjectProjectStateHandler projectStateHandler;
     private final ProjectStateRegistry.SafeExclusiveLock isolationLock;
     private final WorkNodeAction isolateAction;
+    private final boolean cacheable;
 
     private IsolatableParameters isolatable;
 
@@ -97,6 +99,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         ImmutableAttributes fromAttributes,
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
+        boolean cacheable,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         IsolatableFactory isolatableFactory,
         ValueSnapshotter valueSnapshotter,
@@ -118,6 +121,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
+        this.cacheable = cacheable;
         this.projectStateHandler = projectStateHandler;
         this.isolationLock = projectStateHandler.newExclusiveOperationLock();
         this.isolateAction = parameterObject == null ? null : new WorkNodeAction() {
@@ -134,6 +138,17 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         };
     }
 
+    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
+        if (cacheable) {
+            if (normalizer == AbsolutePathInputNormalizer.class) {
+                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
+            }
+            if (normalizer == null) {
+                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
+            }
+        }
+    }
+
     @Override
     public Class<? extends FileNormalizer> getInputArtifactNormalizer() {
         return fileNormalizer;
@@ -146,6 +161,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     public boolean requiresDependencies() {
         return requiresDependencies;
+    }
+
+    @Override
+    public boolean isCacheable() {
+        return cacheable;
     }
 
     @Override
@@ -169,7 +189,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         if (parameterObject != null) {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
-                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     context.maybeAdd(value.call());
                 }
             });
@@ -208,7 +228,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate());
+            fingerprintParameters(valueSnapshotter, fileCollectionFingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
         }
         HashCode secondaryInputsHash = hasher.hash();
         return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
@@ -220,7 +240,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         FileCollectionFactory fileCollectionFactory,
         PropertyWalker propertyWalker,
         Hasher hasher,
-        Object parameterObject
+        Object parameterObject,
+        boolean cacheable
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
@@ -252,8 +273,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             }
 
             @Override
-            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(fileNormalizer);
+            public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(FileParameterUtils.normalizerOrDefault(fileNormalizer));
                 FileCollection inputFileValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(inputFileValue);
                 inputFileParameterFingerprintsBuilder.put(propertyName, fingerprint);
@@ -278,8 +300,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static String getParameterObjectDisplayName(Object parameterObject) {
-        Class<?> parameterClass = parameterObject instanceof Managed ? ((Managed) parameterObject).publicType() : parameterObject.getClass();
-        return ModelType.of(parameterClass).getDisplayName();
+        return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
     private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {

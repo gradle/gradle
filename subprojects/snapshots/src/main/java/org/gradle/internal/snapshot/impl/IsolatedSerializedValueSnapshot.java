@@ -16,40 +16,41 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.internal.instantiation.Managed;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nullable;
 
-public class IsolatedManagedTypeSnapshot extends AbstractManagedTypeSnapshot<Isolatable<?>> implements Isolatable<Object> {
-    private final Managed.Factory factory;
-    private final Class<?> targetType;
+/**
+ * Isolates a Serialized value and is a snapshot for that value.
+ */
+class IsolatedSerializedValueSnapshot extends SerializedValueSnapshot implements Isolatable<Object> {
+    private final Class<?> originalClass;
 
-    public IsolatedManagedTypeSnapshot(Class<?> targetType, Managed.Factory factory, Isolatable<?> state) {
-        super(state);
-        this.targetType = targetType;
-        this.factory = factory;
+    public IsolatedSerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
+        super(implementationHash, serializedValue);
+        this.originalClass = originalClass;
     }
 
     @Override
     public ValueSnapshot asSnapshot() {
-        return new ManagedTypeSnapshot(targetType.getName(), state.asSnapshot());
+        return new SerializedValueSnapshot(getImplementationHash(), getValue());
     }
 
     @Override
     public Object isolate() {
-        return factory.fromState(targetType, state.isolate());
+        return populateClass(originalClass);
     }
 
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        if (type.isAssignableFrom(targetType)) {
+        if (type.isAssignableFrom(originalClass)) {
             return type.cast(isolate());
         }
-        if (targetType.getName().equals(type.getName())) {
-            return type.cast(factory.fromState(type, state.isolate()));
+        if (type.getName().equals(originalClass.getName())) {
+            return type.cast(populateClass(type));
         }
         return null;
     }
