@@ -33,42 +33,26 @@ import java.io.File
 
 class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
+    private
+    val outputDir by lazy {
+        newFolder("plugins")
+    }
+
     @Test
-    fun `extract plugins blocks and writes them to the output dir`() {
+    fun `can extract plugins block from script with only plugins`() {
 
-        val scriptPlugins = listOf(
-
-            scriptPlugin("plugins-only.gradle.kts", """
+        extractPluginsFrom(
+            scriptPlugin(
+                "plugins-only.gradle.kts",
+                """
                 // this comment will be removed
                 plugins {
                     java
                 }
                 // and so will the rest of the script
-            """),
-
-            scriptPlugin("no-plugins.gradle.kts", """
-                buildscript {}
-            """),
-
-            scriptPlugin("empty-plugins.gradle.kts", """
-                plugins {}
-            """),
-
-            // the `buildscript` block is not really valid in precompiled script plugins (causes a runtime error)
-            // but still worth testing here
-            scriptPlugin("buildscript-and-plugins.gradle.kts", """
-                buildscript {}
-                plugins { java }
-            """)
+                """
+            )
         )
-
-        val outputDir = newFolder("plugins")
-        extractPrecompiledScriptPluginPluginsTo(
-            outputDir,
-            scriptPlugins
-        )
-
-        fun outputFile(fileName: String) = outputDir.resolve(fileName)
 
         assertThat(
             outputFile("plugins-only.gradle.kts").readText(),
@@ -79,15 +63,18 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 }"""
             )
         )
+    }
 
-        assertThat(
-            outputFile("no-plugins.gradle.kts"),
-            doesNotExist()
-        )
+    @Test
+    fun `can extract plugins block from script with a buildscript block`() {
 
-        assertThat(
-            outputFile("empty-plugins.gradle.kts"),
-            doesNotExist()
+        extractPluginsFrom(
+            // the `buildscript` block is not really valid in precompiled script plugins (causes a runtime error)
+            // but still worth testing here
+            scriptPlugin("buildscript-and-plugins.gradle.kts", """
+                buildscript {}
+                plugins { java }
+            """)
         )
 
         assertThat(
@@ -99,6 +86,42 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
         )
     }
 
+    @Test
+    fun `ignores scripts with a nonexistent or empty plugins block`() {
+
+        extractPluginsFrom(
+
+            scriptPlugin("no-plugins.gradle.kts", """
+                buildscript {}
+            """),
+
+            scriptPlugin("empty-plugins.gradle.kts", """
+                plugins {}
+            """)
+        )
+
+        assertThat(
+            outputFile("no-plugins.gradle.kts"),
+            doesNotExist()
+        )
+
+        assertThat(
+            outputFile("empty-plugins.gradle.kts"),
+            doesNotExist()
+        )
+    }
+
+    private
+    fun extractPluginsFrom(vararg scriptPlugins: PrecompiledScriptPlugin) {
+        extractPrecompiledScriptPluginPluginsTo(
+            outputDir,
+            scriptPlugins.asList()
+        )
+    }
+
+    private
+    fun outputFile(fileName: String) = outputDir.resolve(fileName)
+
     private
     fun scriptPlugin(fileName: String, text: String) = PrecompiledScriptPlugin(newFile(fileName, text))
 
@@ -108,7 +131,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
 
 private
-fun repeat(char: Char, count: Int) = String(CharArray(count) { _ -> char })
+fun repeat(char: Char, count: Int) = String(CharArray(count) { char })
 
 
 private
