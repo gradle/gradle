@@ -156,6 +156,7 @@ private constructor(
      * @return the added dependency constraint
      *
      * @see [DependencyConstraintHandler.add]
+     * @since 5.0
      */
     @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any): DependencyConstraint? =
@@ -170,6 +171,7 @@ private constructor(
      * @return the added dependency constraint
      *
      * @see [DependencyConstraintHandler.add]
+     * @since 5.0
      */
     @Incubating
     fun DependencyConstraintHandler.classpath(dependencyConstraintNotation: Any, configuration: DependencyConstraint.() -> Unit): DependencyConstraint? =

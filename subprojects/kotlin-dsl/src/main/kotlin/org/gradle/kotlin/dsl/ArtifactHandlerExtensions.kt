@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 
 /**
  * Configures the published artifacts for this project.
+ *
+ * @since 5.1
  */
 @Incubating
 operator fun ArtifactHandler.invoke(configuration: ArtifactHandlerScope.() -> Unit): Unit =
