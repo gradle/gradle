@@ -29,3 +29,6 @@ To create a full installation (includes docs):
 ## Contributing
 
 If you're looking to contribute to Gradle or provide a patch/pull request, you can find more info [here](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
+antok derajat prima klasik indonesia
+https://antokderajatprima.wordpress.com
+https://myblogsprotsantokderajatprima.blogspot.com
