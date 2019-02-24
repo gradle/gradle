@@ -60,9 +60,15 @@ import java.util.Queue;
 public class PropertyValidationAccess {
     private final static Map<Class<? extends Annotation>, PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
         Input.class, new InputOnFileTypeValidator(),
-        InputFiles.class, new MissingPathSensitivityValidator(),
-        InputFile.class, new MissingPathSensitivityValidator(),
-        InputDirectory.class, new MissingPathSensitivityValidator()
+        InputFiles.class, new MissingPathSensitivityValidator(false),
+        InputFile.class, new MissingPathSensitivityValidator(false),
+        InputDirectory.class, new MissingPathSensitivityValidator(false)
+    );
+    private final static Map<Class<? extends Annotation>, PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
+        Input.class, new InputOnFileTypeValidator(),
+        InputFiles.class, new MissingPathSensitivityValidator(true),
+        InputFile.class, new MissingPathSensitivityValidator(true),
+        InputDirectory.class, new MissingPathSensitivityValidator(true)
     );
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 
@@ -177,12 +183,9 @@ public class PropertyValidationAccess {
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
                 Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
-                PropertyValidator validator = PROPERTY_VALIDATORS.get(propertyType);
+                PropertyValidator validator = stricterValidation ? STRICT_PROPERTY_VALIDATORS.get(propertyType) : PROPERTY_VALIDATORS.get(propertyType);
                 if (validator != null) {
-                    String validationMessage = validator.validate(stricterValidation, propertyMetadata);
-                    if (validationMessage != null) {
-                        validationContext.recordValidationMessage(null, propertyMetadata.getPropertyName(), validationMessage);
-                    }
+                    validator.validate(null, propertyMetadata, validationContext);
                 }
                 if (propertyMetadata.isAnnotationPresent(Nested.class)) {
                     TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
@@ -210,12 +213,13 @@ public class PropertyValidationAccess {
             }
 
             @Override
-            public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
-                recordValidationMessage(String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message));
+            public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+                visitError(String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message));
             }
 
             @Override
-            public void recordValidationMessage(String message) {
+            public void visitError(String message) {
+                // Treat all errors as warnings, for backwards compatibility
                 problems.put(message, Boolean.FALSE);
             }
         }
@@ -254,34 +258,34 @@ public class PropertyValidationAccess {
     }
 
     private interface PropertyValidator {
-        @Nullable
-        String validate(boolean stricterValidation, PropertyMetadata metadata);
+        void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext);
     }
 
     private static class InputOnFileTypeValidator implements PropertyValidator {
-        @Nullable
         @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
+        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
             Class<?> valueType = metadata.getDeclaredType();
             if (File.class.isAssignableFrom(valueType)
                 || java.nio.file.Path.class.isAssignableFrom(valueType)
                 || FileCollection.class.isAssignableFrom(valueType)) {
-                return "has @Input annotation used on property of type " + valueType.getName();
+                validationContext.visitError(ownerPath, metadata.getPropertyName(), "has @Input annotation used on property of type " + valueType.getName());
             }
-            return null;
         }
     }
 
     private static class MissingPathSensitivityValidator implements PropertyValidator {
+        final boolean stricterValidation;
 
-        @Nullable
+        public MissingPathSensitivityValidator(boolean stricterValidation) {
+            this.stricterValidation = stricterValidation;
+        }
+
         @Override
-        public String validate(boolean stricterValidation, PropertyMetadata metadata) {
+        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
             PathSensitive pathSensitive = metadata.getAnnotation(PathSensitive.class);
             if (stricterValidation && pathSensitive == null) {
-                return "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE";
+                validationContext.visitError(ownerPath, metadata.getPropertyName(), "is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE");
             }
-            return null;
         }
     }
 

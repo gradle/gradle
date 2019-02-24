@@ -58,7 +58,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         validatingSpec.validate(validationContext)
 
         then:
-        1 * validationContext.recordValidationMessage("No value has been specified for property 'name'.")
+        1 * validationContext.visitError("No value has been specified for property 'name'.")
         0 * _
     }
 

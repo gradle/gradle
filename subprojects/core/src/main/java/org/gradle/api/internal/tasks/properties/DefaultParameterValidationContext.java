@@ -29,16 +29,16 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
     }
 
     @Override
-    public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
+    public void visitError(@Nullable String ownerPath, String propertyName, String message) {
         if (ownerPath == null) {
-            recordValidationMessage("Property '" + propertyName + "' " + message + ".");
+            visitError("Property '" + propertyName + "' " + message + ".");
         } else {
-            recordValidationMessage("Property '" + ownerPath + '.' + propertyName + "' " + message + ".");
+            visitError("Property '" + ownerPath + '.' + propertyName + "' " + message + ".");
         }
     }
 
     @Override
-    public void recordValidationMessage(String message) {
+    public void visitError(String message) {
         messages.add(message);
     }
 }
