@@ -352,6 +352,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
+            import java.util.Set;
+            import java.util.Collections;
             import java.io.File;
 
             @CacheableTask
@@ -393,6 +395,16 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 public File getInputDirectory() {
                     return new File("inputDir");
                 }
+
+                @InputFile
+                public File getInputFile() {
+                    return new File("inputFile");
+                }
+
+                @InputFiles
+                public Set<File> getInputFiles() {
+                    return Collections.emptySet();
+                }
                 
                 @Input
                 public File getFile() {
@@ -412,6 +424,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Task type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Task type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
             Warning: Task type 'MyTask': property 'inputDirectory' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'inputFile' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'inputFiles' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Task type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
         """.stripIndent().trim()
     }
@@ -549,7 +563,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 compile localGroovy()
             }
             
-            validateTaskProperties.enableStricterValidation = true
+            validateTaskProperties.enableStricterValidation = project.hasProperty('strict')
         """
         file("src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -557,19 +571,30 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             class MyTask extends DefaultTask {
                 @InputFile
-                File missingNormalization
+                File fileProp
+                
+                @InputFiles
+                Set<File> filesProp
+
+                @InputDirectory
+                File dirProp
 
                 @javax.inject.Inject
                 org.gradle.api.internal.file.FileResolver fileResolver
             }
         """
 
+        expect:
+        succeeds("validateTaskProperties")
+
         when:
-        fails "validateTaskProperties"
+        fails "validateTaskProperties", "-Pstrict"
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'missingNormalization' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'dirProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'fileProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+            Warning: Task type 'MyTask': property 'filesProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
         """.stripIndent().trim()
     }
 

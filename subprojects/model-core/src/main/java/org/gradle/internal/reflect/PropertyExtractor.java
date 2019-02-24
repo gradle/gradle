@@ -299,7 +299,7 @@ public class PropertyExtractor {
             validationProblems.add(new ValidationProblem() {
                 @Override
                 public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.recordValidationMessage(ownerPropertyPath, fieldName, message);
+                    validationContext.visitError(ownerPropertyPath, fieldName, message);
                 }
             });
         }
