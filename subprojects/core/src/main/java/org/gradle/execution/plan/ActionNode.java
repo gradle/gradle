@@ -80,7 +80,7 @@ class ActionNode extends Node {
 
     public void run(ProjectExecutionServiceRegistry services) {
         ProjectInternal project = (ProjectInternal) action.getProject();
-        ServiceRegistry registry = project == null ? null : services.forProject(project);
+        ServiceRegistry registry = project == null ? ServiceRegistry.EMPTY : services.forProject(project);
         action.run(registry);
     }
 }

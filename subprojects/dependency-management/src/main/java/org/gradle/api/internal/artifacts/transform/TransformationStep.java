@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -70,8 +71,8 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             }
 
             @Override
-            public void run(@Nullable ServiceRegistry registry) {
-                FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(registry == null ? null : registry.get(FileCollectionFingerprinterRegistry.class));
+            public void run(ServiceRegistry registry) {
+                FileCollectionFingerprinterRegistry fingerprinterRegistry = getFingerprinterRegistry(Cast.uncheckedCast(registry.find(FileCollectionFingerprinterRegistry.class)));
                 isolateExclusively(fingerprinterRegistry);
             }
         };

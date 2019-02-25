@@ -34,5 +34,5 @@ public interface WorkNodeAction {
     /**
      * Run the action, throwing any failure.
      */
-    void run(@Nullable ServiceRegistry registry);
+    void run(ServiceRegistry registry);
 }

@@ -673,7 +673,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
-            public void run(@Nullable ServiceRegistry registry) {
+            public void run(ServiceRegistry registry) {
                 resolveExclusively(GRAPH_RESOLVED);
             }
         }, fileCollectionFactory);
