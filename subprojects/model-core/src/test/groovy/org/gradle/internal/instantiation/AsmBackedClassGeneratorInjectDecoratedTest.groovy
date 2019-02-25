@@ -21,11 +21,13 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.ToBeImplemented
 
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
+import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
@@ -62,6 +64,23 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.thing == 12
         obj.getThing() == 12
         obj.getProperty("thing") == 12
+    }
+
+    @ToBeImplemented("Resolving type parameters to implement the correct methods in the subclass does not work, yet")
+    def "can inject service using @Inject on a super interface with type parameters"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(Number) >> 12
+
+        when:
+        def obj = create(AbstractClassWithConcreteTypeParameter, services)
+
+        then:
+        def e = thrown(InvocationTargetException)
+        e.cause.class == NullPointerException
+//        obj.thing == 12
+//        obj.getThing() == 12
+//        obj.getProperty("thing") == 12
     }
 
     def "can inject service using @Inject on an interface getter method"() {
@@ -310,6 +329,13 @@ interface InterfaceWithServices {
     @Inject
     Number getThing()
 }
+
+interface InterfaceWithTypeParameter<T> {
+    @Inject
+    T getThing()
+}
+
+abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {}
 
 class BeanWithServices {
     @Inject
