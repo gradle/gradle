@@ -31,15 +31,93 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
-class ModuleMetadataParserTest extends Specification {
+class GradleModuleMetadataParserTest extends Specification {
+    private static final String UNKNOWN_FILE_VALUES = '''
+    { 
+        "formatVersion": "1.0", 
+        "variants": [
+            {
+                "name": "api",
+                "files": [{
+                    "name": "file",
+                    "url": "file",
+                    "otherString": "string",
+                    "otherNumber": 123,
+                    "otherBoolean": true,
+                    "otherNull": null,
+                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+                    "otherArray": [ "a", 123, false, [], null, { } ]
+                }]
+            }
+        ]
+    }
+'''
+    private static final String UNKNOWN_DEPENDENCY_VALUES = '''
+    { 
+        "formatVersion": "1.0", 
+        "variants": [
+            {
+                "name": "api",
+                "dependencies": [{
+                    "group": "g",
+                    "module": "m",
+                    "version": { "prefers": "v" },
+                    "excludes": [
+                        { "group": "g", "otherString": "string", "otherNumber": 123, "otherObject": { "a": 1 } }
+                    ],
+                    "otherString": "string",
+                    "otherNumber": 123,
+                    "otherBoolean": true,
+                    "otherNull": null,
+                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+                    "otherArray": [ "a", 123, false, [], null, { } ]
+                }]
+            }
+        ]
+    }
+'''
+    private static final String UNKNOWN_VARIANT_VALUES = '''
+    { 
+        "formatVersion": "1.0", 
+        "variants": [
+            {
+                "name": "api",
+                "otherString": "string",
+                "otherNumber": 123,
+                "otherBoolean": true,
+                "otherNull": null,
+                "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+                "otherArray": [ "a", 123, false, [], null, { } ]
+            }
+        ]
+    }
+'''
+    private static final String UNKNOWN_TOP_LEVEL = '''{ 
+            "formatVersion": "1.0",
+            "otherString": "string",
+            "otherNumber": 123,
+            "otherBoolean": true,
+            "otherNull": null,
+            "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
+            "otherArray": [ "a", 123, false, [], null, { } ]
+        }'''
+
+    private static final Map<String, String> UNKOWN_DATASET = [
+            UNKNOWN_TOP_LEVEL: UNKNOWN_TOP_LEVEL,
+            UNKNOWN_DEPENDENCY_VALUES: UNKNOWN_DEPENDENCY_VALUES,
+            UNKNOWN_VARIANT_VALUES: UNKNOWN_VARIANT_VALUES,
+            UNKNOWN_FILE_VALUES: UNKNOWN_FILE_VALUES
+    ]
+
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
-    def parser = new ModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
+    def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, NamedObjectInstantiator.INSTANCE)
 
     VersionConstraint emptyConstraint() {
         DefaultImmutableVersionConstraint.of()
@@ -54,7 +132,7 @@ class ModuleMetadataParserTest extends Specification {
     }
 
     VersionConstraint prefers(String version) {
-        DefaultImmutableVersionConstraint.of(version,'', '', [])
+        DefaultImmutableVersionConstraint.of(version, '', '', [])
     }
 
     VersionConstraint strictly(String version) {
@@ -80,7 +158,7 @@ class ModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "0.4" }'), metadata)
+        parser.parse(resource('{ "formatVersion": "1.0" }'), metadata)
 
         then:
         1 * metadata.setContentHash(_)
@@ -93,7 +171,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v" },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
@@ -110,7 +188,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "attributes": {"foo": "bar", "org.gradle.status": "release" } },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
@@ -129,7 +207,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -157,7 +235,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -186,7 +264,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -227,7 +305,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -268,7 +346,7 @@ class ModuleMetadataParserTest extends Specification {
         1 * variant1.addDependency("g2", "m2", prefers("v2"), [], null, ImmutableAttributes.EMPTY, [])
         1 * variant1.addDependency("g3", "m3", requires("v3"), excludes("gx:mx", "*:*"), null, ImmutableAttributes.EMPTY, [])
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name=='foo' && it[0].version=='1.0'})
+        1 * variant2.addDependency("g3", "m3", prefers("v3"), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == '1.0' })
         1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY, [])
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY, [])
         1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY, [])
@@ -284,7 +362,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -335,7 +413,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -376,7 +454,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -416,7 +494,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
         "variants": [
             {
@@ -441,7 +519,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api"
@@ -471,7 +549,7 @@ class ModuleMetadataParserTest extends Specification {
         when:
         parser.parse(resource('''
     { 
-        "formatVersion": "0.4", 
+        "formatVersion": "1.0", 
         "variants": [
             {
                 "name": "api",
@@ -521,15 +599,7 @@ class ModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('''{ 
-            "formatVersion": "0.4",
-            "otherString": "string",
-            "otherNumber": 123,
-            "otherBoolean": true,
-            "otherNull": null,
-            "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
-            "otherArray": [ "a", 123, false, [], null, { } ]
-        }'''), metadata)
+        parser.parse(resource(UNKNOWN_TOP_LEVEL), metadata)
 
         then:
         1 * metadata.setContentHash(_)
@@ -540,22 +610,7 @@ class ModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('''
-    { 
-        "formatVersion": "0.4", 
-        "variants": [
-            {
-                "name": "api",
-                "otherString": "string",
-                "otherNumber": 123,
-                "otherBoolean": true,
-                "otherNull": null,
-                "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
-                "otherArray": [ "a", 123, false, [], null, { } ]
-            }
-        ]
-    }
-'''), metadata)
+        parser.parse(resource(UNKNOWN_VARIANT_VALUES), metadata)
 
         then:
         1 * metadata.addVariant("api", attributes([:]))
@@ -568,26 +623,7 @@ class ModuleMetadataParserTest extends Specification {
         def variant = Mock(MutableComponentVariant)
 
         when:
-        parser.parse(resource('''
-    { 
-        "formatVersion": "0.4", 
-        "variants": [
-            {
-                "name": "api",
-                "files": [{
-                    "name": "file",
-                    "url": "file",
-                    "otherString": "string",
-                    "otherNumber": 123,
-                    "otherBoolean": true,
-                    "otherNull": null,
-                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
-                    "otherArray": [ "a", 123, false, [], null, { } ]
-                }]
-            }
-        ]
-    }
-'''), metadata)
+        parser.parse(resource(UNKNOWN_FILE_VALUES), metadata)
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
@@ -600,30 +636,7 @@ class ModuleMetadataParserTest extends Specification {
         def variant = Mock(MutableComponentVariant)
 
         when:
-        parser.parse(resource('''
-    { 
-        "formatVersion": "0.4", 
-        "variants": [
-            {
-                "name": "api",
-                "dependencies": [{
-                    "group": "g",
-                    "module": "m",
-                    "version": { "prefers": "v" },
-                    "excludes": [
-                        { "group": "g", "otherString": "string", "otherNumber": 123, "otherObject": { "a": 1 } }
-                    ],
-                    "otherString": "string",
-                    "otherNumber": 123,
-                    "otherBoolean": true,
-                    "otherNull": null,
-                    "otherObject": { "a": 1, "b": "ignore-me", "c": [], "d": { } },
-                    "otherArray": [ "a", 123, false, [], null, { } ]
-                }]
-            }
-        ]
-    }
-'''), metadata)
+        parser.parse(resource(UNKNOWN_DEPENDENCY_VALUES), metadata)
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
@@ -676,16 +689,37 @@ class ModuleMetadataParserTest extends Specification {
         e.cause.message == "The 'formatVersion' value should have a string value."
     }
 
-    def "fails on unsupported format version"() {
+    def "fails on unsupported format version if json parsing fails and metadata format is not the expected one"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "123.4" }'), metadata)
+        parser.parse(resource('{ "formatVersion": "123.4", "variants": {} }'), metadata)
 
         then:
         def e = thrown(MetaDataParseException)
-        e.message == "Could not parse module metadata <resource>"
-        e.cause.message == "Unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 0.4 only."
+        e.message == "Could not parse module metadata <resource>: unsupported format version '123.4' specified in module metadata. This version of Gradle supports format version 1.0."
+        e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants"
+    }
+
+    @Unroll
+    def "is lenient with version checks if we manage to parse content (#label, version = #version)"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata) {
+            addVariant(_, _) >> Stub(MutableComponentVariant)
+        }
+
+        when:
+        parser.parse(resource(replaceMetadataVersion(json, version)), metadata)
+
+        then:
+        1 * metadata.setContentHash(_)
+
+        where:
+        [json, version] << [UNKOWN_DATASET.values(), ['0.4', '1.1', '1.5', '123.4']].combinations()
+        label = UNKOWN_DATASET.entrySet().find { it.value == json }.key
+    }
+
+    String replaceMetadataVersion(String json, String metadataVersion) {
+        json.replace('"formatVersion": "1.0"', '"formatVersion": "' + metadataVersion + '"')
     }
 
     def resource(String content) {

@@ -20,6 +20,8 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
+
 public class DefaultPropertyState<T> extends AbstractProperty<T> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
@@ -29,6 +31,25 @@ public class DefaultPropertyState<T> extends AbstractProperty<T> implements Prop
         applyDefaultValue();
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
+    }
+
+    @Override
+    public Class<?> publicType() {
+        return Property.class;
+    }
+
+    @Override
+    public Factory managedFactory() {
+        return new Factory() {
+            @Nullable
+            @Override
+            public <S> S fromState(Class<S> type, Object state) {
+                if (!type.isAssignableFrom(Property.class)) {
+                    return null;
+                }
+                return type.cast(new DefaultPropertyState<T>(DefaultPropertyState.this.type).value((T) state));
+            }
+        };
     }
 
     @Override

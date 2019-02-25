@@ -33,6 +33,46 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_5.3]]
+== Upgrading from 5.2 and earlier
+
+=== Potential breaking changes
+
+==== Bugfixes in platform resolution
+
+There was a bug from Gradle 5.0 to 5.2.1 (included) where enforced platforms would potentially include dependencies instead of constraints.
+This would happen whenever a POM file defined both dependencies and "constraints" (via `<dependencyManagement>`) and that you used `enforcedPlatform`.
+Gradle 5.3 fixes this bug, meaning that you might have differences in the resolution result if you relied on this broken behavior.
+Similarly, Gradle 5.3 will no longer try to download jars for `platform` and `enforcedPlatform` dependencies (as they should only bring in constraints).
+
+==== Automatic target JVM version
+
+If you apply any of the Java plugins, Gradle will now do its best to select dependencies which match the target compatibility of the module being compiled.
+What it means, in practice, is that if you have module A built for Java 8, and module B built for Java 8, then there's no change.
+However if B is built for Java 9+, then it's not binary compatible anymore, and Gradle would complain with an error message like the following:
+
+```
+Unable to find a matching variant of project :producer:
+  - Variant 'apiElements' capability test:producer:unspecified:
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.jvm.version '8' and found incompatible value '9'.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+  - Variant 'runtimeElements' capability test:producer:unspecified:
+      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.jvm.version '8' and found incompatible value '9'.
+      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+```
+
+In general, this is a sign that your project is misconfigured and that your dependencies are not compatible.
+However, there are cases where you still may want to do this, for example when only a _subset_ of classes of your module actually need the Java 9 dependencies, and are not intended to be used on earlier releases.
+Java in general doesn't encourage you to do this (you should split your module instead), but if you face this problem, you can workaround by disabling this new behavior on the consumer side:
+
+```
+java {
+   disableAutoTargetJvm()
+}
+```
+
 [[changes_5.2]]
 == Upgrading from 5.1 and earlier
 

@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
  *
  * @param <T>
  */
-public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
+abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
     private final T value;
 
     public AbstractScalarValueSnapshot(T value) {
@@ -40,7 +40,11 @@ public abstract class AbstractScalarValueSnapshot<T> implements ValueSnapshot {
         if (this.value.equals(value)) {
             return this;
         }
-        return snapshotter.snapshot(value);
+        ValueSnapshot snapshot = snapshotter.snapshot(value);
+        if (snapshot.equals(this)) {
+            return this;
+        }
+        return snapshot;
     }
 
     @Override

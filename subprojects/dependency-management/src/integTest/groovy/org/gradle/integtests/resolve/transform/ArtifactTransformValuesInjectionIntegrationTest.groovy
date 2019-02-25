@@ -94,6 +94,56 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @Unroll
+    def "transform can receive parameter of type #type"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform {
+            params("""
+                prop.set(${value})
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @AssociatedTransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                ${type} getProp()
+                @Input @Optional
+                ${type} getOtherProp()
+            }
+            
+            abstract class MakeGreenAction implements TransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing using " + parameters.prop.get()
+                    assert parameters.otherProp.getOrNull() == ${expectedNullValue}
+                }
+            }
+"""
+        when:
+        run("a:resolve")
+
+        then:
+        outputContains("processing using ${expected}")
+
+        where:
+        type                          | value          | expected     | expectedNullValue
+        "Property<String>"            | "'value'"      | 'value'      | null
+        "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"     | "[]"
+        "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"     | "[] as Set"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
+    }
+
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -128,7 +178,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 ConfigurableFileCollection getAbsolutePathSensitivity()
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
@@ -276,7 +326,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()

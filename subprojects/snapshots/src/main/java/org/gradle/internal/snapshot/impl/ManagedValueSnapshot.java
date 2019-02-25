@@ -19,10 +19,10 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-public class ManagedTypeSnapshot extends AbstractManagedTypeSnapshot<ValueSnapshot> implements ValueSnapshot {
+class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnapshot> implements ValueSnapshot {
     private final String className;
 
-    public ManagedTypeSnapshot(String className, ValueSnapshot state) {
+    public ManagedValueSnapshot(String className, ValueSnapshot state) {
         super(state);
         this.className = className;
     }
@@ -36,7 +36,7 @@ public class ManagedTypeSnapshot extends AbstractManagedTypeSnapshot<ValueSnapsh
         if (!super.equals(obj)) {
             return false;
         }
-        ManagedTypeSnapshot other = (ManagedTypeSnapshot) obj;
+        ManagedValueSnapshot other = (ManagedValueSnapshot) obj;
         return className.equals(other.className);
     }
 
@@ -48,11 +48,8 @@ public class ManagedTypeSnapshot extends AbstractManagedTypeSnapshot<ValueSnapsh
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot snapshot = snapshotter.snapshot(value);
-        if (snapshot instanceof ManagedTypeSnapshot) {
-            ManagedTypeSnapshot other = (ManagedTypeSnapshot) snapshot;
-            if (state.equals(other.state)) {
-                return this;
-            }
+        if (snapshot.equals(this)) {
+            return this;
         }
         return snapshot;
     }

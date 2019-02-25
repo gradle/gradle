@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -56,6 +57,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
    variant "$expectedVariant" [
       $expectedAttributes
       org.gradle.dependency.bundling = external
+      org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
 project :$expectedProject
@@ -99,7 +101,7 @@ project :$expectedProject
         run "dependencyInsight", "--dependency", "leaf"
 
         then:
-        output.contains """org.test:leaf:1.0
+        outputContains """org.test:leaf:1.0
    variant "api" [
       org.gradle.usage               = java-api
       org.gradle.test                = published attribute (not requested)
@@ -108,6 +110,7 @@ project :$expectedProject
       Requested attributes not found in the selected variant:
          org.gradle.dependency.bundling = external
          org.gradle.blah                = something
+         org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
 org.test:leaf:1.0

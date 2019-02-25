@@ -19,17 +19,13 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.internal.file.FileType
 import org.hamcrest.Matcher
-import org.junit.runner.RunWith
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
 import static org.gradle.util.Matchers.matchesRegexp
 
-@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -37,7 +33,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             include 'lib'
             include 'app'
         """
-        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
 def usage = Attribute.of('usage', String)

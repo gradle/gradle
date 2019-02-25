@@ -25,12 +25,16 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -228,7 +232,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             ClassGenerationHandler claimedBy = null;
             for (ClassGenerationHandler handler : generationHandlers) {
-                if (!handler.claimProperty(propertyMetaData)) {
+                if (!handler.claimPropertyImplementation(propertyMetaData)) {
                     continue;
                 }
                 if (claimedBy == null) {
@@ -560,7 +564,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Handler can claim the property, taking responsibility for generating whatever is required to make the property work.
          * Handler is also expected to take care of validation.
          */
-        boolean claimProperty(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetaData property) {
             return false;
         }
 
@@ -618,7 +622,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimProperty(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetaData property) {
             if (property.getName().equals("asDynamicObject")) {
                 providesOwnDynamicObject = true;
                 return true;
@@ -723,7 +727,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimProperty(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetaData property) {
             if (extensible) {
                 if (property.getName().equals("extensions")) {
                     for (Method getter : property.getOverridableGetters()) {
@@ -793,7 +797,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimProperty(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetaData property) {
             // Skip properties with non-abstract getter or setter implementations
             for (Method getter : property.getters) {
                 if (!Modifier.isAbstract(getter.getModifiers())) {
@@ -808,9 +812,18 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (property.getters.isEmpty()) {
                 return false;
             }
+
+            // Property is readable and all getters and setters are abstract
+
             if (property.setters.isEmpty()) {
-                if (property.getType().equals(ConfigurableFileCollection.class)) {
-                    // Read-only file collection property
+                if (property.getType().equals(ConfigurableFileCollection.class)
+                    || property.getType().equals(ListProperty.class)
+                    || property.getType().equals(SetProperty.class)
+                    || property.getType().equals(MapProperty.class)
+                    || property.getType().equals(RegularFileProperty.class)
+                    || property.getType().equals(DirectoryProperty.class)
+                    || property.getType().equals(Property.class)) {
+                    // Read-only property with managed type
                     readOnlyProperties.add(property);
                     return true;
                 }
@@ -859,12 +872,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<PropertyMetaData> propertyTyped = new ArrayList<PropertyMetaData>();
 
         @Override
-        boolean claimProperty(PropertyMetaData property) {
+        void visitProperty(PropertyMetaData property) {
             if (property.isReadable() && isModelProperty(property)) {
                 propertyTyped.add(property);
-                return true;
             }
-            return false;
         }
 
         @Override
@@ -876,8 +887,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         private boolean isModelProperty(PropertyMetaData property) {
             return Property.class.isAssignableFrom(property.getType()) ||
-                    HasMultipleValues.class.isAssignableFrom(property.getType()) ||
-                    MapProperty.class.isAssignableFrom(property.getType());
+                HasMultipleValues.class.isAssignableFrom(property.getType()) ||
+                MapProperty.class.isAssignableFrom(property.getType());
         }
     }
 
@@ -956,7 +967,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean hasServicesProperty;
 
         @Override
-        public boolean claimProperty(PropertyMetaData property) {
+        public boolean claimPropertyImplementation(PropertyMetaData property) {
             if (property.getName().equals("services") && property.isReadable() && ServiceRegistry.class.isAssignableFrom(property.getType())) {
                 hasServicesProperty = true;
                 return true;
@@ -981,7 +992,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        public boolean claimProperty(PropertyMetaData property) {
+        public boolean claimPropertyImplementation(PropertyMetaData property) {
             for (Method method : property.getters) {
                 if (method.getAnnotation(annotation) != null) {
                     serviceInjectionProperties.add(property);

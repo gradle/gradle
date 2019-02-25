@@ -18,8 +18,8 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 
-import java.util.Collection;
 import java.util.Comparator;
+import java.util.Set;
 
 public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandidatesDetails<T>> {
     private final Comparator<? super T> comparator;
@@ -32,22 +32,20 @@ public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandi
 
     @Override
     public void execute(MultipleCandidatesDetails<T> details) {
-        Collection<T> values = details.getCandidateValues();
+        Set<T> candidateValues = details.getCandidateValues();
         T min = null;
         T max = null;
-        for (T value : values) {
-
+        for (T value : candidateValues) {
             if (min == null || comparator.compare(value, min) < 0) {
                 min = value;
             }
             if (max == null || comparator.compare(value, max) > 0) {
                 max = value;
             }
-
         }
         T cmp = pickFirst ? min : max;
         if (cmp != null) {
-            for (T value : details.getCandidateValues()) {
+            for (T value : candidateValues) {
                 if (value.equals(cmp)) {
                     details.closestMatch(value);
                 }

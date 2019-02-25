@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import java.util.List;
 
-public class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> implements ValueSnapshot {
+class ListValueSnapshot extends AbstractListSnapshot<ValueSnapshot> implements ValueSnapshot {
     public static final ListValueSnapshot EMPTY = new ListValueSnapshot(ImmutableList.of());
 
     public ListValueSnapshot(ImmutableList<ValueSnapshot> elements) {

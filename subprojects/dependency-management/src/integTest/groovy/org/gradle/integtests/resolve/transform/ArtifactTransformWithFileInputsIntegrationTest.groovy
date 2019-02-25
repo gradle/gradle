@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -47,13 +46,14 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 void transform(TransformOutputs outputs) {
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
                     def output = outputs.file(input.name + ".green")
-                    output.text = "ok"
+                    def paramContent = parameters.someFiles.collect { it.file ? it.text : it.list().length }.join("")
+                    output.text = input.text + paramContent + ".green"
                 }
             }
         """
     }
 
-    def "transform can receive pre-built file collection via parameter object"() {
+    def "transform can receive a file collection containing pre-built files via parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
             """
@@ -70,6 +70,8 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 """
+        file('a/a.txt').text = '123'
+        file('a/b.txt').text = 'abc'
 
         when:
         run(":a:resolve")
@@ -257,6 +259,114 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    def "transform can receive a task output file as parameter"() {
+        settingsFile << """
+                include 'a', 'b', 'c', 'd', 'e'
+            """
+        buildFile << """
+            allprojects {
+                task tool(type: FileProducer) {
+                    output = file("build/tool-\${project.name}.jar")
+                }
+                ext.inputFile = tool.output
+            }
+        """
+        setupBuildWithColorTransform {
+            params("""
+                someFile.set(project.inputFile)
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            @AssociatedTransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @InputFile
+                RegularFileProperty getSomeFile()
+            }
+            
+            abstract class MakeGreenAction implements TransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                @InputArtifact
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name} using \${parameters.someFile.get().asFile.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + parameters.someFile.get().asFile.text + ".green"
+                }
+            }
+        """
+
+        when:
+        run(":a:resolve")
+
+        then:
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b.jar using tool-a.jar")
+        outputContains("processing c.jar using tool-a.jar")
+    }
+
+    def "transform can receive a task output directory as parameter"() {
+        settingsFile << """
+                include 'a', 'b', 'c', 'd', 'e'
+            """
+        buildFile << """
+            allprojects {
+                task tool(type: DirProducer) {
+                    output = file("build/tool-\${project.name}-dir")
+                }
+                ext.inputDir = tool.output
+            }
+        """
+        setupBuildWithColorTransform {
+            params("""
+                someDir.set(project.inputDir)
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+
+            @AssociatedTransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @InputDirectory
+                DirectoryProperty getSomeDir()
+            }
+            
+            abstract class MakeGreenAction implements TransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                @InputArtifact
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name} using \${parameters.someDir.get().asFile.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + parameters.someDir.get().asFile.list().length + ".green"
+                }
+            }
+        """
+
+        when:
+        run(":a:resolve")
+
+        then:
+        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        outputContains("processing b.jar using tool-a-dir")
+        outputContains("processing c.jar using tool-a-dir")
+    }
+
     def "transform does not execute when file inputs cannot be built"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -346,7 +456,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeImplemented
     def "can use classpath normalization for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -392,8 +501,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         jarSources.zipTo(inputJar)
         run(":a:resolve")
         then:
-        // TODO: Should not report changes
-        // outputDoesNotContain("Transform artifact")
         outputContains("processing b.jar using [${inputDir.name}, ${inputJar.name}]")
         outputContains("processing c.jar using [${inputDir.name}, ${inputJar.name}]")
 

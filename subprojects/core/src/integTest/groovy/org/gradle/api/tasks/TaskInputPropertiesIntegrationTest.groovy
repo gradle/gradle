@@ -17,7 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
@@ -369,7 +373,7 @@ task someTask {
     }
 
     @Unroll
-    def "task can use property of type #type"() {
+    def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
@@ -379,11 +383,12 @@ import org.gradle.api.tasks.Optional;
 import java.io.File;
 
 public class SomeTask extends DefaultTask {
-    public $type v;
+    private $type v;
     @Input
     public $type getV() { return v; }
+    void setV($type v) { this.v = v; }
 
-    public File d;
+    File d;
     @OutputDirectory
     public File getD() { return d; }
     
@@ -423,29 +428,33 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         where:
-        type                             | initialValue                    | newValue
-        "String"                         | "'value 1'"                     | "'value 2'"
-        "java.io.File"                   | "file('file1')"                 | "file('file2')"
-        "boolean"                        | "true"                          | "false"
-        "Boolean"                        | "Boolean.TRUE"                  | "Boolean.FALSE"
-        "int"                            | "123"                           | "-45"
-        "Integer"                        | "123"                           | "-45"
-        "long"                           | "123"                           | "-45"
-        "Long"                           | "123"                           | "-45"
-        "short"                          | "123"                           | "-45"
-        "Short"                          | "123"                           | "-45"
-        "java.math.BigDecimal"           | "12.3"                          | "-45.432"
-        "java.math.BigInteger"           | "12"                            | "-45"
-        "java.util.List<String>"         | "['value1', 'value2']"          | "['value1']"
-        "java.util.List<String>"         | "[]"                            | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
-        "String[]"                       | "new String[0]"                 | "['abc'] as String[]"
-        "Object[]"                       | "[123, 'abc'] as Object[]"      | "['abc'] as String[]"
-        "java.util.Collection<String>"   | "['value1', 'value2']"          | "['value1'] as SortedSet"
-        "java.util.Set<String>"          | "['value1', 'value2'] as Set"   | "['value1'] as Set"
-        "Iterable<java.io.File>"         | "[file('1'), file('2')] as Set" | "files('1')"
-        FileCollection.name              | "files('1', '2')"               | "configurations.create('empty')"
-        "java.util.Map<String, Boolean>" | "[a: true, b: false]"           | "[a: true, b: true]"
-        "${Provider.name}<String>"       | "providers.provider { 'a' }"    | "providers.provider { 'b' }"
+        type                                  | initialValue                                          | newValue
+        "String"                              | "'value 1'"                                           | "'value 2'"
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"
+        "boolean"                             | "true"                                                | "false"
+        "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"
+        "int"                                 | "123"                                                 | "-45"
+        "Integer"                             | "123"                                                 | "-45"
+        "long"                                | "123"                                                 | "-45"
+        "Long"                                | "123"                                                 | "-45"
+        "short"                               | "123"                                                 | "-45"
+        "Short"                               | "123"                                                 | "-45"
+        "java.math.BigDecimal"                | "12.3"                                                | "-45.432"
+        "java.math.BigInteger"                | "12"                                                  | "-45"
+        "java.util.List<String>"              | "['value1', 'value2']"                                | "['value1']"
+        "java.util.List<String>"              | "[]"                                                  | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
+        "String[]"                            | "new String[0]"                                       | "['abc'] as String[]"
+        "Object[]"                            | "[123, 'abc'] as Object[]"                            | "['abc'] as String[]"
+        "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"
+        "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"
+        "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"
+        "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"
+        "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"
+        "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"
+        "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"
+        "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"
     }
 
     def "null input properties registered via TaskInputs.property are not allowed"() {
@@ -708,8 +717,8 @@ task someTask(type: SomeTask) {
         inputFile.text = "input"
         def expectedCounts = [inputFile: 3, outputFile: 3, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
         def expectedUpToDateCounts = [inputFile: 2, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
-        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}"}
-        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}"}
+        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
+        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }
         def localCache = new TestBuildCache(file('cache-dir'))
         settingsFile << localCache.localCacheConfiguration()
 
