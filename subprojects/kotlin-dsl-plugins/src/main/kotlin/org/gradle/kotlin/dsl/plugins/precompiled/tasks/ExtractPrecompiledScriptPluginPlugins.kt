@@ -47,7 +47,7 @@ import java.io.File
 open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
 
     @get:OutputDirectory
-    var outputDir = project.objects.directoryProperty()
+    var outputDir = directoryProperty()
 
     @get:Internal
     internal
