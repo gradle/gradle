@@ -41,7 +41,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyExtractor;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -127,8 +126,41 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
-        Pair<ImmutableSet<PropertyMetadata>, ImmutableList<ValidationProblem>> properties = propertyExtractor.extractPropertyMetadata(type);
-        return new DefaultTypeMetadata(properties.left, properties.right, annotationHandlers);
+        RecordingValidationContext validationContext = new RecordingValidationContext();
+        ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(type, validationContext);
+        for (PropertyMetadata property : properties) {
+            PropertyAnnotationHandler annotationHandler = annotationHandlers.get(property.getPropertyType());
+            annotationHandler.validatePropertyMetadata(property, validationContext);
+        }
+        return new DefaultTypeMetadata(properties, validationContext.getProblems(), annotationHandlers);
+    }
+
+    private static class RecordingValidationContext implements ParameterValidationContext {
+        private ImmutableList.Builder<ValidationProblem> builder = ImmutableList.builder();
+
+        ImmutableList<ValidationProblem> getProblems() {
+            return builder.build();
+        }
+
+        @Override
+        public void visitError(@Nullable String ownerPath, final String propertyName, final String message) {
+            builder.add(new ValidationProblem() {
+                @Override
+                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+                    validationContext.visitError(ownerPropertyPath, propertyName, message);
+                }
+            });
+        }
+
+        @Override
+        public void visitError(final String message) {
+            builder.add(new ValidationProblem() {
+                @Override
+                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+                    validationContext.visitError(message);
+                }
+            });
+        }
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {

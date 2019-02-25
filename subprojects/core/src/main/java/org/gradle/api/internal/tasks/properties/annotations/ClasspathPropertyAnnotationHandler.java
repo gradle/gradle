@@ -28,6 +28,7 @@ import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
@@ -58,5 +59,9 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             value,
             InputFilePropertyType.FILES
         );
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 }
