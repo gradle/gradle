@@ -68,7 +68,6 @@ fun ClassWriter.endClass(): ByteArray {
 }
 
 
-internal
 fun ClassWriter.publicDefaultConstructor(superName: InternalName = InternalNameOf.javaLangObject) {
     publicMethod("<init>", "()V") {
         ALOAD(0)
@@ -90,7 +89,6 @@ fun ClassVisitor.publicStaticMethod(
 }
 
 
-internal
 fun ClassVisitor.publicMethod(
     name: String,
     desc: String,
@@ -211,7 +209,6 @@ fun MethodVisitor.ARETURN() {
 }
 
 
-internal
 fun MethodVisitor.RETURN() {
     visitInsn(Opcodes.RETURN)
 }
@@ -325,11 +322,9 @@ object InternalNameOf {
 }
 
 
-internal
 val KClass<*>.internalName: InternalName
     get() = java.internalName
 
 
-internal
 inline val Class<*>.internalName: InternalName
     get() = InternalName(Type.getInternalName(this))

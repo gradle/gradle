@@ -21,12 +21,17 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
+import org.gradle.kotlin.dsl.fixtures.bytecode.RETURN
+import org.gradle.kotlin.dsl.fixtures.bytecode.internalName
 import org.gradle.kotlin.dsl.fixtures.bytecode.publicClass
+import org.gradle.kotlin.dsl.fixtures.bytecode.publicDefaultConstructor
+import org.gradle.kotlin.dsl.fixtures.bytecode.publicMethod
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
@@ -56,8 +61,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 "src/main/kotlin" {
                     "extensions" {
                         withFile("Extensions.kt", """
-                            class App { var name: String = "app" }
-                            class Lib { var name: String = "lib" }
+                            open class App { var name: String = "app" }
+                            open class Lib { var name: String = "lib" }
                         """)
                     }
                     withFile("external-app.gradle.kts", """
@@ -150,7 +155,43 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
         // given:
-        val pluginJar = jarForPlugin("my.plugin", "MyPlugin")
+        val pluginId = "my.plugin"
+        val pluginJar = jarForPlugin(pluginId, "MyPlugin")
+
+        withPrecompiledScriptApplying(pluginId, pluginJar)
+        compileKotlin()
+
+        val (project, pluginManager) = projectAndPluginManagerMocks()
+
+        instantiatePrecompiledScriptOf(
+            project,
+            "Plugin_gradle"
+        )
+
+        inOrder(pluginManager) {
+            verify(pluginManager).apply(pluginId)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `plugin application errors are propagated`() {
+
+        // given:
+        val pluginId = "invalid.plugin"
+        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
+
+        withPrecompiledScriptApplying(pluginId, pluginJar)
+
+        buildAndFail("classes").assertHasDescription(
+            "An exception occurred applying plugin request [id: '$pluginId']"
+        ).assertHasCause(
+            "'InvalidPlugin' is neither a plugin or a rule source and cannot be applied."
+        )
+    }
+
+    private
+    fun withPrecompiledScriptApplying(pluginId: String, pluginJar: File) {
 
         withKotlinDslPlugin().appendText("""
 
@@ -162,25 +203,9 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withPrecompiledKotlinScript("plugin.gradle.kts", """
 
-            plugins {
-                my.plugin
-            }
+            plugins { $pluginId }
 
         """)
-
-        compileKotlin()
-
-        val (project, pluginManager) = projectAndPluginManagerMocks()
-
-        instantiatePrecompiledScriptOf(
-            project,
-            "Plugin_gradle"
-        )
-
-        inOrder(pluginManager) {
-            verify(pluginManager).apply("my.plugin")
-            verifyNoMoreInteractions()
-        }
     }
 
     @Test
@@ -269,11 +294,27 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         get() = root.relativeTo(projectRoot).path
 
     private
-    fun jarForPlugin(id: String, implClass: String): File =
+    fun jarWithInvalidPlugin(id: String, implClass: String): File =
         pluginJarWith(
             pluginDescriptorEntryFor(id, implClass),
             "$implClass.class" to publicClass(InternalName(implClass))
         )
+
+    private
+    fun jarForPlugin(id: String, implClass: String): File =
+        pluginJarWith(
+            pluginDescriptorEntryFor(id, implClass),
+            "$implClass.class" to emptyPluginClassNamed(implClass)
+        )
+
+    private
+    fun emptyPluginClassNamed(implClass: String): ByteArray =
+        publicClass(InternalName(implClass), interfaces = listOf(Plugin::class.internalName)) {
+            publicDefaultConstructor()
+            publicMethod("apply", "(Ljava/lang/Object;)V") {
+                RETURN()
+            }
+        }
 
     private
     fun pluginJarWith(vararg entries: Pair<String, ByteArray>): File =

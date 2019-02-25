@@ -184,14 +184,18 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
             }
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
+
             dependsOn(extractPrecompiledScriptPluginPlugins)
+            sourceDir(extractedPluginsBlocks)
+
             dependsOn(generateInternalPluginSpecBuilders)
+            sourceDir(internalPluginSpecBuilders)
+
             dependsOn(generateExternalPluginSpecBuilders)
+            sourceDir(externalPluginSpecBuilders)
+
             classPathFiles = compileClasspath
             outputDir.set(compiledPluginsBlocks)
-            sourceDir(extractedPluginsBlocks)
-            sourceDir(internalPluginSpecBuilders)
-            sourceDir(externalPluginSpecBuilders)
         }
 
         val generatedAccessors = generatedSourceDirFor("accessors")

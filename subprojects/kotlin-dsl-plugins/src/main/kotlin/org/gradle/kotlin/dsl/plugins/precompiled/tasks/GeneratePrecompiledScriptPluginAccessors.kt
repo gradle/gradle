@@ -16,6 +16,12 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
+import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -24,8 +30,12 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-
+import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
@@ -37,6 +47,15 @@ import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.serviceOf
+
+import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.plugin.use.internal.PluginRequestApplicator
+import org.gradle.plugin.use.internal.PluginRequestCollector
+
+import org.gradle.testfixtures.ProjectBuilder
 
 import java.io.File
 
@@ -70,18 +89,34 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
      * 4. For each group, emit the type-safe accessors implied by the schema to a package named after the schema
      * hash code.
      * 5. For each group, for each script plugin in the group, write the generated package name to a file named
-     * after the contents of the script plugin file. This is so the file can easily be found by
+     * after the contents of the script plugin file. This is so the file can be easily found by
      * `PrecompiledScriptDependenciesResolver`.
      */
     @TaskAction
     fun generate() {
         withAsynchronousIO(project) {
-            val metadataOutputDir = metadataOutputDir.get().asFile
-            io { recreate(metadataOutputDir) }
-            plugins.asSequence().mapNotNull {
-                scriptWithPluginsBlock(it)
-            }.groupBy {
-                it.pluginsBlock.plugins
+
+            recreateOutputDir()
+
+            val projectPlugins = selectProjectPlugins()
+            if (projectPlugins.isNotEmpty()) {
+                generateTypeSafeAccessorsFor(projectPlugins)
+            }
+        }
+    }
+
+    private
+    fun IO.recreateOutputDir() {
+        // access output dir from main thread, recreate in IO thread
+        val metadataOutputDir = metadataOutputDir.get().asFile
+        io { recreate(metadataOutputDir) }
+    }
+
+    private
+    fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
+        scriptPluginPluginsFor(projectPlugins)
+            .groupBy {
+                it.plugins
             }.let {
                 projectSchemaImpliedByPluginGroups(it)
             }.forEach { (projectSchema, pluginGroups) ->
@@ -90,13 +125,88 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
                     writeContentAddressableImplicitImportFor(scriptPlugin, projectSchema.packageName)
                 }
             }
+    }
+
+    private
+    fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence<ScriptPluginPlugins> {
+        val loader = createPluginsClassLoader()
+        try {
+            for (plugin in projectPlugins) {
+                loader.scriptPluginPluginsFor(plugin)?.let {
+                    yield(it)
+                }
+            }
+        } finally {
+            stoppable(loader).stop()
         }
     }
 
     private
+    fun ClassLoader.scriptPluginPluginsFor(plugin: PrecompiledScriptPlugin): ScriptPluginPlugins? {
+
+        // The compiled script class won't be present for precompiled script plugins
+        // which don't include a `plugins` block
+        if (getResource(compiledScriptClassFile(plugin)) == null) {
+            return null
+        }
+
+        val pluginRequests = collectPluginRequestsOf(plugin)
+
+        // TODO: move to projectSchemaImpliedByPluginGroups
+        project.createSyntheticProject(
+            temporaryDir,
+            classPathFiles.files,
+            pluginRequests
+        )
+
+        return null // TODO
+    }
+
+    private
+    fun ClassLoader.collectPluginRequestsOf(plugin: PrecompiledScriptPlugin): PluginRequests =
+        PluginRequestCollector(scriptSourceFor(plugin)).run {
+
+            loadClass(plugin.compiledScriptTypeName)
+                .getConstructor(PluginDependenciesSpec::class.java)
+                .newInstance(createSpec(1))
+
+            pluginRequests
+        }
+
+    private
+    fun compiledScriptClassFile(plugin: PrecompiledScriptPlugin) =
+        plugin.compiledScriptTypeName.replace('.', '/') + ".class"
+
+    private
+    fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
+        TextResourceScriptSource(
+            BasicTextResourceLoader().loadFile("Precompiled script plugin", plugin.scriptFile)
+        )
+
+    private
+    fun selectProjectPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
+
+    private
+    fun createPluginsClassLoader(): ClassLoader =
+        classLoaderScopeRegistry()
+            .coreAndPluginsScope
+            .createChild("$path/precompiled-script-plugins").run {
+                local(compiledPluginsClassPath())
+                lock()
+                localClassLoader
+            }
+
+    private
+    fun classLoaderScopeRegistry() = project.serviceOf<ClassLoaderScopeRegistry>()
+
+    private
+    fun compiledPluginsClassPath() =
+        DefaultClassPath.of(compiledPluginsBlocksDir.get().asFile) + classPath
+
+    private
     fun projectSchemaImpliedByPluginGroups(
-        pluginGroupsPerPluginsBlock: Map<List<PluginApplication>, List<ScriptWithPluginsBlock>>
-    ): Iterable<Pair<HashedProjectSchema, List<ScriptWithPluginsBlock>>> = emptyList() // TODO
+        pluginGroupsPerPlugins: Map<List<PluginApplication>, List<ScriptPluginPlugins>>
+    ): Iterable<Pair<HashedProjectSchema, List<ScriptPluginPlugins>>> = emptyList() // TODO
 
     private
     fun IO.writeTypeSafeAccessorsFor(projectSchema: HashedProjectSchema) {
@@ -104,24 +214,64 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     }
 
     private
-    fun IO.writeContentAddressableImplicitImportFor(scriptPlugin: ScriptWithPluginsBlock, packageName: String) {
+    fun IO.writeContentAddressableImplicitImportFor(scriptPlugin: ScriptPluginPlugins, packageName: String) {
         io { writeFile(implicitImportFileFor(scriptPlugin), "$packageName.*".toByteArray()) }
     }
 
     private
-    fun implicitImportFileFor(scriptPlugin: ScriptWithPluginsBlock): File =
-        metadataOutputDir.get().asFile.resolve(scriptPlugin.script.hashString)
+    fun implicitImportFileFor(scriptPluginPlugins: ScriptPluginPlugins): File =
+        metadataOutputDir.get().asFile.resolve(scriptPluginPlugins.scriptPlugin.hashString)
 
-    private
-    fun scriptWithPluginsBlock(plugin: PrecompiledScriptPlugin): ScriptWithPluginsBlock? {
-        if (plugin.scriptType != KotlinScriptType.PROJECT) return null
-        return null
-    }
 
     private
     fun projectSchemaImpliedBy(
         plugins: List<PluginApplication>
     ): TypedProjectSchema = TODO()
+}
+
+
+private
+fun Project.createSyntheticProject(
+    projectDir: File,
+    rootProjectClassPath: Collection<File>,
+    pluginRequests: PluginRequests
+) {
+
+    val syntheticRootProject = ProjectBuilder.builder()
+        .withProjectDir(projectDir)
+        .build()
+
+    val scriptHandler = syntheticRootProject.buildscript as ScriptHandlerInternal
+    scriptHandler.addScriptClassPathDependency(
+        DefaultSelfResolvingDependency(
+            syntheticRootProject.serviceOf<FileCollectionFactory>().fixed("kotlin-dsl-accessors-classpath", rootProjectClassPath) as FileCollectionInternal
+        )
+    )
+
+    val rootProjectScope = (syntheticRootProject as ProjectInternal).classLoaderScope
+    syntheticRootProject.serviceOf<PluginRequestApplicator>().apply {
+        applyPlugins(
+            DefaultPluginRequests.EMPTY,
+            scriptHandler,
+            syntheticRootProject.pluginManager,
+            rootProjectScope
+        )
+    }
+
+    val syntheticProject = ProjectBuilder.builder()
+        .withParent(syntheticRootProject)
+        .withProjectDir(projectDir.resolve("kotlin-dsl-accessors/library"))
+        .build()
+
+    val targetProjectScope = (syntheticProject as ProjectInternal).classLoaderScope
+    syntheticProject.serviceOf<PluginRequestApplicator>().apply {
+        applyPlugins(
+            pluginRequests,
+            syntheticProject.buildscript as ScriptHandlerInternal,
+            syntheticProject.pluginManager,
+            targetProjectScope
+        )
+    }
 }
 
 
@@ -141,15 +291,8 @@ data class HashedProjectSchema(
 
 
 internal
-data class ScriptWithPluginsBlock(
-    val script: PrecompiledScriptPlugin,
-    val pluginsBlock: PluginsBlock
-)
-
-
-internal
-data class PluginsBlock(
-    val lineNumber: Int,
+data class ScriptPluginPlugins(
+    val scriptPlugin: PrecompiledScriptPlugin,
     val plugins: List<PluginApplication>
 )
 
