@@ -84,7 +84,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final InstanceFactory<? extends TransformAction> instanceFactory;
     private final boolean cacheable;
 
-    private IsolatableParameters isolatable;
+    private IsolatedParameters isolatedParameters;
 
     public DefaultTransformer(
         Class<? extends TransformAction> implementationClass,
@@ -137,7 +137,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     @Override
     public boolean isIsolated() {
-        return isolatable != null;
+        return isolatedParameters != null;
     }
 
     public boolean requiresDependencies() {
@@ -151,7 +151,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     @Override
     public HashCode getSecondaryInputHash() {
-        return getIsolatable().getSecondaryInputsHash();
+        return getIsolatedParameters().getSecondaryInputsHash();
     }
 
     @Override
@@ -177,13 +177,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     @Override
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         try {
-            isolatable = doIsolateParameters(fingerprinterRegistry);
+            isolatedParameters = doIsolateParameters(fingerprinterRegistry);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(String.format("Cannot isolate parameters %s of artifact transform %s", parameterObject, ModelType.of(getImplementationClass()).getDisplayName()), e);
         }
     }
 
-    protected IsolatableParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    protected IsolatedParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         Isolatable<Object> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();
@@ -194,7 +194,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             fingerprintParameters(valueSnapshotter, fingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
         }
         HashCode secondaryInputsHash = hasher.hash();
-        return new IsolatableParameters(isolatableParameterObject, secondaryInputsHash);
+        return new IsolatedParameters(isolatableParameterObject, secondaryInputsHash);
     }
 
     private static void fingerprintParameters(
@@ -267,15 +267,15 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatable().getIsolatableParameters().isolate(), requiresDependencies ? artifactTransformDependencies : null);
+        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null);
         return instanceFactory.newInstance(services);
     }
 
-    private IsolatableParameters getIsolatable() {
-        if (isolatable == null) {
+    private IsolatedParameters getIsolatedParameters() {
+        if (isolatedParameters == null) {
             throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
         }
-        return isolatable;
+        return isolatedParameters;
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
@@ -365,21 +365,21 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         }
     }
 
-    private static class IsolatableParameters {
+    private static class IsolatedParameters {
         private HashCode secondaryInputsHash;
-        private Isolatable<?> isolatableParameters;
+        private Isolatable<?> isolatedParameterObject;
 
-        public IsolatableParameters(Isolatable<?> isolatableParameters, HashCode secondaryInputsHash) {
+        public IsolatedParameters(Isolatable<?> isolatedParameterObject, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
-            this.isolatableParameters = isolatableParameters;
+            this.isolatedParameterObject = isolatedParameterObject;
         }
 
         public HashCode getSecondaryInputsHash() {
             return secondaryInputsHash;
         }
 
-        public Isolatable<?> getIsolatableParameters() {
-            return isolatableParameters;
+        public Isolatable<?> getIsolatedParameterObject() {
+            return isolatedParameterObject;
         }
     }
 }
