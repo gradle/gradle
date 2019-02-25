@@ -39,6 +39,7 @@ import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
+import org.gradle.kotlin.dsl.accessors.schemaFor
 
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
@@ -50,6 +51,7 @@ import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
@@ -116,19 +118,22 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
         scriptPluginPluginsFor(projectPlugins)
             .groupBy {
-                it.plugins
+                UniquePluginRequests(it.plugins)
             }.let {
                 projectSchemaImpliedByPluginGroups(it)
-            }.forEach { (projectSchema, pluginGroups) ->
+            }.forEach { (projectSchema, scriptPlugins) ->
                 writeTypeSafeAccessorsFor(projectSchema)
-                for (scriptPlugin in pluginGroups) {
-                    writeContentAddressableImplicitImportFor(scriptPlugin, projectSchema.packageName)
+                for (scriptPlugin in scriptPlugins) {
+                    writeContentAddressableImplicitImportFor(
+                        scriptPlugin,
+                        projectSchema.packageName
+                    )
                 }
             }
     }
 
     private
-    fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence<ScriptPluginPlugins> {
+    fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence {
         val loader = createPluginsClassLoader()
         try {
             for (plugin in projectPlugins) {
@@ -150,16 +155,10 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             return null
         }
 
-        val pluginRequests = collectPluginRequestsOf(plugin)
-
-        // TODO: move to projectSchemaImpliedByPluginGroups
-        project.createSyntheticProject(
-            temporaryDir,
-            classPathFiles.files,
-            pluginRequests
+        return ScriptPluginPlugins(
+            plugin,
+            collectPluginRequestsOf(plugin)
         )
-
-        return null // TODO
     }
 
     private
@@ -205,12 +204,19 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun projectSchemaImpliedByPluginGroups(
-        pluginGroupsPerPlugins: Map<List<PluginApplication>, List<ScriptPluginPlugins>>
-    ): Iterable<Pair<HashedProjectSchema, List<ScriptPluginPlugins>>> = emptyList() // TODO
+        pluginGroupsPerRequests: Map<UniquePluginRequests, List<ScriptPluginPlugins>>
+    ): Iterable<Pair<HashedProjectSchema, List<ScriptPluginPlugins>>> {
+
+        val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, classPathFiles.files)
+        return pluginGroupsPerRequests.map { (uniquePluginRequests, scriptPlugins) ->
+            val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
+            HashedProjectSchema(schema) to scriptPlugins
+        }
+    }
 
     private
     fun IO.writeTypeSafeAccessorsFor(projectSchema: HashedProjectSchema) {
-        TODO("not implemented")
+        println(projectSchema)
     }
 
     private
@@ -221,56 +227,68 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     private
     fun implicitImportFileFor(scriptPluginPlugins: ScriptPluginPlugins): File =
         metadataOutputDir.get().asFile.resolve(scriptPluginPlugins.scriptPlugin.hashString)
-
-
-    private
-    fun projectSchemaImpliedBy(
-        plugins: List<PluginApplication>
-    ): TypedProjectSchema = TODO()
 }
 
 
-private
-fun Project.createSyntheticProject(
-    projectDir: File,
-    rootProjectClassPath: Collection<File>,
-    pluginRequests: PluginRequests
-) {
+internal
+class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: Set<File>) {
 
-    val syntheticRootProject = ProjectBuilder.builder()
-        .withProjectDir(projectDir)
-        .build()
+    private
+    val rootProject = buildRootProject(rootProjectDir, rootProjectClassPath)
 
-    val scriptHandler = syntheticRootProject.buildscript as ScriptHandlerInternal
-    scriptHandler.addScriptClassPathDependency(
-        DefaultSelfResolvingDependency(
-            syntheticRootProject.serviceOf<FileCollectionFactory>().fixed("kotlin-dsl-accessors-classpath", rootProjectClassPath) as FileCollectionInternal
-        )
-    )
+    fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
+        schemaFor(childProjectWith(plugins))
 
-    val rootProjectScope = (syntheticRootProject as ProjectInternal).classLoaderScope
-    syntheticRootProject.serviceOf<PluginRequestApplicator>().apply {
-        applyPlugins(
-            DefaultPluginRequests.EMPTY,
-            scriptHandler,
-            syntheticRootProject.pluginManager,
-            rootProjectScope
+    private
+    fun childProjectWith(pluginRequests: PluginRequests): Project {
+
+        val project = ProjectBuilder.builder()
+            .withParent(rootProject)
+            .withProjectDir(rootProject.projectDir.resolve("schema"))
+            .build()
+
+        applyPluginsTo(project, pluginRequests)
+
+        return project
+    }
+
+    private
+    fun buildRootProject(projectDir: File, rootProjectClassPath: Collection<File>): Project {
+
+        val project = ProjectBuilder.builder()
+            .withProjectDir(projectDir)
+            .build()
+
+        addScriptClassPathDependencyTo(project, rootProjectClassPath)
+
+        applyPluginsTo(project, DefaultPluginRequests.EMPTY)
+
+        return project
+    }
+
+    private
+    fun addScriptClassPathDependencyTo(project: Project, rootProjectClassPath: Collection<File>) {
+        val scriptHandler = project.buildscript as ScriptHandlerInternal
+        scriptHandler.addScriptClassPathDependency(
+            DefaultSelfResolvingDependency(
+                project
+                    .serviceOf<FileCollectionFactory>()
+                    .fixed("kotlin-dsl-accessors-classpath", rootProjectClassPath) as FileCollectionInternal
+            )
         )
     }
 
-    val syntheticProject = ProjectBuilder.builder()
-        .withParent(syntheticRootProject)
-        .withProjectDir(projectDir.resolve("kotlin-dsl-accessors/library"))
-        .build()
-
-    val targetProjectScope = (syntheticProject as ProjectInternal).classLoaderScope
-    syntheticProject.serviceOf<PluginRequestApplicator>().apply {
-        applyPlugins(
-            pluginRequests,
-            syntheticProject.buildscript as ScriptHandlerInternal,
-            syntheticProject.pluginManager,
-            targetProjectScope
-        )
+    private
+    fun applyPluginsTo(project: Project, pluginRequests: PluginRequests) {
+        val targetProjectScope = (project as ProjectInternal).classLoaderScope
+        project.serviceOf<PluginRequestApplicator>().apply {
+            applyPlugins(
+                pluginRequests,
+                project.buildscript as ScriptHandlerInternal,
+                project.pluginManager,
+                targetProjectScope
+            )
+        }
     }
 }
 
@@ -293,7 +311,26 @@ data class HashedProjectSchema(
 internal
 data class ScriptPluginPlugins(
     val scriptPlugin: PrecompiledScriptPlugin,
-    val plugins: List<PluginApplication>
+    val plugins: PluginRequests
+)
+
+
+internal
+class UniquePluginRequests(val plugins: PluginRequests) {
+
+    val applications = plugins.map { it.toPluginApplication() }
+
+    override fun equals(other: Any?): Boolean =
+        other is UniquePluginRequests && applications == other.applications
+
+    override fun hashCode(): Int =
+        applications.hashCode()
+}
+
+
+internal
+fun PluginRequestInternal.toPluginApplication() = PluginApplication(
+    id.id, version, isApply
 )
 
 

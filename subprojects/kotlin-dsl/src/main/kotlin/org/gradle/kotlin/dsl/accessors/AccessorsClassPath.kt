@@ -135,7 +135,6 @@ fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
     } else null
 
 
-internal
 fun schemaFor(project: Project): TypedProjectSchema =
     projectSchemaProviderOf(project).schemaFor(project)
 
