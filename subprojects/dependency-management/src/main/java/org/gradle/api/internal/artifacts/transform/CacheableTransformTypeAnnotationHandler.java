@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.CacheableTransformAction;
+import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.reflect.ParameterValidationContext;
@@ -26,7 +26,7 @@ import java.lang.annotation.Annotation;
 public class CacheableTransformTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return CacheableTransformAction.class;
+        return CacheableTransform.class;
     }
 
     @Override

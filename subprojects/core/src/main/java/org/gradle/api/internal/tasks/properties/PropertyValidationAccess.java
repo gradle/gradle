@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.InputDirectory;
@@ -51,7 +54,7 @@ import java.util.Map;
 import java.util.Queue;
 
 /**
- * Class for easy access to task property validation from the validator task.
+ * Class for easy access to property validation from the validator task.
  */
 @NonNullApi
 public class PropertyValidationAccess {
@@ -68,7 +71,7 @@ public class PropertyValidationAccess {
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 
     private final TaskClassInfoStore taskClassInfoStore;
-    private final TypeMetadataStore metadataStore;
+    private final List<TypeScheme> typeSchemes;
 
     private PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
@@ -87,24 +90,73 @@ public class PropertyValidationAccess {
         });
         ServiceRegistry services = builder.build();
         taskClassInfoStore = services.get(TaskClassInfoStore.class);
-        metadataStore = services.get(TaskScheme.class).getInspectionScheme().getMetadataStore();
+        typeSchemes = services.getAll(TypeScheme.class);
     }
 
     @SuppressWarnings("unused")
     public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        INSTANCE.collectValidationProblems(topLevelBean, problems, enableStricterValidation);
+        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
     }
 
-    private void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+    @SuppressWarnings("unused")
+    public static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
+    }
+
+    private void collectTypeValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+        // Skip this for now
+        if (topLevelBean.equals(TaskInternal.class)) {
+            return;
+        }
+
+        TypeMetadataStore metadataStore = null;
+        for (TypeScheme typeScheme : typeSchemes) {
+            if (typeScheme.appliesTo(topLevelBean)) {
+                metadataStore = typeScheme.getMetadataStore();
+                break;
+            }
+        }
+        if (metadataStore == null) {
+            // Don't know about this type
+            return;
+        }
+
+        boolean cacheable;
+        boolean mapErrorsToWarnings;
+        if (Task.class.isAssignableFrom(topLevelBean)) {
+            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
+            // Treat all errors as warnings, for backwards compatibility
+            mapErrorsToWarnings = true;
+        } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
+            cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
+            mapErrorsToWarnings = false;
+        } else {
+            cacheable = false;
+            mapErrorsToWarnings = false;
+        }
+
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<BeanTypeNode<?>>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
-        boolean cacheable = taskClassInfoStore.getTaskClassInfo(Cast.<Class<? extends Task>>uncheckedCast(topLevelBean)).isCacheable();
         boolean stricterValidation = enableStricterValidation || cacheable;
 
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
-            node.visit(topLevelBean, stricterValidation, problems, queue, nodeFactory);
+            node.visit(topLevelBean, stricterValidation, new ProblemCollector(problems, mapErrorsToWarnings), queue, nodeFactory);
+        }
+    }
+
+    private static class ProblemCollector {
+        final Map<String, Boolean> problems;
+        private final boolean mapErrorsToWarnings;
+
+        public ProblemCollector(Map<String, Boolean> problems, boolean mapErrorsToWarnings) {
+            this.problems = problems;
+            this.mapErrorsToWarnings = mapErrorsToWarnings;
+        }
+
+        void error(String message, boolean strict) {
+            problems.put(message, strict || !mapErrorsToWarnings);
         }
     }
 
@@ -147,11 +199,12 @@ public class PropertyValidationAccess {
             this.beanType = beanType;
         }
 
-        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
+        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
         public boolean nodeCreatesCycle(TypeToken<?> childType) {
             return findNodeCreatingCycle(childType, Equivalence.equals()) != null;
         }
+
         private final TypeToken<? extends T> beanType;
 
         protected TypeToken<?> extractNestedType(Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
@@ -171,7 +224,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(final Class<?> topLevelBean, boolean stricterValidation, final Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(final Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeMetadata typeMetadata = getTypeMetadata();
             ParameterValidationContext validationContext = new CollectingParameterValidationContext(topLevelBean, problems);
             typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
@@ -193,34 +246,39 @@ public class PropertyValidationAccess {
             Class<?> rawType = method.getReturnType();
             TypeToken<?> genericReturnType = TypeToken.of(method.getGenericReturnType());
             if (Provider.class.isAssignableFrom(rawType)) {
-                    return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedCast(genericReturnType), Provider.class, 0);
+                return PropertyValidationAccess.extractNestedType(Cast.<TypeToken<Provider<?>>>uncheckedCast(genericReturnType), Provider.class, 0);
             }
             return genericReturnType;
         }
 
         private class CollectingParameterValidationContext implements ParameterValidationContext {
             private final Class<?> topLevelBean;
-            private final Map<String, Boolean> problems;
+            private final ProblemCollector problems;
 
-            public CollectingParameterValidationContext(Class<?> topLevelBean, Map<String, Boolean> problems) {
+            public CollectingParameterValidationContext(Class<?> topLevelBean, ProblemCollector problems) {
                 this.topLevelBean = topLevelBean;
                 this.problems = problems;
             }
 
             @Override
             public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-                visitError(String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message));
+                String decoratedMessage;
+                if (Task.class.isAssignableFrom(topLevelBean)) {
+                    decoratedMessage = String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
+                } else {
+                    decoratedMessage = String.format("Type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
+                }
+                visitError(decoratedMessage);
             }
 
             @Override
             public void visitError(String message) {
-                // Treat all errors as warnings, for backwards compatibility
-                problems.put(message, Boolean.FALSE);
+                problems.error(message, false);
             }
 
             @Override
             public void visitErrorStrict(String message) {
-                problems.put(message, Boolean.TRUE);
+                problems.error(message, true);
             }
         }
     }
@@ -238,7 +296,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
             nodeFactory.createAndAddToQueue(this, determinePropertyName(nestedType), nestedType, queue);
         }
@@ -251,7 +309,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, Map<String, Boolean> problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
             nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
         }
@@ -259,12 +317,6 @@ public class PropertyValidationAccess {
 
     private interface PropertyValidator {
         void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext);
-    }
-
-    private static class InputOnFileTypeValidator implements PropertyValidator {
-        @Override
-        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
-        }
     }
 
     private static class MissingPathSensitivityValidator implements PropertyValidator {
