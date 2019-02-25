@@ -35,6 +35,8 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
@@ -116,6 +118,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     /**
      * The name of the API configuration, where dependencies exported by a component at compile time should
      * be declared.
+     *
      * @since 3.4
      */
     public static final String API_CONFIGURATION_NAME = "api";
@@ -123,6 +126,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     /**
      * The name of the implementation configuration, where dependencies that are only used internally by
      * a component should be declared.
+     *
      * @since 3.4
      */
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
@@ -160,12 +164,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     /**
      * The name of the runtime only dependencies configuration, used to declare dependencies
      * that should only be found at runtime.
+     *
      * @since 3.4
      */
     public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
 
     /**
      * The name of the runtime classpath configuration, used by a component to query its own runtime classpath.
+     *
      * @since 3.4
      */
     public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
@@ -173,18 +179,21 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     /**
      * The name of the runtime elements configuration, that should be used by consumers
      * to query the runtime dependencies of a component.
+     *
      * @since 3.4
      */
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
 
     /**
      * The name of the compile classpath configuration.
+     *
      * @since 3.4
      */
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
 
     /**
      * The name of the annotation processor configuration.
+     *
      * @since 4.6
      */
     @Incubating
@@ -194,6 +203,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     /**
      * The name of the test implementation dependencies configuration.
+     *
      * @since 3.4
      */
     public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
@@ -214,18 +224,21 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     /**
      * The name of the test runtime only dependencies configuration.
+     *
      * @since 3.4
      */
     public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
 
     /**
      * The name of the test compile classpath configuration.
+     *
      * @since 3.4
      */
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
 
     /**
      * The name of the test annotation processor configuration.
+     *
      * @since 4.6
      */
     @Incubating
@@ -233,6 +246,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     /**
      * The name of the test runtime classpath configuration.
+     *
      * @since 3.4
      */
     public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
@@ -254,7 +268,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureConfigurations(project);
+        configureConfigurations(project, javaConvention);
 
         configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
@@ -371,14 +385,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, true,
-                    JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+                        JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             }
         });
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
                 addDependsOnTaskInOtherProjects(task, false,
-                    JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+                        JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
             }
         });
     }
@@ -414,7 +428,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureConfigurations(Project project) {
+    private void configureConfigurations(Project project, final JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -432,7 +446,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
-        Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
+        final Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
         apiElementsConfiguration.setVisible(false);
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
@@ -441,7 +455,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
         apiElementsConfiguration.extendsFrom(runtimeConfiguration);
 
-        Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        final Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
@@ -451,6 +465,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         runtimeElementsConfiguration.extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration);
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
+
+
+        configureTargetPlatform(apiElementsConfiguration, convention);
+        configureTargetPlatform(runtimeElementsConfiguration, convention);
+    }
+
+    /**
+     * Configures the target platform for an outgoing configuration.
+     */
+    private void configureTargetPlatform(Configuration outgoing, final JavaPluginConvention convention) {
+        ((ConfigurationInternal)outgoing).beforeLocking(new Action<ConfigurationInternal>() {
+            @Override
+            public void execute(ConfigurationInternal configuration) {
+                JavaEcosystemSupport.configureDefaultTargetPlatform(configuration, convention.getTargetCompatibility());
+            }
+        });
     }
 
     /**

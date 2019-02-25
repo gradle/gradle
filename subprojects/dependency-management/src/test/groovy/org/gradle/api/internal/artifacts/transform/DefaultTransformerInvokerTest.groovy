@@ -94,8 +94,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         transformationWorkspaceProvider,
         fileCollectionFactory,
         classloaderHasher,
-        projectFinder,
-        true
+        projectFinder
     )
 
     private static class TestTransformer implements Transformer {

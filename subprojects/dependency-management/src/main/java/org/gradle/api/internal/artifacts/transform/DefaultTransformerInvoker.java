@@ -84,7 +84,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
-    private final boolean useTransformationWorkspaces;
 
     public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
@@ -92,8 +91,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
                                      FileCollectionFactory fileCollectionFactory,
                                      ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                     ProjectFinder projectFinder,
-                                     boolean useTransformationWorkspaces) {
+                                     ProjectFinder projectFinder) {
         this.workExecutor = workExecutor;
         this.fileSystemSnapshotter = fileSystemSnapshotter;
         this.artifactTransformListener = artifactTransformListener;
@@ -101,7 +99,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         this.fileCollectionFactory = fileCollectionFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.projectFinder = projectFinder;
-        this.useTransformationWorkspaces = useTransformationWorkspaces;
     }
 
     @Override
@@ -169,7 +166,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     @Nullable
     private ProjectInternal determineProducerProject(TransformationSubject subject) {
-        if (!useTransformationWorkspaces || !subject.getProducer().isPresent()) {
+        if (!subject.getProducer().isPresent()) {
             return null;
         }
         ProjectComponentIdentifier projectComponentIdentifier = subject.getProducer().get();

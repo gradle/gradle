@@ -16,10 +16,15 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import com.google.common.annotations.VisibleForTesting
+
 import org.gradle.api.Incubating
+
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
 import org.gradle.kotlin.dsl.accessors.contains
 import org.gradle.kotlin.dsl.accessors.primitiveTypeStrings
+
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.classPathBytesRepositoryFor
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -36,7 +41,6 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_VARARGS
-import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.TypePath
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
@@ -45,10 +49,9 @@ import org.jetbrains.org.objectweb.asm.tree.AnnotationNode
 import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.Closeable
 import java.io.File
+
 import java.util.ArrayDeque
 
 import javax.annotation.Nullable
@@ -430,7 +433,7 @@ inline fun <reified AnnotationType : Any> List<AnnotationNode>?.has() =
 
 
 private
-class ApiTypeClassNode : ClassNode(ASM6) {
+class ApiTypeClassNode : ClassNode(ASM_LEVEL) {
 
     override fun visitSource(file: String?, debug: String?) = Unit
     override fun visitOuterClass(owner: String?, name: String?, desc: String?) = Unit
@@ -442,7 +445,7 @@ class ApiTypeClassNode : ClassNode(ASM6) {
 
 
 private
-abstract class BaseSignatureVisitor : SignatureVisitor(ASM6) {
+abstract class BaseSignatureVisitor : SignatureVisitor(ASM_LEVEL) {
 
     val typeParameters: MutableMap<String, MutableList<TypeSignatureVisitor>> = LinkedHashMap(1)
 
@@ -486,7 +489,7 @@ class MethodSignatureVisitor : BaseSignatureVisitor() {
 
 
 private
-class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : SignatureVisitor(ASM6) {
+class TypeSignatureVisitor(val variance: Variance = Variance.INVARIANT) : SignatureVisitor(ASM_LEVEL) {
 
     var isArray = false
 

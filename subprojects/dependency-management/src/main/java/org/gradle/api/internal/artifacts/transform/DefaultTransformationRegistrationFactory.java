@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.CacheableTransformAction;
+import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -93,7 +93,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         DefaultParameterValidationContext parameterValidationContext = new DefaultParameterValidationContext(validationMessages);
         actionMetadata.collectValidationFailures(null, parameterValidationContext);
-        boolean cacheable = implementation.isAnnotationPresent(CacheableTransformAction.class);
+        boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
 
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;

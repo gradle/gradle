@@ -12,6 +12,7 @@ We would like to thank the following community contributors to this release of G
 [Kenzie Togami](https://github.com/kenzierocks),
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
+[Joe Kutner](https://github.com/jkutner),
 ... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
@@ -99,13 +100,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 The method `ProjectLayout.configurableFiles()` is now deprecated, and will be removed in Gradle 6.0. You should use `ObjectFactory.fileCollection()` instead.
 
 ### Breaking changes
-
-#### Bugfixes in platform resolution
-
-There was a bug from Gradle 5.0 to 5.2.1 (included) where enforced platforms would potentially include dependencies instead of constraints.
-This would happen whenever a POM file defined both dependencies and "constraints" (via `<dependencyManagement>`) and that you used `enforcedPlatform`.
-Gradle 5.3 fixes this bug, meaning that you might have differences in the resolution result if you relied on this broken behavior.
-Similarly, Gradle 5.3 will no longer try to download jars for `platform` and `enforcedPlatform` dependencies (as they should only bring in constraints).
 
 <!-- summary and links -->
 

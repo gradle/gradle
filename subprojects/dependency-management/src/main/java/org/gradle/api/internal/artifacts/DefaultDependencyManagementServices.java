@@ -260,8 +260,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     ArtifactTransformListener artifactTransformListener,
                                                     FileCollectionFactory fileCollectionFactory,
                                                     ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                                    ProjectFinder projectFinder,
-                                                    FeaturePreviews featurePreviews) {
+                                                    ProjectFinder projectFinder
+        ) {
             return new DefaultTransformerInvoker(
                 workExecutor,
                 fileSystemSnapshotter,
@@ -269,8 +269,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher,
-                projectFinder,
-                featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.INCREMENTAL_ARTIFACT_TRANSFORMATIONS)
+                projectFinder
             );
         }
 

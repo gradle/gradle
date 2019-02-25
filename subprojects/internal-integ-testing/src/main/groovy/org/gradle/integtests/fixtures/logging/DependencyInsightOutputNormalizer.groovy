@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.logging
 
-import org.gradle.api.internal.FeaturePreviews.Feature
+import groovy.transform.CompileStatic
+import org.gradle.samples.executor.ExecutionMetadata
+import org.gradle.samples.test.normalizer.OutputNormalizer
 
-class FeaturePreviewsFixture {
+@CompileStatic
+class DependencyInsightOutputNormalizer implements OutputNormalizer {
 
-    static def activeFeatures() {
-        EnumSet.of(Feature.GRADLE_METADATA)
-    }
-
-    static def inactiveFeatures() {
-        def features = EnumSet.allOf(Feature.class)
-        features.removeAll(activeFeatures())
-        features
-    }
-
-    static void enableGradleMetadata(File settings) {
-        settings << """
-enableFeaturePreview("GRADLE_METADATA")
-"""
+    @Override
+    String normalize(String output, ExecutionMetadata executionMetadata) {
+        output.replaceAll("org\\.gradle\\.jvm\\.version[ ]+= [0-9]+", "org.gradle.jvm.version = 11")
     }
 }

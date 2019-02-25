@@ -178,7 +178,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 ConfigurableFileCollection getAbsolutePathSensitivity()
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()
@@ -326,7 +326,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setExtension(String value)
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreenAction implements TransformAction {
                 @TransformParameters
                 abstract MakeGreen getParameters()

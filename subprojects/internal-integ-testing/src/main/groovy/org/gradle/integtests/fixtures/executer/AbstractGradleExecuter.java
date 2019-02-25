@@ -519,8 +519,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         if (isSharedDaemons()) {
+            buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx1024m");
         } else {
+            buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {

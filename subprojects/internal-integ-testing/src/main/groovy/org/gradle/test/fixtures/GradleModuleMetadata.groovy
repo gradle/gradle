@@ -155,6 +155,10 @@ class GradleModuleMetadata {
             return ref == null ? null : new ModuleReference(ref.group, ref.module, ref.version, ref.url)
         }
 
+        Map<String, String> getAttributes() {
+            values.attributes
+        }
+
         List<Dependency> getDependencies() {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
