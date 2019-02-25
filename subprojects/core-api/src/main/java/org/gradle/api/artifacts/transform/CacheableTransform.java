@@ -26,12 +26,12 @@ import java.lang.annotation.Target;
 /**
  * <p>Attached to an {@link TransformAction} type to indicate that the build cache should be used for artifact transforms of this type.</p>
  *
- * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransformAction}.</p>
+ * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
  *
  * @since 5.3
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface CacheableTransformAction {
+public @interface CacheableTransform {
 }

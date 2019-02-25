@@ -377,7 +377,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
@@ -458,7 +458,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
@@ -549,7 +549,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
@@ -720,7 +720,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
 
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreen implements TransformAction {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
@@ -1075,7 +1075,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            @CacheableTransformAction
+            @CacheableTransform
             abstract class MakeGreen implements TransformAction {
                 @InputArtifact @${annotation}
                 abstract File getInput()
