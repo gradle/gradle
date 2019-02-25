@@ -38,6 +38,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.BasicTextResourceLoader
 
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
+import org.gradle.kotlin.dsl.accessors.buildAccessorsFor
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
 import org.gradle.kotlin.dsl.accessors.schemaFor
 
@@ -205,18 +206,28 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     private
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<UniquePluginRequests, List<ScriptPluginPlugins>>
-    ): Iterable<Pair<HashedProjectSchema, List<ScriptPluginPlugins>>> {
+    ): Map<HashedProjectSchema, List<ScriptPluginPlugins>> {
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, classPathFiles.files)
-        return pluginGroupsPerRequests.map { (uniquePluginRequests, scriptPlugins) ->
+        return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
-            HashedProjectSchema(schema) to scriptPlugins
-        }
+            val hashedSchema = HashedProjectSchema(schema)
+            scriptPlugins.map { hashedSchema to it }
+        }.groupBy(
+            { (schema, _) -> schema },
+            { (_, plugin) -> plugin }
+        )
     }
 
     private
-    fun IO.writeTypeSafeAccessorsFor(projectSchema: HashedProjectSchema) {
-        println(projectSchema)
+    fun IO.writeTypeSafeAccessorsFor(hashedSchema: HashedProjectSchema) {
+        buildAccessorsFor(
+            hashedSchema.schema,
+            classPath,
+            sourceCodeOutputDir.get().asFile,
+            temporaryDir.resolve("accessors"),
+            hashedSchema.packageName
+        )
     }
 
     private
@@ -273,7 +284,7 @@ class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: 
             DefaultSelfResolvingDependency(
                 project
                     .serviceOf<FileCollectionFactory>()
-                    .fixed("kotlin-dsl-accessors-classpath", rootProjectClassPath) as FileCollectionInternal
+                    .fixed("precompiled-script-plugins-accessors-classpath", rootProjectClassPath) as FileCollectionInternal
             )
         )
     }
@@ -299,7 +310,7 @@ data class HashedProjectSchema(
     val hash: HashCode = hashCodeFor(schema)
 ) {
     val packageName by lazy {
-        kotlinPackageNameFor("gradle-kotlin-dsl.type-safe-accessors.$$hash")
+        "gradle.kotlin.dsl.accessors._$hash"
     }
 
     override fun hashCode(): Int = hash.hashCode()
@@ -320,11 +331,9 @@ class UniquePluginRequests(val plugins: PluginRequests) {
 
     val applications = plugins.map { it.toPluginApplication() }
 
-    override fun equals(other: Any?): Boolean =
-        other is UniquePluginRequests && applications == other.applications
+    override fun equals(other: Any?): Boolean = other is UniquePluginRequests && applications == other.applications
 
-    override fun hashCode(): Int =
-        applications.hashCode()
+    override fun hashCode(): Int = applications.hashCode()
 }
 
 

@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider
 
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
@@ -198,26 +197,58 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
             outputDir.set(compiledPluginsBlocks)
         }
 
-        val generatedAccessors = generatedSourceDirFor("accessors")
-        val generatePrecompiledScriptPluginAccessors by registering(GeneratePrecompiledScriptPluginAccessors::class) {
-            dependsOn(compilePluginsBlocks)
-            classPathFiles = compileClasspath
-            sourceCodeOutputDir.set(generatedAccessors)
-            metadataOutputDir.set(generatedMetadata)
-            compiledPluginsBlocksDir.set(compiledPluginsBlocks)
-            plugins = scriptPlugins
+        val (generatePrecompiledScriptPluginAccessors, generatedAccessors) =
+            codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
+                "accessors",
+                "generatePrecompiledScriptPluginAccessors"
+            ) {
+                dependsOn(compilePluginsBlocks)
+                classPathFiles = compileClasspath
+                sourceCodeOutputDir.set(it)
+                metadataOutputDir.set(generatedMetadata)
+                compiledPluginsBlocksDir.set(compiledPluginsBlocks)
+                plugins = scriptPlugins
+            }
+
+        val configurePrecompiledScriptPluginImports by registering {
+            inputs.files(
+                project.files(generatedMetadata).builtBy(generatePrecompiledScriptPluginAccessors)
+            )
         }
 
-        named<KotlinCompile>("compileKotlin") {
+        val compileKotlin by existing(KotlinCompile::class) {
             dependsOn(generatePrecompiledScriptPluginAccessors)
             dependsOn(generateInternalPluginSpecBuilders)
             dependsOn(generateExternalPluginSpecBuilders)
-            kotlinOptions {
-                freeCompilerArgs += listOf(
-                    "-script-templates", scriptTemplates,
-                    // Propagate implicit imports and other settings
-                    "-Xscript-resolver-environment=${resolverEnvironmentFor(generatePrecompiledScriptPluginAccessors)}"
+            dependsOn(configurePrecompiledScriptPluginImports)
+        }
+
+        configurePrecompiledScriptPluginImports {
+            doLast {
+
+                val metadataDir = generatedMetadata.get().asFile
+                require(metadataDir.isDirectory)
+
+                val precompiledScriptPluginImports =
+                    metadataDir.listFiles().map {
+                        it.name to it.readLines()
+                    }
+
+                val resolverEnvironment = resolverEnvironmentStringFor(
+                    listOf(
+                        PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports to implicitImports()
+                    ) + precompiledScriptPluginImports
                 )
+
+                compileKotlin.get().apply {
+                    kotlinOptions {
+                        freeCompilerArgs += listOf(
+                            "-script-templates", scriptTemplates,
+                            // Propagate implicit imports and other settings
+                            "-Xscript-resolver-environment=$resolverEnvironment"
+                        )
+                    }
+                }
             }
         }
     }
@@ -226,14 +257,6 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
 
 private
 fun Project.compileClasspath() = sourceSets["main"].compileClasspath
-
-
-private
-fun Project.resolverEnvironmentFor(
-    accessors: TaskProvider<GeneratePrecompiledScriptPluginAccessors>
-) = resolverEnvironment(
-    implicitImports() // + (accessors.get().kotlinPackageName + ".*")
-)
 
 
 private
@@ -250,9 +273,10 @@ val scriptTemplates by lazy {
 
 
 private
-fun resolverEnvironment(implicitImports: List<String>) =
-    (PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
-        + "=\"" + implicitImports.joinToString(separator = ":") + "\"")
+fun resolverEnvironmentStringFor(properties: Iterable<Pair<String, List<String>>>): String =
+    properties.joinToString(separator = ",") { (key, values) ->
+        "$key=\"${values.joinToString(":")}\""
+    }
 
 
 internal

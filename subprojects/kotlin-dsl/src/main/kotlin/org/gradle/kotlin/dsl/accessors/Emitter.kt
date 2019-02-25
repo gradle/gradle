@@ -19,8 +19,6 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 
-import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
-
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
@@ -39,14 +37,15 @@ internal
 fun IO.emitAccessorsFor(
     projectSchema: ProjectSchema<TypeAccessibility>,
     srcDir: File,
-    binDir: File
+    binDir: File,
+    outputPackage: OutputPackage
 ): List<InternalName> {
 
-    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
+    makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
-            emitClassFor(accessor, srcDir, binDir)
+            emitClassFor(accessor, srcDir, binDir, outputPackage)
         }.toList()
 
     writeFile(
@@ -66,10 +65,25 @@ fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File, packagePath: String) =
 }
 
 
-private
-fun IO.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
+internal
+data class OutputPackage(val name: String) {
 
-    val (className, fragments) = fragmentsFor(accessor)
+    val path by lazy {
+        name.replace('.', '/')
+    }
+}
+
+
+private
+fun IO.emitClassFor(
+    accessor: Accessor,
+    srcDir: File,
+    binDir: File,
+    outputPackage: OutputPackage
+): InternalName {
+
+    val (simpleClassName, fragments) = fragmentsFor(accessor)
+    val className = InternalName("${outputPackage.path}/$simpleClassName")
     val sourceCode = mutableListOf<String>()
     val metadataWriter = beginFileFacadeClassHeader()
     val classWriter = beginPublicClass(className)
@@ -81,7 +95,7 @@ fun IO.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalNam
     }
 
     val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-    writeAccessorsTo(sourceFile, sourceCode, importsRequiredBy(accessor))
+    writeAccessorsTo(sourceFile, sourceCode, importsRequiredBy(accessor), outputPackage.name)
 
     val classHeader = metadataWriter.closeHeader()
     val classBytes = classWriter.endKotlinClass(classHeader)

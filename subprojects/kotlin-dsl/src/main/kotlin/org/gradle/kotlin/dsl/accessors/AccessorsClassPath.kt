@@ -148,18 +148,19 @@ private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
-internal
 fun IO.buildAccessorsFor(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
-    binDir: File
+    binDir: File,
+    packageName: String = kotlinDslPackageName
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     emitAccessorsFor(
         availableSchema,
         srcDir,
-        binDir
+        binDir,
+        OutputPackage(packageName)
     )
 }
 
@@ -518,10 +519,11 @@ internal
 fun IO.writeAccessorsTo(
     outputFile: File,
     accessors: List<String>,
-    imports: List<String> = emptyList()
+    imports: List<String> = emptyList(),
+    packageName: String = kotlinDslPackageName
 ) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImportsFor(/* TODO: accept packageName here */))
+        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendReproducibleNewLine("import $it")

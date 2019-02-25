@@ -16,15 +16,17 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.internal.hash.Hashing
+
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
 
 import java.util.concurrent.Future
 
-import kotlin.script.dependencies.ScriptDependenciesResolver
+import kotlin.script.dependencies.Environment
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.PseudoFuture
 import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.KotlinScriptExternalDependencies
-import kotlin.script.dependencies.Environment
+import kotlin.script.dependencies.ScriptDependenciesResolver
 
 
 class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
@@ -42,7 +44,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         PseudoFuture(
             KotlinBuildScriptDependencies(
-                imports = implicitImportsFrom(environment),
+                imports = implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, script),
                 classpath = emptyList(),
                 sources = emptyList()
             )
@@ -50,6 +52,18 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     private
     fun implicitImportsFrom(environment: Environment?) =
-        (environment?.get(EnvironmentProperties.kotlinDslImplicitImports) as? String)?.split(':')
+        environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
+
+    private
+    fun precompiledScriptPluginImportsFrom(environment: Environment?, script: ScriptContents): List<String> =
+        environment.stringList(Hashing.hashString(script.text).toString())
+
+    private
+    fun Environment?.stringList(key: String) =
+        string(key)?.split(':')
             ?: emptyList()
+
+    private
+    fun Environment?.string(key: String) =
+        this?.get(key) as? String
 }

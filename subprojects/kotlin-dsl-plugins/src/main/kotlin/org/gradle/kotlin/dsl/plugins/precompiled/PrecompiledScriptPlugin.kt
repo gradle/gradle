@@ -100,11 +100,7 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
     }
 
     val hashString by lazy {
-        hash.toString()
-    }
-
-    val hash by lazy {
-        Hashing.hashString(scriptText)
+        Hashing.hashString(scriptText).toString()
     }
 
     val scriptText: String
