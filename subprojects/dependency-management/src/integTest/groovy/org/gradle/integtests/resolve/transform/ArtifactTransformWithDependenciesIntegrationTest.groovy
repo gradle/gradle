@@ -53,7 +53,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes(cl)
         buildFile << """
                    
-interface TestTransform {
+interface TestTransformParameters extends TransformParameters {
     @Input
     String getTransformName()
     void setTransformName(String name)
@@ -107,10 +107,10 @@ project(':app') {
 
 import javax.inject.Inject
 
-abstract class TestTransformAction implements TransformAction<TestTransform> {
+abstract class TestTransform implements TransformAction<TestTransformParameters> {
 
     @InjectTransformParameters
-    abstract TestTransform getParameters()
+    abstract TestTransformParameters getParameters()
 
     @InputArtifactDependencies
     abstract FileCollection getInputArtifactDependencies()
@@ -130,7 +130,7 @@ abstract class TestTransformAction implements TransformAction<TestTransform> {
     }
 }
 
-abstract class SimpleTransform implements TransformAction<Void> {
+abstract class SimpleTransform implements TransformAction<TransformParameters> {
 
     @InputArtifact
     abstract File getInput()
@@ -154,7 +154,7 @@ abstract class SimpleTransform implements TransformAction<Void> {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(TestTransformAction) {
+        registerTransformAction(TestTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
             parameters {
@@ -176,7 +176,7 @@ allprojects {
             from.attribute(color, 'blue')
             to.attribute(color, 'yellow')
         }
-        registerTransformAction(TestTransformAction) {
+        registerTransformAction(TestTransform) {
             from.attribute(color, 'yellow')
             to.attribute(color, 'green')
             parameters {
@@ -194,14 +194,14 @@ allprojects {
 allprojects {
     dependencies {
         // Multi step transform
-        registerTransformAction(TestTransformAction) {
+        registerTransformAction(TestTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'yellow')
             parameters {
                 transformName = 'Transform step 1'
             }
         }
-        registerTransformAction(TestTransformAction) {
+        registerTransformAction(TestTransform) {
             from.attribute(color, 'yellow')
             to.attribute(color, 'green')
             parameters {
@@ -412,14 +412,14 @@ project(':common') {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(NoneTransformAction) {
+        registerTransformAction(NoneTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
     }
 }
 
-abstract class NoneTransformAction implements TransformAction<Void> {
+abstract class NoneTransform implements TransformAction<TransformParameters> {
     @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
     abstract FileCollection getInputArtifactDependencies()
 
@@ -508,14 +508,14 @@ abstract class NoneTransformAction implements TransformAction<Void> {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(ClasspathTransformAction) {
+        registerTransformAction(ClasspathTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
     }
 }
 
-abstract class ClasspathTransformAction implements TransformAction<Void> {
+abstract class ClasspathTransform implements TransformAction<TransformParameters> {
     @InputArtifactDependencies @${classpathAnnotation.simpleName}
     abstract FileCollection getInputArtifactDependencies()
 

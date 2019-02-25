@@ -85,22 +85,22 @@ class Resolve extends Copy {
 
         given:
         buildFile << """
-            interface CountRecorder {
+            interface CountRecorderParameters extends TransformParameters{
                 @Input
                 Counter getCounter()
                 void setCounter(Counter counter)
             }
 
-            abstract class CountRecorderAction implements TransformAction<CountRecorder> {
+            abstract class CountRecorder implements TransformAction<CountRecorderParameters> {
                 private final Counter counter;
                             
                 @InjectTransformParameters
-                abstract CountRecorder getParameters()                  
+                abstract CountRecorderParameters getParameters()                  
 
                 @InputArtifact
                 abstract File getInput()
 
-                CountRecorderAction() {
+                CountRecorder() {
                     println "Creating CountRecorder"
                 }
                 
@@ -134,7 +134,7 @@ class Resolve extends Copy {
             }
             
             dependencies {
-                registerTransformAction(CountRecorderAction) {
+                registerTransformAction(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'firstCount')
                     parameters {
@@ -142,14 +142,14 @@ class Resolve extends Copy {
                     }
                 }
                 buildScriptCounter.increment()
-                registerTransformAction(CountRecorderAction) {
+                registerTransformAction(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
                     parameters {
                         counter = buildScriptCounter
                     }
                 }
-                registerTransformAction(CountRecorderAction) {
+                registerTransformAction(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'thirdCount')
                     parameters {

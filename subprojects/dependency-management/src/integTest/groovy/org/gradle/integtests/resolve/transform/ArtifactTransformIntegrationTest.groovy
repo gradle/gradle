@@ -803,7 +803,7 @@ $fileSizer
                 }
             }
             
-            abstract class IdentityTransform implements TransformAction<Void> {
+            abstract class IdentityTransform implements TransformAction<TransformParameters> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -1553,7 +1553,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class FailingTransformAction implements TransformAction<Void> {
+            class FailingTransform implements TransformAction<TransformParameters> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1575,7 +1575,7 @@ Found the following transforms:
                     }}
                 }
             }
-            ${declareTransformAction('FailingTransformAction')}
+            ${declareTransformAction('FailingTransform')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1623,7 +1623,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class DirectoryTransformAction implements TransformAction<Void> {
+            class DirectoryTransform implements TransformAction<TransformParameters> {
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
@@ -1633,7 +1633,7 @@ Found the following transforms:
                     new File(outputDir, "in-dir.txt").text = "another output"
                 }
             }
-            ${declareTransformAction('DirectoryTransformAction')}
+            ${declareTransformAction('DirectoryTransform')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1661,7 +1661,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class MyTransformAction implements TransformAction<Void> {
+            abstract class MyTransform implements TransformAction<TransformParameters> {
                 @InputArtifact
                 abstract File getInput() 
 
@@ -1672,7 +1672,7 @@ Found the following transforms:
                 }
             }
             dependencies {
-                registerTransformAction(MyTransformAction) {
+                registerTransformAction(MyTransform) {
                     from.attribute(artifactType, 'directory')
                     to.attribute(artifactType, 'size')
                 }
@@ -1739,7 +1739,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            class SomewhereElseTransform implements TransformAction<Void> {
+            class SomewhereElseTransform implements TransformAction<TransformParameters> {
                 static def output
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)
@@ -1947,18 +1947,18 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            interface Custom {
+            interface CustomParameters extends TransformParameters {
                 @Input
                 CustomType getInput()
                 void setInput(CustomType input)
             }
               
-            class CustomAction implements TransformAction<Custom> { 
+            class Custom implements TransformAction<CustomParameters> { 
                 void transform(TransformOutputs outputs) {  }
             }
             
             dependencies {
-                registerTransformAction(CustomAction) {
+                registerTransformAction(Custom) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                     parameters {
@@ -1979,7 +1979,7 @@ Found the following transforms:
         when:
         fails "resolve"
         then:
-        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Inject@.* of artifact transform CustomAction")
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters CustomParameters\\\$Inject@.* of artifact transform Custom")
         if (scheduled) {
             failure.assertThatDescription(matchesCannotIsolate)
         } else {

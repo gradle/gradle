@@ -38,7 +38,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 tasks.producer.doLast { throw new RuntimeException('broken') }
             }
             
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -74,7 +74,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
 
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact ${annotation}
                 abstract File getInput()
                 
@@ -187,7 +187,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
 
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact ${annotation}
                 abstract File getInput()
                 
@@ -317,7 +317,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -378,7 +378,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract File getInput()
@@ -459,7 +459,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
@@ -550,7 +550,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
@@ -632,7 +632,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
 
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract File getInput()
@@ -721,7 +721,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
 
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract File getInput()
@@ -823,7 +823,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 implementation 'group2:lib2:1.0'
             }
             
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
                 abstract File getInput()
@@ -909,7 +909,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 implementation 'group2:lib2:1.0'
             }
             
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
                 abstract File getInput()
@@ -976,7 +976,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
                 }
             }
             
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact @${annotation}
                 abstract File getInput()
                 
@@ -1076,7 +1076,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             }
             
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<TransformParameters> {
                 @InputArtifact @${annotation}
                 abstract File getInput()
                 

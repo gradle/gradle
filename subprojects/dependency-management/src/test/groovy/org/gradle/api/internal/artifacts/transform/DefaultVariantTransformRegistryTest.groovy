@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform
 
-
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.InjectTransformParameters
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DynamicObjectAware
@@ -60,7 +64,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def domainObjectContextProjectStateHandler = Mock(DomainObjectProjectStateHandler)
-    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, domainObjectContextProjectStateHandler, new ArtifactTransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme), new ArtifactTransformActionScheme(instantiatorFactory.injectScheme(), inspectionScheme, instantiatorFactory.injectScheme()))
+    def registryFactory = new DefaultTransformationRegistrationFactory(isolatableFactory, classLoaderHierarchyHasher, transformerInvoker, valueSnapshotter, fileCollectionFactory, fileCollectionFingerprinterRegistry, domainObjectContextProjectStateHandler, new ArtifactTransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme), new ArtifactTransformActionScheme(instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, InjectTransformParameters.class)), inspectionScheme, instantiatorFactory.injectScheme()))
     def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
 
     def "setup"() {
@@ -126,7 +130,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "creates registration with annotated parameters object"() {
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -136,13 +140,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == TestTransformAction
-        registration.transformationStep.transformer.parameterObject instanceof TestTransform
+        registration.transformationStep.transformer.implementationClass == TestTransform
+        registration.transformationStep.transformer.parameterObject instanceof TestParameters
     }
 
     def "creates registration for parametereless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransformAction) {
+        registry.registerTransformAction(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -152,13 +156,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration = registry.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
-        registration.transformationStep.transformer.implementationClass == ParameterlessTestTransformAction
+        registration.transformationStep.transformer.implementationClass == ParameterlessTestTransform
         registration.transformationStep.transformer.parameterObject == null
     }
 
     def "cannot configure parameters for parameterless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransformAction) {
+        registry.registerTransformAction(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.parameters {
@@ -173,7 +177,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "cannot query parameters object for parameterless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransformAction) {
+        registry.registerTransformAction(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.parameters
@@ -189,7 +193,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration
 
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             registration = it
@@ -267,7 +271,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "fails when no from attributes are provided for registerTransformAction"() {
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(TestTransform) {
             it.to.attribute(TEST_ATTRIBUTE, "to")
         }
 
@@ -292,7 +296,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "fails when no to attributes are provided for registerTransformAction"() {
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
         }
 
@@ -320,7 +324,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "fails when to attributes are not a subset of from attributes for registerTransformAction"() {
         when:
-        registry.registerTransformAction(TestTransformAction) {
+        registry.registerTransformAction(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.from.attribute(Attribute.of("from2", String), "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")
@@ -333,7 +337,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    static class TestTransform {
+    static class TestParameters implements TransformParameters {
         String value
     }
 
@@ -348,13 +352,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static class TestTransformAction implements TransformAction<TestTransform> {
+    static class TestTransform implements TransformAction<TestParameters> {
         @Override
         void transform(TransformOutputs outputs) {
         }
     }
 
-    static class ParameterlessTestTransformAction implements TransformAction<Void> {
+    static class ParameterlessTestTransform implements TransformAction<TransformParameters> {
         @Override
         void transform(TransformOutputs outputs) {
         }

@@ -47,7 +47,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         buildFile << """
             allprojects {
                 dependencies {
-                    registerTransformAction(MakeGreenAction) {
+                    registerTransformAction(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
                         parameters {
@@ -64,15 +64,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements TransformAction<MakeGreen> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
@@ -111,16 +111,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 ${type} getProp()
                 @Input @Optional
                 ${type} getOtherProp()
             }
             
-            abstract class MakeGreenAction implements TransformAction<MakeGreen> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 
                 void transform(TransformOutputs outputs) {
                     println "processing using " + parameters.prop.get()
@@ -159,7 +159,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 String getExtension()
                 void setExtension(String value)
                 @OutputDirectory
@@ -176,9 +176,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             @CacheableTransform
-            abstract class MakeGreenAction implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -190,8 +190,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
-        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreenParameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreenParameters.')
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
@@ -217,7 +217,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 String getExtension()
                 void setExtension(String value)
@@ -226,9 +226,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements TransformAction<MakeGreen> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -240,8 +240,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
-        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreenParameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreenParameters.')
         failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
 
         where:
@@ -266,7 +266,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 String getExtension()
                 void setExtension(String value)
                 @${annotation.simpleName}
@@ -274,9 +274,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 void setBad(String value)
             }
             
-            abstract class MakeGreenAction implements TransformAction<MakeGreen> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -289,9 +289,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('Could not create an instance of type MakeGreen.')
-        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen.')
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getBad().")
+        failure.assertHasCause('Could not create an instance of type MakeGreenParameters.')
+        failure.assertHasCause('Could not generate a decorated class for interface MakeGreenParameters.')
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreenParameters.getBad().")
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
@@ -314,16 +314,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
             @CacheableTransform
-            abstract class MakeGreenAction implements TransformAction<Void> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InjectTransformParameters
-                abstract MakeGreen getParameters()
+                abstract MakeGreenParameters getParameters()
                 
                 @InputFile
                 File inputFile 
@@ -352,7 +352,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('Some problems were found with the configuration of MakeGreenAction.')
+        failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         failure.assertHasCause("Property 'conflictingAnnotations' is annotated with unsupported annotation @InputFile.")
         failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @InputArtifact, @InputArtifactDependencies.")
         failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
@@ -379,13 +379,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            abstract class MakeGreenAction implements TransformAction<MakeGreen> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @${annotation.simpleName}
                 String getBad() { }
                 
@@ -400,7 +400,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('A problem was found with the configuration of MakeGreenAction.')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
 
         where:
@@ -426,7 +426,7 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<Void> {
+abstract class MakeGreen implements TransformAction<TransformParameters> {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
@@ -518,17 +518,17 @@ abstract class MakeGreen extends ArtifactTransform {
                 }
             }
             
-            interface MakeGreen {
+            interface MakeGreenParameters extends TransformParameters {
                 @Input
                 String getExtension()
                 void setExtension(String value)
             }
             
-            class MakeGreenAction implements TransformAction<MakeGreen> {
-                private MakeGreen conf
+            class MakeGreen implements TransformAction<MakeGreenParameters> {
+                private MakeGreenParameters conf
                 
                 @Inject
-                MakeGreenAction(MakeGreen conf) {
+                MakeGreen(MakeGreenParameters conf) {
                     this.conf = conf
                 }
                 
@@ -543,8 +543,8 @@ abstract class MakeGreen extends ArtifactTransform {
         then:
         // Documents existing behaviour. Should fail eagerly and with a better error message
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Execution failed for MakeGreenAction: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface MakeGreen, or no service of type interface MakeGreen")
+        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface MakeGreenParameters, or no service of type interface MakeGreenParameters")
     }
 
     @Unroll
@@ -561,7 +561,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<Void> {
+abstract class MakeGreen implements TransformAction<TransformParameters> {
     @InputArtifact
     abstract FileCollection getDependencies()
     
@@ -595,7 +595,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<Void> {
+abstract class MakeGreen implements TransformAction<TransformParameters> {
     @Inject
     abstract File getWorkspace()
     

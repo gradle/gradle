@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.artifacts.transform.AssociatedTransformAction;
 import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
@@ -89,10 +90,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
+    public <T extends TransformParameters> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
         ParameterizedType superType = (ParameterizedType) TypeToken.of(actionType).getSupertype(TransformAction.class).getType();
         Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
-        T parameterObject = (Object.class.equals(parameterType) || Void.class.isAssignableFrom(parameterType)) ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
+        T parameterObject = parameterType == TransformParameters.class ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 

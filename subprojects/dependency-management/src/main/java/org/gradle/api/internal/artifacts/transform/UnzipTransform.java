@@ -21,6 +21,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedInputStream;
@@ -38,7 +39,7 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * is located in the output directory of the transform and is named after the zipped file name
  * minus the extension.
  */
-public interface UnzipTransform extends TransformAction<Void> {
+public interface UnzipTransform extends TransformAction<TransformParameters> {
 
     @InputArtifact
     File getZippedFile();

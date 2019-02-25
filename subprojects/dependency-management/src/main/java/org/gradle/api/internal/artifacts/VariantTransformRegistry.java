@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransform;
 
 public interface VariantTransformRegistry {
@@ -32,7 +33,7 @@ public interface VariantTransformRegistry {
 
     <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedTransformSpec<T>> registrationAction);
 
-    <T> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction);
+    <T extends TransformParameters> void registerTransformAction(Class<? extends TransformAction<T>> actionType, Action<? super ParameterizedTransformSpec<T>> registrationAction);
 
     Iterable<ArtifactTransformRegistration> getTransforms();
 }
