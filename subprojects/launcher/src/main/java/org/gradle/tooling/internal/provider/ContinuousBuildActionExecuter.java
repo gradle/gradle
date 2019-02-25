@@ -105,6 +105,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 ((DeploymentInternal) deployment).outOfDate();
             }
             logger.println().println("Reloadable deployment detected. Entering continuous build.");
+            resetBuildStartedTime(buildSessionScopeServices);
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
             executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, deploymentRequestExecutionGate);
         }
@@ -114,8 +115,6 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     private BuildActionResult executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
                                          CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
-        BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
-        Clock clock = buildSessionScopeServices.get(Clock.class);
 
         BuildActionResult lastResult;
         while (true) {
@@ -152,12 +151,18 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 break;
             } else {
                 logger.println("Change detected, executing build...").println();
-                buildStartedTime.reset(clock.getCurrentTime());
+                resetBuildStartedTime(buildSessionScopeServices);
             }
         }
 
         logger.println("Build cancelled.");
         return lastResult;
+    }
+
+    private void resetBuildStartedTime(ServiceRegistry buildSessionScopeServices) {
+        BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
+        Clock clock = buildSessionScopeServices.get(Clock.class);
+        buildStartedTime.reset(clock.getCurrentTime());
     }
 
     private String determineExitHint(BuildRequestContext requestContext) {
