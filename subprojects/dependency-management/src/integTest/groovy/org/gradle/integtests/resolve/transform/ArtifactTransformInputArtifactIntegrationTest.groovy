@@ -1194,7 +1194,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbEntryName=ignored.txt")
-        succeeds(":a:resolve")
+        run(":a:resolve")
 
         then:
         result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
@@ -1203,7 +1203,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
         when:
         executer.withArguments("-PbEntryName=ignored.txt", "-PbContent=different")
-        succeeds(":a:resolve")
+        run(":a:resolve")
 
         then: // change is ignored due to normalization
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")

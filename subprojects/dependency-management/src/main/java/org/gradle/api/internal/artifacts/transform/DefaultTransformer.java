@@ -366,8 +366,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static class IsolatedParameters {
-        private HashCode secondaryInputsHash;
-        private Isolatable<?> isolatedParameterObject;
+        private final HashCode secondaryInputsHash;
+        private final Isolatable<?> isolatedParameterObject;
 
         public IsolatedParameters(Isolatable<?> isolatedParameterObject, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
