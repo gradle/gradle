@@ -27,6 +27,10 @@ public interface ParameterValidationContext {
         @Override
         public void visitError(String message) {
         }
+
+        @Override
+        public void visitErrorStrict(String message) {
+        }
     };
 
     /**
@@ -38,4 +42,9 @@ public interface ParameterValidationContext {
      * Visits a validation error.
      */
     void visitError(String message);
+
+    /**
+     * Visits a strict validation error. Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
+     */
+    void visitErrorStrict(String message);
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -237,6 +238,51 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query parameters for artifact transform without parameters.")
     }
 
+    def "transform parameters type cannot use caching annotations"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @AssociatedTransformAction(MakeGreenAction)
+            @CacheableTask @CacheableTransformAction
+            interface MakeGreen {
+                @Input
+                String getExtension()
+                void setExtension(String value)
+            }
+            
+            abstract class MakeGreenAction implements TransformAction {
+                @TransformParameters
+                abstract MakeGreen getParameters()
+                
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen\$Inject. This annotation cannot only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransformAction with type MakeGreen\$Inject. This annotation cannot only be used with TransformAction types.")
+    }
+
     @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
@@ -388,6 +434,47 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
         failure.assertHasCause("Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
+    }
+
+    def "transform action type cannot use cacheable task annotation"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @AssociatedTransformAction(MakeGreenAction)
+            interface MakeGreen {
+                @Input
+                String getExtension()
+                void setExtension(String value)
+            }
+            
+            @CacheableTask
+            abstract class MakeGreenAction implements TransformAction {
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreenAction.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreenAction. This annotation cannot only be used with Task types.")
     }
 
     @Unroll
@@ -639,6 +726,50 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         failure.assertHasCause("No service of type class ${File.name} available.")
     }
 
+    def "task implementation cannot use cacheable transform annotation"() {
+        buildFile << """
+            @CacheableTransformAction
+            class MyTask extends DefaultTask {
+                File getThing() { null }
+            }
+
+            tasks.create('broken', MyTask)
+        """
+
+        expect:
+        fails('broken')
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Could not create task ':broken'.")
+        failure.assertHasCause("A problem was found with the configuration of task ':broken'.")
+        failure.assertHasCause("Cannot use @CacheableTransformAction with type MyTask_Decorated. This annotation cannot only be used with TransformAction types.")
+    }
+
+    def "task @Nested bean cannot use cacheable annotations"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @Nested
+                Options getThing() { new Options() }
+                
+                @TaskAction
+                void go() { }
+            }
+            
+            @CacheableTransformAction @CacheableTask
+            class Options {
+            }
+
+            tasks.create('broken', MyTask)
+        """
+
+        expect:
+        // Probably should be eager
+        fails('broken')
+        failure.assertHasDescription("Could not determine the dependencies of task ':broken'.")
+        failure.assertHasCause("Some problems were found with the configuration of task ':broken'.")
+        failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransformAction with type Options. This annotation cannot only be used with TransformAction types.")
+    }
+
     @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
@@ -652,6 +783,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         expect:
         fails('broken')
+        failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
         failure.assertHasCause("Could not generate a decorated class for class MyTask.")
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")

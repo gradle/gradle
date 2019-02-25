@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.tasks
 
+
 import org.gradle.api.ReplacedBy
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
@@ -228,6 +229,44 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         annotation                | _
         InputArtifact             | _
         InputArtifactDependencies | _
+    }
+
+    def "validates task caching annotations"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+
+            @CacheableTransformAction 
+            public class MyTask extends DefaultTask {
+                @Nested
+                Options getOptions() { 
+                    return null;
+                }
+
+                @CacheableTask @CacheableTransformAction 
+                public static class Options {
+                    @Input
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails("validateTaskProperties")
+        failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
+        failure.assertHasCause("Task property validation failed. See")
+        failure.assertHasCause("Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransformAction with type MyTask. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransformAction with type Options. This annotation cannot only be used with TransformAction types.")
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.
+            Error: Cannot use @CacheableTransformAction with type MyTask. This annotation cannot only be used with TransformAction types.
+            Error: Cannot use @CacheableTransformAction with type Options. This annotation cannot only be used with TransformAction types.
+        """.stripIndent().trim()
     }
 
     def "detects missing annotation on Groovy properties"() {

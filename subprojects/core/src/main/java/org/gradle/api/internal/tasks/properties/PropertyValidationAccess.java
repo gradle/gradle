@@ -217,6 +217,11 @@ public class PropertyValidationAccess {
                 // Treat all errors as warnings, for backwards compatibility
                 problems.put(message, Boolean.FALSE);
             }
+
+            @Override
+            public void visitErrorStrict(String message) {
+                problems.put(message, Boolean.TRUE);
+            }
         }
     }
 

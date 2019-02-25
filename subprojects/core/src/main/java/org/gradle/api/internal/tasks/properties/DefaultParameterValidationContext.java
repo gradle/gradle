@@ -41,4 +41,9 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
     public void visitError(String message) {
         messages.add(message);
     }
+
+    @Override
+    public void visitErrorStrict(String message) {
+        visitError(message);
+    }
 }
