@@ -16,16 +16,29 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.artifacts.transform.AssociatedTransformAction;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
 
-public class ArtifactTransformParameterScheme {
+public class ArtifactTransformParameterScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;
     private final InspectionScheme inspectionScheme;
 
     public ArtifactTransformParameterScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
         this.instantiationScheme = instantiationScheme;
         this.inspectionScheme = inspectionScheme;
+    }
+
+    @Override
+    public TypeMetadataStore getMetadataStore() {
+        return inspectionScheme.getMetadataStore();
+    }
+
+    @Override
+    public boolean appliesTo(Class<?> type) {
+        return type.isAnnotationPresent(AssociatedTransformAction.class);
     }
 
     public InstantiationScheme getInstantiationScheme() {

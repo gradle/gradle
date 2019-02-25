@@ -237,14 +237,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
 
-            @CacheableTransformAction 
+            @CacheableTransform 
             public class MyTask extends DefaultTask {
                 @Nested
                 Options getOptions() { 
                     return null;
                 }
 
-                @CacheableTask @CacheableTransformAction 
+                @CacheableTask @CacheableTransform 
                 public static class Options {
                     @Input
                     String getNestedThing() {
@@ -259,13 +259,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
         failure.assertHasCause("Task property validation failed. See")
         failure.assertHasCause("Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransformAction with type MyTask. This annotation cannot only be used with TransformAction types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransformAction with type Options. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type Options. This annotation cannot only be used with TransformAction types.")
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.
-            Error: Cannot use @CacheableTransformAction with type MyTask. This annotation cannot only be used with TransformAction types.
-            Error: Cannot use @CacheableTransformAction with type Options. This annotation cannot only be used with TransformAction types.
+            Error: Cannot use @CacheableTransform with type MyTask. This annotation cannot only be used with TransformAction types.
+            Error: Cannot use @CacheableTransform with type Options. This annotation cannot only be used with TransformAction types.
         """.stripIndent().trim()
     }
 
@@ -634,6 +634,120 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             Warning: Task type 'MyTask': property 'dirProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Task type 'MyTask': property 'fileProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Task type 'MyTask': property 'filesProp' is missing a @PathSensitive annotation, defaulting to PathSensitivity.ABSOLUTE.
+        """.stripIndent().trim()
+    }
+
+    def "can validate properties of an artifact transform action"() {
+        file("src/main/java/MyTransformAction.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import java.io.*;
+
+            public abstract class MyTransformAction implements TransformAction {
+                // Should be ignored because it's not a getter
+                public void getVoid() {
+                }
+
+                // Should be ignored because it's not a getter
+                public int getWithParameter(int count) {
+                    return count;
+                }
+
+                // Ignored because static
+                public static int getStatic() {
+                    return 0;
+                }
+
+                // Ignored because injected
+                @javax.inject.Inject
+                public abstract org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputArtifact
+                public abstract File getGoodInput();
+
+                // Invalid because it has no annotation
+                public long getBadTime() {
+                    return System.currentTimeMillis();
+                }
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                public String getOldThing() {
+                    return null;
+                }
+                
+                // Unsupported annotation
+                @InputFile
+                public abstract File getInputFile();
+            }
+        """
+
+        expect:
+        fails "validateTaskProperties"
+        failure.assertHasCause "Task property validation failed"
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with unsupported annotation @InputFile."
+        failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformAction': property 'inputFile' is annotated with unsupported annotation @InputFile.
+            Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
+        """.stripIndent().trim()
+    }
+
+    def "can validate properties of an artifact transform parameters object"() {
+        file("src/main/java/MyTransformParameters.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+            import java.io.*;
+
+            @AssociatedTransformAction(MyTransformParameters.Action.class)
+            public interface MyTransformParameters {
+                // Should be ignored because it's not a getter
+                void getVoid();
+
+                // Should be ignored because it's not a getter
+                int getWithParameter(int count);
+
+                // Ignored because injected
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver getInjected();
+
+                // Valid because it is annotated
+                @InputFile
+                File getGoodInput();
+
+                // Invalid because it has no annotation
+                long getBadTime();
+
+                // Invalid because it has some other annotation
+                @Deprecated
+                String getOldThing();
+                
+                // Unsupported annotation
+                @InputArtifact
+                File getInputFile();
+                
+                abstract class Action implements TransformAction {
+                }
+            }
+        """
+
+        expect:
+        fails "validateTaskProperties"
+        failure.assertHasCause "Task property validation failed"
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
+
+        file("build/reports/task-properties/report.txt").text == """
+            Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact.
+            Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
     }
 
