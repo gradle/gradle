@@ -35,6 +35,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -62,6 +63,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
 
     private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
+    private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final PropertyExtractor propertyExtractor;
     private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
@@ -71,13 +73,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
     };
 
-    public DefaultTypeMetadataStore(Collection<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, CrossBuildInMemoryCacheFactory cacheFactory) {
+    public DefaultTypeMetadataStore(Collection<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
         this.annotationHandlers = Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
         });
+        this.typeAnnotationHandlers = typeAnnotationHandlers;
         Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides = collectAnnotationOverrides(annotationHandlers);
         Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(((Map<Class<? extends Annotation>, PropertyAnnotationHandler>) Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
@@ -127,6 +130,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         RecordingValidationContext validationContext = new RecordingValidationContext();
+        for (TypeAnnotationHandler annotationHandler : typeAnnotationHandlers) {
+            if (type.isAnnotationPresent(annotationHandler.getAnnotationType())) {
+                annotationHandler.validateTypeMetadata(type, validationContext);
+            }
+        }
         ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(type, validationContext);
         for (PropertyMetadata property : properties) {
             PropertyAnnotationHandler annotationHandler = annotationHandlers.get(property.getPropertyType());
@@ -158,6 +166,16 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 @Override
                 public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
                     validationContext.visitError(message);
+                }
+            });
+        }
+
+        @Override
+        public void visitErrorStrict(final String message) {
+            builder.add(new ValidationProblem() {
+                @Override
+                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+                    validationContext.visitErrorStrict(message);
                 }
             });
         }
