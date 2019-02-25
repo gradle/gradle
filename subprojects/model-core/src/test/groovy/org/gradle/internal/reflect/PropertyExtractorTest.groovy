@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext
+import org.gradle.internal.Pair
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -53,9 +54,9 @@ class PropertyExtractorTest extends Specification {
 
     def "can override property type in subclasses"() {
         expect:
-        extractor.extractPropertyMetadata(WithPropertyType1).left*.propertyType == [PropertyType1]
-        extractor.extractPropertyMetadata(WithPropertyType2).left*.propertyType == [PropertyType2]
-        extractor.extractPropertyMetadata(WithPropertyOverride).left*.propertyType == [PropertyType1Override]
+        extract(WithPropertyType1)*.propertyType == [PropertyType1]
+        extract(WithPropertyType2)*.propertyType == [PropertyType2]
+        extract(WithPropertyOverride)*.propertyType == [PropertyType1Override]
     }
 
     class OverridingProperties {
@@ -65,11 +66,10 @@ class PropertyExtractorTest extends Specification {
 
     def "overriding annotation on same property takes effect"() {
         when:
-        def result = extractor.extractPropertyMetadata(OverridingProperties)
+        def result = extract(OverridingProperties)
 
         then:
-        assertPropertyTypes(result.left, inputFiles1: PropertyType1Override, inputFiles2: PropertyType1Override)
-        result.right.empty
+        assertPropertyTypes(result, inputFiles1: PropertyType1Override, inputFiles2: PropertyType1Override)
     }
 
     class BasePropertyType1OverrideProperty {
@@ -94,11 +94,10 @@ class PropertyExtractorTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "overriding annotation does not take precedence in sub-type"() {
         when:
-        def result = extractor.extractPropertyMetadata(OverridingPropertyType1Property)
+        def result = extract(OverridingPropertyType1Property)
 
         then:
-        assertPropertyTypes(result.left, overriddenType1Override: PropertyType1, overriddenType1: PropertyType1Override)
-        result.right.empty
+        assertPropertyTypes(result, overriddenType1Override: PropertyType1, overriddenType1: PropertyType1Override)
     }
 
     class WithBothFieldAndGetterAnnotation {
@@ -112,11 +111,11 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about both method and field having the same annotation"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithBothFieldAndGetterAnnotation)
+        def result = extractWithProblems(WithBothFieldAndGetterAnnotation)
 
         then:
         assertPropertyTypes(result.left, inputFiles: PropertyType1)
-        collectProblems(result.right) == ["Property 'inputFiles' has both a getter and field declared with annotation @${PropertyType1.simpleName}."]
+        result.right == ["Property 'inputFiles' has both a getter and field declared with annotation @${PropertyType1.simpleName}."]
     }
 
     class WithBothFieldAndGetterAnnotationButIrrelevant {
@@ -130,11 +129,10 @@ class PropertyExtractorTest extends Specification {
 
     def "doesn't warn about both method and field having the same irrelevant annotation"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithBothFieldAndGetterAnnotationButIrrelevant)
+        def result = extract(WithBothFieldAndGetterAnnotationButIrrelevant)
 
         then:
-        assertPropertyTypes(result.left, inputFiles: PropertyType1)
-        result.right.empty
+        assertPropertyTypes(result, inputFiles: PropertyType1)
     }
 
     class WithAnnotationsOnPrivateProperties {
@@ -155,11 +153,11 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about annotations on private properties"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithAnnotationsOnPrivateProperties)
+        def result = extractWithProblems(WithAnnotationsOnPrivateProperties)
 
         then:
         assertPropertyTypes(result.left, input: PropertyType1, outputFile: PropertyType2)
-        collectProblems(result.right) == [
+        result.right == [
             "Property 'input' is private and annotated with @${PropertyType1.simpleName}.",
             "Property 'outputFile' is private and annotated with @${PropertyType2.simpleName}."
         ]
@@ -181,11 +179,11 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about non-private getters that are not annotated"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithUnannotatedProperties)
+        def result = extractWithProblems(WithUnannotatedProperties)
 
         then:
         result.left.empty
-        collectProblems(result.right) == [
+        result.right == [
             "Property 'bad1' is not annotated with a thing annotation.",
             "Property 'bad2' is not annotated with a thing annotation."
         ]
@@ -203,11 +201,11 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about conflicting property types being specified"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithConflictingPropertyTypes)
+        def result = extractWithProblems(WithConflictingPropertyTypes)
 
         then:
         assertPropertyTypes(result.left, inputThing: PropertyType1, confusedFile: PropertyType2)
-        collectProblems(result.right) == [
+        result.right == [
             "Property 'confusedFile' has conflicting property types declared: @${PropertyType1.simpleName}, @${PropertyType2.simpleName}.",
             "Property 'inputThing' has conflicting property types declared: @${PropertyType1.simpleName}, @${PropertyType2.simpleName}."
         ]
@@ -224,11 +222,11 @@ class PropertyExtractorTest extends Specification {
 
     def "warns about properties annotated with known bu unsupported annotations"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithUnsupportedPropertyTypes)
+        def result = extractWithProblems(WithUnsupportedPropertyTypes)
 
         then:
         assertPropertyTypes(result.left, hasBoth: PropertyType1)
-        collectProblems(result.right) == [
+        result.right == [
             "Property 'hasBoth' is annotated with unsupported annotation @${KnownAnnotation.simpleName}.",
             "Property 'inputThing' is annotated with unsupported annotation @${KnownAnnotation.simpleName}."
         ]
@@ -242,11 +240,10 @@ class PropertyExtractorTest extends Specification {
 
     def "doesn't warn about non-conflicting property types being specified"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithNonConflictingPropertyTypes)
+        def result = extract(WithNonConflictingPropertyTypes)
 
         then:
-        assertPropertyTypes(result.left, classpath: PropertyType1Override)
-        result.right.empty
+        assertPropertyTypes(result, classpath: PropertyType1Override)
     }
 
     static class SimpleType {
@@ -259,7 +256,7 @@ class PropertyExtractorTest extends Specification {
 
     def "can get annotated properties of simple type"() {
         when:
-        def result = extractor.extractPropertyMetadata(SimpleType)
+        def result = extractWithProblems(SimpleType)
 
         then:
         assertPropertyTypes(result.left,
@@ -267,7 +264,7 @@ class PropertyExtractorTest extends Specification {
             inputFile: PropertyType1Override,
             inputDirectory: PropertyType2
         )
-        collectProblems(result.right) == ["Property 'injectedService' is not annotated with a thing annotation."]
+        result.right == ["Property 'injectedService' is not annotated with a thing annotation."]
     }
 
     static abstract class BaseClassWithGetters {
@@ -295,11 +292,10 @@ class PropertyExtractorTest extends Specification {
 
     def "annotations are gathered from different getters"() {
         when:
-        def result = extractor.extractPropertyMetadata(WithGetters)
+        def result = extract(WithGetters)
 
         then:
-        assertPropertyTypes(result.left, boolean: PropertyType1, strings: PropertyType2)
-        result.right.empty
+        assertPropertyTypes(result, boolean: PropertyType1, strings: PropertyType2)
     }
 
     private static class BaseType {
@@ -328,16 +324,15 @@ class PropertyExtractorTest extends Specification {
 
     def "overridden properties inherit super-class annotations"() {
         when:
-        def result = extractor.extractPropertyMetadata(OverridingType)
+        def result = extract(OverridingType)
 
         then:
-        assertPropertyTypes(result.left,
+        assertPropertyTypes(result,
             baseValue: PropertyType1,
             nonAnnotatedBaseValue: PropertyType1,
             superclassValue: PropertyType1,
             superclassValueWithDuplicateAnnotation: PropertyType1,
         )
-        result.right.empty
     }
 
     private interface TaskSpec {
@@ -354,13 +349,12 @@ class PropertyExtractorTest extends Specification {
 
     def "implemented properties inherit interface annotations"() {
         when:
-        def result = extractor.extractPropertyMetadata(InterfaceImplementingType)
+        def result = extract(InterfaceImplementingType)
 
         then:
-        assertPropertyTypes(result.left,
+        assertPropertyTypes(result,
             interfaceValue: PropertyType1
         )
-        result.right.empty
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
@@ -386,22 +380,26 @@ class PropertyExtractorTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-2115")
     def "annotation on private field is recognized for is-getter"() {
         when:
-        def result = extractor.extractPropertyMetadata(IsGetterType)
+        def result = extractWithProblems(IsGetterType)
 
         then:
         assertPropertyTypes(result.left,
             feature1: PropertyType1
         )
-        collectProblems(result.right) == ["Property 'feature2' is not annotated with a thing annotation."]
+        result.right == ["Property 'feature2' is not annotated with a thing annotation."]
     }
 
-    private static List<String> collectProblems(Collection<ValidationProblem> problems) {
-        def result = []
-        def context = new DefaultParameterValidationContext(result)
-        problems.forEach {
-            it.collect(null, context)
-        }
-        return result
+    private Set<PropertyMetadata> extract(Class<?> type) {
+        def problems = []
+        def props = extractor.extractPropertyMetadata(type, new DefaultParameterValidationContext(problems))
+        assert problems.empty
+        return props
+    }
+
+    private Pair<Set<PropertyMetadata>, List<String>> extractWithProblems(Class<?> type) {
+        def problems = []
+        def props = extractor.extractPropertyMetadata(type, new DefaultParameterValidationContext(problems))
+        return Pair.of(props, problems)
     }
 
     private static void assertPropertyTypes(Map<String, ?> expectedPropertyTypes, Set<PropertyMetadata> typeMetadata) {

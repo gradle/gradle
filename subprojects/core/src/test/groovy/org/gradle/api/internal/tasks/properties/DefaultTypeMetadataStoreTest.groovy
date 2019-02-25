@@ -40,6 +40,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.ParameterValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -74,25 +75,10 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @SearchPath FileCollection searchPath
     }
 
-    class SearchPathAnnotationHandler implements PropertyAnnotationHandler {
-
-        @Override
-        Class<? extends Annotation> getAnnotationType() {
-            SearchPath
-        }
-
-        @Override
-        boolean shouldVisit(PropertyVisitor visitor) {
-            return true
-        }
-
-        @Override
-        void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        }
-    }
-
     def "can use custom annotation processor"() {
-        def annotationHandler = new SearchPathAnnotationHandler()
+        def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.annotationType >> SearchPath
+
         def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
@@ -106,6 +92,26 @@ class DefaultTypeMetadataStoreTest extends Specification {
         propertyMetadata.propertyType == SearchPath
         typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
         collectProblems(typeMetadata).empty
+    }
+
+    def "custom annotation processor can inspect for static property problems"() {
+        def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.annotationType >> SearchPath
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
+            context.visitError(null, metadata.propertyName, "is broken")
+        }
+
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, new TestCrossBuildInMemoryCacheFactory())
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
+        def propertiesMetadata = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+
+        then:
+        propertiesMetadata.size() == 1
+        def propertyMetadata = propertiesMetadata.first()
+        propertyMetadata.propertyName == 'searchPath'
+        collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
     }
 
     @Unroll

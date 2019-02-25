@@ -158,14 +158,30 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 interface Parameters extends TransformParameters {
                     String getExtension()
                     void setExtension(String value)
+    
                     @OutputDirectory
                     File getOutputDir()
                     void setOutputDir(File outputDir)
+    
                     @Input
                     String getMissingInput()
                     void setMissingInput(String missing)
+    
+                    @Input
+                    File getFileInput()
+                    void setFileInput(File file)
+    
                     @InputFiles
                     ConfigurableFileCollection getNoPathSensitivity()
+    
+                    @InputFile
+                    File getNoPathSensitivityFile()
+                    void setNoPathSensitivityFile(File file)
+    
+                    @InputDirectory
+                    File getNoPathSensitivityDir()
+                    void setNoPathSensitivityDir(File file)
+    
                     @PathSensitive(PathSensitivity.ABSOLUTE)
                     @InputFiles
                     ConfigurableFileCollection getAbsolutePathSensitivity()
@@ -186,7 +202,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
+        failure.assertHasCause("Property 'fileInput' has @Input annotation used on property of type java.io.File.")
         failure.assertHasCause("Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
+        failure.assertHasCause("Property 'noPathSensitivityFile' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
+        failure.assertHasCause("Property 'noPathSensitivityDir' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
         failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
     }
 

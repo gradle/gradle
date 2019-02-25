@@ -15,18 +15,37 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.properties.PropertyValueVisitor;
+import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
 /**
  * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
  */
-public interface PropertyAnnotationHandler extends PropertyValueVisitor {
+public interface PropertyAnnotationHandler {
     /**
      * The annotation type which this handler is responsible for.
      *
      * @return The annotation.
      */
     Class<? extends Annotation> getAnnotationType();
+
+    /**
+     * Is the given visitor interested in this annotation?
+     */
+    boolean shouldVisit(PropertyVisitor visitor);
+
+    /**
+     * Visit the value of a property with this annotation attached.
+     */
+    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
+
+    /**
+     * Visits problems associated with the given property, if any.
+     */
+    void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor);
 }

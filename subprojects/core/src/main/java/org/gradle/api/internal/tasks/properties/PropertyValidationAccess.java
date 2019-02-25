@@ -22,10 +22,8 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
@@ -44,7 +42,6 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -58,14 +55,12 @@ import java.util.Queue;
  */
 @NonNullApi
 public class PropertyValidationAccess {
-    private final static Map<Class<? extends Annotation>, PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
-        Input.class, new InputOnFileTypeValidator(),
+    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
         InputFiles.class, new MissingPathSensitivityValidator(false),
         InputFile.class, new MissingPathSensitivityValidator(false),
         InputDirectory.class, new MissingPathSensitivityValidator(false)
     );
-    private final static Map<Class<? extends Annotation>, PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
-        Input.class, new InputOnFileTypeValidator(),
+    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
         InputFiles.class, new MissingPathSensitivityValidator(true),
         InputFile.class, new MissingPathSensitivityValidator(true),
         InputDirectory.class, new MissingPathSensitivityValidator(true)
@@ -264,12 +259,6 @@ public class PropertyValidationAccess {
     private static class InputOnFileTypeValidator implements PropertyValidator {
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
-            Class<?> valueType = metadata.getDeclaredType();
-            if (File.class.isAssignableFrom(valueType)
-                || java.nio.file.Path.class.isAssignableFrom(valueType)
-                || FileCollection.class.isAssignableFrom(valueType)) {
-                validationContext.visitError(ownerPath, metadata.getPropertyName(), "has @Input annotation used on property of type " + valueType.getName());
-            }
         }
     }
 
