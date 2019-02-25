@@ -35,5 +35,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Documented
 @InjectionPointQualifier
-public @interface TransformParameters {
+public @interface InjectTransformParameters {
 }

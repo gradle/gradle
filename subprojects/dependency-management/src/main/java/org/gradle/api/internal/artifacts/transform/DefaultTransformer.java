@@ -21,10 +21,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.transform.InjectTransformParameters;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -322,7 +322,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
             if (parameters != null) {
-                builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
+                builder.add(new InjectionPoint(InjectTransformParameters.class, parameters.getClass(), parameters));
             }
             if (artifactTransformDependencies != null) {
                 builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));

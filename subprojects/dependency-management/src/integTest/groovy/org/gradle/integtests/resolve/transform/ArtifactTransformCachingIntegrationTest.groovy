@@ -1486,7 +1486,7 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
                 void setValue(Number value)
             }
             abstract class FileSizerAction implements TransformAction<FileSizer> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract FileSizer getParameters()
 
                 @InputArtifact

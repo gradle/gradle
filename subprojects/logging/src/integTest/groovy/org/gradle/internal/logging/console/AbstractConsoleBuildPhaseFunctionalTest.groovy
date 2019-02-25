@@ -333,7 +333,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
             }
 
             abstract class FileSizerAction implements TransformAction<FileSizer> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract FileSizer getParameters()
                 @InputArtifactDependencies
                 abstract FileCollection getDependencies()

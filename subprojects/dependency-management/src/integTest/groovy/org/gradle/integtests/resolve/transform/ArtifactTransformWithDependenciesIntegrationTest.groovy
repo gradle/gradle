@@ -109,7 +109,7 @@ import javax.inject.Inject
 
 abstract class TestTransformAction implements TransformAction<TestTransform> {
 
-    @TransformParameters
+    @InjectTransformParameters
     abstract TestTransform getParameters()
 
     @InputArtifactDependencies

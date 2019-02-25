@@ -37,7 +37,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
@@ -289,7 +289,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
@@ -342,7 +342,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()

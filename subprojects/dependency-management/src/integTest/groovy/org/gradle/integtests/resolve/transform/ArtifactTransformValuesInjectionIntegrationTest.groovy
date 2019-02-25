@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.artifacts.transform.InjectTransformParameters
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
@@ -71,7 +71,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
@@ -119,7 +119,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 
                 void transform(TransformOutputs outputs) {
@@ -177,7 +177,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @CacheableTransform
             abstract class MakeGreenAction implements TransformAction<Void> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 
                 void transform(TransformOutputs outputs) {
@@ -227,7 +227,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 
                 void transform(TransformOutputs outputs) {
@@ -275,7 +275,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreenAction implements TransformAction<MakeGreen> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 
                 void transform(TransformOutputs outputs) {
@@ -294,7 +294,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getBad().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
     }
 
     def "transform action is validated for input output annotations"() {
@@ -322,7 +322,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @CacheableTransform
             abstract class MakeGreenAction implements TransformAction<Void> {
-                @TransformParameters
+                @InjectTransformParameters
                 abstract MakeGreen getParameters()
                 
                 @InputFile
@@ -498,7 +498,7 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
     }
 
     def "transform cannot receive parameter object via constructor parameter"() {
@@ -634,6 +634,6 @@ abstract class MakeGreen implements TransformAction<Void> {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
     }
 }
