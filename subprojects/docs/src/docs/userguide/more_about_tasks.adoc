@@ -643,7 +643,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Any type
 | Indicates that the property is used internally but is neither an input nor an output.
 
-| `@link:{javadocPath}/org/gradle/api/tasks/ReplacedBy.html[ReplacedBy]`
+| `@link:{javadocPath}/org/gradle/api/ReplacedBy.html[ReplacedBy]`
 | Any type
 | Indicates that the property has been replaced by another and should be ignored as an input or output.
 

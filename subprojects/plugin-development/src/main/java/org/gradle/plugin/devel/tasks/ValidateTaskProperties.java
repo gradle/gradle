@@ -102,7 +102,7 @@ import java.util.Map;
  *             <li>{@literal @}{@link javax.inject.Inject} marks a Gradle service used by the task.</li>
  *             <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences the console output of the task.</li>
  *             <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property of the task.</li>
- *             <li>{@literal @}{@link org.gradle.api.tasks.ReplacedBy ReplacedBy} mark a property as replaced by another (similar to {@code Internal}).</li>
+ *             <li>{@literal @}{@link org.gradle.api.ReplacedBy ReplacedBy} mark a property as replaced by another (similar to {@code Internal}).</li>
  *         </ul>
  *     </li>
  * </ul>

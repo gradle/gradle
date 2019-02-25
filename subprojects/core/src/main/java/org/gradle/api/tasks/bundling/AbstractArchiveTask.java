@@ -29,7 +29,7 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.ReplacedBy;
+import org.gradle.api.ReplacedBy;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
@@ -120,7 +120,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveFileName()}
      */
     @Deprecated
-    @ReplacedBy("archiveFileName")
     public void setArchiveName(String name) {
         archiveName.set(name);
     }
@@ -189,7 +188,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getDestinationDirectory()}
      */
     @Deprecated
-    @ReplacedBy("destinationDirectory")
     public void setDestinationDir(File destinationDir) {
         archiveDestinationDirectory.set(destinationDir);
     }
@@ -223,7 +221,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveBaseName()}
      */
     @Deprecated
-    @ReplacedBy("archiveBaseName")
     public void setBaseName(@Nullable String baseName) {
         this.archiveBaseName.set(baseName);
     }
@@ -258,7 +255,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveAppendix()}
      */
     @Deprecated
-    @ReplacedBy("archiveAppendix")
     public void setAppendix(@Nullable String appendix) {
         this.archiveAppendix.set(appendix);
     }
@@ -293,7 +289,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveVersion()}
      */
     @Deprecated
-    @ReplacedBy("archiveVersion")
     public void setVersion(@Nullable String version) {
         this.archiveVersion.set(version);
     }
@@ -326,7 +321,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveExtension()}
      */
     @Deprecated
-    @ReplacedBy("archiveExtension")
     public void setExtension(@Nullable String extension) {
         this.archiveExtension.set(extension);
     }
@@ -359,7 +353,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @deprecated Use {@link #getArchiveClassifier()}
      */
     @Deprecated
-    @ReplacedBy("archiveClassifier")
     public void setClassifier(@Nullable String classifier) {
         this.archiveClassifier.set(classifier);
     }
