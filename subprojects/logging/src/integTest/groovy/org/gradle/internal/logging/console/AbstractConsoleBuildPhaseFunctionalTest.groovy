@@ -389,7 +389,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
                         to.attribute(artifactType, "double")
                         artifactTransform(FileDoubler)
                     }
-                    registerTransformAction(FileSizer) {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "double")
                         to.attribute(artifactType, "size")
                         parameters {

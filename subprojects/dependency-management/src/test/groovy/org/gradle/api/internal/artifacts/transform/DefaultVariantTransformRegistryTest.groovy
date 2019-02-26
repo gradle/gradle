@@ -130,7 +130,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "creates registration with annotated parameters object"() {
         when:
-        registry.registerTransformAction(TestTransform) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -146,7 +146,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "creates registration for parametereless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransform) {
+        registry.registerTransform(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
         }
@@ -162,7 +162,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "cannot configure parameters for parameterless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransform) {
+        registry.registerTransform(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.parameters {
@@ -177,7 +177,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
     def "cannot query parameters object for parameterless action"() {
         when:
-        registry.registerTransformAction(ParameterlessTestTransform) {
+        registry.registerTransform(ParameterlessTestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             it.parameters
@@ -193,7 +193,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         def registration
 
         when:
-        registry.registerTransformAction(TestTransform) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "FROM")
             it.to.attribute(TEST_ATTRIBUTE, "TO")
             registration = it
@@ -232,17 +232,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when registering unannotated parameter type"() {
-        when:
-        registry.registerTransform(UnAnnotatedTestTransformConfig) {
-        }
-
-        then:
-        def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Could not register transform: an artifact transform action must be provided.'
-        e.cause == null
-    }
-
     def "fails when multiple artifactTransforms are provided for registration"() {
         when:
         registry.registerTransform {
@@ -269,9 +258,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when no from attributes are provided for registerTransformAction"() {
+    def "fails when no from attributes are provided for registerTransform"() {
         when:
-        registry.registerTransformAction(TestTransform) {
+        registry.registerTransform(TestTransform) {
             it.to.attribute(TEST_ATTRIBUTE, "to")
         }
 
@@ -294,9 +283,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when no to attributes are provided for registerTransformAction"() {
+    def "fails when no to attributes are provided for registerTransform"() {
         when:
-        registry.registerTransformAction(TestTransform) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
         }
 
@@ -322,9 +311,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    def "fails when to attributes are not a subset of from attributes for registerTransformAction"() {
+    def "fails when to attributes are not a subset of from attributes for registerTransform"() {
         when:
-        registry.registerTransformAction(TestTransform) {
+        registry.registerTransform(TestTransform) {
             it.from.attribute(TEST_ATTRIBUTE, "from")
             it.from.attribute(Attribute.of("from2", String), "from")
             it.to.attribute(TEST_ATTRIBUTE, "to")

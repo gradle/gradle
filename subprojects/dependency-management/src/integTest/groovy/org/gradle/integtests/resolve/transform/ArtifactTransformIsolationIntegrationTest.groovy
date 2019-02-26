@@ -134,7 +134,7 @@ class Resolve extends Copy {
             }
             
             dependencies {
-                registerTransformAction(CountRecorder) {
+                registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'firstCount')
                     parameters {
@@ -142,14 +142,14 @@ class Resolve extends Copy {
                     }
                 }
                 buildScriptCounter.increment()
-                registerTransformAction(CountRecorder) {
+                registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'secondCount')
                     parameters {
                         counter = buildScriptCounter
                     }
                 }
-                registerTransformAction(CountRecorder) {
+                registerTransform(CountRecorder) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'thirdCount')
                     parameters {

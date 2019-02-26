@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.transform.InjectTransformParameters;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -75,7 +76,7 @@ import java.util.stream.Collectors;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
-    private final Object parameterObject;
+    private final TransformParameters parameterObject;
     private final Class<? extends FileNormalizer> fileNormalizer;
     private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -95,7 +96,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     public DefaultTransformer(
         Class<? extends TransformAction> implementationClass,
-        @Nullable Object parameterObject,
+        @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
@@ -221,7 +222,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     protected IsolatableParameters doIsolateParameters() {
-        Isolatable<Object> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
+        Isolatable<TransformParameters> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(getImplementationClass(), hasher, classLoaderHierarchyHasher);
@@ -318,7 +319,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private static class TransformServiceLookup implements ServiceLookup {
         private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+        public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
             if (parameters != null) {
@@ -404,9 +405,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     private static class IsolatableParameters {
         private HashCode secondaryInputsHash;
-        private Isolatable<?> isolatableParameters;
+        private Isolatable<? extends TransformParameters> isolatableParameters;
 
-        public IsolatableParameters(Isolatable<?> isolatableParameters, HashCode secondaryInputsHash) {
+        public IsolatableParameters(Isolatable<? extends TransformParameters> isolatableParameters, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
             this.isolatableParameters = isolatableParameters;
         }
@@ -415,7 +416,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             return secondaryInputsHash;
         }
 
-        public Isolatable<?> getIsolatableParameters() {
+        public Isolatable<? extends TransformParameters> getIsolatableParameters() {
             return isolatableParameters;
         }
     }

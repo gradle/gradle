@@ -1499,7 +1499,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
     
             allprojects {
                 dependencies {
-                    registerTransformAction(FileSizer) {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         parameters {
@@ -1570,7 +1570,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         """
             allprojects {
                 dependencies {
-                    registerTransform${useParameterObject ? "Action(FileSizer)" : ""} {
+                    registerTransform${useParameterObject ? "(FileSizer)" : ""} {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
                         ${useParameterObject ? "parameters { value = paramValue }" : "artifactTransform(FileSizer) { params(paramValue) }"}

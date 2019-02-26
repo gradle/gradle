@@ -797,7 +797,7 @@ $fileSizer
             }
 
             dependencies {
-                registerTransformAction(IdentityTransform) {
+                registerTransform(IdentityTransform) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'identity')
                 }
@@ -1672,7 +1672,7 @@ Found the following transforms:
                 }
             }
             dependencies {
-                registerTransformAction(MyTransform) {
+                registerTransform(MyTransform) {
                     from.attribute(artifactType, 'directory')
                     to.attribute(artifactType, 'size')
                 }
@@ -1958,7 +1958,7 @@ Found the following transforms:
             }
             
             dependencies {
-                registerTransformAction(Custom) {
+                registerTransform(Custom) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                     parameters {
@@ -2305,7 +2305,7 @@ Found the following transforms:
     def declareTransformAction(String transformActionImplementation) {
         """
             dependencies {
-                registerTransformAction($transformActionImplementation) {
+                registerTransform($transformActionImplementation) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                 }

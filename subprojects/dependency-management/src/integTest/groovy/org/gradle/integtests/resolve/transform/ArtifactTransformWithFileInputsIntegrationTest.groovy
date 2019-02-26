@@ -174,7 +174,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     attributes.attribute(attr, 'red')
                 }.files
                 dependencies {
-                    registerTransformAction(MakeRed) {
+                    registerTransform(MakeRed) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'red')
                     }

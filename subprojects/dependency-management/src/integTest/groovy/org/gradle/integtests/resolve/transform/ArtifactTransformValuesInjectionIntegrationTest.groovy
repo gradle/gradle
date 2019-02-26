@@ -47,7 +47,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         buildFile << """
             allprojects {
                 dependencies {
-                    registerTransformAction(MakeGreen) {
+                    registerTransform(MakeGreen) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'green')
                         parameters {

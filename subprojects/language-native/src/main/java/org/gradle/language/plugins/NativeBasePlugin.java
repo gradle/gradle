@@ -439,7 +439,7 @@ public class NativeBasePlugin implements Plugin<Project> {
     }
 
     private void addHeaderZipTransform(DependencyHandler dependencyHandler, ObjectFactory objects) {
-        dependencyHandler.registerTransformAction(UnzipTransform.class, variantTransform -> {
+        dependencyHandler.registerTransform(UnzipTransform.class, variantTransform -> {
             variantTransform.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, ZIP_TYPE);
             variantTransform.getFrom().attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.C_PLUS_PLUS_API));
             variantTransform.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, DIRECTORY_TYPE);

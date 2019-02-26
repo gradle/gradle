@@ -154,7 +154,7 @@ abstract class SimpleTransform implements TransformAction<TransformParameters> {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(TestTransform) {
+        registerTransform(TestTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
             parameters {
@@ -172,11 +172,11 @@ allprojects {
 allprojects {
     dependencies {
         //Multi step transform, without dependencies at step 1
-        registerTransformAction(SimpleTransform) {
+        registerTransform(SimpleTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'yellow')
         }
-        registerTransformAction(TestTransform) {
+        registerTransform(TestTransform) {
             from.attribute(color, 'yellow')
             to.attribute(color, 'green')
             parameters {
@@ -194,14 +194,14 @@ allprojects {
 allprojects {
     dependencies {
         // Multi step transform
-        registerTransformAction(TestTransform) {
+        registerTransform(TestTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'yellow')
             parameters {
                 transformName = 'Transform step 1'
             }
         }
-        registerTransformAction(TestTransform) {
+        registerTransform(TestTransform) {
             from.attribute(color, 'yellow')
             to.attribute(color, 'green')
             parameters {
@@ -412,7 +412,7 @@ project(':common') {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(NoneTransform) {
+        registerTransform(NoneTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
@@ -508,7 +508,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters> {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(ClasspathTransform) {
+        registerTransform(ClasspathTransform) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }

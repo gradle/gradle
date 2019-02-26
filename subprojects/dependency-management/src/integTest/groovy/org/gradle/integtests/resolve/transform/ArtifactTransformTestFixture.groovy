@@ -156,7 +156,7 @@ class JarProducer extends DefaultTask {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(MakeGreen) {
+        registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
@@ -180,7 +180,7 @@ allprojects {
         buildFile << """
 allprojects { p ->
     dependencies {
-        registerTransformAction(MakeGreen) {
+        registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
             parameters {
