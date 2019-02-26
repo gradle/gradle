@@ -16,96 +16,83 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
-
-import static java.lang.String.format;
 
 public class DaemonMemoryStatus {
 
     private static final Logger LOGGER = Logging.getLogger(DaemonMemoryStatus.class);
 
     public static final String ENABLE_PERFORMANCE_MONITORING = "org.gradle.daemon.performance.enable-monitoring";
-    public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
-    public static final String TENURED_RATE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-rate-expire-at";
-    public static final String PERMGEN_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.permgen-usage-expire-at";
-    public static final String THRASHING_EXPIRE_AT = "org.gradle.daemon.performance.thrashing-expire-at";
 
-    private static final String TENURED = "tenured";
-    private static final String PERMGEN = "perm gen";
+    private static final String HEAP = "heap";
+    private static final String NON_HEAP = "non-heap";
 
     private final DaemonHealthStats stats;
-    private final GarbageCollectorMonitoringStrategy strategy;
-    private final int tenuredUsageThreshold;
-    private final double tenuredRateThreshold;
-    private final int permgenUsageThreshold;
+    private final int heapUsageThreshold;
+    private final double heapRateThreshold;
+    private final int nonHeapUsageThreshold;
     private final double thrashingThreshold;
 
-    public DaemonMemoryStatus(DaemonHealthStats stats) {
+    public DaemonMemoryStatus(DaemonHealthStats stats, int heapUsageThreshold, double heapRateThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {
         this.stats = stats;
-        this.strategy = stats.getGcMonitor().getGcStrategy();
-        this.tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
-        this.tenuredRateThreshold = parseValue(TENURED_RATE_EXPIRE_AT, strategy.getGcRateThreshold());
-        this.permgenUsageThreshold = parseValue(PERMGEN_USAGE_EXPIRE_AT, strategy.getPermGenUsageThreshold());
-        this.thrashingThreshold = parseValue(THRASHING_EXPIRE_AT, strategy.getThrashingThreshold());
+        this.heapUsageThreshold = heapUsageThreshold;
+        this.heapRateThreshold = heapRateThreshold;
+        this.nonHeapUsageThreshold = nonHeapUsageThreshold;
+        this.thrashingThreshold = thrashingThreshold;
     }
 
-    public boolean isTenuredSpaceExhausted() {
-        GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
+    public boolean isHeapSpaceExhausted() {
+        GarbageCollectionStats gcStats = stats.getHeapStats();
 
-        return exceedsThreshold(TENURED, gcStats, new Spec<GarbageCollectionStats>() {
+        return exceedsThreshold(HEAP, gcStats, new Spec<GarbageCollectionStats>() {
             @Override
             public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
-                return tenuredUsageThreshold != 0
-                    && tenuredRateThreshold != 0
-                    && gcStats.getEventCount() >= 5
-                    && gcStats.getUsage() >= tenuredUsageThreshold
-                    && gcStats.getRate() >= tenuredRateThreshold;
+                return heapUsageThreshold != 0
+                    && heapRateThreshold != 0
+                    && gcStats.isValid()
+                    && gcStats.getUsedPercent() >= heapUsageThreshold
+                    && gcStats.getGcRate() >= heapRateThreshold;
             }
         });
     }
 
-    public boolean isPermGenSpaceExhausted() {
-        GarbageCollectionStats gcStats = stats.getGcMonitor().getPermGenStats();
+    public boolean isNonHeapSpaceExhausted() {
+        GarbageCollectionStats gcStats = stats.getNonHeapStats();
 
-        return exceedsThreshold(PERMGEN, gcStats, new Spec<GarbageCollectionStats>() {
+        return exceedsThreshold(NON_HEAP, gcStats, new Spec<GarbageCollectionStats>() {
             @Override
             public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
-                return permgenUsageThreshold != 0
-                    && gcStats.getEventCount() >= 5
-                    && gcStats.getUsage() >= permgenUsageThreshold;
+                return nonHeapUsageThreshold != 0
+                    && gcStats.isValid()
+                    && gcStats.getUsedPercent() >= nonHeapUsageThreshold;
             }
         });
     }
 
     public boolean isThrashing() {
-        GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
+        GarbageCollectionStats gcStats = stats.getHeapStats();
 
-        return exceedsThreshold(TENURED, gcStats, new Spec<GarbageCollectionStats>() {
+        return exceedsThreshold(HEAP, gcStats, new Spec<GarbageCollectionStats>() {
             @Override
             public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
-                return tenuredUsageThreshold != 0
+                return heapUsageThreshold != 0
                     && thrashingThreshold != 0
-                    && gcStats.getEventCount() >= 5
-                    && gcStats.getUsage() >= tenuredUsageThreshold
-                    && gcStats.getRate() >= thrashingThreshold;
+                    && gcStats.isValid()
+                    && gcStats.getUsedPercent() >= heapUsageThreshold
+                    && gcStats.getGcRate() >= thrashingThreshold;
             }
         });
     }
 
     private boolean exceedsThreshold(String pool, GarbageCollectionStats gcStats, Spec<GarbageCollectionStats> spec) {
-        if (isEnabled()
-            && strategy != GarbageCollectorMonitoringStrategy.UNKNOWN
-            && spec.isSatisfiedBy(gcStats)) {
-
-            if (gcStats.getUsage() > 0) {
-                LOGGER.debug(String.format("GC rate: %.2f/s %s usage: %s%%", gcStats.getRate(), pool, gcStats.getUsage()));
+        if (isEnabled() && spec.isSatisfiedBy(gcStats)) {
+            if (gcStats.isValid() && gcStats.getUsedPercent() > 0) {
+                LOGGER.debug(String.format("%s: GC rate: %.2f/s %s usage: %s%%", pool, gcStats.getGcRate(), pool, gcStats.getUsedPercent()));
             } else {
-                LOGGER.debug("GC rate: 0.0/s");
+                LOGGER.debug("{}: GC rate: 0.0/s", pool);
             }
 
             return true;
@@ -117,35 +104,5 @@ public class DaemonMemoryStatus {
     private boolean isEnabled() {
         String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
         return Boolean.parseBoolean(enabledValue);
-    }
-
-    private static int parseValue(String property, int defaultValue) {
-        String expireAt = System.getProperty(property);
-
-        if (expireAt == null) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(expireAt);
-        } catch (Exception e) {
-            throw new GradleException(format(
-                "System property '%s' has incorrect value: '%s'. The value needs to be an integer.",
-                property, expireAt));
-        }
-    }
-
-    private static double parseValue(String property, double defaultValue) {
-        String expireAt = System.getProperty(property);
-
-        if (expireAt == null) {
-            return defaultValue;
-        }
-        try {
-            return Double.parseDouble(expireAt);
-        } catch (Exception e) {
-            throw new GradleException(format(
-                "System property '%s' has incorrect value: '%s'. The value needs to be a double.",
-                property, expireAt));
-        }
     }
 }

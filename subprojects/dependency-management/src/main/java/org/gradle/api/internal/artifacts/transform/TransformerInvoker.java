@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Try;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 
 import java.io.File;
 
@@ -27,5 +28,5 @@ public interface TransformerInvoker {
     /**
      * Returns the result of applying the given transformer to the given file.
      */
-    Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject);
+    Try<ImmutableList<File>> invoke(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry);
 }

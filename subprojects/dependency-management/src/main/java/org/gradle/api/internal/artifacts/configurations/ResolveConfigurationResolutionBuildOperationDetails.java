@@ -47,9 +47,9 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     ResolveConfigurationResolutionBuildOperationDetails(
         String configurationName,
         boolean isScriptConfiguration,
-        String configurationDescription,
+        @Nullable String configurationDescription,
         String buildPath,
-        String projectPath,
+        @Nullable String projectPath,
         boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
         List<ResolutionAwareRepository> repositories

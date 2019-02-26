@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrat
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeTrue
@@ -122,8 +123,9 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)
     }
 
+    @Ignore
     def "when build leaks permgen space daemon is expired"() {
-        assumeTrue(version.vendor != JdkVendor.IBM && version.version == "1.7")
+        assumeTrue(version.vendor != JdkVendor.IBM)
 
         when:
         setupBuildScript = permGenLeak

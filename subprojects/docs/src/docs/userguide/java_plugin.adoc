@@ -335,16 +335,16 @@ Additional dependencies only for compiling tests, not used at runtime.
 Test compile classpath, used when compiling test sources. Used by task `compileTestJava`.
 
 [.line-through]#`testRuntime`#(Deprecated) extends `runtime, testCompile`::
-Additional dependencies for running tests only. Used by task `test`. Superseded by `testRuntimeOnly`.
+Additional dependencies for running tests only. Superseded by `testRuntimeOnly`.
 
 `testRuntimeOnly` extends `runtimeOnly`::
-Runtime only dependencies for running tests. Used by task `test`.
+Runtime only dependencies for running tests.
 
 `testRuntimeClasspath` extends `testRuntimeOnly, testRuntime, testImplementation`::
-Runtime classpath for running tests.
+Runtime classpath for running tests. Used by task `test`.
 
 `archives`::
-Artifacts (e.g. jars) produced by this project. Used by tasks `uploadArchives`.
+Artifacts (e.g. jars) produced by this project. Used by task `uploadArchives`.
 
 `default` extends `runtime`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.

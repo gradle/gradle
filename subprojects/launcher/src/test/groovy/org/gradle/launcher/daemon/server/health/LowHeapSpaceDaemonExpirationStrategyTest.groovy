@@ -21,31 +21,31 @@ import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
-class LowTenuredSpaceDaemonExpirationStrategyTest extends Specification {
+class LowHeapSpaceDaemonExpirationStrategyTest extends Specification {
     private final DaemonMemoryStatus status = Mock(DaemonMemoryStatus)
 
     def "daemon is expired when tenured space is low" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(status)
+        LowHeapSpaceDaemonExpirationStrategy strategy = new LowHeapSpaceDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isTenuredSpaceExhausted() >> true
+        1 * status.isHeapSpaceExhausted() >> true
 
         and:
         result.status == GRACEFUL_EXPIRE
-        result.reason == LowTenuredSpaceDaemonExpirationStrategy.EXPIRATION_REASON
+        result.reason == LowHeapSpaceDaemonExpirationStrategy.EXPIRATION_REASON
     }
 
     def "daemon is not expired when tenured space is fine" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(status)
+        LowHeapSpaceDaemonExpirationStrategy strategy = new LowHeapSpaceDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isTenuredSpaceExhausted() >> false
+        1 * status.isHeapSpaceExhausted() >> false
 
         and:
         result == DaemonExpirationResult.NOT_TRIGGERED

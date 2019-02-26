@@ -18,7 +18,12 @@ package org.gradle.model.internal.asm;
 
 import org.objectweb.asm.Type;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 
 public class AsmClassGeneratorUtils {
 
@@ -31,6 +36,13 @@ public class AsmClassGeneratorUtils {
         visitParameters(builder, constructor.getGenericParameterTypes());
         builder.append("V");
         visitExceptions(builder, constructor.getGenericExceptionTypes());
+        return builder.toString();
+    }
+
+    public static String getterSignature(java.lang.reflect.Type returnType) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("()");
+        visitType(returnType, builder);
         return builder.toString();
     }
 

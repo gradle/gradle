@@ -21,16 +21,16 @@ import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.ToBeImplemented
 
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
@@ -66,8 +66,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
     }
 
-    @ToBeImplemented("Resolving type parameters to implement the correct methods in the subclass does not work, yet")
-    def "can inject service using @Inject on a super interface with type parameters"() {
+    def "can inject service using @Inject on a super interface with class type parameter"() {
         given:
         def services = Mock(ServiceLookup)
         _ * services.get(Number) >> 12
@@ -76,11 +75,40 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         def obj = create(AbstractClassWithConcreteTypeParameter, services)
 
         then:
-        def e = thrown(InvocationTargetException)
-        e.cause.class == NullPointerException
-//        obj.thing == 12
-//        obj.getThing() == 12
-//        obj.getProperty("thing") == 12
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+        obj.doSomething()
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType == Number
+    }
+
+    def "can inject service using @Inject on a super interface with parameterized type parameter"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(_) >> { Type type ->
+            assert type instanceof ParameterizedType
+            assert type.rawType == List.class
+            assert type.actualTypeArguments.length == 1
+            assert type.actualTypeArguments[0] == Number
+            return [12]
+        }
+
+        when:
+        def obj = create(AbstractClassWithParameterizedTypeParameter, services)
+
+        then:
+        obj.thing == [12]
+        obj.getThing() == [12]
+        obj.getProperty("thing") == [12]
+        obj.doSomething() == "[12]"
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType instanceof ParameterizedType
+        returnType.rawType == List
+        returnType.actualTypeArguments.length == 1
+        returnType.actualTypeArguments[0] == Number
     }
 
     def "can inject service using @Inject on an interface getter method"() {
@@ -329,13 +357,6 @@ interface InterfaceWithServices {
     @Inject
     Number getThing()
 }
-
-interface InterfaceWithTypeParameter<T> {
-    @Inject
-    T getThing()
-}
-
-abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {}
 
 class BeanWithServices {
     @Inject

@@ -23,20 +23,20 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
-public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpirationStrategy {
+public class LowHeapSpaceDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonMemoryStatus status;
-    private static final Logger LOG = Logging.getLogger(LowTenuredSpaceDaemonExpirationStrategy.class);
+    private static final Logger LOG = Logging.getLogger(LowHeapSpaceDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "after running out of JVM memory";
-    public static final String EXPIRE_DAEMON_MESSAGE = "Expiring Daemon because JVM Tenured space is exhausted";
+    public static final String EXPIRE_DAEMON_MESSAGE = "Expiring Daemon because JVM heap space is exhausted";
 
-    public LowTenuredSpaceDaemonExpirationStrategy(DaemonMemoryStatus status) {
+    public LowHeapSpaceDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (status.isTenuredSpaceExhausted()) {
+        if (status.isHeapSpaceExhausted()) {
             LOG.warn(EXPIRE_DAEMON_MESSAGE);
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
