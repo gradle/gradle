@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
@@ -57,9 +58,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -451,32 +450,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         /**
          * Determines the concrete return type of the given method, resolving any type parameters.
-         *
-         * <p>Note: this is only partially implemented.</p>
          */
         public MethodMetadata resolveTypeVariables(Method method) {
             Type returnType = method.getGenericReturnType();
-            if (returnType instanceof TypeVariable) {
-                TypeVariable typeVar = (TypeVariable) method.getGenericReturnType();
-                // TODO - need to traverse all supertypes (super class, and all inherited interface)
-                for (Type genericInterface : type.getGenericInterfaces()) {
-                    if (genericInterface instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) genericInterface;
-                        if (parameterizedType.getRawType().equals(method.getDeclaringClass())) {
-                            TypeVariable<? extends Class<?>>[] typeParameters = method.getDeclaringClass().getTypeParameters();
-                            for (int i = 0; i < typeParameters.length; i++) {
-                                TypeVariable<? extends Class<?>> typeParameter = typeParameters[i];
-                                if (typeParameter.getName().equals(typeVar.getName())) {
-                                    // TODO - should resolve type variables
-                                    return new MethodMetadata(method, parameterizedType.getActualTypeArguments()[i]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            // TODO - Should handle a parameterized type containing type variables
-            return new MethodMetadata(method, returnType);
+            Type resolvedReturnType = returnType instanceof Class ? returnType : TypeToken.of(type).method(method).getReturnType().getType();
+            return new MethodMetadata(method, resolvedReturnType);
         }
 
         @Nullable
