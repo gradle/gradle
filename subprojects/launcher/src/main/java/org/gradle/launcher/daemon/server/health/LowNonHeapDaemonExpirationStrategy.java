@@ -23,20 +23,20 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
-public class LowPermGenDaemonExpirationStrategy implements DaemonExpirationStrategy {
+public class LowNonHeapDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonMemoryStatus status;
-    private static final Logger LOG = Logging.getLogger(LowPermGenDaemonExpirationStrategy.class);
+    private static final Logger LOG = Logging.getLogger(LowNonHeapDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "after running out of JVM memory";
 
-    public LowPermGenDaemonExpirationStrategy(DaemonMemoryStatus status) {
+    public LowNonHeapDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (status.isPermGenSpaceExhausted()) {
-            LOG.info("Expiring Daemon due to JVM PermGen space being exhausted");
+        if (status.isNonHeapSpaceExhausted()) {
+            LOG.info("Expiring Daemon due to JVM Metaspace space being exhausted");
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;

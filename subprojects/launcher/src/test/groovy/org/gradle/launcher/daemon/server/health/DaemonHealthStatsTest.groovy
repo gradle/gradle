@@ -42,19 +42,18 @@ class DaemonHealthStatsTest extends Specification {
     def "consumes subsequent builds"() {
         when:
         gcInfo.getCollectionTime() >> 25
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats) {
-                getUsage() >> 10
-                getMax() >> 1024
-                getRate() >> 1.0
-            }
+        gcMonitor.getHeapStats() >> {
+            new GarbageCollectionStats(1.0, 103, 1024, 5)
+        }
+        gcMonitor.getNonHeapStats() >> {
+            new GarbageCollectionStats(0, 1024, 2048, 5)
         }
         runningStats.getBuildCount() >> 1
         runningStats.getPrettyUpTime() >> "3 mins"
         runningStats.getAllBuildsTime() >> 1000
 
         then:
-        healthStats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%%, GC rate: %.2f/s, tenured heap usage: 10%% of %.1f kB]", 1.0, 1.0)
+        healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, GC rate: 1.00/s, heap usage: 10% of 1.0 kB, non-heap usage: 50% of 2.0 kB]"
     }
 
     def "handles no garbage collection data"() {
@@ -64,16 +63,15 @@ class DaemonHealthStatsTest extends Specification {
         runningStats.getPrettyUpTime() >> "3 mins"
         runningStats.getAllBuildsTime() >> 1000
 
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats) {
-                getUsage() >> -1
-                getMax() >> -1
-                getRate() >> 0
-            }
+        gcMonitor.getHeapStats() >> {
+            GarbageCollectionStats.noData()
+        }
+        gcMonitor.getNonHeapStats() >> {
+            GarbageCollectionStats.noData()
         }
 
         then:
-        healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, no major garbage collections]"
+        healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%]"
     }
 
 }

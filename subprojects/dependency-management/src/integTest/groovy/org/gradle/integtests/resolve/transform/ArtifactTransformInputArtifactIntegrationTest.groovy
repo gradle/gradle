@@ -1161,6 +1161,56 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
+    def "honors runtime classpath normalization for input artifact"() {
+        settingsFile << "include 'a', 'b', 'c'"
+        setupBuildWithColorTransformAction {
+            produceJars()
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+                
+                normalization {
+                    runtimeClasspath {
+                        ignore("ignored.txt")
+                    }
+                }
+            }
+            
+            abstract class MakeGreen implements TransformAction {
+                @InputArtifact @Classpath
+                abstract File getInput()
+                
+                void transform(TransformOutputs outputs) {
+                    println "processing \${input.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+
+        when:
+        executer.withArguments("-PbEntryName=ignored.txt")
+        run(":a:resolve")
+
+        then:
+        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        transformed("b.jar", "c.jar")
+        outputContains("result = [b.jar.green, c.jar.green]")
+
+        when:
+        executer.withArguments("-PbEntryName=ignored.txt", "-PbContent=different")
+        run(":a:resolve")
+
+        then: // change is ignored due to normalization
+        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        transformed()
+        outputContains("result = [b.jar.green, c.jar.green]")
+    }
+
     void transformed(String... expected) {
         def actual = output.readLines().inject([]) { items, line ->
             def matcher = Pattern.compile("processing\\s+(.+)").matcher(line)

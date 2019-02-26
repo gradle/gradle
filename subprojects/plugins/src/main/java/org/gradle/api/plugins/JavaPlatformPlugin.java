@@ -93,11 +93,18 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        if (project.getPluginManager().hasPlugin("java")) {
+            // This already throws when creating `apiElements` so be eager to have a clear error message
+            throw new IllegalStateException("The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
+                "A project is either a platform or a library but cannot be both at the same time.");
+        }
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
         configureExtension(project);
         addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
+
+
     }
 
     private void addPlatformDisambiguationRule(Project project) {

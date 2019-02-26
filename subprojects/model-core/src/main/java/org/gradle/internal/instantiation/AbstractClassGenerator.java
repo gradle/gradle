@@ -57,7 +57,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -211,7 +213,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
-        ClassMetaData classMetaData = new ClassMetaData();
+        ClassMetadata classMetaData = new ClassMetadata(type);
         assembleProperties(classDetails, classMetaData);
 
         for (ClassGenerationHandler handler : generationHandlers) {
@@ -225,7 +227,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         for (PropertyDetails property : classDetails.getProperties()) {
-            PropertyMetaData propertyMetaData = classMetaData.property(property.getName());
+            PropertyMetadata propertyMetaData = classMetaData.property(property.getName());
             for (ClassGenerationHandler handler : generationHandlers) {
                 handler.visitProperty(propertyMetaData);
             }
@@ -282,11 +284,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private void assembleProperties(ClassDetails classDetails, ClassMetaData classMetaData) {
+    private void assembleProperties(ClassDetails classDetails, ClassMetadata classMetaData) {
         for (PropertyDetails property : classDetails.getProperties()) {
-            PropertyMetaData propertyMetaData = classMetaData.property(property.getName());
+            PropertyMetadata propertyMetaData = classMetaData.property(property.getName());
             for (Method method : property.getGetters()) {
-                propertyMetaData.addGetter(method);
+                propertyMetaData.addGetter(classMetaData.resolveTypeVariables(method));
             }
             for (Method method : property.getSetters()) {
                 propertyMetaData.addSetter(method);
@@ -295,7 +297,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         for (Method method : classDetails.getInstanceMethods()) {
             Class<?>[] parameterTypes = method.getParameterTypes();
             if (parameterTypes.length == 1) {
-                PropertyMetaData propertyMetaData = classMetaData.getProperty(method.getName());
+                PropertyMetadata propertyMetaData = classMetaData.getProperty(method.getName());
                 if (propertyMetaData != null) {
                     propertyMetaData.addSetMethod(method);
                 }
@@ -439,34 +441,103 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ClassMetaData {
-        private final Map<String, PropertyMetaData> properties = new LinkedHashMap<String, PropertyMetaData>();
+    private static class ClassMetadata {
+        private final Class<?> type;
+        private final Map<String, PropertyMetadata> properties = new LinkedHashMap<String, PropertyMetadata>();
+
+        public ClassMetadata(Class<?> type) {
+            this.type = type;
+        }
+
+        /**
+         * Determines the concrete return type of the given method, resolving any type parameters.
+         *
+         * <p>Note: this is only partially implemented.</p>
+         */
+        public MethodMetadata resolveTypeVariables(Method method) {
+            Type returnType = method.getGenericReturnType();
+            if (returnType instanceof TypeVariable) {
+                TypeVariable typeVar = (TypeVariable) method.getGenericReturnType();
+                // TODO - need to traverse all supertypes (super class, and all inherited interface)
+                for (Type genericInterface : type.getGenericInterfaces()) {
+                    if (genericInterface instanceof ParameterizedType) {
+                        ParameterizedType parameterizedType = (ParameterizedType) genericInterface;
+                        if (parameterizedType.getRawType().equals(method.getDeclaringClass())) {
+                            TypeVariable<? extends Class<?>>[] typeParameters = method.getDeclaringClass().getTypeParameters();
+                            for (int i = 0; i < typeParameters.length; i++) {
+                                TypeVariable<? extends Class<?>> typeParameter = typeParameters[i];
+                                if (typeParameter.getName().equals(typeVar.getName())) {
+                                    // TODO - should resolve type variables
+                                    return new MethodMetadata(method, parameterizedType.getActualTypeArguments()[i]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // TODO - Should handle a parameterized type containing type variables
+            return new MethodMetadata(method, returnType);
+        }
 
         @Nullable
-        public PropertyMetaData getProperty(String name) {
+        public PropertyMetadata getProperty(String name) {
             return properties.get(name);
         }
 
-        public PropertyMetaData property(String name) {
-            PropertyMetaData property = properties.get(name);
+        public PropertyMetadata property(String name) {
+            PropertyMetadata property = properties.get(name);
             if (property == null) {
-                property = new PropertyMetaData(name);
+                property = new PropertyMetadata(name);
                 properties.put(name, property);
             }
             return property;
         }
     }
 
-    protected static class PropertyMetaData {
+    protected static class MethodMetadata {
+        private final Method method;
+        private final Type returnType;
+
+        public MethodMetadata(Method method, Type returnType) {
+            this.method = method;
+            this.returnType = returnType;
+        }
+
+        public String getName() {
+            return method.getName();
+        }
+
+        public boolean isAbstract() {
+            return Modifier.isAbstract(method.getModifiers());
+        }
+
+        boolean shouldOverride() {
+            return !Modifier.isFinal(method.getModifiers()) && !method.isBridge();
+        }
+
+        boolean shouldImplement() {
+            return !method.isBridge();
+        }
+
+        public Class<?> getReturnType() {
+            return method.getReturnType();
+        }
+
+        public Type getGenericReturnType() {
+            return returnType;
+        }
+    }
+
+    protected static class PropertyMetadata {
         private final String name;
-        private final List<Method> getters = new ArrayList<Method>();
-        private final List<Method> overridableGetters = new ArrayList<Method>();
+        private final List<MethodMetadata> getters = new ArrayList<>();
+        private final List<MethodMetadata> overridableGetters = new ArrayList<>();
         private final List<Method> overridableSetters = new ArrayList<Method>();
         private final List<Method> setters = new ArrayList<Method>();
         private final List<Method> setMethods = new ArrayList<Method>();
-        private Method mainGetter;
+        private MethodMetadata mainGetter;
 
-        private PropertyMetaData(String name) {
+        private PropertyMetadata(String name) {
             this.name = name;
         }
 
@@ -483,7 +554,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return mainGetter != null;
         }
 
-        public List<Method> getOverridableGetters() {
+        public MethodMetadata getMainGetter() {
+            return mainGetter;
+        }
+
+        public List<MethodMetadata> getOverridableGetters() {
             return overridableGetters;
         }
 
@@ -505,15 +580,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return setters.get(0).getGenericParameterTypes()[0];
         }
 
-        public void addGetter(Method method) {
-            if (!Modifier.isFinal(method.getModifiers()) && !method.isBridge()) {
-                overridableGetters.add(method);
+        public void addGetter(MethodMetadata metadata) {
+            if (metadata.shouldOverride()) {
+                overridableGetters.add(metadata);
             }
-            getters.add(method);
+            getters.add(metadata);
             if (mainGetter == null) {
-                mainGetter = method;
-            } else if (mainGetter.isBridge() && !method.isBridge()) {
-                mainGetter = method;
+                mainGetter = metadata;
+            } else if (!mainGetter.shouldImplement() && metadata.shouldImplement()) {
+                mainGetter = metadata;
             }
         }
 
@@ -551,7 +626,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         /**
          * Collect information about a property. This is called for all properties of a type.
          */
-        void visitProperty(PropertyMetaData property) {
+        void visitProperty(PropertyMetadata property) {
         }
 
         /**
@@ -564,14 +639,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Handler can claim the property, taking responsibility for generating whatever is required to make the property work.
          * Handler is also expected to take care of validation.
          */
-        boolean claimPropertyImplementation(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetadata property) {
             return false;
         }
 
         /**
          * Called when another a handler with higher precedence has also claimed the given property.
          */
-        void ambiguous(PropertyMetaData property) {
+        void ambiguous(PropertyMetadata property) {
             // No supposed to happen
             throw new UnsupportedOperationException("Multiple matches for " + property.getName());
         }
@@ -587,7 +662,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         /**
          * Called when no handler has claimed the property.
          */
-        void unclaimed(PropertyMetaData property);
+        void unclaimed(PropertyMetadata property);
     }
 
     private static class DslMixInPropertyType extends ClassGenerationHandler {
@@ -595,7 +670,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean providesOwnDynamicObject;
         private boolean needDynamicAware;
         private boolean needGroovyObject;
-        private final List<PropertyMetaData> mutableProperties = new ArrayList<PropertyMetaData>();
+        private final List<PropertyMetadata> mutableProperties = new ArrayList<PropertyMetadata>();
         private final MethodSet actionMethods = new MethodSet();
         private final SetMultimap<String, Method> closureMethods = LinkedHashMultimap.create();
 
@@ -610,7 +685,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        void visitProperty(PropertyMetaData property) {
+        void visitProperty(PropertyMetadata property) {
             if (property.setters.isEmpty()) {
                 return;
             }
@@ -622,7 +697,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimPropertyImplementation(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetadata property) {
             if (property.getName().equals("asDynamicObject")) {
                 providesOwnDynamicObject = true;
                 return true;
@@ -661,7 +736,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         private void addSetMethods(AbstractClassGenerator.ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : mutableProperties) {
+            for (PropertyMetadata property : mutableProperties) {
                 if (property.setMethods.isEmpty()) {
                     for (Method setter : property.setters) {
                         visitor.addSetMethod(property, setter);
@@ -709,7 +784,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean conventionAware;
         private boolean extensible;
         private boolean hasExtensionAwareImplementation;
-        private final List<PropertyMetaData> conventionProperties = new ArrayList<PropertyMetaData>();
+        private final List<PropertyMetadata> conventionProperties = new ArrayList<PropertyMetadata>();
 
         @Override
         void startType(Class<?> type) {
@@ -727,11 +802,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimPropertyImplementation(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetadata property) {
             if (extensible) {
                 if (property.getName().equals("extensions")) {
-                    for (Method getter : property.getOverridableGetters()) {
-                        if (Modifier.isAbstract(getter.getModifiers())) {
+                    for (MethodMetadata getter : property.getOverridableGetters()) {
+                        if (getter.isAbstract()) {
                             return true;
                         }
                     }
@@ -747,9 +822,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        public void unclaimed(PropertyMetaData property) {
-            for (Method getter : property.getOverridableGetters()) {
-                if (!getter.getDeclaringClass().isAssignableFrom(noMappingClass)) {
+        public void unclaimed(PropertyMetadata property) {
+            for (MethodMetadata getter : property.getOverridableGetters()) {
+                if (!getter.method.getDeclaringClass().isAssignableFrom(noMappingClass)) {
                     conventionProperties.add(property);
                     break;
                 }
@@ -774,10 +849,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (conventionAware && !IConventionAware.class.isAssignableFrom(type)) {
                 visitor.mixInConventionAware();
             }
-            for (PropertyMetaData property : conventionProperties) {
+            for (PropertyMetadata property : conventionProperties) {
                 visitor.applyConventionMappingToProperty(property);
-                for (Method getter : property.getOverridableGetters()) {
-                    visitor.applyConventionMappingToGetter(property, getter);
+                for (MethodMetadata getter : property.getOverridableGetters()) {
+                    visitor.applyConventionMappingToGetter(property, getter.method);
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyConventionMappingToSetter(property, setter);
@@ -787,8 +862,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class ManagedTypeHandler extends ClassGenerationHandler {
-        private final List<PropertyMetaData> mutableProperties = new ArrayList<>();
-        private final List<PropertyMetaData> readOnlyProperties = new ArrayList<>();
+        private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
+        private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
@@ -797,10 +872,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        boolean claimPropertyImplementation(PropertyMetaData property) {
+        boolean claimPropertyImplementation(PropertyMetadata property) {
             // Skip properties with non-abstract getter or setter implementations
-            for (Method getter : property.getters) {
-                if (!Modifier.isAbstract(getter.getModifiers())) {
+            for (MethodMetadata getter : property.getters) {
+                if (!getter.isAbstract()) {
                     return false;
                 }
             }
@@ -847,19 +922,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : mutableProperties) {
+            for (PropertyMetadata property : mutableProperties) {
                 visitor.applyManagedStateToProperty(property);
-                for (Method getter : property.getters) {
-                    visitor.applyManagedStateToGetter(property, getter);
+                for (MethodMetadata getter : property.getters) {
+                    visitor.applyManagedStateToGetter(property, getter.method);
                 }
                 for (Method setter : property.setters) {
                     visitor.applyManagedStateToSetter(property, setter);
                 }
             }
-            for (PropertyMetaData property : readOnlyProperties) {
+            for (PropertyMetadata property : readOnlyProperties) {
                 visitor.applyManagedStateToProperty(property);
-                for (Method getter : property.getters) {
-                    visitor.applyReadOnlyManagedStateToGetter(property, getter);
+                for (MethodMetadata getter : property.getters) {
+                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method);
                 }
             }
             if (!hasFields) {
@@ -869,10 +944,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private static class PropertyTypePropertyHandler extends ClassGenerationHandler {
-        private final List<PropertyMetaData> propertyTyped = new ArrayList<PropertyMetaData>();
+        private final List<PropertyMetadata> propertyTyped = new ArrayList<PropertyMetadata>();
 
         @Override
-        void visitProperty(PropertyMetaData property) {
+        void visitProperty(PropertyMetadata property) {
             if (property.isReadable() && isModelProperty(property)) {
                 propertyTyped.add(property);
             }
@@ -880,12 +955,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : propertyTyped) {
-                visitor.addPropertySetters(property, property.mainGetter);
+            for (PropertyMetadata property : propertyTyped) {
+                visitor.addPropertySetters(property, property.mainGetter.method);
             }
         }
 
-        private boolean isModelProperty(PropertyMetaData property) {
+        private boolean isModelProperty(PropertyMetadata property) {
             return Property.class.isAssignableFrom(property.getType()) ||
                 HasMultipleValues.class.isAssignableFrom(property.getType()) ||
                 MapProperty.class.isAssignableFrom(property.getType());
@@ -967,7 +1042,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private boolean hasServicesProperty;
 
         @Override
-        public boolean claimPropertyImplementation(PropertyMetaData property) {
+        public boolean claimPropertyImplementation(PropertyMetadata property) {
             if (property.getName().equals("services") && property.isReadable() && ServiceRegistry.class.isAssignableFrom(property.getType())) {
                 hasServicesProperty = true;
                 return true;
@@ -985,16 +1060,16 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static abstract class AbstractInjectedPropertyHandler extends ClassGenerationHandler {
         final Class<? extends Annotation> annotation;
-        final List<PropertyMetaData> serviceInjectionProperties = new ArrayList<PropertyMetaData>();
+        final List<PropertyMetadata> serviceInjectionProperties = new ArrayList<PropertyMetadata>();
 
         public AbstractInjectedPropertyHandler(Class<? extends Annotation> annotation) {
             this.annotation = annotation;
         }
 
         @Override
-        public boolean claimPropertyImplementation(PropertyMetaData property) {
-            for (Method method : property.getters) {
-                if (method.getAnnotation(annotation) != null) {
+        public boolean claimPropertyImplementation(PropertyMetadata property) {
+            for (MethodMetadata getter : property.getters) {
+                if (getter.method.getAnnotation(annotation) != null) {
                     serviceInjectionProperties.add(property);
                     return true;
                 }
@@ -1003,14 +1078,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         @Override
-        void ambiguous(PropertyMetaData property) {
-            for (Method method : property.getters) {
-                if (method.getAnnotation(annotation) != null) {
+        void ambiguous(PropertyMetadata property) {
+            for (MethodMetadata getter : property.getters) {
+                if (getter.method.getAnnotation(annotation) != null) {
                     TreeFormatter formatter = new TreeFormatter();
                     formatter.node("Cannot use ");
                     formatter.appendAnnotation(annotation);
                     formatter.append(" annotation on method ");
-                    formatter.appendMethod(method);
+                    formatter.appendMethod(getter.method);
                     formatter.append(".");
                     throw new IllegalArgumentException(formatter.toString());
                 }
@@ -1027,7 +1102,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         public List<Class<?>> getInjectedServices() {
             ImmutableList.Builder<Class<?>> services = ImmutableList.builderWithExpectedSize(serviceInjectionProperties.size());
-            for (PropertyMetaData property : serviceInjectionProperties) {
+            for (PropertyMetadata property : serviceInjectionProperties) {
                 services.add(property.getType());
             }
             return services.build();
@@ -1049,9 +1124,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : serviceInjectionProperties) {
+            for (PropertyMetadata property : serviceInjectionProperties) {
                 visitor.applyServiceInjectionToProperty(property);
-                for (Method getter : property.getOverridableGetters()) {
+                for (MethodMetadata getter : property.getOverridableGetters()) {
                     visitor.applyServiceInjectionToGetter(property, getter);
                 }
                 for (Method setter : property.getOverridableSetters()) {
@@ -1068,9 +1143,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public void applyTo(ClassGenerationVisitor visitor) {
-            for (PropertyMetaData property : serviceInjectionProperties) {
+            for (PropertyMetadata property : serviceInjectionProperties) {
                 visitor.applyServiceInjectionToProperty(property);
-                for (Method getter : property.getOverridableGetters()) {
+                for (MethodMetadata getter : property.getOverridableGetters()) {
                     visitor.applyServiceInjectionToGetter(property, annotation, getter);
                 }
                 for (Method setter : property.getOverridableSetters()) {
@@ -1133,39 +1208,39 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void addExtensionsProperty();
 
-        void applyServiceInjectionToProperty(PropertyMetaData property);
+        void applyServiceInjectionToProperty(PropertyMetadata property);
 
-        void applyServiceInjectionToGetter(PropertyMetaData property, Method getter);
+        void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter);
 
-        void applyServiceInjectionToSetter(PropertyMetaData property, Method setter);
+        void applyServiceInjectionToSetter(PropertyMetadata property, Method setter);
 
-        void applyServiceInjectionToGetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method getter);
+        void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter);
 
-        void applyServiceInjectionToSetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method setter);
+        void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter);
 
-        void applyManagedStateToProperty(PropertyMetaData property);
+        void applyManagedStateToProperty(PropertyMetadata property);
 
-        void applyManagedStateToGetter(PropertyMetaData property, Method getter);
+        void applyManagedStateToGetter(PropertyMetadata property, Method getter);
 
-        void applyManagedStateToSetter(PropertyMetaData property, Method setter);
+        void applyManagedStateToSetter(PropertyMetadata property, Method setter);
 
-        void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter);
+        void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter);
 
-        void addManagedMethods(List<PropertyMetaData> properties, List<PropertyMetaData> readOnlyProperties);
+        void addManagedMethods(List<PropertyMetadata> properties, List<PropertyMetadata> readOnlyProperties);
 
-        void applyConventionMappingToProperty(PropertyMetaData property);
+        void applyConventionMappingToProperty(PropertyMetadata property);
 
-        void applyConventionMappingToGetter(PropertyMetaData property, Method getter);
+        void applyConventionMappingToGetter(PropertyMetadata property, Method getter);
 
-        void applyConventionMappingToSetter(PropertyMetaData property, Method setter);
+        void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 
-        void applyConventionMappingToSetMethod(PropertyMetaData property, Method metaMethod);
+        void applyConventionMappingToSetMethod(PropertyMetadata property, Method metaMethod);
 
-        void addSetMethod(PropertyMetaData propertyMetaData, Method setter);
+        void addSetMethod(PropertyMetadata propertyMetaData, Method setter);
 
         void addActionMethod(Method method);
 
-        void addPropertySetters(PropertyMetaData property, Method getter);
+        void addPropertySetters(PropertyMetadata property, Method getter);
 
         Class<?> generate() throws Exception;
     }

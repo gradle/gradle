@@ -38,7 +38,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-==== Bugfixes in platform resolution
+==== Bug fixes in platform resolution
 
 There was a bug from Gradle 5.0 to 5.2.1 (included) where enforced platforms would potentially include dependencies instead of constraints.
 This would happen whenever a POM file defined both dependencies and "constraints" (via `<dependencyManagement>`) and that you used `enforcedPlatform`.
@@ -72,6 +72,13 @@ java {
    disableAutoTargetJvm()
 }
 ```
+
+==== Bug fix in Maven / Ivy interoperability with dependency substitution
+
+If you have a Maven dependency pointing to an Ivy dependency where the `default` configuration dependencies do not match the `compile` + `runtime` + `master` ones
+_and_ that Ivy dependency was substituted (using a `resolutionStrategy.force`, `resolutionStrategy.eachDependency` or `resolutionStrategy.dependencySubstitution`)
+then this fix will impact you.
+The legacy behaviour of Gradle, prior to 5.0, was still in place instead of being replaced by the changes introduced by improved pom support.
 
 [[changes_5.2]]
 == Upgrading from 5.1 and earlier

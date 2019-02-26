@@ -48,6 +48,6 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver)
+        1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
     }
 }

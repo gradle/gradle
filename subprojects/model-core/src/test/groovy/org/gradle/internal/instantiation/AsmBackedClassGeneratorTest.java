@@ -1820,4 +1820,23 @@ public class AsmBackedClassGeneratorTest {
             setName("thing");
         }
     }
+
+    interface InterfaceWithTypeParameter<T> {
+        @Inject
+        T getThing();
+    }
+
+    public static abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {
+        public String doSomething() {
+            Number thing = getThing();
+            return String.valueOf(thing);
+        }
+    }
+
+    public static abstract class AbstractClassWithParameterizedTypeParameter implements InterfaceWithTypeParameter<List<Number>> {
+        public String doSomething() {
+            List<Number> thing = getThing();
+            return thing.toString();
+        }
+    }
 }
