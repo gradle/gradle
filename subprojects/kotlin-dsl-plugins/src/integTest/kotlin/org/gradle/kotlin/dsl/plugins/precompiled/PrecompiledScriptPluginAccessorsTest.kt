@@ -47,6 +47,7 @@ import org.junit.Test
 import java.io.File
 
 
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
@@ -148,7 +149,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
-    @LeaksFileHandles("TDB")
     @Test
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
