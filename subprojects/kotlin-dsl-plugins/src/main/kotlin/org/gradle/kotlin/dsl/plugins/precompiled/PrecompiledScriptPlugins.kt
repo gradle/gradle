@@ -64,7 +64,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  *  - the `.settings.gradle.kts` file name suffix defines a [Settings] script plugin
  *  - and finally, the simpler `.gradle.kts` file name suffix  defines a [Project] script plugin
  *
- * ## Definining the plugin id
+ * ## Defining the plugin id
  *
  * The Gradle plugin id for a precompiled script plugin is defined via its file name
  * plus optional package declaration in the following manner:
