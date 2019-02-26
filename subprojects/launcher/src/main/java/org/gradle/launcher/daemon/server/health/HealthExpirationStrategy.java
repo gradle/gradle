@@ -28,8 +28,8 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
     public HealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
         this.strategy = new AnyDaemonExpirationStrategy(ImmutableList.of(
             new GcThrashingDaemonExpirationStrategy(memoryStatus),
-            new LowTenuredSpaceDaemonExpirationStrategy(memoryStatus),
-            new LowPermGenDaemonExpirationStrategy(memoryStatus)
+            new LowHeapSpaceDaemonExpirationStrategy(memoryStatus),
+            new LowNonHeapDaemonExpirationStrategy(memoryStatus)
         ));
     }
 

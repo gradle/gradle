@@ -16,155 +16,110 @@
 
 package org.gradle.launcher.daemon.server.health
 
-import org.gradle.api.GradleException
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static DaemonMemoryStatus.PERMGEN_USAGE_EXPIRE_AT
-import static DaemonMemoryStatus.TENURED_RATE_EXPIRE_AT
-import static DaemonMemoryStatus.TENURED_USAGE_EXPIRE_AT
-import static DaemonMemoryStatus.THRASHING_EXPIRE_AT
 
 class DaemonMemoryStatusTest extends Specification {
-    @Rule SetSystemProperties props = new SetSystemProperties()
+    @Rule
+    SetSystemProperties props = new SetSystemProperties()
 
-    def gcMonitor = Mock(GarbageCollectionMonitor)
     def stats = Mock(DaemonHealthStats)
-
-    def "validates supplied tenured usage threshold value"() {
-        System.setProperty(TENURED_USAGE_EXPIRE_AT, "foo")
-
-        when:
-        status.isTenuredSpaceExhausted()
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "System property 'org.gradle.daemon.performance.tenured-usage-expire-at' has incorrect value: 'foo'. The value needs to be an integer."
-    }
-
-    def "validates supplied tenured rate threshold value"() {
-        System.setProperty(TENURED_RATE_EXPIRE_AT, "foo")
-
-        when:
-        status.isTenuredSpaceExhausted()
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "System property 'org.gradle.daemon.performance.tenured-rate-expire-at' has incorrect value: 'foo'. The value needs to be a double."
+    DaemonMemoryStatus create(int heapUsageThreshold, double heapRateThreshold, int nonHeapUsageThreshold, double thrashingThreshold) {
+        return new DaemonMemoryStatus(stats, heapUsageThreshold, heapRateThreshold, nonHeapUsageThreshold, thrashingThreshold)
     }
 
     @Unroll
-    def "knows when tenured space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
+    def "knows when heap space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #usage)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean unhealthy) {
         when:
-        System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
-        System.setProperty(TENURED_RATE_EXPIRE_AT, rateThreshold.toString())
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats) {
-                getUsage() >> used
-                getRate() >> rate
-                getEventCount() >> 10
-            }
+        def status = create(usageThreshold, rateThreshold, 100, 100)
+        stats.getHeapStats() >> {
+            new GarbageCollectionStats(rate, usage, 100, 10)
         }
 
         then:
-        status.isTenuredSpaceExhausted() == unhealthy
+        status.isHeapSpaceExhausted() == unhealthy
 
         where:
-        rateThreshold | usageThreshold | rate | used | unhealthy
-        1.0           | 90             | 1.1  | 100  | true
-        1.0           | 90             | 1.1  | 91   | true
-        1.0           | 90             | 1.1  | 89   | false
-        1.0           | 90             | 0.9  | 91   | false
-        1.0           | 0              | 1.0  | 0    | false
-        1.0           | 0              | 1.0  | -1   | false
-        0             | 90             | 0    | 100  | false
-        1.0           | 0              | 1.1  | 100  | false
-        0             | 90             | 1.1  | 100  | false
-        1.0           | 100            | 1.1  | 100  | true
-        1.0           | 75             | 1.1  | 75   | true
-        1.0           | 75             | 1.0  | 100  | true
+        rateThreshold | usageThreshold | rate | usage | unhealthy
+        1.0           | 90             | 1.1  | 100   | true
+        1.0           | 90             | 1.1  | 91    | true
+        1.0           | 90             | 1.1  | 89    | false
+        1.0           | 90             | 0.9  | 91    | false
+        1.0           | 0              | 1.0  | 0     | false
+        0             | 90             | 0    | 100   | false
+        1.0           | 0              | 1.1  | 100   | false
+        0             | 90             | 1.1  | 100   | false
+        1.0           | 100            | 1.1  | 100   | true
+        1.0           | 75             | 1.1  | 75    | true
+        1.0           | 75             | 1.0  | 100   | true
     }
 
     @Unroll
-    def "knows when perm gen space is exhausted (#usageThreshold <= #used, #usageThreshold <= #used)"() {
+    def "knows when metaspace is exhausted (#usageThreshold <= #usage, #usageThreshold <= #usage)"() {
         when:
-        System.setProperty(PERMGEN_USAGE_EXPIRE_AT, usageThreshold.toString())
-        gcMonitor.getPermGenStats() >> {
-            Stub(GarbageCollectionStats) {
-                getUsage() >> used
-                getEventCount() >> 10
-            }
+        def status = create(100, 100, usageThreshold, 100)
+        stats.getNonHeapStats() >> {
+            new GarbageCollectionStats(0, usage, 100, 10)
         }
 
         then:
-        status.isPermGenSpaceExhausted() == unhealthy
+        status.isNonHeapSpaceExhausted() == unhealthy
 
         where:
-        usageThreshold | used | unhealthy
-        90             | 100  | true
-        90             | 91   | true
-        90             | 90   | true
-        90             | 89   | false
-        0              | 0    | false
-        0              | 100  | false
-        100            | 100  | true
+        usageThreshold | usage | unhealthy
+        90             | 100   | true
+        90             | 91    | true
+        90             | 90    | true
+        90             | 89    | false
+        0              | 0     | false
+        0              | 100   | false
+        100            | 100   | true
     }
 
     @Unroll
-    def "knows when gc is thrashing (#rateThreshold <= #rate)"() {
+    def "knows when gc is thrashing (#rateThreshold <= #rate)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean thrashing) {
         when:
-        System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
-        System.setProperty(THRASHING_EXPIRE_AT, rateThreshold.toString())
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats) {
-                getRate() >> rate
-                getUsage() >> usage
-                getEventCount() >> 10
-            }
+        def status = create(usageThreshold, 100, 100, rateThreshold)
+        stats.getHeapStats() >> {
+            new GarbageCollectionStats(rate, usage, 100, 10)
         }
 
         then:
         status.isThrashing() == thrashing
 
         where:
-        rateThreshold  | usageThreshold | rate | usage | thrashing
-        10             | 90             | 15   | 100  | true
-        10             | 90             | 10.1 | 91   | true
-        10             | 90             | 10.1 | 89   | false
-        10             | 90             | 9.9  | 91   | false
-        10             | 0              | 15   | 0    | false
-        0              | 90             | 0    | 100  | false
-        10             | 0              | 10.1 | 100  | false
-        0              | 90             | 10.1 | 100  | false
-        10             | 100            | 10.1 | 100  | true
-        10             | 75             | 10.1 | 75   | true
-        10             | 75             | 10   | 100  | true
-        10             | 90             | 0    | 100  | false
-        10             | 90             | 15   | 0    | false
+        rateThreshold | usageThreshold | rate | usage | thrashing
+        10            | 90             | 15   | 100   | true
+        10            | 90             | 10.1 | 91    | true
+        10            | 90             | 10.1 | 89    | false
+        10            | 90             | 9.9  | 91    | false
+        10            | 0              | 15   | 0     | false
+        0             | 90             | 0    | 100   | false
+        10            | 0              | 10.1 | 100   | false
+        0             | 90             | 10.1 | 100   | false
+        10            | 100            | 10.1 | 100   | true
+        10            | 75             | 10.1 | 75    | true
+        10            | 75             | 10   | 100   | true
+        10            | 90             | 0    | 100   | false
+        10            | 90             | 15   | 0     | false
     }
 
     def "can disable daemon performance monitoring"() {
         when:
+        def status = create(100, 100, 100, 100)
         System.setProperty(DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING, "false")
 
         then:
-        !status.isTenuredSpaceExhausted()
+        !status.isHeapSpaceExhausted()
 
         and:
-        !status.isPermGenSpaceExhausted()
+        !status.isNonHeapSpaceExhausted()
 
         and:
         !status.isThrashing()
-    }
-
-    DaemonMemoryStatus getStatus() {
-        1 * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
-        _ * stats.getGcMonitor() >> gcMonitor
-        return new DaemonMemoryStatus(stats)
     }
 }
