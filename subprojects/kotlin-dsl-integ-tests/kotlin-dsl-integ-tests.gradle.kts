@@ -51,7 +51,7 @@ tasks {
 
     // TODO:kotlin-dsl
     verifyTestFilesCleanup {
-        isEnabled = false
+        enabled = false
     }
 
     val testEnvironment by registering {
