@@ -70,6 +70,11 @@ public class PropertyTableRenderer {
                 td.appendChild(caution);
                 caution.appendChild(document.createTextNode("Incubating"));
             }
+            if (propDoc.isReplaced()) {
+                Element caution = document.createElement("caution");
+                td.appendChild(caution);
+                caution.appendChild(document.createTextNode("Replaced"));
+            }
             td.appendChild(document.importNode(propDoc.getDescription(), true));
         }
     }

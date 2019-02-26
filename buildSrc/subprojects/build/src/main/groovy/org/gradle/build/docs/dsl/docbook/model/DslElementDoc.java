@@ -30,4 +30,8 @@ public interface DslElementDoc {
     boolean isDeprecated();
 
     boolean isIncubating();
+
+    boolean isReplaced();
+
+    String getReplacement();
 }

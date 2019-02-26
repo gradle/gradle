@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.ReplacedBy
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
@@ -58,7 +59,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     ]
 
     private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Console, Internal, Inject
+        Console, Internal, Inject, ReplacedBy
     ]
 
     @Shared GroovyClassLoader groovyClassLoader
@@ -241,6 +242,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @OutputDirectories Set<File> outputDirectories
         @Inject Object injectedService
         @Internal Object internal
+        @ReplacedBy("inputString") String oldProperty
         @Console boolean console
     }
 
