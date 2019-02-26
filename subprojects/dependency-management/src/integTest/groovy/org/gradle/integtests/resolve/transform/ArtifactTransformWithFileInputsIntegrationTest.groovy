@@ -501,9 +501,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         jarSources.zipTo(inputJar)
         run(":a:resolve")
         then:
-        outputContains("processing b.jar using [${inputDir.name}, ${inputJar.name}]")
-        outputContains("processing c.jar using [${inputDir.name}, ${inputJar.name}]")
-
+        outputDoesNotContain("processing")
         outputContains("result = [b.jar.green, c.jar.green]")
 
         when:

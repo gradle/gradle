@@ -25,6 +25,11 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
         }
     }
 
+    requirements {
+        // TODO this can be removed once https://github.com/gradle/gradle-private/issues/1861 is closed
+        doesNotContain("teamcity.agent.name", "ec2")
+    }
+
     params {
         param("performance.baselines", type.defaultBaselines)
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
