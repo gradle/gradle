@@ -48,6 +48,8 @@ import org.gradle.kotlin.dsl.concurrent.writeFile
 
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
 
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -86,14 +88,14 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     /**
      *  ## Computation and sharing of type-safe accessors
-     * 1. Group precompiled script plugins by the set of plugins applied in their `plugins` block.
-     * 2. For each group, compute the project schema implied by the set of plugins.
+     * 1. Group precompiled script plugins by the list of plugins applied in their `plugins` block.
+     * 2. For each group, compute the project schema implied by the list of plugins.
      * 3. Re-group precompiled script plugins by project schema.
      * 4. For each group, emit the type-safe accessors implied by the schema to a package named after the schema
      * hash code.
      * 5. For each group, for each script plugin in the group, write the generated package name to a file named
      * after the contents of the script plugin file. This is so the file can be easily found by
-     * `PrecompiledScriptDependenciesResolver`.
+     * [PrecompiledScriptDependenciesResolver].
      */
     @TaskAction
     fun generate() {
@@ -292,14 +294,12 @@ class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: 
     private
     fun applyPluginsTo(project: Project, pluginRequests: PluginRequests) {
         val targetProjectScope = (project as ProjectInternal).classLoaderScope
-        project.serviceOf<PluginRequestApplicator>().apply {
-            applyPlugins(
-                pluginRequests,
-                project.buildscript as ScriptHandlerInternal,
-                project.pluginManager,
-                targetProjectScope
-            )
-        }
+        project.serviceOf<PluginRequestApplicator>().applyPlugins(
+            pluginRequests,
+            project.buildscript as ScriptHandlerInternal,
+            project.pluginManager,
+            targetProjectScope
+        )
     }
 }
 
@@ -326,7 +326,7 @@ data class ScriptPluginPlugins(
 )
 
 
-internal
+private
 class UniquePluginRequests(val plugins: PluginRequests) {
 
     val applications = plugins.map { it.toPluginApplication() }
@@ -337,7 +337,7 @@ class UniquePluginRequests(val plugins: PluginRequests) {
 }
 
 
-internal
+private
 fun PluginRequestInternal.toPluginApplication() = PluginApplication(
     id.id, version, isApply
 )
