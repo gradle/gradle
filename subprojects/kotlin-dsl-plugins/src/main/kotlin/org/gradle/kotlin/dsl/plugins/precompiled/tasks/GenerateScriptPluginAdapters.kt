@@ -17,13 +17,12 @@
 package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
@@ -102,21 +101,6 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 private
 fun packageDir(outputDir: File, packageName: String) =
     outputDir.mkdir(packageName.replace('.', '/'))
-
-
-internal
-inline fun <T> DirectoryProperty.withOutputDirectory(action: (File) -> T): T =
-    asFile.get().let { outputDir ->
-        recreate(outputDir)
-        action(outputDir)
-    }
-
-
-internal
-fun recreate(outputDir: File) {
-    outputDir.deleteRecursively()
-    outputDir.mkdirs()
-}
 
 
 private
