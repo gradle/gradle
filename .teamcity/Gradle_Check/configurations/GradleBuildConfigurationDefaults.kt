@@ -74,6 +74,10 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
 
     buildType.requirements {
         contains("teamcity.agent.jvm.os.name", os.agentRequirement)
+        if (buildType.name.contains("Coordinator")) {
+            // TODO this can be removed once https://github.com/gradle/gradle-private/issues/1861 is closed
+            doesNotContain("teamcity.agent.name", "ec2")
+        }
     }
 
     buildType.failureConditions {
