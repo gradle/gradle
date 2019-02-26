@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
@@ -28,9 +29,25 @@ import org.hamcrest.TypeSafeMatcher
 
 import java.util.regex.Pattern
 
+import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static org.junit.Assert.assertThat
+
+
+class ProjectSourceRoots {
+
+    final File projectDir
+    final List<String> sourceSets
+    final List<String> languages
+
+    ProjectSourceRoots(File projectDir, List<String> sourceSets, List<String> languages) {
+        this.projectDir = projectDir
+        this.sourceSets = sourceSets
+        this.languages = languages
+    }
+}
 
 
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
@@ -41,12 +58,36 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         toolingApi.requireDaemons()
     }
 
+    private String defaultSettingsScript = ""
+
+    private String repositoriesBlock = """
+        repositories {
+            gradlePluginPortal()
+        }
+    """.stripIndent()
+
     protected TestFile withDefaultSettings() {
-        return file("settings.gradle.kts") << ""
+        return withSettings(defaultSettingsScript)
+    }
+
+    protected TestFile withSettings(String script) {
+        return withSettingsIn(".", script)
+    }
+
+    protected TestFile withDefaultSettingsIn(String baseDir) {
+        return withSettingsIn(baseDir, defaultSettingsScript)
+    }
+
+    protected TestFile withSettingsIn(String baseDir, String script) {
+        return withFile("$baseDir/settings.gradle.kts", script)
+    }
+
+    protected TestFile withBuildScriptIn(String baseDir, String script = "") {
+        return withFile("$baseDir/build.gradle.kts", script)
     }
 
     protected TestFile withFile(String path, String text = "") {
-        return file(path) << text
+        return file(path) << text.stripIndent()
     }
 
     protected void withBuildSrc() {
@@ -56,8 +97,64 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         """.stripIndent()
     }
 
+    protected void withKotlinBuildSrc() {
+        withDefaultSettingsIn("buildSrc")
+        withBuildScriptIn("buildSrc", """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+        """)
+    }
+
+    protected ProjectSourceRoots[] withMultiProjectKotlinBuildSrc() {
+        withSettingsIn("buildSrc", """
+            include(":a", ":b", ":c")
+        """)
+        withFile("buildSrc/build.gradle.kts", """
+            plugins {
+                java
+                `kotlin-dsl` apply false
+            }
+
+            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
+
+            kotlinDslProjects.forEach {
+                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+            }
+
+            dependencies {
+                kotlinDslProjects.forEach {
+                    "runtime"(project(it.path))
+                }
+            }
+        """)
+        withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
+        withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
+
+        return [
+            withMainSourceSetJavaIn("buildSrc"),
+            withMainSourceSetJavaKotlinIn("buildSrc/a"),
+            withMainSourceSetJavaKotlinIn("buildSrc/b"),
+            withMainSourceSetJavaIn("buildSrc/c")
+        ]
+    }
+
+    protected List<File> canonicalClassPath() {
+        return canonicalClassPathFor(projectDir)
+    }
+
     protected List<File> canonicalClassPathFor(File projectDir, File scriptFile = null) {
         return canonicalClasspathOf(kotlinBuildScriptModelFor(projectDir, scriptFile))
+    }
+
+    protected List<File> classPathFor(File projectDir, File scriptFile = null) {
+        return kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
+    }
+
+    protected List<File> sourcePathFor(File scriptFile) {
+        kotlinBuildScriptModelFor(projectDir, scriptFile).sourcePath
     }
 
     protected KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
@@ -85,6 +182,25 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         )
     }
 
+    protected void assertClassPathContains(File... expectedFiles) {
+        assertThat(
+            canonicalClassPath().collect { it.name } as List<String>,
+            hasItems(fileNameSetOf(expectedFiles))
+        )
+    }
+
+    protected void assertIncludes(List<File> classPath, File... files) {
+        assertThat(
+            classPath.collect { it.name } as List<String>,
+            hasItems(fileNameSetOf(*files)))
+    }
+
+    protected void assertExcludes(List<File> classPath, File... files) {
+        assertThat(
+            classPath.collect { it.name } as List<String>,
+            not(hasItems(*fileNameSetOf(*files))))
+    }
+
     private static String[] fileNameSetOf(File... files) {
         return files.collect { it.name }.toSet()
     }
@@ -99,8 +215,50 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                 matching("gradle-kotlin-dsl-extensions-$version\\.jar")))
     }
 
+    protected void assertContainsBuildSrc(List<File> classPath) {
+        assertThat(
+            classPath.collect { it.name } as List<String>,
+            hasBuildSrc())
+    }
+
     protected static Matcher<Iterable<? super String>> hasBuildSrc() {
         hasItem("buildSrc.jar")
+    }
+
+    protected ProjectSourceRoots withMainSourceSetJavaIn(String projectDir) {
+        return new ProjectSourceRoots(file(projectDir), ["main"], ["java"])
+    }
+
+    protected ProjectSourceRoots withMainSourceSetJavaKotlinIn(String projectDir) {
+        return new ProjectSourceRoots(file(projectDir), ["main"], ["java", "kotlin"])
+    }
+
+    protected static Matcher<Iterable<File>> matchesProjectsSourceRoots(ProjectSourceRoots... projectSourceRoots) {
+        return allOf(projectSourceRoots.findAll { !it.languages.isEmpty() }.collectMany { sourceRoots ->
+
+            def languageDirs =
+                sourceRoots.sourceSets.collectMany { sourceSet ->
+                    ["java", "kotlin"].collect { language ->
+                        def hasLanguageDir = hasLanguageDir(sourceRoots.projectDir, sourceSet, language)
+                        if (language in sourceRoots.languages) {
+                            hasLanguageDir
+                        } else {
+                            not(hasLanguageDir)
+                        }
+                    }
+                }
+
+            def resourceDirs =
+                sourceRoots.sourceSets.collect { sourceSet ->
+                    hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
+                }
+
+            languageDirs + resourceDirs
+        })
+    }
+
+    protected static Matcher<Iterable<?>> hasLanguageDir(File base, String set, String lang) {
+        return hasItem(new File(base, "src/$set/$lang"))
     }
 
     private static Matcher<String> matching(String pattern) {
@@ -117,5 +275,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                 description.appendText("a string matching the pattern").appendValue(pattern)
             }
         }
+    }
+
+    protected static String normalizedPathOf(File file) {
+        return TextUtil.normaliseFileSeparators(file.path)
     }
 }

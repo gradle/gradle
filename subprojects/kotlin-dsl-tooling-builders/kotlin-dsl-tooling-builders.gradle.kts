@@ -40,4 +40,6 @@ dependencies {
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+
+    crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
 }
