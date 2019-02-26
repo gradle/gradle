@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.getterSignature;
 import static org.gradle.model.internal.asm.AsmClassGeneratorUtils.signature;
 import static org.objectweb.asm.Opcodes.AALOAD;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -436,6 +437,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
+        @Override
         public void addConstructor(Constructor<?> constructor) {
             List<Type> paramTypes = new ArrayList<Type>();
             for (Class<?> paramType : constructor.getParameterTypes()) {
@@ -500,6 +502,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             });
         }
 
+        @Override
         public void mixInDynamicAware() {
             if (!mixInDsl) {
                 return;
@@ -596,6 +599,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
+        @Override
         public void mixInConventionAware() {
             // GENERATE private ConventionMapping mapping
 
@@ -637,6 +641,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // END
         }
 
+        @Override
         public void mixInGroovyObject() {
             if (!mixInDsl) {
                 return;
@@ -692,7 +697,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetters(PropertyMetaData property, Method getter) {
+        public void addPropertySetters(PropertyMetadata property, Method getter) {
             if (!mixInDsl) {
                 return;
             }
@@ -753,6 +758,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
+        @Override
         public void addDynamicMethods() {
             if (!mixInDsl) {
                 return;
@@ -854,7 +860,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     });
         }
 
-        public void applyServiceInjectionToProperty(PropertyMetaData property) {
+        @Override
+        public void applyServiceInjectionToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
             String fieldName = propFieldName(property);
             visitor.visitField(Opcodes.ACC_PRIVATE, fieldName, Type.getDescriptor(property.getType()), null, null);
@@ -881,12 +888,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             mv.visitEnd();
         }
 
-        public void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) {
+        @Override
+        public void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter) {
             applyServiceInjectionToGetter(property, null, getter);
         }
 
         @Override
-        public void applyServiceInjectionToGetter(PropertyMetaData property, final Class<? extends Annotation> annotation, Method getter) {
+        public void applyServiceInjectionToGetter(PropertyMetadata property, final Class<? extends Annotation> annotation, MethodMetadata getter) {
             // GENERATE public <type> <getter>() { if (<field> == null) { <field> = <services>>.get(<service-type>>); } return <field> }
             final String getterName = getter.getName();
             Type returnType = Type.getType(getter.getReturnType());
@@ -894,7 +902,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             final Type serviceType = Type.getType(property.getType());
             final java.lang.reflect.Type genericServiceType = property.getGenericType();
             String propFieldName = propFieldName(property);
-            String signature = signature(getter);
+            String signature = getterSignature(getter.getGenericReturnType());
 
             addLazyGetter(getterName, returnType, methodDescriptor, signature, propFieldName, serviceType, new MethodCodeBody() {
                 @Override
@@ -938,7 +946,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyServiceInjectionToSetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method setter) {
+        public void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter) {
             applyServiceInjectionToSetter(property, setter);
         }
 
@@ -952,19 +960,20 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             return entry.fieldName;
         }
 
-        public void applyServiceInjectionToSetter(PropertyMetaData property, Method setter) {
+        @Override
+        public void applyServiceInjectionToSetter(PropertyMetadata property, Method setter) {
             addSetterForProperty(property, setter);
         }
 
         @Override
-        public void applyManagedStateToProperty(PropertyMetaData property) {
+        public void applyManagedStateToProperty(PropertyMetadata property) {
             // GENERATE private <type> <property-field-name>;
             String fieldName = propFieldName(property);
             visitor.visitField(Opcodes.ACC_PRIVATE, fieldName, Type.getDescriptor(property.getType()), null, null);
         }
 
         @Override
-        public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
+        public void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() { if (<field> == null) { <field> = services.get(ObjectFactory.class).<factory-method>(xxx); } return <field> }
             Type propType = Type.getType(property.getType());
             Type returnType = Type.getType(getter.getReturnType());
@@ -1013,7 +1022,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyManagedStateToGetter(PropertyMetaData property, Method getter) {
+        public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
             // GENERATE public <type> <getter>() { return <field> }
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
@@ -1025,11 +1034,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyManagedStateToSetter(PropertyMetaData property, Method setter) {
+        public void applyManagedStateToSetter(PropertyMetadata property, Method setter) {
             addSetterForProperty(property, setter);
         }
 
-        private void addSetterForProperty(PropertyMetaData property, Method setter) {
+        private void addSetterForProperty(PropertyMetadata property, Method setter) {
             // GENERATE public void <setter>(<type> value) { <field> == value }
             String methodDescriptor = Type.getMethodDescriptor(setter);
             Type fieldType = Type.getType(property.getType());
@@ -1059,7 +1068,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetaData> mutableProperties, List<PropertyMetaData> readOnlyProperties) {
+        public void addManagedMethods(List<PropertyMetadata> mutableProperties, List<PropertyMetadata> readOnlyProperties) {
             visitor.visitField(PV_FINAL_STATIC, FACTORY_FIELD, Type.getType(Managed.Factory.class).getDescriptor(), null, null);
 
             // Generate: <init>(Object[] state) { }
@@ -1071,7 +1080,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, superclassType.getInternalName(), "<init>", RETURN_VOID, false);
             }
             for (int i = 0; i < mutableProperties.size(); i++) {
-                PropertyMetaData propertyMetaData = mutableProperties.get(i);
+                PropertyMetadata propertyMetaData = mutableProperties.get(i);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitLdcInsn(i);
@@ -1081,7 +1090,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), propFieldName, Type.getType(propertyMetaData.getType()).getDescriptor());
             }
             for (int i = 0; i < readOnlyProperties.size(); i++) {
-                PropertyMetaData propertyMetaData = readOnlyProperties.get(i);
+                PropertyMetadata propertyMetaData = readOnlyProperties.get(i);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitVarInsn(ALOAD, 1);
                 methodVisitor.visitLdcInsn(i + mutableProperties.size());
@@ -1108,7 +1117,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, OBJECT_TYPE.getInternalName());
             // TODO - property order needs to be deterministic across JVM invocations, i.e. sort the properties by name
             for (int i = 0; i < mutableProperties.size(); i++) {
-                PropertyMetaData property = mutableProperties.get(i);
+                PropertyMetadata property = mutableProperties.get(i);
                 String propFieldName = propFieldName(property);
                 methodVisitor.visitInsn(DUP);
                 methodVisitor.visitLdcInsn(i);
@@ -1119,12 +1128,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitInsn(Opcodes.AASTORE);
             }
             for (int i = 0; i < readOnlyProperties.size(); i++) {
-                PropertyMetaData property = readOnlyProperties.get(i);
+                PropertyMetadata property = readOnlyProperties.get(i);
                 methodVisitor.visitInsn(DUP);
                 methodVisitor.visitLdcInsn(i + mutableProperties.size());
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                Method getter = property.getOverridableGetters().get(0);
-                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(getter), false);
+                MethodMetadata getter = property.getMainGetter();
+                methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), getter.getName(), Type.getMethodDescriptor(Type.getType(getter.getReturnType())), false);
                 maybeBox(methodVisitor, property.getType(), Type.getType(property.getType()));
                 methodVisitor.visitInsn(Opcodes.AASTORE);
             }
@@ -1152,7 +1161,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        public void applyConventionMappingToProperty(PropertyMetaData property) {
+        @Override
+        public void applyConventionMappingToProperty(PropertyMetadata property) {
             if (!conventionAware) {
                 return;
             }
@@ -1162,11 +1172,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitField(Opcodes.ACC_PRIVATE, flagName, Type.BOOLEAN_TYPE.getDescriptor(), null, null);
         }
 
-        private String propFieldName(PropertyMetaData property) {
+        private String propFieldName(PropertyMetadata property) {
             return "__" + property.getName() + "__";
         }
 
-        public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) {
+        @Override
+        public void applyConventionMappingToGetter(PropertyMetadata property, Method getter) {
             if (!conventionAware) {
                 return;
             }
@@ -1246,7 +1257,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
-        public void applyConventionMappingToSetter(PropertyMetaData property, Method setter) {
+        @Override
+        public void applyConventionMappingToSetter(PropertyMetadata property, Method setter) {
             if (!conventionAware) {
                 return;
             }
@@ -1281,7 +1293,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        public void addSetMethod(PropertyMetaData property, Method setter) {
+        @Override
+        public void addSetMethod(PropertyMetadata property, Method setter) {
             if (!mixInDsl) {
                 return;
             }
@@ -1309,7 +1322,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        public void applyConventionMappingToSetMethod(PropertyMetaData property, Method method) {
+        @Override
+        public void applyConventionMappingToSetMethod(PropertyMetadata property, Method method) {
             if (!mixInDsl || !conventionAware) {
                 return;
             }
@@ -1342,6 +1356,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
+        @Override
         public void addActionMethod(Method method) {
             if (!mixInDsl) {
                 return;
@@ -1385,7 +1400,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitEnd();
         }
 
-        void generateServiceRegistrySupportMethods() {
+        private void generateServiceRegistrySupportMethods() {
             generateServicesField();
             generateGetServices();
         }
@@ -1462,6 +1477,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }
         }
 
+        @Override
         public Class<?> generate() {
             writeGenericReturnTypeFields();
             visitor.visitEnd();
@@ -1561,63 +1577,63 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void applyServiceInjectionToProperty(PropertyMetaData property) {
+        public void applyServiceInjectionToProperty(PropertyMetadata property) {
         }
 
         @Override
-        public void applyServiceInjectionToGetter(PropertyMetaData property, Method getter) {
+        public void applyServiceInjectionToGetter(PropertyMetadata property, MethodMetadata getter) {
         }
 
         @Override
-        public void applyServiceInjectionToSetter(PropertyMetaData property, Method setter) {
+        public void applyServiceInjectionToSetter(PropertyMetadata property, Method setter) {
         }
 
         @Override
-        public void applyServiceInjectionToGetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method getter) {
+        public void applyServiceInjectionToGetter(PropertyMetadata property, Class<? extends Annotation> annotation, MethodMetadata getter) {
         }
 
         @Override
-        public void applyServiceInjectionToSetter(PropertyMetaData property, Class<? extends Annotation> annotation, Method setter) {
+        public void applyServiceInjectionToSetter(PropertyMetadata property, Class<? extends Annotation> annotation, Method setter) {
         }
 
         @Override
-        public void applyManagedStateToProperty(PropertyMetaData property) {
+        public void applyManagedStateToProperty(PropertyMetadata property) {
         }
 
         @Override
-        public void applyReadOnlyManagedStateToGetter(PropertyMetaData property, Method getter) {
+        public void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter) {
         }
 
         @Override
-        public void applyManagedStateToGetter(PropertyMetaData property, Method getter) {
+        public void applyManagedStateToGetter(PropertyMetadata property, Method getter) {
         }
 
         @Override
-        public void applyManagedStateToSetter(PropertyMetaData property, Method setter) {
+        public void applyManagedStateToSetter(PropertyMetadata property, Method setter) {
         }
 
         @Override
-        public void addManagedMethods(List<PropertyMetaData> properties, List<PropertyMetaData> readOnlyProperties) {
+        public void addManagedMethods(List<PropertyMetadata> properties, List<PropertyMetadata> readOnlyProperties) {
         }
 
         @Override
-        public void applyConventionMappingToProperty(PropertyMetaData property) {
+        public void applyConventionMappingToProperty(PropertyMetadata property) {
         }
 
         @Override
-        public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) {
+        public void applyConventionMappingToGetter(PropertyMetadata property, Method getter) {
         }
 
         @Override
-        public void applyConventionMappingToSetter(PropertyMetaData property, Method setter) {
+        public void applyConventionMappingToSetter(PropertyMetadata property, Method setter) {
         }
 
         @Override
-        public void applyConventionMappingToSetMethod(PropertyMetaData property, Method metaMethod) {
+        public void applyConventionMappingToSetMethod(PropertyMetadata property, Method metaMethod) {
         }
 
         @Override
-        public void addSetMethod(PropertyMetaData propertyMetaData, Method setter) {
+        public void addSetMethod(PropertyMetadata propertyMetaData, Method setter) {
         }
 
         @Override
@@ -1625,7 +1641,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         @Override
-        public void addPropertySetters(PropertyMetaData property, Method getter) {
+        public void addPropertySetters(PropertyMetadata property, Method getter) {
         }
 
         @Override
