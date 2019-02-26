@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
+
 import java.io.File
 
 
@@ -59,3 +60,8 @@ open class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGeneration
     val packageName
         get() = "org.gradle.kotlin.dsl"
 }
+
+
+private
+fun kotlinPackageNameFor(packageName: String) =
+    packageName.split('.').joinToString(".") { "`$it`" }

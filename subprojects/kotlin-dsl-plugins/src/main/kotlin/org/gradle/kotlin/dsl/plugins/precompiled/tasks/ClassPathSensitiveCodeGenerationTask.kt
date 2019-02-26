@@ -24,8 +24,3 @@ abstract class ClassPathSensitiveCodeGenerationTask : ClassPathSensitiveTask() {
     @get:OutputDirectory
     var sourceCodeOutputDir = directoryProperty()
 }
-
-
-internal
-fun kotlinPackageNameFor(packageName: String) =
-    packageName.split('.').joinToString(".") { "`$it`" }
