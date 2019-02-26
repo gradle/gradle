@@ -120,7 +120,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)
+        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) || daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
     }
 
     def "when build leaks permgen space daemon is expired"() {
@@ -128,9 +128,9 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
         when:
         setupBuildScript = permGenLeak
-        maxBuilds = 20
+        maxBuilds = 30
         heapSize = "200m"
-        leakRate = 3300
+        leakRate = 3700
 
         then:
         daemonIsExpiredEagerly()
@@ -142,7 +142,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         // before the gc monitoring expires the daemon
         executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
-        leakRate = 1700
+        leakRate = 1400
 
         when:
         leaksWithinOneBuild()
