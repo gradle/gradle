@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -53,14 +52,6 @@ open class GenerateInternalPluginSpecBuilders : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        // TODO()
+        // TODO
     }
 }
-
-
-internal
-fun AbstractTask.directoryProperty() = project.objects.directoryProperty()
-
-
-internal
-fun AbstractTask.sourceDirectorySet(name: String, displayName: String) = project.objects.sourceDirectorySet(name, displayName)
