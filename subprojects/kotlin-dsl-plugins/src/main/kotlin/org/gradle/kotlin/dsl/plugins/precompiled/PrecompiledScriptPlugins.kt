@@ -217,9 +217,6 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
         }
 
         val compileKotlin by existing(KotlinCompile::class) {
-            dependsOn(generatePrecompiledScriptPluginAccessors)
-            dependsOn(generateInternalPluginSpecBuilders)
-            dependsOn(generateExternalPluginSpecBuilders)
             dependsOn(configurePrecompiledScriptPluginImports)
         }
 
