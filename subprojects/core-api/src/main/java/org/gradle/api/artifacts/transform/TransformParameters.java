@@ -25,5 +25,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface TransformParameters {
-    interface None extends TransformParameters {}
+    /**
+     * Used for {@link TransformAction}s that do not require a parameter object.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    final class None implements TransformParameters {
+        private None() {}
+    }
 }

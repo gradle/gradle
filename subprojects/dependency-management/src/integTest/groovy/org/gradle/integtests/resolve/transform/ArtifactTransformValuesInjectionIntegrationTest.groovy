@@ -190,6 +190,34 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
     }
 
+    def "cannot query parameters for transform without parameters"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
+                    println getParameters()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertResolutionFailure(':a:implementation')
+        failure.assertHasCause("Cannot query parameters for artifact transform without parameters.")
+    }
+
     @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """

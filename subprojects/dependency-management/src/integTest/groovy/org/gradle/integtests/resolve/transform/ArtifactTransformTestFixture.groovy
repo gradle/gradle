@@ -187,9 +187,11 @@ allprojects { p ->
         registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
+            ${builder.transformParamsConfig.empty ? "" : """
             parameters {
                 ${builder.transformParamsConfig}
             }
+            """}
         }
     }
 }

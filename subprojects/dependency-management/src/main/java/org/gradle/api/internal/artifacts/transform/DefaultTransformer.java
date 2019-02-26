@@ -68,6 +68,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction> {
@@ -279,20 +280,20 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
-        private static final TransformParameters.None NO_PARAMETERS = new TransformParameters.None() {};
-
         private final ImmutableList<InjectionPoint> injectionPoints;
 
         public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, () -> inputFile));
             if (parameters != null) {
-                builder.add(new InjectionPoint(null, parameters.getClass(), parameters));
+                builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));
             } else {
-                builder.add(new InjectionPoint(null, TransformParameters.None.class, NO_PARAMETERS));
+                builder.add(InjectionPoint.injectedByType(TransformParameters.None.class, () -> {
+                    throw new UnknownServiceException(TransformParameters.None.class, "Cannot query parameters for artifact transform without parameters.");
+                }));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
+                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles()));
             }
             this.injectionPoints = builder.build();
         }
@@ -302,9 +303,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
             for (InjectionPoint injectionPoint : injectionPoints) {
                 if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
-                    Object valueToInject = injectionPoint.getValueToInject();
-
-                    return valueToInject;
+                    return injectionPoint.getValueToInject();
                 }
             }
             return null;
@@ -337,16 +336,20 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         private static class InjectionPoint {
             private final Class<? extends Annotation> annotation;
             private final Class<?> injectedType;
-            private final Object valueToInject;
+            private final Supplier<Object> valueToInject;
 
-            public InjectionPoint(@Nullable Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
+            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
+                return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
+            }
+
+            public static InjectionPoint injectedByType(Class<?> injectedType, Supplier<Object> valueToInject) {
+                return new InjectionPoint(null, injectedType, valueToInject);
+            }
+
+            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Class<?> injectedType, Supplier<Object> valueToInject) {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
-            }
-
-            public InjectionPoint(Class<? extends Annotation> annotation, Object valueToInject) {
-                this(annotation, determineTypeFromAnnotation(annotation), valueToInject);
             }
 
             private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
@@ -357,6 +360,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 return supportedTypes[0];
             }
 
+            @Nullable
             public Class<? extends Annotation> getAnnotation() {
                 return annotation;
             }
@@ -366,7 +370,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             }
 
             public Object getValueToInject() {
-                return valueToInject;
+                return valueToInject.get();
             }
         }
     }
