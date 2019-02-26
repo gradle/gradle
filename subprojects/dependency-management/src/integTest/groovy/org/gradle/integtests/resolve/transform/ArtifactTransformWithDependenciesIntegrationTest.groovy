@@ -127,7 +127,7 @@ abstract class TestTransform implements TransformAction<TestTransformParameters>
     }
 }
 
-abstract class SimpleTransform implements TransformAction<TransformParameters> {
+abstract class SimpleTransform implements TransformAction<TransformParameters.None> {
 
     @InputArtifact
     abstract File getInput()
@@ -416,7 +416,7 @@ allprojects {
     }
 }
 
-abstract class NoneTransform implements TransformAction<TransformParameters> {
+abstract class NoneTransform implements TransformAction<TransformParameters.None> {
     @InputArtifactDependencies @PathSensitive(PathSensitivity.NONE)
     abstract FileCollection getInputArtifactDependencies()
 
@@ -512,7 +512,7 @@ allprojects {
     }
 }
 
-abstract class ClasspathTransform implements TransformAction<TransformParameters> {
+abstract class ClasspathTransform implements TransformAction<TransformParameters.None> {
     @InputArtifactDependencies @${classpathAnnotation.simpleName}
     abstract FileCollection getInputArtifactDependencies()
 

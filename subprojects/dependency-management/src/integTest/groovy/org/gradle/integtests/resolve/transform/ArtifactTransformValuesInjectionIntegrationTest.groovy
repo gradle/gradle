@@ -408,7 +408,7 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<TransformParameters> {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
@@ -537,7 +537,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<TransformParameters> {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
     abstract FileCollection getDependencies()
     
@@ -571,7 +571,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction<TransformParameters> {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @Inject
     abstract File getWorkspace()
     

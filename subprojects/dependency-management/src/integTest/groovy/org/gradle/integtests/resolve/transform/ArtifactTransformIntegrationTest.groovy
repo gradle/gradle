@@ -35,6 +35,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         """
 
         buildFile << """
+import org.gradle.api.artifacts.transform.TransformParameters
+
 def usage = Attribute.of('usage', String)
 def artifactType = Attribute.of('artifactType', String)
 def extraAttribute = Attribute.of('extra', String)
@@ -803,7 +805,7 @@ $fileSizer
                 }
             }
             
-            abstract class IdentityTransform implements TransformAction<TransformParameters> {
+            abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -1553,7 +1555,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class FailingTransform implements TransformAction<TransformParameters> {
+            abstract class FailingTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1623,7 +1625,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class DirectoryTransform implements TransformAction<TransformParameters> {
+            abstract class DirectoryTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
@@ -1661,7 +1663,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class MyTransform implements TransformAction<TransformParameters> {
+            abstract class MyTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput() 
 
@@ -1739,7 +1741,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            abstract class SomewhereElseTransform implements TransformAction<TransformParameters> {
+            abstract class SomewhereElseTransform implements TransformAction<TransformParameters.None> {
                 static def output
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)

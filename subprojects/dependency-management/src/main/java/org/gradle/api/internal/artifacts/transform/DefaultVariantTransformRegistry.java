@@ -82,7 +82,10 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         ParameterizedType superType = (ParameterizedType) TypeToken.of(actionType).getSupertype(TransformAction.class).getType();
         Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
-        T parameterObject = parameterType == TransformParameters.class ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
+        if (parameterType == TransformParameters.class) {
+            throw new VariantTransformConfigurationException(String.format("Could not register transform: must use a sub-type of %s as parameter type. Use %s for transforms without parameters.", ModelType.of(TransformParameters.class).getDisplayName(), ModelType.of(TransformParameters.None.class).getDisplayName()));
+        }
+        T parameterObject = parameterType == TransformParameters.None.class ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 

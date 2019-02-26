@@ -51,6 +51,8 @@ trait ArtifactTransformTestFixture {
 
         buildFile << """
 import ${javax.inject.Inject.name}
+// TODO: Default imports should work for of inner classes 
+import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
 def color = Attribute.of('color', String)
 allprojects {

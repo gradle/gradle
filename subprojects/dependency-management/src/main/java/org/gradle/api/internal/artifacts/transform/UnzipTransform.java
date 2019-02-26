@@ -39,7 +39,7 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
  * is located in the output directory of the transform and is named after the zipped file name
  * minus the extension.
  */
-public interface UnzipTransform extends TransformAction<TransformParameters> {
+public interface UnzipTransform extends TransformAction<TransformParameters.None> {
 
     @InputArtifact
     File getZippedFile();

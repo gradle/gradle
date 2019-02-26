@@ -159,6 +159,19 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.transformationStep.transformer.parameterObject == null
     }
 
+    def "cannot use TransformParameters as parameter type"() {
+        when:
+        registry.registerTransform(UnspecifiedTestTransform) {
+            it.from.attribute(TEST_ATTRIBUTE, "FROM")
+            it.to.attribute(TEST_ATTRIBUTE, "TO")
+        }
+
+        then:
+        def e = thrown(VariantTransformConfigurationException)
+        e.message == 'Could not register transform: must use a sub-type of TransformParameters as parameter type. Use TransformParameters.None for transforms without parameters.'
+        e.cause == null
+    }
+
     def "cannot configure parameters for parameterless action"() {
         when:
         registry.registerTransform(ParameterlessTestTransform) {
@@ -346,7 +359,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static abstract class ParameterlessTestTransform implements TransformAction<TransformParameters> {
+    static abstract class ParameterlessTestTransform implements TransformAction<TransformParameters.None> {
+        @Override
+        void transform(TransformOutputs outputs) {
+        }
+    }
+
+    static abstract class UnspecifiedTestTransform implements TransformAction<TransformParameters> {
         @Override
         void transform(TransformOutputs outputs) {
         }

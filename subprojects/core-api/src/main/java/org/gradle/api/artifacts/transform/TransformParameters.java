@@ -25,4 +25,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface TransformParameters {
+    interface None extends TransformParameters {}
 }

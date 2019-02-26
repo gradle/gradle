@@ -151,7 +151,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
-            abstract class MakeRed implements TransformAction<TransformParameters> {
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput()
                 

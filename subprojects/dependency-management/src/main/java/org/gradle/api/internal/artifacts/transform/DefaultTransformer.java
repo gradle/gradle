@@ -279,6 +279,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
+        private static final TransformParameters.None NO_PARAMETERS = new TransformParameters.None() {};
+
         private final ImmutableList<InjectionPoint> injectionPoints;
 
         public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
@@ -287,7 +289,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             if (parameters != null) {
                 builder.add(new InjectionPoint(null, parameters.getClass(), parameters));
             } else {
-                builder.add(new InjectionPoint(null, TransformParameters.class, new TransformParameters() {}));
+                builder.add(new InjectionPoint(null, TransformParameters.None.class, NO_PARAMETERS));
             }
             if (artifactTransformDependencies != null) {
                 builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
@@ -300,7 +302,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             TypeToken<?> serviceTypeToken = TypeToken.of(serviceType);
             for (InjectionPoint injectionPoint : injectionPoints) {
                 if (annotatedWith == injectionPoint.getAnnotation() && serviceTypeToken.isSupertypeOf(injectionPoint.getInjectedType())) {
-                    return injectionPoint.getValueToInject();
+                    Object valueToInject = injectionPoint.getValueToInject();
+
+                    return valueToInject;
                 }
             }
             return null;
