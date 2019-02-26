@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server.health.gc;
 
 import com.google.common.collect.Sets;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -43,10 +43,20 @@ public class DefaultSlidingWindow<T> implements SlidingWindow<T> {
     }
 
     @Override
-    public Set<T> snapshot() {
+    public Collection<T> snapshot() {
         lock.lock();
         try {
             return Sets.newLinkedHashSet(deque);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public T latest() {
+        lock.lock();
+        try {
+            return deque.peekLast();
         } finally {
             lock.unlock();
         }

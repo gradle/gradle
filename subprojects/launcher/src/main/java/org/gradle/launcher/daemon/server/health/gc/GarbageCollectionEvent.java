@@ -19,9 +19,9 @@ package org.gradle.launcher.daemon.server.health.gc;
 import java.lang.management.MemoryUsage;
 
 public class GarbageCollectionEvent {
-    final long timestamp;
-    final MemoryUsage usage;
-    final long count;
+    private final long timestamp;
+    private final MemoryUsage usage;
+    private final long count;
 
     public GarbageCollectionEvent(long timestamp, MemoryUsage usage, long count) {
         this.timestamp = timestamp;

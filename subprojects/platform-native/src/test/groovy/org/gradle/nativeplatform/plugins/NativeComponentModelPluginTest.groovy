@@ -47,6 +47,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
+import static org.gradle.util.CollectionUtils.single
 
 class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def registry
@@ -120,8 +121,8 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        one(binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
-        one(binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
+        single(binaries.withType(NativeExecutableBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
+        single(binaries.withType(SharedLibraryBinarySpec)).flavor.name == DefaultFlavor.DEFAULT
     }
 
     def "behaves correctly for defaults when domain is explicitly configured"() {
@@ -133,10 +134,10 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
             .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         then:
-        one(toolChains).name == 'tc'
+        single(toolChains).name == 'tc'
         platforms.size() == 1
-        one(buildTypes).name == 'bt'
-        one(flavors).name == 'flavor1'
+        single(buildTypes).name == 'bt'
+        single(flavors).name == 'flavor1'
     }
 
     def "creates binaries for executable"() {
@@ -157,8 +158,8 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        NativeExecutableSpec executable = one(components.values()) as NativeExecutableSpec
-        NativeExecutableBinarySpec executableBinary = one(binaries) as NativeExecutableBinarySpec
+        NativeExecutableSpec executable = single(components.values()) as NativeExecutableSpec
+        NativeExecutableBinarySpec executableBinary = single(binaries) as NativeExecutableBinarySpec
         with(executableBinary) {
             name == 'executable'
             component == executable
@@ -190,7 +191,7 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        NativeLibrarySpec library = one(components.values()) as NativeLibrarySpec
+        NativeLibrarySpec library = single(components.values()) as NativeLibrarySpec
         SharedLibraryBinarySpec sharedLibraryBinary = binaries.testSharedLibrary as SharedLibraryBinarySpec
         with(sharedLibraryBinary) {
             name == 'sharedLibrary'
@@ -245,14 +246,6 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
             name == "libStaticLibrary"
             group == LifecycleBasePlugin.BUILD_GROUP
         }
-    }
-
-    static <T> T one(Iterable<T> iterable) {
-        def iterator = iterable.iterator()
-        assert iterator.hasNext()
-        def item = iterator.next()
-        assert !iterator.hasNext()
-        return item
     }
 
     public <T> T named(Class<T> type, def name) {

@@ -16,13 +16,8 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.runner.RunWith
 
-import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
-
-@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
     def "can apply a transform to the outputs of included builds"() {
@@ -36,7 +31,6 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 apply plugin: 'java'
             """
         }
-        configureIncrementalArtifactTransformations(buildA.settingsFile)
         includedBuilds << buildB
         includedBuilds << buildC
 
@@ -84,6 +78,6 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
     }
 
     private String expectedWorkspaceLocation(TestFile includedBuild) {
-        ExperimentalIncrementalArtifactTransformationsRunner.incrementalArtifactTransformations ? includedBuild.file("build/transforms") : executer.gradleUserHomeDir
+        includedBuild.file("build/transforms")
     }
 }

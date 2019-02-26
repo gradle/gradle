@@ -16,134 +16,50 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.time.Time;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class GarbageCollectionMonitor {
-    public static final int POLL_INTERVAL_SECONDS = 1;
+    private static final int POLL_INTERVAL_SECONDS = 1;
     private static final int POLL_DELAY_SECONDS = 1;
     private static final int EVENT_WINDOW = 20;
-    private static final Logger LOGGER = Logging.getLogger(GarbageCollectionMonitor.class);
-    private final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
+
+    private final SlidingWindow<GarbageCollectionEvent> heapEvents;
+    private final SlidingWindow<GarbageCollectionEvent> nonHeapEvents;
     private final GarbageCollectorMonitoringStrategy gcStrategy;
     private final ScheduledExecutorService pollingExecutor;
-
-    public GarbageCollectionMonitor(ScheduledExecutorService pollingExecutor) {
-        this(determineGcStrategy(), pollingExecutor);
-    }
 
     public GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
         this.gcStrategy = gcStrategy;
-
+        this.heapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
+        this.nonHeapEvents = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>of(
-                gcStrategy.getTenuredPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW),
-                gcStrategy.getPermGenPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW)
-            );
-            pollForValues(gcStrategy.getGarbageCollectorName(), ImmutableList.copyOf(events.keySet()));
-        } else {
-            events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>builder().build();
+            pollForValues();
         }
     }
 
-    private static GarbageCollectorMonitoringStrategy determineGcStrategy() {
-        JVMStrategy jvmStrategy = JVMStrategy.current();
-
-        final List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), new Transformer<String, GarbageCollectorMXBean>() {
+    private void pollForValues() {
+        GarbageCollectorMXBean garbageCollectorMXBean = CollectionUtils.findFirst(ManagementFactory.getGarbageCollectorMXBeans(), new Spec<GarbageCollectorMXBean>() {
             @Override
-            public String transform(GarbageCollectorMXBean garbageCollectorMXBean) {
-                return garbageCollectorMXBean.getName();
+            public boolean isSatisfiedBy(GarbageCollectorMXBean element) {
+                return element.getName().equals(gcStrategy.getGarbageCollectorName());
             }
         });
-        GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(jvmStrategy.getGcStrategies(), new Spec<GarbageCollectorMonitoringStrategy>() {
-            @Override
-            public boolean isSatisfiedBy(GarbageCollectorMonitoringStrategy strategy) {
-                return garbageCollectors.contains(strategy.getGarbageCollectorName());
-            }
-        });
-
-        if (gcStrategy == null) {
-            LOGGER.info("Unable to determine a garbage collection monitoring strategy for " + jvmStrategy.toString());
-            return GarbageCollectorMonitoringStrategy.UNKNOWN;
-        } else {
-            return gcStrategy;
-        }
+        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(Time.clock(), garbageCollectorMXBean, gcStrategy.getHeapPoolName(), heapEvents, gcStrategy.getNonHeapPoolName(), nonHeapEvents), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
     }
 
-    private void pollForValues(String garbageCollectorName, List<String> memoryPoolNames) {
-        pollingExecutor.scheduleAtFixedRate(new GarbageCollectionCheck(events, memoryPoolNames, garbageCollectorName), POLL_DELAY_SECONDS, POLL_INTERVAL_SECONDS, TimeUnit.SECONDS);
+    public GarbageCollectionStats getHeapStats() {
+        return GarbageCollectionStats.forHeap(heapEvents.snapshot());
     }
 
-    public GarbageCollectionStats getTenuredStats() {
-        return getGarbageCollectionStatsWithEmptyDefault(gcStrategy.getTenuredPoolName());
-    }
-
-    public GarbageCollectionStats getPermGenStats() {
-        return getGarbageCollectionStatsWithEmptyDefault(gcStrategy.getPermGenPoolName());
-    }
-
-    private GarbageCollectionStats getGarbageCollectionStatsWithEmptyDefault(final String memoryPoolName) {
-        SlidingWindow<GarbageCollectionEvent> slidingWindow;
-        if ((memoryPoolName == null) || events.get(memoryPoolName) == null) { // events has no entries on UNKNOWN
-            slidingWindow = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
-        } else {
-            slidingWindow = events.get(memoryPoolName);
-        }
-        return new GarbageCollectionStats(slidingWindow.snapshot());
-    }
-
-    public GarbageCollectorMonitoringStrategy getGcStrategy() {
-        return gcStrategy;
-    }
-
-    public enum JVMStrategy {
-        IBM(GarbageCollectorMonitoringStrategy.IBM_ALL),
-        ORACLE_HOTSPOT(GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS,
-                        GarbageCollectorMonitoringStrategy.ORACLE_SERIAL,
-                        GarbageCollectorMonitoringStrategy.ORACLE_6_CMS,
-                        GarbageCollectorMonitoringStrategy.ORACLE_G1),
-        UNSUPPORTED();
-
-        final GarbageCollectorMonitoringStrategy[] gcStrategies;
-
-        JVMStrategy(GarbageCollectorMonitoringStrategy... gcStrategies) {
-            this.gcStrategies = gcStrategies;
-        }
-
-        static JVMStrategy current() {
-            String vmname = System.getProperty("java.vm.name");
-
-            if (vmname.equals("IBM J9 VM")) {
-                return IBM;
-            }
-
-            if (vmname.startsWith("Java HotSpot(TM)")) {
-                return ORACLE_HOTSPOT;
-            }
-
-            return UNSUPPORTED;
-        }
-
-        public GarbageCollectorMonitoringStrategy[] getGcStrategies() {
-            return gcStrategies;
-        }
-
-        @Override
-        public String toString() {
-            return "JVMStrategy{" + System.getProperty("java.vendor") + " version " + System.getProperty("java.version") + "}";
-        }
+    public GarbageCollectionStats getNonHeapStats() {
+        return GarbageCollectionStats.forNonHeap(nonHeapEvents.snapshot());
     }
 }

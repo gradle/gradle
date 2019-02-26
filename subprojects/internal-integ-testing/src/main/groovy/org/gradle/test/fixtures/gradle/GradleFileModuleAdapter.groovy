@@ -17,7 +17,7 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.json.JsonBuilder
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.test.fixtures.file.TestFile
 
 class GradleFileModuleAdapter {
@@ -40,7 +40,7 @@ class GradleFileModuleAdapter {
         def file = moduleDir.file("$module-${version}.module")
         def jsonBuilder = new JsonBuilder()
         jsonBuilder {
-            formatVersion ModuleMetadataParser.FORMAT_VERSION
+            formatVersion GradleModuleMetadataParser.FORMAT_VERSION
             builtBy {
                 gradle { }
             }
