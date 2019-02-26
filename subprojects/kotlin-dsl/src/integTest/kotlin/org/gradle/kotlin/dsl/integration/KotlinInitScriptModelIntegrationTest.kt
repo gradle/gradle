@@ -5,8 +5,6 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
-import java.io.File
-
 
 class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
