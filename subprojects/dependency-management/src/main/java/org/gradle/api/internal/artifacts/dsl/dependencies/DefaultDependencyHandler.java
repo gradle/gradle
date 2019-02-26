@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
@@ -215,13 +215,8 @@ public class DefaultDependencyHandler implements DependencyHandler, MethodMixIn 
     }
 
     @Override
-    public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
-        transforms.registerTransform(parameterType, registrationAction);
-    }
-
-    @Override
-    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction) {
-        transforms.registerTransformAction(actionType, registrationAction);
+    public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        transforms.registerTransform(actionType, registrationAction);
     }
 
     @Override

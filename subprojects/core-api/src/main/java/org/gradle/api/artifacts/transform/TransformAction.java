@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
 
+import javax.inject.Inject;
+
 /**
  * Interface for artifact transform actions.
  *
@@ -25,16 +27,22 @@ import org.gradle.api.Incubating;
  *
  * <p>Implementations can receive parameters by using annotated abstract getter methods.</p>
  *
- * <p>A property annotated with {@link TransformParameters} will receive the object provided by {@link ParameterizedTransformSpec#getParameters()}.
- *
  * <p>A property annotated with {@link InputArtifact} will receive the <em>input artifact</em> location, which is the file or directory that the transform should be applied to.
  *
  * <p>A property annotated with {@link InputArtifactDependencies} will receive the <em>dependencies</em> of its input artifact.
  *
+ * @param <T> Parameter type for the transform action. Should be {@link TransformParameters.None} if the action does not have parameters.
  * @since 5.3
  */
 @Incubating
-public interface TransformAction {
+public interface TransformAction<T extends TransformParameters> {
+
+    /**
+     * The object provided by {@link TransformSpec#getParameters()}.
+     */
+    @Inject
+    T getParameters();
+
     /**
      * Executes the transform.
      *

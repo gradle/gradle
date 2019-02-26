@@ -85,23 +85,17 @@ class Resolve extends Copy {
 
         given:
         buildFile << """
-            @AssociatedTransformAction(CountRecorderAction)
-            interface CountRecorder {
-                @Input
-                Counter getCounter()
-                void setCounter(Counter counter)
-            }
-
-            abstract class CountRecorderAction implements TransformAction {
-                private final Counter counter;
-                            
-                @TransformParameters
-                abstract CountRecorder getParameters()                  
+            abstract class CountRecorder implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    @Input
+                    Counter getCounter()
+                    void setCounter(Counter counter)
+                }
 
                 @InputArtifact
                 abstract File getInput()
 
-                CountRecorderAction() {
+                CountRecorder() {
                     println "Creating CountRecorder"
                 }
                 

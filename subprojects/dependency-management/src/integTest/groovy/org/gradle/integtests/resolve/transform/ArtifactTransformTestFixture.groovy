@@ -51,6 +51,8 @@ trait ArtifactTransformTestFixture {
 
         buildFile << """
 import ${javax.inject.Inject.name}
+// TODO: Default imports should work for of inner classes 
+import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
 def color = Attribute.of('color', String)
 allprojects {
@@ -158,7 +160,7 @@ class JarProducer extends DefaultTask {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(MakeGreen) {
+        registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
@@ -185,9 +187,11 @@ allprojects { p ->
         registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
+            ${builder.transformParamsConfig.empty ? "" : """
             parameters {
                 ${builder.transformParamsConfig}
             }
+            """}
         }
     }
 }
