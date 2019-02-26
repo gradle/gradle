@@ -26,10 +26,11 @@ import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.kotlin.dsl.fixtures.jarWithPluginDescriptors
+import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
+import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -41,6 +42,8 @@ import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+
+import java.io.File
 
 
 class PluginAccessorsClassPathTest : TestWithClassPath() {
@@ -147,4 +150,12 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
             verifyNoMoreInteractions(plugins)
         }
     }
+
+    private
+    fun jarWithPluginDescriptors(file: File, vararg pluginIdsToImplClasses: Pair<String, String>) =
+        file.also {
+            zipTo(it, pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
+                pluginDescriptorEntryFor(id, implClass)
+            })
+        }
 }
