@@ -17,17 +17,15 @@
 package org.gradle.kotlin.dsl.tooling.builders.r41
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.kotlin.dsl.tooling.builders.KotlinDslToolingModelsClasspathProvider
+
+import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 
 
 @ToolingApiVersion(">=4.1")
 @TargetGradleVersion(">=4.1")
-@ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
-class KotlinBuildScriptTemplateModelCrossVersionSpec extends ToolingApiSpecification {
+class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can load script template using classpath model"() {
 
