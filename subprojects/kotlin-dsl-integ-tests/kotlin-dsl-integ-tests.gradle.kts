@@ -49,6 +49,11 @@ pluginBundles.forEach {
 
 tasks {
 
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        isEnabled = false
+    }
+
     val testEnvironment by registering {
         pluginBundles.forEach {
             dependsOn("$it:publishPluginsToTestRepository")

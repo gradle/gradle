@@ -99,3 +99,8 @@ integTestTasks.configureEach {
 tasks.noDaemonIntegTest {
     enabled = false
 }
+
+// TODO:kotlin-dsl
+tasks.verifyTestFilesCleanup {
+    enabled = false
+}
