@@ -124,6 +124,7 @@ fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
     model(KotlinBuildScriptModel::class.java).apply {
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
+        forTasks(KotlinDslProviderMode.modelTaskName)
 
         val arguments = request.options.toMutableList()
         arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"

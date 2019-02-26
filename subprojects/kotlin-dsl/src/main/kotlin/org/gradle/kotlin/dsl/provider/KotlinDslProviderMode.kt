@@ -20,6 +20,7 @@ internal
 object KotlinDslProviderMode {
     const val systemPropertyName = "org.gradle.kotlin.dsl.provider.mode"
     const val classPathMode = "classpath"
+    const val modelTaskName = "projects"
 }
 
 

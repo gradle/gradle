@@ -56,7 +56,7 @@ class PrecompiledScriptPluginModelIntegrationTest : AbstractPluginIntegrationTes
         """)
 
         val precompiledScriptPlugin =
-            withFile("src/main/kotlin/my-plugin.gradle.kts")
+            withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
 
         assertClassPathFor(
             precompiledScriptPlugin,
@@ -113,7 +113,6 @@ class PrecompiledScriptPluginModelIntegrationTest : AbstractPluginIntegrationTes
     @Test
     fun `implicit imports include type-safe accessors packages`() {
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         val pluginFile = withPrecompiledKotlinScript("plugin.gradle.kts", """

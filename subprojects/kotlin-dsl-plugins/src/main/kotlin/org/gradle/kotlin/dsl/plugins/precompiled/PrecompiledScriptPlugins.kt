@@ -26,9 +26,11 @@ import org.gradle.api.provider.Provider
 
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
@@ -38,13 +40,10 @@ import org.gradle.kotlin.dsl.plugins.precompiled.tasks.HashedProjectSchema
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
-
-import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.provider.inClassPathMode
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -191,7 +190,7 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
             outputDir.set(compiledPluginsBlocks)
         }
 
-        val (generatePrecompiledScriptPluginAccessors, generatedAccessors) =
+        val (generatePrecompiledScriptPluginAccessors, _) =
             codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
                 "accessors",
                 "generatePrecompiledScriptPluginAccessors"
@@ -204,33 +203,19 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
                 plugins = scriptPlugins
             }
 
-        val configurePrecompiledScriptPluginImports by registering {
+        val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
             inputs.files(
                 project.files(generatedMetadata).builtBy(generatePrecompiledScriptPluginAccessors)
             )
+            metadataDir.set(generatedMetadata)
         }
 
         val compileKotlin by existing(KotlinCompile::class) {
-            dependsOn(configurePrecompiledScriptPluginImports)
+            dependsOn(configurePrecompiledScriptDependenciesResolver)
         }
 
-        configurePrecompiledScriptPluginImports {
-            doLast {
-
-                val metadataDir = generatedMetadata.get().asFile
-                require(metadataDir.isDirectory)
-
-                val precompiledScriptPluginImports =
-                    metadataDir.listFiles().map {
-                        it.name to it.readLines()
-                    }
-
-                val resolverEnvironment = resolverEnvironmentStringFor(
-                    listOf(
-                        PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports to implicitImports()
-                    ) + precompiledScriptPluginImports
-                )
-
+        configurePrecompiledScriptDependenciesResolver {
+            onConfigure { resolverEnvironment ->
                 compileKotlin.get().apply {
                     kotlinOptions {
                         freeCompilerArgs += listOf(
@@ -242,6 +227,20 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
                 }
             }
         }
+
+        if (inClassPathMode()) {
+            registerClassPathModelTask(configurePrecompiledScriptDependenciesResolver)
+        }
+    }
+}
+
+
+private
+fun Project.registerClassPathModelTask(
+    modelTask: TaskProvider<out Task>
+) {
+    rootProject.tasks.named("projects" /*KotlinDslProviderMode.modelTaskName*/) {
+        it.dependsOn(modelTask)
     }
 }
 
@@ -261,18 +260,6 @@ val scriptTemplates by lazy {
         PrecompiledProjectScript::class.qualifiedName!!
     ).joinToString(separator = ",")
 }
-
-
-private
-fun resolverEnvironmentStringFor(properties: Iterable<Pair<String, List<String>>>): String =
-    properties.joinToString(separator = ",") { (key, values) ->
-        "$key=\"${values.joinToString(":")}\""
-    }
-
-
-internal
-fun Project.implicitImports(): List<String> =
-    serviceOf<ImplicitImports>().list
 
 
 private

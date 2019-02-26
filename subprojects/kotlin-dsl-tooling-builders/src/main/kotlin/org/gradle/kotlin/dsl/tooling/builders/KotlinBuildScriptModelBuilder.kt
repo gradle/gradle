@@ -42,6 +42,8 @@ import org.gradle.kotlin.dsl.accessors.projectAccessorsClassPath
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 
+import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
@@ -203,8 +205,28 @@ fun precompiledScriptPluginModelBuilder(
     scriptFile = scriptFile,
     project = modelRequestProject,
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
-    enclosingScriptProjectDir = enclosingSourceSet.project.projectDir
+    enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
+    additionalImports = {
+        val metadataDir = enclosingSourceSet.project.buildDir.resolve("precompiled-script-plugins")
+        require(metadataDir.isDirectory)
+        implicitImportsFor(
+            hashOf(scriptFile),
+            metadataDir
+        ) ?: emptyList()
+    }
 )
+
+
+private
+fun implicitImportsFor(precompiledScriptPluginHash: String, metadataDir: File): List<String>? =
+    metadataDir
+        .resolve(precompiledScriptPluginHash)
+        .takeIf { it.isFile }
+        ?.readLines()
+
+
+private
+fun hashOf(scriptFile: File) = PrecompiledScriptDependenciesResolver.hashOf(scriptFile.readText())
 
 
 private
@@ -359,7 +381,8 @@ data class KotlinScriptTargetModelBuilder(
     val scriptClassPath: ClassPath,
     val accessorsClassPath: (ClassPath) -> AccessorsClassPath = { AccessorsClassPath.empty },
     val sourceLookupScriptHandlers: List<ScriptHandler> = emptyList(),
-    val enclosingScriptProjectDir: File? = null
+    val enclosingScriptProjectDir: File? = null,
+    val additionalImports: () -> List<String> = { emptyList() }
 ) {
 
     fun buildModel(): KotlinBuildScriptModel {
@@ -370,10 +393,15 @@ data class KotlinScriptTargetModelBuilder(
                 accessorsClassPath(scriptClassPath)
             } ?: AccessorsClassPath.empty
 
+        val additionalImports =
+            classPathModeExceptionCollector.ignoringErrors {
+                additionalImports()
+            } ?: emptyList()
+
         return StandardKotlinBuildScriptModel(
             (scriptClassPath + accessorsClassPath.bin).asFiles,
             (gradleSource() + classpathSources + accessorsClassPath.src).asFiles,
-            implicitImports,
+            implicitImports + additionalImports,
             buildEditorReportsFor(classPathModeExceptionCollector.exceptions),
             classPathModeExceptionCollector.exceptions.map(::exceptionToString),
             enclosingScriptProjectDir

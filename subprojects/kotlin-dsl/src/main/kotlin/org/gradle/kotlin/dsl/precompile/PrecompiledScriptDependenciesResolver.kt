@@ -31,6 +31,11 @@ import kotlin.script.dependencies.ScriptDependenciesResolver
 
 class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
+    companion object {
+
+        fun hashOf(charSequence: CharSequence?) = Hashing.hashString(charSequence).toString()
+    }
+
     object EnvironmentProperties {
         const val kotlinDslImplicitImports = "kotlinDslImplicitImports"
     }
@@ -56,7 +61,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     private
     fun precompiledScriptPluginImportsFrom(environment: Environment?, script: ScriptContents): List<String> =
-        environment.stringList(Hashing.hashString(script.text).toString())
+        environment.stringList(hashOf(script.text))
 
     private
     fun Environment?.stringList(key: String) =
