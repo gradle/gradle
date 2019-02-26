@@ -25,10 +25,8 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.junit.Ignore
 
 import org.junit.Test
-import spock.lang.Issue
 
 import java.io.File
 import java.util.UUID
@@ -217,8 +215,6 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore
-    @Issue("https://github.com/gradle/gradle-private/issues/1801")
     fun `in-memory script class loading cache releases memory of unused entries`() {
 
         // given: buildSrc memory hog
@@ -227,14 +223,14 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             import org.gradle.api.tasks.*
 
             class MyTask extends DefaultTask {
-                static final byte[] MEMORY_HOG = new byte[64 * 1024 * 1024]
+                static final byte[][] MEMORY_HOG = new byte[1024][1024 * 64]
                 @TaskAction void runAction0() {}
             }
         """)
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
         val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
 
-        // expect:
+        // expect: memory hog released
         for (run in 1..4) {
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
             buildWithDaemonHeapSize(256, "myTask").apply {
