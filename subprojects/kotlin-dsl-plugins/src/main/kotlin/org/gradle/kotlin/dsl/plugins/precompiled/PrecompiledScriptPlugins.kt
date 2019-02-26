@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateExternalPluginSpe
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateScriptPluginAdapters
+import org.gradle.kotlin.dsl.plugins.precompiled.tasks.HashedProjectSchema
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
@@ -118,13 +119,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  *  and external plugin spec builders
  *  - [GeneratePrecompiledScriptPluginAccessors] - uses the compiled `plugins` block of each precompiled script plugin
  *  to compute its [HashedProjectSchema] and emit the corresponding type-safe accessors
- *
- * ## Todo
- *  - DONE type-safe plugin spec accessors for plugins in the precompiled script plugin classpath
- *  - [ ] limit the set of type-safe accessors visible to a precompiled script plugin to
- *        those provided by the plugins in its `plugins` block
- *  - [ ] emit help message when a precompiled script plugin includes a version in its `plugins` block
- *  - [ ] validate plugin ids against declared plugin dependencies (that comes for free)
  */
 class PrecompiledScriptPlugins : Plugin<Project> {
 
