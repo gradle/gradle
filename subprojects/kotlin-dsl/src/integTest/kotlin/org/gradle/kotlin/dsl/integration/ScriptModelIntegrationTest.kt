@@ -1,18 +1,14 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.concurrent.future
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
-
-import org.gradle.kotlin.dsl.resolver.GradleInstallation
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequest
-import org.gradle.kotlin.dsl.resolver.fetchKotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
@@ -113,22 +109,6 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     protected
-    fun assertClassPathFor(
-        buildScript: File,
-        includes: Set<File>,
-        excludes: Set<File>,
-        importedProjectDir: File = projectRoot
-    ) {
-        val includeItems = hasItems(*includes.map { it.name }.toTypedArray())
-        val excludeItems = not(hasItems(*excludes.map { it.name }.toTypedArray()))
-        val condition = if (excludes.isEmpty()) includeItems else allOf(includeItems, excludeItems)
-        assertThat(
-            classPathFor(buildScript, importedProjectDir).map { it.name },
-            condition
-        )
-    }
-
-    protected
     fun assertClassPathContains(classPath: List<File>, vararg files: File) =
         assertThat(
             classPath.map { it.name },
@@ -162,40 +142,11 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
             assert(it.size == files.size)
         }
 
-    protected
-    fun withJar(named: String): File =
-        withClassJar(named, DeepThought::class.java)
-
     internal
     fun canonicalClassPathFor(scriptFile: File, projectDir: File = projectRoot) =
         kotlinBuildScriptModelFor(scriptFile, projectDir).canonicalClassPath
 
-    protected
-    fun classPathFor(scriptFile: File, projectDir: File = projectRoot) =
-        kotlinBuildScriptModelFor(scriptFile, projectDir).classPath
-
     internal
     val KotlinBuildScriptModel.canonicalClassPath
         get() = classPath.map(File::getCanonicalFile)
-
-    internal
-    fun kotlinBuildScriptModelFor(scriptFile: File, importedProjectDir: File = projectRoot): KotlinBuildScriptModel =
-        future {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = importedProjectDir,
-                    scriptFile = scriptFile,
-                    gradleInstallation = testGradleInstallation(),
-                    gradleUserHome = buildContext.gradleUserHomeDir
-                )
-            ) {
-
-                setStandardOutput(System.out)
-                setStandardError(System.err)
-            }
-        }.get()
-
-    private
-    fun testGradleInstallation() =
-        GradleInstallation.Local(distribution.gradleHomeDir)
 }

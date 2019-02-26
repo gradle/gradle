@@ -191,8 +191,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
 
-        val rootDependency = withJar("libs/root.jar")
-        val subDependency = withJar("libs/sub.jar")
+        val rootDependency = withDeepThoughtJar("libs/root.jar")
+        val subDependency = withDeepThoughtJar("libs/sub.jar")
 
         withFolders {
 
@@ -247,9 +247,9 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     fun assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot(nestedProjectName: String) {
         withDefaultSettings()
 
-        val rootDependency = withJar("libs/root-dep.jar")
-        val nestedRootDependency = withJar("libs/$nestedProjectName-root-dep.jar")
-        val nestedSubDependency = withJar("libs/$nestedProjectName-sub-dep.jar")
+        val rootDependency = withDeepThoughtJar("libs/root-dep.jar")
+        val nestedRootDependency = withDeepThoughtJar("libs/$nestedProjectName-root-dep.jar")
+        val nestedSubDependency = withDeepThoughtJar("libs/$nestedProjectName-sub-dep.jar")
 
         withFolders {
             nestedProjectName {

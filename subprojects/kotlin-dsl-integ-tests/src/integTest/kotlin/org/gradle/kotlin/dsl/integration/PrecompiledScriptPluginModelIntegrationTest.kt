@@ -1,24 +1,43 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.startsWith
+
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
 
 
-class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest() {
+class PrecompiledScriptPluginModelIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 
         val implementationDependency =
-            withJar("implementation.jar")
+            withDeepThoughtJar("implementation.jar")
 
         val classpathDependency =
-            withJar("classpath.jar")
-
-        withDefaultSettings()
+            withDeepThoughtJar("classpath.jar")
 
         withBuildScript("""
             plugins {
@@ -42,7 +61,8 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
         assertClassPathFor(
             precompiledScriptPlugin,
             includes = setOf(implementationDependency),
-            excludes = setOf(classpathDependency))
+            excludes = setOf(classpathDependency)
+        )
     }
 
     @Test
@@ -54,12 +74,12 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
         val dependencyB =
             withFile("b.jar")
 
-        withFolders {
+        withDefaultSettings().appendText("""
+            include("project-a")
+            include("project-b")
+        """)
 
-            withFile("settings.gradle.kts", """
-                include("project-a")
-                include("project-b")
-            """)
+        withFolders {
 
             "project-a" {
                 "src/main/kotlin" {
@@ -79,12 +99,31 @@ class PrecompiledScriptPluginModelIntegrationTest : ScriptModelIntegrationTest()
         assertClassPathFor(
             existing("project-a/src/main/kotlin/my-plugin-a.gradle.kts"),
             includes = setOf(dependencyA),
-            excludes = setOf(dependencyB))
+            excludes = setOf(dependencyB)
+        )
 
         assertClassPathFor(
             existing("project-b/src/main/kotlin/my-plugin-b.gradle.kts"),
             includes = setOf(dependencyB),
-            excludes = setOf(dependencyA))
+            excludes = setOf(dependencyA)
+        )
+    }
+
+    @Ignore("wip")
+    @Test
+    fun `implicit imports include type-safe accessors packages`() {
+
+        withDefaultSettings()
+        withKotlinDslPlugin()
+
+        val pluginFile = withPrecompiledKotlinScript("plugin.gradle.kts", """
+            plugins { java }
+        """)
+
+        assertThat(
+            kotlinBuildScriptModelFor(pluginFile).implicitImports,
+            hasItem(startsWith("gradle.kotlin.dsl.accessors._"))
+        )
     }
 
     private
