@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.artifacts.transform.InjectTransformParameters
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -280,7 +279,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreenParameters.getBad().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
     }
 
     def "transform action is validated for input output annotations"() {
@@ -481,7 +480,7 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
     }
 
     def "transform can receive parameter object via constructor parameter"() {
@@ -611,6 +610,6 @@ abstract class MakeGreen implements TransformAction<TransformParameters> {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
     }
 }

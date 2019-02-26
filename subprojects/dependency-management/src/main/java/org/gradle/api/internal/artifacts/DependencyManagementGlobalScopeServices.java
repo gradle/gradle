@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.transform.InjectTransformParameters;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
@@ -40,8 +39,6 @@ import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandle
 import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -52,8 +49,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.internal.instantiation.DefaultInjectAnnotationHandler;
-import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
@@ -121,14 +116,6 @@ class DependencyManagementGlobalScopeServices {
         return new InputArtifactDependenciesAnnotationHandler();
     }
 
-    InjectAnnotationHandler createTransformParametersAnnotationHandler() {
-        return new DefaultInjectAnnotationHandler(InjectTransformParameters.class);
-    }
-
-    PropertyAnnotationHandler createTransformParametersPropertyAnnotationHandler() {
-        return new NoOpPropertyAnnotationHandler(InjectTransformParameters.class);
-    }
-
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         // TODO - should decorate
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme();
@@ -137,9 +124,9 @@ class DependencyManagementGlobalScopeServices {
     }
 
     ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
-        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, InjectTransformParameters.class));
+        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class));
         InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, InjectTransformParameters.class, Inject.class, Classpath.class, CompileClasspath.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, Inject.class, Classpath.class, CompileClasspath.class));
         return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
     }
 }
