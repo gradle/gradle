@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+@NonNullApi
+package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.execution.ProjectExecutionServiceRegistry;
-
-public class WorkNodeExecutor implements NodeExecutor {
-    @Override
-    public boolean execute(Node node, ProjectExecutionServiceRegistry services) {
-        if (!(node instanceof ActionNode)) {
-            return false;
-        }
-        ((ActionNode) node).run(services);
-        return true;
-    }
-}
+import org.gradle.api.NonNullApi;

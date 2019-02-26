@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 
@@ -37,7 +38,7 @@ public class DomainObjectProjectStateHandler {
     }
 
     @Nullable
-    public Project maybeGetOwningProject() {
+    public ProjectInternal maybeGetOwningProject() {
         if (domainObjectContext.getProjectPath() != null) {
             return projectFinder.findProject(domainObjectContext.getProjectPath().getPath());
         } else {

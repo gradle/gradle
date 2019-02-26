@@ -129,18 +129,16 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
-            fileCollectionFingerprinterRegistry,
             parametersPropertyWalker,
-            domainObjectProjectStateHandler,
             actionInstantiationScheme);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {

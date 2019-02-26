@@ -129,13 +129,15 @@ class JarProducer extends DefaultTask {
     String content = "content"
     @Input
     long timestamp = 123L
+    @Input
+    String entryName = "thing.class"
 
     @TaskAction
     def go() {
         def file = output.get().asFile
         file.withOutputStream {
             def jarFile = new JarOutputStream(it)
-            def entry = new ZipEntry("thing.class")
+            def entry = new ZipEntry(entryName)
             entry.time = timestamp
             jarFile.putNextEntry(entry)
             jarFile << content
@@ -256,6 +258,9 @@ allprojects { p ->
                     }
                     if (project.hasProperty("\${project.name}Timestamp")) {
                         timestamp = Long.parseLong(project.property("\${project.name}Timestamp"))
+                    }
+                    if (project.hasProperty("\${project.name}EntryName")) {
+                        entryName = project.property("\${project.name}EntryName")
                     }
                 }
             """.stripIndent()

@@ -172,9 +172,9 @@ class DefaultArtifactTransformsTest extends Specification {
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
 
-        1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
+        1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver, _) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
 
-        1 * transformation.transform({ it.files == [sourceFile] }, _ as ExecutionGraphDependenciesResolver) >> Try.successful(TransformationSubject.initial(sourceFile).createSubjectFromResult(ImmutableList.of(outFile3, outFile4)))
+        1 * transformation.transform({ it.files == [sourceFile] }, _ as ExecutionGraphDependenciesResolver, _) >> Try.successful(TransformationSubject.initial(sourceFile).createSubjectFromResult(ImmutableList.of(outFile3, outFile4)))
 
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile1})
         1 * visitor.visitArtifact(variant1DisplayName, targetAttributes, {it.file == outFile2})
