@@ -140,7 +140,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformationStep.transformer.implementationClass == TestTransform
-        registration.transformationStep.transformer.parameterObject instanceof TestParameters
+        registration.transformationStep.transformer.parameterObject instanceof TestTransform.Parameters
     }
 
     def "creates registration for parametereless action"() {
@@ -338,10 +338,6 @@ class DefaultVariantTransformRegistryTest extends Specification {
         e.cause == null
     }
 
-    static class TestParameters implements TransformParameters {
-        String value
-    }
-
     static class UnAnnotatedTestTransformConfig {
         String value
     }
@@ -353,7 +349,11 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static abstract class TestTransform implements TransformAction<TestParameters> {
+    static abstract class TestTransform implements TransformAction<Parameters> {
+        static class Parameters implements TransformParameters {
+            String value
+        }
+
         @Override
         void transform(TransformOutputs outputs) {
         }

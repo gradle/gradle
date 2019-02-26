@@ -31,12 +31,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """)
         }
         buildFile << """
-            interface MakeGreenParameters extends TransformParameters{
-                $inputAnnotations
-                ConfigurableFileCollection getSomeFiles()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    $inputAnnotations
+                    ConfigurableFileCollection getSomeFiles()
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -281,12 +281,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 
-            interface MakeGreenParameters extends TransformParameters {
-                @InputFile
-                RegularFileProperty getSomeFile()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputFile
+                    RegularFileProperty getSomeFile()
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -332,12 +332,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 
-            interface MakeGreenParameters extends TransformParameters {
-                @InputDirectory
-                DirectoryProperty getSomeDir()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputDirectory
+                    DirectoryProperty getSomeDir()
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @InputArtifact
                 abstract File getInput()
                 

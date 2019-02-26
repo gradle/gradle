@@ -1949,13 +1949,13 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            interface CustomParameters extends TransformParameters {
-                @Input
-                CustomType getInput()
-                void setInput(CustomType input)
-            }
-              
-            abstract class Custom implements TransformAction<CustomParameters> { 
+            abstract class Custom implements TransformAction<Parameters> { 
+                interface Parameters extends TransformParameters {
+                    @Input
+                    CustomType getInput()
+                    void setInput(CustomType input)
+                }
+
                 void transform(TransformOutputs outputs) {  }
             }
             
@@ -1981,7 +1981,7 @@ Found the following transforms:
         when:
         fails "resolve"
         then:
-        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters CustomParameters\\\$Inject@.* of artifact transform Custom")
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Parameters\\\$Inject@.* of artifact transform Custom")
         if (scheduled) {
             failure.assertThatDescription(matchesCannotIsolate)
         } else {

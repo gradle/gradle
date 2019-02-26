@@ -63,13 +63,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
-            
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
+
                 @InputArtifact
                 abstract File getInput()
                 
@@ -108,14 +108,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                ${type} getProp()
-                @Input @Optional
-                ${type} getOtherProp()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    ${type} getProp()
+                    @Input @Optional
+                    ${type} getOtherProp()
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 void transform(TransformOutputs outputs) {
                     println "processing using " + parameters.prop.get()
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
@@ -153,24 +153,24 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                String getExtension()
-                void setExtension(String value)
-                @OutputDirectory
-                File getOutputDir()
-                void setOutputDir(File outputDir)
-                @Input
-                String getMissingInput()
-                void setMissingInput(String missing)
-                @InputFiles
-                ConfigurableFileCollection getNoPathSensitivity()
-                @PathSensitive(PathSensitivity.ABSOLUTE)
-                @InputFiles
-                ConfigurableFileCollection getAbsolutePathSensitivity()
-            }
-            
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    String getExtension()
+                    void setExtension(String value)
+                    @OutputDirectory
+                    File getOutputDir()
+                    void setOutputDir(File outputDir)
+                    @Input
+                    String getMissingInput()
+                    void setMissingInput(String missing)
+                    @InputFiles
+                    ConfigurableFileCollection getNoPathSensitivity()
+                    @PathSensitive(PathSensitivity.ABSOLUTE)
+                    @InputFiles
+                    ConfigurableFileCollection getAbsolutePathSensitivity()
+                }
+            
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -181,8 +181,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreenParameters\\$Inject@.* of artifact transform MakeGreen'))
-        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreenParameters.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
         failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
@@ -208,16 +208,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-                @${annotation.simpleName}
-                String getBad()
-                void setBad(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                    @${annotation.simpleName}
+                    String getBad()
+                    void setBad(String value)
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -228,8 +228,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreenParameters\\$Inject@.* of artifact transform MakeGreen'))
-        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreenParameters.')
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
 
         where:
@@ -254,15 +254,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                String getExtension()
-                void setExtension(String value)
-                @${annotation.simpleName}
-                String getBad()
-                void setBad(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    String getExtension()
+                    void setExtension(String value)
+                    @${annotation.simpleName}
+                    String getBad()
+                    void setBad(String value)
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -274,9 +274,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('Could not create an instance of type MakeGreenParameters.')
-        failure.assertHasCause('Could not generate a decorated class for interface MakeGreenParameters.')
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreenParameters.getBad().")
+        failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
+        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen$Parameters.')
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
@@ -299,14 +299,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
-            
             @CacheableTransform
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
+            
                 @InputFile
                 File inputFile 
                 
@@ -361,13 +361,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 @${annotation.simpleName}
                 String getBad() { }
                 
@@ -500,17 +500,17 @@ abstract class MakeGreen extends ArtifactTransform {
                 }
             }
             
-            interface MakeGreenParameters extends TransformParameters {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
             
-            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                private MakeGreenParameters conf
+                private Parameters conf
                 
                 @Inject
-                MakeGreen(MakeGreenParameters conf) {
+                MakeGreen(Parameters conf) {
                     this.conf = conf
                 }
                 

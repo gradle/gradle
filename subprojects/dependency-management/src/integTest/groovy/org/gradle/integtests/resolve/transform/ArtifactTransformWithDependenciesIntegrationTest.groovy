@@ -53,12 +53,6 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
         setupBuildWithColorAttributes(cl)
         buildFile << """
                    
-interface TestTransformParameters extends TransformParameters {
-    @Input
-    String getTransformName()
-    void setTransformName(String name)
-}
-
 allprojects {
     repositories {
         maven { 
@@ -107,7 +101,12 @@ project(':app') {
 
 import javax.inject.Inject
 
-abstract class TestTransform implements TransformAction<TestTransformParameters> {
+abstract class TestTransform implements TransformAction<Parameters> {
+    interface Parameters extends TransformParameters {
+        @Input
+        String getTransformName()
+        void setTransformName(String name)
+    }
 
     @InputArtifactDependencies
     abstract FileCollection getInputArtifactDependencies()

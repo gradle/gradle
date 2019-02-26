@@ -818,7 +818,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
-    def "failure in transformation chain propagates (position in chain: #failingTransform"() {
+    def "failure in transformation chain propagates (position in chain: #failingTransform)"() {
         given:
 
         Closure<String> possiblyFailingTransform = { index ->
@@ -1480,12 +1480,13 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
 
     String registerFileSizerWithParameterObject(String fileValue) {
         """                 
-            interface FileSizerParameters extends TransformParameters {
-                @Input
-                Number getValue()
-                void setValue(Number value)
-            }
-            abstract class FileSizer implements TransformAction<FileSizerParameters> {
+            abstract class FileSizer implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    Number getValue()
+                    void setValue(Number value)
+                }
+
                 @InputArtifact
                 abstract File getInput()
                 
