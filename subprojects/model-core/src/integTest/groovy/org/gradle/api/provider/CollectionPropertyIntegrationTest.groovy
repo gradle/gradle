@@ -424,7 +424,7 @@ task wrongPropertyElementTypeApi {
 
         expect:
         fails "convention"
-        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
+        failureHasCause("You can't map property 'customProp' of Property type. Use Property#set(...) instead.")
     }
 
     def "throws exception when using convention mapping with SetProperty type"() {
@@ -447,6 +447,6 @@ task wrongPropertyElementTypeApi {
 
         expect:
         fails "convention"
-        failureHasCause("Using convention mapping with Property type is not supported. Use Property#set(...) instead.")
+        failureHasCause("You can't map property 'customProp' of Property type. Use Property#set(...) instead.")
     }
 }

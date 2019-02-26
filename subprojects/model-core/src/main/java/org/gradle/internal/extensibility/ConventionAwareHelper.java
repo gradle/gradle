@@ -26,13 +26,15 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.reflect.ClassInspector;
+import org.gradle.internal.reflect.PropertyDetails;
+import org.gradle.util.DeprecationLogger;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -43,30 +45,45 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final Convention _convention;
     private final IConventionAware _source;
-    private final Map<String, Boolean> _propertyNames;
+    private final Map<String, ProviderType> _propertyNames;
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
 
     public ConventionAwareHelper(IConventionAware source, Convention convention) {
         this._source = source;
         this._convention = convention;
-        this._propertyNames = ClassInspector.inspect(source.getClass()).getProperties().stream().collect(Collectors.toMap(it -> it.getName(), it -> isProviderType(it.getGetters())));
+        this._propertyNames = ClassInspector.inspect(source.getClass()).getProperties().stream().collect(Collectors.toMap(it -> it.getName(), ConventionAwareHelper::toProviderType));
     }
 
-    private static boolean isProviderType(List<Method> getters) {
-        return getters.stream().anyMatch(ConventionAwareHelper::isProviderType);
+    private enum ProviderType {
+        NONE, PROVIDER, PROPERTY
     }
 
-    private static boolean isProviderType(Method getter) {
+    private static ProviderType toProviderType(PropertyDetails details) {
+        if (details.getGetters().stream().anyMatch(ConventionAwareHelper::isPropertyType)) {
+            return ProviderType.PROPERTY;
+        } else if (details.getGetters().stream().anyMatch(ConventionAwareHelper::isProviderType)) {
+            return ProviderType.PROVIDER;
+        }
+        return ProviderType.NONE;
+    }
+
+    private static boolean isPropertyType(Method getter) {
         return Property.class.isAssignableFrom(getter.getReturnType()) || ListProperty.class.isAssignableFrom(getter.getReturnType()) || SetProperty.class.isAssignableFrom(getter.getReturnType()) || MapProperty.class.isAssignableFrom(getter.getReturnType());
     }
 
+    private static boolean isProviderType(Method getter) {
+        return Provider.class.isAssignableFrom(getter.getReturnType());
+    }
+
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
-        if (_propertyNames.getOrDefault(propertyName, false)) {
-            throw new InvalidUserDataException("Using convention mapping with Property type is not supported. Use Property#set(...) instead.");
-        }
         if (!_propertyNames.containsKey(propertyName)) {
-            throw new InvalidUserDataException(
-                "You can't map a property that does not exist: propertyName=" + propertyName);
+            throw new InvalidUserDataException("You can't map a property that does not exist: propertyName=" + propertyName);
+        }
+        ProviderType type = _propertyNames.get(propertyName);
+        if (ProviderType.PROPERTY.equals(type)) {
+            throw new InvalidUserDataException("You can't map property '" + propertyName + "' of Property type. Use Property#set(...) instead.");
+        } else if (ProviderType.PROVIDER.equals(type)) {
+            throw new InvalidUserDataException("You can't map property '" + propertyName + "' of Provider type. Providers are read-only types.");
         }
 
         _mappings.put(propertyName, mapping);

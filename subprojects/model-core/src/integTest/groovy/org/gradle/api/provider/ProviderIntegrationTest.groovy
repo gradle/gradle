@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.internal.ConventionTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -123,5 +124,30 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         renderText << [false, true]
+    }
+
+    def "throws exception when using convention mapping"() {
+        given:
+        buildFile << """
+            class ConventionTask extends ${ConventionTask.canonicalName} {
+                private final Provider<String> customProp = project.providers.provider { null }
+
+                Provider<String> getCustomProp() {
+                    return customProp
+                }
+            }
+
+            task convention(type: ConventionTask) {
+                conventionMapping("customProp") {
+                    return project.provider.provider { "mapped value" }
+                }
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        succeeds "convention"
+        outputContains("")
+        failureHasCause("You can't map property 'customProp' of Provider type. Providers are read-only types.")
     }
 }
