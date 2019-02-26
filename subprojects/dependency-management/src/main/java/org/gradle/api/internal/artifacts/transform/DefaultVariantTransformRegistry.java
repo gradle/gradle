@@ -103,13 +103,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    private <T> void validateActionType(@Nullable Class<T> actionType) {
+    private static <T> void validateActionType(@Nullable Class<T> actionType) {
         if (actionType == null) {
             throw new VariantTransformConfigurationException("Could not register transform: an artifact transform action must be provided.");
         }
     }
 
-    private void validateAttributes(RecordingRegistration registration) {
+    private static void validateAttributes(RecordingRegistration registration) {
         if (registration.to.isEmpty()) {
             throw new VariantTransformConfigurationException("Could not register transform: at least one 'to' attribute must be provided.");
         }
@@ -190,7 +190,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         @Override
         public T getParameters() {
             if (parameterObject == null) {
-                throw new VariantTransformConfigurationException("Cannot query parameters for parameterless artifact transform.");
+                throw new VariantTransformConfigurationException("Cannot query parameters for artifact transform without parameters.");
             }
             return parameterObject;
         }
@@ -198,7 +198,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         @Override
         public void parameters(Action<? super T> action) {
             if (parameterObject == null) {
-                throw new VariantTransformConfigurationException("Cannot configure parameters for parameterless artifact transform.");
+                throw new VariantTransformConfigurationException("Cannot configure parameters for artifact transform without parameters.");
             }
             action.execute(parameterObject);
         }

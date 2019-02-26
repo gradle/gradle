@@ -183,7 +183,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Cannot configure parameters for parameterless artifact transform.'
+        e.message == 'Cannot configure parameters for artifact transform without parameters.'
         e.cause == null
     }
 
@@ -197,7 +197,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
 
         then:
         def e = thrown(VariantTransformConfigurationException)
-        e.message == 'Cannot query parameters for parameterless artifact transform.'
+        e.message == 'Cannot query parameters for artifact transform without parameters.'
         e.cause == null
     }
 

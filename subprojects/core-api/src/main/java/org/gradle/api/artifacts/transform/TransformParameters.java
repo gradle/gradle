@@ -19,7 +19,7 @@ package org.gradle.api.artifacts.transform;
 import org.gradle.api.Incubating;
 
 /**
- * Marker interface for parameters to {@link TransformAction}.
+ * Marker interface for parameter objects to {@link TransformAction}s.
  *
  * @since 5.3
  */
