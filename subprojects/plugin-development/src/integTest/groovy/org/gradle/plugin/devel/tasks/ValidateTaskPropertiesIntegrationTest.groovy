@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Console
@@ -227,7 +226,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         annotation                | _
         InputArtifact             | _
         InputArtifactDependencies | _
-        TransformParameters       | _
     }
 
     def "detects missing annotation on Groovy properties"() {

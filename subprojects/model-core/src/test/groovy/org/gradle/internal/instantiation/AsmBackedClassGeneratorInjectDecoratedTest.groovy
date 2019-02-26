@@ -29,8 +29,8 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean

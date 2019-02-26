@@ -31,15 +31,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """)
         }
         buildFile << """
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                $inputAnnotations
-                ConfigurableFileCollection getSomeFiles()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    $inputAnnotations
+                    ConfigurableFileCollection getSomeFiles()
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
@@ -154,7 +151,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             """
         setupBuildWithTransformFileInputs()
         buildFile << """
-            abstract class MakeRedAction implements TransformAction {
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -175,7 +172,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     attributes.attribute(attr, 'red')
                 }.files
                 dependencies {
-                    registerTransformAction(MakeRedAction) {
+                    registerTransform(MakeRed) {
                         from.attribute(color, 'blue')
                         to.attribute(color, 'red')
                     }
@@ -284,15 +281,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @InputFile
-                RegularFileProperty getSomeFile()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputFile
+                    RegularFileProperty getSomeFile()
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
@@ -338,15 +332,12 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             }
 
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @InputDirectory
-                DirectoryProperty getSomeDir()
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @InputDirectory
+                    DirectoryProperty getSomeDir()
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
