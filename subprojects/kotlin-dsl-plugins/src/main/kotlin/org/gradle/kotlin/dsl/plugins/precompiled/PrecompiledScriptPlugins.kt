@@ -346,13 +346,6 @@ inline fun <reified T : Task> Project.codeGenerationTask(
 
 
 private
-fun Project.generatedSourceDirFor(purpose: String): Provider<Directory> =
-    buildDir("generated-sources/kotlin-dsl-$purpose/kotlin").also {
-        sourceSets["main"].kotlin.srcDir(it)
-    }
-
-
-private
 fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 
 
