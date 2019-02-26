@@ -30,6 +30,11 @@ it is only used to reference other libraries, so that they play well together du
 
 Platforms can be published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
 
+[NOTE]
+====
+The `java-platform` plugin cannot be used in combination with the `java` or `java-library` plugins in a given project.
+Conceptually a project is either a platform, with no binaries, _or_ produces binaries.
+====
 
 [[sec:java_platform_usage]]
 == Usage
