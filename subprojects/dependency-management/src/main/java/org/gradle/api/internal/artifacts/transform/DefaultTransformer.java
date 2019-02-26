@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.transform.InjectTransformParameters;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -286,7 +285,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
             if (parameters != null) {
-                builder.add(new InjectionPoint(InjectTransformParameters.class, parameters.getClass(), parameters));
+                builder.add(new InjectionPoint(null, parameters.getClass(), parameters));
+            } else {
+                builder.add(new InjectionPoint(null, TransformParameters.class, new TransformParameters() {}));
             }
             if (artifactTransformDependencies != null) {
                 builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
@@ -334,7 +335,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             private final Class<?> injectedType;
             private final Object valueToInject;
 
-            public InjectionPoint(Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
+            public InjectionPoint(@Nullable Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;

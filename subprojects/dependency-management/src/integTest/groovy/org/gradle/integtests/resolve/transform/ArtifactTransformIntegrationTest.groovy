@@ -1553,7 +1553,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class FailingTransform implements TransformAction<TransformParameters> {
+            abstract class FailingTransform implements TransformAction<TransformParameters> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1623,7 +1623,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class DirectoryTransform implements TransformAction<TransformParameters> {
+            abstract class DirectoryTransform implements TransformAction<TransformParameters> {
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
@@ -1739,7 +1739,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            class SomewhereElseTransform implements TransformAction<TransformParameters> {
+            abstract class SomewhereElseTransform implements TransformAction<TransformParameters> {
                 static def output
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)
@@ -1953,7 +1953,7 @@ Found the following transforms:
                 void setInput(CustomType input)
             }
               
-            class Custom implements TransformAction<CustomParameters> { 
+            abstract class Custom implements TransformAction<CustomParameters> { 
                 void transform(TransformOutputs outputs) {  }
             }
             

@@ -109,9 +109,6 @@ import javax.inject.Inject
 
 abstract class TestTransform implements TransformAction<TestTransformParameters> {
 
-    @InjectTransformParameters
-    abstract TestTransformParameters getParameters()
-
     @InputArtifactDependencies
     abstract FileCollection getInputArtifactDependencies()
 

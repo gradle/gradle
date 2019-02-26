@@ -71,8 +71,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
                 @InputArtifact
                 abstract File getInput()
                 
@@ -119,9 +117,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     println "processing using " + parameters.prop.get()
                     assert parameters.otherProp.getOrNull() == ${expectedNullValue}
@@ -177,9 +172,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -227,9 +219,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -275,9 +264,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             }
             
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -322,9 +308,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
-                @InjectTransformParameters
-                abstract MakeGreenParameters getParameters()
-                
                 @InputFile
                 File inputFile 
                 
@@ -501,7 +484,7 @@ abstract class MakeGreen extends ArtifactTransform {
         annotation << [InputArtifact, InputArtifactDependencies, InjectTransformParameters]
     }
 
-    def "transform cannot receive parameter object via constructor parameter"() {
+    def "transform can receive parameter object via constructor parameter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -524,7 +507,7 @@ abstract class MakeGreen extends ArtifactTransform {
                 void setExtension(String value)
             }
             
-            class MakeGreen implements TransformAction<MakeGreenParameters> {
+            abstract class MakeGreen implements TransformAction<MakeGreenParameters> {
                 private MakeGreenParameters conf
                 
                 @Inject
@@ -537,14 +520,8 @@ abstract class MakeGreen extends ArtifactTransform {
             }
 """
 
-        when:
-        fails(":a:resolve")
-
-        then:
-        // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface MakeGreenParameters, or no service of type interface MakeGreenParameters")
+        expect:
+        succeeds(":a:resolve")
     }
 
     @Unroll

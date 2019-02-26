@@ -92,11 +92,6 @@ class Resolve extends Copy {
             }
 
             abstract class CountRecorder implements TransformAction<CountRecorderParameters> {
-                private final Counter counter;
-                            
-                @InjectTransformParameters
-                abstract CountRecorderParameters getParameters()                  
-
                 @InputArtifact
                 abstract File getInput()
 

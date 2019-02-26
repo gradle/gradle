@@ -341,13 +341,13 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
     }
 
-    static class TestTransform implements TransformAction<TestParameters> {
+    static abstract class TestTransform implements TransformAction<TestParameters> {
         @Override
         void transform(TransformOutputs outputs) {
         }
     }
 
-    static class ParameterlessTestTransform implements TransformAction<TransformParameters> {
+    static abstract class ParameterlessTestTransform implements TransformAction<TransformParameters> {
         @Override
         void transform(TransformOutputs outputs) {
         }
