@@ -171,7 +171,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         Inject            | Inject.name                   | ObjectFactory
         OptionValues      | "${OptionValues.name}(\"a\")" | List
         Internal          | 'Internal'                    | String
-        ReplacedBy        | 'ReplacedBy'                  | String
+        ReplacedBy        | 'ReplacedBy("")'              | String
         Console           | 'Console'                     | Boolean
         Destroys          | 'Destroys'                    | FileCollection
         LocalState        | 'LocalState'                  | FileCollection
@@ -624,7 +624,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file("build/reports/task-properties/report.txt").text == """
-            Warning: Task type 'MyTask': property 'oldProperty' has conflicting property types declared: @Input, @ReplacedBy
+            Warning: Task type 'MyTask': property 'oldProperty' has conflicting property types declared: @Input, @ReplacedBy.
         """.stripIndent().trim()
     }
 }

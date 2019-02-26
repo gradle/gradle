@@ -30,10 +30,13 @@ import java.lang.annotation.Target;
  * <p>This annotation should be attached to the getter method in Java or the property field in Groovy. You should also consider adding {@link Deprecated} to any replaced property.</p>
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
+ *
+ * @since 5.3
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
+@Incubating
 public @interface ReplacedBy {
     /**
      * The Java Bean-style name of the replacement property.
