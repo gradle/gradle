@@ -129,6 +129,41 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         """)
     }
 
+
+    protected
+    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
+        withKotlinDslPlugin()
+        withPrecompiledKotlinScript(fileName, code)
+        compileKotlin()
+    }
+
+    protected
+    fun withPrecompiledKotlinScript(fileName: String, code: String) =
+        withFile("src/main/kotlin/$fileName", code)
+
+    protected
+    fun withKotlinDslPlugin() =
+        withKotlinDslPluginIn(".")
+
+    protected
+    fun withKotlinDslPluginIn(baseDir: String) =
+        withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
+
+    protected
+    fun scriptWithKotlinDslPlugin(): String =
+        """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+        """
+
+    protected
+    fun compileKotlin(taskName: String = "classes") {
+        build(taskName).assertTaskExecuted(":compileKotlin")
+    }
+
     protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
         withZip(fileName, classEntriesFor(*classes))

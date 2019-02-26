@@ -99,7 +99,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         """)
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
-        buildWithPlugin("classes").apply {
+        build("classes").apply {
             assertThat(
                 output,
                 allOf(

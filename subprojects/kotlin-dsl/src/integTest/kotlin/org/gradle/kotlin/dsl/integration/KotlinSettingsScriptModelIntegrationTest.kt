@@ -32,7 +32,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val classPath = canonicalClassPathFor(projectRoot, settings)
+        val classPath = canonicalClassPathFor(settings)
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)
@@ -64,7 +64,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val classPath = canonicalClassPathFor(projectRoot, settings)
+        val classPath = canonicalClassPathFor(settings)
 
         assertContainsBuildSrc(classPath)
         assertContainsGradleKotlinDslJars(classPath)

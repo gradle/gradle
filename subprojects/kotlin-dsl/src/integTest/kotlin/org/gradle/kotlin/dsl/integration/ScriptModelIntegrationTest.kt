@@ -27,7 +27,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     protected
     fun sourcePathFor(scriptFile: File) =
-        kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
+        kotlinBuildScriptModelFor(scriptFile).sourcePath
 
     protected
     class ProjectSourceRoots(val projectDir: File, val sourceSets: List<String>, val languages: List<String>)
@@ -123,14 +123,10 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
         val excludeItems = not(hasItems(*excludes.map { it.name }.toTypedArray()))
         val condition = if (excludes.isEmpty()) includeItems else allOf(includeItems, excludeItems)
         assertThat(
-            classPathFor(importedProjectDir, buildScript).map { it.name },
+            classPathFor(buildScript, importedProjectDir).map { it.name },
             condition
         )
     }
-
-    protected
-    fun assertClassPathContains(vararg files: File) =
-        assertClassPathContains(canonicalClassPath(), *files)
 
     protected
     fun assertClassPathContains(classPath: List<File>, vararg files: File) =
@@ -167,27 +163,23 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
         }
 
     protected
-    fun canonicalClassPath() =
-        canonicalClassPathFor(projectRoot)
-
-    protected
     fun withJar(named: String): File =
         withClassJar(named, DeepThought::class.java)
 
     internal
-    fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-        kotlinBuildScriptModelFor(projectDir, scriptFile).canonicalClassPath
+    fun canonicalClassPathFor(scriptFile: File, projectDir: File = projectRoot) =
+        kotlinBuildScriptModelFor(scriptFile, projectDir).canonicalClassPath
 
-    private
-    fun classPathFor(importedProjectDir: File, scriptFile: File?) =
-        kotlinBuildScriptModelFor(importedProjectDir, scriptFile).classPath
+    protected
+    fun classPathFor(scriptFile: File, projectDir: File = projectRoot) =
+        kotlinBuildScriptModelFor(scriptFile, projectDir).classPath
 
     internal
     val KotlinBuildScriptModel.canonicalClassPath
         get() = classPath.map(File::getCanonicalFile)
 
     internal
-    fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
+    fun kotlinBuildScriptModelFor(scriptFile: File, importedProjectDir: File = projectRoot): KotlinBuildScriptModel =
         future {
             fetchKotlinBuildScriptModelFor(
                 KotlinBuildScriptModelRequest(

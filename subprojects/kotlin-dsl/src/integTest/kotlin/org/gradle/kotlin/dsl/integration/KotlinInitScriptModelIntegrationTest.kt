@@ -49,8 +49,4 @@ class KotlinInitScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             classPath,
             existing("classes.jar"))
     }
-
-    private
-    fun canonicalClassPathFor(initScript: File) =
-        canonicalClassPathFor(projectRoot, initScript)
 }

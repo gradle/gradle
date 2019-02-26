@@ -26,11 +26,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withBuildSrc()
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             val p =
         """)
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(buildScript))
     }
 
     @Test
@@ -39,11 +39,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withBuildSrc()
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             buildscript { TODO() }
         """)
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(buildScript))
     }
 
     @Test
@@ -52,7 +52,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("classes.jar")
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             buildscript {
                 dependencies {
                     classpath(files("classes.jar"))
@@ -63,7 +63,9 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         """)
 
         assertClassPathContains(
-            existing("classes.jar"))
+            canonicalClassPathFor(buildScript),
+            existing("classes.jar")
+        )
     }
 
     @Test
@@ -85,7 +87,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         """)
         withDefaultSettings()
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(file("build.gradle.kts")))
     }
 
     @Test
@@ -96,7 +98,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("classes.jar", "")
 
         withDefaultSettings()
-        withFile("build.gradle", """
+        val buildScript = withFile("build.gradle", """
             buildscript {
                 dependencies {
                     classpath(files("classes.jar"))
@@ -104,7 +106,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val classPath = canonicalClassPath()
+        val classPath = canonicalClassPathFor(buildScript)
         assertThat(
             classPath.map { it.name },
             hasItem("classes.jar"))
@@ -337,7 +339,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         val scriptPlugin = withFile("plugin.gradle.kts", scriptPluginCode)
 
-        val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
+        val scriptPluginClassPath = canonicalClassPathFor(scriptPlugin)
         assertThat(
             scriptPluginClassPath.map { it.name },
             allOf(
@@ -366,7 +368,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             throw IllegalStateException()
         """)
 
-        val model = kotlinBuildScriptModelFor(projectRoot, scriptPlugin)
+        val model = kotlinBuildScriptModelFor(scriptPlugin)
         assertThat(
             "Script body shouldn't be evaluated",
             model.exceptions,
@@ -383,14 +385,14 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch classpath of plugin portal plugin in plugins block`() {
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             plugins {
                 id("org.gradle.hello-world") version "0.2"
             }
         """)
 
         assertThat(
-            canonicalClassPath().map { it.name },
+            canonicalClassPathFor(buildScript).map { it.name },
             hasItems("gradle-hello-world-plugin-0.2.jar"))
     }
 

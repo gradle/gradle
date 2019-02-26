@@ -30,18 +30,6 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
     }
 
     protected
-    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withKotlinDslPlugin()
-        withPrecompiledKotlinScript(fileName, code)
-        compileKotlin()
-    }
-
-    protected
-    fun withPrecompiledKotlinScript(fileName: String, code: String) {
-        withFile("src/main/kotlin/$fileName", code)
-    }
-
-    protected
     inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
         loadCompiledKotlinClass(className)
             .getConstructor(T::class.java)
@@ -51,27 +39,4 @@ open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
     fun loadCompiledKotlinClass(className: String): Class<*> =
         classLoaderFor(existing("build/classes/kotlin/main"))
             .loadClass(className)
-
-    protected
-    fun withKotlinDslPlugin() =
-        withKotlinDslPluginIn(".")
-
-    protected
-    fun withKotlinDslPluginIn(baseDir: String) =
-        withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
-
-    protected
-    fun scriptWithKotlinDslPlugin(): String =
-        """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-        """
-
-    protected
-    fun compileKotlin(taskName: String = "classes") {
-        buildWithPlugin(taskName).assertTaskExecuted(":compileKotlin")
-    }
 }

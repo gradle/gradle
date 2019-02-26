@@ -44,7 +44,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("assemble")
+        val result = build("assemble")
 
         result.assertOutputContains(":compileKotlin NO-SOURCE")
     }
@@ -73,7 +73,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        buildWithPlugin("assertions")
+        build("assertions")
     }
 
     @Test
@@ -94,7 +94,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("dependencies")
+        val result = build("dependencies")
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
         listOf("stdlib", "reflect", "compiler-embeddable").forEach {
@@ -150,7 +150,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             printFileNamesOf<JavadocArtifact>()
         """)
 
-        val result = buildWithPlugin("help")
+        val result = build("help")
 
         listOf("stdlib", "reflect").forEach {
             assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
@@ -174,7 +174,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             configurations["customConfiguration"].files.map { println(it) }
         """)
 
-        val result = buildWithPlugin("dependencies", "--configuration", "customConfiguration")
+        val result = build("dependencies", "--configuration", "customConfiguration")
 
         listOf("stdlib", "reflect").forEach {
             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:$embeddedKotlinVersion"))
@@ -202,7 +202,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         withFile("src/main/kotlin/source.kt", """var foo = "bar"""")
 
-        val result = buildWithPlugin("assemble")
+        val result = build("assemble")
 
         result.assertTaskExecuted(":compileKotlin")
     }

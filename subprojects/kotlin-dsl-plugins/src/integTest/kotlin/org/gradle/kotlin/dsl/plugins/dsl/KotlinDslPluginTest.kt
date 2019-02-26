@@ -2,11 +2,11 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
+
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -38,7 +38,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("classes")
+        val result = build("classes")
 
         result.assertTaskExecuted(":compileKotlin")
     }
@@ -212,7 +212,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("classes")
+        val result = build("classes")
 
         result.assertTaskExecuted(":compileKotlin")
     }
@@ -333,19 +333,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     private
-    fun withKotlinDslPlugin() {
-        withBuildScript("""
-
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-
-        """)
-    }
-
-    private
     fun outputOf(vararg arguments: String) =
-        buildWithPlugin(*arguments).output
+        build(*arguments).output
 }
