@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.ONLINE)
-class MavenJcenterDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
-    def "resolves a minimal dependency from bintray's jcenter"() {
+class MavenCentralDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+    def "resolves a minimal dependency from Maven Central"() {
         given:
         buildFile << """
 repositories {
-    jcenter()
-    jcenter { // just test this syntax works.
-        name = "otherJcenter"
+    mavenCentral()
+    mavenCentral { // just test this syntax works.
+        name = "otherCentral"
         content {
-            includeGroup 'org.sample'
+            includeGroup 'org.test'
         }
     }
 }
@@ -74,6 +74,6 @@ task repoNames {
         succeeds "check", "repoNames"
 
         and:
-        output.contains(["BintrayJCenter", "otherJcenter"].toString())
+        output.contains(["MavenRepo", "otherCentral"].toString())
     }
 }
