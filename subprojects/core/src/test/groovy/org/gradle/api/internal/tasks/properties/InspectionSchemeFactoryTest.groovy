@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy
 class InspectionSchemeFactoryTest extends Specification {
     def handler1 = handler(Thing1)
     def handler2 = handler(Thing2)
-    def factory = new InspectionSchemeFactory([handler1, handler2], new TestCrossBuildInMemoryCacheFactory())
+    def factory = new InspectionSchemeFactory([handler1, handler2], [], new TestCrossBuildInMemoryCacheFactory())
 
     def "creates inspection scheme"() {
         def scheme = factory.inspectionScheme([Thing1, Thing2])

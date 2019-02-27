@@ -20,7 +20,6 @@ import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -28,7 +27,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.internal.Pair;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
@@ -77,7 +75,7 @@ public class PropertyExtractor {
         return ImmutableSet.copyOf(methods);
     }
 
-    public <T> Pair<ImmutableSet<PropertyMetadata>, ImmutableList<ValidationProblem>> extractPropertyMetadata(Class<T> type) {
+    public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type, ParameterValidationContext validationContext) {
         final Set<Class<? extends Annotation>> propertyTypeAnnotations = primaryAnnotationTypes;
         final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
         Types.walkTypeHierarchy(type, ignoredSuperclasses, new Types.TypeVisitor<T>() {
@@ -105,46 +103,44 @@ public class PropertyExtractor {
                         properties.put(fieldName, propertyMetadata);
                     }
 
-                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata);
+                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata, validationContext);
 
                     // Discard overridden property type annotations when an overriding annotation is also present
                     Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
 
-                    recordAnnotations(propertyMetadata, overriddenAnnotations, declaredAnnotations, propertyTypeAnnotations);
+                    recordAnnotations(propertyMetadata, overriddenAnnotations, declaredAnnotations, propertyTypeAnnotations, validationContext);
                 }
             }
         });
 
         ImmutableSet.Builder<PropertyMetadata> propertyBuilder = ImmutableSet.builderWithExpectedSize(properties.size());
-        ImmutableList.Builder<ValidationProblem> problemBuilder = ImmutableList.builder();
         for (PropertyMetadataBuilder property : properties.values()) {
-            validateProperty(property);
-            problemBuilder.addAll(property.validationProblems);
+            validateProperty(property, validationContext);
             if (property.propertyType != null) {
                 propertyBuilder.add(property.toMetadata());
             }
         }
-        return Pair.of(propertyBuilder.build(), problemBuilder.build());
+        return propertyBuilder.build();
     }
 
-    private void validateProperty(PropertyMetadataBuilder property) {
+    private void validateProperty(PropertyMetadataBuilder property, ParameterValidationContext validationContext) {
         if (!property.brokenType && property.propertyType == null) {
-            property.validationMessage("is not annotated with " + displayName);
+            validationContext.visitError(null, property.fieldName, "is not annotated with " + displayName);
         }
     }
 
-    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property) {
-        Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations(), property);
+    private Iterable<Annotation> mergeDeclaredAnnotations(Method method, @Nullable Field field, PropertyMetadataBuilder property, ParameterValidationContext validationContext) {
+        Collection<Annotation> methodAnnotations = collectRelevantAnnotations(method.getDeclaredAnnotations(), property, validationContext);
         if (Modifier.isPrivate(method.getModifiers())) {
             if (!methodAnnotations.isEmpty()) {
-                property.validationMessage("is private and annotated with @" + methodAnnotations.iterator().next().annotationType().getSimpleName());
+                validationContext.visitError(null, property.fieldName, "is private and annotated with @" + methodAnnotations.iterator().next().annotationType().getSimpleName());
             }
             property.hasBrokenType();
         }
         if (field == null) {
             return methodAnnotations;
         }
-        Collection<Annotation> fieldAnnotations = collectRelevantAnnotations(field.getDeclaredAnnotations(), property);
+        Collection<Annotation> fieldAnnotations = collectRelevantAnnotations(field.getDeclaredAnnotations(), property, validationContext);
         if (fieldAnnotations.isEmpty()) {
             return methodAnnotations;
         }
@@ -157,7 +153,7 @@ public class PropertyExtractor {
             while (iFieldAnnotation.hasNext()) {
                 Annotation fieldAnnotation = iFieldAnnotation.next();
                 if (methodAnnotation.annotationType().equals(fieldAnnotation.annotationType())) {
-                    property.validationMessage("has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
+                    validationContext.visitError(null, property.fieldName, "has both a getter and field declared with annotation @" + methodAnnotation.annotationType().getSimpleName());
                     iFieldAnnotation.remove();
                 }
             }
@@ -186,7 +182,7 @@ public class PropertyExtractor {
         });
     }
 
-    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> overriddenAnnotations, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations) {
+    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> overriddenAnnotations, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations, ParameterValidationContext validationContext) {
         Set<Class<? extends Annotation>> declaredPropertyTypes = Sets.newLinkedHashSet();
         for (Annotation annotation : overriddenAnnotations) {
             if (propertyTypeAnnotations.contains(annotation.annotationType())) {
@@ -207,18 +203,18 @@ public class PropertyExtractor {
                 }
             });
             Set<String> sortedNames = CollectionUtils.addAll(new TreeSet<String>(), names);
-            property.validationMessage("has conflicting property types declared: " + Joiner.on(", ").join(sortedNames));
+            validationContext.visitError(null, property.fieldName, "has conflicting property types declared: " + Joiner.on(", ").join(sortedNames));
         }
     }
 
-    private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations, PropertyMetadataBuilder property) {
+    private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations, PropertyMetadataBuilder property, ParameterValidationContext validationContext) {
         List<Annotation> relevantAnnotations = Lists.newArrayListWithCapacity(annotations.length);
         for (Annotation annotation : annotations) {
             if (relevantAnnotationTypes.contains(annotation.annotationType())) {
                 relevantAnnotations.add(annotation);
             }
             if (otherKnownAnnotations.contains(annotation.annotationType())) {
-                property.validationMessage("is annotated with unsupported annotation @" + annotation.annotationType().getSimpleName());
+                validationContext.visitError(null, property.fieldName, "is annotated with unsupported annotation @" + annotation.annotationType().getSimpleName());
                 property.hasBrokenType();
             }
         }
@@ -282,7 +278,6 @@ public class PropertyExtractor {
         private final Method method;
         private Class<? extends Annotation> propertyType;
         private final Map<Class<? extends Annotation>, Annotation> annotations = Maps.newHashMap();
-        private final List<ValidationProblem> validationProblems = Lists.newArrayList();
         private boolean brokenType;
 
         PropertyMetadataBuilder(Set<Class<? extends Annotation>> propertyTypeAnnotations, String fieldName, Method method) {
@@ -293,15 +288,6 @@ public class PropertyExtractor {
 
         public void hasBrokenType() {
             this.brokenType = true;
-        }
-
-        public void validationMessage(String message) {
-            validationProblems.add(new ValidationProblem() {
-                @Override
-                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
-                    validationContext.recordValidationMessage(ownerPropertyPath, fieldName, message);
-                }
-            });
         }
 
         public void addAnnotation(Annotation annotation) {

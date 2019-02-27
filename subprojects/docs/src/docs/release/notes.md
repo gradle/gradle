@@ -43,6 +43,32 @@ dependencies {
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
 
+## Better help message on delete operation failure
+
+The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
+
+The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
+
+For example, a process holding `some.file` open in your `build` directory while running the `:clean` task would cause the following message to be displayed:
+
+```
+* What went wrong:
+Execution failed for task ':clean'.
+> Unable to delete directory '/path/to/your/gradle-project/build'
+    Failed to delete some children. This might happen because a process has files open or has its working directory set in the target directory.
+    - /path/to/your/gradle-build/subproject/build/some.file
+```
+
+A process still writing to your `build` directory while running the `:clean` task would display:
+
+```
+* What went wrong:
+Execution failed for task ':clean'.
+> Unable to delete directory '/path/to/your/gradle-project/build'
+    New files were found. This might happen because a process is still writing to the target directory.
+    - /path/to/your/gradle-build/subproject/build/new.file
+```
+
 ## Improvements for plugin authors
 
 ### Use abstract types
@@ -65,12 +91,6 @@ In this release, plugin authors can use the `ObjectFactory.fileCollection()` met
 ## Default Checkstyle version upgraded to 8.17
 
 [The Checkstyle plugin](userguide/checkstyle_plugin.html) has been upgraded to use [Checkstyle version 8.17](http://checkstyle.sourceforge.net/releasenotes.html#Release_8.17) by default.
-
-## Better help message on delete operation failure
-
-The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
-
-The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

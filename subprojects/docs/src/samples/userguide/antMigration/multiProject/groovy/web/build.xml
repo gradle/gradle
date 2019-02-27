@@ -7,7 +7,7 @@
 
     <!-- tag::build-required[] -->
     <target name="buildRequiredProjects">
-        <ant dir="${root.dir}/util" target="build"/>  <!-- <1> -->
+        <ant dir="${root.dir}/util" target="build"/>  <!--1-->
     </target>
     <!-- end::build-required[] -->
 

@@ -183,6 +183,24 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository mavenCentral();
 
     /**
+     * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}. The name of the repository is
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
+     *
+     * <p>Examples:</p>
+     * <pre class='autoTested'>
+     * repositories {
+     *     mavenCentral()
+     * }
+     * </pre>
+     *
+     * @param action a configuration action
+     * @return the added resolver
+     * @since 5.3
+     */
+    MavenArtifactRepository mavenCentral(Action<? super MavenArtifactRepository> action);
+
+    /**
      * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
      * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
      *
@@ -207,6 +225,32 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository mavenLocal();
 
     /**
+     * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
+     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_LOCAL_REPO_NAME}.
+     *
+     * <p>Examples:</p>
+     * <pre class='autoTested'>
+     * repositories {
+     *     mavenLocal()
+     * }
+     * </pre>
+     * <p>
+     * The location for the repository is determined as follows (in order of precedence):
+     * </p>
+     * <ol>
+     * <li>The value of system property 'maven.repo.local' if set;</li>
+     * <li>The value of element &lt;localRepository&gt; of <code>~/.m2/settings.xml</code> if this file exists and element is set;</li>
+     * <li>The value of element &lt;localRepository&gt; of <code>$M2_HOME/conf/settings.xml</code> (where <code>$M2_HOME</code> is the value of the environment variable with that name) if this file exists and element is set;</li>
+     * <li>The path <code>~/.m2/repository</code>.</li>
+     * </ol>
+     *
+     * @param action a configuration action
+     * @return the added resolver
+     * @since 5.3
+     */
+    MavenArtifactRepository mavenLocal(Action<? super MavenArtifactRepository> action);
+
+    /**
      * Adds a repository which looks in Google's Maven repository for dependencies.
      * <p>
      * The URL used to access this repository is {@literal "https://dl.google.com/dl/android/maven2/"}.
@@ -222,6 +266,24 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * @since 4.0
      */
     MavenArtifactRepository google();
+
+    /**
+     * Adds a repository which looks in Google's Maven repository for dependencies.
+     * <p>
+     * The URL used to access this repository is {@literal "https://dl.google.com/dl/android/maven2/"}.
+     * <p>
+     * Examples:
+     * <pre class='autoTested'>
+     * repositories {
+     *     google()
+     * }
+     * </pre>
+     *
+     * @param action a configuration action
+     * @return the added resolver
+     * @since 5.3
+     */
+    MavenArtifactRepository google(Action<? super MavenArtifactRepository> action);
 
     /**
      * Adds and configures a Maven repository. Newly created instance of {@code MavenArtifactRepository} is passed as an argument to the closure.

@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
@@ -55,6 +56,10 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
             visitor.visitInputProperty(propertyName, new AbsentValue(), false);
         }
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 
     @Nullable
