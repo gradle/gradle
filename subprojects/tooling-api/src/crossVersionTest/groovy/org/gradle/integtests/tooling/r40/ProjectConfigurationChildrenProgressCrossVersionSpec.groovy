@@ -116,7 +116,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         events.assertIsABuild()
 
         and:
-        events.operation('Configure project :').children.size() <= 5 //only 'Apply plugin org.gradle.help-tasks', maybe before/afterEvaluated and 2 delayed task registrations
+        events.operation('Configure project :').children.size() <= 6 //only 'Apply plugin org.gradle.help-tasks', maybe before/afterEvaluated and 3 delayed task registrations
     }
 
     def "generates events for applied build scripts"() {
