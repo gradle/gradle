@@ -33,7 +33,9 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
             register(KotlinBuildScriptTemplateModelBuilder)
         }
         project.tasks.apply {
-            register(kotlinBuildScriptModelTask)
+            register(kotlinBuildScriptModelTask) {
+                it.group = "other"
+            }
         }
     }
 }
