@@ -16,10 +16,13 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.api.artifacts.transform.ArtifactTransform
-
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.kotlin.dsl.support.unzipTo
-
 import java.io.File
 
 
@@ -28,20 +31,22 @@ import java.io.File
  * a downloaded ZIP of the Gradle sources, and will return the list of main sources
  * subdirectories for all subprojects.
  */
-class ExtractGradleSourcesTransform : ArtifactTransform() {
+abstract class FindGradleSources : TransformAction<TransformParameters.None> {
+    @get:InputArtifact
+    abstract val input: File
 
-    override fun transform(input: File): List<File> {
-        unzipTo(outputDirectory, input)
-        return sourceDirectories()
+    override fun transform(outputs: TransformOutputs) {
+        registerSourceDirectories(outputs)
     }
 
     private
-    fun sourceDirectories() =
+    fun registerSourceDirectories(outputs: TransformOutputs) {
         unzippedSubProjectsDir()?.let {
             subDirsOf(it).flatMap { subProject ->
                 subDirsOf(File(subProject, "src/main"))
-            }
-        } ?: emptyList()
+            }.forEach { outputs.dir(it) }
+        }
+    }
 
     private
     fun unzippedSubProjectsDir(): File? =
@@ -51,5 +56,16 @@ class ExtractGradleSourcesTransform : ArtifactTransform() {
 
     private
     fun unzippedDistroDir(): File? =
-        outputDirectory.listFiles().singleOrNull()
+        input.listFiles().singleOrNull()
+}
+
+
+abstract class UnzipDistribution : TransformAction<TransformParameters.None> {
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        unzipTo(outputs.dir("unzipped-distribution"), input)
+    }
 }

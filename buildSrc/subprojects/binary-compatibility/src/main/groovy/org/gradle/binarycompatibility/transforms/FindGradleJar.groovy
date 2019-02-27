@@ -17,25 +17,37 @@
 
 package org.gradle.binarycompatibility.transforms
 
-import org.gradle.api.artifacts.transform.ArtifactTransform
-import javax.inject.Inject
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-class FindGradleJar extends ArtifactTransform {
-    private final String target
+abstract class FindGradleJar implements TransformAction<Parameters> {
 
-    @Inject
-    FindGradleJar(String target) {
-        this.target = target
+    @CompileStatic
+    interface Parameters extends TransformParameters {
+        @Input
+        String getTarget()
+        void setTarget(String target)
     }
 
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputArtifact
+    abstract File getArtifact()
+
     @Override
-    List<File> transform(final File file) {
-        if (file.name == 'gradle-jars') {
-            (file.listFiles().findAll { it.name.startsWith("gradle-${target}-") } as List<File>).sort { it.name }
-        } else {
-            []
+    void transform(TransformOutputs outputs) {
+        if (artifact.name == 'gradle-jars') {
+            (artifact.listFiles().findAll {
+                it.name.startsWith("gradle-${parameters.target}-")
+            } as List<File>).sort { it.name }.each {
+                outputs.file(it)
+            }
         }
     }
 }

@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.binarycompatibility.AcceptedApiChanges
@@ -66,25 +63,23 @@ dependencies {
 
     // This transform takes the Gradle zip distribution,
     // and unzips the Gradle jar files that it contains in a directory
-    registerTransform {
+    registerTransform(ExplodeZipAndFindJars) {
         from.attribute(ARTIFACT_TYPE, 'zip')
         to.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
-        artifactTransform(ExplodeZipAndFindJars)
     }
-    registerTransform {
+    registerTransform(FindGradleClasspath) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
-        artifactTransform(FindGradleClasspath)
     }
 
     projects.each { projectName ->
         // This transform uses the result of the exploded zip extraction
         // and returns a single jar file based on the lookup project name
-        registerTransform {
+        registerTransform(FindGradleJar) {
             from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
             to.attribute(ARTIFACT_TYPE, projectName)
-            artifactTransform(FindGradleJar) {
-                params(projectName)
+            parameters {
+                target = projectName
             }
         }
     }

@@ -17,13 +17,17 @@
 package build
 
 import accessors.sourceSets
-import org.gradle.gradlebuild.PublicApi
-
 import org.gradle.api.Project
-import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.file.RelativePath
-
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.gradlebuild.PublicApi
 import org.gradle.kotlin.dsl.*
 
 import org.gradle.kotlin.dsl.codegen.ParameterNamesSupplier
@@ -37,14 +41,12 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ASM6
 import org.objectweb.asm.Type
-
-import java.io.InputStream
 import java.io.File
+import java.io.InputStream
 import java.util.Properties
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.zip.ZipOutputStream
-import javax.inject.Inject
 
 
 // TODO:kotlin-dsl dedupe, see MinifyPlugin
@@ -64,11 +66,12 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
     }
 
     dependencies {
-        registerTransform {
+        registerTransform(AddGradleApiParameterNames::class) {
             from.attribute(artifactType, "jar").attribute(minified, true)
             to.attribute(artifactType, jarWithGradleApiParameterNames)
-            artifactTransform(GradleApiParameterNamesTransform::class) {
-                params(PublicApi.includes, PublicApi.excludes)
+            parameters {
+                publicApiIncludes = PublicApi.includes
+                publicApiExcludes = PublicApi.excludes
             }
         }
 
@@ -86,20 +89,30 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
 
 
 internal
-class GradleApiParameterNamesTransform @Inject constructor(
-    private val publicApiIncludes: List<String>,
-    private val publicApiExcludes: List<String>
-) : ArtifactTransform() {
+abstract class AddGradleApiParameterNames : TransformAction<AddGradleApiParameterNames.Parameters> {
 
-    override fun transform(input: File): MutableList<File> =
-        if (input.name.startsWith("gradle-")) mutableListOf(outputFileFor(input).also { outputFile ->
-            transformGradleApiJar(input, outputFile)
-        })
-        else mutableListOf(input)
+    interface Parameters : TransformParameters {
+        @get:Input
+        var publicApiIncludes: List<String>
+        @get:Input
+        var publicApiExcludes: List<String>
+    }
+
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    @get:InputArtifact
+    abstract val input: File
+
+    override fun transform(outputs: TransformOutputs) {
+        if (input.name.startsWith("gradle-")) {
+            transformGradleApiJar(input, outputs.file(outputFileNameFor(input)))
+        } else {
+            outputs.file(input)
+        }
+    }
 
     private
-    fun outputFileFor(input: File) =
-        outputDirectory.resolve("${input.nameWithoutExtension}-with-parameter-names.jar")
+    fun outputFileNameFor(input: File) =
+        "${input.nameWithoutExtension}-with-parameter-names.jar"
 
     private
     fun transformGradleApiJar(inputFile: File, outputFile: File) {
@@ -134,8 +147,8 @@ class GradleApiParameterNamesTransform @Inject constructor(
             }
         }
         return GradleApiMetadata(
-            publicApiIncludes,
-            publicApiExcludes,
+            parameters.publicApiIncludes,
+            parameters.publicApiExcludes,
             { key: String -> parameterNamesIndex.getProperty(key, null)?.split(",") }
         )
     }

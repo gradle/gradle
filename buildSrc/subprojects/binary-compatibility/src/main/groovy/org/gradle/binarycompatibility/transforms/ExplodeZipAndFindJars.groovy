@@ -18,40 +18,41 @@
 package org.gradle.binarycompatibility.transforms
 
 import groovy.transform.CompileStatic
-import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.nio.file.Files
 
 @CompileStatic
-class ExplodeZipAndFindJars extends ArtifactTransform {
+abstract class ExplodeZipAndFindJars implements TransformAction<TransformParameters.None> {
+
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputArtifact
+    abstract File getArtifact()
 
     @Override
-    List<File> transform(final File file) {
-        List<File> result = []
-        if (outputDirectory.exists() && outputDirectory.listFiles().length == 0) {
-            File gradleJars = new File(outputDirectory, "gradle-jars")
-            File dependencies = new File(outputDirectory, "gradle-dependencies")
-            gradleJars.mkdir()
-            dependencies.mkdir()
-            result << gradleJars
-            result << dependencies
-            ZipInputStream zin = new ZipInputStream(file.newInputStream())
-            ZipEntry zipEntry
-            while (zipEntry = zin.nextEntry) {
-                String shortName = zipEntry.name
-                if (shortName.contains('/')) {
-                    shortName = shortName.substring(shortName.lastIndexOf('/') + 1)
-                }
-                if (shortName.endsWith('.jar')) {
-                    def outputDir = shortName.startsWith('gradle-') ? gradleJars : dependencies
-                    def out = new File(outputDir, shortName)
-                    Files.copy(zin, out.toPath())
-                    zin.closeEntry()
-                }
+    void transform(TransformOutputs outputs) {
+        File gradleJars = outputs.dir("gradle-jars")
+        File dependencies = outputs.dir("gradle-dependencies")
+        ZipInputStream zin = new ZipInputStream(artifact.newInputStream())
+        ZipEntry zipEntry
+        while (zipEntry = zin.nextEntry) {
+            String shortName = zipEntry.name
+            if (shortName.contains('/')) {
+                shortName = shortName.substring(shortName.lastIndexOf('/') + 1)
+            }
+            if (shortName.endsWith('.jar')) {
+                def outputDir = shortName.startsWith('gradle-') ? gradleJars : dependencies
+                def out = new File(outputDir, shortName)
+                Files.copy(zin, out.toPath())
+                zin.closeEntry()
             }
         }
-        result
     }
 }

@@ -51,7 +51,7 @@ open class MinifyPlugin : Plugin<Project> {
                     artifactTypes.getByName("jar") {
                         attributes.attribute(minified, java.lang.Boolean.FALSE)
                     }
-                    registerTransform {
+                    registerTransform(Minify::class) {
                         /*
                          * TODO Why do I have to add artifactType=jar here? According to
                          * the declaration above, it's the only artifact type for which
@@ -60,8 +60,8 @@ open class MinifyPlugin : Plugin<Project> {
                          */
                         from.attribute(minified, false).attribute(artifactType, "jar")
                         to.attribute(minified, true).attribute(artifactType, "jar")
-                        artifactTransform(MinifyTransform::class) {
-                            params(keepPatterns)
+                        parameters {
+                            keepClassesByArtifact = keepPatterns
                         }
                     }
                 }

@@ -17,13 +17,9 @@
 package org.gradle.gradlebuild.packaging
 
 import accessors.base
-import org.gradle.api.Action
-import org.gradle.api.ActionConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Usage
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Copy
@@ -33,7 +29,6 @@ import org.gradle.gradlebuild.packaging.Attributes.artifactType
 import org.gradle.gradlebuild.packaging.Attributes.minified
 import org.gradle.kotlin.dsl.*
 import java.io.File
-import java.lang.IllegalArgumentException
 
 
 private
@@ -85,27 +80,37 @@ open class ShadedJarPlugin : Plugin<Project> {
     fun Project.registerTransforms(shadedJarExtension: ShadedJarExtension) {
         afterEvaluate {
             dependencies {
-                registerTransform {
+                registerTransform(ShadeClasses::class) {
                     from
                         .attribute(artifactType, "jar")
                         .attribute(minified, true)
                     to.attribute(artifactType, relocatedClassesAndAnalysisType)
-                    artifactTransform(ShadeClassesTransform::class) {
-                        params(
-                            "org.gradle.internal.impldep",
-                            shadedJarExtension.keepPackages.get(),
-                            shadedJarExtension.unshadedPackages.get(),
-                            shadedJarExtension.ignoredPackages.get()
-                        )
+                    parameters {
+                        shadowPackage = "org.gradle.internal.impldep"
+                        keepPackages = shadedJarExtension.keepPackages.get()
+                        unshadedPackages = shadedJarExtension.unshadedPackages.get()
+                        ignoredPackages = shadedJarExtension.ignoredPackages.get()
                     }
                 }
             }
         }
         dependencies {
-            registerArtifactTypeTransform<FindRelocatedClasses>(relocatedClassesAndAnalysisType, relocatedClassesType)
-            registerArtifactTypeTransform<FindEntryPoints>(relocatedClassesAndAnalysisType, entryPointsType)
-            registerArtifactTypeTransform<FindClassTrees>(relocatedClassesAndAnalysisType, classTreesType)
-            registerArtifactTypeTransform<FindManifests>(relocatedClassesAndAnalysisType, manifestsType)
+            registerTransform(FindRelocatedClasses::class) {
+                from.attribute(artifactType, relocatedClassesAndAnalysisType)
+                to.attribute(artifactType, relocatedClassesType)
+            }
+            registerTransform(FindEntryPoints::class) {
+                from.attribute(artifactType, relocatedClassesAndAnalysisType)
+                to.attribute(artifactType, entryPointsType)
+            }
+            registerTransform(FindClassTrees::class) {
+                from.attribute(artifactType, relocatedClassesAndAnalysisType)
+                to.attribute(artifactType, classTreesType)
+            }
+            registerTransform(FindManifests::class) {
+                from.attribute(artifactType, relocatedClassesAndAnalysisType)
+                to.attribute(artifactType, manifestsType)
+            }
         }
     }
 
@@ -173,14 +178,6 @@ open class ShadedJarPlugin : Plugin<Project> {
     fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artifactView {
         attributes.attribute(artifactType, artifactTypeName)
     }.files
-
-    private
-    inline fun <reified T : ArtifactTransform> DependencyHandler.registerArtifactTypeTransform(fromType: String, toType: String, action: Action<ActionConfiguration> = Action {}) =
-        registerTransform {
-            from.attribute(artifactType, fromType)
-            to.attribute(artifactType, toType)
-            artifactTransform(T::class, action)
-        }
 }
 
 
