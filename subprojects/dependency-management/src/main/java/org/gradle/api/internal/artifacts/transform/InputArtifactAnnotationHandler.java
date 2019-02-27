@@ -30,11 +30,6 @@ public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnn
     }
 
     @Override
-    public Class<? extends Annotation> getAnnotation() {
-        return InputArtifact.class;
-    }
-
-    @Override
     protected InputFilePropertyType getFilePropertyType() {
         return InputFilePropertyType.FILE;
     }

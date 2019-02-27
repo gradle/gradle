@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties
 
-
+import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.instantiation.InstantiationScheme
 import spock.lang.Specification
 
 import java.lang.annotation.Retention
@@ -29,23 +30,40 @@ class InspectionSchemeFactoryTest extends Specification {
     def handler2 = handler(Thing2)
     def factory = new InspectionSchemeFactory([handler1, handler2], [], new TestCrossBuildInMemoryCacheFactory())
 
-    def "creates inspection scheme"() {
-        def scheme = factory.inspectionScheme([Thing1, Thing2])
+    def "creates inspection scheme that understands given property annotations and injection annotations"() {
+        def instantiationScheme = Stub(InstantiationScheme)
+        instantiationScheme.injectionAnnotations >> [InjectThing]
+        def scheme = factory.inspectionScheme([Thing1, Thing2], instantiationScheme)
 
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
         def problems = []
         metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
         problems.empty
-        metadata.propertiesMetadata.size() == 2
+        metadata.propertiesMetadata.size() == 3
+
+        def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+        metadata.getAnnotationHandlerFor(properties.prop1) == handler1
+        metadata.getAnnotationHandlerFor(properties.prop2) == handler2
+        metadata.getAnnotationHandlerFor(properties.prop3) instanceof NoOpPropertyAnnotationHandler
     }
 
-    def "reuses inspection schemes"() {
-        def scheme = factory.inspectionScheme([Thing1, Thing2])
+    def "annotation can be used for property annotation and injection annotations"() {
+        def instantiationScheme = Stub(InstantiationScheme)
+        instantiationScheme.injectionAnnotations >> [Thing2, InjectThing]
+        def scheme = factory.inspectionScheme([Thing1, Thing2], instantiationScheme)
 
         expect:
-        factory.inspectionScheme([Thing2, Thing1]).is(scheme)
-        factory.inspectionScheme([Thing2]) != scheme
+        def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
+        def problems = []
+        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
+        problems.empty
+        metadata.propertiesMetadata.size() == 3
+
+        def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+        metadata.getAnnotationHandlerFor(properties.prop1) == handler1
+        metadata.getAnnotationHandlerFor(properties.prop2) == handler2
+        metadata.getAnnotationHandlerFor(properties.prop3) instanceof NoOpPropertyAnnotationHandler
     }
 
     def handler(Class<?> annotation) {
@@ -61,6 +79,9 @@ class AnnotatedBean {
 
     @Thing2
     String prop2
+
+    @InjectThing
+    String prop3
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -69,4 +90,8 @@ class AnnotatedBean {
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface Thing2 {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface InjectThing {
 }

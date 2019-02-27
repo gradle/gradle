@@ -25,6 +25,8 @@ import java.lang.annotation.Annotation;
 
 /**
  * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
+ *
+ * <p>Each handler must be registered as a global service.</p>
  */
 public interface PropertyAnnotationHandler {
     /**
