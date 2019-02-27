@@ -44,6 +44,7 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.provider.inClassPathMode
+import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -231,17 +232,19 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
         }
 
         if (inClassPathMode()) {
-            registerClassPathModelTask(configurePrecompiledScriptDependenciesResolver)
+            registerBuildScriptModelTask(
+                configurePrecompiledScriptDependenciesResolver
+            )
         }
     }
 }
 
 
 private
-fun Project.registerClassPathModelTask(
+fun Project.registerBuildScriptModelTask(
     modelTask: TaskProvider<out Task>
 ) {
-    rootProject.tasks.named("projects" /*KotlinDslProviderMode.modelTaskName*/) {
+    rootProject.tasks.named(kotlinBuildScriptModelTask) {
         it.dependsOn(modelTask)
     }
 }
