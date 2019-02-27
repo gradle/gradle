@@ -164,7 +164,7 @@ data class CIBuildModel (
 
             GradleSubproject("apiMetadata", unitTests = false, functionalTests = false),
             GradleSubproject("kotlinDsl", unitTests = true, functionalTests = true),
-            GradleSubproject("kotlinDslProviderPlugins", unitTests = true, functionalTests = true),
+            GradleSubproject("kotlinDslProviderPlugins", unitTests = false, functionalTests = false),
             GradleSubproject("kotlinDslToolingModels", unitTests = false, functionalTests = false),
             GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true),
             GradleSubproject("kotlinDslPlugins", unitTests = true, functionalTests = true),
