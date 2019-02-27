@@ -210,8 +210,8 @@ The Kotlin DSL currently supports type-safe model accessors for any of the follo
 
 [IMPORTANT]
 ====
-Only the main project build scripts have type-safe model accessors.
-Initialization scripts, settings scripts, script plugins (precompiled or otherwise) do not.
+Only the main project build scripts and precompiled project script plugins have type-safe model accessors.
+Initialization scripts, settings scripts, script plugins do not.
 These limitations will be removed in a future Gradle release.
 ====
 
@@ -281,10 +281,7 @@ Type-safe accessors are unavailable for model elements contributed by the follow
  * Script plugins, via `apply(from = "script-plugin.gradle.kts")`
  * Plugins applied via <<sec:cross_project_configuration,cross-project configuration>>
 
-You also can not use type-safe accessors in:
-
- * Binary Gradle plugins implemented in Kotlin
- * Precompiled script plugins (see below).
+You also can not use type-safe accessors in Binary Gradle plugins implemented in Kotlin.
 
 If you can't find a type-safe accessor, _fall back to using the normal API_ for the corresponding types.
 To do that, you need to know the names and/or types of the configured model elements.
@@ -755,7 +752,7 @@ So, to apply a precompiled script plugin, you need to know its ID.
 That is derived from its filename (minus the `.gradle.kts` extension) and its (optional) package declaration.
 
 For example, the script `src/main/kotlin/java-library-convention.gradle.kts` would have a plugin ID of `java-library-convention` (assuming it has no package declaration).
-Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result in a plugin ID of `my.java-library-convention` as long as it has a package declaration that matches the source directory structure.
+Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result in a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
 
 To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
 
@@ -777,12 +774,6 @@ include::sample[dir="kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="build
 
 This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
 Note that this will actually apply the plugins to the main project, i.e. the one that applies the precompiled script plugin
-
-[IMPORTANT]
-====
-Precompiled script plugins do not get <<kotlin_dsl#type-safe-accessors, type-safe accessors>>.
-This limitation will be removed in a future Gradle release.
-====
 
 Finally, apply the script plugin to the root project as follows:
 
