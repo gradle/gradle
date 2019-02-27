@@ -52,6 +52,8 @@ open class GenerateInternalPluginSpecBuilders : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        // TODO
+        sourceCodeOutputDir.withOutputDirectory {
+
+        }
     }
 }
