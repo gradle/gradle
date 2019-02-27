@@ -38,10 +38,18 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-import org.hamcrest.CoreMatchers.allOf
-import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.containsString
+import org.hamcrest.Matchers.empty
+import org.hamcrest.Matchers.not
 
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.Visibility
+import org.jetbrains.kotlin.psi.psiUtil.toVisibility
+import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
+
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -122,6 +130,55 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 containsString("*using app from local-app in foo*"),
                 containsString("*using lib from local-lib in bar*")
             )
+        )
+    }
+
+    @Ignore("wip")
+    @Test
+    fun `generated type-safe accessors are internal`() {
+
+        givenPrecompiledKotlinScript("java-project.gradle.kts", """
+            plugins { java }
+        """)
+
+        val generatedSourceFiles =
+            existing("build/generated-sources")
+                .walkTopDown()
+                .filter { it.isFile }
+                .toList()
+
+        assertThat(
+            generatedSourceFiles,
+            not(empty())
+        )
+
+        data class Declaration(
+            val packageName: String,
+            val name: String,
+            val visibility: Visibility?
+        )
+
+        val generatedAccessors =
+            KotlinParser.run {
+                withProject {
+                    generatedSourceFiles.flatMap { file ->
+                        parse(file.name, file.readText()).run {
+                            val packageName = packageFqName.asString()
+                            declarations.map { declaration ->
+                                Declaration(
+                                    packageName,
+                                    declaration.name!!,
+                                    declaration.visibilityModifierType()?.toVisibility()
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+        assertThat(
+            generatedAccessors.filterNot { it.visibility == Visibilities.INTERNAL },
+            empty()
         )
     }
 
