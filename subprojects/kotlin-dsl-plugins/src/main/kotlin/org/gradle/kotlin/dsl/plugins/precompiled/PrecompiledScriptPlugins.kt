@@ -204,6 +204,8 @@ fun Project.enableScriptCompilationOf(scriptPlugins: List<PrecompiledScriptPlugi
             }
 
         val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
+            dependsOn(generateInternalPluginSpecBuilders)
+            dependsOn(generateExternalPluginSpecBuilders)
             inputs.files(
                 project.files(generatedMetadata).builtBy(generatePrecompiledScriptPluginAccessors)
             )
