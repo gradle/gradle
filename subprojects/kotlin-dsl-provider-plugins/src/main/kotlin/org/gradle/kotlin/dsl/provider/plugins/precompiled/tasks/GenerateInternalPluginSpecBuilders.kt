@@ -53,7 +53,6 @@ open class GenerateInternalPluginSpecBuilders : DefaultTask() {
     @TaskAction
     fun generate() {
         sourceCodeOutputDir.withOutputDirectory {
-
         }
     }
 }

@@ -21,19 +21,21 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-
-import org.gradle.kotlin.dsl.plugins.precompiled.AbstractPrecompiledScriptPluginTest
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
+
+import org.junit.Ignore
 
 import org.junit.Test
 
 import java.net.URLClassLoader
 
 
-class CompilePrecompiledScriptPluginPluginsTest : AbstractPrecompiledScriptPluginTest() {
+@Ignore("wip")
+class CompilePrecompiledScriptPluginPluginsTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can compile multiple source dirs`() {
@@ -50,8 +52,6 @@ class CompilePrecompiledScriptPluginPluginsTest : AbstractPrecompiledScriptPlugi
         }
 
         withBuildScript("""
-
-            plugins { `kotlin-dsl` }
 
             fun Project.pluginsDir(path: String) = layout.buildDirectory.dir("plugins/" + path)
 

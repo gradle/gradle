@@ -26,11 +26,9 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.execution.scriptDefinitionFromTemplate
-import org.gradle.kotlin.dsl.support.ImplicitImports
 
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
-import org.gradle.kotlin.dsl.support.serviceOf
 
 
 @CacheableTask

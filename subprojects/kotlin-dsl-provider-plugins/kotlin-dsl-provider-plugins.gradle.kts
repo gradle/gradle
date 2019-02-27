@@ -34,4 +34,11 @@ dependencies {
     compile(project(":distributionsDependencies"))
 
     compile(project(":kotlinDsl"))
+    compile(project(":pluginDevelopment"))
+
+    testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(project(":plugins"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
