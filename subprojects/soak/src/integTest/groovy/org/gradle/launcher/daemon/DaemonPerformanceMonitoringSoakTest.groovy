@@ -94,6 +94,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         !daemonIsExpiredEagerly()
     }
 
+    @Ignore
     def "when leak occurs while daemon is idle daemon is still expired"() {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
@@ -137,6 +138,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         daemonIsExpiredEagerly()
     }
 
+    @Ignore
     def "detects a thrashing condition" () {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
