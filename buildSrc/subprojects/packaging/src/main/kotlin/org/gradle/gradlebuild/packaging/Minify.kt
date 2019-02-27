@@ -17,7 +17,6 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.common.io.Files
-import org.gradle.api.artifacts.transform.AssociatedTransformAction
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -32,16 +31,12 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
-@AssociatedTransformAction(MinifyAction::class)
-interface Minify {
-    @get:Input
-    var keepClassesByArtifact: Map<String, Set<String>>
-}
+abstract class Minify : TransformAction<Minify.Parameters> {
 
-
-abstract class MinifyAction : TransformAction {
-    @get:TransformParameters
-    abstract val parameters: Minify
+    interface Parameters : TransformParameters {
+        @get:Input
+        var keepClassesByArtifact: Map<String, Set<String>>
+    }
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact

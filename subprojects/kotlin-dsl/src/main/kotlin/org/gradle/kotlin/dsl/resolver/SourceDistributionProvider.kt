@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.kotlin.dsl.*
@@ -69,11 +70,11 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun registerTransforms() {
-        registerTransformAction<UnzipDistribution> {
+        registerTransform<UnzipDistribution> {
             from.attribute(artifactType, zipType)
             to.attribute(artifactType, unzippedDistributionType)
         }
-        registerTransformAction<FindGradleSources> {
+        registerTransform<FindGradleSources> {
             from.attribute(artifactType, unzippedDistributionType)
             to.attribute(artifactType, sourceDirectory)
         }
@@ -150,8 +151,8 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     }
 
     private
-    inline fun <reified T : TransformAction> registerTransformAction(crossinline configure: TransformSpec.() -> Unit) =
-        dependencies.registerTransformAction(T::class.java) { configure(it) }
+    inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(crossinline configure: TransformSpec<TransformParameters.None>.() -> Unit) =
+        dependencies.registerTransform(T::class.java) { configure(it) }
 
     private
     fun ivy(configure: IvyArtifactRepository.() -> Unit) =

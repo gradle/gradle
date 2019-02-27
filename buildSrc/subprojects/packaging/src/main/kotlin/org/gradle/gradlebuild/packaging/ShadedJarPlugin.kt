@@ -95,19 +95,19 @@ open class ShadedJarPlugin : Plugin<Project> {
             }
         }
         dependencies {
-            registerTransformAction(FindRelocatedClasses::class) {
+            registerTransform(FindRelocatedClasses::class) {
                 from.attribute(artifactType, relocatedClassesAndAnalysisType)
                 to.attribute(artifactType, relocatedClassesType)
             }
-            registerTransformAction(FindEntryPoints::class) {
+            registerTransform(FindEntryPoints::class) {
                 from.attribute(artifactType, relocatedClassesAndAnalysisType)
                 to.attribute(artifactType, entryPointsType)
             }
-            registerTransformAction(FindClassTrees::class) {
+            registerTransform(FindClassTrees::class) {
                 from.attribute(artifactType, relocatedClassesAndAnalysisType)
                 to.attribute(artifactType, classTreesType)
             }
-            registerTransformAction(FindManifests::class) {
+            registerTransform(FindManifests::class) {
                 from.attribute(artifactType, relocatedClassesAndAnalysisType)
                 to.attribute(artifactType, manifestsType)
             }

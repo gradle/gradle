@@ -21,15 +21,16 @@ import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
+import java.nio.file.Files
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import java.nio.file.Files
 
 @CompileStatic
-abstract class ExplodeZipAndFindJars implements TransformAction {
+abstract class ExplodeZipAndFindJars implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact

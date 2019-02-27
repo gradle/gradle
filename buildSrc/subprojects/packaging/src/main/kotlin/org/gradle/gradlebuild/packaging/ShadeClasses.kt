@@ -17,8 +17,7 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.gson.Gson
-import org.gradle.api.artifacts.transform.AssociatedTransformAction
-import org.gradle.api.artifacts.transform.CacheableTransformAction
+import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -44,24 +43,19 @@ private
 const val manifestFileName = "MANIFEST.MF"
 
 
-@AssociatedTransformAction(ShadeClassesAction::class)
-interface ShadeClasses {
-    @get:Input
-    var shadowPackage: String
-    @get:Input
-    var keepPackages: Set<String>
-    @get:Input
-    var unshadedPackages: Set<String>
-    @get:Input
-    var ignoredPackages: Set<String>
-}
+@CacheableTransform
+abstract class ShadeClasses : TransformAction<ShadeClasses.Parameters> {
 
-
-@CacheableTransformAction
-abstract class ShadeClassesAction : TransformAction {
-
-    @get:TransformParameters
-    abstract val parameters: ShadeClasses
+    interface Parameters : TransformParameters {
+        @get:Input
+        var shadowPackage: String
+        @get:Input
+        var keepPackages: Set<String>
+        @get:Input
+        var unshadedPackages: Set<String>
+        @get:Input
+        var ignoredPackages: Set<String>
+    }
 
     @get:Classpath
     @get:InputArtifact
@@ -85,7 +79,7 @@ abstract class ShadeClassesAction : TransformAction {
 }
 
 
-abstract class FindClassTrees : TransformAction {
+abstract class FindClassTrees : TransformAction<TransformParameters.None> {
     @get:InputArtifact
     abstract val input: File
 
@@ -95,7 +89,7 @@ abstract class FindClassTrees : TransformAction {
 }
 
 
-abstract class FindEntryPoints : TransformAction {
+abstract class FindEntryPoints : TransformAction<TransformParameters.None> {
     @get:InputArtifact
     abstract val input: File
 
@@ -105,7 +99,7 @@ abstract class FindEntryPoints : TransformAction {
 }
 
 
-abstract class FindRelocatedClasses : TransformAction {
+abstract class FindRelocatedClasses : TransformAction<TransformParameters.None> {
     @get:InputArtifact
     abstract val input: File
 
@@ -115,7 +109,7 @@ abstract class FindRelocatedClasses : TransformAction {
 }
 
 
-abstract class FindManifests : TransformAction {
+abstract class FindManifests : TransformAction<TransformParameters.None> {
     @get:InputArtifact
     abstract val input: File
 

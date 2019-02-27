@@ -18,7 +18,6 @@ package build
 
 import accessors.sourceSets
 import org.gradle.api.Project
-import org.gradle.api.artifacts.transform.AssociatedTransformAction
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -89,21 +88,15 @@ fun Project.withCompileOnlyGradleApiModulesWithParameterNames(vararg gradleModul
 }
 
 
-@AssociatedTransformAction(AddGradleApiParameterNamesAction::class)
 internal
-interface AddGradleApiParameterNames {
-    @get:Input
-    var publicApiIncludes: List<String>
-    @get:Input
-    var publicApiExcludes: List<String>
-}
+abstract class AddGradleApiParameterNames : TransformAction<AddGradleApiParameterNames.Parameters> {
 
-
-internal
-abstract class AddGradleApiParameterNamesAction : TransformAction {
-
-    @get:TransformParameters
-    abstract val parameters: AddGradleApiParameterNames
+    interface Parameters : TransformParameters {
+        @get:Input
+        var publicApiIncludes: List<String>
+        @get:Input
+        var publicApiExcludes: List<String>
+    }
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact

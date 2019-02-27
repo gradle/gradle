@@ -16,16 +16,16 @@
 
 package org.gradle.binarycompatibility.transforms
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
-import groovy.transform.CompileStatic
-
 @CompileStatic
-abstract class FindGradleClasspath implements TransformAction {
+abstract class FindGradleClasspath implements TransformAction<TransformParameters.None> {
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact

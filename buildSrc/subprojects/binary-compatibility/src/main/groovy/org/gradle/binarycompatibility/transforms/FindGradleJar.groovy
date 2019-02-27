@@ -17,7 +17,7 @@
 
 package org.gradle.binarycompatibility.transforms
 
-import org.gradle.api.artifacts.transform.AssociatedTransformAction
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -26,21 +26,15 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
-import groovy.transform.CompileStatic
-
-@AssociatedTransformAction(FindGradleJarAction)
 @CompileStatic
-interface FindGradleJar {
-    @Input
-    String getTarget()
-    void setTarget(String target)
-}
+abstract class FindGradleJar implements TransformAction<Parameters> {
 
-@CompileStatic
-abstract class FindGradleJarAction implements TransformAction {
-
-    @TransformParameters
-    abstract FindGradleJar getParameters()
+    @CompileStatic
+    interface Parameters extends TransformParameters {
+        @Input
+        String getTarget()
+        void setTarget(String target)
+    }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
