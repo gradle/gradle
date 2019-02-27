@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties
 
-import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
+
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -40,12 +40,11 @@ class InspectionSchemeFactoryTest extends Specification {
         def problems = []
         metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
         problems.empty
-        metadata.propertiesMetadata.size() == 3
+        metadata.propertiesMetadata.size() == 2
 
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
-        metadata.getAnnotationHandlerFor(properties.prop3) instanceof NoOpPropertyAnnotationHandler
     }
 
     def "annotation can be used for property annotation and injection annotations"() {
@@ -58,16 +57,16 @@ class InspectionSchemeFactoryTest extends Specification {
         def problems = []
         metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
         problems.empty
-        metadata.propertiesMetadata.size() == 3
+        metadata.propertiesMetadata.size() == 2
 
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
-        metadata.getAnnotationHandlerFor(properties.prop3) instanceof NoOpPropertyAnnotationHandler
     }
 
     def handler(Class<?> annotation) {
         def handler = Stub(PropertyAnnotationHandler)
+        _ * handler.propertyRelevant >> true
         _ * handler.annotationType >> annotation
         return handler
     }

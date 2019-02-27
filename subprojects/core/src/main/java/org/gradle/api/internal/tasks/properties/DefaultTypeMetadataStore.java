@@ -136,11 +136,15 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
         ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(type, validationContext);
+        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(properties.size());
         for (PropertyMetadata property : properties) {
             PropertyAnnotationHandler annotationHandler = annotationHandlers.get(property.getPropertyType());
             annotationHandler.validatePropertyMetadata(property, validationContext);
+            if (annotationHandler.isPropertyRelevant()) {
+                effectiveProperties.add(property);
+            }
         }
-        return new DefaultTypeMetadata(properties, validationContext.getProblems(), annotationHandlers);
+        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext.getProblems(), annotationHandlers);
     }
 
     private static class RecordingValidationContext implements ParameterValidationContext {
