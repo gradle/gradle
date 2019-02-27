@@ -68,11 +68,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
-    private final Object parameterObject;
+    private final TransformParameters parameterObject;
     private final Class<? extends FileNormalizer> fileNormalizer;
     private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
@@ -88,7 +89,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     public DefaultTransformer(
         Class<? extends TransformAction> implementationClass,
-        @Nullable Object parameterObject,
+        @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
         Class<? extends FileNormalizer> inputArtifactNormalizer,
         Class<? extends FileNormalizer> dependenciesNormalizer,
@@ -184,17 +185,17 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     protected IsolatedParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
-        Isolatable<Object> isolatableParameterObject = isolatableFactory.isolate(parameterObject);
+        Isolatable<TransformParameters> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();
         appendActionImplementation(getImplementationClass(), hasher, classLoaderHierarchyHasher);
 
         if (parameterObject != null) {
             // TODO wolfs - schedule fingerprinting separately, it can be done without having the project lock
-            fingerprintParameters(valueSnapshotter, fingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatableParameterObject.isolate(), cacheable);
+            fingerprintParameters(valueSnapshotter, fingerprinterRegistry, fileCollectionFactory, parameterPropertyWalker, hasher, isolatedParameterObject.isolate(), cacheable);
         }
         HashCode secondaryInputsHash = hasher.hash();
-        return new IsolatedParameters(isolatableParameterObject, secondaryInputsHash);
+        return new IsolatedParameters(isolatedParameterObject, secondaryInputsHash);
     }
 
     private static void fingerprintParameters(
@@ -281,14 +282,18 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private static class TransformServiceLookup implements ServiceLookup {
         private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, @Nullable Object parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
+        public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(new InjectionPoint(InputArtifact.class, File.class, inputFile));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, () -> inputFile));
             if (parameters != null) {
-                builder.add(new InjectionPoint(TransformParameters.class, parameters.getClass(), parameters));
+                builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));
+            } else {
+                builder.add(InjectionPoint.injectedByType(TransformParameters.None.class, () -> {
+                    throw new UnknownServiceException(TransformParameters.None.class, "Cannot query parameters for artifact transform without parameters.");
+                }));
             }
             if (artifactTransformDependencies != null) {
-                builder.add(new InjectionPoint(InputArtifactDependencies.class, artifactTransformDependencies.getFiles()));
+                builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles()));
             }
             this.injectionPoints = builder.build();
         }
@@ -331,16 +336,20 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         private static class InjectionPoint {
             private final Class<? extends Annotation> annotation;
             private final Class<?> injectedType;
-            private final Object valueToInject;
+            private final Supplier<Object> valueToInject;
 
-            public InjectionPoint(Class<? extends Annotation> annotation, Class<?> injectedType, Object valueToInject) {
+            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
+                return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
+            }
+
+            public static InjectionPoint injectedByType(Class<?> injectedType, Supplier<Object> valueToInject) {
+                return new InjectionPoint(null, injectedType, valueToInject);
+            }
+
+            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Class<?> injectedType, Supplier<Object> valueToInject) {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
-            }
-
-            public InjectionPoint(Class<? extends Annotation> annotation, Object valueToInject) {
-                this(annotation, determineTypeFromAnnotation(annotation), valueToInject);
             }
 
             private static Class<?> determineTypeFromAnnotation(Class<? extends Annotation> annotation) {
@@ -351,6 +360,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 return supportedTypes[0];
             }
 
+            @Nullable
             public Class<? extends Annotation> getAnnotation() {
                 return annotation;
             }
@@ -360,16 +370,16 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             }
 
             public Object getValueToInject() {
-                return valueToInject;
+                return valueToInject.get();
             }
         }
     }
 
     private static class IsolatedParameters {
         private final HashCode secondaryInputsHash;
-        private final Isolatable<?> isolatedParameterObject;
+        private final Isolatable<? extends TransformParameters> isolatedParameterObject;
 
-        public IsolatedParameters(Isolatable<?> isolatedParameterObject, HashCode secondaryInputsHash) {
+        public IsolatedParameters(Isolatable<? extends TransformParameters> isolatedParameterObject, HashCode secondaryInputsHash) {
             this.secondaryInputsHash = secondaryInputsHash;
             this.isolatedParameterObject = isolatedParameterObject;
         }
@@ -378,7 +388,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             return secondaryInputsHash;
         }
 
-        public Isolatable<?> getIsolatedParameterObject() {
+        public Isolatable<? extends TransformParameters> getIsolatedParameterObject() {
             return isolatedParameterObject;
         }
     }

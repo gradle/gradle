@@ -55,6 +55,7 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.language.jvm.tasks.ProcessResources;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -274,6 +275,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
+
+        if (project.getPluginManager().hasPlugin("java-platform")) {
+            DeprecationLogger.nagUserOfDeprecatedBehaviour("The \"java\" (or \"java-library\") plugin cannot be used together with the \"java-platform\" plugin on a given project. " +
+                "A project is either a platform or a library but cannot be both at the same time.");
+        }
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {

@@ -16,9 +16,9 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.ReplacedBy
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Console
@@ -170,6 +170,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         Inject            | Inject.name                   | ObjectFactory
         OptionValues      | "${OptionValues.name}(\"a\")" | List
         Internal          | 'Internal'                    | String
+        ReplacedBy        | 'ReplacedBy("")'              | String
         Console           | 'Console'                     | Boolean
         Destroys          | 'Destroys'                    | FileCollection
         LocalState        | 'LocalState'                  | FileCollection
@@ -227,7 +228,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         annotation                | _
         InputArtifact             | _
         InputArtifactDependencies | _
-        TransformParameters       | _
     }
 
     def "detects missing annotation on Groovy properties"() {
@@ -589,5 +589,40 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         property    | value
         'classes'   | 'output.classesDirs'
         'classpath' | ' compileClasspath '
+    }
+
+    def "reports conflicting types when property is replaced but keeps old annotations"() {
+        file("src/main/java/MyTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.*;
+            
+            public class MyTask extends DefaultTask {
+                private final Property<String> newProperty = getProject().getObjects().property(String.class);
+    
+                @Input
+                @ReplacedBy("newProperty")
+                public String getOldProperty() {
+                    return newProperty.get();
+                }
+    
+                public void setOldProperty(String oldProperty) {
+                    newProperty.set(oldProperty);
+                }
+    
+                @Input
+                public Property<String> getNewProperty() {
+                    return newProperty;
+                }
+            }
+        """
+
+        when:
+        fails "validateTaskProperties"
+
+        then:
+        file("build/reports/task-properties/report.txt").text == """
+            Warning: Task type 'MyTask': property 'oldProperty' has conflicting property types declared: @Input, @ReplacedBy.
+        """.stripIndent().trim()
     }
 }
