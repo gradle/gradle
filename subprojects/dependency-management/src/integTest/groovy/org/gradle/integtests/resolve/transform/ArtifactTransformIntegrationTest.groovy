@@ -19,17 +19,13 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner
 import org.gradle.internal.file.FileType
 import org.hamcrest.Matcher
-import org.junit.runner.RunWith
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.ExperimentalIncrementalArtifactTransformationsRunner.configureIncrementalArtifactTransformations
 import static org.gradle.util.Matchers.matchesRegexp
 
-@RunWith(ExperimentalIncrementalArtifactTransformationsRunner)
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
@@ -37,9 +33,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             include 'lib'
             include 'app'
         """
-        configureIncrementalArtifactTransformations(settingsFile)
 
         buildFile << """
+import org.gradle.api.artifacts.transform.TransformParameters
+
 def usage = Attribute.of('usage', String)
 def artifactType = Attribute.of('artifactType', String)
 def extraAttribute = Attribute.of('extra', String)
@@ -802,13 +799,13 @@ $fileSizer
             }
 
             dependencies {
-                registerTransformAction(IdentityTransform) {
+                registerTransform(IdentityTransform) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'identity')
                 }
             }
             
-            abstract class IdentityTransform implements TransformAction {
+            abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput()
                 
@@ -1558,7 +1555,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class FailingTransformAction implements TransformAction {
+            abstract class FailingTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     ${switch (type) {
                         case FileType.Missing:
@@ -1580,7 +1577,7 @@ Found the following transforms:
                     }}
                 }
             }
-            ${declareTransformAction('FailingTransformAction')}
+            ${declareTransformAction('FailingTransform')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1628,7 +1625,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            class DirectoryTransformAction implements TransformAction {
+            abstract class DirectoryTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file("some/dir/output.txt")
                     assert outputFile.parentFile.directory
@@ -1638,7 +1635,7 @@ Found the following transforms:
                     new File(outputDir, "in-dir.txt").text = "another output"
                 }
             }
-            ${declareTransformAction('DirectoryTransformAction')}
+            ${declareTransformAction('DirectoryTransform')}
 
             task resolve(type: Copy) {
                 def artifacts = configurations.compile.incoming.artifactView {
@@ -1666,7 +1663,7 @@ Found the following transforms:
                 compile files(a)
             }
 
-            abstract class MyTransformAction implements TransformAction {
+            abstract class MyTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract File getInput() 
 
@@ -1677,7 +1674,7 @@ Found the following transforms:
                 }
             }
             dependencies {
-                registerTransformAction(MyTransformAction) {
+                registerTransform(MyTransform) {
                     from.attribute(artifactType, 'directory')
                     to.attribute(artifactType, 'size')
                 }
@@ -1744,7 +1741,7 @@ Found the following transforms:
 
             SomewhereElseTransform.output = file("other.jar")
 
-            class SomewhereElseTransform implements TransformAction {
+            abstract class SomewhereElseTransform implements TransformAction<TransformParameters.None> {
                 static def output
                 void transform(TransformOutputs outputs) {
                     def outputFile = outputs.file(output)
@@ -1952,14 +1949,13 @@ Found the following transforms:
                 String toString() { return "<custom>" }
             }
 
-            @AssociatedTransformAction(CustomAction)
-            interface Custom {
-                @Input
-                CustomType getInput()
-                void setInput(CustomType input)
-            }
-              
-            class CustomAction implements TransformAction { 
+            abstract class Custom implements TransformAction<Parameters> { 
+                interface Parameters extends TransformParameters {
+                    @Input
+                    CustomType getInput()
+                    void setInput(CustomType input)
+                }
+
                 void transform(TransformOutputs outputs) {  }
             }
             
@@ -1985,7 +1981,7 @@ Found the following transforms:
         when:
         fails "resolve"
         then:
-        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Inject@.* of artifact transform CustomAction")
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Parameters\\\$Inject@.* of artifact transform Custom")
         if (scheduled) {
             failure.assertThatDescription(matchesCannotIsolate)
         } else {
@@ -2311,7 +2307,7 @@ Found the following transforms:
     def declareTransformAction(String transformActionImplementation) {
         """
             dependencies {
-                registerTransformAction($transformActionImplementation) {
+                registerTransform($transformActionImplementation) {
                     from.attribute(artifactType, 'jar')
                     to.attribute(artifactType, 'size')
                 }

@@ -26,8 +26,6 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.FeaturePreviewsFixture.enableIncrementalArtifactTransformations
-
 abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrationSpec implements RichConsoleStyling {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -324,21 +322,17 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
             include 'lib'
             include 'util'
         """
-        enableIncrementalArtifactTransformations(settingsFile)
         buildFile << """
             def usage = Attribute.of('usage', String)
             def artifactType = Attribute.of('artifactType', String)
                   
-            @AssociatedTransformAction(FileSizerAction)
-            interface FileSizer {
-                @Input
-                String getSuffix()
-                void setSuffix(String suffix)
-            }
+            abstract class FileSizer implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getSuffix()
+                    void setSuffix(String suffix)
+                }
 
-            abstract class FileSizerAction implements TransformAction {
-                @TransformParameters
-                abstract FileSizer getParameters()
                 @InputArtifactDependencies
                 abstract FileCollection getDependencies()
                 @InputArtifact

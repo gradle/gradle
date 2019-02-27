@@ -96,7 +96,7 @@ public class ComponentSelectionReasons {
         }
 
         public boolean isExpected() {
-            return isCauseExpected(Iterables.getLast(descriptions));
+            return descriptions.size() == 1 && isCauseExpected(Iterables.getLast(descriptions));
         }
 
         public boolean isCompositeSubstitution() {

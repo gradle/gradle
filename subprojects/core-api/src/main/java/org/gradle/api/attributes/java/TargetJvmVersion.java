@@ -13,25 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.artifacts.transform;
+package org.gradle.api.attributes.java;
 
 import org.gradle.api.Incubating;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.gradle.api.attributes.Attribute;
 
 /**
- * <p>Attached to an {@link TransformAction} type to indicate that the build cache should be used for artifact transforms of this type.</p>
- *
- * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransformAction}.</p>
+ * Represents the target version of a Java library or platform. The target level is expected to correspond
+ * to a Java platform version number (integer). For example, "5" for Java 5, "8" for Java 8, or "11" for Java 11.
  *
  * @since 5.3
  */
 @Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface CacheableTransformAction {
+public interface TargetJvmVersion {
+
+    /**
+     * The minimal target version for a Java library. Any consumer below this version would not be able to consume it.
+     */
+    Attribute<Integer> TARGET_JVM_VERSION_ATTRIBUTE = Attribute.of("org.gradle.jvm.version", Integer.class);
 }

@@ -17,13 +17,13 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.AssociatedTransformAction;
-import org.gradle.api.artifacts.transform.ParameterizedTransformSpec;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
@@ -40,6 +40,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 
@@ -78,23 +79,20 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public <T> void registerTransform(Class<T> parameterType, Action<? super ParameterizedTransformSpec<T>> registrationAction) {
-        T parameterObject = parametersInstantiationScheme.withServices(services).newInstance(parameterType);
+    public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(actionType).getSupertype(TransformAction.class).getType();
+        Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        if (parameterType == TransformParameters.class) {
+            throw new VariantTransformConfigurationException(String.format("Could not register transform: must use a sub-type of %s as parameter type. Use %s for transforms without parameters.", ModelType.of(TransformParameters.class).getDisplayName(), ModelType.of(TransformParameters.None.class).getDisplayName()));
+        }
+        T parameterObject = parameterType == TransformParameters.None.class ? null : parametersInstantiationScheme.withServices(services).newInstance(parameterType);
         TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
         registrationAction.execute(registration);
 
-        register(registration, registration.actionType, parameterObject);
+        register(registration, actionType, parameterObject);
     }
 
-    @Override
-    public <T extends TransformAction> void registerTransformAction(Class<T> actionType, Action<? super TransformSpec> registrationAction) {
-        ActionRegistration registration = instantiatorFactory.decorateLenient().newInstance(ActionRegistration.class, immutableAttributesFactory);
-        registrationAction.execute(registration);
-
-        register(registration, actionType, null);
-    }
-
-    private <T> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
+    private <T extends TransformParameters> void register(RecordingRegistration registration, Class<? extends TransformAction> actionType, @Nullable T parameterObject) {
         validateActionType(actionType);
         validateAttributes(registration);
         try {
@@ -105,13 +103,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
-    private <T> void validateActionType(@Nullable Class<T> actionType) {
+    private static <T> void validateActionType(@Nullable Class<T> actionType) {
         if (actionType == null) {
             throw new VariantTransformConfigurationException("Could not register transform: an artifact transform action must be provided.");
         }
     }
 
-    private <T> void validateAttributes(RecordingRegistration registration) {
+    private static void validateAttributes(RecordingRegistration registration) {
         if (registration.to.isEmpty()) {
             throw new VariantTransformConfigurationException("Could not register transform: at least one 'to' attribute must be provided.");
         }
@@ -127,7 +125,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         return transforms;
     }
 
-    public static abstract class RecordingRegistration implements TransformSpec {
+    public static abstract class RecordingRegistration {
         final AttributeContainerInternal from;
         final AttributeContainerInternal to;
 
@@ -181,35 +179,28 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @NonExtensible
-    public static class TypedRegistration<T> extends RecordingRegistration implements ParameterizedTransformSpec<T> {
+    public static class TypedRegistration<T extends TransformParameters> extends RecordingRegistration implements TransformSpec<T> {
         private final T parameterObject;
-        Class<? extends TransformAction> actionType;
 
-        public TypedRegistration(T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
+        public TypedRegistration(@Nullable T parameterObject, ImmutableAttributesFactory immutableAttributesFactory) {
             super(immutableAttributesFactory);
             this.parameterObject = parameterObject;
-            AssociatedTransformAction associatedTransformAction = parameterObject.getClass().getAnnotation(AssociatedTransformAction.class);
-            if (associatedTransformAction != null) {
-                actionType = associatedTransformAction.value();
-            }
         }
 
         @Override
         public T getParameters() {
+            if (parameterObject == null) {
+                throw new VariantTransformConfigurationException("Cannot query parameters for artifact transform without parameters.");
+            }
             return parameterObject;
         }
 
         @Override
         public void parameters(Action<? super T> action) {
+            if (parameterObject == null) {
+                throw new VariantTransformConfigurationException("Cannot configure parameters for artifact transform without parameters.");
+            }
             action.execute(parameterObject);
-        }
-    }
-
-    @NonExtensible
-    public static class ActionRegistration extends RecordingRegistration {
-
-        public ActionRegistration(ImmutableAttributesFactory immutableAttributesFactory) {
-            super(immutableAttributesFactory);
         }
     }
 }

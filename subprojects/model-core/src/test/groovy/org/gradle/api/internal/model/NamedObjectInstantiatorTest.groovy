@@ -18,7 +18,7 @@ package org.gradle.api.internal.model
 
 import org.gradle.api.Named
 import org.gradle.api.reflect.ObjectInstantiationException
-import org.gradle.internal.instantiation.Managed
+import org.gradle.internal.state.Managed
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Matchers
 import spock.lang.Ignore

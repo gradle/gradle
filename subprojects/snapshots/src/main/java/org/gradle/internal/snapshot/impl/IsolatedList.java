@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements Isolatable<List<Object>> {
+class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements Isolatable<List<Object>> {
     public static final IsolatedList EMPTY = new IsolatedList(ImmutableList.of());
 
     public IsolatedList(ImmutableList<Isolatable<?>> elements) {

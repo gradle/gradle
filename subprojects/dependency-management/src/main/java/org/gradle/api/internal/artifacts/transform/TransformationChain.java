@@ -17,7 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.internal.Try;
+
+import javax.annotation.Nullable;
 
 /**
  * A series of {@link TransformationStep}s.
@@ -57,9 +60,9 @@ public class TransformationChain implements Transformation {
     }
 
     @Override
-    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
-        return first.transform(subjectToTransform, dependenciesResolver)
-            .flatMap(intermediateSubject -> second.transform(intermediateSubject, dependenciesResolver));
+    public Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services) {
+        return first.transform(subjectToTransform, dependenciesResolver, services)
+            .flatMap(intermediateSubject -> second.transform(intermediateSubject, dependenciesResolver, services));
     }
 
     @Override

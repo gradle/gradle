@@ -21,9 +21,12 @@ import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
@@ -33,7 +36,10 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
@@ -45,7 +51,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
@@ -79,9 +84,7 @@ import static org.gradle.util.TestUtil.TEST_CLOSURE;
 import static org.gradle.util.TestUtil.call;
 import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -127,10 +130,19 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInGeneratedSubclassInterface() {
-        Class<? extends Bean> generatedClass = generator.generate(Bean.class).getGeneratedClass();
-        assertEquals(GeneratedSubclasses.unpack(generatedClass), Bean.class);
-        assertEquals(Bean.class, GeneratedSubclasses.unpack(generatedClass));
+    public void mixesInGeneratedSubclassInterface() throws Exception {
+        Bean bean = newInstance(Bean.class);
+        assertTrue(bean instanceof GeneratedSubclass);
+        assertEquals(Bean.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(Bean.class, GeneratedSubclasses.unpack(bean));
+    }
+
+    @Test
+    public void mixesInGeneratedSubclassInterfaceToInterface() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertTrue(bean instanceof GeneratedSubclass);
+        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean));
     }
 
     @Test
@@ -448,154 +460,6 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    @Test
-    public void canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() throws Exception {
-        BeanWithAbstractProperty bean = newInstance(BeanWithAbstractProperty.class);
-
-        assertThat(bean.getName(), nullValue());
-        bean.setName("name");
-        assertThat(bean.getName(), equalTo("name"));
-    }
-
-    @Test
-    public void canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() throws Exception {
-        BeanWithAbstractProperty bean = newInstance(BeanWithAbstractProperty.class);
-        assertThat(bean, instanceOf(Managed.class));
-
-        Managed managed = (Managed) bean;
-        assertEquals(BeanWithAbstractProperty.class, managed.publicType());
-        assertFalse(managed.immutable());
-        Object[] state = (Object[]) managed.unpackState();
-        assertThat(state.length, equalTo(1));
-        assertThat(state[0], equalTo(null));
-
-        BeanWithAbstractProperty copy = managed.managedFactory().fromState(BeanWithAbstractProperty.class, state);
-        assertThat(copy, not(sameInstance(bean)));
-        assertThat(copy.getName(), nullValue());
-
-        bean.setName("name");
-
-        state = (Object[]) managed.unpackState();
-        assertThat(state.length, equalTo(1));
-        assertThat(state[0], equalTo("name"));
-
-        copy = managed.managedFactory().fromState(BeanWithAbstractProperty.class, state);
-        assertThat(copy, not(sameInstance(bean)));
-        assertThat(copy.getName(), equalTo("name"));
-    }
-
-    @Test
-    public void canConstructInstanceOfInterfaceWithPropertyGetterAndSetter() throws Exception {
-        InterfaceBean bean = newInstance(InterfaceBean.class);
-
-        assertThat(bean.getName(), nullValue());
-        bean.setName("name");
-        assertThat(bean.getName(), equalTo("name"));
-
-        assertThat(bean.getNumbers(), nullValue());
-        bean.setNumbers(Collections.singleton(12));
-        assertThat(bean.getNumbers(), equalTo(Collections.singleton(12)));
-    }
-
-    @Test
-    public void canUnpackAndRecreateInstanceOfInterface() throws Exception {
-        InterfaceBean bean = newInstance(InterfaceBean.class);
-        assertThat(bean, instanceOf(Managed.class));
-
-        Managed managed = (Managed) bean;
-        assertEquals(InterfaceBean.class, managed.publicType());
-        assertFalse(managed.immutable());
-        Object[] state = (Object[]) managed.unpackState();
-        assertThat(state.length, equalTo(2));
-        assertThat(state[0], equalTo(null));
-        assertThat(state[1], equalTo(null));
-
-        InterfaceBean copy = managed.managedFactory().fromState(InterfaceBean.class, state);
-        assertThat(copy.getName(), nullValue());
-        assertThat(copy.getNumbers(), nullValue());
-
-        bean.setName("name");
-        bean.setNumbers(Collections.singleton(12));
-
-        state = (Object[]) managed.unpackState();
-        assertThat(state.length, equalTo(2));
-        assertThat(state[0], equalTo("name"));
-        assertThat(state[1], equalTo(Collections.singleton(12)));
-
-        copy = managed.managedFactory().fromState(InterfaceBean.class, state);
-        assertThat(copy.getName(), equalTo("name"));
-        assertThat(copy.getNumbers(), equalTo(Collections.singleton(12)));
-    }
-
-    @Test
-    public void canConstructInstanceOfInterfaceWithFileCollectionGetter() throws Exception {
-        TestFile projectDir = tmpDir.getTestDirectory();
-        InterfaceFileCollectionBean bean = newInstance(InterfaceFileCollectionBean.class, TestUtil.createRootProject(projectDir).getServices());
-
-        assertTrue(bean.getFiles().isEmpty());
-
-        bean.getFiles().from("a", "b");
-
-        assertThat(bean.getFiles(), hasItems(projectDir.file("a"), projectDir.file("b")));
-    }
-
-    @Test
-    public void canUnpackAndRecreateInterfaceWithFileCollectionGetter() throws Exception {
-        TestFile projectDir = tmpDir.getTestDirectory();
-        InterfaceFileCollectionBean bean = newInstance(InterfaceFileCollectionBean.class, TestUtil.createRootProject(projectDir).getServices());
-        assertThat(bean, instanceOf(Managed.class));
-
-        Managed managed = (Managed) bean;
-        assertEquals(InterfaceFileCollectionBean.class, managed.publicType());
-        assertFalse(managed.immutable());
-        Object[] state = (Object[]) managed.unpackState();
-        assertEquals(1, state.length);
-        assertTrue(state[0] instanceof ConfigurableFileCollection);
-        assertSame(state[0], bean.getFiles());
-
-        InterfaceFileCollectionBean copy = managed.managedFactory().fromState(InterfaceFileCollectionBean.class, state);
-        assertTrue(copy.getFiles().isEmpty());
-    }
-
-    @Test
-    public void canConstructInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
-        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
-
-        assertThat(bean.getName(), equalTo("name"));
-    }
-
-    @Test
-    public void canUnpackAndRecreateInstanceOfInterfaceWithDefaultMethodsOnly() throws Exception {
-        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
-        assertThat(bean, instanceOf(Managed.class));
-
-        Managed managed = (Managed) bean;
-        assertEquals(InterfaceWithDefaultMethods.class, managed.publicType());
-        assertTrue(managed.immutable()); // no properties
-        Object[] state = (Object[]) managed.unpackState();
-        assertThat(state.length, equalTo(0));
-
-        InterfaceWithDefaultMethods copy = managed.managedFactory().fromState(InterfaceWithDefaultMethods.class, state);
-        assertThat(copy, not(nullValue()));
-    }
-
-    @Test
-    public void doesNotMixManagedIntoClassWithFields() throws Exception {
-        Bean bean = newInstance(Bean.class);
-        assertThat(bean, not(instanceOf(Managed.class)));
-    }
-
-    @Test
-    public void doesNotMixManagedIntoAbstractClassWithFields() throws Exception {
-        AbstractBean bean = newInstance(AbstractBean.class, "value");
-        assertThat(bean, not(instanceOf(Managed.class)));
-    }
-
-    @Test
-    public void doesNotMixManagedIntoClassWithInheritedFields() throws Exception {
-        AbstractBeanWithInheritedFields bean = newInstance(AbstractBeanWithInheritedFields.class, "value");
-        assertThat(bean, not(instanceOf(Managed.class)));
-    }
 
     @Test
     public void cannotCreateInstanceOfInterfaceWithAbstractGetterAndNoSetter() throws Exception {
@@ -1818,13 +1682,6 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
-    public static class InjectPropertyBean {
-        @Inject
-        public Property<String> getProp() {
-            throw new UnsupportedOperationException();
-        }
-    }
-
     public interface WithProperties {
         Number getNumber();
     }
@@ -1890,8 +1747,58 @@ public class AsmBackedClassGeneratorTest {
         void setNumbers(Set<Number> values);
     }
 
+    public interface InterfacePrimitiveBean {
+        boolean isProp1();
+
+        void setProp1(boolean value);
+
+        int getProp2();
+
+        void setProp2(int value);
+
+        byte getProp3();
+
+        void setProp3(byte value);
+
+        short getProp4();
+
+        void setProp4(short value);
+
+        long getProp5();
+
+        void setProp5(long value);
+
+        double getProp6();
+
+        void setProp6(double value);
+    }
+
     public interface InterfaceFileCollectionBean {
-        ConfigurableFileCollection getFiles();
+        ConfigurableFileCollection getProp();
+    }
+
+    public interface InterfacePropertyBean {
+        Property<String> getProp();
+    }
+
+    public interface InterfaceFilePropertyBean {
+        RegularFileProperty getProp();
+    }
+
+    public interface InterfaceDirectoryPropertyBean {
+        DirectoryProperty getProp();
+    }
+
+    public interface InterfaceListPropertyBean {
+        ListProperty<String> getProp();
+    }
+
+    public interface InterfaceSetPropertyBean {
+        SetProperty<String> getProp();
+    }
+
+    public interface InterfaceMapPropertyBean {
+        MapProperty<String, Number> getProp();
     }
 
     public interface InterfaceWithDefaultMethods {
@@ -1911,6 +1818,25 @@ public class AsmBackedClassGeneratorTest {
 
         void thing() {
             setName("thing");
+        }
+    }
+
+    interface InterfaceWithTypeParameter<T> {
+        @Inject
+        T getThing();
+    }
+
+    public static abstract class AbstractClassWithConcreteTypeParameter implements InterfaceWithTypeParameter<Number> {
+        public String doSomething() {
+            Number thing = getThing();
+            return String.valueOf(thing);
+        }
+    }
+
+    public static abstract class AbstractClassWithParameterizedTypeParameter implements InterfaceWithTypeParameter<List<Number>> {
+        public String doSomething() {
+            List<Number> thing = getThing();
+            return thing.toString();
         }
     }
 }

@@ -17,23 +17,21 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.reflect.InjectionPointQualifier;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 /**
- * Attached to a property that should receive the <em>parameter object</em> of the artifact transform.
+ * Marker interface for parameter objects to {@link TransformAction}s.
  *
  * @since 5.3
  */
 @Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
-@Documented
-@InjectionPointQualifier
-public @interface TransformParameters {
+public interface TransformParameters {
+    /**
+     * Used for {@link TransformAction}s without parameters.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    final class None implements TransformParameters {
+        private None() {}
+    }
 }

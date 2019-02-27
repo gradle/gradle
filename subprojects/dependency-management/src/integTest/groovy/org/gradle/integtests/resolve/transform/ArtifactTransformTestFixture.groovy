@@ -51,6 +51,8 @@ trait ArtifactTransformTestFixture {
 
         buildFile << """
 import ${javax.inject.Inject.name}
+// TODO: Default imports should work for of inner classes 
+import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
 def color = Attribute.of('color', String)
 allprojects {
@@ -129,13 +131,15 @@ class JarProducer extends DefaultTask {
     String content = "content"
     @Input
     long timestamp = 123L
+    @Input
+    String entryName = "thing.class"
 
     @TaskAction
     def go() {
         def file = output.get().asFile
         file.withOutputStream {
             def jarFile = new JarOutputStream(it)
-            def entry = new ZipEntry("thing.class")
+            def entry = new ZipEntry(entryName)
             entry.time = timestamp
             jarFile.putNextEntry(entry)
             jarFile << content
@@ -156,7 +160,7 @@ class JarProducer extends DefaultTask {
         buildFile << """
 allprojects {
     dependencies {
-        registerTransformAction(MakeGreen) {
+        registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
         }
@@ -183,9 +187,11 @@ allprojects { p ->
         registerTransform(MakeGreen) {
             from.attribute(color, 'blue')
             to.attribute(color, 'green')
+            ${builder.transformParamsConfig.empty ? "" : """
             parameters {
                 ${builder.transformParamsConfig}
             }
+            """}
         }
     }
 }
@@ -256,6 +262,9 @@ allprojects { p ->
                     }
                     if (project.hasProperty("\${project.name}Timestamp")) {
                         timestamp = Long.parseLong(project.property("\${project.name}Timestamp"))
+                    }
+                    if (project.hasProperty("\${project.name}EntryName")) {
+                        entryName = project.property("\${project.name}EntryName")
                     }
                 }
             """.stripIndent()

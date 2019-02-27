@@ -23,7 +23,7 @@ package org.gradle.internal.time;
 public interface Clock {
 
     /**
-     * The current time.
+     * The current time in millis.
      */
     long getCurrentTime();
 

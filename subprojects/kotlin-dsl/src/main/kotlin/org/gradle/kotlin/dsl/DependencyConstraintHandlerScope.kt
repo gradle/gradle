@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
  * Receiver for `dependencies.constraints` block providing convenient utilities for configuring dependency constraints.
  *
  * @see [DependencyConstraintHandler]
+ * @since 5.0
  */
 @Incubating
 class DependencyConstraintHandlerScope

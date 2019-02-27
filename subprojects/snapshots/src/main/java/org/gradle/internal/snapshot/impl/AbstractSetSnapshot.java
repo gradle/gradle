@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.Hashable;
 import org.gradle.internal.hash.Hasher;
 
-public class AbstractSetSnapshot<T extends Hashable> implements Hashable {
+class AbstractSetSnapshot<T extends Hashable> implements Hashable {
     protected final ImmutableSet<T> elements;
 
     public AbstractSetSnapshot(ImmutableSet<T> elements) {

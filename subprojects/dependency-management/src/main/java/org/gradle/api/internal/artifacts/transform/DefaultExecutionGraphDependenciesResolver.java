@@ -45,7 +45,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     private static final ArtifactTransformDependencies MISSING_DEPENDENCIES = new ArtifactTransformDependencies() {
         @Override
         public FileCollection getFiles() {
-            throw new IllegalStateException("Tranform does not use artifact dependencies.");
+            throw new IllegalStateException("Transform does not use artifact dependencies.");
         }
 
         @Override

@@ -29,8 +29,9 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InjectPropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
 
@@ -63,6 +64,51 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.thing == 12
         obj.getThing() == 12
         obj.getProperty("thing") == 12
+    }
+
+    def "can inject service using @Inject on a super interface with class type parameter"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(Number) >> 12
+
+        when:
+        def obj = create(AbstractClassWithConcreteTypeParameter, services)
+
+        then:
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+        obj.doSomething()
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType == Number
+    }
+
+    def "can inject service using @Inject on a super interface with parameterized type parameter"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(_) >> { Type type ->
+            assert type instanceof ParameterizedType
+            assert type.rawType == List.class
+            assert type.actualTypeArguments.length == 1
+            assert type.actualTypeArguments[0] == Number
+            return [12]
+        }
+
+        when:
+        def obj = create(AbstractClassWithParameterizedTypeParameter, services)
+
+        then:
+        obj.thing == [12]
+        obj.getThing() == [12]
+        obj.getProperty("thing") == [12]
+        obj.doSomething() == "[12]"
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType instanceof ParameterizedType
+        returnType.rawType == List
+        returnType.actualTypeArguments.length == 1
+        returnType.actualTypeArguments[0] == Number
     }
 
     def "can inject service using @Inject on an interface getter method"() {
@@ -211,15 +257,6 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         then:
         def e = thrown(ClassGenerationException)
         e.cause.message == "Cannot use @Inject annotation on method ExtensibleBeanWithInject.getExtensions()."
-    }
-
-    def "cannot attach @Inject annotation to property whose type is Property"() {
-        when:
-        generator.generate(InjectPropertyBean)
-
-        then:
-        def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method InjectPropertyBean.getProp()."
     }
 
     def "cannot attach @Inject annotation to final method"() {

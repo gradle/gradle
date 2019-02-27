@@ -35,7 +35,6 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
@@ -149,7 +148,7 @@ public class GradleUserHomeScopeServices {
     }
 
     DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        return new DefaultValueSnapshotter(classLoaderHierarchyHasher, NamedObjectInstantiator.INSTANCE);
+        return new DefaultValueSnapshotter(classLoaderHierarchyHasher);
     }
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {

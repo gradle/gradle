@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.integtests.fixtures.logging
 
-import org.gradle.api.Incubating;
+import groovy.transform.CompileStatic
+import org.gradle.samples.executor.ExecutionMetadata
+import org.gradle.samples.test.normalizer.OutputNormalizer
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+@CompileStatic
+class DependencyInsightOutputNormalizer implements OutputNormalizer {
 
-/**
- * Attached to an artifact transform parameter type to declare the corresponding {@link TransformAction} implementation to use.
- *
- * @since 5.3
- */
-@Incubating
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
-public @interface AssociatedTransformAction {
-    Class<? extends TransformAction> value();
+    @Override
+    String normalize(String output, ExecutionMetadata executionMetadata) {
+        output.replaceAll("org\\.gradle\\.jvm\\.version[ ]+= [0-9]+", "org.gradle.jvm.version = 11")
+    }
 }

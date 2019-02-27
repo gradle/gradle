@@ -16,7 +16,8 @@
 
 package org.gradle.test.fixtures.ivy
 
-
+import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.test.fixtures.file.TestFile
@@ -29,6 +30,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     IvyJavaModule(IvyFileModule backingModule) {
         super(backingModule)
         this.backingModule = backingModule
+        this.backingModule.attributes[TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name] = JavaVersion.current().majorVersion
     }
 
     @Override

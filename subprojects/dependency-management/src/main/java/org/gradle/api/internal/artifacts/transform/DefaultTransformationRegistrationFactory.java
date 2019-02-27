@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.artifacts.transform.CacheableTransformAction;
+import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -88,12 +89,12 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     @Override
-    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable Object parameterObject) {
+    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject) {
         List<String> validationMessages = new ArrayList<>();
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         DefaultParameterValidationContext parameterValidationContext = new DefaultParameterValidationContext(validationMessages);
         actionMetadata.collectValidationFailures(null, parameterValidationContext);
-        boolean cacheable = implementation.isAnnotationPresent(CacheableTransformAction.class);
+        boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
 
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;
@@ -129,18 +130,16 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             isolatableFactory,
             valueSnapshotter,
             fileCollectionFactory,
-            fileCollectionFingerprinterRegistry,
             parametersPropertyWalker,
-            domainObjectProjectStateHandler,
             actionInstantiationScheme);
 
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker));
+        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));
     }
 
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {

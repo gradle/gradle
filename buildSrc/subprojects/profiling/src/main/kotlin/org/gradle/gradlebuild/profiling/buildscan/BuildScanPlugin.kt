@@ -28,19 +28,15 @@ import org.gradle.build.docs.CacheableAsciidoctorTask
 import org.gradle.gradlebuild.BuildEnvironment.isCiServer
 import org.gradle.gradlebuild.BuildEnvironment.isJenkins
 import org.gradle.gradlebuild.BuildEnvironment.isTravis
-import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.*
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.filter
 import kotlin.collections.forEach
-import org.gradle.kotlin.dsl.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 const val serverUrl = "https://e.grdev.net"
@@ -261,20 +257,6 @@ open class BuildScanPlugin : Plugin<Project> {
     fun Project.extractBuildCacheData() {
         if (gradle.startParameter.isBuildCacheEnabled) {
             buildScan.tag("CACHED")
-
-            val tasksToInvestigate = System.getProperty("cache.investigate.tasks", ":baseServices:classpathManifest")
-                .split(",")
-
-            gradle.taskGraph.whenReady {
-                buildScan.buildFinished {
-                    gradle.taskGraph.allTasks
-                        .filter { it.state.executed && it.path in tasksToInvestigate }
-                        .forEach { task ->
-                            val hasher = gradle.serviceOf<ClassLoaderHierarchyHasher>()
-                            Visitor(buildScan, hasher, task).visit(task::class.java.classLoader)
-                        }
-                }
-            }
         }
     }
 

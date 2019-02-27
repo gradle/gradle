@@ -16,24 +16,22 @@
 
 package org.gradle.api.artifacts.transform;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Defines an artifact transformation.
+ * <p>Attached to an {@link TransformAction} type to indicate that the build cache should be used for artifact transforms of this type.</p>
  *
- * @param <T> The transform specific parameter type.
+ * <p>Only an artifact transform that produces reproducible and relocatable outputs should be marked with {@code CacheableTransform}.</p>
+ *
  * @since 5.3
  */
 @Incubating
-public interface ParameterizedTransformSpec<T> extends TransformSpec {
-    /**
-     * The parameters for the transform action.
-     */
-    T getParameters();
-
-    /**
-     * Configure the parameters for the transform action.
-     */
-    void parameters(Action<? super T> action);
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface CacheableTransform {
 }

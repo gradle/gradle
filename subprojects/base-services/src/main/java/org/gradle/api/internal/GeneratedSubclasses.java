@@ -21,12 +21,12 @@ public class GeneratedSubclasses {
     private GeneratedSubclasses() {
     }
 
-    public static <T> Class<? super T> unpack(Class<T> clazz) {
-        if (GeneratedSubclass.class.isAssignableFrom(clazz)) {
-            return unpack(clazz.getSuperclass());
-        } else {
-            return clazz;
+    public static Class<?> unpack(Object object) {
+        if (object instanceof GeneratedSubclass) {
+            GeneratedSubclass generatedSubclass = (GeneratedSubclass) object;
+            return generatedSubclass.publicType();
         }
+        return object.getClass();
     }
 
 }
