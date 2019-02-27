@@ -80,32 +80,38 @@ _and_ that Ivy dependency was substituted (using a `resolutionStrategy.force`, `
 then this fix will impact you.
 The legacy behaviour of Gradle, prior to 5.0, was still in place instead of being replaced by the changes introduced by improved pom support.
 
+[[deprecations_5.3]]
 === Deprecations
 
 [[rel5.3:mapped_outputs]]
- * You should not use mapped outputs
-+
-To support tasks producing multiple outputs we've Gradle has a notion using a `Map` so each output file or directory would have a name assigned to it. Like so:
-+
+==== Using mapped outputs has been deprecated.
+
+To support tasks producing multiple outputs Gradle has a notion using a `Map` so each output file or directory would have a name assigned to it. E.g. like this:
+
 [source,java]
 ----
-@OutputDirectories
-public Map<String, File> getEnabledDirectoryReportDestinations() {
-    // ...
+public class MyTask extends DefaultTask {
+    @OutputDirectories
+    public Map<String, File> getEnabledDirectoryReportDestinations() { /* ... */ }
 }
 ----
-+
-Gradle also introduced the option to handle collections of complex objects as parameters that could in turn declare outputs, so this more flexible approach is now an option:
-+
+
+This is now deprecated, since Gradle introduced the option to handle collections of complex objects as parameters that could in turn declare outputs. This more flexible approach should now be used:
+
 [source,java]
 ----
-class MyTask {
-    @Nested List<Item> getItems() { /* ... */ }
+public class MyTask extends DefaultTask {
+    @Nested
+    public Map<String, Report> getEnabledReports() { /* ... */ }
 }
 
-class Item {
-    @Input String getName() { /* ... */ }
-    @OutputFile File getFile() { /* ... */ }
+public interface Report {}
+
+public class DirectoryReport {
+    @Input
+    String getName() { /* ... */ }
+    @OutputDirectory
+    File getOutputDirectory() { /* ... */ }
 }
 ----
 
