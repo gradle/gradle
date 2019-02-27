@@ -95,6 +95,8 @@ in the next major Gradle version (Gradle 6.0). See the User Manual section on th
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+* Using `@OutputFiles` or `@OutputDirectories` on a property of type `Map` has been deprecated. See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#rel5.3:mapped_outputs) for more information.
+
 ### Incubating method `ProjectLayout.configurableFiles()` replaced by `ObjectFactory.fileCollection()`
 
 The method `ProjectLayout.configurableFiles()` is now deprecated, and will be removed in Gradle 6.0. You should use `ObjectFactory.fileCollection()` instead.
