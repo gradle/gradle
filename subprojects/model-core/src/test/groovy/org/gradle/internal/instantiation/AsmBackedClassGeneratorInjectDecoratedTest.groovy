@@ -29,6 +29,7 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassRealizingTwoTypeParameters
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
@@ -84,7 +85,40 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         returnType == Number
     }
 
-    def "can inject service using @Inject on a super interface with parameterized type parameter"() {
+    def "can inject services using @Inject on a super interface with type parameter remapping"() {
+        given:
+        def services = Mock(ServiceLookup)
+        _ * services.get(_) >> { Type type ->
+            if (type instanceof ParameterizedType) {
+                assert type.rawType == List.class
+                assert type.actualTypeArguments.length == 1
+                assert type.actualTypeArguments[0] == String
+                return ["Hello", "Number"]
+            }
+            assert type == Number
+            return 12
+        }
+
+        when:
+        def obj = create(AbstractClassRealizingTwoTypeParameters, services)
+
+        then:
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+        obj.getOtherThing() == ["Hello", "Number"]
+        obj.doSomething() == "Hello Number 12"
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType == Number.class
+        def otherReturnType = obj.getClass().getDeclaredMethod("getOtherThing").genericReturnType
+        otherReturnType instanceof ParameterizedType
+        otherReturnType.rawType == List
+        otherReturnType.actualTypeArguments.length == 1
+        otherReturnType.actualTypeArguments[0] == String
+    }
+
+    def "can inject service using @Inject on a super interface with parameterized type parameters"() {
         given:
         def services = Mock(ServiceLookup)
         _ * services.get(_) >> { Type type ->

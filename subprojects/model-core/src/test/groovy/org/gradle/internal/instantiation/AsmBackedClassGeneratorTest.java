@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.instantiation;
 
+import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
@@ -1837,6 +1838,19 @@ public class AsmBackedClassGeneratorTest {
         public String doSomething() {
             List<Number> thing = getThing();
             return thing.toString();
+        }
+    }
+
+    public static abstract class AbstractClassWithTwoTypeParameters<T, V> implements InterfaceWithTypeParameter<V> {
+        @Inject
+        public abstract List<T> getOtherThing();
+    }
+
+    public static abstract class AbstractClassRealizingTwoTypeParameters extends AbstractClassWithTwoTypeParameters<String, Number> {
+        public String doSomething() {
+            Number thing = getThing();
+            List<String> otherThing = getOtherThing();
+            return Joiner.on(" ").join(otherThing) + " " + thing;
         }
     }
 }
