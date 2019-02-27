@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle 5.3.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features incubating support for publishing and consuming Gradle Module Metadata,
+[feature variants AKA "optional dependencies"](#feature-variants-aka-optional-dependencies),
+type-safe accessors in Kotlin pre-compiled script plugins, and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -18,11 +20,11 @@ and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.3 by updating your wrapper properties:
+Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.3`
+`./gradlew wrapper --gradle-version=5.3-rc-1`
 
-Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
 ## Feature variants, aka optional dependencies
 
