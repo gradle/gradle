@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.transform.AssociatedTransformAction;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
@@ -38,7 +38,7 @@ public class ArtifactTransformParameterScheme implements TypeScheme {
 
     @Override
     public boolean appliesTo(Class<?> type) {
-        return type.isAnnotationPresent(AssociatedTransformAction.class);
+        return TransformParameters.class.isAssignableFrom(type);
     }
 
     public InstantiationScheme getInstantiationScheme() {

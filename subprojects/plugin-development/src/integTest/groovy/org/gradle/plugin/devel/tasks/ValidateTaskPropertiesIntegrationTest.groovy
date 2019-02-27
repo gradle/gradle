@@ -705,8 +705,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.artifacts.transform.*;
             import java.io.*;
 
-            @AssociatedTransformAction(MyTransformParameters.Action.class)
-            public interface MyTransformParameters {
+            public interface MyTransformParameters extends TransformParameters {
                 // Should be ignored because it's not a getter
                 void getVoid();
 
@@ -731,9 +730,6 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 // Unsupported annotation
                 @InputArtifact
                 File getInputFile();
-                
-                abstract class Action implements TransformAction {
-                }
             }
         """
 
