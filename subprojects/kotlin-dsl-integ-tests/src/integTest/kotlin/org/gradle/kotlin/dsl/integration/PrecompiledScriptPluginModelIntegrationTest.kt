@@ -22,7 +22,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.startsWith
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -109,7 +108,6 @@ class PrecompiledScriptPluginModelIntegrationTest : AbstractPluginIntegrationTes
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `implicit imports include type-safe accessors packages`() {
 
