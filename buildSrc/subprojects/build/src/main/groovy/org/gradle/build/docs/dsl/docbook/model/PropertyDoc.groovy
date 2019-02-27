@@ -75,6 +75,15 @@ class PropertyDoc implements DslElementDoc {
         return metaData.incubating || metaData.ownerClass.incubating
     }
 
+    boolean isReplaced() {
+        return metaData.replaced
+    }
+
+    @Override
+    String getReplacement() {
+        return metaData.replacement
+    }
+
     Element getDescription() {
         return comment.find { it.nodeName == 'para' }
     }

@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.ReplacedBy;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -65,7 +66,7 @@ public class ExecutionGlobalServices {
 
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Inject.class, Console.class, Internal.class, OptionValues.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Inject.class, Console.class, ReplacedBy.class, Internal.class, OptionValues.class));
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
@@ -87,6 +88,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
+    }
+
+    PropertyAnnotationHandler createReplacedByAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(ReplacedBy.class);
     }
 
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {

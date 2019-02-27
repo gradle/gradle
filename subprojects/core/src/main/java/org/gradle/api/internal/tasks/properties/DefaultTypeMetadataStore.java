@@ -57,7 +57,7 @@ import java.util.Set;
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     // Avoid reflecting on classes we know we don't need to look at
     private static final ImmutableSet<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
-        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
+            ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
     );
 
     private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
@@ -114,11 +114,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static Set<Class<? extends Annotation>> collectRelevantAnnotationTypes(Set<Class<? extends Annotation>> propertyTypeAnnotations) {
         return ImmutableSet.<Class<? extends Annotation>>builder()
-            .addAll(propertyTypeAnnotations)
-            .add(Optional.class)
-            .add(SkipWhenEmpty.class)
-            .add(PathSensitive.class)
-            .build();
+                .addAll(propertyTypeAnnotations)
+                .add(Optional.class)
+                .add(SkipWhenEmpty.class)
+                .add(PathSensitive.class)
+                .build();
     }
 
     @Override

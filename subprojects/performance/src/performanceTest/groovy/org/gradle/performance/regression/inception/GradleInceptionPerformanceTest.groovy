@@ -52,7 +52,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
     }
 
     def setup() {
-        def targetVersion = "5.3-20190201000727+0000"
+        def targetVersion = "5.3-20190226212742+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumVersion = targetVersion
     }

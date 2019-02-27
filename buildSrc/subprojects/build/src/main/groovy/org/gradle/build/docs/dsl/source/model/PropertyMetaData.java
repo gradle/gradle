@@ -59,6 +59,11 @@ public class PropertyMetaData extends AbstractLanguageElement implements Seriali
         return getter != null;
     }
 
+    public boolean isProviderApi() {
+        // TODO: Crude approximation
+        return setter == null && (getType().getName().contains("Provider") || getType().getName().contains("Property"));
+    }
+
     public ClassMetaData getOwnerClass() {
         return ownerClass;
     }
