@@ -17,13 +17,11 @@
 package org.gradle.kotlin.dsl.tooling.builders.r41
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
 
 
-@ToolingApiVersion(">=4.1")
 @TargetGradleVersion(">=4.1")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
@@ -50,6 +51,7 @@ class ProjectSourceRoots {
 }
 
 
+@ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification {
 
