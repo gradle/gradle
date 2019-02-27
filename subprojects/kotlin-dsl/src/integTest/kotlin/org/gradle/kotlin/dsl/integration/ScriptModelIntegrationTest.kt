@@ -66,7 +66,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     protected
     fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
-        withSettingsIn("buildSrc", """
+        withDefaultSettingsIn("buildSrc").appendText("""
             include(":a", ":b", ":c")
         """)
         withFile("buildSrc/build.gradle.kts", """
@@ -75,10 +75,14 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                 `kotlin-dsl` apply false
             }
 
-            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
+            val kotlinDslProjects = listOf(
+                project(":a"),
+                project(":b")
+            )
 
-            kotlinDslProjects.forEach {
-                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+            configure(kotlinDslProjects) {
+                apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+                $repositoriesBlock
             }
 
             dependencies {
@@ -86,6 +90,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                     "runtime"(project(it.path))
                 }
             }
+
         """)
         withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
         withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
@@ -94,7 +99,8 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
             withMainSourceSetJavaIn("buildSrc"),
             withMainSourceSetJavaKotlinIn("buildSrc/a"),
             withMainSourceSetJavaKotlinIn("buildSrc/b"),
-            withMainSourceSetJavaIn("buildSrc/c"))
+            withMainSourceSetJavaIn("buildSrc/c")
+        )
     }
 
     protected
