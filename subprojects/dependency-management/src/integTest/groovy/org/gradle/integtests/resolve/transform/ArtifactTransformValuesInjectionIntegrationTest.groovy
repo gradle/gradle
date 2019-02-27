@@ -140,9 +140,22 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
+        buildFile << """
+            interface NestedType {
+                @InputFile
+                RegularFileProperty getInputFile()
+                @OutputDirectory
+                DirectoryProperty getOutputDirectory()
+            }
+                        
+            allprojects {
+                ext.nested = objects.newInstance(NestedType)
+            }
+        """
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
+                nested.set(project.ext.nested)
             """)
         }
         buildFile << """
@@ -169,6 +182,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @PathSensitive(PathSensitivity.ABSOLUTE)
                     @InputFiles
                     ConfigurableFileCollection getAbsolutePathSensitivity()
+                    @Nested
+                    Property<NestedType> getNested()
                 }
             
                 void transform(TransformOutputs outputs) {
@@ -188,6 +203,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Property 'missingInput' does not have a value specified.")
         failure.assertHasCause("Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
         failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
+        failure.assertHasCause("Property 'nested.outputDirectory' is annotated with unsupported annotation @OutputDirectory.")
+        failure.assertHasCause("Property 'nested.inputFile' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
+        errorOutput.count("> Property") == 2 * 7
     }
 
     def "cannot query parameters for transform without parameters"() {

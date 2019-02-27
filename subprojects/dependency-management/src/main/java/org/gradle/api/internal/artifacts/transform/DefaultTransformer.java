@@ -169,7 +169,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    context.maybeAdd(value.call());
+                    Object actualValue = value.call();
+                    if (actualValue != null) {
+                        context.maybeAdd(actualValue);
+                    }
                 }
             });
         }
