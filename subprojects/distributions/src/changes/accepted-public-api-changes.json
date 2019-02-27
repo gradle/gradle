@@ -21,6 +21,14 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.mavenLocal(org.gradle.api.Action)",
+            "acceptation": "Ability to configure repository",
+            "changes": [
+                "Method added to interface"
+            ]
         }
     ]
 }
