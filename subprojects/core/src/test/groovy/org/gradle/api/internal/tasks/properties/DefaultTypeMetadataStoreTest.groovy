@@ -31,11 +31,13 @@ import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandle
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -57,7 +59,7 @@ import java.lang.annotation.Annotation
 class DefaultTypeMetadataStoreTest extends Specification {
 
     private static final List<Class<? extends Annotation>> PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories
+        InputFile, InputFiles, InputDirectory, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState
     ]
 
     private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
@@ -80,15 +82,16 @@ class DefaultTypeMetadataStoreTest extends Specification {
     static class TypeWithCustomAnnotation {
     }
 
-    def "can use custom annotation processor"() {
+    def "can use custom annotation handler"() {
         def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
 
         def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
-        def propertiesMetadata = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+        def propertiesMetadata = typeMetadata.propertiesMetadata
 
         then:
         propertiesMetadata.size() == 1
@@ -99,8 +102,9 @@ class DefaultTypeMetadataStoreTest extends Specification {
         collectProblems(typeMetadata).empty
     }
 
-    def "custom annotation processor can inspect for static property problems"() {
+    def "custom annotation handler can inspect for static property problems"() {
         def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
             context.visitError(null, metadata.propertyName, "is broken")
@@ -110,7 +114,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
-        def propertiesMetadata = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+        def propertiesMetadata = typeMetadata.propertiesMetadata
 
         then:
         propertiesMetadata.size() == 1
@@ -119,7 +123,26 @@ class DefaultTypeMetadataStoreTest extends Specification {
         collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
     }
 
-    def "custom annotation processor can inspect for static type problems"() {
+    def "custom annotation that is not relevant can have validation problems"() {
+        def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.propertyRelevant >> false
+        _ * annotationHandler.annotationType >> SearchPath
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
+            context.visitError(null, metadata.propertyName, "is broken")
+        }
+
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
+        def propertiesMetadata = typeMetadata.propertiesMetadata
+
+        then:
+        propertiesMetadata.empty
+        collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
+    }
+
+    def "custom type annotation handler can inspect for static type problems"() {
         def annotationHandler = Stub(TypeAnnotationHandler)
         _ * annotationHandler.annotationType >> CustomCacheable
         _ * annotationHandler.validateTypeMetadata(_, _) >> { Class type, ParameterValidationContext context ->
@@ -189,11 +212,10 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def parentProperty = parentMetadata.propertiesMetadata.first()
 
         def childMetadata = metadataStore.getTypeMetadata(childTask)
-        def childProperty = childMetadata.propertiesMetadata.first()
 
         expect:
         isOfType(parentProperty, processedAnnotation)
-        isIgnored(childProperty)
+        childMetadata.propertiesMetadata.empty
         collectProblems(parentMetadata).empty
         collectProblems(childMetadata).empty
 
@@ -216,13 +238,12 @@ class DefaultTypeMetadataStoreTest extends Specification {
         """
 
         def parentMetadata = metadataStore.getTypeMetadata(parentTask)
-        def parentProperty = parentMetadata.propertiesMetadata.first()
 
         def childMetadata = metadataStore.getTypeMetadata(childTask)
         def childProperty = childMetadata.propertiesMetadata.first()
 
         expect:
-        isIgnored(parentProperty)
+        parentMetadata.propertiesMetadata.empty
         isOfType(childProperty, processedAnnotation)
         collectProblems(parentMetadata).empty
         collectProblems(childMetadata).empty
@@ -246,7 +267,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)
 
         then:
-        def properties = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+        def properties = typeMetadata.propertiesMetadata
         properties*.propertyName as List == ["inputFiles1", "inputFiles2"]
         properties*.propertyType as List == [Classpath, Classpath]
         collectProblems(typeMetadata).empty
@@ -273,6 +294,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @OutputFiles Set<File> outputFiles
         @OutputDirectory File outputDirectory
         @OutputDirectories Set<File> outputDirectories
+        @Destroys Set<File> destroys
+        @LocalState File someCache
         @Inject Object injectedService
         @Internal Object internal
         @ReplacedBy("inputString") String oldProperty
@@ -284,22 +307,22 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def properties = metadataStore.getTypeMetadata(SimpleTask).propertiesMetadata
 
         then:
-        nonIgnoredProperties(properties) == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+        properties.propertyName.sort() == ["destroys", "inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles", "someCache"]
     }
 
     static class Unannotated extends DefaultTask {
         String bad1
         File bad2
-        @Console String ignore1
-        @Input String ignore2
+        @Console String notUseful1
+        @Input String useful1
     }
 
-    def "ignores properties that are not annotated"() {
+    def "ignores properties that are not annotated or that don't do anything"() {
         when:
         def metadata = metadataStore.getTypeMetadata(Unannotated)
 
         then:
-        metadata.propertiesMetadata.propertyName == ["ignore1", "ignore2"]
+        metadata.propertiesMetadata.propertyName == ["useful1"]
         collectProblems(metadata) == [
             "Property 'bad1' is not annotated with an input or output annotation.",
             "Property 'bad2' is not annotated with an input or output annotation."
@@ -334,14 +357,5 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
         metadata.propertyType == type
-    }
-
-    private static boolean isIgnored(PropertyMetadata propertyMetadata) {
-        def propertyType = propertyMetadata.propertyType
-        UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS.contains(propertyType)
-    }
-
-    private static List<String> nonIgnoredProperties(Collection<PropertyMetadata> typeMetadata) {
-        typeMetadata.findAll { !isIgnored(it) }*.propertyName.sort()
     }
 }

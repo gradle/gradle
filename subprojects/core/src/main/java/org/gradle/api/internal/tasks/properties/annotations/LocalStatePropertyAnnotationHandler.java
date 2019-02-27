@@ -30,6 +30,11 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return !visitor.visitOutputFilePropertiesOnly();
     }

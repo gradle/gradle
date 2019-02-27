@@ -30,6 +30,11 @@ import org.gradle.internal.reflect.PropertyMetadata;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return !visitor.visitOutputFilePropertiesOnly();
     }

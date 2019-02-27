@@ -31,6 +31,11 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
         this.annotationType = annotationType;
     }
 
+    @Override
+    public boolean isPropertyRelevant() {
+        return false;
+    }
+
     public Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }
