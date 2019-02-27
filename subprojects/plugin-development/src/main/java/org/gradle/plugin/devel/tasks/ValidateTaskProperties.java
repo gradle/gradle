@@ -27,7 +27,6 @@ import com.google.common.io.Files;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
@@ -49,7 +48,6 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.api.tasks.VerificationTask;
-import org.gradle.internal.Cast;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -65,7 +63,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -142,12 +139,10 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
 
     private void validateTaskClasses(final ClassLoader classLoader) throws IOException {
         final Map<String, Boolean> taskValidationProblems = Maps.newTreeMap();
-        final Class<?> taskInterface;
         final Method validatorMethod;
         try {
-            taskInterface = classLoader.loadClass(Task.class.getName());
             Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
-            validatorMethod = validatorClass.getMethod("collectTaskValidationProblems", Class.class, Map.class, Boolean.TYPE);
+            validatorMethod = validatorClass.getMethod("collectValidationProblems", Class.class, Map.class, Boolean.TYPE);
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -177,18 +172,8 @@ public class ValidateTaskProperties extends ConventionTask implements Verificati
                     } catch (NoClassDefFoundError e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
-                    if (!Modifier.isPublic(clazz.getModifiers())) {
-                        continue;
-                    }
-                    if (Modifier.isAbstract(clazz.getModifiers())) {
-                        continue;
-                    }
-                    if (!taskInterface.isAssignableFrom(clazz)) {
-                        continue;
-                    }
-                    Class<? extends Task> taskClass = Cast.uncheckedCast(clazz);
                     try {
-                        validatorMethod.invoke(null, taskClass, taskValidationProblems, enableStricterValidation);
+                        validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation);
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     } catch (InvocationTargetException e) {

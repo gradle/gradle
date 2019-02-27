@@ -27,6 +27,7 @@ import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
@@ -40,6 +41,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.ParameterValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -64,7 +66,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     @Shared GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
-    def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, new TestCrossBuildInMemoryCacheFactory())
+    def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory())
 
     def setupSpec() {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
@@ -74,26 +76,15 @@ class DefaultTypeMetadataStoreTest extends Specification {
         @SearchPath FileCollection searchPath
     }
 
-    class SearchPathAnnotationHandler implements PropertyAnnotationHandler {
-
-        @Override
-        Class<? extends Annotation> getAnnotationType() {
-            SearchPath
-        }
-
-        @Override
-        boolean shouldVisit(PropertyVisitor visitor) {
-            return true
-        }
-
-        @Override
-        void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        }
+    @CustomCacheable
+    static class TypeWithCustomAnnotation {
     }
 
     def "can use custom annotation processor"() {
-        def annotationHandler = new SearchPathAnnotationHandler()
-        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, new TestCrossBuildInMemoryCacheFactory())
+        def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.annotationType >> SearchPath
+
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
@@ -106,6 +97,48 @@ class DefaultTypeMetadataStoreTest extends Specification {
         propertyMetadata.propertyType == SearchPath
         typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
         collectProblems(typeMetadata).empty
+    }
+
+    def "custom annotation processor can inspect for static property problems"() {
+        def annotationHandler = Stub(PropertyAnnotationHandler)
+        _ * annotationHandler.annotationType >> SearchPath
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
+            context.visitError(null, metadata.propertyName, "is broken")
+        }
+
+        def metadataStore = new DefaultTypeMetadataStore([annotationHandler], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
+        def propertiesMetadata = typeMetadata.propertiesMetadata.findAll { !isIgnored(it) }
+
+        then:
+        propertiesMetadata.size() == 1
+        def propertyMetadata = propertiesMetadata.first()
+        propertyMetadata.propertyName == 'searchPath'
+        collectProblems(typeMetadata) == ["Property 'searchPath' is broken."]
+    }
+
+    def "custom annotation processor can inspect for static type problems"() {
+        def annotationHandler = Stub(TypeAnnotationHandler)
+        _ * annotationHandler.annotationType >> CustomCacheable
+        _ * annotationHandler.validateTypeMetadata(_, _) >> { Class type, ParameterValidationContext context ->
+            context.visitError("type is broken")
+        }
+
+        def metadataStore = new DefaultTypeMetadataStore([], [] as Set, [annotationHandler] as Set, new TestCrossBuildInMemoryCacheFactory())
+
+        when:
+        def taskMetadata = metadataStore.getTypeMetadata(DefaultTask)
+
+        then:
+        collectProblems(taskMetadata).empty
+
+        when:
+        def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
+
+        then:
+        collectProblems(typeMetadata) == ["type is broken"]
     }
 
     @Unroll
@@ -207,7 +240,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], [] as Set, new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)

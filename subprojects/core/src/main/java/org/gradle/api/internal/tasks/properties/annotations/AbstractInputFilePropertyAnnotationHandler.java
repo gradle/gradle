@@ -25,6 +25,7 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -45,6 +46,10 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             value,
             getFilePropertyType()
         );
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 
     protected abstract InputFilePropertyType getFilePropertyType();

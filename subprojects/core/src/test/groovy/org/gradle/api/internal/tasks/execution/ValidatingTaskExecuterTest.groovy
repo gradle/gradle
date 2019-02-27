@@ -59,7 +59,7 @@ class ValidatingTaskExecuterTest extends Specification {
         then:
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
-        1 * taskProperties.validate(_) >> { TaskValidationContext context -> context.recordValidationMessage('failure') }
+        1 * taskProperties.validate(_) >> { TaskValidationContext context -> context.visitError('failure') }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]
             assert failure instanceof TaskValidationException
@@ -78,8 +78,8 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
         1 * taskProperties.validate(_) >> { TaskValidationContext context ->
-            context.recordValidationMessage('failure1')
-            context.recordValidationMessage('failure2')
+            context.visitError('failure1')
+            context.visitError('failure2')
         }
         1 * state.setOutcome(!null as Throwable) >> {
             def failure = it[0]

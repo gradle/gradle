@@ -118,10 +118,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
+                parameterValidationContext.visitError(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
             }
             if (normalizer == null) {
-                parameterValidationContext.recordValidationMessage(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
+                parameterValidationContext.visitError(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
             }
         }
     }
@@ -169,7 +169,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-                    context.maybeAdd(value.call());
+                    Object unpacked = value.call();
+                    if (unpacked != null) {
+                        context.maybeAdd(unpacked);
+                    }
                 }
             });
         }
@@ -218,7 +221,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.recordValidationMessage(null, propertyName, "does not have a value specified");
+                        validationContext.visitError(null, propertyName, "does not have a value specified");
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -233,7 +236,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.recordValidationMessage(null, propertyName, "is annotated with an output annotation");
+                validationContext.visitError(null, propertyName, "is annotated with an output annotation");
             }
 
             @Override

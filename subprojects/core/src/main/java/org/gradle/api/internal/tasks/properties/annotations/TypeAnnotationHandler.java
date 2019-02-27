@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
-/**
- * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
- */
-public interface PropertyAnnotationHandler {
+public interface TypeAnnotationHandler {
     /**
      * The annotation type which this handler is responsible for.
      *
@@ -35,17 +29,7 @@ public interface PropertyAnnotationHandler {
     Class<? extends Annotation> getAnnotationType();
 
     /**
-     * Is the given visitor interested in this annotation?
-     */
-    boolean shouldVisit(PropertyVisitor visitor);
-
-    /**
-     * Visit the value of a property with this annotation attached.
-     */
-    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
-
-    /**
      * Visits problems associated with the given property, if any.
      */
-    void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor);
+    void validateTypeMetadata(Class<?> classWithAnnotationAttached, ParameterValidationContext visitor);
 }
