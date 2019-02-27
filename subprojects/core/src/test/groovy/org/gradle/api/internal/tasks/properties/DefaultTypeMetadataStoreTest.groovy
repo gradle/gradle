@@ -61,7 +61,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     ]
 
     private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Console, Internal, Inject, ReplacedBy
+        Console, Internal, ReplacedBy
     ]
 
     @Shared GroovyClassLoader groovyClassLoader
@@ -290,7 +290,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     static class Unannotated extends DefaultTask {
         String bad1
         File bad2
-        @Inject String ignore1
+        @Console String ignore1
         @Input String ignore2
     }
 

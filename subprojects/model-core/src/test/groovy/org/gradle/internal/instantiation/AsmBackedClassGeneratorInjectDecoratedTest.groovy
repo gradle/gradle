@@ -377,7 +377,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
 class CustomAnnotationHandler implements InjectAnnotationHandler {
     @Override
-    Class<? extends Annotation> getAnnotation() {
+    Class<? extends Annotation> getAnnotationType() {
         return CustomInject
     }
 }
