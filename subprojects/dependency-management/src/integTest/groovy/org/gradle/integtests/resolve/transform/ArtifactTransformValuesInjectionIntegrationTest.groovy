@@ -138,7 +138,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         buildFile << """
             interface NestedType {
@@ -162,7 +162,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             project(':a') {
                 dependencies {
                     implementation project(':b')
-                    implementation project(':c')
                 }
             }
             
@@ -198,14 +197,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
-        failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
-        failure.assertHasCause("Property 'missingInput' does not have a value specified.")
-        failure.assertHasCause("Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
-        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
-        failure.assertHasCause("Property 'nested.outputDirectory' is annotated with unsupported annotation @OutputDirectory.")
-        failure.assertHasCause("Property 'nested.inputFile' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
-        errorOutput.count("> Property") == 2 * 7
+        assertPropertyValidationErrors(
+            extension: 'is not annotated with an input annotation',
+            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
+            missingInput: 'does not have a value specified',
+            absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            'nested.outputDirectory': 'is annotated with unsupported annotation @OutputDirectory',
+            'nested.inputFile': 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+        )
     }
 
     def "cannot query parameters for transform without parameters"() {
@@ -239,7 +239,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransform {
             params("""
@@ -250,7 +250,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             project(':a') {
                 dependencies {
                     implementation project(':b')
-                    implementation project(':c')
                 }
             }
             
@@ -276,7 +275,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
+        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
         annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
@@ -381,12 +380,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
-        failure.assertHasCause("Property 'conflictingAnnotations' is annotated with unsupported annotation @InputFile.")
-        failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @InputArtifact, @InputArtifactDependencies.")
-        failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
-        failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
-        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
-        failure.assertHasCause("Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
+        assertPropertyValidationErrors(
+            'conflictingAnnotations': [
+                'is annotated with unsupported annotation @InputFile',
+                'has conflicting property types declared: @InputArtifact, @InputArtifactDependencies'
+            ],
+            inputFile: 'is annotated with unsupported annotation @InputFile',
+            notAnnotated: 'is not annotated with an input annotation',
+            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
+        )
     }
 
     @Unroll
@@ -429,7 +432,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
+        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
         annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
@@ -657,5 +660,17 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
+    }
+
+    void assertPropertyValidationErrors(Map<String, Object> validationErrors) {
+        int count = 0
+        validationErrors.each { propertyName, errorMessageOrMessages ->
+            def errorMessages = errorMessageOrMessages instanceof Iterable ? [*errorMessageOrMessages] : [errorMessageOrMessages]
+            errorMessages.each { errorMessage ->
+                count++
+                failure.assertHasCause("Property '${propertyName}' ${errorMessage}.")
+            }
+        }
+        assert errorOutput.count("> Property") == count
     }
 }
