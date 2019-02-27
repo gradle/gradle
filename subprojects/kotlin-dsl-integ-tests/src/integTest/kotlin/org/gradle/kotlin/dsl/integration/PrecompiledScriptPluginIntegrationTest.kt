@@ -31,7 +31,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         build("generateScriptPluginAdapters")
 
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarnings(3)
         build("ktlintC")
     }
 

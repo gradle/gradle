@@ -418,6 +418,9 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 ]
             }
         """
+        executer.beforeExecute {
+            expectDeprecationWarning()
+        }
 
         when:
         withBuildCache().run "customTask"

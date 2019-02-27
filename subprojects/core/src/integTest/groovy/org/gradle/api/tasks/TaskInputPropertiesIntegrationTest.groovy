@@ -211,7 +211,10 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDeprecationWarnings(2)
         succeeds "test"
+        outputContains("Using output properties with type Map has been deprecated. This is scheduled to be removed in Gradle 6.0. Output property outputFiles of task ':test' is of type Map. Please use @Nested on a Map instead.")
+        outputContains("Using output properties with type Map has been deprecated. This is scheduled to be removed in Gradle 6.0. Output property outputDirs of task ':test' is of type Map. Please use @Nested on a Map instead.")
     }
 
     def "fails when input file calls are chained (properties(Map))"() {

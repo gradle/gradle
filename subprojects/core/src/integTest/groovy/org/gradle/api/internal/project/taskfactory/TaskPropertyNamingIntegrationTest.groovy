@@ -100,6 +100,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         when:
+        executer.expectDeprecationWarnings(2)
         run "myTask"
         then:
         output.contains "Input: inputDirectory [inputs]"

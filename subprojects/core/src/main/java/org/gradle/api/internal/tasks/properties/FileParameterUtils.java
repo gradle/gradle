@@ -36,6 +36,7 @@ import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.util.DeferredUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -121,6 +122,7 @@ public class FileParameterUtils {
 
     private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
         if (unpackedValue instanceof Map) {
+            DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause("Using output properties with type Map", "Please use @Nested on a Map instead.", String.format("Output property %s of %s is of type Map.", propertyName, ownerDisplayName));
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) unpackedValue).entrySet()) {
                 Object key = entry.getKey();
                 if (key == null) {
