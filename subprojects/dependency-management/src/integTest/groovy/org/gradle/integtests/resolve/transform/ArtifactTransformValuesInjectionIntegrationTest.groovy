@@ -255,17 +255,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            @CacheableTask @CacheableTransform
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
-            
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                @CacheableTask @CacheableTransform
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -277,10 +273,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
-        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen\$Inject. This annotation cannot only be used with Task types.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen\$Inject. This annotation cannot only be used with TransformAction types.")
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen\$Parameters\$Inject. This annotation cannot only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen\$Parameters\$Inject. This annotation cannot only be used with TransformAction types.")
     }
 
     @Unroll
@@ -440,11 +436,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b', 'c'
         """
-        setupBuildWithColorTransform {
-            params("""
-                extension = 'green'
-            """)
-        }
+        setupBuildWithColorTransform()
         buildFile << """
             project(':a') {
                 dependencies {
@@ -453,15 +445,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
-            
             @CacheableTask
-            abstract class MakeGreenAction implements TransformAction {
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -473,8 +458,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('A problem was found with the configuration of MakeGreenAction.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreenAction. This annotation cannot only be used with Task types.")
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen. This annotation cannot only be used with Task types.")
     }
 
     @Unroll
