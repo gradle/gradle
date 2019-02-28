@@ -280,8 +280,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen\$Parameters\$Inject. This annotation cannot only be used with Task types.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen\$Parameters\$Inject. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen.Parameters. This annotation can only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen.Parameters. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll
@@ -467,7 +467,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen. This annotation cannot only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen. This annotation can only be used with Task types.")
     }
 
     @Unroll
@@ -734,7 +734,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task ':broken'.")
         failure.assertHasCause("A problem was found with the configuration of task ':broken'.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type MyTask_Decorated. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
     }
 
     def "task @Nested bean cannot use cacheable annotations"() {
@@ -759,8 +759,8 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails('broken')
         failure.assertHasDescription("Could not determine the dependencies of task ':broken'.")
         failure.assertHasCause("Some problems were found with the configuration of task ':broken'.")
-        failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation can only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll
