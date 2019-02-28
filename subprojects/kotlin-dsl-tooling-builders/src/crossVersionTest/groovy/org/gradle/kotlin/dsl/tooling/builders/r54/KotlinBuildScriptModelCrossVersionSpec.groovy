@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
+import org.hamcrest.Matcher
+
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
@@ -419,6 +421,147 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             hasItem(scriptPluginDependency.name))
 
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
+    }
+
+    def "sourcePath includes Gradle sources"() {
+
+        expect:
+        assertSourcePathIncludesGradleSourcesGiven("", "")
+    }
+
+    def "sourcePath includes kotlin-stdlib sources resolved against project"() {
+
+        expect:
+        assertSourcePathIncludesKotlinStdlibSourcesGiven(
+            "",
+            "buildscript { $repositoriesBlock }"
+        )
+    }
+
+    def "sourcePath includes kotlin-stdlib sources resolved against project hierarchy"() {
+
+        expect:
+        assertSourcePathIncludesKotlinStdlibSourcesGiven(
+            "buildscript { $repositoriesBlock }",
+            ""
+        )
+    }
+
+    def "sourcePath includes buildscript classpath sources resolved against project"() {
+
+        expect:
+        assertSourcePathIncludesKotlinPluginSourcesGiven(
+            "",
+            """
+                buildscript {
+                    dependencies { classpath(embeddedKotlin("gradle-plugin")) }
+                    $repositoriesBlock
+                }
+            """
+        )
+    }
+
+    def "sourcePath includes buildscript classpath sources resolved against project hierarchy"() {
+
+        expect:
+        assertSourcePathIncludesKotlinPluginSourcesGiven(
+            """
+                buildscript {
+                    dependencies { classpath(embeddedKotlin("gradle-plugin")) }
+                    $repositoriesBlock
+                }
+            """,
+            ""
+        )
+    }
+
+    def "sourcePath includes plugins classpath sources resolved against project"() {
+
+        expect:
+        assertSourcePathIncludesKotlinPluginSourcesGiven(
+            "",
+            """ plugins { kotlin("jvm") version "$targetKotlinVersion" } """
+        )
+    }
+
+    @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
+    def "sourcePath includes buildSrc source roots"() {
+
+        given:
+        withKotlinBuildSrc()
+        withSettings("""include(":sub")""")
+
+        expect:
+        assertThat(
+            sourcePathFor(withFile("sub/build.gradle.kts")),
+            matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc"))
+        )
+    }
+
+    @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
+    def "sourcePath includes buildSrc project dependencies source roots"() {
+
+        given:
+        def sourceRoots = withMultiProjectKotlinBuildSrc()
+        withSettings("""include(":sub")""")
+
+        expect:
+        assertThat(
+            sourcePathFor(withFile("sub/build.gradle.kts")),
+            matchesProjectsSourceRoots(sourceRoots)
+        )
+    }
+
+    private void assertSourcePathIncludesGradleSourcesGiven(String rootProjectScript, String subProjectScript) {
+        assertSourcePathGiven(
+            rootProjectScript,
+            subProjectScript,
+            hasItems("core-api")
+        )
+    }
+
+    private void assertSourcePathIncludesKotlinStdlibSourcesGiven(String rootProjectScript, String subProjectScript) {
+        assertSourcePathGiven(
+            rootProjectScript,
+            subProjectScript,
+            hasItems("kotlin-stdlib-jdk8-${targetKotlinVersion}-sources.jar".toString())
+        )
+    }
+
+    private void assertSourcePathIncludesKotlinPluginSourcesGiven(String rootProjectScript, String subProjectScript) {
+        assertSourcePathGiven(
+            rootProjectScript,
+            subProjectScript,
+            hasItems(
+                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString()),
+                matching("annotations-[0-9.]+-sources\\.jar")
+            )
+        )
+    }
+
+    private void assertSourcePathGiven(
+        String rootProjectScript,
+        String subProjectScript,
+        Matcher<Iterable<String>> matches
+    ) {
+
+        def subProjectName = "sub"
+        withSettings("""
+            include("$subProjectName")
+        """)
+
+        withBuildScript(rootProjectScript)
+        def subProjectScriptFile = withBuildScriptIn(subProjectName, subProjectScript)
+
+        def srcConventionalPathDirNames = ["java", "groovy", "kotlin", "resources"]
+        def sourcePath = sourcePathFor(subProjectScriptFile).collect { path ->
+            if (srcConventionalPathDirNames.contains(path.name)) {
+                path.parentFile.parentFile.parentFile.name
+            } else {
+                path.name
+            }
+        }.unique()
+        assertThat(sourcePath, matches)
     }
 
     private static String buildScriptDependencyOn(File jar) {

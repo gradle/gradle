@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
@@ -70,11 +71,23 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     private String defaultSettingsScript = ""
 
-    private String repositoriesBlock = """
+    protected String repositoriesBlock = """
         repositories {
             gradlePluginPortal()
         }
     """.stripIndent()
+
+    private String targetKotlinVersion
+
+    protected String getTargetKotlinVersion() {
+        if (targetKotlinVersion == null) {
+            def props = new JarTestFixture(targetDist.gradleHomeDir.file("lib").listFiles().find {
+                it.name.startsWith("gradle-kotlin-dsl-${targetVersion.baseVersion.version}")
+            }).content("gradle-kotlin-dsl-versions.properties")
+            targetKotlinVersion = new Properties().tap { load(new StringReader(props)) }.getProperty("kotlin")
+        }
+        return targetKotlinVersion
+    }
 
     protected TestFile withDefaultSettings() {
         return withSettings(defaultSettingsScript)
@@ -96,7 +109,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withBuildScriptIn(".", script)
     }
 
-    private TestFile withBuildScriptIn(String baseDir, String script = "") {
+    protected TestFile withBuildScriptIn(String baseDir, String script = "") {
         return withFile("$baseDir/build.gradle.kts", script)
     }
 
@@ -325,7 +338,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return hasItem(new File(base, "src/$set/$lang"))
     }
 
-    private static Matcher<String> matching(String pattern) {
+    protected static Matcher<String> matching(String pattern) {
         def compiledPattern = Pattern.compile(pattern)
         return new TypeSafeMatcher<String>() {
 

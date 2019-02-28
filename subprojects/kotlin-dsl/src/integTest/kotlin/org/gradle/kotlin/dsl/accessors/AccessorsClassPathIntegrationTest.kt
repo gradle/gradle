@@ -16,9 +16,8 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.matching
-
-import org.gradle.kotlin.dsl.integration.ScriptModelIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -31,7 +30,7 @@ import org.junit.Test
 import java.io.File
 
 
-class AccessorsClassPathIntegrationTest : ScriptModelIntegrationTest() {
+class AccessorsClassPathIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `classpath model includes jit accessors by default`() {
