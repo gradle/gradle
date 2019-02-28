@@ -17,12 +17,14 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -68,6 +70,9 @@ import java.io.File
 
 @CacheableTask
 open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGenerationTask() {
+
+    @get:Classpath
+    lateinit var runtimeClassPathFiles: FileCollection
 
     @get:OutputDirectory
     var metadataOutputDir = directoryProperty()
@@ -211,7 +216,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         pluginGroupsPerRequests: Map<UniquePluginRequests, List<ScriptPluginPlugins>>
     ): Map<HashedProjectSchema, List<ScriptPluginPlugins>> {
 
-        val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, classPathFiles.files)
+        val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, (classPathFiles + runtimeClassPathFiles).files)
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
                 val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
@@ -267,7 +272,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
 
 internal
-class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: Set<File>) {
+class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: Collection<File>) {
 
     private
     val rootProject = buildRootProject(rootProjectDir, rootProjectClassPath)

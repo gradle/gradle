@@ -134,6 +134,28 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
+
+        withKotlinDslPlugin().appendText("""
+            dependencies {
+                implementation(kotlin("gradle-plugin"))
+            }
+        """)
+
+        withPrecompiledKotlinScript("kotlin-library.gradle.kts", """
+
+            plugins { kotlin("jvm") }
+
+            kotlin { }
+
+            tasks.compileKotlin { kotlinOptions { } }
+
+        """)
+
+        compileKotlin()
+    }
+
+    @Test
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """

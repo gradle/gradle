@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
@@ -210,6 +211,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles = compileClasspath
+                runtimeClassPathFiles = configurations["runtimeClasspath"]
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(generatedMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
@@ -261,7 +263,8 @@ fun Project.registerBuildScriptModelTask(
 
 
 private
-fun Project.compileClasspath() = sourceSets["main"].compileClasspath
+fun Project.compileClasspath(): FileCollection =
+    sourceSets["main"].compileClasspath
 
 
 private
