@@ -20,15 +20,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class JavaReflectionUtilTestMethods {
-    private <T> T simpleGenericReturnType() { return null; }
+public interface JavaReflectionUtilTestMethods {
+    <T> T simpleGenericReturnType();
 
-    private <T> List<T> encapsulatedTypeVariable() { return null; }
+    <T> List<T> encapsulatedTypeVariable();
 
-    private <T> T[] arrayTypeWithTypeVariable() { return null; }
+    <T> T[] arrayTypeWithTypeVariable();
 
-    private <T> List<Collection<? extends List<? super T>>[]> complexTypeWithTypeVariable() { return null; }
+    <T> List<Collection<? extends List<? super T>>[]> complexTypeWithTypeVariable();
 
-    private <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable() { return null; }
-    private <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable() { return null; }
+    <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable();
+
+    <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable();
 }
