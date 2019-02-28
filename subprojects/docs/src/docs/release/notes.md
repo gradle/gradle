@@ -71,6 +71,16 @@ Execution failed for task ':clean'.
 
 ## Improvements for plugin authors
 
+### Public API for publishing custom components
+
+Gradle now offers a public API to publish custom software components.
+Refer to the `SoftwareComponentFactory` javadocs for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
+
+### Gradle Module Metadata 1.0
+
+Gradle Module Metadata is now 1.0.
+Gradle will automatically consume published Gradle Metadata, but publication still requires to enable the `GRADLE_METADATA` feature preview.
+
 ### Use abstract types
 
 - TBD - Abstract service injection getter methods

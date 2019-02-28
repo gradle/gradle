@@ -133,7 +133,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     implementation project(':c')
                 }
             }
-"""
+        """
 
         when:
         run(":a:resolve")
