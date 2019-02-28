@@ -28,9 +28,9 @@ class KotlinDslToolingModelsClasspathProvider implements ToolingApiAdditionalCla
     @Override
     List<File> additionalClasspathFor(GradleDistribution distribution) {
         distribution.gradleHomeDir.file("lib").listFiles().findAll { file ->
-            file.name.startsWith("gradle-kotlin-dsl-tooling-models-") || file.name.startsWith("kotlin-stdlib-")
+            file.name.startsWith("gradle-kotlin-dsl-") || file.name.startsWith("kotlin-stdlib-")
         }.tap { classpath ->
-            assert classpath.size() >= 2
+            assert classpath.size() >= 3
         }
     }
 }
