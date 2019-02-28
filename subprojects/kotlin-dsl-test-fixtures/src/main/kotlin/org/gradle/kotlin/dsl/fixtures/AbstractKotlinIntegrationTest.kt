@@ -212,9 +212,8 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         GradleInstallation.Local(distribution.gradleHomeDir)
 
     protected
-    fun compileKotlin(taskName: String = "classes") {
+    fun compileKotlin(taskName: String = "classes"): ExecutionResult =
         build(taskName).assertTaskExecuted(":compileKotlin")
-    }
 
     protected
     fun withDeepThoughtJar(named: String): File =
