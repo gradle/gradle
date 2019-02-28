@@ -238,7 +238,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    fun `plugin application errors are propagated`() {
+    fun `plugin application errors are reported but don't cause the build to fail`() {
 
         // given:
         val pluginId = "invalid.plugin"
@@ -246,11 +246,10 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        buildAndFail("classes").assertHasDescription(
-            "An exception occurred applying plugin request [id: '$pluginId']"
-        ).assertHasCause(
-            "'InvalidPlugin' is neither a plugin or a rule source and cannot be applied."
-        )
+        gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
+            assertRawOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
+            assertRawOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+        }
     }
 
     private

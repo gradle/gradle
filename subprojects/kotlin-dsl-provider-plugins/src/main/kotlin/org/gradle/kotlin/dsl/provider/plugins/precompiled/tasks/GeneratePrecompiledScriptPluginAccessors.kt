@@ -212,14 +212,35 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, classPathFiles.files)
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-            val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
-            val hashedSchema = HashedProjectSchema(schema)
-            scriptPlugins.map { hashedSchema to it }
+            try {
+                val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
+                val hashedSchema = HashedProjectSchema(schema)
+                scriptPlugins.map { hashedSchema to it }
+            } catch (error: Throwable) {
+                reportProjectSchemaError(scriptPlugins, error)
+                emptyList<Pair<HashedProjectSchema, ScriptPluginPlugins>>()
+            }
         }.groupBy(
             { (schema, _) -> schema },
             { (_, plugin) -> plugin }
         )
     }
+
+    private
+    fun reportProjectSchemaError(plugins: List<ScriptPluginPlugins>, error: Throwable) {
+        logger.warn(
+            plugins.joinToString(
+                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                separator = "\n",
+                postfix = "\n"
+            ) { " - " + projectRelativePathOf(it.scriptPlugin) }
+            , error
+        )
+    }
+
+    private
+    fun projectRelativePathOf(scriptPlugin: PrecompiledScriptPlugin) =
+        project.relativePath(scriptPlugin.scriptFile)
 
     private
     fun IO.writeTypeSafeAccessorsFor(hashedSchema: HashedProjectSchema) {
