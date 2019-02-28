@@ -30,6 +30,8 @@ import org.hamcrest.TypeSafeMatcher
 
 import java.util.regex.Pattern
 
+import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
+
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
@@ -163,18 +165,12 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         kotlinBuildScriptModelFor(projectDir, scriptFile).sourcePath
     }
 
-    protected KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
-        withConnector {
-            it.forProjectDirectory(projectDir)
-        }
-        return withConnection {
-            model(KotlinBuildScriptModel).tap {
-                setJvmArguments("-Dorg.gradle.kotlin.dsl.provider.mode=classpath")
-                if (scriptFile != null) {
-                    withArguments("-Porg.gradle.kotlin.dsl.provider.script=${scriptFile.canonicalPath}")
-                }
-            }.get()
-        }
+    private KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
+        return fetchKotlinBuildScriptModelFor(
+            projectDir,
+            scriptFile,
+            { selectedProjectDir -> connector().forProjectDirectory(selectedProjectDir) }
+        )
     }
 
     private static List<File> canonicalClasspathOf(KotlinBuildScriptModel model) {
