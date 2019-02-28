@@ -233,8 +233,8 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
                 prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
                 separator = "\n",
                 postfix = "\n"
-            ) { " - " + projectRelativePathOf(it.scriptPlugin) }
-            , error
+            ) { " - " + projectRelativePathOf(it.scriptPlugin) },
+            error
         )
     }
 
