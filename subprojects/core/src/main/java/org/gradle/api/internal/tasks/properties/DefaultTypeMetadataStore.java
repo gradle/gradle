@@ -30,6 +30,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
@@ -129,13 +130,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
+        Class<?> publicType = GeneratedSubclasses.unpack(type);
         RecordingValidationContext validationContext = new RecordingValidationContext();
         for (TypeAnnotationHandler annotationHandler : typeAnnotationHandlers) {
-            if (type.isAnnotationPresent(annotationHandler.getAnnotationType())) {
-                annotationHandler.validateTypeMetadata(type, validationContext);
+            if (publicType.isAnnotationPresent(annotationHandler.getAnnotationType())) {
+                annotationHandler.validateTypeMetadata(publicType, validationContext);
             }
         }
-        ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(type, validationContext);
+        ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(publicType, validationContext);
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(properties.size());
         for (PropertyMetadata property : properties) {
             PropertyAnnotationHandler annotationHandler = annotationHandlers.get(property.getPropertyType());

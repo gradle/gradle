@@ -204,7 +204,7 @@ public final class BuildCacheControllerFactory {
         private final ImmutableSortedMap<String, String> config;
 
         private BuildCacheDescription(BuildCache buildCache, String type, ImmutableSortedMap<String, String> config) {
-            this.className = GeneratedSubclasses.unpack(buildCache).getName();
+            this.className = GeneratedSubclasses.unpackType(buildCache).getName();
             this.push = buildCache.isPush();
             this.type = type;
             this.config = config;
