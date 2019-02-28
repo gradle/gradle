@@ -211,4 +211,15 @@ fun Project.applyKotlinProjectConventions() {
             experimentalWarning.set(false)
         }
     }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        // TODO:kotlin-dsl unignore KtLint failures
+        // we would like to only exclude the generated-sources from the
+        // verification but unfortunately the filter doesn't seem to
+        // have an effect so :/
+        ignoreFailures.set(true)
+        filter {
+            exclude("**/generated-sources/**")
+        }
+    }
 }
