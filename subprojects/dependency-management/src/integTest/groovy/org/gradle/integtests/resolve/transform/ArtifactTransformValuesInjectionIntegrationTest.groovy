@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -141,22 +142,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         settingsFile << """
             include 'a', 'b'
         """
-        buildFile << """
-            interface NestedType {
-                @InputFile
-                RegularFileProperty getInputFile()
-                @OutputDirectory
-                DirectoryProperty getOutputDirectory()
-            }
-                        
-            allprojects {
-                ext.nested = objects.newInstance(NestedType)
-            }
-        """
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
-                nested.set(project.ext.nested)
             """)
         }
         buildFile << """
@@ -198,8 +186,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @PathSensitive(PathSensitivity.ABSOLUTE)
                     @InputFiles
                     ConfigurableFileCollection getAbsolutePathSensitivity()
-                    @Nested
-                    Property<NestedType> getNested()
                 }
             
                 void transform(TransformOutputs outputs) {
@@ -225,9 +211,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
             noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
             noPathSensitivityDir: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            'nested.outputDirectory': 'is annotated with unsupported annotation @OutputDirectory',
-            'nested.inputFile': 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity'
         )
     }
 
@@ -342,7 +326,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
+        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
     }
 
     @Unroll
@@ -529,7 +513,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
+        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]
     }
 
     @Unroll
