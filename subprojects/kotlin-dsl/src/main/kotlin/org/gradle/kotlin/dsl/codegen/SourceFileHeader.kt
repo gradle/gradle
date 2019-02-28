@@ -28,7 +28,10 @@ fun fileHeaderFor(packageName: String) =
 
 @file:Suppress(
     "redundant_projection",
-    "nothing_to_inline"
+    "nothing_to_inline",
+    "RemoveRedundantBackticks",
+    "ObjectPropertyName",
+    "unused"
 )
 
 package $packageName
