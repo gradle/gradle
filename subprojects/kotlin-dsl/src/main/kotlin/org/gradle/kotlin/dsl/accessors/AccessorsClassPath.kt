@@ -154,7 +154,7 @@ fun IO.buildAccessorsFor(
     srcDir: File,
     binDir: File,
     packageName: String = kotlinDslPackageName,
-    accessorFormat: (String) -> String = { it.replaceIndent() }
+    format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     emitAccessorsFor(
@@ -162,8 +162,31 @@ fun IO.buildAccessorsFor(
         srcDir,
         binDir,
         OutputPackage(packageName),
-        accessorFormat
+        format
     )
+}
+
+
+typealias AccessorFormat = (String) -> String
+
+
+object AccessorFormats {
+
+    val default: AccessorFormat = { accessor ->
+        accessor.replaceIndent()
+    }
+
+    val `internal`: AccessorFormat = { accessor ->
+        accessor
+            .replaceIndent()
+            .let { valFunOrClass.matcher(it) }
+            .replaceAll("internal\n$1 ")
+    }
+
+    private
+    val valFunOrClass by lazy {
+        "^(val|fun|class) ".toRegex(RegexOption.MULTILINE).toPattern()
+    }
 }
 
 

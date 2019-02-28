@@ -37,6 +37,7 @@ import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.BasicTextResourceLoader
 
+import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.buildAccessorsFor
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
@@ -250,20 +251,8 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             sourceCodeOutputDir.get().asFile,
             temporaryDir.resolve("accessors"),
             hashedSchema.packageName,
-            ::makeInternal
+            AccessorFormats.internal
         )
-    }
-
-    private
-    fun makeInternal(accessor: String): String =
-        accessor
-            .replaceIndent()
-            .let { valOrFun.matcher(it) }
-            .replaceAll("internal\n$1 ")
-
-    private
-    val valOrFun by lazy {
-        "^(val|fun) ".toRegex(RegexOption.MULTILINE).toPattern()
     }
 
     private

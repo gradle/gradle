@@ -108,7 +108,7 @@ fun writeSourceCodeForPluginSpecBuildersFor(
         writePluginAccessorsSourceCodeTo(
             sourceFile,
             pluginAccessorsFor(pluginDescriptorsClassPath),
-            accessibility = "internal\n",
+            format = AccessorFormats.internal,
             header = fileHeaderFor(packageName)
         )
     }
@@ -213,12 +213,12 @@ private
 fun IO.writePluginAccessorsSourceCodeTo(
     sourceFile: File,
     accessors: List<PluginAccessor>,
-    accessibility: String = "",
+    format: AccessorFormat = AccessorFormats.default,
     header: String = fileHeader
 ) = io {
     sourceFile.bufferedWriter().useToRun {
         appendReproducibleNewLine(header)
-        appendSourceCodeForPluginAccessors(accessors, accessibility)
+        appendSourceCodeForPluginAccessors(accessors, format)
     }
 }
 
@@ -226,7 +226,7 @@ fun IO.writePluginAccessorsSourceCodeTo(
 private
 fun BufferedWriter.appendSourceCodeForPluginAccessors(
     accessors: List<PluginAccessor>,
-    accessibility: String = ""
+    format: AccessorFormat
 ) {
 
     appendReproducibleNewLine("""
@@ -245,29 +245,29 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
         val pluginsRef = pluginDependenciesSpecOf(extendedType)
         when (this) {
             is PluginAccessor.ForPlugin -> {
-                appendReproducibleNewLine("""
+                appendReproducibleNewLine(format("""
                     /**
                      * The `$id` plugin implemented by [$implementationClass].
                      */
-                    ${accessibility}val `$extendedType`.`${extension.name}`: PluginDependencySpec
+                    val `$extendedType`.`${extension.name}`: PluginDependencySpec
                         get() = $pluginsRef.id("$id")
-                """.replaceIndent())
+                """))
             }
             is PluginAccessor.ForGroup -> {
                 val groupType = extension.returnType.sourceName
-                appendReproducibleNewLine("""
+                appendReproducibleNewLine(format("""
                     /**
                      * The `$id` plugin group.
                      */
-                    ${accessibility}class `$groupType`(internal val plugins: PluginDependenciesSpec)
+                    class `$groupType`(internal val plugins: PluginDependenciesSpec)
 
 
                     /**
                      * Plugin ids starting with `$id`.
                      */
-                    ${accessibility}val `$extendedType`.`${extension.name}`: `$groupType`
+                    val `$extendedType`.`${extension.name}`: `$groupType`
                         get() = `$groupType`($pluginsRef)
-                """.replaceIndent())
+                """))
             }
         }
     }

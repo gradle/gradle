@@ -39,7 +39,7 @@ fun IO.emitAccessorsFor(
     srcDir: File,
     binDir: File,
     outputPackage: OutputPackage,
-    accessorFormat: (String) -> String
+    format: AccessorFormat
 ): List<InternalName> {
 
     makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
@@ -51,7 +51,7 @@ fun IO.emitAccessorsFor(
                 srcDir,
                 binDir,
                 outputPackage,
-                accessorFormat
+                format
             )
         }.toList()
 
@@ -87,7 +87,7 @@ fun IO.emitClassFor(
     srcDir: File,
     binDir: File,
     outputPackage: OutputPackage,
-    accessorFormat: (String) -> String
+    format: AccessorFormat
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -97,7 +97,7 @@ fun IO.emitClassFor(
     val classWriter = beginPublicClass(className)
 
     for ((source, bytecode, metadata, signature) in fragments) {
-        sourceCode.add(accessorFormat(source))
+        sourceCode.add(format(source))
         MetadataFragmentScope(signature, metadataWriter).run(metadata)
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
