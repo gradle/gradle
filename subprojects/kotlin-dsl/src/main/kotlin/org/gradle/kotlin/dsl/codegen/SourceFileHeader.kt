@@ -30,6 +30,8 @@ fun fileHeaderFor(packageName: String) =
     "unused",
     "nothing_to_inline",
     "useless_cast",
+    "unchecked_cast",
+    "extension_shadowed_by_member",
     "redundant_projection",
     "RemoveRedundantBackticks",
     "ObjectPropertyName"
