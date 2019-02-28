@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.startsWith
@@ -29,6 +31,7 @@ import java.io.File
 
 class PrecompiledScriptPluginModelIntegrationTest : AbstractPluginIntegrationTest() {
 
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @Test
     fun `given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set`() {
 

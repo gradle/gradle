@@ -2,8 +2,9 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
-import org.junit.Assert.assertThat
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import org.junit.Assert.assertThat
 import org.junit.Test
 
 
@@ -83,6 +84,7 @@ class KotlinSettingsScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
     }
 
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @Test
     fun `sourcePath includes buildSrc project dependencies source roots`() {
 
