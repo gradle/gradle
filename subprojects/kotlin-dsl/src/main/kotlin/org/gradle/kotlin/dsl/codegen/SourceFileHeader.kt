@@ -27,11 +27,12 @@ fun fileHeaderFor(packageName: String) =
     """$licenseHeader
 
 @file:Suppress(
-    "redundant_projection",
+    "unused",
     "nothing_to_inline",
+    "useless_cast",
+    "redundant_projection",
     "RemoveRedundantBackticks",
-    "ObjectPropertyName",
-    "unused"
+    "ObjectPropertyName"
 )
 
 package $packageName
