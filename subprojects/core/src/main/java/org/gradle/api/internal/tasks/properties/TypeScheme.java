@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.reflect.PropertyMetadata;
+public interface TypeScheme {
+    TypeMetadataStore getMetadataStore();
 
-public interface PropertyValueVisitor {
-    boolean shouldVisit(PropertyVisitor visitor);
-
-    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
+    boolean appliesTo(Class<?> type);
 }

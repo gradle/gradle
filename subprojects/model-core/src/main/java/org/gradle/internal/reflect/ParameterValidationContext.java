@@ -21,15 +21,30 @@ import javax.annotation.Nullable;
 public interface ParameterValidationContext {
     ParameterValidationContext NOOP = new ParameterValidationContext() {
         @Override
-        public void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message) {
+        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
         }
 
         @Override
-        public void recordValidationMessage(String message) {
+        public void visitError(String message) {
+        }
+
+        @Override
+        public void visitErrorStrict(String message) {
         }
     };
 
-    void recordValidationMessage(@Nullable String ownerPath, String propertyName, String message);
+    /**
+     * Visits a validation error associated with the given property.
+     */
+    void visitError(@Nullable String ownerPath, String propertyName, String message);
 
-    void recordValidationMessage(String message);
+    /**
+     * Visits a validation error.
+     */
+    void visitError(String message);
+
+    /**
+     * Visits a strict validation error. Strict errors are not ignored for tasks, whereas for backwards compatibility other errors are ignored (at runtime) or treated as warnings (at plugin build time).
+     */
+    void visitErrorStrict(String message);
 }

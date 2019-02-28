@@ -117,10 +117,10 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('dockerSyncArchive').forwardOutput().build()
+        def result = runner('assemble').forwardOutput().build()
 
         then:
-        result.task(':dockerSyncArchive').outcome == SUCCESS
+        result.task(':assemble').outcome == SUCCESS
     }
 
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')

@@ -63,7 +63,7 @@ class DefaultTaskOutputsTest extends Specification {
         getLocalState() >> Stub(TaskLocalStateInternal)
     }
 
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [] as Set, new TestCrossBuildInMemoryCacheFactory())), fileCollectionFactory)
+    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory())), fileCollectionFactory)
 
     void hasNoOutputsByDefault() {
         setup:
