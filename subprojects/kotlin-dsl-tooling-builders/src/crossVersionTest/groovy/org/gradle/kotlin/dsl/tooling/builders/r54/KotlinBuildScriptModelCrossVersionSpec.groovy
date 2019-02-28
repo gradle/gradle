@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.tooling.builders.r54
 import groovy.transform.CompileStatic
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
@@ -84,6 +85,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             file("classes.jar"))
     }
 
+    @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
     def "can fetch classpath in face of buildSrc test failures"() {
 
         given:
