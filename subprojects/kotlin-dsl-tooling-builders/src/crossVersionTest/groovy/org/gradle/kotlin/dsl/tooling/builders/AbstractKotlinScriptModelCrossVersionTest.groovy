@@ -131,6 +131,10 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                     "runtime"(project(it.path))
                 }
             }
+
+            allprojects {
+                $repositoriesBlock
+            }
         """)
         withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
         withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
