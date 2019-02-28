@@ -104,7 +104,9 @@ public class AsmBackedClassGeneratorTest {
     private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.<InjectAnnotationHandler>emptyList(), Collections.<Class<? extends Annotation>>emptyList());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
-        return newInstance(clazz, new DefaultServiceRegistry(), args);
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        services.add(InstantiatorFactory.class, TestUtil.instantiatorFactory());
+        return newInstance(clazz, services, args);
     }
 
     private <T> T newInstance(Class<T> clazz, ServiceRegistry services, Object... args) throws Exception {

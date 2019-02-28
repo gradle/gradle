@@ -17,7 +17,9 @@ package org.gradle.internal.instantiation
 
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -25,12 +27,16 @@ import javax.inject.Inject
 class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Specification {
     final ClassGenerator classGenerator = AsmBackedClassGenerator.decorateAndInject([], [])
     final CrossBuildInMemoryCache cache = new TestCrossBuildInMemoryCacheFactory().newCache()
-    final ServiceLookup services = Mock()
+    final ServiceLookup services = new DefaultServiceRegistry()
     final DependencyInjectingInstantiator instantiator = new DependencyInjectingInstantiator(new Jsr330ConstructorSelector(classGenerator, cache), services)
+
+    def setup() {
+        services.add(InstantiatorFactory, TestUtil.instantiatorFactory())
+    }
 
     def "injects service using getter injection"() {
         given:
-        _ * services.get(String) >> "string"
+        services.add(String, "string")
 
         when:
         def result = instantiator.newInstance(HasGetterInjection)
@@ -41,7 +47,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "injects service using abstract getter injection"() {
         given:
-        _ * services.get(String) >> "string"
+        services.add(String, "string")
 
         when:
         def result = instantiator.newInstance(AbstractHasGetterInjection)
@@ -52,7 +58,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "constructor can use getter injected service"() {
         given:
-        _ * services.get(String) >> "string"
+        services.add(String, "string")
 
         when:
         def result = instantiator.newInstance(UsesInjectedServiceFromConstructor)
@@ -64,7 +70,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "constructor can receive injected service and parameter"() {
         given:
-        _ * services.find(String) >> "string"
+        services.add(String, "string")
 
         when:
         def result = instantiator.newInstance(HasInjectConstructor, 12)
@@ -76,9 +82,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "can use factory to create instance with injected service and parameter"() {
         given:
-        def services = Stub(ServiceLookup)
-        _ * services.find(String) >> "string"
-        _ * services.find(_) >> null
+        services.add(String, "string")
 
         when:
         def factory = instantiator.factoryFor(HasInjectConstructor)
@@ -91,9 +95,7 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
 
     def "can use factory to create instance with injected service using getter"() {
         given:
-        def services = Stub(ServiceLookup)
-        _ * services.get(String) >> "string"
-        _ * services.find(_) >> null
+        services.add(String, "string")
 
         when:
         def factory = instantiator.factoryFor(HasGetterInjection)

@@ -21,6 +21,7 @@ import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceLookup;
 
 import javax.annotation.Nullable;
 
@@ -29,8 +30,13 @@ import javax.annotation.Nullable;
  */
 public class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
     // Used by generated code
-    public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject, Instantiator instantiator) {
-        super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), instantiator);
+    public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject, ServiceLookup services) {
+        super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), instantiator(services));
+    }
+
+    private static Instantiator instantiator(ServiceLookup services) {
+        InstantiatorFactory instantiatorFactory = (InstantiatorFactory) services.get(InstantiatorFactory.class);
+        return instantiatorFactory.injectAndDecorateLenient(services);
     }
 
     private static AbstractDynamicObject wrap(Object delegateObject, Class<?> publicType, DynamicObject dynamicObject) {
