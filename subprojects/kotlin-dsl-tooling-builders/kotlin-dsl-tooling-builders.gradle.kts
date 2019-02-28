@@ -43,3 +43,11 @@ dependencies {
 
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
 }
+
+tasks {
+
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        enabled = false
+    }
+}
