@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final ServiceRegistry noServices = new DefaultServiceRegistry();
+    private final ServiceRegistry defaultServices;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
     private final DefaultInstantiationScheme injectOnlyScheme;
@@ -40,16 +40,19 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = annotationHandlers;
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        services.add(InstantiatorFactory.class, this);
+        this.defaultServices = services;
         ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of());
         ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of());
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.newClassCache());
-        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, noServices, ImmutableSet.of(Inject.class));
-        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, noServices, ImmutableSet.of(Inject.class));
-        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, noServices, ImmutableSet.of(Inject.class));
-        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, noServices, ImmutableSet.of(Inject.class));
+        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
+        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
+        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
+        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
     }
 
     @Override
@@ -81,7 +84,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(injectAnnotations.size() + 1);
         builder.addAll(injectAnnotations);
         builder.add(Inject.class);
-        return new DefaultInstantiationScheme(constructorSelector, noServices, builder.build());
+        return new DefaultInstantiationScheme(constructorSelector, defaultServices, builder.build());
     }
 
     @Override
