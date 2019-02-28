@@ -38,14 +38,21 @@ fun IO.emitAccessorsFor(
     projectSchema: ProjectSchema<TypeAccessibility>,
     srcDir: File,
     binDir: File,
-    outputPackage: OutputPackage
+    outputPackage: OutputPackage,
+    accessorFormat: (String) -> String
 ): List<InternalName> {
 
     makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
-            emitClassFor(accessor, srcDir, binDir, outputPackage)
+            emitClassFor(
+                accessor,
+                srcDir,
+                binDir,
+                outputPackage,
+                accessorFormat
+            )
         }.toList()
 
     writeFile(
@@ -79,7 +86,8 @@ fun IO.emitClassFor(
     accessor: Accessor,
     srcDir: File,
     binDir: File,
-    outputPackage: OutputPackage
+    outputPackage: OutputPackage,
+    accessorFormat: (String) -> String
 ): InternalName {
 
     val (simpleClassName, fragments) = fragmentsFor(accessor)
@@ -89,13 +97,18 @@ fun IO.emitClassFor(
     val classWriter = beginPublicClass(className)
 
     for ((source, bytecode, metadata, signature) in fragments) {
-        sourceCode.add(source)
+        sourceCode.add(accessorFormat(source))
         MetadataFragmentScope(signature, metadataWriter).run(metadata)
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
 
     val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-    writeAccessorsTo(sourceFile, sourceCode, importsRequiredBy(accessor), outputPackage.name)
+    writeAccessorsTo(
+        sourceFile,
+        sourceCode,
+        importsRequiredBy(accessor),
+        outputPackage.name
+    )
 
     val classHeader = metadataWriter.closeHeader()
     val classBytes = classWriter.endKotlinClass(classHeader)

@@ -228,8 +228,21 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             classPath,
             sourceCodeOutputDir.get().asFile,
             temporaryDir.resolve("accessors"),
-            hashedSchema.packageName
+            hashedSchema.packageName,
+            ::makeInternal
         )
+    }
+
+    private
+    fun makeInternal(accessor: String): String =
+        accessor
+            .replaceIndent()
+            .let { valOrFun.matcher(it) }
+            .replaceAll("internal\n$1 ")
+
+    private
+    val valOrFun by lazy {
+        "^(val|fun) ".toRegex(RegexOption.MULTILINE).toPattern()
     }
 
     private

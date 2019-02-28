@@ -42,6 +42,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.empty
+import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.not
 
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -49,7 +50,6 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -133,7 +133,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
-    @Ignore("wip")
     @Test
     fun `generated type-safe accessors are internal`() {
 
@@ -177,8 +176,17 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             }
 
         assertThat(
+            "Only the generated Gradle Plugin wrapper is not internal",
             generatedAccessors.filterNot { it.visibility == Visibilities.INTERNAL },
-            empty()
+            equalTo(
+                listOf(
+                    Declaration(
+                        "",
+                        "JavaProjectPlugin",
+                        null
+                    )
+                )
+            )
         )
     }
 

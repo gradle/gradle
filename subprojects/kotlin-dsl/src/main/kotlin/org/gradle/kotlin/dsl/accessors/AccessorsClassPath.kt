@@ -153,14 +153,16 @@ fun IO.buildAccessorsFor(
     classPath: ClassPath,
     srcDir: File,
     binDir: File,
-    packageName: String = kotlinDslPackageName
+    packageName: String = kotlinDslPackageName,
+    accessorFormat: (String) -> String = { it.replaceIndent() }
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     emitAccessorsFor(
         availableSchema,
         srcDir,
         binDir,
-        OutputPackage(packageName)
+        OutputPackage(packageName),
+        accessorFormat
     )
 }
 
@@ -518,7 +520,7 @@ fun enabledJitAccessors(project: Project) =
 internal
 fun IO.writeAccessorsTo(
     outputFile: File,
-    accessors: List<String>,
+    accessors: Iterable<String>,
     imports: List<String> = emptyList(),
     packageName: String = kotlinDslPackageName
 ) = io {
@@ -531,7 +533,7 @@ fun IO.writeAccessorsTo(
             appendReproducibleNewLine()
         }
         accessors.forEach {
-            appendReproducibleNewLine(it.replaceIndent())
+            appendReproducibleNewLine(it)
             appendReproducibleNewLine()
         }
     }
