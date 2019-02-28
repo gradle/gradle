@@ -415,7 +415,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         and:
         def scriptPluginClassPath = canonicalClasspathOf(model)
         assertThat(
-            scriptPluginClassPath.map { it.name } as List<String>,
+            scriptPluginClassPath.collect { it.name } as List<String>,
             hasItem(scriptPluginDependency.name))
 
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
