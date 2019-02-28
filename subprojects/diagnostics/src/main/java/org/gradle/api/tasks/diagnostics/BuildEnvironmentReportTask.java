@@ -17,11 +17,14 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
@@ -51,7 +54,10 @@ public class BuildEnvironmentReportTask extends DefaultTask {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
+    private final Configuration configuration;
+
     public BuildEnvironmentReportTask() {
+        configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
         getOutputs().upToDateWhen(new Spec<Task>() {
             public boolean isSatisfiedBy(Task element) {
                 return false;
@@ -69,12 +75,22 @@ public class BuildEnvironmentReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * The classpath for the build environment for this project.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    @Classpath
+    protected FileCollection getClasspath() {
+        return configuration;
+    }
+
     @TaskAction
     public void generate() {
         ProjectReportGenerator projectReportGenerator = new ProjectReportGenerator() {
             @Override
             public void generateReport(Project project) throws IOException {
-                Configuration configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
                 renderer.startConfiguration(configuration);
                 renderer.render(configuration);
                 renderer.completeConfiguration(configuration);
