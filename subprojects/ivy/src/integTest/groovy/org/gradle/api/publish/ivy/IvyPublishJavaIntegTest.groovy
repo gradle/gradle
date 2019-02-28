@@ -978,6 +978,79 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         true                 | true    | true
     }
 
+    @Unroll
+    def "can publish feature variants (optional: #optional)"() {
+        requiresExternalDependencies = true
+
+        given:
+        createBuildScripts("""
+            configurations {
+                optionalFeatureImplementation
+                optionalFeatureRuntimeElements {
+                    extendsFrom optionalFeatureImplementation
+                    canBeResolved = false
+                    canBeConsumed = true
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                    }
+                    outgoing.capability("org:optional-feature:\${version}")
+                }
+                compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+            
+            dependencies {
+                optionalFeatureImplementation 'org.slf4j:slf4j-api:1.7.26'
+            }
+            
+            artifacts {
+                optionalFeatureRuntimeElements file:file("\$buildDir/other-artifact.jar"), builtBy:'touchFile', classifier: 'optional-feature'
+            }
+            
+            task touchFile {
+                doLast {
+                    file("\$buildDir/other-artifact.jar") << "test"
+                }
+            }
+
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                if ($optional) it.markOptional()
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+""")
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedIvy) {
+            configurations.keySet() == ["default", "compile", "runtime", "optionalFeatureRuntimeElements"] as Set
+            if (optional) {
+                configurations["default"].extend == ["runtime", "compile"] as Set
+            } else {
+                configurations["default"].extend == ["runtime", "compile", "optionalFeatureRuntimeElements"] as Set
+            }
+            configurations["runtime"].extend == null
+            configurations["optionalFeatureRuntimeElements"].extend == null
+
+            expectArtifact("publishTest", "jar").hasConf(["compile"])
+            expectArtifact("publishTest", "jar", "optional-feature").hasConf(["optionalFeatureRuntimeElements"])
+            assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org.slf4j:slf4j-api:1.7.26")
+        }
+
+        where:
+        optional << [true, false]
+    }
+
     private void createBuildScripts(def append) {
         settingsFile << "rootProject.name = 'publishTest' "
 

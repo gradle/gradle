@@ -44,7 +44,10 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) { 
+                it.mapToMavenScope('compile')
+                it.markOptional()
+            }
         """
 
         when:
@@ -124,8 +127,14 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeature2Implementation 'org:optionaldep2-g2:1.0'
             }
             
-            components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements, { it.mapToMavenScope('compile', true) })
-            components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements, { it.mapToMavenScope('compile', true) })
+            components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
+                it.mapToMavenScope('compile')
+                it.markOptional()
+            }
+            components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements) {
+                it.mapToMavenScope('compile')
+                it.markOptional()
+            }
         """
 
         when:
@@ -185,7 +194,10 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                it.mapToMavenScope('compile')
+                it.markOptional()
+            }
             
             artifacts {     
                 if ('$classifier' == 'null') {
@@ -285,7 +297,10 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
             
-            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
+            components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
+                it.mapToMavenScope('compile')
+                it.markOptional()
+            }
             
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
@@ -366,7 +381,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 if (it.configurationVariant.name != 'alternate') {
                     it.skip()
                 } else {
-                    it.mapToMavenScope('compile', true)
+                    it.mapToMavenScope('compile')
+                    it.markOptional()
                 } 
             }
             
