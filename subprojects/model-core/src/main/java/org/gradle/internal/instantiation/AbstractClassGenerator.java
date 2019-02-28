@@ -43,6 +43,7 @@ import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
@@ -453,7 +454,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          */
         public MethodMetadata resolveTypeVariables(Method method) {
             Type returnType = method.getGenericReturnType();
-            Type resolvedReturnType = returnType instanceof Class ? returnType : TypeToken.of(type).method(method).getReturnType().getType();
+            Type resolvedReturnType = JavaReflectionUtil.hasTypeVariable(returnType) ? TypeToken.of(type).method(method).getReturnType().getType() : returnType;
             return new MethodMetadata(method, resolvedReturnType);
         }
 
