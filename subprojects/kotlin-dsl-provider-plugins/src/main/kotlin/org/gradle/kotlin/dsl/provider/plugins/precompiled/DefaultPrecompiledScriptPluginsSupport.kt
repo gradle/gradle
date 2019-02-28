@@ -26,6 +26,12 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
+import org.gradle.kotlin.dsl.provider.inClassPathMode
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
@@ -34,13 +40,6 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateInternal
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
-
-import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
-import org.gradle.kotlin.dsl.provider.inClassPathMode
 
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
 
