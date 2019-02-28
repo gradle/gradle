@@ -20,17 +20,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.transform.IncrementalInputs;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.change.Change;
+import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
@@ -203,6 +208,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
         private final FileCollectionFingerprinter outputFingerprinter;
         private final Timer executionTimer;
+        private IncrementalInputs incrementalInputs;
+        private TransformerExecutionStateChanges executionStateChanges;
 
         public TransformerExecution(
             Transformer transformer,
@@ -248,9 +255,39 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public ExecutionOutcome execute() {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
-            GFileUtils.cleanDirectory(outputDir);
+            IncrementalInputs incrementalInputs = (executionStateChanges == null || executionStateChanges.isRebuildRequired() || !transformer.isIncremental())
+                ? new IncrementalInputs() {
+                @Override
+                public boolean isIncremental() {
+                    return false;
+                }
+
+                @Override
+                public Iterable<InputFileDetails> getChanges(Object property) {
+                    CurrentFileCollectionFingerprint currentFileCollectionFingerprint = inputFileFingerprints.get(INPUT_ARTIFACT_PROPERTY_NAME);
+                    CollectingChangeVisitor visitor = new CollectingChangeVisitor();
+                    currentFileCollectionFingerprint.visitChangesSince(FileCollectionFingerprint.EMPTY, "Input", true, visitor);
+                    return Cast.uncheckedNonnullCast(visitor.getChanges());
+                }
+            } : new IncrementalInputs() {
+                @Override
+                public boolean isIncremental() {
+                    return true;
+                }
+
+                @Override
+                public Iterable<InputFileDetails> getChanges(Object property) {
+                    if (property != inputArtifact) {
+                        throw new UnsupportedOperationException("Cannot query incremental changes: Property " + property + " is not incremental.");
+                    }
+                    return executionStateChanges.getInputFilePropertyChanges(INPUT_ARTIFACT_PROPERTY_NAME);
+                }
+            };
+            if (!incrementalInputs.isIncremental()) {
+                GFileUtils.cleanDirectory(outputDir);
+            }
             GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies);
+            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, incrementalInputs);
             writeResultsFile(outputDir, resultsFile, result);
             return ExecutionOutcome.EXECUTED;
         }
@@ -374,12 +411,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return executionHistoryStore.load(identityString).map(previous -> {
+            Optional<ExecutionStateChanges> executionStateChanges = executionHistoryStore.load(identityString).map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
                 InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
                 AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
                 return new TransformerExecutionStateChanges(inputFileChanges, outputFileChanges, previous);
             });
+            this.executionStateChanges = (TransformerExecutionStateChanges) executionStateChanges.orElse(null);
+            return executionStateChanges;
         }
 
         @Override
@@ -433,6 +472,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 return ImmutableList.of();
             }
 
+            public Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName) {
+                CollectingChangeVisitor collectingChangeVisitor = new CollectingChangeVisitor();
+                inputFileChanges.accept(propertyName, collectingChangeVisitor);
+                return Cast.uncheckedNonnullCast(collectingChangeVisitor.getChanges());
+            }
+
             @Override
             public void visitAllChanges(ChangeVisitor visitor) {
                 new SummarizingChangeContainer(inputFileChanges, outputFileChanges).accept(visitor);
@@ -440,7 +485,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
             @Override
             public boolean isRebuildRequired() {
-                return true;
+                ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
+                outputFileChanges.accept(changeDetectorVisitor);
+                return changeDetectorVisitor.hasAnyChanges();
             }
 
             @Override

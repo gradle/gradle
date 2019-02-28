@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.transform.IncrementalInputs
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -126,12 +127,17 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        boolean isIncremental() {
+            return false
+        }
+
+        @Override
         boolean isCacheable() {
             return false
         }
 
         @Override
-        ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+        ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, IncrementalInputs incrementalInputs) {
             return ImmutableList.copyOf(transformationAction.apply(inputArtifact, outputDir))
         }
 
