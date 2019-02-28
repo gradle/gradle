@@ -81,13 +81,6 @@ Refer to the `SoftwareComponentFactory` javadocs for details or look at the `Jav
 Gradle Module Metadata is now 1.0.
 Gradle will automatically consume published Gradle Metadata, but publication still requires to enable the `GRADLE_METADATA` feature preview.
 
-### Use abstract types
-
-- TBD - Abstract service injection getter methods
-- TBD - Abstract mutable property
-- TBD - Abstract `ConfigurableFileCollection` property
-- TBD - Use an interface for Gradle instantiated types
-
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
 
 Plugin and task implementations often need to create instances of various useful types, to provide a configurable model and DSL that is consistent with other Gradle plugins. One such type is `ConfigurableFileCollection`. In previous releases, plugins could use `Project.files()` or `ProjectLayout.configurableFiles()` to create instance of this type. However, these interfaces are not always available, for example in a `Settings` plugin (rather than a `Project` plugin) or in a nested model object.
