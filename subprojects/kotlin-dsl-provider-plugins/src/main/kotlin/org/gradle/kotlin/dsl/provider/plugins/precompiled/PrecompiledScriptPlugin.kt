@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
 import org.gradle.api.Plugin

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled.tasks
+package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn

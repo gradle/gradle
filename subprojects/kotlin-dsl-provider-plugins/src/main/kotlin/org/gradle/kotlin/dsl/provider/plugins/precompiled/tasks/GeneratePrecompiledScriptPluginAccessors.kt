@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled.tasks
+package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
@@ -46,7 +46,7 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
-import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 

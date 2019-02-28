@@ -1,8 +1,8 @@
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.writeScriptPluginAdapterTo
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.writeScriptPluginAdapterTo
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.startsWith

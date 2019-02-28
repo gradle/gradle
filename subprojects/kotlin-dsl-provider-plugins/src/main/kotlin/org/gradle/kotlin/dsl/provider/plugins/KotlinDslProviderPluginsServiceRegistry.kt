@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
-import org.gradle.kotlin.dsl.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport
 
 
 class KotlinDslProviderPluginsServiceRegistry : AbstractPluginServiceRegistry() {

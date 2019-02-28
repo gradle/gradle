@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -26,14 +26,14 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.GenerateScriptPluginAdapters
-import org.gradle.kotlin.dsl.plugins.precompiled.tasks.HashedProjectSchema
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompiledScriptPluginPlugins
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript

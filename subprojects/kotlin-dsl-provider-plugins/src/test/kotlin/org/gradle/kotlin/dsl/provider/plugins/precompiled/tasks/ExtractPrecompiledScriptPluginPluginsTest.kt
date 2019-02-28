@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled.tasks
+package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
 
-import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.hamcrest.Description
 import org.hamcrest.Matcher
