@@ -46,7 +46,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) { 
                 it.mapToMavenScope('compile')
-                it.markOptional()
+                it.mapToOptional()
             }
         """
 
@@ -129,11 +129,11 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
                 it.mapToMavenScope('compile')
-                it.markOptional()
+                it.mapToOptional()
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements) {
                 it.mapToMavenScope('compile')
-                it.markOptional()
+                it.mapToOptional()
             }
         """
 
@@ -196,7 +196,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 it.mapToMavenScope('compile')
-                it.markOptional()
+                it.mapToOptional()
             }
             
             artifacts {     
@@ -299,7 +299,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 it.mapToMavenScope('compile')
-                it.markOptional()
+                it.mapToOptional()
             }
             
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
@@ -382,7 +382,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     it.skip()
                 } else {
                     it.mapToMavenScope('compile')
-                    it.markOptional()
+                    it.mapToOptional()
                 } 
             }
             

@@ -1013,7 +1013,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                if ($optional) it.markOptional()
+                if ($optional) it.mapToOptional()
             }
 
             publishing {

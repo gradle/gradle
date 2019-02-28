@@ -46,7 +46,7 @@ public interface ConfigurationVariantDetails {
      *     <li>For the Ivy world, this means that configuration marked optional will not be extended by the {@code default} configuration.</li>
      * </ul>
      */
-    void markOptional();
+    void mapToOptional();
 
     /**
      * Provides information about how to publish to a Maven POM file. If

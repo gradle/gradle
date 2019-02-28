@@ -135,7 +135,7 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
-        public void markOptional() {
+        public void mapToOptional() {
             this.optional = true;
         }
 
