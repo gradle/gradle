@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders.r46
+package org.gradle.kotlin.dsl.tooling.builders.r54
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat
 import static org.hamcrest.CoreMatchers.not
 
 
-@TargetGradleVersion(">=4.6")
+@TargetGradleVersion(">=5.3")
 class KotlinInitScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "initscript classpath does not include buildSrc"() {
