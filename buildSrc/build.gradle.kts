@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.plugins.ide.idea.model.IdeaModel
-
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
@@ -41,7 +37,7 @@ subprojects {
             applyKotlinProjectConventions()
         }
 
-        configure<JavaPluginExtension> {
+        java {
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
         }
