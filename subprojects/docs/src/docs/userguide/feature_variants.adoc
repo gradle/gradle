@@ -134,11 +134,11 @@ include::sample[dir="java-feature-variant/producer-separate-sourceset/kotlin",fi
 Depending on the metadata file format, publishing feature variants may be lossy:
 
 - using POM metadata (Maven), feature variants are published as **optional dependencies** and artifacts of feature variants are published with different _classifiers_
-- using Ivy metadata, feature variants are lost
+- using Ivy metadata, feature variants are published as extra configurations, which are _not_ extended by the `default` configuration
 - using {metadata-file-spec}[experimental Gradle metadata], everything is published and consumers will get the full benefit of feature variants
 ====
 
-Publishing feature variants is supported using the `maven-publish` plugin only.
+Publishing feature variants is supported using the `maven-publish` and `ivy-publish` plugins only.
 The Java Plugin (or Java Library Plugin) will take care of registering the additional variants for you, so there's no additional configuration required, only the regular publications:
 
 .Publishing a component with feature variants
@@ -153,10 +153,11 @@ include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.k
 [WARNING]
 ====
 As mentioned earlier, feature variants can be lossy when published.
-As a consequence, a consumer can depend on a feature variant only in two cases:
+As a consequence, a consumer can depend on a feature variant only in these cases:
 
 - with a project dependency (in a multi-project build)
-- with Gradle metadata enabled (the publisher MUST have published using Gradle metadata)
+- with Gradle metadata available, that is the publisher MUST have published it
+- within the Ivy world, by declaring a dependency on the configuration matching the feature
 ====
 
 A consumer can specify that it needs a specific feature of a producer by declaring required capabilities.
