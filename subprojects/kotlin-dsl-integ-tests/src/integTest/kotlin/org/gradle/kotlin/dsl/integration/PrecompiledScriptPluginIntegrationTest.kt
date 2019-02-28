@@ -20,11 +20,11 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                 id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3"
             }
 
-            repositories { jcenter() }
+            $repositoriesBlock
         """)
 
-        withFile("src/main/kotlin/plugin-without-package.gradle.kts", "\n")
-        withFile("src/main/kotlin/plugins/plugin-with-package.gradle.kts", """
+        withPrecompiledKotlinScript("plugin-without-package.gradle.kts", "")
+        withPrecompiledKotlinScript("plugins/plugin-with-package.gradle.kts", """
             package plugins
         """)
 
