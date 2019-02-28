@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.precompiled.tasks
 
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.AbstractTask
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
@@ -53,7 +54,10 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
                 outputDir,
                 sourceFiles.name,
                 sourceFiles.map { it.path },
-                scriptDefinitionFromTemplate(KotlinPluginsBlock::class, project.implicitImports()),
+                scriptDefinitionFromTemplate(
+                    KotlinPluginsBlock::class,
+                    implicitImportsForPrecompiledScriptPlugins()
+                ),
                 classPathFiles,
                 logger,
                 { it } // TODO: translate paths
@@ -61,3 +65,8 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
         }
     }
 }
+
+
+internal
+fun AbstractTask.implicitImportsForPrecompiledScriptPlugins() =
+    project.implicitImports() + "gradle.kotlin.dsl.plugins.*" // TODO:kotlin-dsl read this value from GenerateExternalPluginSpecBuilder

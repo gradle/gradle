@@ -46,7 +46,7 @@ open class ConfigurePrecompiledScriptDependenciesResolver : DefaultTask() {
 
         val resolverEnvironment = resolverEnvironmentStringFor(
             listOf(
-                kotlinDslImplicitImports to project.implicitImports()
+                kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins()
             ) + precompiledScriptPluginImports
         )
 

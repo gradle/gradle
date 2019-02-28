@@ -54,11 +54,11 @@ open class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGeneration
         kotlinPackageNameFor(packageName)
     }
 
-    // TODO: move to a package name derived from the classpath hash
-    // "gradle-kotlin-dsl.plugin-spec-builders.$$classPathHash"
+    // TODO:kotlin-dsl move to a package name derived from the classpath hash
+    // "gradle.kotlin.dsl.plugins._$classPathHash"
     private
     val packageName
-        get() = "org.gradle.kotlin.dsl"
+        get() = "gradle.kotlin.dsl.plugins"
 }
 
 
