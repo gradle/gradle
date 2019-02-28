@@ -16,6 +16,9 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import groovy.transform.CompileStatic
+
+import org.gradle.api.internal.file.archive.ZipCopyAction
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -29,6 +32,8 @@ import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
 
 import java.util.regex.Pattern
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
 
@@ -55,6 +60,7 @@ class ProjectSourceRoots {
 
 @ToolingApiVersion(">=4.1")
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
+@CompileStatic
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
@@ -78,7 +84,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withSettingsIn(".", script)
     }
 
-    protected TestFile withDefaultSettingsIn(String baseDir) {
+    private TestFile withDefaultSettingsIn(String baseDir) {
         return withSettingsIn(baseDir, defaultSettingsScript)
     }
 
@@ -86,12 +92,48 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withFile("$baseDir/settings.gradle.kts", script)
     }
 
-    protected TestFile withBuildScriptIn(String baseDir, String script = "") {
+    protected TestFile withBuildScript(String script = "") {
+        return withBuildScriptIn(".", script)
+    }
+
+    private TestFile withBuildScriptIn(String baseDir, String script = "") {
         return withFile("$baseDir/build.gradle.kts", script)
     }
 
     protected TestFile withFile(String path, String text = "") {
         return file(path) << text.stripIndent()
+    }
+
+    protected TestFile withClassJar(String path, Class<?>... classes) {
+        return withZip(path, classEntriesFor(classes))
+    }
+
+    // TODO rewrite invoking the kotlin impl
+    protected TestFile withZip(String zipPath, Iterable<Tuple2<String, byte[]>> entries) {
+        return file(zipPath).tap { zip ->
+            zip.parentFile.mkdirs()
+            new ZipOutputStream(zip.newOutputStream()).withCloseable { zos ->
+                entries.each { tuple ->
+                    def path = tuple.first
+                    def bytes = tuple.second
+                    zos.putNextEntry(new ZipEntry(path).tap {
+                        time = ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
+                        size = bytes.size()
+                    })
+                    zos.write(bytes)
+                    zos.closeEntry()
+                }
+            }
+        }
+    }
+
+    // TODO rewrite invoking the kotlin impl
+    private static Iterable<Tuple2<String, byte[]>> classEntriesFor(Class<?>... classes) {
+
+        return classes.collect { clazz ->
+            def classFilePath = clazz.name.replace('.', '/') + ".class"
+            new Tuple2<String, byte[]>(classFilePath, clazz.getResource("/$classFilePath").bytes)
+        }
     }
 
     protected void withBuildSrc() {
@@ -146,7 +188,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
             withMainSourceSetJavaKotlinIn("buildSrc/a"),
             withMainSourceSetJavaKotlinIn("buildSrc/b"),
             withMainSourceSetJavaIn("buildSrc/c")
-        ]
+        ] as ProjectSourceRoots[]
     }
 
     protected List<File> canonicalClassPath() {
@@ -157,7 +199,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return canonicalClasspathOf(kotlinBuildScriptModelFor(projectDir, scriptFile))
     }
 
-    protected List<File> classPathFor(File projectDir, File scriptFile = null) {
+    private List<File> classPathFor(File projectDir, File scriptFile = null) {
         return kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
     }
 
@@ -165,7 +207,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         kotlinBuildScriptModelFor(projectDir, scriptFile).sourcePath
     }
 
-    private KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
+    protected KotlinBuildScriptModel kotlinBuildScriptModelFor(File projectDir, File scriptFile = null) {
         return fetchKotlinBuildScriptModelFor(
             projectDir,
             scriptFile,
@@ -173,13 +215,13 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         )
     }
 
-    private static List<File> canonicalClasspathOf(KotlinBuildScriptModel model) {
+    protected static List<File> canonicalClasspathOf(KotlinBuildScriptModel model) {
         return model.classPath.collect { it.canonicalFile }
     }
 
     protected static void assertClassPathContains(List<File> classPath, File... expectedFiles) {
         assertThat(
-            classPath.collect { it.name },
+            classPath.collect { it.name } as List<String>,
             hasItems(fileNameSetOf(expectedFiles))
         )
     }
@@ -191,20 +233,22 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         )
     }
 
-    protected void assertIncludes(List<File> classPath, File... files) {
+    protected static void assertIncludes(List<File> classPath, File... files) {
         assertThat(
             classPath.collect { it.name } as List<String>,
-            hasItems(fileNameSetOf(*files)))
+            hasItems(fileNameSetOf(files))
+        )
     }
 
-    protected void assertExcludes(List<File> classPath, File... files) {
+    protected static void assertExcludes(List<File> classPath, File... files) {
         assertThat(
             classPath.collect { it.name } as List<String>,
-            not(hasItems(*fileNameSetOf(*files))))
+            not(hasItems(fileNameSetOf(files)))
+        )
     }
 
     private static String[] fileNameSetOf(File... files) {
-        return files.collect { it.name }.toSet()
+        return files.collect { it.name }.toSet() as String[]
     }
 
     protected static void assertContainsGradleKotlinDslJars(List<File> classPath) {
@@ -214,20 +258,38 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
             hasItems(
                 matching("gradle-kotlin-dsl-$version\\.jar"),
                 matching("gradle-api-$version\\.jar"),
-                matching("gradle-kotlin-dsl-extensions-$version\\.jar")))
+                matching("gradle-kotlin-dsl-extensions-$version\\.jar")
+            )
+        )
     }
 
-    protected void assertContainsBuildSrc(List<File> classPath) {
+    protected void assertClassPathFor(
+        File buildScript,
+        Set<? extends File> includes,
+        Set<? extends File> excludes,
+        File importedProjectDir = projectDir
+    ) {
+        def includeItems = hasItems(includes.collect { it.name } as String[])
+        def excludeItems = not(hasItems(excludes.collect { it.name } as String[]))
+        def condition = excludes.isEmpty() ? includeItems : allOf(includeItems, excludeItems)
+        assertThat(
+            classPathFor(importedProjectDir, buildScript).collect { it.name },
+            condition
+        )
+    }
+
+    protected static void assertContainsBuildSrc(List<File> classPath) {
         assertThat(
             classPath.collect { it.name } as List<String>,
-            hasBuildSrc())
+            hasBuildSrc()
+        )
     }
 
     protected static Matcher<Iterable<? super String>> hasBuildSrc() {
         hasItem("buildSrc.jar")
     }
 
-    protected ProjectSourceRoots withMainSourceSetJavaIn(String projectDir) {
+    private ProjectSourceRoots withMainSourceSetJavaIn(String projectDir) {
         return new ProjectSourceRoots(file(projectDir), ["main"], ["java"])
     }
 
@@ -247,19 +309,19 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                         } else {
                             not(hasLanguageDir)
                         }
-                    }
+                    } as Collection
                 }
 
             def resourceDirs =
                 sourceRoots.sourceSets.collect { sourceSet ->
                     hasLanguageDir(sourceRoots.projectDir, sourceSet, "resources")
-                }
+                } as Collection
 
             languageDirs + resourceDirs
         })
     }
 
-    protected static Matcher<Iterable<?>> hasLanguageDir(File base, String set, String lang) {
+    private static Matcher<Iterable<? super File>> hasLanguageDir(File base, String set, String lang) {
         return hasItem(new File(base, "src/$set/$lang"))
     }
 
