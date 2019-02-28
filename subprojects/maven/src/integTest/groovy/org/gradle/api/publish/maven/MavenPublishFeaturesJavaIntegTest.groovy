@@ -187,8 +187,12 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements, { it.mapToMavenScope('compile', true) })
             
-            artifacts {
-                optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
+            artifacts {     
+                if ('$classifier' == 'null') {
+                    optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
+                } else {
+                    optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile', classifier: '$classifier'
+                }
             }
             
             task touchFile {
@@ -212,7 +216,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             javaLibrary.withClassifiedArtifact("optional-feature", "jar")
             javaLibrary.mavenModule.assertArtifactsPublished(
                     "publishTest-1.9.jar" ,
-                    optionalFeatureFileName ,
+                    "publishTest-1.9-optional-feature.jar" ,
                     "publishTest-1.9.pom",
                     "publishTest-1.9.module")
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
@@ -224,7 +228,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 noMoreDependencies()
             }
             javaLibrary.parsedModuleMetadata.variant("optionalFeatureRuntimeElements") {
-                assert files*.name == [optionalFeatureFileName]
+                assert files*.name == ["publishTest-1.9-optional-feature.jar"]
                 dependency('org', 'optionaldep', '1.0')
                 noMoreDependencies()
             }
@@ -236,7 +240,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             resolveRuntimeArtifacts(javaLibrary) {
                 optionalFeatureCapabilities << "org:optional-feature:1.0"
                 withModuleMetadata {
-                    expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar", optionalFeatureFileName
+                    expectFiles "publishTest-1.9.jar", "optionaldep-1.0.jar", "publishTest-1.9-optional-feature.jar"
                 }
                 withoutModuleMetadata {
                     shouldFail {
@@ -248,10 +252,13 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
 
         where:
-        id                       | optionalFeatureFileName                | failureText
-        "with a classifier"      | "publishTest-1.9-optional-feature.jar" | null
-        "with an arbitrary name" | "optional-feature-1.9.jar"             | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
-        "with the same name "    | "publishTest-1.9.jar"                  | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
+        id                                                   | optionalFeatureFileName                | classifier         | failureText
+        "with the same name and an implicit classifier"      | "publishTest-1.9-optional-feature.jar" | null               | null
+        "with an arbitrary name and no classifier"           | "optional-feature-1.9.jar"             | null               | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
+        "with an arbitrary name and a classifier"            | "other-1.9.jar"                        | "optional-feature" | null
+        "with an arbitrary name with an implicit classifier" | "other-1.9-optional-feature.jar"       | null               | null
+        "with the same name and no classifier"               | "publishTest-1.9.jar"                  | null               | "Invalid publication 'maven': multiple artifacts with the identical extension and classifier ('jar', 'null')"
+        "with the same name and a classifier"                | "publishTest-1.9.jar"                  | "optional-feature" | null
 
     }
 
