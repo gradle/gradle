@@ -15,7 +15,6 @@ We would like to thank the following community contributors to this release of G
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
 [Joe Kutner](https://github.com/jkutner),
-... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
@@ -28,7 +27,7 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 
 ## Feature variants, aka optional dependencies
 
-Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html) :
+Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html):
 
 ```groovy
 java {
@@ -44,6 +43,12 @@ dependencies {
 ```
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+
+### Gradle Module Metadata 1.0
+
+Gradle Module Metadata is now 1.0.
+
+Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
 
 ## Kotlin DSL
 
@@ -98,10 +103,9 @@ plugins {
 
 See the [Precompiled script plugins](userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) section of the user manual for more information.
 
-
 ## Better help message on delete operation failure
 
-The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
+The `clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
 
 The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
@@ -131,11 +135,6 @@ Execution failed for task ':clean'.
 
 Gradle now offers a public API to publish custom software components.
 Refer to the `SoftwareComponentFactory` javadocs for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
-
-### Gradle Module Metadata 1.0
-
-Gradle Module Metadata is now 1.0.
-Gradle will automatically consume published Gradle Metadata, but publication still requires to enable the `GRADLE_METADATA` feature preview.
 
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
 
