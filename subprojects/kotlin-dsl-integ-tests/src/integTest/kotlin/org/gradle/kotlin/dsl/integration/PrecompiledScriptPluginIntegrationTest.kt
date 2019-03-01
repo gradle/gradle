@@ -35,7 +35,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `precompiled script plugins adapters generation is cached and relocatable`() {
+    fun `precompiled script plugins tasks are cached and relocatable`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
@@ -66,18 +66,33 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val secondDir = newDir(secondLocation)
         firstDir.copyRecursively(secondDir)
 
-        val generationTask = ":generateScriptPluginAdapters"
+        val cachedTasks = listOf(
+            ":extractPrecompiledScriptPluginPlugins",
+            ":generateInternalPluginSpecBuilders",
+            ":generateExternalPluginSpecBuilders",
+            ":compilePluginsBlocks",
+            ":generatePrecompiledScriptPluginAccessors",
+            ":generateScriptPluginAdapters"
+        )
+        val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
+        val downstreamKotlinCompileTask = ":compileKotlin"
 
         build(firstDir, "classes", "--build-cache").apply {
-            assertTaskExecuted(generationTask)
+            cachedTasks.forEach { assertTaskExecuted(it) }
+            assertTaskExecuted(configurationTask)
+            assertTaskExecuted(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
-            assertOutputContains("$generationTask UP-TO-DATE")
+            cachedTasks.forEach { assertOutputContains("$it UP-TO-DATE") }
+            assertTaskExecuted(configurationTask)
+            assertOutputContains("$downstreamKotlinCompileTask UP-TO-DATE")
         }
 
         build(secondDir, "classes", "--build-cache").apply {
-            assertOutputContains("$generationTask FROM-CACHE")
+            cachedTasks.forEach { assertOutputContains("$it FROM-CACHE") }
+            assertTaskExecuted(configurationTask)
+            assertOutputContains("$downstreamKotlinCompileTask FROM-CACHE")
         }
     }
 
