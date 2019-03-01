@@ -16,16 +16,17 @@
 
 package org.gradle.internal.instantiation
 
+
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 abstract class AbstractClassGeneratorSpec extends Specification {
     abstract ClassGenerator getGenerator()
 
     protected <T> T create(Class<T> clazz, Object... args) {
-        return create(clazz, new DefaultServiceRegistry(), args)
+        return create(clazz, defaultServices(), args)
     }
 
     protected <T> T create(Class<T> clazz, ServiceLookup services, Object... args) {
@@ -33,7 +34,13 @@ abstract class AbstractClassGeneratorSpec extends Specification {
     }
 
     protected <T> T create(ClassGenerator generator, Class<T> clazz, Object... args) {
-        return create(generator, clazz, new DefaultServiceRegistry(), args)
+        return create(generator, clazz, defaultServices(), args)
+    }
+
+    ServiceLookup defaultServices() {
+        ServiceLookup services = Mock(ServiceLookup)
+        _ * services.get(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
+        return services
     }
 
     protected <T> T create(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Object... args) {

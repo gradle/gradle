@@ -52,7 +52,7 @@ public interface InstantiatorFactory {
     InstantiationScheme injectScheme();
 
     /**
-     * Create an {@link InstantiationScheme} that can inject services and user provided values into the instances it creates, but does not decorate the instances. Supports using the {@link javax.inject.Inject} annotation plus the given custom inject annotations. Is not lenient.
+     * Create a new {@link InstantiationScheme} that can inject services and user provided values into the instances it creates, but does not decorate the instances. Supports using the {@link javax.inject.Inject} annotation plus the given custom inject annotations. Is not lenient.
      *
      * @param injectAnnotations Zero or more annotations that mark properties whose value will be injected on creation. Each annotation must be known to this factory via a {@link InjectAnnotationHandler}.
      */

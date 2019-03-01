@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.model.internal.type.ModelType;
 
 import java.lang.annotation.Annotation;
 
@@ -31,7 +32,7 @@ public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler
     @Override
     public void validateTypeMetadata(Class<?> classWithAnnotationAttached, ParameterValidationContext visitor) {
         if (!Task.class.isAssignableFrom(classWithAnnotationAttached)) {
-            visitor.visitErrorStrict(String.format("Cannot use @%s with type %s. This annotation cannot only be used with %s types.", getAnnotationType().getSimpleName(), classWithAnnotationAttached.getSimpleName(), Task.class.getSimpleName()));
+            visitor.visitErrorStrict(String.format("Cannot use @%s with type %s. This annotation can only be used with %s types.", getAnnotationType().getSimpleName(), ModelType.of(classWithAnnotationAttached).getDisplayName(), Task.class.getSimpleName()));
         }
     }
 }

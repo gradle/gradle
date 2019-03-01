@@ -25,6 +25,8 @@ import java.lang.annotation.Annotation;
 
 /**
  * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
+ *
+ * <p>Each handler must be registered as a global service.</p>
  */
 public interface PropertyAnnotationHandler {
     /**
@@ -33,6 +35,13 @@ public interface PropertyAnnotationHandler {
      * @return The annotation.
      */
     Class<? extends Annotation> getAnnotationType();
+
+    /**
+     * Does this handler do something useful with the properties that match it? Or can these properties be ignored?
+     *
+     * Should consider splitting up this type, perhaps into something that inspects the properties and produces the actual handlers and validation problems.
+     */
+    boolean isPropertyRelevant();
 
     /**
      * Is the given visitor interested in this annotation?

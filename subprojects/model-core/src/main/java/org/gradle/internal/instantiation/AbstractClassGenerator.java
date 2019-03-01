@@ -95,8 +95,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         for (InjectAnnotationHandler handler : allKnownAnnotations) {
-            if (!enabledAnnotations.contains(handler.getAnnotation())) {
-                builder.add(handler.getAnnotation());
+            if (!enabledAnnotations.contains(handler.getAnnotationType())) {
+                builder.add(handler.getAnnotationType());
             }
         }
         this.disabledAnnotations = builder.build();
