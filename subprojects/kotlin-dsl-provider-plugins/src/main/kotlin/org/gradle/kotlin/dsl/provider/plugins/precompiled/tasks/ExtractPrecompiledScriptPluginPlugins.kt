@@ -111,10 +111,24 @@ fun writePluginsBlockTo(
     scriptPlugin: PrecompiledScriptPlugin,
     program: Program.Plugins
 ) {
-    outputDir.resolve(scriptPlugin.scriptFileName).writeText(
+    outputFileFor(scriptPlugin, outputDir).writeText(
         packageDeclarationOf(scriptPlugin) + lineNumberPreservingTextOf(program)
     )
 }
+
+
+private
+fun outputFileFor(scriptPlugin: PrecompiledScriptPlugin, outputDir: File) =
+    packageDirFor(scriptPlugin, outputDir).resolve(scriptPlugin.scriptFileName)
+
+
+private
+fun packageDirFor(scriptPlugin: PrecompiledScriptPlugin, outputDir: File): File =
+    scriptPlugin.packageName?.run {
+        outputDir.resolve(replace('.', '/')).apply {
+            mkdirs()
+        }
+    } ?: outputDir
 
 
 private

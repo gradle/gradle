@@ -61,38 +61,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @Test
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
-        withProjectRoot(newDir("external-plugins")) {
-            withDefaultSettings()
-            withKotlinDslPlugin()
-            withFolders {
-                "src/main/kotlin" {
-                    "extensions" {
-                        withFile("Extensions.kt", """
-                            open class App { var name: String = "app" }
-                            open class Lib { var name: String = "lib" }
-                        """)
-                    }
-                    withFile("external-app.gradle.kts", """
-                        extensions.create("external", App::class)
-                    """)
-                    withFile("external-lib.gradle.kts", """
-                        extensions.create("external", Lib::class)
-                    """)
-                }
-            }
-            build("assemble")
-        }
-
-        val externalPlugins = existing("external-plugins/build/libs/external-plugins.jar")
+        val externalPlugins = withExternalPlugins()
 
         withFolders {
             "buildSrc" {
                 withDefaultSettingsIn(relativePath)
-                withKotlinDslPlugin().appendText("""
-                    dependencies {
-                        implementation(files("${externalPlugins.normalisedPath}"))
-                    }
-                """)
+                withKotlinDslPlugin().appendText(
+                    implementationDependencyOn(externalPlugins)
+                )
 
                 withFile("src/main/kotlin/local-app.gradle.kts", """
                     plugins { `external-app` }
@@ -132,6 +108,13 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             )
         )
     }
+
+    private
+    fun implementationDependencyOn(file: File): String = """
+        dependencies {
+            implementation(files("${file.normalisedPath}"))
+        }
+    """
 
     @Test
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
@@ -175,6 +158,60 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         """)
 
         compileKotlin()
+    }
+
+    @Test
+    fun `can use type-safe accessors from scripts with same name but different ids`() {
+
+        val externalPlugins = withExternalPlugins()
+
+        withKotlinDslPlugin()
+        withKotlinBuildSrc()
+        withFolders {
+            "buildSrc" {
+                existing("build.gradle.kts").appendText(
+                    implementationDependencyOn(externalPlugins)
+                )
+                "src/main/kotlin" {
+                    withFile("app/model.gradle.kts", """
+                        package app
+                        plugins { `external-app` }
+                        println("*using " + external.name + " from app/model in " + project.name + "*")
+                    """)
+                    withFile("lib/model.gradle.kts", """
+                        package lib
+                        plugins { `external-lib` }
+                        println("*using " + external.name + " from lib/model in " + project.name + "*")
+                    """)
+                }
+            }
+        }
+
+        withDefaultSettings().appendText("""
+            include("lib")
+            include("app")
+        """)
+
+        withFolders {
+            "lib" {
+                withFile("build.gradle.kts", """
+                    plugins { lib.model }
+                """)
+            }
+            "app" {
+                withFile("build.gradle.kts", """
+                    plugins { app.model }
+                """)
+            }
+        }
+
+        assertThat(
+            build("tasks").output,
+            allOf(
+                containsString("*using app from app/model in app*"),
+                containsString("*using lib from lib/model in lib*")
+            )
+        )
     }
 
     @Test
@@ -435,6 +472,31 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             )
         )
     }
+
+    private
+    fun withExternalPlugins(): File =
+        withProjectRoot(newDir("external-plugins")) {
+            withDefaultSettings()
+            withKotlinDslPlugin()
+            withFolders {
+                "src/main/kotlin" {
+                    "extensions" {
+                        withFile("Extensions.kt", """
+                            open class App { var name: String = "app" }
+                            open class Lib { var name: String = "lib" }
+                        """)
+                    }
+                    withFile("external-app.gradle.kts", """
+                        extensions.create("external", App::class)
+                    """)
+                    withFile("external-lib.gradle.kts", """
+                        extensions.create("external", Lib::class)
+                    """)
+                }
+            }
+            build("assemble")
+            existing("build/libs/external-plugins.jar")
+        }
 
     private
     fun FoldersDsl.withKotlinDslPlugin(): File =
