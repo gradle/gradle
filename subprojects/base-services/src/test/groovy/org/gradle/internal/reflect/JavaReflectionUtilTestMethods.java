@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 public interface JavaReflectionUtilTestMethods {
-    <T> T simpleGenericReturnType();
+    <T> T simpleTypeVariable();
 
     <T> List<T> encapsulatedTypeVariable();
 
@@ -32,4 +32,24 @@ public interface JavaReflectionUtilTestMethods {
     <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable();
 
     <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable();
+
+    Class<?> wildcardParameterized();
+
+    Class<String> parameterized();
+
+    Class<String>[] genericArrayType();
+
+    String simpleType();
+
+    String[] simpleArrayType();
+
+    List<BiConsumer<String, Collection<Integer>>> complexParameterized();
+
+    List<? extends Collection<String>> wildCardWithlowerBound();
+
+    List<? super List<String>> wildCardWithUpperBound();
+
+    BiConsumer<List<String>, List<String>> anotherComplexParameterized();
+
+
 }

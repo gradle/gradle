@@ -16,39 +16,30 @@
 
 package org.gradle.internal.reflect
 
-import com.google.common.reflect.TypeToken
+
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Unroll
 
-import java.util.function.BiConsumer
+import java.lang.reflect.Type
 
 class JavaReflectionUtilTest extends Specification {
 
     @Unroll
     def "#type has type variable: #hasTypeVariable"() {
         expect:
-        JavaReflectionUtil.hasTypeVariable(type.getType()) == hasTypeVariable
+        JavaReflectionUtil.hasTypeVariable(type) == hasTypeVariable
 
         where:
-        type                                                              | hasTypeVariable
-        new TypeToken<Class<?>>() {}                                      | false
-        new TypeToken<Class<String>>() {}                                 | false
-        new TypeToken<Class<String>[]>() {}                               | false
-        TypeToken.of(String.class)                                        | false
-        TypeToken.of(String[].class)                                      | false
-        new TypeToken<List<BiConsumer<String, Collection<Integer>>>>() {} | false
-        new TypeToken<List<? extends Collection<String>>>() {}            | false
-        new TypeToken<List<? super List<String>>>() {}                    | false
-        new TypeToken<BiConsumer<List<String>, List<String>>>() {}        | false
-        genericReturnType("simpleGenericReturnType")                      | true
-        genericReturnType("encapsulatedTypeVariable")                     | true
-        genericReturnType("arrayTypeWithTypeVariable")                    | true
-        genericReturnType("complexTypeWithTypeVariable")                  | true
-        genericReturnType("anotherComplexTypeWithTypeVariable")           | true
-        genericReturnType("complexTypeWithArrayTypeVariable")             | true
+        testType << testedTypes
+        type = testType.first
+        hasTypeVariable = testType.second
     }
 
-    private static TypeToken genericReturnType(String methodName) {
-        return TypeToken.of(JavaReflectionUtilTestMethods.getDeclaredMethod(methodName).genericReturnType)
+    private static List<Tuple2<Type, Boolean>> getTestedTypes() {
+        def testedTypes = JavaReflectionUtilTestMethods.getDeclaredMethods().collect {
+            new Tuple2(it.genericReturnType, it.name.contains('TypeVariable'))
+        }
+        assert testedTypes.size() == 15
+        return testedTypes
     }
 }
