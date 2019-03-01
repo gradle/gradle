@@ -1,0 +1,3 @@
+ - Incubating support for Gradle Module Metadata
+ - Feature variants AKA "optional dependencies"
+ - Type-safe accessors in Kotlin pre-compiled script plugins
