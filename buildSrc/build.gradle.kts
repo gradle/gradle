@@ -22,7 +22,7 @@ import java.util.Properties
 plugins {
     `java`
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
 }
 
 subprojects {
@@ -219,6 +219,8 @@ fun Project.applyKotlinProjectConventions() {
         // verification but unfortunately the filter doesn't seem to
         // have an effect so :/
         ignoreFailures.set(true)
+        // because of the above, the output is cluttered, disable console output
+        outputToConsole.set(false)
         filter {
             exclude("**/generated-sources/**")
         }
