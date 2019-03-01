@@ -23,6 +23,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface CacheHandler {
+    CacheHandler NOOP = new CacheHandler() {
+        @Override
+        public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void store(Consumer<BuildCacheKey> storer) {
+        }
+    };
+
     <T> Optional<T> load(Function<BuildCacheKey, T> loader);
     void store(Consumer<BuildCacheKey> storer);
 }

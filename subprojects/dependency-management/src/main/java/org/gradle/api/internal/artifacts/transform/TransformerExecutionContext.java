@@ -17,12 +17,15 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Optional;
 
 public class TransformerExecutionContext {
@@ -33,6 +36,7 @@ public class TransformerExecutionContext {
 
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints;
     private final ImplementationSnapshot implementationSnapshot;
+    private final TransformerExecutionBuildCacheKey buildCacheKey;
 
     public TransformerExecutionContext(
         TransformationWorkspaceProvider.TransformationWorkspace workspace,
@@ -40,14 +44,15 @@ public class TransformerExecutionContext {
         Timer executionTimer,
         ImmutableSortedMap<String, ValueSnapshot> inputSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints,
-        ImplementationSnapshot implementationSnapshot
-    ) {
+        ImplementationSnapshot implementationSnapshot,
+        TransformerExecutionBuildCacheKey buildCacheKey) {
         this.workspace = workspace;
         this.executionStateChanges = executionStateChanges;
         this.executionTimer = executionTimer;
         this.inputSnapshots = inputSnapshots;
         this.inputFileFingerprints = inputFileFingerprints;
         this.implementationSnapshot = implementationSnapshot;
+        this.buildCacheKey = buildCacheKey;
     }
 
     public Optional<TransformerExecutionStateChanges> getExecutionStateChanges() {
@@ -72,5 +77,31 @@ public class TransformerExecutionContext {
 
     public long markExecutionTime() {
         return executionTimer.getElapsedMillis();
+    }
+
+    public BuildCacheKey getBuildCacheKey() {
+        return buildCacheKey;
+    }
+
+    public static class TransformerExecutionBuildCacheKey implements BuildCacheKey {
+        private final Transformer transformer;
+        private final File inputArtifact;
+        private final HashCode hashCode;
+
+        public TransformerExecutionBuildCacheKey(Transformer transformer, File inputArtifact, HashCode hashCode) {
+            this.transformer = transformer;
+            this.inputArtifact = inputArtifact;
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public String getHashCode() {
+            return hashCode.toString();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return getHashCode() + " for transformer " + transformer.getDisplayName() + ": " + inputArtifact;
+        }
     }
 }

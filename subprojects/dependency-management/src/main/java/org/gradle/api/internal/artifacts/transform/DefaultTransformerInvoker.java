@@ -152,13 +152,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     TransformerExecutionStateChanges.AllOutputFileChanges outputFileChanges = new TransformerExecutionStateChanges.AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
                     return new TransformerExecutionStateChanges(inputFileChanges, outputFileChanges, previous);
                 });
+                TransformerExecutionContext.TransformerExecutionBuildCacheKey buildCacheKey = calculateBuildCacheKey(inputSnapshots, inputFileFingerprints, inputArtifact, transformer);
                 TransformerExecutionContext transformerExecutionContext = new TransformerExecutionContext(
                     workspace,
                     executionStateChanges.orElse(null),
                     executionTimer,
                     inputSnapshots,
                     inputFileFingerprints,
-                    implementationSnapshot
+                    implementationSnapshot,
+                    buildCacheKey
                 );
                 TransformerExecution execution = new TransformerExecution(
                     transformer,
@@ -222,6 +224,19 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         } finally {
             artifactTransformListener.afterTransformerInvocation(transformer, subject);
         }
+    }
+
+    private TransformerExecutionContext.TransformerExecutionBuildCacheKey calculateBuildCacheKey(ImmutableSortedMap<String, ValueSnapshot> inputSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints, File inputArtifact, Transformer transformer) {
+        Hasher hasher = Hashing.newHasher();
+        for (Map.Entry<String, ValueSnapshot> entry : inputSnapshots.entrySet()) {
+            hasher.putString(entry.getKey());
+            entry.getValue().appendToHasher(hasher);
+        }
+        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFileFingerprints.entrySet()) {
+            hasher.putString(entry.getKey());
+            hasher.putHash(entry.getValue().getHash());
+        }
+        return new TransformerExecutionContext.TransformerExecutionBuildCacheKey(transformer, inputArtifact, hasher.hash());
     }
 
     private static class TransformerExecution implements UnitOfWork {
@@ -373,32 +388,18 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public CacheHandler createCacheHandler() {
-            Hasher hasher = Hashing.newHasher();
-            for (Map.Entry<String, ValueSnapshot> entry : context.getInputSnapshots().entrySet()) {
-                hasher.putString(entry.getKey());
-                entry.getValue().appendToHasher(hasher);
-            }
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : context.getInputFileFingerprints().entrySet()) {
-                hasher.putString(entry.getKey());
-                hasher.putHash(entry.getValue().getHash());
-            }
-            TransformerExecutionBuildCacheKey cacheKey = new TransformerExecutionBuildCacheKey(hasher.hash());
-            return new CacheHandler() {
-                @Override
-                public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
-                    if (!transformer.isCacheable()) {
-                        return Optional.empty();
+            return transformer.isCacheable() ?
+                new CacheHandler() {
+                    @Override
+                    public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
+                        return Optional.ofNullable(loader.apply(context.getBuildCacheKey()));
                     }
-                    return Optional.ofNullable(loader.apply(cacheKey));
-                }
 
-                @Override
-                public void store(Consumer<BuildCacheKey> storer) {
-                    if (transformer.isCacheable()) {
-                        storer.accept(cacheKey);
+                    @Override
+                    public void store(Consumer<BuildCacheKey> storer) {
+                        storer.accept(context.getBuildCacheKey());
                     }
-                }
-            };
+                } : CacheHandler.NOOP;
         }
 
         @Override
@@ -449,24 +450,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
-        }
-
-        private class TransformerExecutionBuildCacheKey implements BuildCacheKey {
-            private final HashCode hashCode;
-
-            public TransformerExecutionBuildCacheKey(HashCode hashCode) {
-                this.hashCode = hashCode;
-            }
-
-            @Override
-            public String getHashCode() {
-                return hashCode.toString();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return getHashCode() + " for transformer " + TransformerExecution.this.getDisplayName();
-            }
         }
     }
 
