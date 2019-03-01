@@ -1063,7 +1063,7 @@ include 'other'
             module(platformName) {
                 version(platformVersion) {
                     variant("platform") {
-                        attribute('org.gradle.component.category', 'platform')
+                        attribute('org.gradle.category', 'platform')
                         members.each { member ->
                             constraint(member)
                         }

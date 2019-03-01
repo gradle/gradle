@@ -66,7 +66,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         }
         if (configuration.getArtifacts().isEmpty()) {
             // checks if it's a derived platform
-            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(PlatformSupport.COMPONENT_CATEGORY);
+            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(PlatformSupport.VARIANT_CATEGORY);
             if (componentTypeEntry.isPresent()) {
                 String value = componentTypeEntry.get();
                 if (PlatformSupport.REGULAR_PLATFORM.equals(value) || PlatformSupport.ENFORCED_PLATFORM.equals(value)) {

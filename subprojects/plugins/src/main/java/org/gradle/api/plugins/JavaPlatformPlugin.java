@@ -110,7 +110,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private void addPlatformDisambiguationRule(Project project) {
         project.getDependencies()
                 .getAttributesSchema()
-                .getMatchingStrategy(PlatformSupport.COMPONENT_CATEGORY)
+                .getMatchingStrategy(PlatformSupport.VARIANT_CATEGORY)
                 .getDisambiguationRules()
                 .add(PlatformSupport.PreferRegularPlatform.class);
     }
@@ -158,7 +158,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     }
 
     private void declareConfigurationCategory(Configuration configuration, String value) {
-        configuration.getAttributes().attribute(PlatformSupport.COMPONENT_CATEGORY, value);
+        configuration.getAttributes().attribute(PlatformSupport.VARIANT_CATEGORY, value);
     }
 
     private void declareConfigurationUsage(Project project, Configuration configuration, String usage) {

@@ -970,7 +970,7 @@ $append
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 dependency('org.test:bar:').exists()
                 dependency('org.test:bom:1.0') {
-                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                    hasAttribute(PlatformSupport.VARIANT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
                 }
                 noMoreDependencies()
             }
@@ -979,7 +979,7 @@ $append
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency('org.test:bar:').exists()
             dependency('org.test:bom:1.0') {
-                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                hasAttribute(PlatformSupport.VARIANT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
             }
             noMoreDependencies()
         }
@@ -1144,7 +1144,7 @@ include(':platform')
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 dependency('org.test:bar:').exists()
                 dependency('org.gradle.test:platform:1.9') {
-                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                    hasAttribute(PlatformSupport.VARIANT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
                 }
                 noMoreDependencies()
             }
@@ -1153,7 +1153,7 @@ include(':platform')
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency('org.test:bar:').exists()
             dependency('org.gradle.test:platform:1.9') {
-                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                hasAttribute(PlatformSupport.VARIANT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
             }
             noMoreDependencies()
         }

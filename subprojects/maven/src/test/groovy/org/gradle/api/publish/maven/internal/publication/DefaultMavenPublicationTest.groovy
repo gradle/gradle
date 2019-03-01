@@ -532,6 +532,6 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def platformAttribute() {
-        return AttributeTestUtil.attributes([(PlatformSupport.COMPONENT_CATEGORY.name) : PlatformSupport.REGULAR_PLATFORM])
+        return AttributeTestUtil.attributes([(PlatformSupport.VARIANT_CATEGORY.name) : PlatformSupport.REGULAR_PLATFORM])
     }
 }

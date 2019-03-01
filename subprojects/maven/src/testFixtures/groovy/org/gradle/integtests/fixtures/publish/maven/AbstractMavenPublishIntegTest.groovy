@@ -132,7 +132,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
 
             dependencies {
                attributesSchema { 
-                getMatchingStrategy(PlatformSupport.COMPONENT_CATEGORY)
+                getMatchingStrategy(PlatformSupport.VARIANT_CATEGORY)
                    .disambiguationRules
                    .add(PlatformSupport.PreferRegularPlatform)
                }

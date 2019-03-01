@@ -31,18 +31,18 @@ import org.gradle.internal.component.external.model.ComponentVariant;
 import java.util.Set;
 
 public abstract class PlatformSupport {
-    public static final Attribute<String> COMPONENT_CATEGORY = Attribute.of("org.gradle.component.category", String.class);
+    public static final Attribute<String> VARIANT_CATEGORY = Attribute.of("org.gradle.category", String.class);
     public static final String LIBRARY = "library";
     public static final String REGULAR_PLATFORM = "platform";
     public static final String ENFORCED_PLATFORM = "enforced-platform";
 
     public static boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
-        String category = target.getAttributes().getAttribute(COMPONENT_CATEGORY);
+        String category = target.getAttributes().getAttribute(VARIANT_CATEGORY);
         return REGULAR_PLATFORM.equals(category) || ENFORCED_PLATFORM.equals(category);
     }
 
     public static void configureSchema(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<String> componentTypeMatchingStrategy = attributesSchema.attribute(PlatformSupport.COMPONENT_CATEGORY);
+        AttributeMatchingStrategy<String> componentTypeMatchingStrategy = attributesSchema.attribute(PlatformSupport.VARIANT_CATEGORY);
         componentTypeMatchingStrategy.getDisambiguationRules().add(PlatformSupport.ComponentCategoryDisambiguationRule.class);
     }
 
@@ -50,13 +50,13 @@ public abstract class PlatformSupport {
         dependency.attributes(new Action<AttributeContainer>() {
             @Override
             public void execute(AttributeContainer attributeContainer) {
-                attributeContainer.attribute(COMPONENT_CATEGORY, type);
+                attributeContainer.attribute(VARIANT_CATEGORY, type);
             }
         });
     }
 
     public static boolean hasForcedDependencies(ComponentVariant variant) {
-        return Objects.equal(variant.getAttributes().getAttribute(COMPONENT_CATEGORY), ENFORCED_PLATFORM);
+        return Objects.equal(variant.getAttributes().getAttribute(VARIANT_CATEGORY), ENFORCED_PLATFORM);
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<String>, ReusableAction {

@@ -80,7 +80,7 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
         ImmutableAttributes result = concatCache.get(entry);
         if (result == null) {
             result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = concat(result, PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.LIBRARY);
+            result = concat(result, PlatformSupport.VARIANT_CATEGORY, PlatformSupport.LIBRARY);
             concatCache.put(entry, result);
         }
         return result;
@@ -93,7 +93,7 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
         ImmutableAttributes result = concatCache.get(entry);
         if (result == null) {
             result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = concat(result, PlatformSupport.COMPONENT_CATEGORY, componentType);
+            result = concat(result, PlatformSupport.VARIANT_CATEGORY, componentType);
             concatCache.put(entry, result);
         }
         return result;

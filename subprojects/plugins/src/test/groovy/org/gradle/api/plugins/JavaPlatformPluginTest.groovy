@@ -120,17 +120,17 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         runtimeUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         runtimeUsage.dependencyConstraints.size() == 2
         runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencyConstraints
-        runtimeUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, PlatformSupport.COMPONENT_CATEGORY] as Set
+        runtimeUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, PlatformSupport.VARIANT_CATEGORY] as Set
         runtimeUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
-        runtimeUsage.attributes.getAttribute(PlatformSupport.COMPONENT_CATEGORY) == PlatformSupport.REGULAR_PLATFORM
+        runtimeUsage.attributes.getAttribute(PlatformSupport.VARIANT_CATEGORY) == PlatformSupport.REGULAR_PLATFORM
 
         apiUsage.dependencies.size() == 1
         apiUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiUsage.dependencyConstraints.size() == 1
         apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
-        apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, PlatformSupport.COMPONENT_CATEGORY] as Set
+        apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, PlatformSupport.VARIANT_CATEGORY] as Set
         apiUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
-        apiUsage.attributes.getAttribute(PlatformSupport.COMPONENT_CATEGORY) == PlatformSupport.REGULAR_PLATFORM
+        apiUsage.attributes.getAttribute(PlatformSupport.VARIANT_CATEGORY) == PlatformSupport.REGULAR_PLATFORM
     }
 
     @Unroll("cannot add a dependency to the #configuration configuration by default")

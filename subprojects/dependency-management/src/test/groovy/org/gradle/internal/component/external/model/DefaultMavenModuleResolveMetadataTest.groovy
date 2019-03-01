@@ -147,7 +147,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
     def "recognises java library for packaging=#packaging"() {
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
-        def componentTypeAttribute = PlatformSupport.COMPONENT_CATEGORY
+        def componentTypeAttribute = PlatformSupport.VARIANT_CATEGORY
         def metadata = new DefaultMutableMavenModuleResolveMetadata(Mock(ModuleVersionIdentifier), id, [], new DefaultMavenImmutableAttributesFactory(AttributeTestUtil.attributesFactory(), NamedObjectInstantiator.INSTANCE), TestUtil.objectInstantiator())
         metadata.packaging = packaging
         metadata.variantMetadataRules.variantDerivationStrategy = new JavaEcosystemVariantDerivationStrategy()

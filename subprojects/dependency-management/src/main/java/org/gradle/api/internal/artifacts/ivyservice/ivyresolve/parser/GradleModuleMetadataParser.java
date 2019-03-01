@@ -174,10 +174,10 @@ public class GradleModuleMetadataParser {
         reader.endObject();
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
-        AttributeValue<String> entry = attributes.findEntry(PlatformSupport.COMPONENT_CATEGORY);
+        AttributeValue<String> entry = attributes.findEntry(PlatformSupport.VARIANT_CATEGORY);
         if (entry.isPresent() && PlatformSupport.REGULAR_PLATFORM.equals(entry.get())) {
             // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, attributesFactory.of(PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.ENFORCED_PLATFORM));
+            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, attributesFactory.of(PlatformSupport.VARIANT_CATEGORY, PlatformSupport.ENFORCED_PLATFORM));
             MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
             populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
         }

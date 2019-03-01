@@ -407,7 +407,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                     }
                 }
                 maybeAddGeneratedDependencies(result);
-                AttributeValue<String> attributeValue = this.getAttributes().findEntry(PlatformSupport.COMPONENT_CATEGORY);
+                AttributeValue<String> attributeValue = this.getAttributes().findEntry(PlatformSupport.VARIANT_CATEGORY);
                 if (attributeValue.isPresent() && attributeValue.get().equals(PlatformSupport.ENFORCED_PLATFORM)) {
                     // need to wrap all dependencies to force them
                     ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
