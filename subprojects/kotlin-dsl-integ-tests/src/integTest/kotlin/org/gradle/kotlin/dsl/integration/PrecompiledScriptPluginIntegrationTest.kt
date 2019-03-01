@@ -23,7 +23,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             $repositoriesBlock
         """)
 
-        withPrecompiledKotlinScript("plugin-without-package.gradle.kts", "")
+        withPrecompiledKotlinScript("plugin-without-package.gradle.kts", "\n")
         withPrecompiledKotlinScript("plugins/plugin-with-package.gradle.kts", """
             package plugins
         """)
