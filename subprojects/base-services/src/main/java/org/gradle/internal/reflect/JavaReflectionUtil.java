@@ -16,16 +16,19 @@
 
 package org.gradle.internal.reflect;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 public class JavaReflectionUtil {
@@ -62,6 +65,17 @@ public class JavaReflectionUtil {
         } catch (Throwable e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    /**
+     * Resolves the return type of a method in a given class.
+     *
+     * For example, for {@code MyList implements List<String>}, resolving the return type of {@link List#get(int)} in {@code MyList} yields {@link String}.
+     */
+    public static <T> Type resolveMethodReturnType(Class<T> type, Method method) {
+        Type returnType = method.getGenericReturnType();
+        // Checking if there is a type variable to resolve, since resolving the type variable via `TypeToken` is quite expensive.
+        return hasTypeVariable(returnType) ? TypeToken.of(type).method(method).getReturnType().getType() : returnType;
     }
 
     /**

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
@@ -453,9 +452,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Determines the concrete return type of the given method, resolving any type parameters.
          */
         public MethodMetadata resolveTypeVariables(Method method) {
-            Type returnType = method.getGenericReturnType();
-            Type resolvedReturnType = JavaReflectionUtil.hasTypeVariable(returnType) ? TypeToken.of(type).method(method).getReturnType().getType() : returnType;
-            return new MethodMetadata(method, resolvedReturnType);
+            return new MethodMetadata(method, JavaReflectionUtil.resolveMethodReturnType(type, method));
         }
 
         @Nullable
