@@ -20,18 +20,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public interface JavaReflectionUtilTestMethods {
-    <T> T simpleTypeVariable();
+public interface JavaPropertyReflectionUtilTestMethods<T> {
+    T simpleTypeVariable();
 
-    <T> List<T> encapsulatedTypeVariable();
+    List<T> encapsulatedTypeVariable();
 
-    <T> T[] arrayTypeWithTypeVariable();
+    T[] arrayTypeWithTypeVariable();
 
-    <T> List<Collection<? extends List<? super T>>[]> complexTypeWithTypeVariable();
+    List<Collection<? extends List<? super T>>[]> complexTypeWithTypeVariable();
 
-    <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable();
+    List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<? extends T>>[]> anotherComplexTypeWithTypeVariable();
 
-    <T> List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable();
+    List<BiConsumer<Collection<? super Class<Integer>>, ? extends List<T[]>>> complexTypeWithArrayTypeVariable();
 
     Class<?> wildcardParameterized();
 
@@ -51,5 +51,8 @@ public interface JavaReflectionUtilTestMethods {
 
     BiConsumer<List<String>, List<String>> anotherComplexParameterized();
 
+    <V extends String> V nonResolvedTypeVariable();
 
+    interface InterfaceRealizingTypeParameter extends JavaPropertyReflectionUtilTestMethods<List<Integer>> {
+    }
 }
