@@ -43,6 +43,60 @@ dependencies {
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
 
+## Kotlin DSL
+
+### Kotlin 1.3.21
+
+The embedded Kotlin version has been upgraded to Kotlin 1.3.21.
+
+Please see the [Kotlin 1.3.21 announcement](https://github.com/JetBrains/kotlin/releases/tag/v1.3.21) for details.
+
+### Type-safe accessors in precompiled script plugins
+
+Starting with Gradle 5.3, Kotlin precompiled project script plugins now have type-safe accessors, just like regular project build scripts.
+
+For example, here is how an hypothetical plugin that sets up a Java project according to some convention would be written as a Kotlin precompiled project script plugin in `buildSrc`:
+
+```kotlin
+// buildSrc/src/main/kotlin/my-java-convention.gradle.kts
+plugins {
+    `java-library`
+    checkstyle
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks {
+    withType<JavaCompile> {
+        options.isWarnings = true
+    }
+    checkstyleMain {
+        maxWarnings = 0
+    }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.12")
+}
+```
+
+It makes use of type-safe accessors for the `java {}` extension, the `checkstyleMain` task and the `testImplementation` configuration, all contributed by the plugins it applies (`java-library` and `checkstyle`).
+
+This plugin can then be applied to regular projects:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    `my-java-convention`
+}
+```
+
+See the [Precompiled script plugins](userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) section of the user manual for more information.
+
+
 ## Better help message on delete operation failure
 
 The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
