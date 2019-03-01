@@ -40,6 +40,11 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     }
 
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public ImmutableList<Class<? extends Annotation>> getOverriddenAnnotationTypes() {
         return ImmutableList.of(InputFiles.class, InputArtifact.class, InputArtifactDependencies.class);
     }

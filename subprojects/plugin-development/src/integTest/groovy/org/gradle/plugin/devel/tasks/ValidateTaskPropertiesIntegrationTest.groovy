@@ -258,14 +258,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("validateTaskProperties")
         failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
         failure.assertHasCause("Task property validation failed. See")
-        failure.assertHasCause("Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation cannot only be used with TransformAction types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransform with type Options. This annotation cannot only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
+        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.")
 
         file("build/reports/task-properties/report.txt").text == """
-            Error: Cannot use @CacheableTask with type Options. This annotation cannot only be used with Task types.
-            Error: Cannot use @CacheableTransform with type MyTask. This annotation cannot only be used with TransformAction types.
-            Error: Cannot use @CacheableTransform with type Options. This annotation cannot only be used with TransformAction types.
+            Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.
+            Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.
+            Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.
         """.stripIndent().trim()
     }
 

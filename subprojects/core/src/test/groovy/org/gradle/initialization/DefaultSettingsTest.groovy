@@ -29,6 +29,7 @@ import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.TestUtil
@@ -62,6 +63,7 @@ class DefaultSettingsTest extends Specification {
         settingsServices.get(ProjectDescriptorRegistry) >> projectDescriptorRegistry
         settingsServices.get(FeaturePreviews) >> previews
         settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
+        settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
 
         serviceRegistryFactory = Mock(ServiceRegistryFactory) {
            1 * createFor(_) >> settingsServices

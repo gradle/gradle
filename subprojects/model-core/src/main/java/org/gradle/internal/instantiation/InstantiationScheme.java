@@ -19,12 +19,20 @@ package org.gradle.internal.instantiation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 /**
  * A scheme, or strategy, for creating objects.
  *
  * <p>Implementations are provided by a {@link InstantiatorFactory}.</p>
  */
 public interface InstantiationScheme {
+    /**
+     * Returns the set of annotations that are used by this instantiation scheme for dependency injection.
+     */
+    Set<Class<? extends Annotation>> getInjectionAnnotations();
+
     /**
      * Creates a new {@link InstanceFactory} for the given type, which creates instances based on the configuration of this scheme.
      */

@@ -29,6 +29,11 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     protected abstract OutputFilePropertyType getFilePropertyType();
 
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return true;
     }

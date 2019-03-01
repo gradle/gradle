@@ -24,5 +24,5 @@ import java.lang.annotation.Annotation;
  * <p>Implementations must be registered as global scoped services.</p>
  */
 public interface InjectAnnotationHandler {
-    Class<? extends Annotation> getAnnotation();
+    Class<? extends Annotation> getAnnotationType();
 }
