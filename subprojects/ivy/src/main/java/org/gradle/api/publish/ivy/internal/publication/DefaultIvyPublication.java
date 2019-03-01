@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.component.IvyPublishingAwareContext;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -248,11 +249,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         for (UsageContext usageContext : getSortedUsageContexts()) {
             String conf = mapUsage(usageContext.getName());
             configurations.maybeCreate(conf);
-            configurations.getByName("default").extend(conf);
+            if (usageContext instanceof IvyPublishingAwareContext) {
+                if (!((IvyPublishingAwareContext) usageContext).isOptional()) {
+                    configurations.getByName("default").extend(conf);
+                }
+            } else {
+                configurations.getByName("default").extend(conf);
+            }
 
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
-                if (!artifactsOverridden && !seenArtifacts.contains(publishArtifact)) {
-                    seenArtifacts.add(publishArtifact);
+                if (!artifactsOverridden && seenArtifacts.add(publishArtifact)) {
                     artifact(publishArtifact).setConf(conf);
                 }
             }
