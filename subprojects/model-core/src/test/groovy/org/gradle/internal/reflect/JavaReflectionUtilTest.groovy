@@ -27,7 +27,7 @@ class JavaReflectionUtilTest extends Specification {
     @Unroll
     def "#type has type variable: #hasTypeVariable"() {
         expect:
-        JavaReflectionUtil.hasTypeVariable(type) == hasTypeVariable
+        JavaPropertyReflectionUtil.hasTypeVariable(type) == hasTypeVariable
 
         where:
         testType << testedTypes
