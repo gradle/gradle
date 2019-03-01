@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrat
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeTrue
@@ -93,6 +94,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         !daemonIsExpiredEagerly()
     }
 
+    @Ignore
     def "when leak occurs while daemon is idle daemon is still expired"() {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
@@ -122,6 +124,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) || daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
     }
 
+    @Ignore
     def "when build leaks permgen space daemon is expired"() {
         assumeTrue(version.vendor != JdkVendor.IBM)
 
@@ -135,6 +138,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         daemonIsExpiredEagerly()
     }
 
+    @Ignore
     def "detects a thrashing condition" () {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
