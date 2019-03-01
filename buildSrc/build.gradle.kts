@@ -20,7 +20,8 @@ import java.io.File
 import java.util.Properties
 
 plugins {
-    `kotlin-dsl`
+    `java`
+    `kotlin-dsl` apply false
     id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
 }
 
@@ -181,7 +182,7 @@ fun Project.applyGroovyProjectConventions() {
     }
 
     tasks.withType<Test>().configureEach {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (JavaVersion.current().isJava9Compatible) {
             //allow ProjectBuilder to inject legacy types into the system classloader
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
@@ -207,7 +208,7 @@ fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
-        kotlinDslPluginOptions {
+        configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)
         }
     }
