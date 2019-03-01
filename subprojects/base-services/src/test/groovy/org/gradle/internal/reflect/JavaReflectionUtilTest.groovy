@@ -35,18 +35,6 @@ class JavaReflectionUtilTest extends Specification {
         hasTypeVariable = testType.second
     }
 
-    @Unroll
-    def "resolving return type #method.genericReturnType does not have type parameters"() {
-        expect:
-        !JavaReflectionUtil.hasTypeVariable(
-            JavaReflectionUtil.resolveMethodReturnType(JavaReflectionUtilTestMethods.InterfaceRealizingTypeParameter, method)
-        )
-
-        where:
-        method << (JavaReflectionUtilTestMethods.getDeclaredMethods() as List)
-        type = method.genericReturnType
-    }
-
     private static List<Tuple2<Type, Boolean>> getTestedTypes() {
         def testedTypes = JavaReflectionUtilTestMethods.getDeclaredMethods().collect {
             new Tuple2(it.genericReturnType, it.name.contains('TypeVariable'))
