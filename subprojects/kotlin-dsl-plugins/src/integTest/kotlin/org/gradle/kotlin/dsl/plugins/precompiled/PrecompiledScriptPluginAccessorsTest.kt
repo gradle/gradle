@@ -153,15 +153,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         """)
 
         build("generatePrecompiledScriptPluginAccessors")
-        existing("build/generated-sources/kotlin-dsl-accessors/kotlin").walk().filter { it.isFile }.forEach {
-            println("// CONTENT OF $it")
-            it.useLines { lines ->
-                lines.forEachIndexed { index, line ->
-                    println("${index + 1}: $line")
-                }
-            }
-            println("================")
-        }
 
         compileKotlin()
     }
