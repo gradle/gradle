@@ -124,6 +124,9 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
     ): Unit = project.run {
 
         val scriptPlugins = collectScriptPlugins()
+        if (scriptPlugins.isEmpty()) {
+            return
+        }
 
         enableScriptCompilationOf(
             scriptPlugins,
@@ -156,7 +159,7 @@ fun Project.enableScriptCompilationOf(
 
     val generatedMetadata = buildDir("precompiled-script-plugins")
 
-    val compileClasspath = compileClasspath()
+    val compileClasspath by lazy { compileClasspath() }
 
     tasks {
 
