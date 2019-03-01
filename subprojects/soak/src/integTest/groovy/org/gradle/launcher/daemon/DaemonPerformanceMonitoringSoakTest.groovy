@@ -28,7 +28,6 @@ import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrat
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeTrue
@@ -94,13 +93,12 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         !daemonIsExpiredEagerly()
     }
 
-    @Ignore
     def "when leak occurs while daemon is idle daemon is still expired"() {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
         executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
-        leakRate = 1000
+        leakRate = 900
 
         when:
         leaksWhenIdle()
@@ -121,30 +119,28 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)
+        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) || daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
     }
 
-    @Ignore
     def "when build leaks permgen space daemon is expired"() {
         assumeTrue(version.vendor != JdkVendor.IBM)
 
         when:
         setupBuildScript = permGenLeak
-        maxBuilds = 20
+        maxBuilds = 30
         heapSize = "200m"
-        leakRate = 3300
+        leakRate = 3700
 
         then:
         daemonIsExpiredEagerly()
     }
 
-    @Ignore
     def "detects a thrashing condition" () {
         // This is so the idle timeout expiration strategy doesn't kick in
         // before the gc monitoring expires the daemon
         executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
-        leakRate = 1700
+        leakRate = 1300
 
         when:
         leaksWithinOneBuild()
@@ -183,7 +179,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         try {
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
-                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-XX:MaxMetaspaceSize=${heapSize}", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
                 GradleHandle gradle = executer.start()
                 gradle.waitForExit()
                 if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {
