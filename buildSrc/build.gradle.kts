@@ -214,15 +214,9 @@ fun Project.applyKotlinProjectConventions() {
     }
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        // TODO:kotlin-dsl unignore KtLint failures
-        // we would like to only exclude the generated-sources from the
-        // verification but unfortunately the filter doesn't seem to
-        // have an effect so :/
-        ignoreFailures.set(true)
-        // because of the above, the output is cluttered, disable console output
-        outputToConsole.set(false)
+        // TODO:kotlin-dsl remove precompiled script plugins accessors exclusion from ktlint checks
         filter {
-            exclude("**/generated-sources/**")
+            exclude("gradle/kotlin/dsl/accessors/_*/**")
         }
     }
 }
