@@ -202,6 +202,27 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    fun `can apply sibling plugin from another package`() {
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript("my/java-plugin.gradle.kts", """
+            package my
+            plugins { java }
+        """)
+
+        withPrecompiledKotlinScript("plugins.gradle.kts", """
+            plugins { id("my.java-plugin") }
+
+            java { }
+
+            tasks.compileJava { }
+        """)
+
+        compileKotlin()
+    }
+
+    @Test
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """

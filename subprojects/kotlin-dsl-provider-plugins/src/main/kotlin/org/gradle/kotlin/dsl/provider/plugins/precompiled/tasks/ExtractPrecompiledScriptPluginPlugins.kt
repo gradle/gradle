@@ -106,11 +106,22 @@ fun parse(scriptPlugin: PrecompiledScriptPlugin): Program = ProgramParser.parse(
 
 
 private
-fun writePluginsBlockTo(outputDir: File, scriptPlugin: PrecompiledScriptPlugin, program: Program.Plugins) {
+fun writePluginsBlockTo(
+    outputDir: File,
+    scriptPlugin: PrecompiledScriptPlugin,
+    program: Program.Plugins
+) {
     outputDir.resolve(scriptPlugin.scriptFileName).writeText(
-        lineNumberPreservingTextOf(program)
+        packageDeclarationOf(scriptPlugin) + lineNumberPreservingTextOf(program)
     )
 }
+
+
+private
+fun packageDeclarationOf(scriptPlugin: PrecompiledScriptPlugin): String =
+    scriptPlugin.packageName?.let {
+        "package $it; "
+    } ?: ""
 
 
 private
