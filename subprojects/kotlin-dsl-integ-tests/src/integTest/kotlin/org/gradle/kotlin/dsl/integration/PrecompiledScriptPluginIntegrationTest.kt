@@ -100,4 +100,24 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         assertFalse(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").exists())
         assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/BarPlugin.kt").isFile)
     }
+
+    @Test
+    fun `can apply precompiled script plugin from groovy script`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            tasks.register("myTask") {}
+        """)
+
+        withDefaultSettings()
+        withFile("build.gradle", """
+            plugins {
+                id 'my-plugin'
+            }
+        """)
+
+        build("myTask")
+    }
 }
