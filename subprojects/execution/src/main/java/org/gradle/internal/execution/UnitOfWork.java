@@ -49,7 +49,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata);
 
-    Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
+    Optional<? extends ExecutionStateChanges> getChangesSincePreviousExecution();
 
     /**
      * Paths to locations changed by the unit of work.

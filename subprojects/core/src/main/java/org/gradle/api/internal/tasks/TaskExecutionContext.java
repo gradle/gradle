@@ -100,7 +100,7 @@ public interface TaskExecutionContext {
 
     void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
 
-    Optional<ExecutionStateChanges> getExecutionStateChanges();
+    Optional<? extends ExecutionStateChanges> getExecutionStateChanges();
 
     void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 

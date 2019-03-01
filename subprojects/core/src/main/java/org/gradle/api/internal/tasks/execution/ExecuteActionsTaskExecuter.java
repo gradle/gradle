@@ -127,7 +127,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                //noinspection RedundantTypeArguments
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.<OriginMetadata>empty();
@@ -195,7 +194,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
+        public Optional<? extends ExecutionStateChanges> getChangesSincePreviousExecution() {
             return context.getExecutionStateChanges();
         }
 
