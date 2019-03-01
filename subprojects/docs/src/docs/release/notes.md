@@ -90,7 +90,7 @@ This plugin can then be applied to regular projects:
 ```kotlin
 // build.gradle.kts
 plugins {
-    `my-java-convetion`
+    `my-java-convention`
 }
 ```
 
