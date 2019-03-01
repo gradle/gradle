@@ -49,16 +49,16 @@ import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
-
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
-import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
+
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
@@ -125,9 +125,9 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
-        scriptPluginPluginsFor(projectPlugins)
+        resolvePluginGraphOf(projectPlugins)
             .groupBy {
-                UniquePluginRequests(it.plugins)
+                it.plugins
             }.let {
                 projectSchemaImpliedByPluginGroups(it)
             }.forEach { (projectSchema, scriptPlugins) ->
@@ -139,6 +139,22 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
                     )
                 }
             }
+    }
+
+    private
+    fun resolvePluginGraphOf(projectPlugins: List<PrecompiledScriptPlugin>): Sequence<ScriptPluginPlugins> {
+
+        val scriptPluginsById = scriptPluginPluginsFor(projectPlugins).associateBy {
+            it.scriptPlugin.id
+        }
+
+        val pluginGraph = plugins.associate {
+            it.id to (scriptPluginsById[it.id]?.plugins ?: emptyList())
+        }
+
+        return reduceGraph(pluginGraph).asSequence().mapNotNull { (id, plugins) ->
+            scriptPluginsById[id]?.copy(plugins = plugins.toList())
+        }
     }
 
     private
@@ -166,13 +182,16 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
         return ScriptPluginPlugins(
             plugin,
-            collectPluginRequestsOf(plugin)
+            collectPluginRequestsOf(plugin).map {
+                // TODO:kotlin-dsl validate plugin request version, apply false, etc
+                it.id.id
+            }
         )
     }
 
     private
     fun ClassLoader.collectPluginRequestsOf(plugin: PrecompiledScriptPlugin): PluginRequests =
-        PluginRequestCollector(scriptSourceFor(plugin)).run {
+        pluginRequestCollectorFor(plugin).run {
 
             loadClass(plugin.compiledScriptTypeName)
                 .getConstructor(PluginDependenciesSpec::class.java)
@@ -181,15 +200,20 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             pluginRequests
         }
 
+
     private
-    fun compiledScriptClassFile(plugin: PrecompiledScriptPlugin) =
-        plugin.compiledScriptTypeName.replace('.', '/') + ".class"
+    fun pluginRequestCollectorFor(plugin: PrecompiledScriptPlugin) =
+        PluginRequestCollector(scriptSourceFor(plugin))
 
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
             BasicTextResourceLoader().loadFile("Precompiled script plugin", plugin.scriptFile)
         )
+
+    private
+    fun compiledScriptClassFile(plugin: PrecompiledScriptPlugin) =
+        plugin.compiledScriptTypeName.replace('.', '/') + ".class"
 
     private
     fun selectProjectPlugins() = plugins.filter { it.scriptType == KotlinScriptType.PROJECT }
@@ -213,13 +237,13 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun projectSchemaImpliedByPluginGroups(
-        pluginGroupsPerRequests: Map<UniquePluginRequests, List<ScriptPluginPlugins>>
+        pluginGroupsPerRequests: Map<List<String>, List<ScriptPluginPlugins>>
     ): Map<HashedProjectSchema, List<ScriptPluginPlugins>> {
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, (classPathFiles + runtimeClassPathFiles).files)
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
-                val schema = schemaBuilder.schemaFor(uniquePluginRequests.plugins)
+                val schema = schemaBuilder.schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first().scriptPlugin))
                 val hashedSchema = HashedProjectSchema(schema)
                 scriptPlugins.map { hashedSchema to it }
             } catch (error: Throwable) {
@@ -231,6 +255,17 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             { (_, plugin) -> plugin }
         )
     }
+
+    private
+    fun pluginRequestsFor(pluginIds: List<String>, plugin: PrecompiledScriptPlugin): PluginRequests =
+        pluginRequestCollectorFor(plugin).run {
+            createSpec(1).apply {
+                pluginIds.forEach {
+                    id(it)
+                }
+            }
+            pluginRequests
+        }
 
     private
     fun reportProjectSchemaError(plugins: List<ScriptPluginPlugins>, error: Throwable) {
@@ -350,32 +385,7 @@ data class HashedProjectSchema(
 internal
 data class ScriptPluginPlugins(
     val scriptPlugin: PrecompiledScriptPlugin,
-    val plugins: PluginRequests
-)
-
-
-private
-class UniquePluginRequests(val plugins: PluginRequests) {
-
-    val applications = plugins.map { it.toPluginApplication() }
-
-    override fun equals(other: Any?): Boolean = other is UniquePluginRequests && applications == other.applications
-
-    override fun hashCode(): Int = applications.hashCode()
-}
-
-
-private
-fun PluginRequestInternal.toPluginApplication() = PluginApplication(
-    id.id, version, isApply
-)
-
-
-internal
-data class PluginApplication(
-    val id: String,
-    val version: String?,
-    val apply: Boolean?
+    val plugins: List<String>
 )
 
 

@@ -156,6 +156,50 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    fun `can use type-safe accessors for plugins applied by sibling plugin`() {
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript("my-java-library.gradle.kts", """
+            plugins { java }
+        """)
+
+        withPrecompiledKotlinScript("my-java-module.gradle.kts", """
+            plugins { id("my-java-library") }
+
+            java { }
+
+            tasks.compileJava { }
+        """)
+
+        compileKotlin()
+    }
+
+    @Test
+    fun `can apply sibling plugin whether it has a plugins block or not`() {
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript("no-plugins.gradle.kts", "")
+        withPrecompiledKotlinScript("java-plugin.gradle.kts", """
+            plugins { java }
+        """)
+
+        withPrecompiledKotlinScript("plugins.gradle.kts", """
+            plugins {
+                id("no-plugins")
+                id("java-plugin")
+            }
+
+            java { }
+
+            tasks.compileJava { }
+        """)
+
+        compileKotlin()
+    }
+
+    @Test
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """
