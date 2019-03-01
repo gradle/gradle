@@ -68,7 +68,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         val cachedTasks = listOf(
             ":extractPrecompiledScriptPluginPlugins",
-            ":generateInternalPluginSpecBuilders",
             ":generateExternalPluginSpecBuilders",
             ":compilePluginsBlocks",
             ":generatePrecompiledScriptPluginAccessors",

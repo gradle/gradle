@@ -37,7 +37,6 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.CompilePrecompil
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateInternalPluginSpecBuilders
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
@@ -109,8 +108,6 @@ import java.util.function.Consumer
  * following tasks:
  *  - [ExtractPrecompiledScriptPluginPlugins] - extracts the `plugins` block of every precompiled script plugin and
  *  saves it to a file with the same name in the output directory
- *  - [GenerateInternalPluginSpecBuilders] - generates plugin spec builders for the _Project_ script plugins defined
- *  in the current module
  *  - [GenerateExternalPluginSpecBuilders] - generates plugin spec builders for the plugins in the compile classpath
  *  - [CompilePrecompiledScriptPluginPlugins] - compiles the extracted `plugins` blocks along with the internal
  *  and external plugin spec builders
@@ -168,16 +165,6 @@ fun Project.enableScriptCompilationOf(
             outputDir.set(extractedPluginsBlocks)
         }
 
-        val (generateInternalPluginSpecBuilders, internalPluginSpecBuilders) =
-            codeGenerationTask<GenerateInternalPluginSpecBuilders>(
-                "internal-plugin-spec-builders",
-                "generateInternalPluginSpecBuilders",
-                kotlinSourceDirectorySet
-            ) {
-                plugins = scriptPlugins
-                sourceCodeOutputDir.set(it)
-            }
-
         val (generateExternalPluginSpecBuilders, externalPluginSpecBuilders) =
             codeGenerationTask<GenerateExternalPluginSpecBuilders>(
                 "external-plugin-spec-builders",
@@ -192,9 +179,6 @@ fun Project.enableScriptCompilationOf(
 
             dependsOn(extractPrecompiledScriptPluginPlugins)
             sourceDir(extractedPluginsBlocks)
-
-            dependsOn(generateInternalPluginSpecBuilders)
-            sourceDir(internalPluginSpecBuilders)
 
             dependsOn(generateExternalPluginSpecBuilders)
             sourceDir(externalPluginSpecBuilders)
@@ -219,7 +203,6 @@ fun Project.enableScriptCompilationOf(
             }
 
         val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
-            dependsOn(generateInternalPluginSpecBuilders)
             dependsOn(generateExternalPluginSpecBuilders)
             inputs.files(
                 project.files(generatedMetadata).builtBy(generatePrecompiledScriptPluginAccessors)
