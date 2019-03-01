@@ -66,6 +66,7 @@ import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.testfixtures.ProjectBuilder
 
 import java.io.File
+import java.nio.file.Files
 
 
 @CacheableTask
@@ -244,7 +245,10 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         pluginGroupsPerRequests: Map<List<String>, List<ScriptPluginPlugins>>
     ): Map<HashedProjectSchema, List<ScriptPluginPlugins>> {
 
-        val schemaBuilder = SyntheticProjectSchemaBuilder(temporaryDir, (classPathFiles + runtimeClassPathFiles).files)
+        val schemaBuilder = SyntheticProjectSchemaBuilder(
+            Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile(),
+            (classPathFiles + runtimeClassPathFiles).files
+        )
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
                 val schema = schemaBuilder.schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first().scriptPlugin))
