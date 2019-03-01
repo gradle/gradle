@@ -40,7 +40,4 @@ dependencies {
 
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(project(":plugins"))
-
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
-    integTestRuntimeOnly(project(":apiMetadata"))
 }
