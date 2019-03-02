@@ -252,8 +252,8 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(
-            Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile(),
-            (classPathFiles + runtimeClassPathFiles).files
+            rootProjectDir = uniqueTempDirectory(),
+            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files
         )
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
@@ -269,6 +269,9 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             { (_, plugin) -> plugin }
         )
     }
+
+    private
+    fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile()
 
     private
     fun pluginRequestsFor(pluginIds: List<String>, plugin: PrecompiledScriptPlugin): PluginRequests =
