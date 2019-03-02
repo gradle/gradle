@@ -20,7 +20,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
         }
     }
 
-    applyDefaults(
+    applyTestDefaults(
             model,
             this,
             "sanityCheck",

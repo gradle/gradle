@@ -19,7 +19,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     val buildScanTagForType = buildScanTag("Gradleception")
     val defaultParameters = (gradleParameters() + listOf(buildScanTagForType)).joinToString(separator = " ")
 
-    applyDefaults(model, this, ":install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
+    applyTestDefaults(model, this, ":install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
         localGradle {
             name = "BUILD_WITH_BUILT_GRADLE"
             tasks = "clean :install"
