@@ -33,6 +33,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     ]
 
     private static final List<String> SUPPORTED = [
+            "2.2.1",
             "2.2",
             "2.1",
             "2.0.2"

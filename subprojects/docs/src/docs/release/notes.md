@@ -1,6 +1,8 @@
 The Gradle team is excited to announce Gradle 5.3.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features incubating support for publishing and consuming Gradle Module Metadata,
+[feature variants AKA "optional dependencies"](#feature-variants-aka-optional-dependencies),
+type-safe accessors in Kotlin pre-compiled script plugins, and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -13,20 +15,19 @@ We would like to thank the following community contributors to this release of G
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
 [Joe Kutner](https://github.com/jkutner),
-... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.3 by updating your wrapper properties:
+Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.3`
+`./gradlew wrapper --gradle-version=5.3-rc-1`
 
-Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Feature variants, aka optional dependencies
+## Feature variants aka optional dependencies
 
-Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html) :
+Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html):
 
 ```groovy
 java {
@@ -43,9 +44,68 @@ dependencies {
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
 
+### Gradle Module Metadata 1.0
+
+Gradle Module Metadata is now 1.0.
+
+Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
+
+## Kotlin DSL
+
+### Kotlin 1.3.21
+
+The embedded Kotlin version has been upgraded to Kotlin 1.3.21.
+
+Please see the [Kotlin 1.3.21 announcement](https://github.com/JetBrains/kotlin/releases/tag/v1.3.21) for details.
+
+### Type-safe accessors in precompiled script plugins
+
+Starting with Gradle 5.3, Kotlin precompiled project script plugins now have type-safe accessors, just like regular project build scripts.
+
+For example, here is how an hypothetical plugin that sets up a Java project according to some convention would be written as a Kotlin precompiled project script plugin in `buildSrc`:
+
+```kotlin
+// buildSrc/src/main/kotlin/my-java-convention.gradle.kts
+plugins {
+    `java-library`
+    checkstyle
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks {
+    withType<JavaCompile> {
+        options.isWarnings = true
+    }
+    checkstyleMain {
+        maxWarnings = 0
+    }
+}
+
+dependencies {
+    testImplementation("junit:junit:4.12")
+}
+```
+
+It makes use of type-safe accessors for the `java {}` extension, the `checkstyleMain` task and the `testImplementation` configuration, all contributed by the plugins it applies (`java-library` and `checkstyle`).
+
+This plugin can then be applied to regular projects:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    `my-java-convention`
+}
+```
+
+See the [Precompiled script plugins](userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) section of the user manual for more information.
+
 ## Better help message on delete operation failure
 
-The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
+The `clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
 
 The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
@@ -75,11 +135,6 @@ Execution failed for task ':clean'.
 
 Gradle now offers a public API to publish custom software components.
 Refer to the `SoftwareComponentFactory` javadocs for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
-
-### Gradle Module Metadata 1.0
-
-Gradle Module Metadata is now 1.0.
-Gradle will automatically consume published Gradle Metadata, but publication still requires to enable the `GRADLE_METADATA` feature preview.
 
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
 
