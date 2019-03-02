@@ -52,6 +52,7 @@ import org.gradle.kotlin.dsl.concurrent.writeFile
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -131,16 +132,17 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     private
     fun IO.generateTypeSafeAccessorsFor(projectPlugins: List<PrecompiledScriptPlugin>) {
         resolvePluginGraphOf(projectPlugins)
-            .groupBy {
-                it.plugins
-            }.let {
+            .groupBy(
+                { it.plugins },
+                { it.scriptPlugin }
+            ).let {
                 projectSchemaImpliedByPluginGroups(it)
             }.forEach { (projectSchema, scriptPlugins) ->
                 writeTypeSafeAccessorsFor(projectSchema)
                 for (scriptPlugin in scriptPlugins) {
                     writeContentAddressableImplicitImportFor(
-                        scriptPlugin,
-                        projectSchema.packageName
+                        projectSchema.packageName,
+                        scriptPlugin
                     )
                 }
             }
@@ -154,13 +156,17 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         }
 
         val pluginGraph = plugins.associate {
-            it.id to (scriptPluginsById[it.id]?.plugins ?: emptyList())
+            it.id to pluginsAppliedBy(it, scriptPluginsById)
         }
 
         return reduceGraph(pluginGraph).asSequence().mapNotNull { (id, plugins) ->
             scriptPluginsById[id]?.copy(plugins = plugins.toList())
         }
     }
+
+    private
+    fun pluginsAppliedBy(scriptPlugin: PrecompiledScriptPlugin, scriptPluginsById: Map<String, ScriptPluginPlugins>) =
+        scriptPluginsById[scriptPlugin.id]?.plugins ?: emptyList()
 
     private
     fun scriptPluginPluginsFor(projectPlugins: List<PrecompiledScriptPlugin>) = sequence {
@@ -242,8 +248,8 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun projectSchemaImpliedByPluginGroups(
-        pluginGroupsPerRequests: Map<List<String>, List<ScriptPluginPlugins>>
-    ): Map<HashedProjectSchema, List<ScriptPluginPlugins>> {
+        pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(
             Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile(),
@@ -251,12 +257,12 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         )
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
-                val schema = schemaBuilder.schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first().scriptPlugin))
+                val schema = schemaBuilder.schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
                 val hashedSchema = HashedProjectSchema(schema)
                 scriptPlugins.map { hashedSchema to it }
             } catch (error: Throwable) {
                 reportProjectSchemaError(scriptPlugins, error)
-                emptyList<Pair<HashedProjectSchema, ScriptPluginPlugins>>()
+                emptyList<Pair<HashedProjectSchema, PrecompiledScriptPlugin>>()
             }
         }.groupBy(
             { (schema, _) -> schema },
@@ -276,13 +282,13 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
         }
 
     private
-    fun reportProjectSchemaError(plugins: List<ScriptPluginPlugins>, error: Throwable) {
+    fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
         logger.warn(
             plugins.joinToString(
                 prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
                 separator = "\n",
                 postfix = "\n"
-            ) { " - " + projectRelativePathOf(it.scriptPlugin) },
+            ) { " - " + projectRelativePathOf(it) },
             error
         )
     }
@@ -304,13 +310,13 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     }
 
     private
-    fun IO.writeContentAddressableImplicitImportFor(scriptPlugin: ScriptPluginPlugins, packageName: String) {
+    fun IO.writeContentAddressableImplicitImportFor(packageName: String, scriptPlugin: PrecompiledScriptPlugin) {
         io { writeFile(implicitImportFileFor(scriptPlugin), "$packageName.*".toByteArray()) }
     }
 
     private
-    fun implicitImportFileFor(scriptPluginPlugins: ScriptPluginPlugins): File =
-        metadataOutputDir.get().asFile.resolve(scriptPluginPlugins.scriptPlugin.hashString)
+    fun implicitImportFileFor(scriptPlugin: PrecompiledScriptPlugin): File =
+        metadataOutputDir.get().asFile.resolve(scriptPlugin.hashString)
 }
 
 
@@ -390,12 +396,8 @@ data class HashedProjectSchema(
 }
 
 
-internal
+private
 data class ScriptPluginPlugins(
     val scriptPlugin: PrecompiledScriptPlugin,
     val plugins: List<String>
 )
-
-
-internal
-fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()

@@ -112,6 +112,10 @@ data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 }
 
 
+internal
+fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()
+
+
 private
 fun packageNameOf(file: File): String? =
     packageNameOf(normaliseLineSeparators(file.readText()))

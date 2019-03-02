@@ -33,6 +33,7 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 

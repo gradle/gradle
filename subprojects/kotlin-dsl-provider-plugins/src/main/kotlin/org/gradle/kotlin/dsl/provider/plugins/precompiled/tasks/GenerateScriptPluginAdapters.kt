@@ -26,6 +26,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
