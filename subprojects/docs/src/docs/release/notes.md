@@ -25,7 +25,7 @@ Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Feature variants, aka optional dependencies
+## Feature variants aka optional dependencies
 
 Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html):
 
