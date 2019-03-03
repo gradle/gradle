@@ -3,8 +3,11 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
+import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -133,5 +136,77 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         build("myTask")
+    }
+
+    @Test
+    @Ignore("BUG") // TODO:kotlin-dsl fix & un-ignore
+    fun `accessors are available after script body change`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        val myPluginScript = withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { base }
+
+            base.archivesBaseName = "my"
+
+            println("base")
+        """)
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `my-plugin`
+            }
+        """)
+
+        build("help").apply {
+            assertThat(output, containsString("base"))
+        }
+
+        // TODO if you uncomment that line, then the test pass ...
+        // build("help")
+
+        myPluginScript.appendText("""
+
+            println("modified")
+        """.trimIndent())
+
+        build("help").apply {
+            // TODO :buildSrc:compileKotlin currently fails with `Unresolved reference 'base'`
+            // TODO no imports for accessors are provided to :buildSrc:compileKotlin
+            assertThat(output, containsString("base"))
+            assertThat(output, containsString("modified"))
+        }
+    }
+
+    @Test
+    @Ignore("BUG") // TODO:kotlin-dsl fix & un-ignore
+    fun `accessors are available after re-running tasks`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { base }
+
+            base.archivesBaseName = "my"
+        """)
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `my-plugin`
+            }
+        """)
+
+        build("clean")
+
+        // TODO if you uncomment that line, then the test pass ...
+        // build("clean")
+
+        // TODO :buildSrc:compileKotlin currently fails with `Unresolved reference 'base'`
+        // TODO no imports for psp accessors are provided to :buildSrc:compileKotlin
+        build("clean", "--rerun-tasks")
     }
 }
