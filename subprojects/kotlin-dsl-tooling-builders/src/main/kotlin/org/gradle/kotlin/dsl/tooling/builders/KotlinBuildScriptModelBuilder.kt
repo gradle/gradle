@@ -207,14 +207,19 @@ fun precompiledScriptPluginModelBuilder(
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
     enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
     additionalImports = {
-        val metadataDir = enclosingSourceSet.project.buildDir.resolve("precompiled-script-plugins")
-        require(metadataDir.isDirectory)
         implicitImportsFor(
             hashOf(scriptFile),
-            metadataDir
+            enclosingSourceSet.project.precompiledScriptPluginsMetadataDir
         ) ?: emptyList()
     }
 )
+
+
+private
+val Project.precompiledScriptPluginsMetadataDir: File
+    get() = buildDir.resolve("kotlin-dsl/precompiled-script-plugins-metadata").apply {
+        require(isDirectory)
+    }
 
 
 private

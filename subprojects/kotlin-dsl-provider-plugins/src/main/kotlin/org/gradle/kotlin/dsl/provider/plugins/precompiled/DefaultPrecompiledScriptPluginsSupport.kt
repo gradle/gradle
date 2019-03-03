@@ -157,7 +157,7 @@ fun Project.enableScriptCompilationOf(
 
     val compiledPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/compiled")
 
-    val generatedMetadata = buildDir("precompiled-script-plugins")
+    val generatedMetadata = buildDir("kotlin-dsl/precompiled-script-plugins-metadata")
 
     val compileClasspath by lazy { compileClasspath() }
 
