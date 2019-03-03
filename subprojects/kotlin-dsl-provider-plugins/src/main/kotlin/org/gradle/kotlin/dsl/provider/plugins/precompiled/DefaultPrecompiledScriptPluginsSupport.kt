@@ -206,10 +206,7 @@ fun Project.enableScriptCompilationOf(
             }
 
         val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
-            dependsOn(generateExternalPluginSpecBuilders)
-            inputs.files(
-                project.files(generatedMetadata).builtBy(generatePrecompiledScriptPluginAccessors)
-            )
+            dependsOn(generatePrecompiledScriptPluginAccessors)
             metadataDir.set(generatedMetadata)
         }
 
