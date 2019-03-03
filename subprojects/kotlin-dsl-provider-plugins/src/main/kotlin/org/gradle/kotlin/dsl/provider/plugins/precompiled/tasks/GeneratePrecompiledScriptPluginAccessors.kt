@@ -310,7 +310,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun IO.writeContentAddressableImplicitImportFor(packageName: String, scriptPlugin: PrecompiledScriptPlugin) {
-        io { writeFile(implicitImportFileFor(scriptPlugin), "$packageName.*".toByteArray()) }
+        writeFile(implicitImportFileFor(scriptPlugin), "$packageName.*".toByteArray())
     }
 
     private
