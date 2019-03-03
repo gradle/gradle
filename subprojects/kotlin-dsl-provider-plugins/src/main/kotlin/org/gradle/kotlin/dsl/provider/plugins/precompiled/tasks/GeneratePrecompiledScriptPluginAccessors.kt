@@ -123,6 +123,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     private
     fun recreateTaskDirectories() {
         recreate(temporaryDir)
+        recreate(sourceCodeOutputDir.get().asFile)
         recreate(metadataOutputDir.get().asFile)
     }
 
