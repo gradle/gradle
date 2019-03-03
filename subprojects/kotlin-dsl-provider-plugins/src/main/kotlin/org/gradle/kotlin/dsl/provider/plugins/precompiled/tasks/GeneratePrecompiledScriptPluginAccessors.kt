@@ -107,9 +107,10 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
      */
     @TaskAction
     fun generate() {
-        withAsynchronousIO(project) {
 
-            recreateTaskDirectories()
+        recreateTaskDirectories()
+
+        withAsynchronousIO(project) {
 
             val projectPlugins = selectProjectPlugins()
             if (projectPlugins.isNotEmpty()) {
@@ -119,14 +120,9 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     }
 
     private
-    fun IO.recreateTaskDirectories() {
-        // access dirs from main thread, recreate in IO thread
-        val taskTemporaryDir = temporaryDir
-        val metadataOutputDir = metadataOutputDir.get().asFile
-        io {
-            recreate(taskTemporaryDir)
-            recreate(metadataOutputDir)
-        }
+    fun recreateTaskDirectories() {
+        recreate(temporaryDir)
+        recreate(metadataOutputDir.get().asFile)
     }
 
     private
