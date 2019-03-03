@@ -7,7 +7,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -139,7 +138,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Ignore("BUG") // TODO:kotlin-dsl fix & un-ignore
     fun `accessors are available after script body change`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -164,24 +162,18 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             assertThat(output, containsString("base"))
         }
 
-        // TODO if you uncomment that line, then the test pass ...
-        // build("help")
-
         myPluginScript.appendText("""
 
             println("modified")
         """.trimIndent())
 
         build("help").apply {
-            // TODO :buildSrc:compileKotlin currently fails with `Unresolved reference 'base'`
-            // TODO no imports for accessors are provided to :buildSrc:compileKotlin
             assertThat(output, containsString("base"))
             assertThat(output, containsString("modified"))
         }
     }
 
     @Test
-    @Ignore("BUG") // TODO:kotlin-dsl fix & un-ignore
     fun `accessors are available after re-running tasks`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -202,11 +194,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         build("clean")
 
-        // TODO if you uncomment that line, then the test pass ...
-        // build("clean")
-
-        // TODO :buildSrc:compileKotlin currently fails with `Unresolved reference 'base'`
-        // TODO no imports for psp accessors are provided to :buildSrc:compileKotlin
         build("clean", "--rerun-tasks")
     }
 }

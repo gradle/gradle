@@ -67,6 +67,7 @@ import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.testfixtures.ProjectBuilder
 
 import java.io.File
+import java.net.URLClassLoader
 import java.nio.file.Files
 
 
@@ -227,13 +228,10 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
     private
     fun createPluginsClassLoader(): ClassLoader =
-        classLoaderScopeRegistry()
-            .coreAndPluginsScope
-            .createChild("$path/precompiled-script-plugins").run {
-                local(compiledPluginsClassPath())
-                lock()
-                localClassLoader
-            }
+        URLClassLoader(
+            compiledPluginsClassPath().asURLArray,
+            classLoaderScopeRegistry().coreAndPluginsScope.localClassLoader
+        )
 
     private
     fun classLoaderScopeRegistry() = project.serviceOf<ClassLoaderScopeRegistry>()
