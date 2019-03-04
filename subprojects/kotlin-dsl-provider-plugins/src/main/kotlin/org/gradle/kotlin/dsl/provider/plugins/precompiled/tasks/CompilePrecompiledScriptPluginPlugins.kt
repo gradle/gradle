@@ -50,18 +50,20 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
     @TaskAction
     fun compile() {
         outputDir.withOutputDirectory { outputDir ->
-            compileKotlinScriptModuleTo(
-                outputDir,
-                sourceFiles.name,
-                sourceFiles.map { it.path },
-                scriptDefinitionFromTemplate(
-                    KotlinPluginsBlock::class,
-                    implicitImportsForPrecompiledScriptPlugins()
-                ),
-                classPathFiles,
-                logger,
-                { it } // TODO: translate paths
-            )
+            val scriptFiles = sourceFiles.map { it.path }
+            if (scriptFiles.isNotEmpty())
+                compileKotlinScriptModuleTo(
+                    outputDir,
+                    sourceFiles.name,
+                    scriptFiles,
+                    scriptDefinitionFromTemplate(
+                        KotlinPluginsBlock::class,
+                        implicitImportsForPrecompiledScriptPlugins()
+                    ),
+                    classPathFiles,
+                    logger,
+                    { it } // TODO: translate paths
+                )
         }
     }
 }
