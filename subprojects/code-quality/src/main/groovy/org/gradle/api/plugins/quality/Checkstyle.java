@@ -106,7 +106,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * checkstyleTask {
      *   reports {
      *     html {
-     *       destination "build/codenarc.html"
+     *       destination "build/checkstyle.html"
      *     }
      *   }
      * }
@@ -128,7 +128,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * checkstyleTask {
      *   reports {
      *     html {
-     *       destination "build/codenarc.html"
+     *       destination "build/checkstyle.html"
      *     }
      *   }
      * }
