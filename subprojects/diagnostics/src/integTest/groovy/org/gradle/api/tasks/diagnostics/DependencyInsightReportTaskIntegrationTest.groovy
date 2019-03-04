@@ -1705,6 +1705,7 @@ project :
    variant "runtimeElements" [
       org.gradle.usage               = java-runtime-jars (not requested)
       org.gradle.dependency.bundling = external (not requested)
+      org.gradle.category            = library (not requested)
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion} (not requested)
    ]
 
@@ -1804,6 +1805,7 @@ project :impl
    variant "runtimeElements" [
       org.gradle.usage               = java-runtime-jars (not requested)
       org.gradle.dependency.bundling = external (not requested)
+      org.gradle.category            = library (not requested)
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion} (not requested)
    ]
 
@@ -1974,6 +1976,7 @@ project :api
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
       org.gradle.dependency.bundling = external
+      org.gradle.category            = library (not requested)
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -1991,6 +1994,7 @@ project :some:deeply:nested
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
       org.gradle.dependency.bundling = external
+      org.gradle.category            = library (not requested)
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2007,6 +2011,7 @@ project :some:deeply:nested
    variant "apiElements" [
       org.gradle.usage               = java-api-jars (compatible with: java-api)
       org.gradle.dependency.bundling = external
+      org.gradle.category            = library (not requested)
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 

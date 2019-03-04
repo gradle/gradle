@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -66,10 +67,10 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         }
         if (configuration.getArtifacts().isEmpty()) {
             // checks if it's a derived platform
-            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(PlatformSupport.VARIANT_CATEGORY);
+            AttributeValue<String> componentTypeEntry = configuration.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
             if (componentTypeEntry.isPresent()) {
                 String value = componentTypeEntry.get();
-                if (PlatformSupport.REGULAR_PLATFORM.equals(value) || PlatformSupport.ENFORCED_PLATFORM.equals(value)) {
+                if (Category.REGULAR_PLATFORM.equals(value) || Category.ENFORCED_PLATFORM.equals(value)) {
                     return NO_ARTIFACTS;
                 }
             }

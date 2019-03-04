@@ -48,7 +48,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     private DefaultDependencyHandler dependencyHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyHandler,
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
-        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory))
+        Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(Factory), TestUtil.objectInstantiator())
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

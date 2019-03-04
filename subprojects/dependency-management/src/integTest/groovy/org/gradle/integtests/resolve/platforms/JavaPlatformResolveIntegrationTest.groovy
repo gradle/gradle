@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.resolve.platforms
 
+import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -219,9 +219,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
                 .withModuleMetadata()
                 .adhocVariants()
-                .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (PlatformSupport.VARIANT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
+                .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) { useDefaultArtifacts = false }
                 .dependsOn("org", "foo", "1.0")
-                .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (PlatformSupport.VARIANT_CATEGORY.name): PlatformSupport.REGULAR_PLATFORM]) {
+                .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
                     useDefaultArtifacts = false
                 }
                 .dependsOn("org", "foo", "1.0")
