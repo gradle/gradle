@@ -5,6 +5,8 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
@@ -26,11 +28,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withBuildSrc()
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             val p =
         """)
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(buildScript))
     }
 
     @Test
@@ -39,11 +41,11 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withBuildSrc()
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             buildscript { TODO() }
         """)
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(buildScript))
     }
 
     @Test
@@ -52,7 +54,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("classes.jar")
 
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             buildscript {
                 dependencies {
                     classpath(files("classes.jar"))
@@ -63,7 +65,9 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         """)
 
         assertClassPathContains(
-            existing("classes.jar"))
+            canonicalClassPathFor(buildScript),
+            existing("classes.jar")
+        )
     }
 
     @Test
@@ -85,7 +89,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         """)
         withDefaultSettings()
 
-        assertContainsBuildSrc(canonicalClassPath())
+        assertContainsBuildSrc(canonicalClassPathFor(file("build.gradle.kts")))
     }
 
     @Test
@@ -96,7 +100,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
         withFile("classes.jar", "")
 
         withDefaultSettings()
-        withFile("build.gradle", """
+        val buildScript = withFile("build.gradle", """
             buildscript {
                 dependencies {
                     classpath(files("classes.jar"))
@@ -104,7 +108,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             }
         """)
 
-        val classPath = canonicalClassPath()
+        val classPath = canonicalClassPathFor(buildScript)
         assertThat(
             classPath.map { it.name },
             hasItem("classes.jar"))
@@ -189,8 +193,8 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch buildscript classpath for sub-project script outside root project dir`() {
 
-        val rootDependency = withJar("libs/root.jar")
-        val subDependency = withJar("libs/sub.jar")
+        val rootDependency = withDeepThoughtJar("libs/root.jar")
+        val subDependency = withDeepThoughtJar("libs/sub.jar")
 
         withFolders {
 
@@ -245,9 +249,9 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     fun assertCanFetchClassPathForSubProjectScriptOfNestedProjectOutsideProjectRoot(nestedProjectName: String) {
         withDefaultSettings()
 
-        val rootDependency = withJar("libs/root-dep.jar")
-        val nestedRootDependency = withJar("libs/$nestedProjectName-root-dep.jar")
-        val nestedSubDependency = withJar("libs/$nestedProjectName-sub-dep.jar")
+        val rootDependency = withDeepThoughtJar("libs/root-dep.jar")
+        val nestedRootDependency = withDeepThoughtJar("libs/$nestedProjectName-root-dep.jar")
+        val nestedSubDependency = withDeepThoughtJar("libs/$nestedProjectName-sub-dep.jar")
 
         withFolders {
             nestedProjectName {
@@ -337,7 +341,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
 
         val scriptPlugin = withFile("plugin.gradle.kts", scriptPluginCode)
 
-        val scriptPluginClassPath = canonicalClassPathFor(projectRoot, scriptPlugin)
+        val scriptPluginClassPath = canonicalClassPathFor(scriptPlugin)
         assertThat(
             scriptPluginClassPath.map { it.name },
             allOf(
@@ -366,7 +370,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             throw IllegalStateException()
         """)
 
-        val model = kotlinBuildScriptModelFor(projectRoot, scriptPlugin)
+        val model = kotlinBuildScriptModelFor(scriptPlugin)
         assertThat(
             "Script body shouldn't be evaluated",
             model.exceptions,
@@ -383,14 +387,14 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
     @Test
     fun `can fetch classpath of plugin portal plugin in plugins block`() {
         withDefaultSettings()
-        withBuildScript("""
+        val buildScript = withBuildScript("""
             plugins {
                 id("org.gradle.hello-world") version "0.2"
             }
         """)
 
         assertThat(
-            canonicalClassPath().map { it.name },
+            canonicalClassPathFor(buildScript).map { it.name },
             hasItems("gradle-hello-world-plugin-0.2.jar"))
     }
 
@@ -463,6 +467,7 @@ class KotlinBuildScriptModelIntegrationTest : ScriptModelIntegrationTest() {
             matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
     }
 
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @Test
     fun `sourcePath includes buildSrc project dependencies source roots`() {
 

@@ -72,6 +72,24 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 
+fun compileKotlinScriptModuleTo(
+    outputDirectory: File,
+    moduleName: String,
+    scriptFiles: Collection<String>,
+    scriptDef: KotlinScriptDefinition,
+    classPath: Iterable<File>,
+    logger: Logger,
+    pathTranslation: (String) -> String
+) = compileKotlinScriptModuleTo(
+    outputDirectory,
+    moduleName,
+    scriptFiles,
+    scriptDef,
+    classPath,
+    LoggingMessageCollector(logger, pathTranslation)
+)
+
+
 internal
 fun compileKotlinScriptToDirectory(
     outputDirectory: File,
@@ -79,19 +97,41 @@ fun compileKotlinScriptToDirectory(
     scriptDef: KotlinScriptDefinition,
     classPath: List<File>,
     messageCollector: LoggingMessageCollector
-): String =
+): String {
 
+    compileKotlinScriptModuleTo(
+        outputDirectory,
+        "buildscript",
+        listOf(scriptFile.path),
+        scriptDef,
+        classPath,
+        messageCollector
+    )
+
+    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+}
+
+
+private
+fun compileKotlinScriptModuleTo(
+    outputDirectory: File,
+    moduleName: String,
+    scriptFiles: Collection<String>,
+    scriptDef: KotlinScriptDefinition,
+    classPath: Iterable<File>,
+    messageCollector: LoggingMessageCollector
+) {
     withRootDisposable {
 
         withCompilationExceptionHandler(messageCollector) {
 
             val configuration = compilerConfigurationFor(messageCollector).apply {
-                addKotlinSourceRoot(scriptFile.canonicalPath)
                 put(JVM_TARGET, JVM_1_8)
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName("buildscript")
+                setModuleName(moduleName)
                 addScriptDefinition(scriptDef)
+                scriptFiles.forEach { addKotlinSourceRoot(it) }
                 classPath.forEach { addJvmClasspathRoot(it) }
             }
             val environment = kotlinCoreEnvironmentFor(configuration).apply {
@@ -100,10 +140,9 @@ fun compileKotlinScriptToDirectory(
 
             compileBunchOfSources(environment)
                 || throw ScriptCompilationException(messageCollector.errors)
-
-            NameUtils.getScriptNameForFile(scriptFile.name).asString()
         }
     }
+}
 
 
 private

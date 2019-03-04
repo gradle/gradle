@@ -49,6 +49,7 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
+import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
@@ -80,14 +81,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<Project, (String) -> Unit>("function1"),
                     entry<Project, (Int, Double) -> Boolean>("function2")
                 ),
-                containerElements = listOf(
-                ),
-                conventions = listOf(
-                ),
-                tasks = listOf(
-                ),
-                configurations = listOf(
-                )
+                containerElements = listOf(),
+                conventions = listOf(),
+                tasks = listOf(),
+                configurations = listOf()
             )
 
         val function0 = mock<() -> Unit>()
@@ -160,8 +157,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     tasks = listOf(
                         ProjectSchemaEntry(SchemaType.of<TaskContainer>(), "task", schemaTypeFor("CustomTask"))
                     ),
-                    configurations = listOf(
-                    )
+                    configurations = listOf()
                 )
 
             val srcDir = newFolder("src")

@@ -129,12 +129,4 @@ class AccessorsClassPathIntegrationTest : ScriptModelIntegrationTest() {
 
     private
     val accessorsClassFilePath = "org/gradle/kotlin/dsl/ArchivesConfigurationAccessorsKt.class"
-
-    private
-    fun classPathFor(buildFile: File) =
-        kotlinBuildScriptModelFor(buildFile).classPath
-
-    private
-    fun kotlinBuildScriptModelFor(buildFile: File) =
-        kotlinBuildScriptModelFor(projectRoot, buildFile)
 }

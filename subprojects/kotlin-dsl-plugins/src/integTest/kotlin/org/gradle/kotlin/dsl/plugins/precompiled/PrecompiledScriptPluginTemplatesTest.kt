@@ -13,34 +13,27 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Before
 import org.junit.Test
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class PrecompiledScriptPluginTest : AbstractPluginTest() {
-
-    @Before
-    fun setupPluginTest() =
-        requireGradleDistributionOnEmbeddedExecuter()
+class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
@@ -105,7 +98,6 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
         // given:
         val expectedMessage = "Not on my watch!"
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/my-project-script.gradle.kts", """
@@ -193,15 +185,12 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     """)
                 }
 
-                withFile("settings.gradle.kts", """
-
-                    $pluginManagementBlock
-
-                """)
+                withFile("settings.gradle.kts", defaultSettingsScript)
 
                 withFile(
                     "build.gradle.kts",
-                    scriptWithKotlinDslPlugin())
+                    scriptWithKotlinDslPlugin()
+                )
             }
         }
 
@@ -261,11 +250,7 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                     """)
                 }
 
-                withFile("settings.gradle.kts", """
-
-                    $pluginManagementBlock
-
-                """)
+                withFile("settings.gradle.kts", defaultSettingsScript)
 
                 withFile("build.gradle.kts", """
 
@@ -359,44 +344,5 @@ class PrecompiledScriptPluginTest : AbstractPluginTest() {
                 "My_plugin_gradle"
             )
         }
-    }
-
-    private
-    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
-        withDefaultSettings()
-        withKotlinDslPlugin()
-        withFile("src/main/kotlin/$fileName", code)
-        compileKotlin()
-    }
-
-    private
-    inline fun <reified T> instantiatePrecompiledScriptOf(target: T, className: String): Any =
-        loadCompiledKotlinClass(className)
-            .getConstructor(T::class.java)
-            .newInstance(target)
-
-    private
-    fun loadCompiledKotlinClass(className: String) =
-        classLoaderFor(existing("build/classes/kotlin/main"))
-            .loadClass(className)
-
-    private
-    fun withKotlinDslPlugin() =
-        withBuildScript(scriptWithKotlinDslPlugin())
-
-    private
-    fun scriptWithKotlinDslPlugin(): String =
-        """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-        """
-
-    private
-    fun compileKotlin() {
-        buildWithPlugin("classes")
-            .assertTaskExecuted(":compileKotlin")
     }
 }

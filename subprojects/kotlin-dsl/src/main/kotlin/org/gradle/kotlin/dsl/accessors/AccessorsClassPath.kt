@@ -31,7 +31,8 @@ import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
-import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
@@ -94,7 +95,12 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
 
 
 internal
-fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, builder: (File, File) -> Unit): AccessorsClassPath {
+fun cachedAccessorsClassPathFor(
+    project: Project,
+    cacheKeySpec: CacheKeySpec,
+    builder: (File, File) -> Unit
+): AccessorsClassPath {
+
     val cacheDir =
         scriptCacheOf(project)
             .cacheDirFor(cacheKeySpec) { baseDir ->
@@ -103,6 +109,7 @@ fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, bu
                     accessorsClassesDir(baseDir)
                 )
             }
+
     return AccessorsClassPath(
         DefaultClassPath.of(accessorsClassesDir(cacheDir)),
         DefaultClassPath.of(accessorsSourceDir(cacheDir))
@@ -128,7 +135,6 @@ fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
     } else null
 
 
-internal
 fun schemaFor(project: Project): TypedProjectSchema =
     projectSchemaProviderOf(project).schemaFor(project)
 
@@ -142,19 +148,45 @@ private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
-internal
 fun IO.buildAccessorsFor(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
-    binDir: File
+    binDir: File,
+    packageName: String = kotlinDslPackageName,
+    format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     emitAccessorsFor(
         availableSchema,
         srcDir,
-        binDir
+        binDir,
+        OutputPackage(packageName),
+        format
     )
+}
+
+
+typealias AccessorFormat = (String) -> String
+
+
+object AccessorFormats {
+
+    val default: AccessorFormat = { accessor ->
+        accessor.replaceIndent()
+    }
+
+    val `internal`: AccessorFormat = { accessor ->
+        accessor
+            .replaceIndent()
+            .let { valFunOrClass.matcher(it) }
+            .replaceAll("internal\n$1 ")
+    }
+
+    private
+    val valFunOrClass by lazy {
+        "^(val|fun|class) ".toRegex(RegexOption.MULTILINE).toPattern()
+    }
 }
 
 
@@ -473,7 +505,6 @@ fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheK
         + classPath)
 
 
-internal
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
     putAll(schema.conventions)
@@ -510,9 +541,14 @@ fun enabledJitAccessors(project: Project) =
 
 
 internal
-fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List<String> = emptyList()) = io {
+fun IO.writeAccessorsTo(
+    outputFile: File,
+    accessors: Iterable<String>,
+    imports: List<String> = emptyList(),
+    packageName: String = kotlinDslPackageName
+) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImports)
+        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendReproducibleNewLine("import $it")
@@ -520,7 +556,7 @@ fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List
             appendReproducibleNewLine()
         }
         accessors.forEach {
-            appendReproducibleNewLine(it.replaceIndent())
+            appendReproducibleNewLine(it)
             appendReproducibleNewLine()
         }
     }
@@ -528,8 +564,8 @@ fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List
 
 
 internal
-val fileHeaderWithImports = """
-$fileHeader
+fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
+${fileHeaderFor(accessorsPackage)}
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating

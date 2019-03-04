@@ -36,7 +36,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `applies the kotlin plugin`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -45,14 +44,14 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("assemble")
+        val result = build("assemble")
 
         result.assertOutputContains(":compileKotlin NO-SOURCE")
     }
 
     @Test
     fun `adds stdlib and reflect as compile only dependencies`() {
-        withDefaultSettings()
+
         withBuildScript("""
 
             plugins {
@@ -74,13 +73,12 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        buildWithPlugin("assertions")
+        build("assertions")
     }
 
     @Test
     fun `all embedded kotlin dependencies are resolvable without any added repository`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -96,7 +94,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("dependencies")
+        val result = build("dependencies")
 
         assertThat(result.output, containsString("Embedded Kotlin Repository"))
         listOf("stdlib", "reflect", "compiler-embeddable").forEach {
@@ -107,7 +105,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `sources and javadoc of all embedded kotlin dependencies are resolvable with an added repository`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -153,7 +150,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             printFileNamesOf<JavadocArtifact>()
         """)
 
-        val result = buildWithPlugin("help")
+        val result = build("help")
 
         listOf("stdlib", "reflect").forEach {
             assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
@@ -165,7 +162,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @Test
     fun `can add embedded dependencies to custom configuration`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -178,7 +174,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             configurations["customConfiguration"].files.map { println(it) }
         """)
 
-        val result = buildWithPlugin("dependencies", "--configuration", "customConfiguration")
+        val result = build("dependencies", "--configuration", "customConfiguration")
 
         listOf("stdlib", "reflect").forEach {
             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$it:$embeddedKotlinVersion"))
@@ -190,8 +186,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `can be used with GRADLE_METADATA feature preview enabled`() {
 
-        withSettings("""
-            $defaultSettingsScript
+        withDefaultSettings().appendText("""
             enableFeaturePreview("GRADLE_METADATA")
         """)
 
@@ -207,7 +202,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
         withFile("src/main/kotlin/source.kt", """var foo = "bar"""")
 
-        val result = buildWithPlugin("assemble")
+        val result = build("assemble")
 
         result.assertTaskExecuted(":compileKotlin")
     }

@@ -350,7 +350,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         val fragment = source.fragment(0..6, 8..29)
         val stage1 = Program.Plugins(fragment)
-        val stage2 = source.map { it.erase(listOf(fragment.section.wholeRange)) }
+        val stage2 = source.map { it.erase(listOf(fragment.range)) }
         val stagedProgram = Dynamic(
             Static(ApplyPluginRequestsOf(stage1), ApplyBasePlugins),
             stage2
@@ -437,7 +437,7 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
     private
     fun ProgramText.without(buildscript: Program.Buildscript, plugins: Program.Plugins) =
-        erase(listOf(buildscript.fragment, plugins.fragment).map { it.section.wholeRange })
+        erase(listOf(buildscript.fragment, plugins.fragment).map { it.range })
 
     private
     fun assertStagedTopLevelProjectProgram(
