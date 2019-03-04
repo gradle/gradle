@@ -111,10 +111,9 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
         recreateTaskDirectories()
 
-        withAsynchronousIO(project) {
-
-            val projectPlugins = selectProjectPlugins()
-            if (projectPlugins.isNotEmpty()) {
+        val projectPlugins = selectProjectPlugins()
+        if (projectPlugins.isNotEmpty()) {
+            withAsynchronousIO(project) {
                 generateTypeSafeAccessorsFor(projectPlugins)
             }
         }
