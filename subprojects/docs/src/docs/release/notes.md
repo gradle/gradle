@@ -44,12 +44,6 @@ dependencies {
 
 Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
 
-### Gradle Module Metadata 1.0
-
-Gradle Module Metadata is now 1.0.
-
-Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
-
 ## Kotlin DSL
 
 ### Kotlin 1.3.21
@@ -135,6 +129,12 @@ Execution failed for task ':clean'.
 
 Gradle now offers a public API to publish custom software components.
 Refer to the `SoftwareComponentFactory` javadocs for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
+
+### Gradle Module Metadata 1.0
+
+Gradle Module Metadata is now 1.0.
+
+Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
 
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
 
