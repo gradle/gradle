@@ -1067,6 +1067,7 @@ include 'other'
                         members.each { member ->
                             constraint(member)
                         }
+                        noArtifacts = true
                     }
                     // this is used only in BOMs
                     members.each { member ->

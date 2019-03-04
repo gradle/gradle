@@ -18,6 +18,7 @@ package org.gradle.internal.component.model
 
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.ArtifactIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -30,6 +31,8 @@ import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
@@ -45,6 +48,7 @@ class AttributeConfigurationSelectorTest extends Specification {
     private ConfigurationMetadata selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
+    private List<IvyArtifactName> artifacts = []
 
     @Unroll
     def "selects a variant when there's no ambiguity"() {
@@ -187,7 +191,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        failsWith(e,'''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
   - api3
@@ -283,13 +287,53 @@ All of them match the consumer attributes:
         selected.name == 'second'
     }
 
+    def "should select the variant which matches the requested classifier"() {
+        def variant1 = variant("first", ImmutableAttributes.EMPTY)
+        def variant2 = variant("second", ImmutableAttributes.EMPTY)
+
+        given:
+        variant1.getArtifacts() >> [
+                artifact('foo', null)
+        ]
+        variant2.getArtifacts() >> [
+                artifact('foo', 'classy')
+        ]
+        component(variant1, variant2)
+
+        and:
+        requireArtifact('foo', 'jar', 'jar', 'classy')
+
+        when:
+        performSelection()
+
+        then:
+        selected.name == 'second'
+    }
+
     private void performSelection() {
         selected = AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(
                 consumerAttributes,
                 requestedCapabilities,
                 targetComponent,
-                attributesSchema
+                attributesSchema,
+                artifacts
         )
+    }
+
+    private void requireArtifact(String name = "foo", String type = "jar", String ext = "jar", String classifier = null) {
+        artifacts << new DefaultIvyArtifactName(name, type, ext, classifier)
+    }
+
+    private ModuleComponentArtifactMetadata artifact(String name, String classifier) {
+        Stub(ModuleComponentArtifactMetadata) {
+            getId() >> Stub(ModuleComponentArtifactIdentifier)
+            toArtifactIdentifier() >> Stub(ArtifactIdentifier) {
+                getName() >> name
+                getType() >> "jar"
+                getExtension() >> "jar"
+                getClassifier() >> classifier
+            }
+        }
     }
 
     private consumerAttributes(Map<String, Object> attrs) {
@@ -349,7 +393,7 @@ All of them match the consumer attributes:
 
         @Override
         void execute(CompatibilityCheckDetails<String> details) {
-            if (details.consumerValue == 'java-api' && details.producerValue=='java-runtime') {
+            if (details.consumerValue == 'java-api' && details.producerValue == 'java-runtime') {
                 details.compatible()
             }
         }

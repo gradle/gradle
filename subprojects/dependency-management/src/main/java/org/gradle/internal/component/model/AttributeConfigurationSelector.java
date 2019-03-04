@@ -18,6 +18,8 @@ package org.gradle.internal.component.model;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -26,14 +28,16 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AttributeConfigurationSelector {
 
-    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema) {
+    public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> consumableConfigurations = variantsForGraphTraversal.or(ImmutableList.<ConfigurationMetadata>of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
@@ -57,12 +61,24 @@ public abstract class AttributeConfigurationSelector {
             List<ConfigurationMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, versionId.getGroup(), versionId.getName(), false);
             if (strictlyMatchingCapabilities.size() == 1) {
                 return singleVariant(variantsForGraphTraversal, matches);
-            } else if (strictlyMatchingCapabilities.size() > 1){
+            } else if (strictlyMatchingCapabilities.size() > 1) {
                 // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
                 // so we perform another round of selection on the remaining candidates
                 strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, fallbackConfiguration);
                 if (strictlyMatchingCapabilities.size() == 1) {
                     return singleVariant(variantsForGraphTraversal, matches);
+                }
+            }
+            if (requestedArtifacts.size() == 1) {
+                // Here, we know that the user requested a specific classifier. There may be multiple
+                // candidate variants left, but maybe only one of them provides the classified artifact
+                // we're looking for.
+                String classifier = requestedArtifacts.get(0).getClassifier();
+                if (classifier != null) {
+                    List<ConfigurationMetadata> sameClassifier = findVariantsProvidingExactlySameClassifier(matches, classifier);
+                    if (sameClassifier != null && sameClassifier.size() == 1) {
+                        return singleVariant(variantsForGraphTraversal, sameClassifier);
+                    }
                 }
             }
         }
@@ -73,6 +89,29 @@ public abstract class AttributeConfigurationSelector {
         } else {
             throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
         }
+    }
+
+    private static List<ConfigurationMetadata> findVariantsProvidingExactlySameClassifier(List<ConfigurationMetadata> matches, String classifier) {
+        List<ConfigurationMetadata> sameClassifier = null;
+        // let's see if we can find a single variant which has exactly the requested artifacts
+        for (ConfigurationMetadata match : matches) {
+            List<? extends ComponentArtifactMetadata> artifacts = match.getArtifacts();
+            if (artifacts.size() == 1) {
+                ComponentArtifactMetadata componentArtifactMetadata = artifacts.get(0);
+                if (componentArtifactMetadata instanceof ModuleComponentArtifactMetadata) {
+                    ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) componentArtifactMetadata).toArtifactIdentifier();
+                    if (classifier.equals(artifactIdentifier.getClassifier())) {
+                        if (sameClassifier == null) {
+                            sameClassifier = Collections.singletonList(match);
+                        } else {
+                            sameClassifier = Lists.newArrayList(sameClassifier);
+                            sameClassifier.add(match);
+                        }
+                    }
+                }
+            }
+        }
+        return sameClassifier;
     }
 
     private static ConfigurationMetadata singleVariant(Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal, List<ConfigurationMetadata> matches) {
