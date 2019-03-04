@@ -354,6 +354,88 @@ tasks.register("largeAndroidBuild", RemoteProject) {
     branch = 'android-34'
 }
 
+tasks.register("santaTrackerAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
+    branch = 'agp-3.5.0'
+    doLast {
+        new File(outputDirectory, 'santa-tracker/google-services.json') << """
+{
+  "project_info": {
+    "project_number": "012345678912",
+    "firebase_url": "https://example.com",
+    "project_id": "example",
+    "storage_bucket": "example.example.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
+        "android_client_info": {
+          "package_name": "com.google.android.apps.santatracker.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "foo.example.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "012345678901234567890123456789012345678"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
+        "android_client_info": {
+          "package_name": "com.google.android.apps.santatracker.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "foo.example.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "012345678901234567890123456789012345678"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+"""
+    }
+}
+
 tasks.register("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     branch = 'master'

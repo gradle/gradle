@@ -40,11 +40,12 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
 
         where:
         testProject         | memory | parallel | warmUpRuns | runs | tasks
-        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'help'
-        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'assembleDebug'
+        'k9AndroidBuild'           | '1g' | false | null | null | 'help'
+        'k9AndroidBuild'           | '1g' | false | null | null | 'assembleDebug'
 //        'k9AndroidBuild'    | '1g'   | false    | null       | null | 'clean k9mail:assembleDebug'
-        'largeAndroidBuild' | '5g'   | true     | null       | null | 'help'
-        'largeAndroidBuild' | '5g'   | true     | null       | null | 'assembleDebug'
-        'largeAndroidBuild' | '5g'   | true     | 2          | 8    | 'clean phthalic:assembleDebug'
+        'largeAndroidBuild'        | '5g' | true  | null | null | 'help'
+        'largeAndroidBuild'        | '5g' | true  | null | null | 'assembleDebug'
+        'largeAndroidBuild'        | '5g' | true  | 2    | 8    | 'clean phthalic:assembleDebug'
+        'santaTrackerAndroidBuild' | '1g' | true  | null | null | 'assembleDebug'
     }
 }
