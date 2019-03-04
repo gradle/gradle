@@ -35,7 +35,7 @@ abstract class ClassPathSensitiveTask : DefaultTask() {
     @get:Classpath
     lateinit var classPathFiles: FileCollection
 
-    // Todo: Replaced all of this by HashedClasspath
+    // TODO:kotlin-dsl Replace (classPathFiles, classPath, classPathHash) by a single HashedClassPath instance shared by all tasks
     @get:Internal
     protected
     val classPath by lazy {
