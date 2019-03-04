@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
@@ -43,7 +42,6 @@ import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.MethodSet;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.PropertyDetails;
@@ -453,8 +451,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Determines the concrete return type of the given method, resolving any type parameters.
          */
         public MethodMetadata resolveTypeVariables(Method method) {
-            Type returnType = method.getGenericReturnType();
-            Type resolvedReturnType = JavaReflectionUtil.hasTypeVariable(returnType) ? TypeToken.of(type).method(method).getReturnType().getType() : returnType;
+            Type resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(type, method);
             return new MethodMetadata(method, resolvedReturnType);
         }
 
