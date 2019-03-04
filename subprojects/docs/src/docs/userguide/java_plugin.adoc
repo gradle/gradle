@@ -601,8 +601,9 @@ Both categories have the following limitations:
 * They must not depend on compiler-specific APIs like `com.sun.source.util.Trees`.
     Gradle wraps the processing APIs, so attempts to cast to compiler-specific types will fail.
     If your processor does this, it cannot be incremental, unless you have some fallback mechanism.
-* If they use link:{javaApi}/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource], Gradle will recompile all source files.
-    See https://github.com/gradle/gradle/issues/4702[gradle/issues/4702]
+* If they use link:{javaApi}/javax/annotation/processing/Filer.html#createResource(javax.tools.JavaFileManager.Location,java.lang.CharSequence,java.lang.CharSequence,javax.lang.model.element.Element++...++)[Filer#createResource],
+    the `location` argument must be one of these values from link:{javaApi}/javax/tools/StandardLocation.html[StandardLocation]: `CLASS_OUTPUT`, `SOURCE_OUTPUT`, or `NATIVE_HEADER_OUTPUT`.
+    Any other argument will disable incremental processing.
 
 ==== "Isolating" annotation processors
 

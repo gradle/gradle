@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalA
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileManager;
 import java.util.Set;
 
 /**
@@ -54,5 +55,10 @@ public class DynamicProcessingStrategy extends IncrementalProcessingStrategy {
     @Override
     public void recordGeneratedType(CharSequence name, Element[] originatingElements) {
         delegate.recordGeneratedType(name, originatingElements);
+    }
+
+    @Override
+    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
+        delegate.recordGeneratedResource(location, pkg, relativeName, originatingElements);
     }
 }

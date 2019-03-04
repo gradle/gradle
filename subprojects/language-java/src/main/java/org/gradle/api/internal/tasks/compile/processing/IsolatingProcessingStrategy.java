@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileManager;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.ISOLATING;
@@ -51,5 +53,22 @@ class IsolatingProcessingStrategy extends IncrementalProcessingStrategy {
             result.setFullRebuildCause("the generated type '" + generatedType + "' must have exactly one originating element, but had " + size);
         }
         result.addGeneratedType(generatedType, originatingTypes);
+    }
+
+    @Override
+    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
+        GeneratedResource.Location resourceLocation = GeneratedResource.Location.from(location);
+        if (resourceLocation == null) {
+            result.setFullRebuildCause(location + " is not supported for incremental annotation processing");
+            return;
+        }
+        GeneratedResource generatedResource = new GeneratedResource(resourceLocation, pkg, relativeName);
+
+        Set<String> originatingTypes = ElementUtils.getTopLevelTypeNames(originatingElements);
+        int size = originatingTypes.size();
+        if (size != 1) {
+            result.setFullRebuildCause("the generated resource '" + generatedResource + "' must have exactly one originating element, but had " + size);
+        }
+        result.addGeneratedResource(generatedResource, originatingTypes);
     }
 }

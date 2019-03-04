@@ -55,12 +55,20 @@ public class AnnotationProcessorResult implements Serializable {
         processingResult.addGeneratedType(name, originatingElements);
     }
 
+    public void addGeneratedResource(GeneratedResource resource, Set<String> originatingElements) {
+        processingResult.addGeneratedResource(resource, originatingElements);
+    }
+
     public Set<String> getAggregatedTypes() {
         return processingResult.getAggregatedTypes();
     }
 
     public Set<String> getGeneratedAggregatingTypes() {
         return processingResult.getGeneratedAggregatingTypes();
+    }
+
+    public Set<GeneratedResource> getGeneratedAggregatingResources() {
+        return processingResult.getGeneratedAggregatingResources();
     }
 
     public void setFullRebuildCause(String fullRebuildCause) {

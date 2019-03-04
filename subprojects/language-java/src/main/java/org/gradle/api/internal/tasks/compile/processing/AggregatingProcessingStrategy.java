@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.compile.processing;
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
@@ -66,5 +68,15 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
     @Override
     public void recordGeneratedType(CharSequence name, Element[] originatingElements) {
         result.getGeneratedAggregatingTypes().add(name.toString());
+    }
+
+    @Override
+    public void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements) {
+        GeneratedResource.Location resourceLocation = GeneratedResource.Location.from(location);
+        if (resourceLocation == null) {
+            result.setFullRebuildCause(location + " is not supported for incremental annotation processing");
+        } else {
+            result.getGeneratedAggregatingResources().add(new GeneratedResource(resourceLocation, pkg, relativeName));
+        }
     }
 }

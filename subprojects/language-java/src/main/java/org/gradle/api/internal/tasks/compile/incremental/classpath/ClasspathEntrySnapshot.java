@@ -48,7 +48,7 @@ public class ClasspathEntrySnapshot {
             }
             result.add(className);
         }
-        return DependentsSet.dependents(result);
+        return DependentsSet.dependentClasses(result);
     }
 
     public IntSet getAllConstants(DependentsSet dependents) {
