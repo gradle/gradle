@@ -247,6 +247,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
 
         val schemaBuilder = SyntheticProjectSchemaBuilder(
+            gradleUserHomeDir = project.gradle.gradleUserHomeDir,
             rootProjectDir = uniqueTempDirectory(),
             rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files
         )
@@ -319,10 +320,14 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
 
 
 internal
-class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: Collection<File>) {
+class SyntheticProjectSchemaBuilder(
+    gradleUserHomeDir: File,
+    rootProjectDir: File,
+    rootProjectClassPath: Collection<File>
+) {
 
     private
-    val rootProject = buildRootProject(rootProjectDir, rootProjectClassPath)
+    val rootProject = buildRootProject(gradleUserHomeDir, rootProjectDir, rootProjectClassPath)
 
     fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
         schemaFor(childProjectWith(plugins))
@@ -341,9 +346,14 @@ class SyntheticProjectSchemaBuilder(rootProjectDir: File, rootProjectClassPath: 
     }
 
     private
-    fun buildRootProject(projectDir: File, rootProjectClassPath: Collection<File>): Project {
+    fun buildRootProject(
+        gradleUserHomeDir: File,
+        projectDir: File,
+        rootProjectClassPath: Collection<File>
+    ): Project {
 
         val project = ProjectBuilder.builder()
+            .withGradleUserHomeDir(gradleUserHomeDir)
             .withProjectDir(projectDir)
             .build()
 
