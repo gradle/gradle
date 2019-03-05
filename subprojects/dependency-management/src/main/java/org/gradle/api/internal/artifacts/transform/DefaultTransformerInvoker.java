@@ -29,23 +29,20 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.AbstractFingerprintChanges;
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.InputFileChanges;
+import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.OutputNormalizer;
@@ -374,11 +371,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return executionHistoryStore.load(identityString).map(previous -> {
+            Optional<AfterPreviousExecutionState> afterPreviousExecutionState = executionHistoryStore.load(identityString);
+            return afterPreviousExecutionState.map(previous -> {
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs();
-                InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
-                AllOutputFileChanges outputFileChanges = new AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
-                return new TransformerExecutionStateChanges(inputFileChanges, outputFileChanges, previous);
+                BeforeExecutionState current = new DefaultBeforeExecutionState(
+                    previous.getImplementation(),
+                    previous.getAdditionalImplementations(),
+                    previous.getInputProperties(),
+                    inputFileFingerprints,
+                    outputsBeforeExecution
+                );
+                return new DefaultExecutionStateChanges(previous, current, this);
             });
         }
 
@@ -417,38 +420,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
 
-        private class TransformerExecutionStateChanges implements ExecutionStateChanges {
-            private final InputFileChanges inputFileChanges;
-            private final AllOutputFileChanges outputFileChanges;
-            private final AfterPreviousExecutionState afterPreviousExecutionState;
-
-            public TransformerExecutionStateChanges(InputFileChanges inputFileChanges, AllOutputFileChanges outputFileChanges, AfterPreviousExecutionState afterPreviousExecutionState) {
-                this.inputFileChanges = inputFileChanges;
-                this.outputFileChanges = outputFileChanges;
-                this.afterPreviousExecutionState = afterPreviousExecutionState;
-            }
-
-            @Override
-            public Iterable<Change> getInputFilesChanges() {
-                return ImmutableList.of();
-            }
-
-            @Override
-            public void visitAllChanges(ChangeVisitor visitor) {
-                new SummarizingChangeContainer(inputFileChanges, outputFileChanges).accept(visitor);
-            }
-
-            @Override
-            public boolean isRebuildRequired() {
-                return true;
-            }
-
-            @Override
-            public AfterPreviousExecutionState getPreviousExecution() {
-                return afterPreviousExecutionState;
-            }
-        }
-
         private class TransformerExecutionBuildCacheKey implements BuildCacheKey {
             private final HashCode hashCode;
 
@@ -465,18 +436,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             public String getDisplayName() {
                 return getHashCode() + " for transformer " + TransformerExecution.this.getDisplayName();
             }
-        }
-    }
-
-    private static class AllOutputFileChanges extends AbstractFingerprintChanges {
-
-        public AllOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            super(previous, current, "Output");
-        }
-
-        @Override
-        public boolean accept(ChangeVisitor visitor) {
-            return accept(visitor, true);
         }
     }
 

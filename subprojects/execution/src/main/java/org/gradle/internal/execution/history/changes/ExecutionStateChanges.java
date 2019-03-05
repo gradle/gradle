@@ -45,5 +45,6 @@ public interface ExecutionStateChanges {
     /**
      * The base execution the changes are calculated against.
      */
+    // TODO Use AfterPreviousExecutionState from context instead
     AfterPreviousExecutionState getPreviousExecution();
 }
