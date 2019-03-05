@@ -10,7 +10,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions andExecutionOutcome.EXECUTED
  * limitations under the License.
  */
 
@@ -75,7 +75,7 @@ class CacheStepTest extends Specification {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
-            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED_FULLY)
             final boolean reused = false
         }
 
@@ -120,7 +120,7 @@ class CacheStepTest extends Specification {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
-            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED_FULLY)
             final boolean reused = false
         }
         when:

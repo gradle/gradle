@@ -30,7 +30,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 public interface TaskExecutionContext {
@@ -70,11 +69,6 @@ public interface TaskExecutionContext {
      * This can only be called once per task.
      */
     long markExecutionTime();
-
-    @Nullable
-    List<String> getUpToDateMessages();
-
-    void setUpToDateMessages(List<String> upToDateMessages);
 
     void setTaskProperties(TaskProperties properties);
 

@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 
 import java.time.Duration
-import java.util.function.BooleanSupplier
+import java.util.function.Supplier
 
 class ExecutionTest extends Specification {
 
@@ -42,26 +42,27 @@ class ExecutionTest extends Specification {
         )
     )
 
-    def "executes the unit of work"() {
-        def unitOfWork = new TestUnitOfWork({ ->
-            return true
-        })
+    def "executes the unit of work with outcome: #outcome"() {
+        def unitOfWork = new TestUnitOfWork({ -> outcome })
         when:
         def result = executionStep.execute { -> unitOfWork}
 
         then:
         unitOfWork.executed
-        result.outcome.get() == ExecutionOutcome.EXECUTED
+        result.outcome.get() == outcome
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _
+
+        where:
+        outcome << [ExecutionOutcome.EXECUTED_FULLY, ExecutionOutcome.EXECUTED_INCREMENTALLY]
     }
 
     def "reports no work done"() {
         when:
         def result = executionStep.execute { ->
             new TestUnitOfWork({ ->
-                return false
+                return ExecutionOutcome.UP_TO_DATE
             })
         }
 
@@ -92,20 +93,20 @@ class ExecutionTest extends Specification {
 
     def "invalidates only changing outputs"() {
         def changingOutputs = ['some/location']
-        def unitOfWork = new TestUnitOfWork({ -> true }, changingOutputs)
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_FULLY }, changingOutputs)
 
         when:
         def result = executionStep.execute { -> unitOfWork }
 
         then:
-        result.outcome.get() == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED_FULLY
 
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
     }
 
     def "fails the execution when build has been cancelled"() {
-        def unitOfWork = new TestUnitOfWork({ -> true })
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_FULLY })
 
         when:
         cancellationToken.cancel()
@@ -121,10 +122,10 @@ class ExecutionTest extends Specification {
 
     static class TestUnitOfWork implements UnitOfWork {
 
-        private final BooleanSupplier work
+        private final Supplier<ExecutionOutcome> work
         private final Iterable<String> changingOutputs
 
-        TestUnitOfWork(BooleanSupplier work = { -> true}, Iterable<String> changingOutputs = null) {
+        TestUnitOfWork(Supplier<ExecutionOutcome> work, Iterable<String> changingOutputs = null) {
             this.changingOutputs = changingOutputs
             this.work = work
         }
@@ -134,7 +135,7 @@ class ExecutionTest extends Specification {
         @Override
         ExecutionOutcome execute() {
             executed = true
-            return work.asBoolean ? ExecutionOutcome.EXECUTED : ExecutionOutcome.UP_TO_DATE
+            return work.get()
         }
 
         @Override

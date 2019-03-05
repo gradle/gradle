@@ -23,5 +23,5 @@ public interface UpToDateResult extends SnapshotResult {
      * A list of messages describing the first few reasons encountered that caused the work to be executed.
      * An empty list means the work was up-to-date and hasn't been executed.
      */
-    ImmutableList<String> getOutOfDateReasons();
+    ImmutableList<String> getExecutionReasons();
 }

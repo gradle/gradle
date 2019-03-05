@@ -60,7 +60,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
                 }
                 return new UpToDateResult() {
                     @Override
-                    public ImmutableList<String> getOutOfDateReasons() {
+                    public ImmutableList<String> getExecutionReasons() {
                         return ImmutableList.of();
                     }
 
@@ -91,11 +91,11 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
     }
 
     private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
-        logOutOfDateReasons(reasons, context.getWork());
+        logExecutionReasons(reasons, context.getWork());
         SnapshotResult result = delegate.execute(context);
         return new UpToDateResult() {
             @Override
-            public ImmutableList<String> getOutOfDateReasons() {
+            public ImmutableList<String> getExecutionReasons() {
                 return reasons;
             }
 
@@ -121,7 +121,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
         };
     }
 
-    private void logOutOfDateReasons(List<String> reasons, UnitOfWork work) {
+    private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));

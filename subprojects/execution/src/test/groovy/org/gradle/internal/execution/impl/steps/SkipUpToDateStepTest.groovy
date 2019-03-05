@@ -36,7 +36,7 @@ class SkipUpToDateStepTest extends Specification {
 
         then:
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
-        result.outOfDateReasons.empty
+        result.executionReasons.empty
 
         _ * context.work >> work
         1 * work.changesSincePreviousExecution >> Optional.of(changes)
@@ -49,7 +49,7 @@ class SkipUpToDateStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outOfDateReasons == ["change"]
+        result.executionReasons == ["change"]
 
         _ * context.work >> work
         1 * work.changesSincePreviousExecution >> Optional.of(changes)
@@ -65,7 +65,7 @@ class SkipUpToDateStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outOfDateReasons == ["No history is available."]
+        result.executionReasons == ["No history is available."]
 
         _ * context.work >> work
         1 * work.changesSincePreviousExecution >> Optional.empty()

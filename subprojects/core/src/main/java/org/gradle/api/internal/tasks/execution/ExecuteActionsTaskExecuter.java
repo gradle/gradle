@@ -35,6 +35,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -124,7 +125,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
         );
-        context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
@@ -132,6 +132,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.<OriginMetadata>empty();
+            }
+
+            @Override
+            public Try<ExecutionOutcome> getOutcome() {
+                return result.getOutcome();
+            }
+
+            @Override
+            public List<String> getExecutionReasons() {
+                return result.getExecutionReasons();
             }
         };
     }
@@ -158,7 +168,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 actionListener.beforeActions(task);
                 executeActions(task, context);
                 return task.getState().getDidWork()
-                    ? ExecutionOutcome.EXECUTED
+                    ? context.isTaskExecutedIncrementally()
+                        ? ExecutionOutcome.EXECUTED_INCREMENTALLY
+                        : ExecutionOutcome.EXECUTED_FULLY
                     : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);

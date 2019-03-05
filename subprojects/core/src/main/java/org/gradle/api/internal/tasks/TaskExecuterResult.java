@@ -16,17 +16,41 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.ExecutionOutcome;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TaskExecuterResult {
+    /**
+     * Returns the reasons for executing this task. An empty list means the task was not executed.
+     */
+    List<String> getExecutionReasons();
+
+    /**
+     * The outcome of executing the task.
+     */
+    Try<ExecutionOutcome> getOutcome();
+
     /**
      * If the execution resulted in some previous output being reused, this returns its origin metadata.
      */
     Optional<OriginMetadata> getReusedOutputOriginMetadata();
 
     TaskExecuterResult NO_REUSED_OUTPUT = new TaskExecuterResult() {
+        @Override
+        public List<String> getExecutionReasons() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public Try<ExecutionOutcome> getOutcome() {
+            return Try.successful(ExecutionOutcome.EXECUTED_FULLY);
+        }
+
         @Override
         public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
             return Optional.empty();
