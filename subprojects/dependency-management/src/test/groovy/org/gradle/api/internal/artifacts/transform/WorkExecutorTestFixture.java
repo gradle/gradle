@@ -31,6 +31,7 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -68,15 +69,17 @@ public class WorkExecutorTestFixture {
     private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
     private final WorkExecutor<UpToDateResult> workExecutor;
 
-    WorkExecutorTestFixture() {
+    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
+                fileSystemMirror.beforeOutputChange();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
             }
         };
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
