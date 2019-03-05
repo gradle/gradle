@@ -107,6 +107,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
     private final Set<Node> dependenciesWithChanges = Sets.newHashSet();
     private final Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
+    private final Set<Node> readyToExecute = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
@@ -561,6 +562,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
             }
         }
+        if (readyToExecute.isEmpty() && dependenciesWithChanges.isEmpty()) {
+            return null;
+        }
         Iterator<Node> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
@@ -572,6 +576,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     || !workerLease.tryLock()
                     || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
+                    readyToExecute.add(node);
                     continue;
                 }
 
@@ -583,7 +588,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     node.skipExecution();
                 }
                 iterator.remove();
-
+                readyToExecute.remove(node);
                 return node;
             }
         }
