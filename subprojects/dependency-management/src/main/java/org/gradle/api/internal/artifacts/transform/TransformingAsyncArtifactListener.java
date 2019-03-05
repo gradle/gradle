@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
@@ -26,9 +27,10 @@ import java.io.File;
 import java.util.Map;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
-    private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
-    private final Map<File, TransformationOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final Map<File, TransformationResult> fileResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
+    private final TransformationNodeFactory transformationNodeFactory;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
@@ -37,9 +39,10 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         Transformation transformation,
         ResolvedArtifactSet.AsyncArtifactListener delegate,
         BuildOperationQueue<RunnableBuildOperation> actions,
-        Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults,
-        Map<File, TransformationOperation> fileResults,
-        ExecutionGraphDependenciesResolver dependenciesResolver
+        Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
+        Map<File, TransformationResult> fileResults,
+        ExecutionGraphDependenciesResolver dependenciesResolver,
+        TransformationNodeFactory transformationNodeFactory
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
@@ -47,21 +50,27 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         this.delegate = delegate;
         this.fileResults = fileResults;
         this.dependenciesResolver = dependenciesResolver;
+        this.transformationNodeFactory = transformationNodeFactory;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
-        File file = artifact.getFile();
-        TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
-        TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesResolver);
-        artifactResults.put(artifactId, operation);
-        // We expect artifact transformations to be executed in a scheduled way,
-        // so at this point we take the result from the in-memory cache.
-        // Artifact transformations are always executed scheduled via the execution graph when the transformed component is declared as an input.
-        // Using the BuildOperationQueue here to only realize that the result of the transformation is from the in-memory has a performance impact,
-        // so we executing the (no-op) operation in place.
-        operation.run(null);
+        Try<TransformationSubject> resultIfCompleted = transformationNodeFactory.getResultIfCompleted(artifactId, transformation);
+        if (resultIfCompleted != null) {
+            artifactResults.put(artifactId, new PrecomputedTransformationResult(resultIfCompleted));
+        } else {
+            File file = artifact.getFile();
+            TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);
+            TransformationOperation operation = new TransformationOperation(transformation, initialSubject, dependenciesResolver);
+            artifactResults.put(artifactId, operation);
+            // We expect artifact transformations to be executed in a scheduled way,
+            // so at this point we take the result from the in-memory cache.
+            // Artifact transformations are always executed scheduled via the execution graph when the transformed component is declared as an input.
+            // Using the BuildOperationQueue here to only realize that the result of the transformation is from the in-memory has a performance impact,
+            // so we executing the (no-op) operation in place.
+            operation.run(null);
+        }
     }
 
     @Override

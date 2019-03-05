@@ -35,10 +35,10 @@ import java.util.Map;
 class TransformingArtifactVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
-    private final Map<File, TransformationOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final Map<File, TransformationResult> fileResults;
 
-    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
+    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults, Map<File, TransformationResult> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -47,7 +47,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformationOperation operation = artifactResults.get(artifact.getId());
+        TransformationResult operation = artifactResults.get(artifact.getId());
         operation.getResult().ifSuccessfulOrElse(
             transformedSubject -> {
                 ResolvedArtifact sourceArtifact = artifact.toPublicView();
@@ -79,7 +79,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        TransformationOperation operation = fileResults.get(file);
+        TransformationResult operation = fileResults.get(file);
         operation.getResult().ifSuccessfulOrElse(
             transformedSubject -> {
                 for (File outputFile : transformedSubject.getFiles()) {

@@ -50,7 +50,18 @@ class DefaultArtifactTransformsTest extends Specification {
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
-    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory())
+    def transformationNodeFactory = new TransformationNodeFactory() {
+        @Override
+        Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        Try<TransformationSubject> getResultIfCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+            return null
+        }
+    }
+    def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformationNodeFactory)
 
     def "selects producer variant with requested attributes"() {
         def variant1 = resolvedVariant()
