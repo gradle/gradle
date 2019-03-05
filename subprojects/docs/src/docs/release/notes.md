@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle 5.3.
 
 This release features incubating support for publishing and consuming Gradle Module Metadata,
 [feature variants AKA "optional dependencies"](#feature-variants-aka-optional-dependencies),
-type-safe accessors in Kotlin pre-compiled script plugins, and more.
+[type-safe accessors in Kotlin pre-compiled script plugins](#type-safe-accessors-in-precompiled-script-plugins), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -128,7 +128,7 @@ Execution failed for task ':clean'.
 ### Public API for publishing custom components
 
 Gradle now offers a public API to publish custom software components.
-Refer to the `SoftwareComponentFactory` javadocs for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
+Refer to the [`SoftwareComponentFactory` documentation](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) for details or look at the `JavaPlugin` and `JavaPlaftormPlugin` which have been migrated to use this API.
 
 ### Gradle Module Metadata 1.0
 
