@@ -66,7 +66,7 @@ private
 fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = accessor.run {
 
     val propertyName = name.original
-    val className = InternalName("$packagePath/${propertyName.capitalize()}ConfigurationAccessorsKt")
+    val className = "${propertyName.capitalize()}ConfigurationAccessorsKt"
 
     className to sequenceOf(
         AccessorFragment(
@@ -800,12 +800,8 @@ val kotlinPrimitiveTypes = primitiveTypeStrings.asSequence().map { (jvmName, kot
 
 
 private
-fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): InternalName =
-    InternalName("$packagePath/Accessors${hashOf(accessorSpec)}Kt")
-
-
-internal
-const val packagePath = "org/gradle/kotlin/dsl"
+fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): String =
+    "Accessors${hashOf(accessorSpec)}Kt"
 
 
 private

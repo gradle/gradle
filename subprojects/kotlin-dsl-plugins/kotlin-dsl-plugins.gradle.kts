@@ -27,7 +27,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.2.3"
+version = "1.2.6"
 
 base.archivesBaseName = "plugins"
 
@@ -97,5 +97,10 @@ integTestTasks.configureEach {
 // TODO:kotlin-dsl investigate
 // See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
 tasks.noDaemonIntegTest {
+    enabled = false
+}
+
+// TODO:kotlin-dsl
+tasks.verifyTestFilesCleanup {
     enabled = false
 }

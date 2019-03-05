@@ -8,7 +8,7 @@ dependencies {
     api(kotlin("reflect"))
     api(kotlin("compiler-embeddable"))
 
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.3")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.3.0")
     implementation("com.gradle.publish:plugin-publish-plugin:0.10.0")
 
     implementation("com.thoughtworks.qdox:qdox:2.0-M9")

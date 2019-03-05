@@ -27,11 +27,17 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(":plugins")
+withCompileOnlyGradleApiModulesWithParameterNames(
+    ":plugins",
+    ":pluginDevelopment"
+)
 
 dependencies {
 
     compile(project(":distributionsDependencies"))
 
     compile(project(":kotlinDsl"))
+
+    testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(project(":plugins"))
 }

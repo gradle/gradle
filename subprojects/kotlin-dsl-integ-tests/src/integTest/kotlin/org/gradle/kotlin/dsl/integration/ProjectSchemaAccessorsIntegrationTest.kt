@@ -41,8 +41,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
-        withSettings("""
-            $pluginManagementBlock
+        withDefaultSettings().appendText("""
             include(":sub")
         """)
 
@@ -115,7 +114,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -174,7 +172,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -212,7 +209,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -259,7 +255,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -327,7 +322,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -422,8 +416,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 plugins { id("app-or-lib") }
                 my { name = "kotlin-dsl" }
             """)
-
-            withDefaultSettings()
         }
 
         build("tasks", "-Pmy=lib")
@@ -446,8 +438,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can configure publishing extension`() {
-
-        withDefaultSettings()
 
         withBuildScript("""
 
@@ -514,7 +504,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """)
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -545,7 +534,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins { application }
 
@@ -565,7 +553,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access configurations registered by declared plugins via jit accessor`() {
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             include("a", "b", "c")
         """)
 
@@ -657,7 +645,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -707,7 +694,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
-        withSettings("include(\"a\")")
+        withDefaultSettings().appendText("""
+            include("a")
+        """)
         withBuildScriptIn("a", "")
 
         val aTasks = build(":a:tasks").output
@@ -742,7 +731,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
 
             inline fun <reified T> typeOf(t: T) = T::class.simpleName
@@ -795,7 +783,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("mine")
@@ -891,7 +878,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -961,7 +947,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             class MyPrivateConventionImpl : MyConvention
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -1000,7 +985,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing configurations`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1025,7 +1009,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing tasks`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1054,7 +1037,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing source sets`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1094,7 +1076,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing elements of extensions that are containers`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 distribution
@@ -1126,7 +1107,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             (dependencies as ExtensionAware).extensions.create<Mine>("mine")
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `my-plugin`

@@ -58,10 +58,12 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         then:
         failure.assertHasCause('''Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
+      - Found org.gradle.category 'library' but wasn't required.
       - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
+      - Found org.gradle.category 'library' but wasn't required.
       - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
@@ -141,10 +143,12 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         then:
         failure.assertHasCause("""Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
+      - Found org.gradle.category 'library' but wasn't required.
       - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
+      - Found org.gradle.category 'library' but wasn't required.
       - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
       - Required org.gradle.jvm.version '6' and found incompatible value '7'.
       - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
@@ -162,6 +166,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             root(":", ":test:") {
                 project(':producer', 'test:producer:') {
                     variant("apiElements", [
+                            'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': '7',
                             'org.gradle.usage':'java-api-jars'

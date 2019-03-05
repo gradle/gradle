@@ -76,7 +76,7 @@ private
 fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Retrieves the [$original][${typeAccess.type}] extension.
+         * Retrieves the `$original` extension.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -84,7 +84,7 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
             $thisExtensions.getByName("$stringLiteral")
 
         /**
-         * Configures the [$original][${typeAccess.type}] extension.
+         * Configures the `$original` extension.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -127,7 +127,7 @@ private
 fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Retrieves the [$original][${typeAccess.type}] convention.
+         * Retrieves the `$original` convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -135,7 +135,7 @@ fun inaccessibleConventionAccessorFor(targetType: String, name: AccessorNameSpec
             $thisConvention.getPluginByName<Any>("$stringLiteral")
 
         /**
-         * Configures the [$original][${typeAccess.type}] convention.
+         * Configures the `$original` convention.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -172,7 +172,7 @@ private
 fun inaccessibleExistingTaskAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Provides the existing [$original][${typeAccess.type}] task.
+         * Provides the existing `$original` task.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -209,7 +209,7 @@ private
 fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name: AccessorNameSpec, elementType: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Provides the existing [$original][${elementType.type}] element.
+         * Provides the existing `$original` element.
          *
          * ${documentInaccessibilityReasons(name, elementType)}
          */

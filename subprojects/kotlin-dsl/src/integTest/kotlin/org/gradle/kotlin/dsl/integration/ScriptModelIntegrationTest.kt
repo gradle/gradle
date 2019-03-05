@@ -1,18 +1,14 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.kotlin.dsl.concurrent.future
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.matching
-
-import org.gradle.kotlin.dsl.resolver.GradleInstallation
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequest
-import org.gradle.kotlin.dsl.resolver.fetchKotlinBuildScriptModelFor
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 
-import org.hamcrest.CoreMatchers.*
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
@@ -27,7 +23,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     protected
     fun sourcePathFor(scriptFile: File) =
-        kotlinBuildScriptModelFor(projectRoot, scriptFile).sourcePath
+        kotlinBuildScriptModelFor(scriptFile).sourcePath
 
     protected
     class ProjectSourceRoots(val projectDir: File, val sourceSets: List<String>, val languages: List<String>)
@@ -70,7 +66,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
 
     protected
     fun withMultiProjectKotlinBuildSrc(): Array<ProjectSourceRoots> {
-        withSettingsIn("buildSrc", """
+        withDefaultSettingsIn("buildSrc").appendText("""
             include(":a", ":b", ":c")
         """)
         withFile("buildSrc/build.gradle.kts", """
@@ -79,10 +75,14 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                 `kotlin-dsl` apply false
             }
 
-            val kotlinDslProjects = listOf(project.project(":a"), project.project(":b"))
+            val kotlinDslProjects = listOf(
+                project(":a"),
+                project(":b")
+            )
 
-            kotlinDslProjects.forEach {
-                it.apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+            configure(kotlinDslProjects) {
+                apply(plugin = "org.gradle.kotlin.kotlin-dsl")
+                $repositoriesBlock
             }
 
             dependencies {
@@ -90,6 +90,7 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                     "runtime"(project(it.path))
                 }
             }
+
         """)
         withFile("buildSrc/b/build.gradle.kts", """dependencies { implementation(project(":c")) }""")
         withFile("buildSrc/c/build.gradle.kts", "plugins { java }")
@@ -98,7 +99,8 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
             withMainSourceSetJavaIn("buildSrc"),
             withMainSourceSetJavaKotlinIn("buildSrc/a"),
             withMainSourceSetJavaKotlinIn("buildSrc/b"),
-            withMainSourceSetJavaIn("buildSrc/c"))
+            withMainSourceSetJavaIn("buildSrc/c")
+        )
     }
 
     protected
@@ -111,26 +113,6 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
                 matching("gradle-api-$version\\.jar"),
                 matching("gradle-kotlin-dsl-extensions-$version\\.jar")))
     }
-
-    protected
-    fun assertClassPathFor(
-        buildScript: File,
-        includes: Set<File>,
-        excludes: Set<File>,
-        importedProjectDir: File = projectRoot
-    ) {
-        val includeItems = hasItems(*includes.map { it.name }.toTypedArray())
-        val excludeItems = not(hasItems(*excludes.map { it.name }.toTypedArray()))
-        val condition = if (excludes.isEmpty()) includeItems else allOf(includeItems, excludeItems)
-        assertThat(
-            classPathFor(importedProjectDir, buildScript).map { it.name },
-            condition
-        )
-    }
-
-    protected
-    fun assertClassPathContains(vararg files: File) =
-        assertClassPathContains(canonicalClassPath(), *files)
 
     protected
     fun assertClassPathContains(classPath: List<File>, vararg files: File) =
@@ -166,44 +148,11 @@ abstract class ScriptModelIntegrationTest : AbstractKotlinIntegrationTest() {
             assert(it.size == files.size)
         }
 
-    protected
-    fun canonicalClassPath() =
-        canonicalClassPathFor(projectRoot)
-
-    protected
-    fun withJar(named: String): File =
-        withClassJar(named, DeepThought::class.java)
-
     internal
-    fun canonicalClassPathFor(projectDir: File, scriptFile: File? = null) =
-        kotlinBuildScriptModelFor(projectDir, scriptFile).canonicalClassPath
-
-    private
-    fun classPathFor(importedProjectDir: File, scriptFile: File?) =
-        kotlinBuildScriptModelFor(importedProjectDir, scriptFile).classPath
+    fun canonicalClassPathFor(scriptFile: File, projectDir: File = projectRoot) =
+        kotlinBuildScriptModelFor(scriptFile, projectDir).canonicalClassPath
 
     internal
     val KotlinBuildScriptModel.canonicalClassPath
         get() = classPath.map(File::getCanonicalFile)
-
-    internal
-    fun kotlinBuildScriptModelFor(importedProjectDir: File, scriptFile: File? = null): KotlinBuildScriptModel =
-        future {
-            fetchKotlinBuildScriptModelFor(
-                KotlinBuildScriptModelRequest(
-                    projectDir = importedProjectDir,
-                    scriptFile = scriptFile,
-                    gradleInstallation = testGradleInstallation(),
-                    gradleUserHome = buildContext.gradleUserHomeDir
-                )
-            ) {
-
-                setStandardOutput(System.out)
-                setStandardError(System.err)
-            }
-        }.get()
-
-    private
-    fun testGradleInstallation() =
-        GradleInstallation.Local(distribution.gradleHomeDir)
 }

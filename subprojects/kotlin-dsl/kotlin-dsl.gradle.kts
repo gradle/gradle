@@ -72,9 +72,14 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = file("src/generated/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.2" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.5" // TODO:kotlin-dsl
 
 tasks {
+
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        enabled = false
+    }
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputFile = apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")

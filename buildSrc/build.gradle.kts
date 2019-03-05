@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import org.gradle.plugins.ide.idea.model.IdeaModel
-
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
 
 plugins {
-    `kotlin-dsl`
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
+    `java`
+    `kotlin-dsl` apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
 }
 
 subprojects {
@@ -41,7 +38,7 @@ subprojects {
             applyKotlinProjectConventions()
         }
 
-        configure<JavaPluginExtension> {
+        java {
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
         }
@@ -185,7 +182,7 @@ fun Project.applyGroovyProjectConventions() {
     }
 
     tasks.withType<Test>().configureEach {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (JavaVersion.current().isJava9Compatible) {
             //allow ProjectBuilder to inject legacy types into the system classloader
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
@@ -211,8 +208,15 @@ fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
-        kotlinDslPluginOptions {
+        configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)
+        }
+    }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        // TODO:kotlin-dsl remove precompiled script plugins accessors exclusion from ktlint checks
+        filter {
+            exclude("gradle/kotlin/dsl/accessors/_*/**")
         }
     }
 }

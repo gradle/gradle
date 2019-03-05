@@ -429,9 +429,9 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.groupedOutput.task(':dependencyInsight').output.contains("""org:b:1
    variant "runtime" [
-      org.gradle.status             = release (not requested)
-      org.gradle.usage              = java-runtime (not requested)
-      org.gradle.component.category = library (not requested)
+      org.gradle.status   = release (not requested)
+      org.gradle.usage    = java-runtime (not requested)
+      org.gradle.category = library (not requested)
    ]
    Selection reasons:
       - Selected by rule : $expected

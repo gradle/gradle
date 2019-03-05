@@ -1,6 +1,8 @@
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.writeScriptPluginAdapterTo
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.startsWith
@@ -11,32 +13,31 @@ import org.junit.Test
 import java.io.File
 
 
-class ScriptPluginTest : TestWithTempFiles() {
+class PrecompiledScriptPluginTest : TestWithTempFiles() {
 
     @Test
     fun `plugin id is derived from script file name`() {
 
-        val script =
-            newFile("my-script.gradle.kts")
-
         assertThat(
-            ScriptPlugin(script).id,
-            equalTo("my-script"))
+            scriptPlugin("my-script.gradle.kts").id,
+            equalTo("my-script")
+        )
     }
 
     @Test
     fun `plugin id is prefixed by package name if present`() {
 
-        val script =
-            newFile("my-script.gradle.kts", """
-
-                package org.acme
-
-            """)
-
         assertThat(
-            ScriptPlugin(script).id,
-            equalTo("org.acme.my-script"))
+            scriptPlugin(
+                "my-script.gradle.kts",
+                """
+
+                    package org.acme
+
+                """
+            ).id,
+            equalTo("org.acme.my-script")
+        )
     }
 
     @Test
@@ -57,23 +58,22 @@ class ScriptPluginTest : TestWithTempFiles() {
 
     private
     fun implementationClassForScriptNamed(fileName: String) =
-        ScriptPlugin(newFile(fileName)).implementationClass
+        scriptPlugin(fileName).implementationClass
 
     @Test
     fun `plugin adapter is written to package sub-dir and starts with correct package declaration`() {
 
-        val script =
-            newFile("my-script.gradle.kts", """
-
-                package org.acme
-
-            """)
-
         val outputDir =
             root.resolve("output")
 
-        ScriptPlugin(script)
-            .writeScriptPluginAdapterTo(outputDir)
+        scriptPlugin(
+            "my-script.gradle.kts",
+            """
+
+                package org.acme
+
+            """
+        ).writeScriptPluginAdapterTo(outputDir)
 
         val expectedFile =
             outputDir.resolve("org/acme/MyScriptPlugin.kt")
@@ -86,13 +86,10 @@ class ScriptPluginTest : TestWithTempFiles() {
     @Test
     fun `given no package declaration, plugin adapter is written directly to output dir`() {
 
-        val script =
-            newFile("my-script.gradle.kts")
-
         val outputDir =
             root.resolve("output").apply { mkdir() }
 
-        ScriptPlugin(script)
+        scriptPlugin("my-script.gradle.kts")
             .writeScriptPluginAdapterTo(outputDir)
 
         val expectedFile =
@@ -113,13 +110,17 @@ class ScriptPluginTest : TestWithTempFiles() {
     @Test
     fun `can extract package name from script with Windows line endings`() {
 
-        val script =
-            newFile("my-script.gradle.kts", "/*\r\n */\r\npackage org.acme\r\n")
-
         assertThat(
-            ScriptPlugin(script).packageName,
-            equalTo("org.acme"))
+            scriptPlugin(
+                "my-script.gradle.kts",
+                "/*\r\n */\r\npackage org.acme\r\n"
+            ).packageName,
+            equalTo("org.acme")
+        )
     }
+
+    private
+    fun scriptPlugin(fileName: String, text: String = "") = PrecompiledScriptPlugin(newFile(fileName, text))
 
     private
     fun firstNonBlankLineOf(expectedFile: File) =

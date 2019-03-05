@@ -69,8 +69,19 @@ interface AsyncIOScopeFactory {
 }
 
 
-internal
-inline fun <T> withAsynchronousIO(
+fun <T> withAsynchronousIO(
     project: Project,
     action: IO.() -> T
 ): T = project.serviceOf<AsyncIOScopeFactory>().newScope().useToRun(action)
+
+
+internal
+inline fun withSynchronousIO(action: IO.() -> Unit) {
+    action(SynchronousIO)
+}
+
+
+internal
+object SynchronousIO : IO {
+    override fun io(action: () -> Unit) = action()
+}

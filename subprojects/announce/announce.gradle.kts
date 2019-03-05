@@ -25,7 +25,6 @@ dependencies {
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-
 }
 
 

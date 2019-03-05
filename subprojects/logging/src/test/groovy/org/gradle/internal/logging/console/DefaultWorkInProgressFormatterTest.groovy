@@ -28,9 +28,9 @@ class DefaultWorkInProgressFormatterTest extends Specification {
 
     def "formats operations"() {
         given:
-        def op1 = new ProgressOperation("STATUS_1", "CATEGORY", new OperationIdentifier(1), null)
+        def op1 = new ProgressOperation("STATUS_1", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
         def op2 = new ProgressOperation(null,  null, new OperationIdentifier(2), op1)
-        def op3 = new ProgressOperation("STATUS_2", "CATEGORY", new OperationIdentifier(3), op2)
+        def op3 = new ProgressOperation("STATUS_2", "VARIANT_CATEGORY", new OperationIdentifier(3), op2)
 
         expect:
         statusBarFormatter.format(op3).first().text == "> STATUS_1 > STATUS_2"
@@ -40,7 +40,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
 
     def "trims output to one less than the max console width"() {
         given:
-        def operation = new ProgressOperation("these are more than 10 characters", "CATEGORY", new OperationIdentifier(1), null)
+        def operation = new ProgressOperation("these are more than 10 characters", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
 
         when:
         _ * consoleMetaData.getCols() >> 10

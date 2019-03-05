@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
+import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
@@ -970,7 +970,7 @@ $append
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 dependency('org.test:bar:').exists()
                 dependency('org.test:bom:1.0') {
-                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                    hasAttribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
                 }
                 noMoreDependencies()
             }
@@ -979,7 +979,7 @@ $append
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency('org.test:bar:').exists()
             dependency('org.test:bom:1.0') {
-                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                hasAttribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
             }
             noMoreDependencies()
         }
@@ -1144,7 +1144,7 @@ include(':platform')
             javaLibrary.parsedModuleMetadata.variant("apiElements") {
                 dependency('org.test:bar:').exists()
                 dependency('org.gradle.test:platform:1.9') {
-                    hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                    hasAttribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
                 }
                 noMoreDependencies()
             }
@@ -1153,7 +1153,7 @@ include(':platform')
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             dependency('org.test:bar:').exists()
             dependency('org.gradle.test:platform:1.9') {
-                hasAttribute(PlatformSupport.COMPONENT_CATEGORY.name, PlatformSupport.REGULAR_PLATFORM)
+                hasAttribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
             }
             noMoreDependencies()
         }

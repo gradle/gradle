@@ -44,7 +44,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `Kotlin chooses withType extension specialized to container type`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             open class A
@@ -96,7 +95,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             buildCache {
                 local(DirectoryBuildCache::class)
             }
@@ -144,15 +143,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
-        withDefaultSettingsIn("buildSrc")
-
-        withBuildScriptIn("buildSrc", """
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-        """)
+        withKotlinBuildSrc()
 
         withFile("buildSrc/src/main/kotlin/foo/FooTask.kt", """
             package foo
@@ -179,7 +170,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             tasks.register("foo", FooTask::class)
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("foo.foo")
@@ -194,7 +184,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
         val guh = newDir("guh")
 
-        withDefaultSettings()
         withBuildScript("")
 
         executer.withGradleUserHomeDir(guh)

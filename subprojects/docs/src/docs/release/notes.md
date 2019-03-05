@@ -1,32 +1,33 @@
 The Gradle team is excited to announce Gradle 5.3.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features incubating support for publishing and consuming Gradle Module Metadata,
+[feature variants AKA "optional dependencies"](#feature-variants-aka-optional-dependencies),
+type-safe accessors in Kotlin pre-compiled script plugins, and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[Stefan M.](https://github.com/StefMa), 
-[Evgeny Mandrikov](https://github.com/Godin), 
-[Simon Legner](https://github.com/simon04),  
+[Stefan M.](https://github.com/StefMa),
+[Evgeny Mandrikov](https://github.com/Godin),
+[Simon Legner](https://github.com/simon04),
 [Raman Gupta](https://github.com/rocketraman),
 [Florian Dreier](https://github.com/DreierF),
 [Kenzie Togami](https://github.com/kenzierocks),
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
 [Joe Kutner](https://github.com/jkutner),
-... TBD ... 
 and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.3 by updating your wrapper properties:
+Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
-`./gradlew wrapper --gradle-version=5.3`
+`./gradlew wrapper --gradle-version=5.3-rc-1`
 
-Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Feature variants, aka optional dependencies
+## Feature variants aka optional dependencies
 
-Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html) :
+Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html):
 
 ```groovy
 java {
@@ -96,10 +97,9 @@ plugins {
 
 See the [Precompiled script plugins](userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) section of the user manual for more information.
 
-
 ## Better help message on delete operation failure
 
-The `:clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
+The `clean` task, all `Delete` tasks, and `project.delete {}` operations now provide a better help message when failing to delete files. The most frequent and hard to troubleshoot causes for failing to delete files are other processes holding file descriptors open, and concurrent writes.
 
 The help message now displays each failed path, which may be helpful in identifying which process might be holding files open, and will also display any files that were created in the target directory after a delete failure, which may be helpful in identifying when a process is still writing to the directory.
 
@@ -133,7 +133,8 @@ Refer to the `SoftwareComponentFactory` javadocs for details or look at the `Jav
 ### Gradle Module Metadata 1.0
 
 Gradle Module Metadata is now 1.0.
-Gradle will automatically consume published Gradle Metadata, but publication still requires to enable the `GRADLE_METADATA` feature preview.
+
+Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
 
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
 
