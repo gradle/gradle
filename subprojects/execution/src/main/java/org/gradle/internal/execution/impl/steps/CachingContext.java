@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.Context;
 
 public interface CachingContext extends Context {
     CacheHandler getCacheHandler();

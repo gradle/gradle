@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
-
-import org.gradle.internal.execution.UnitOfWork;
+package org.gradle.internal.execution;
 
 public interface Context {
     UnitOfWork getWork();

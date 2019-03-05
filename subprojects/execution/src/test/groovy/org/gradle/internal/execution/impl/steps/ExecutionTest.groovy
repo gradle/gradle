@@ -21,6 +21,7 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.CacheHandler
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener

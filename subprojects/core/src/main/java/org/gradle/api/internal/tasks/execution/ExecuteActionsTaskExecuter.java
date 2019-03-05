@@ -41,6 +41,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
@@ -84,7 +85,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<UpToDateResult> workExecutor;
+    private final WorkExecutor<Context, UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -94,7 +95,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<UpToDateResult> workExecutor
+        WorkExecutor<Context, UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.taskFingerprinter = taskFingerprinter;
@@ -108,7 +109,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
-        final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
+        final TaskExecution work = new TaskExecution(task, context);
+        final UpToDateResult result = workExecutor.execute(new Context() {
+            @Override
+            public UnitOfWork getWork() {
+                return work;
+            }
+        });
         result.getOutcome().ifSuccessfulOrElse(
             new Consumer<ExecutionOutcome>() {
                 @Override

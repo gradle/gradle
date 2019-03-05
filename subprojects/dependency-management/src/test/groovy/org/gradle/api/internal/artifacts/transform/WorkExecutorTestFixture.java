@@ -22,6 +22,7 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
@@ -67,7 +68,7 @@ public class WorkExecutorTestFixture {
     };
     private BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
     private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
-    private final WorkExecutor<UpToDateResult> workExecutor;
+    private final WorkExecutor<Context, UpToDateResult> workExecutor;
 
     WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
         BuildCacheCommandFactory buildCacheCommandFactory = null;
@@ -103,7 +104,7 @@ public class WorkExecutorTestFixture {
         );
     }
 
-    public WorkExecutor<UpToDateResult> getWorkExecutor() {
+    public WorkExecutor<Context, UpToDateResult> getWorkExecutor() {
         return workExecutor;
     }
 }

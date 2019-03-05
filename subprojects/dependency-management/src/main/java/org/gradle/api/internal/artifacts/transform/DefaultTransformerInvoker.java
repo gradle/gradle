@@ -31,6 +31,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
@@ -84,14 +85,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<UpToDateResult> workExecutor;
+    private final WorkExecutor<Context, UpToDateResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
 
-    public DefaultTransformerInvoker(WorkExecutor<UpToDateResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<Context, UpToDateResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -117,13 +118,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
-        return workspaceProvider.withWorkspace(identity, (identityStr, workspace) -> {
+        return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> {
             return fireTransformListeners(transformer, subject, () -> {
-                String identityString = "transform/" + identityStr;
+                String transformIdentity = "transform/" + identityString;
                 ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
                 FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
 
-                AfterPreviousExecutionState afterPreviousExecutionState = executionHistoryStore.load(identityString).orElse(null);
+                AfterPreviousExecutionState afterPreviousExecutionState = executionHistoryStore.load(transformIdentity).orElse(null);
 
                 ImplementationSnapshot implementationSnapshot = ImplementationSnapshot.of(transformer.getImplementationClass(), classLoaderHierarchyHasher);
                 CurrentFileCollectionFingerprint inputArtifactFingerprint = inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot));
@@ -143,15 +144,23 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     afterPreviousExecutionState,
                     beforeExecutionState,
                     workspace,
-                    identityString,
+                    transformIdentity,
                     executionHistoryStore,
                     fileCollectionFactory,
                     inputArtifact,
                     dependencies,
                     outputFingerprinter
                 );
-                UpToDateResult outcome = workExecutor.execute(execution);
-                return execution.getResult(outcome);
+
+                UpToDateResult outcome = workExecutor.execute(new Context() {
+                    @Override
+                    public UnitOfWork getWork() {
+                        return execution;
+                    }
+                });
+
+                return outcome.getOutcome()
+                    .map(outcome1 -> execution.loadResultsFile());
             });
         });
     }
@@ -273,11 +282,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 throw new IllegalStateException("Invalid result path: " + absolutePath);
             });
             UncheckedException.callUnchecked(() -> Files.write(resultsFile.toPath(), (Iterable<String>) relativePaths::iterator));
-        }
-
-        private Try<ImmutableList<File>> getResult(UpToDateResult result) {
-            return result.getOutcome()
-                .map(outcome -> loadResultsFile());
         }
 
         private ImmutableList<File> loadResultsFile() {

@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.impl.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 

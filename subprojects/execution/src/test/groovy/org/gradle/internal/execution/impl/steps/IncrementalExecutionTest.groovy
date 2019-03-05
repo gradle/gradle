@@ -27,6 +27,7 @@ import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.CacheHandler
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
@@ -116,8 +117,8 @@ class IncrementalExecutionTest extends Specification {
     def unitOfWork = builder.build()
 
 
-    WorkExecutor<UpToDateResult> getExecutor() {
-        new DefaultWorkExecutor<UpToDateResult>(
+    WorkExecutor<Context, UpToDateResult> getExecutor() {
+        new DefaultWorkExecutor<Context, UpToDateResult>(
             new SkipUpToDateStep<Context>(
                 new StoreSnapshotsStep<Context>(outputFilesRepository,
                     new SnapshotOutputStep<Context>(buildInvocationScopeId.getId(),
@@ -627,7 +628,12 @@ class IncrementalExecutionTest extends Specification {
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
-        executor.execute(unitOfWork)
+        executor.execute(new Context() {
+            @Override
+            UnitOfWork getWork() {
+                return unitOfWork
+            }
+        })
     }
 
     private TestFile file(Object... path) {

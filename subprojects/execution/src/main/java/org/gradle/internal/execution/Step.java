@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
-
-import org.gradle.internal.execution.Result;
+package org.gradle.internal.execution;
 
 public interface Step<C extends Context, R extends Result> {
     R execute(C context);

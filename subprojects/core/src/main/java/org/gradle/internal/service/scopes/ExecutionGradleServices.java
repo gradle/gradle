@@ -31,6 +31,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
@@ -44,7 +45,6 @@ import org.gradle.internal.execution.impl.steps.CacheStep;
 import org.gradle.internal.execution.impl.steps.CachingContext;
 import org.gradle.internal.execution.impl.steps.CancelExecutionStep;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
-import org.gradle.internal.execution.impl.steps.Context;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
 import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
@@ -109,7 +109,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<UpToDateResult> createWorkExecutor(
+    public WorkExecutor<Context, UpToDateResult> createWorkExecutor(
         BuildCacheController buildCacheController,
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildInvocationScopeId buildInvocationScopeId,
@@ -118,7 +118,7 @@ public class ExecutionGradleServices {
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor<UpToDateResult>(
+        return new DefaultWorkExecutor<Context, UpToDateResult>(
             new SkipUpToDateStep<Context>(
                 new StoreSnapshotsStep<Context>(outputFilesRepository,
                     new PrepareCachingStep<Context, CurrentSnapshotResult>(

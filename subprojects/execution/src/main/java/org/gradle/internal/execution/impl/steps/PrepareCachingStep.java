@@ -17,7 +17,9 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 
 public class PrepareCachingStep<C extends Context, R extends Result> implements Step<C, R> {

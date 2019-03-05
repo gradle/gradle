@@ -18,7 +18,9 @@ package org.gradle.internal.execution.impl.steps
 
 import org.gradle.internal.change.ChangeVisitor
 import org.gradle.internal.change.DescriptiveChange
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.testing.internal.util.Specification

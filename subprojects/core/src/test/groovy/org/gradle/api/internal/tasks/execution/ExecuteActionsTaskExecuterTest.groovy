@@ -33,13 +33,13 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.impl.steps.CancelExecutionStep
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep
-import org.gradle.internal.execution.impl.steps.Context
 import org.gradle.internal.execution.impl.steps.ExecuteStep
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep
@@ -78,7 +78,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor<UpToDateResult>(
+    def workExecutor = new DefaultWorkExecutor<Context, UpToDateResult>(
         new SkipUpToDateStep<Context>(
             new SnapshotOutputStep<Context>(
                 buildId,
