@@ -33,8 +33,9 @@ fun gradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<S
                 if (daemon) "--daemon" else "--no-daemon",
                 if (isContinue) "--continue" else "",
                 """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-                "-Dorg.gradle.internal.tasks.createops",
-                "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
+                "-Dorg.gradle.internal.tasks.createops"
+//                "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/"
+        )
 
 
 val m2CleanScriptUnixLike = """
