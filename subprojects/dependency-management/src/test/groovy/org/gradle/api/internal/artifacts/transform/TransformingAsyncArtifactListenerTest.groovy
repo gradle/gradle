@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
+import org.gradle.internal.Try
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.testing.internal.util.Specification
@@ -26,13 +28,14 @@ import org.gradle.testing.internal.util.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver))
+    def transformationNodeFactory = Mock(TransformationNodeFactory)
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeFactory)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
     def artifact = Stub(ResolvableArtifact) {
         getId() >> artifactId
-        getArtifactFile() >> artifactFile
+        getFile() >> artifactFile
     }
 
     def "adds file transformations to the build operation queue"() {
@@ -43,11 +46,21 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         1 * operationQueue.add(_ as BuildOperation)
     }
 
-    def "runs artifact transformations immediately"() {
+    def "runs artifact transformations immediately when not scheduled"() {
         when:
         listener.artifactAvailable(artifact)
 
         then:
+        1 * transformationNodeFactory.getResultIfCompleted(artifactId, transformation) >> null
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
+    }
+
+    def "re-uses scheduled artifact transformation result"() {
+        when:
+        listener.artifactAvailable(artifact)
+
+        then:
+        1 * transformationNodeFactory.getResultIfCompleted(artifactId, transformation) >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
+        0 * transformation.transform(_, _ as ExecutionGraphDependenciesResolver, _)
     }
 }

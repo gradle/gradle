@@ -70,7 +70,7 @@ public abstract class TransformationNode extends Node {
         return transformationStep.getDisplayName();
     }
 
-    private Try<TransformationSubject> getTransformedSubject() {
+    public Try<TransformationSubject> getTransformedSubject() {
         if (transformedSubject == null) {
             throw new IllegalStateException(String.format("Transformation %s has been scheduled and is now required, but did not execute, yet.", transformationStep.getDisplayName()));
         }

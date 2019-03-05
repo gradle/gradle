@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.Try;
 
-import javax.annotation.Nullable;
-import java.util.Collection;
+public class PrecomputedTransformationResult implements TransformationResult {
+    private final Try<TransformationSubject> result;
 
-public interface TransformationNodeFactory {
-    Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
+    public PrecomputedTransformationResult(Try<TransformationSubject> result) {
+        this.result = result;
+    }
 
-    @Nullable
-    Try<TransformationSubject> getResultIfCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation);
+    @Override
+    public Try<TransformationSubject> getResult() {
+        return result;
+    }
 }
