@@ -106,7 +106,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
     private final Set<Node> dependenciesWithChanges = Sets.newHashSet();
-    private final Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
+    private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
     private final Set<Node> readyToExecute = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
@@ -262,6 +262,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }));
         int visitingSegmentCounter = nodeQueue.size();
+        Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
@@ -346,6 +347,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
         Iterables.addAll(dependenciesWithChanges, nodeMapping);
+        this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -519,6 +521,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         dependenciesCompleteCache.clear();
         dependenciesWithChanges.clear();
         dependenciesWhichRequireMonitoring.clear();
+        readyToExecute.clear();
         runningNodes.clear();
     }
 
