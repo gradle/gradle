@@ -31,6 +31,10 @@ import java.util.Set;
  */
 public abstract class Node implements Comparable<Node> {
 
+    protected Iterable<Node> getAllPredecessors() {
+        return getDependencyPredecessors();
+    }
+
     @VisibleForTesting
     enum ExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
@@ -60,7 +64,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     public boolean isIncludeInGraph() {
-        return state == ExecutionState.NOT_REQUIRED || state == ExecutionState.UNKNOWN;
+        return state != ExecutionState.NOT_REQUIRED && state != ExecutionState.UNKNOWN;
     }
 
     public boolean isReady() {
@@ -220,6 +224,13 @@ public abstract class Node implements Comparable<Node> {
     public abstract Set<Node> getFinalizers();
 
     public abstract boolean isPublicNode();
+
+    /**
+     * Whether the task needs to be queried if it is completed.
+     *
+     * Everything where the value of {@link #isComplete()} depends on some other state, like another task in an included build.
+     */
+    public abstract boolean requiresMonitoring();
 
     /**
      * Returns the project which the node requires access to, if any.
