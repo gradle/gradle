@@ -72,6 +72,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.DETECT_ADDED;
+
 public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
@@ -373,7 +375,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             if (afterPreviousExecutionState == null) {
                 return Optional.empty();
             } else {
-                return Optional.of(new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecutionState, this));
+                return Optional.of(new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecutionState, this, DETECT_ADDED));
             }
         }
 

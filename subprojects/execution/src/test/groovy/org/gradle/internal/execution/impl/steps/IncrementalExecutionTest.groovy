@@ -63,6 +63,7 @@ import java.util.function.BooleanSupplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.IGNORE_ADDED
 
 class IncrementalExecutionTest extends Specification {
 
@@ -814,7 +815,7 @@ class IncrementalExecutionTest extends Specification {
                     changes = executionHistoryStore.load(getIdentity()).map { previous ->
                         def outputsBefore = snapshotOutputs()
                         def beforeExecutionState = new DefaultBeforeExecutionState(implementationSnapshot, additionalImplementationSnapshots, snapshotInputProperties(), snapshotInputFiles(), outputsBefore)
-                        return new DefaultExecutionStateChanges(previous, beforeExecutionState, this)
+                        return new DefaultExecutionStateChanges(previous, beforeExecutionState, this, IGNORE_ADDED)
                     }
                 }
 

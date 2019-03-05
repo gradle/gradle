@@ -24,8 +24,11 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class OutputFileChanges extends AbstractFingerprintChanges {
 
-    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    private final OutputHandling outputHandling;
+
+    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, OutputHandling outputHandling) {
         super(previous, current, "Output");
+        this.outputHandling = outputHandling;
     }
 
     public boolean hasAnyChanges() {
@@ -36,6 +39,18 @@ public class OutputFileChanges extends AbstractFingerprintChanges {
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        return accept(visitor, false);
+        return accept(visitor, outputHandling == OutputHandling.DETECT_ADDED);
+    }
+
+    public enum OutputHandling {
+        /**
+         * Handle added outputs as changes.
+         */
+        DETECT_ADDED,
+
+        /**
+         * Ignore added outputs.
+         */
+        IGNORE_ADDED
     }
 }

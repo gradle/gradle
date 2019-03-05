@@ -50,6 +50,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
+import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -289,7 +290,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
             return !previous.keySet().equals(current.keySet())
-                || new OutputFileChanges(previous, current).hasAnyChanges();
+                || new OutputFileChanges(previous, current, OutputHandling.IGNORE_ADDED).hasAnyChanges();
         }
 
         @Override

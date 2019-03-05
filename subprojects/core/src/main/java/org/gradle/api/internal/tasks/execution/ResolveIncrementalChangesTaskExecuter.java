@@ -34,6 +34,8 @@ import javax.annotation.Nullable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.IGNORE_ADDED;
+
 /**
  * Resolves the incremental changes to pass to the task actions.
  *
@@ -72,7 +74,7 @@ public class ResolveIncrementalChangesTaskExecuter implements TaskExecuter {
                                         // The value is cached, so we should be okay to call this many times
                                         return task.toString();
                                     }
-                                });
+                                }, IGNORE_ADDED);
                             }
                         }).orElse(null);
                     }
