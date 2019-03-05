@@ -75,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -104,6 +105,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
     private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
+    private final Set<Node> dependenciesWithChanges = Sets.newHashSet();
+    private final Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
@@ -269,10 +272,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             int currentSegment = nodeInVisitingSegment.visitingSegment;
             Node node = nodeInVisitingSegment.node;
 
-            if (node.isIncludeInGraph() || nodeMapping.contains(node)) {
+            if (!node.isIncludeInGraph() || nodeMapping.contains(node)) {
                 nodeQueue.remove(0);
                 visitingNodes.remove(node, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
                 continue;
             }
 
@@ -313,6 +319,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
                 nodeMapping.add(node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
 
                 MutationInfo mutations = getOrCreateMutationsOf(node);
                 for (Node dependency : node.getDependencySuccessors()) {
@@ -335,6 +344,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
+        Iterables.addAll(dependenciesWithChanges, nodeMapping);
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -506,6 +516,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         canonicalizedFileCache.clear();
         reachableCache.clear();
         dependenciesCompleteCache.clear();
+        dependenciesWithChanges.clear();
+        dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
     }
 
@@ -540,6 +552,15 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
+        for (Node node : dependenciesWhichRequireMonitoring) {
+            if (dependenciesCompleteCache.contains(node)) {
+                continue;
+            }
+            if (node.isComplete()) {
+                dependenciesCompleteCache.add(node);
+                Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
+            }
+        }
         Iterator<Node> iterator = executionQueue.iterator();
         while (iterator.hasNext()) {
             Node node = iterator.next();
@@ -558,6 +579,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     recordNodeStarted(node);
                     node.startExecution();
                 } else {
+                    Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
                     node.skipExecution();
                 }
                 iterator.remove();
@@ -685,7 +707,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return true;
         }
 
+        if (!dependenciesWithChanges.contains(node)) {
+            return false;
+        }
         boolean dependenciesComplete = node.allDependenciesComplete();
+        dependenciesWithChanges.remove(node);
         if (dependenciesComplete) {
             dependenciesCompleteCache.add(node);
         }
@@ -852,6 +878,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void recordNodeCompleted(Node node) {
         runningNodes.remove(node);
+        Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
         MutationInfo mutations = this.mutations.get(node);
         for (Node producer : mutations.producingNodes) {
             MutationInfo producerMutations = this.mutations.get(producer);
@@ -873,7 +900,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public void nodeComplete(Node node) {
         try {
             if (!node.isComplete()) {
-                enforceFinalizers(node);
+                enforceFinalizers(node, dependenciesWithChanges);
                 if (node.isFailed()) {
                     handleFailure(node);
                 }
@@ -886,10 +913,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private static void enforceFinalizers(Node node) {
+    private static void enforceFinalizers(Node node, Set<Node> nodesWithDependencyChanges) {
         for (Node finalizerNode : node.getFinalizers()) {
+            nodesWithDependencyChanges.add(finalizerNode);
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                enforceWithDependencies(finalizerNode, Sets.<Node>newHashSet());
+                HashSet<Node> enforcedNodes = Sets.newHashSet();
+                enforceWithDependencies(finalizerNode, enforcedNodes);
+                nodesWithDependencyChanges.addAll(enforcedNodes);
             }
         }
     }
@@ -952,6 +982,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
         for (Node node : nodeMapping) {
+            Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
                 node.skipExecution();
