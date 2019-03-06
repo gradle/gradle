@@ -234,8 +234,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         println "Transformed \$input.name to \$outSize.name into \$outputDirectory"
                         outSize.text = String.valueOf(input.length())
                         return [outSize]
-                    }
-                    if (target.equals("hash")) {
+                    } else if (target.equals("hash")) {
                         def outHash = new File(outputDirectory, input.name + ".hash")
                         println "Transformed \$input.name to \$outHash.name into \$outputDirectory"
                         outHash.text = 'hash'
