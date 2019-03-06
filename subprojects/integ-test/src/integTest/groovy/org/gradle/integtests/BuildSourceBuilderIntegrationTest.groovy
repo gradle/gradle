@@ -18,95 +18,96 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.Issue
 
 @IntegrationTestTimeout(600)
 class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2032")
     def "can simultaneously run gradle on projects with buildSrc"() {
+        def initScript = file("init.gradle")
+        initScript << """
+            import ${BuildOperationListenerManager.name}
+            import ${BuildOperationListener.name}
+            import ${BuildOperationDescriptor.name}
+            import ${OperationStartEvent.name}
+            import ${OperationProgressEvent.name}
+            import ${OperationFinishEvent.name}
+            import ${OperationIdentifier.name}
+            import ${ProcessEnvironment.name}
+
+            def pid = gradle.services.get(ProcessEnvironment).maybeGetPid()
+
+            def listener = new TraceListener(pid: pid)
+            def manager = gradle.services.get(BuildOperationListenerManager)
+            manager.addListener(listener)
+            gradle.buildFinished { manager.removeListener(listener) }
+            
+            class TraceListener implements BuildOperationListener {
+                Long pid
+
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+                    println("[\$pid] start " + buildOperation.displayName) 
+                }
+            
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+                }
+            
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                }
+            }
+        """
+        server.start()
+
         given:
         def buildSrcDir = file("buildSrc").createDir()
         writeSharedClassFile(buildSrcDir)
-        file('buildSrc/build.gradle').text = '''
-            tasks.all {
-                doFirst {
-                    println "${name} started at ${new Date().time}"
-                }
-                doLast {
-                    println "${name} finished at ${new Date().time}"
-                }
-            }
-        '''
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 
-        int MAX_LOOP_COUNT = java.util.concurrent.TimeUnit.MINUTES.toMillis(5) / 10
-        task blocking(type:BuildSrcTask) {
+        task build1(type:BuildSrcTask) {
             doLast {
-                file("run1washere.lock").createNewFile()
-                
-                int count = 0
-                while(!file("run2washere.lock").exists() && count++ < MAX_LOOP_COUNT){
-                    sleep 10
-                }
+                ${server.callFromBuild('build1')}
             }
         }
 
-        task releasing(type:BuildSrcTask) {
+        task build2(type:BuildSrcTask) {
             doLast {
-                int count = 0
-                while(!file("run1washere.lock").exists() && count++ < MAX_LOOP_COUNT){
-                    sleep 10
-                }
-                file("run2washere.lock").createNewFile()
+                ${server.callFromBuild('build2')}
             }
         }
         """
+
+        server.expectConcurrent("build1", "build2")
+
         when:
-        def runBlockingHandle = executer.withTasks("blocking").start()
-        def runReleaseHandle = executer.withTasks("releasing").start()
+        def runBlockingHandle = executer.withTasks("build1").usingInitScript(initScript).start()
+        def runReleaseHandle = executer.withTasks("build2").usingInitScript(initScript).start()
+
         and:
         def releaseResult = runReleaseHandle.waitForFinish()
         def blockingResult = runBlockingHandle.waitForFinish()
+
         then:
-        blockingResult.assertTasksExecuted(":blocking")
-        releaseResult.assertTasksExecuted(":releasing")
-
-        def blockingTaskTimes = finishedTaskTimes(blockingResult.output)
-        def releasingTaskTimes = finishedTaskTimes(releaseResult.output)
-
-        def blockingBuildSrcBuiltFirst = blockingTaskTimes.values().min() < releasingTaskTimes.values().min()
-        def (firstBuildResult, secondBuildResult) = blockingBuildSrcBuiltFirst ? [blockingResult, releaseResult] : [releaseResult, blockingResult]
-
-        def lastTaskTimeFromFirstBuildSrcBuild = finishedTaskTimes(firstBuildResult.output).values().max()
-        def firstTaskTimeFromSecondBuildSrcBuild = startedTaskTimes(secondBuildResult.output).values().min()
-
-        lastTaskTimeFromFirstBuildSrcBuild < firstTaskTimeFromSecondBuildSrcBuild
+        blockingResult.assertTasksExecuted(":build1")
+        releaseResult.assertTasksExecuted(":build2")
 
         cleanup:
-        runReleaseHandle.abort()
-        runBlockingHandle.abort()
-    }
-
-    Map<String, Long> startedTaskTimes(String output) {
-        taskTimes(output, 'started')
-    }
-
-    Map<String, Long> finishedTaskTimes(String output) {
-        taskTimes(output, 'finished')
-    }
-
-    Map<String, Long> taskTimes(String output, String state) {
-        output.readLines().collect {
-            it =~ /(.*) ${state} at (\d*)/
-        }.findAll {
-            it.matches()
-        }.collectEntries {
-            def match = it[0]
-            [(match[1]): Long.parseLong(match[2])]
-        }
+        runReleaseHandle?.abort()
+        runBlockingHandle?.abort()
     }
 
     void writeSharedClassFile(TestFile targetDirectory) {
