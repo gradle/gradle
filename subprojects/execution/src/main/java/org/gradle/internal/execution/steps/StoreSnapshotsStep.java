@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;

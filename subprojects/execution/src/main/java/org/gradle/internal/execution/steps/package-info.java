@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 @NonNullApi
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.api.NonNullApi;

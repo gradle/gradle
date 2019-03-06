@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
-public interface UpToDateResult extends SnapshotResult {
+import java.util.Optional;
+
+public interface IncrementalChangesContext extends Context {
     /**
-     * A list of messages describing the first few reasons encountered that caused the work to be executed.
-     * An empty list means the work was up-to-date and hasn't been executed.
+     * Returns changes detected between the execution state after the last execution and before the current execution.
+     * Empty if changes couldn't be detected (e.g. because history was unavailable).
      */
-    ImmutableList<String> getExecutionReasons();
+    Optional<ExecutionStateChanges> getChanges();
 }

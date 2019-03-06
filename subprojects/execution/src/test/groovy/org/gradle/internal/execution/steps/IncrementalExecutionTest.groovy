@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
@@ -30,11 +30,14 @@ import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.OutputFileChanges

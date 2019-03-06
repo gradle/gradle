@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.BuildCancelledException
@@ -23,10 +23,14 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.OutputFileChanges
+import org.gradle.internal.execution.steps.CancelExecutionStep
+import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 

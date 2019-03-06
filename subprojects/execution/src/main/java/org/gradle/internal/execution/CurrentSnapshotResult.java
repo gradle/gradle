@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.CacheHandler;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public interface CachingContext extends IncrementalChangesContext {
-    CacheHandler getCacheHandler();
+public interface CurrentSnapshotResult extends SnapshotResult {
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 }

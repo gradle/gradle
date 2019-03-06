@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.CachingContext;
+import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;

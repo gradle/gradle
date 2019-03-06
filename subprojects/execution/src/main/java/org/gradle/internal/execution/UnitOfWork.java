@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
-import org.gradle.internal.execution.impl.steps.IncrementalChangesContext;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 

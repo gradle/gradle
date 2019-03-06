@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
-import org.gradle.api.BuildCancelledException;
-import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.ExecutionException;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 
-public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
-    private final BuildCancellationToken cancellationToken;
-    private final Step<? super C, ? extends Result> delegate;
+public class CatchExceptionStep<C extends Context> implements Step<C, Result> {
+    private final Step<C, ? extends Result> delegate;
 
-    public CancelExecutionStep(BuildCancellationToken cancellationToken, Step<? super C, ? extends Result> delegate) {
-        this.cancellationToken = cancellationToken;
+    public CatchExceptionStep(Step<C, ? extends Result> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public Result execute(C context) {
-        Result result = delegate.execute(context);
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException("Build cancelled during executing " + context.getWork().getDisplayName());
+        try {
+            return delegate.execute(context);
+        } catch (Throwable t) {
+            ExecutionException failure = new ExecutionException(context.getWork(), t);
+            return new Result() {
+                @Override
+                public Try<ExecutionOutcome> getOutcome() {
+                    return Try.failure(failure);
+                }
+            };
         }
-
-        return result;
     }
 }

@@ -10,11 +10,11 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions andExecutionOutcome.EXECUTED
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
@@ -22,7 +22,9 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CacheHandler
+import org.gradle.internal.execution.CachingContext
 import org.gradle.internal.execution.Context
+import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Step

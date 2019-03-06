@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-import java.util.Optional;
+public interface SnapshotResult extends Result {
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
+    OriginMetadata getOriginMetadata();
 
-public interface IncrementalChangesContext extends Context {
     /**
-     * Returns changes detected between the execution state after the last execution and before the current execution.
-     * Empty if changes couldn't be detected (e.g. because history was unavailable).
+     * Did we reuse the output from some previous execution?
      */
-    Optional<ExecutionStateChanges> getChanges();
+    boolean isReused();
 }
