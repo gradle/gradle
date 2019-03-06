@@ -31,16 +31,16 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.impl.steps.IncrementalChangesContext;
+import org.gradle.internal.execution.impl.steps.IncrementalContext;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -85,14 +85,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<Context, UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
 
-    public DefaultTransformerInvoker(WorkExecutor<Context, UpToDateResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<IncrementalContext, UpToDateResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -124,7 +124,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
                 FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
 
-                AfterPreviousExecutionState afterPreviousExecutionState = executionHistoryStore.load(transformIdentity).orElse(null);
+                Optional<AfterPreviousExecutionState> afterPreviousExecutionState = executionHistoryStore.load(transformIdentity);
 
                 ImplementationSnapshot implementationSnapshot = ImplementationSnapshot.of(transformer.getImplementationClass(), classLoaderHierarchyHasher);
                 CurrentFileCollectionFingerprint inputArtifactFingerprint = inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot));
@@ -141,7 +141,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
                 TransformerExecution execution = new TransformerExecution(
                     transformer,
-                    afterPreviousExecutionState,
                     beforeExecutionState,
                     workspace,
                     transformIdentity,
@@ -152,10 +151,25 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     outputFingerprinter
                 );
 
-                UpToDateResult outcome = workExecutor.execute(new Context() {
+                UpToDateResult outcome = workExecutor.execute(new IncrementalContext() {
                     @Override
                     public UnitOfWork getWork() {
                         return execution;
+                    }
+
+                    @Override
+                    public Optional<String> getRebuildReason() {
+                        return Optional.empty();
+                    }
+
+                    @Override
+                    public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                        return afterPreviousExecutionState;
+                    }
+
+                    @Override
+                    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                        return Optional.of(beforeExecutionState);
                     }
                 });
 
@@ -215,7 +229,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private static class TransformerExecution implements UnitOfWork {
         private final Transformer transformer;
-        private final AfterPreviousExecutionState afterPreviousExecutionState;
         private final BeforeExecutionState beforeExecutionState;
         private final TransformationWorkspace workspace;
         private final File inputArtifact;
@@ -228,7 +241,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         public TransformerExecution(
             Transformer transformer,
-            @Nullable AfterPreviousExecutionState afterPreviousExecutionState,
             BeforeExecutionState beforeExecutionState,
             TransformationWorkspace workspace,
             String identityString,
@@ -238,7 +250,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             ArtifactTransformDependencies dependencies,
             FileCollectionFingerprinter outputFingerprinter
         ) {
-            this.afterPreviousExecutionState = afterPreviousExecutionState;
             this.beforeExecutionState = beforeExecutionState;
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputArtifact = inputArtifact;
@@ -252,7 +263,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute(Context context) {
+        public ExecutionOutcome execute(IncrementalChangesContext context) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);
@@ -316,6 +327,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public OutputHandling getOutputHandling() {
+            return DETECT_ADDED;
+        }
+
+        @Override
         public long markExecutionTime() {
             return executionTimer.getElapsedMillis();
         }
@@ -371,15 +387,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     finalOutputs,
                     successful
                 );
-            }
-        }
-
-        @Override
-        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            if (afterPreviousExecutionState == null) {
-                return Optional.empty();
-            } else {
-                return Optional.of(new DefaultExecutionStateChanges(afterPreviousExecutionState, beforeExecutionState, this, DETECT_ADDED));
             }
         }
 

@@ -106,18 +106,17 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.impl.steps.CatchExceptionStep;
 import org.gradle.internal.execution.impl.steps.CreateOutputsStep;
-import org.gradle.internal.execution.impl.steps.CurrentSnapshotResult;
 import org.gradle.internal.execution.impl.steps.ExecuteStep;
+import org.gradle.internal.execution.impl.steps.IncrementalContext;
 import org.gradle.internal.execution.impl.steps.PrepareCachingStep;
+import org.gradle.internal.execution.impl.steps.ResolveChangesStep;
 import org.gradle.internal.execution.impl.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.impl.steps.SnapshotOutputStep;
 import org.gradle.internal.execution.impl.steps.StoreSnapshotsStep;
@@ -198,7 +197,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<Context, UpToDateResult> createWorkExecutor(
+        WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
             TimeoutHandler timeoutHandler, ListenerManager listenerManager
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
@@ -214,15 +213,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             };
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
-            return new DefaultWorkExecutor<Context, UpToDateResult>(
-                new SkipUpToDateStep<Context>(
-                    new StoreSnapshotsStep<Context>(noopOutputFilesRepository,
-                        new PrepareCachingStep<Context, CurrentSnapshotResult>(
-                            new SnapshotOutputStep<Context>(fixedUniqueId,
-                                new CreateOutputsStep<Context, Result>(
-                                    new CatchExceptionStep<Context>(
-                                        new TimeoutStep<Context>(timeoutHandler,
-                                            new ExecuteStep(outputChangeListener)
+            return new DefaultWorkExecutor<>(
+                new ResolveChangesStep<>(
+                    new SkipUpToDateStep<>(
+                        new StoreSnapshotsStep<>(noopOutputFilesRepository,
+                            new PrepareCachingStep<>(
+                                new SnapshotOutputStep<>(fixedUniqueId,
+                                    new CreateOutputsStep<>(
+                                        new CatchExceptionStep<>(
+                                            new TimeoutStep<>(timeoutHandler,
+                                                new ExecuteStep(outputChangeListener)
+                                            )
                                         )
                                     )
                                 )
@@ -254,7 +255,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<Context, UpToDateResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, UpToDateResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,

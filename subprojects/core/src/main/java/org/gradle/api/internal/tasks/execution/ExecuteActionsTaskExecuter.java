@@ -41,7 +41,6 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
@@ -54,6 +53,8 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
+import org.gradle.internal.execution.impl.steps.IncrementalChangesContext;
+import org.gradle.internal.execution.impl.steps.IncrementalContext;
 import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -72,6 +73,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.IGNORE_ADDED;
+
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
  */
@@ -85,7 +88,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<Context, UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -95,7 +98,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<Context, UpToDateResult> workExecutor
+        WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.taskFingerprinter = taskFingerprinter;
@@ -108,12 +111,27 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
+    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
         final TaskExecution work = new TaskExecution(task, context);
-        final UpToDateResult result = workExecutor.execute(new Context() {
+        final UpToDateResult result = workExecutor.execute(new IncrementalContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getTaskExecutionMode().getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return Optional.ofNullable(context.getAfterPreviousExecution());
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
             }
         });
         result.getOutcome().ifSuccessfulOrElse(
@@ -167,11 +185,17 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute(Context context) {
+        public ExecutionOutcome execute(IncrementalChangesContext context) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
+                context.getChanges().ifPresent(new Consumer<ExecutionStateChanges>() {
+                    @Override
+                    public void accept(ExecutionStateChanges changes) {
+                        TaskExecution.this.context.setExecutionStateChanges(changes);
+                    }
+                });
                 executeActions(task, this.context);
                 return task.getState().getDidWork()
                     ? this.context.isTaskExecutedIncrementally()
@@ -214,8 +238,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return context.getExecutionStateChanges();
+        public OutputHandling getOutputHandling() {
+            return IGNORE_ADDED;
         }
 
         @Override
@@ -308,7 +332,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
             return !previous.keySet().equals(current.keySet())
-                || new OutputFileChanges(previous, current, OutputHandling.IGNORE_ADDED).hasAnyChanges();
+                || new OutputFileChanges(previous, current, IGNORE_ADDED).hasAnyChanges();
         }
 
         @Override

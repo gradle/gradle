@@ -24,7 +24,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Formatter;
 import java.util.List;
 
-public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResult> {
+public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
@@ -51,7 +50,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Determining if {} is up-to-date", context.getWork().getDisplayName());
         }
-        return context.getWork().getChangesSincePreviousExecution().map(changes -> {
+        return context.getChanges().map(changes -> {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
             MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, 3);
             changes.visitAllChanges(visitor);

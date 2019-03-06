@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
@@ -26,7 +25,7 @@ import org.gradle.internal.execution.UnitOfWork;
 
 import java.util.Optional;
 
-public class ExecuteStep implements Step<Context, Result> {
+public class ExecuteStep implements Step<IncrementalChangesContext, Result> {
 
     private final OutputChangeListener outputChangeListener;
 
@@ -37,7 +36,7 @@ public class ExecuteStep implements Step<Context, Result> {
     }
 
     @Override
-    public Result execute(Context context) {
+    public Result execute(IncrementalChangesContext context) {
         UnitOfWork work = context.getWork();
 
         Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();

@@ -27,6 +27,7 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.id.UniqueId
@@ -45,9 +46,17 @@ class CacheStepTest extends Specification {
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def cachedOriginMetadata = Mock(OriginMetadata)
     def context = new CachingContext() {
+        @Override
         CacheHandler getCacheHandler() {
             CacheStepTest.this.cacheHandler
         }
+
+        @Override
+        Optional<ExecutionStateChanges> getChanges() {
+            return Optional.empty()
+        }
+
+        @Override
         UnitOfWork getWork() {
             unitOfWork
         }

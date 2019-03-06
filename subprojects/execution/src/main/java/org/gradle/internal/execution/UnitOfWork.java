@@ -20,7 +20,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
+import org.gradle.internal.execution.impl.steps.IncrementalChangesContext;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
@@ -32,7 +33,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute(Context context);
+    ExecutionOutcome execute(IncrementalChangesContext context);
 
     Optional<Duration> getTimeout();
 
@@ -49,8 +50,6 @@ public interface UnitOfWork extends CacheableEntity {
 
     void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata);
 
-    Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
-
     /**
      * Paths to locations changed by the unit of work.
      *
@@ -62,6 +61,8 @@ public interface UnitOfWork extends CacheableEntity {
      * @return {@link Optional#empty()} if the unit of work cannot guarantee that only some files have been changed or an iterable of the paths which were changed by the unit of work.
      */
     Optional<? extends Iterable<String>> getChangingOutputs();
+
+    OutputHandling getOutputHandling();
 
     @FunctionalInterface
     interface OutputPropertyVisitor {

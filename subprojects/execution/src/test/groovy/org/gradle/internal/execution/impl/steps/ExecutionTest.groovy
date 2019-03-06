@@ -21,24 +21,26 @@ import org.gradle.api.BuildCancelledException
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.CacheHandler
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.OutputFileChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 
 import java.time.Duration
 import java.util.function.Supplier
 
+import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.DETECT_ADDED
+
 class ExecutionTest extends Specification {
 
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def executionStep = new CatchExceptionStep<Context>(
-        new CancelExecutionStep<Context>(cancellationToken,
+    def executionStep = new CatchExceptionStep<IncrementalChangesContext>(
+        new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
             new ExecuteStep(outputChangeListener)
         )
     )
@@ -46,7 +48,7 @@ class ExecutionTest extends Specification {
     def "executes the unit of work with outcome: #outcome"() {
         def unitOfWork = new TestUnitOfWork({ -> outcome })
         when:
-        def result = executionStep.execute { -> unitOfWork}
+        def result = execute { -> unitOfWork}
 
         then:
         unitOfWork.executed
@@ -61,7 +63,7 @@ class ExecutionTest extends Specification {
 
     def "reports no work done"() {
         when:
-        def result = executionStep.execute { ->
+        def result = execute { ->
             new TestUnitOfWork({ ->
                 return ExecutionOutcome.UP_TO_DATE
             })
@@ -81,7 +83,7 @@ class ExecutionTest extends Specification {
         })
 
         when:
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.failure.get() instanceof ExecutionException
@@ -97,7 +99,7 @@ class ExecutionTest extends Specification {
         def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_FULLY }, changingOutputs)
 
         when:
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.get() == ExecutionOutcome.EXECUTED_FULLY
@@ -111,7 +113,7 @@ class ExecutionTest extends Specification {
 
         when:
         cancellationToken.cancel()
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.failure.get() instanceof ExecutionException
@@ -134,7 +136,7 @@ class ExecutionTest extends Specification {
         boolean executed
 
         @Override
-        ExecutionOutcome execute(Context context) {
+        ExecutionOutcome execute(IncrementalChangesContext context) {
             executed = true
             return work.get()
         }
@@ -147,6 +149,11 @@ class ExecutionTest extends Specification {
         @Override
         void visitOutputProperties(OutputPropertyVisitor visitor) {
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        OutputFileChanges.OutputHandling getOutputHandling() {
+            return DETECT_ADDED
         }
 
         @Override
@@ -171,11 +178,6 @@ class ExecutionTest extends Specification {
 
         @Override
         void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
             throw new UnsupportedOperationException()
         }
 
@@ -205,4 +207,17 @@ class ExecutionTest extends Specification {
         }
     }
 
+    def execute(Supplier<UnitOfWork> work) {
+        executionStep.execute(new IncrementalChangesContext() {
+            @Override
+            Optional<ExecutionStateChanges> getChanges() {
+                return Optional.empty()
+            }
+
+            @Override
+            UnitOfWork getWork() {
+                return work.get()
+            }
+        })
+    }
 }

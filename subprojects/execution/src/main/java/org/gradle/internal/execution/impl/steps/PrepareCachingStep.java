@@ -17,12 +17,14 @@
 package org.gradle.internal.execution.impl.steps;
 
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
-public class PrepareCachingStep<C extends Context, R extends Result> implements Step<C, R> {
+import java.util.Optional;
+
+public class PrepareCachingStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
     private final Step<? super CachingContext, ? extends R> delegate;
 
     public PrepareCachingStep(Step<? super CachingContext, ? extends R> delegate) {
@@ -36,6 +38,11 @@ public class PrepareCachingStep<C extends Context, R extends Result> implements 
             @Override
             public CacheHandler getCacheHandler() {
                 return cacheHandler;
+            }
+
+            @Override
+            public Optional<ExecutionStateChanges> getChanges() {
+                return context.getChanges();
             }
 
             @Override

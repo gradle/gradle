@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,15 @@
 
 package org.gradle.internal.execution.impl.steps;
 
-import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
-public interface CachingContext extends IncrementalChangesContext {
-    CacheHandler getCacheHandler();
+import java.util.Optional;
+
+public interface IncrementalChangesContext extends Context {
+    /**
+     * Returns changes detected between the execution state after the last execution and before the current execution.
+     * Empty if changes couldn't be detected (e.g. because history was unavailable).
+     */
+    Optional<ExecutionStateChanges> getChanges();
 }
