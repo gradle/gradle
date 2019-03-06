@@ -29,9 +29,20 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 @Incubating
 public interface IncrementalInputs {
     /**
-     * Whether the input are incremental or not.
-     *
-     * <p>When the inputs are not incremental, then all the work needs to be re-done and cannot rely on the previous state.</p>
+     * Indicates if it was possible for Gradle to determine which exactly input files were out of date compared to a previous execution.
+     * This is <em>not</em> possible in the case of no previous execution, changed input properties, output files, etc.
+     * <p>
+     * When <code>true</code>:
+     * </p>
+     * <ul>
+     *     <li>{@link #getChanges(Object)} will report changes to the input files compared to the last execution.</li>
+     * </ul>
+     * <p>
+     * When <code>false</code>:
+     * </p>
+     * <ul>
+     *     <li>Every input file will be considered to be 'added' and will be reported to {@link #getChanges(Object)}.</li>
+     * </ul>
      */
     boolean isIncremental();
 
