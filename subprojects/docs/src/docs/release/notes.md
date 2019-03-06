@@ -25,9 +25,10 @@ Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Feature variants (or optional dependencies)
+## Feature variants (similar to optional dependencies in Maven)
 
-Often a library needs to tell that some dependencies are only required if you use a specific feature of the library.
+Often a library needs to express that some dependencies are only required if you use a specific feature of the library.
+Those dependencies must not be there _unless_ you use that feature and therefore are often flagged as "optional" in Maven.
 For example, you should only get the `mysql` dependencies if you actually plan to use MySQL.
 Gradle now provides a powerful model for declaring those features a library provides, known as [feature variants](userguide/feature_variants.html):
 
