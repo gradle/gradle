@@ -96,7 +96,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuild(String resource) {
         URI uri = uri(resource);
-        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
+        return "System.out.println(\"[G] calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received from " + uri + "\");";
     }
 
     public String callFromTaskAction(String resource) {
@@ -108,7 +108,7 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
-        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
+        return "System.out.println(\"[G] calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received from \" + " + uriExpression + ");";
     }
 
     /**
