@@ -38,7 +38,6 @@ import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
@@ -71,9 +70,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         fingerprintTaskFiles(task, _) >> ImmutableSortedMap.of()
     }
     def executionHistoryStore = Mock(ExecutionHistoryStore)
-    def outputFilesRepository = Stub(OutputFilesRepository) {
-        isGeneratedByGradle(_) >> true
-    }
     def buildId = UniqueId.generate()
 
     def actionListener = Mock(TaskActionListener)
@@ -93,7 +89,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, outputFilesRepository, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

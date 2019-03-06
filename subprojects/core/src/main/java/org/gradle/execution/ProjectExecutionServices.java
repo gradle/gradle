@@ -115,7 +115,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildCacheEnabled,
             taskFingerprinter,
             executionHistoryStore,
-            outputFilesRepository,
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,

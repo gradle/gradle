@@ -51,7 +51,6 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
@@ -84,7 +83,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final boolean buildCacheEnabled;
     private final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final OutputFilesRepository outputFilesRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
@@ -94,7 +92,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         boolean buildCacheEnabled,
         TaskFingerprinter taskFingerprinter,
         ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository outputFilesRepository,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
@@ -103,7 +100,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.buildCacheEnabled = buildCacheEnabled;
         this.taskFingerprinter = taskFingerprinter;
         this.executionHistoryStore = executionHistoryStore;
-        this.outputFilesRepository = outputFilesRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
