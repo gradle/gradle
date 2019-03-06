@@ -40,6 +40,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
     @Override
     public R execute(IncrementalContext context) {
+        final UnitOfWork work = context.getWork();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
                 new RebuildExecutionStateChanges(rebuildReason)
@@ -50,8 +51,8 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                         .map(beforeExecution -> new DefaultExecutionStateChanges(
                             afterPreviousExecution,
                             beforeExecution,
-                            context.getWork(),
-                            context.getWork().getOutputHandling())
+                            work,
+                            work.includeAddedOutputs())
                         )
                     )
                     .orElse(null)
@@ -80,7 +81,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
             @Override
             public UnitOfWork getWork() {
-                return context.getWork();
+                return work;
             }
         });
     }

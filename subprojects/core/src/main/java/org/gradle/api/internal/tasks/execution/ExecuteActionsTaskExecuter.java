@@ -35,7 +35,6 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -52,11 +51,8 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.OutputFileChanges;
-import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -71,8 +67,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.IGNORE_ADDED;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
@@ -155,8 +149,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
 
             @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
+            public boolean executedIncrementally() {
+                return result.getOutcome()
+                    .map(new Function<ExecutionOutcome, Boolean>() {
+                        @Override
+                        public Boolean apply(ExecutionOutcome executionOutcome) {
+                            return executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY;
+                        }
+                    }).orElseMapFailure(new Function<Throwable, Boolean>() {
+                        @Override
+                        public Boolean apply(Throwable throwable) {
+                            return false;
+                        }
+                    });
             }
 
             @Override
@@ -198,7 +203,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return task.getState().getDidWork()
                     ? this.context.isTaskExecutedIncrementally()
                         ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                        : ExecutionOutcome.EXECUTED_FULLY
+                        : ExecutionOutcome.EXECUTED
                     : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);
@@ -241,8 +246,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public OutputHandling getOutputHandling() {
-            return IGNORE_ADDED;
+        public boolean includeAddedOutputs() {
+            return false;
         }
 
         @Override
@@ -306,11 +311,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         );
                     }
                 }).orElse(outputsAfterExecution);
-        }
-
-        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            return !previous.keySet().equals(current.keySet())
-                || new OutputFileChanges(previous, current, IGNORE_ADDED).hasAnyChanges();
         }
 
         @Override

@@ -29,14 +29,11 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.execution.history.changes.OutputFileChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 
 import java.time.Duration
 import java.util.function.Supplier
-
-import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.DETECT_ADDED
 
 class ExecutionTest extends Specification {
 
@@ -61,7 +58,7 @@ class ExecutionTest extends Specification {
         0 * _
 
         where:
-        outcome << [ExecutionOutcome.EXECUTED_FULLY, ExecutionOutcome.EXECUTED_INCREMENTALLY]
+        outcome << [ExecutionOutcome.EXECUTED, ExecutionOutcome.EXECUTED_INCREMENTALLY]
     }
 
     def "reports no work done"() {
@@ -99,20 +96,20 @@ class ExecutionTest extends Specification {
 
     def "invalidates only changing outputs"() {
         def changingOutputs = ['some/location']
-        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_FULLY }, changingOutputs)
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED }, changingOutputs)
 
         when:
         def result = execute { -> unitOfWork }
 
         then:
-        result.outcome.get() == ExecutionOutcome.EXECUTED_FULLY
+        result.outcome.get() == ExecutionOutcome.EXECUTED
 
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
     }
 
     def "fails the execution when build has been cancelled"() {
-        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_FULLY })
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED })
 
         when:
         cancellationToken.cancel()
@@ -160,8 +157,8 @@ class ExecutionTest extends Specification {
         }
 
         @Override
-        OutputFileChanges.OutputHandling getOutputHandling() {
-            return DETECT_ADDED
+        boolean includeAddedOutputs() {
+            return true
         }
 
         @Override
@@ -183,7 +180,6 @@ class ExecutionTest extends Specification {
         CacheHandler createCacheHandler() {
             throw new UnsupportedOperationException()
         }
-
 
         @Override
         Optional<? extends Iterable<String>> getChangingOutputs() {

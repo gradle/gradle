@@ -17,40 +17,21 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class OutputFileChanges extends AbstractFingerprintChanges {
 
-    private final OutputHandling outputHandling;
+    private final boolean includeAdded;
 
-    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, OutputHandling outputHandling) {
+    public OutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, boolean includeAdded) {
         super(previous, current, "Output");
-        this.outputHandling = outputHandling;
-    }
-
-    public boolean hasAnyChanges() {
-        ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
-        accept(changeDetectorVisitor, true);
-        return changeDetectorVisitor.hasAnyChanges();
+        this.includeAdded = includeAdded;
     }
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        return accept(visitor, outputHandling == OutputHandling.DETECT_ADDED);
-    }
-
-    public enum OutputHandling {
-        /**
-         * Handle added outputs as changes.
-         */
-        DETECT_ADDED,
-
-        /**
-         * Ignore added outputs.
-         */
-        IGNORE_ADDED
+        return accept(visitor, includeAdded);
     }
 }

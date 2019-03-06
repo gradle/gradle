@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
@@ -53,7 +54,7 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
             UnitOfWork work = context.getWork();
             if (successful
                 || !afterPreviousExecutionState.isPresent()
-                || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs, work.getOutputHandling())) {
+                || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs)) {
                 work.getExecutionHistoryStore().store(
                     work.getIdentity(),
                     result.getOriginMetadata(),
@@ -71,8 +72,13 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
         return result;
     }
 
-    private static boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, OutputFileChanges.OutputHandling outputHandling) {
-        return !previous.keySet().equals(current.keySet())
-            || new OutputFileChanges(previous, current, outputHandling).hasAnyChanges();
+    private static boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        if (!previous.keySet().equals(current.keySet())) {
+            return true;
+        }
+        ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
+        OutputFileChanges changes = new OutputFileChanges(previous, current, true);
+        changes.accept(visitor);
+        return visitor.hasAnyChanges();
     }
 }

@@ -105,7 +105,7 @@ class CacheStepTest extends Specification {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
-            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED_FULLY)
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
             final boolean reused = false
         }
 
@@ -150,7 +150,7 @@ class CacheStepTest extends Specification {
         def executionResult = new CurrentSnapshotResult() {
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = ImmutableSortedMap.of("test", new EmptyCurrentFileCollectionFingerprint())
             final OriginMetadata originMetadata = new OriginMetadata(currentBuildId, 0)
-            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED_FULLY)
+            final Try<ExecutionOutcome> outcome = Try.successful(ExecutionOutcome.EXECUTED)
             final boolean reused = false
         }
         when:

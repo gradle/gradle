@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
@@ -59,7 +58,10 @@ public interface UnitOfWork extends CacheableEntity {
      */
     Optional<? extends Iterable<String>> getChangingOutputs();
 
-    OutputHandling getOutputHandling();
+    /**
+     * Whether files added are to be considered part of the output of the work.
+     */
+    boolean includeAddedOutputs();
 
     @FunctionalInterface
     interface OutputPropertyVisitor {

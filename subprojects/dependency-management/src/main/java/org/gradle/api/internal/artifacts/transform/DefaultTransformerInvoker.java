@@ -39,7 +39,6 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -71,8 +70,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.DETECT_ADDED;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
@@ -269,7 +266,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies);
             writeResultsFile(outputDir, resultsFile, result);
-            return ExecutionOutcome.EXECUTED_FULLY;
+            return ExecutionOutcome.EXECUTED;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -331,8 +328,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public OutputHandling getOutputHandling() {
-            return DETECT_ADDED;
+        public boolean includeAddedOutputs() {
+            return true;
         }
 
         @Override

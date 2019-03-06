@@ -40,7 +40,6 @@ import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.execution.history.changes.OutputFileChanges
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -65,10 +64,8 @@ import spock.lang.Ignore
 import java.time.Duration
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_FULLY
+import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.history.changes.OutputFileChanges.OutputHandling.DETECT_ADDED
-
 // FIXME:lptr
 @Ignore
 class IncrementalExecutionTest extends Specification {
@@ -147,14 +144,14 @@ class IncrementalExecutionTest extends Specification {
             "file": [file("parent/outFile")],
             "files": [file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")],
         ).withWork { ->
-            EXECUTED_FULLY
+            EXECUTED
         }.build()
 
         when:
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
 
         def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
@@ -173,7 +170,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
@@ -189,7 +186,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
 
         def origin = result.originMetadata.buildInvocationId
@@ -214,7 +211,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
 
         def origin = result.originMetadata.buildInvocationId
@@ -225,7 +222,7 @@ class IncrementalExecutionTest extends Specification {
         result = outOfDate(builder.build(), outputFilesChanged(file: [outputFile]))
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.originMetadata.buildInvocationId == buildInvocationScopeId.id
         result.originMetadata.buildInvocationId != origin
@@ -249,7 +246,7 @@ class IncrementalExecutionTest extends Specification {
         result = outOfDate(builder.build(), "Task has failed previously.")
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.originMetadata.buildInvocationId == buildInvocationScopeId.id
         result.originMetadata.buildInvocationId != origin
@@ -260,7 +257,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["No history is available."]
     }
@@ -274,7 +271,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has been removed."]
     }
@@ -288,7 +285,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has been removed."]
     }
@@ -331,7 +328,7 @@ class IncrementalExecutionTest extends Specification {
         outputFile << "new content"
         def result = execute(unitOfWork)
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
@@ -344,7 +341,7 @@ class IncrementalExecutionTest extends Specification {
         outputDirFile << "new content"
         def result = execute(unitOfWork)
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
@@ -368,7 +365,7 @@ class IncrementalExecutionTest extends Specification {
         def result = execute(outputFilesRemovedUnitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_FULLY
+        result.outcome.get() == EXECUTED
         !result.reused
         result.executionReasons == ["Output property 'file' has been removed for ${outputFilesRemovedUnitOfWork.displayName}"]
     }
@@ -620,7 +617,7 @@ class IncrementalExecutionTest extends Specification {
 
     UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
-        assert result.outcome.get() == EXECUTED_FULLY
+        assert result.outcome.get() == EXECUTED
         assert !result.reused
         assert result.executionReasons == expectedReasons
         return result
@@ -673,7 +670,7 @@ class IncrementalExecutionTest extends Specification {
             create.each { it ->
                 it.createFile()
             }
-            return EXECUTED_FULLY
+            return EXECUTED
         }
         private Map<String, Object> inputProperties = [prop: "value"]
         private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
@@ -771,8 +768,8 @@ class IncrementalExecutionTest extends Specification {
                 }
 
                 @Override
-                OutputFileChanges.OutputHandling getOutputHandling() {
-                    return DETECT_ADDED
+                boolean includeAddedOutputs() {
+                    return true
                 }
 
                 @Override

@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,9 +29,9 @@ public interface TaskExecuterResult {
     List<String> getExecutionReasons();
 
     /**
-     * The outcome of executing the task.
+     * Whether the task was executed incrementally.
      */
-    Try<ExecutionOutcome> getOutcome();
+    boolean executedIncrementally();
 
     /**
      * If the execution resulted in some previous output being reused, this returns its origin metadata.
@@ -47,8 +45,8 @@ public interface TaskExecuterResult {
         }
 
         @Override
-        public Try<ExecutionOutcome> getOutcome() {
-            return Try.successful(ExecutionOutcome.EXECUTED_FULLY);
+        public boolean executedIncrementally() {
+            return false;
         }
 
         @Override

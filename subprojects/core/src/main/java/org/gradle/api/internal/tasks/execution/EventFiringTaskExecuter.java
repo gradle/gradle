@@ -23,14 +23,11 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
-
-import java.util.function.Function;
 
 public class EventFiringTaskExecuter implements TaskExecuter {
 
@@ -65,23 +62,10 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
                 TaskExecuterResult result = delegate.execute(task, state, context);
 
-                boolean incremental = result.getOutcome()
-                    .map(new Function<ExecutionOutcome, Boolean>() {
-                        @Override
-                        public Boolean apply(ExecutionOutcome executionOutcome) {
-                            return executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY;
-                        }
-                    }).orElseMapFailure(new Function<Throwable, Boolean>() {
-                    @Override
-                    public Boolean apply(Throwable throwable) {
-                        return false;
-                    }
-                });
-
                 operationContext.setResult(new ExecuteTaskBuildOperationResult(
                     state,
                     result.getReusedOutputOriginMetadata().orElse(null),
-                    incremental,
+                    result.executedIncrementally(),
                     result.getExecutionReasons()
                 ));
 
