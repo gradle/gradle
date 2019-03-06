@@ -25,9 +25,29 @@ Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
 
-## Feature variants aka optional dependencies
+## Feature variants (or optional dependencies)
 
-Gradle now provides a powerful model for declaring features a library provides, known as [feature variants](userguide/feature_variants.html):
+Often a library needs to tell that some dependencies are only required if you use a specific feature of the library.
+For example, you should only get the `mysql` dependencies if you actually plan to use MySQL.
+Gradle now provides a powerful model for declaring those features a library provides, known as [feature variants](userguide/feature_variants.html):
+
+A consumer which depends on this specific feature (MySQL) of your library would then just have to tell that it needs it:
+
+```groovy
+dependencies {
+    // At compile time, we need the library
+    implementation('org.gradle.demo:my-lib:1.0')
+    
+    runtimeOnly('org.gradle.demo:my-lib:1.0') {
+        capabilities {
+            // at runtime, we need the "MySQL" capability of this library
+            requireCapability("org.gradle.demo:producer-mysql-support")
+        }
+    }
+}
+```
+
+The library author can therefore model dependencies in "groups" that correspond to a feature:
 
 ```groovy
 java {
@@ -42,7 +62,8 @@ dependencies {
 }
 ```
 
-Long story short, this can be used to model [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+Long story short, this can be used to model the long requested [optional dependencies](https://github.com/gradle/gradle/issues/867)!
+In practice, there are no optional dependencies: only dependencies that are _required_ if you use some features of a library.
 
 ## Kotlin DSL
 
