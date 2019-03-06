@@ -135,7 +135,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                //noinspection RedundantTypeArguments
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.<OriginMetadata>empty();
@@ -168,14 +167,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute() {
+        public ExecutionOutcome execute(Context context) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                executeActions(task, context);
+                executeActions(task, this.context);
                 return task.getState().getDidWork()
-                    ? context.isTaskExecutedIncrementally()
+                    ? this.context.isTaskExecutedIncrementally()
                         ? ExecutionOutcome.EXECUTED_INCREMENTALLY
                         : ExecutionOutcome.EXECUTED_FULLY
                     : ExecutionOutcome.UP_TO_DATE;

@@ -252,7 +252,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute() {
+        public ExecutionOutcome execute(Context context) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
             GFileUtils.cleanDirectory(outputDir);

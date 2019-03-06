@@ -45,7 +45,7 @@ public class ExecuteStep implements Step<Context, Result> {
         if (!changingOutputs.isPresent()) {
             outputChangeListener.beforeOutputChange();
         }
-        ExecutionOutcome outcome = work.execute();
+        ExecutionOutcome outcome = work.execute(context);
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {

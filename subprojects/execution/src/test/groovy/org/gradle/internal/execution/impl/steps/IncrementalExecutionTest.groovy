@@ -742,7 +742,7 @@ class IncrementalExecutionTest extends Specification {
                 boolean executed
 
                 @Override
-                ExecutionOutcome execute() {
+                ExecutionOutcome execute(Context context) {
                     executed = true
                     return work.get()
                 }

@@ -32,7 +32,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute();
+    ExecutionOutcome execute(Context context);
 
     Optional<Duration> getTimeout();
 
