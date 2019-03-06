@@ -155,6 +155,9 @@ Refer to the [`SoftwareComponentFactory` documentation](javadoc/org/gradle/api/c
 
 Gradle Module Metadata is now 1.0.
 
+Gradle Module Metadata was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+You can read more about Gradle Module Metadata in this [blog post](https://blog.gradle.org/gradle-metadata-1.0).
+
 Gradle will automatically consume published Gradle Metadata, but to publish Gradle Metadata requires you to enable the `GRADLE_METADATA` feature preview.
 
 ### Factory method for creating `ConfigurableFileCollection` instances using `ObjectFactory`
