@@ -67,6 +67,24 @@ class BootstrapSecurityManagerTest extends Specification {
         System.getProperty("java.class.path") == [entry1.absolutePath, entry2.absolutePath].join(File.pathSeparator)
     }
 
+    def "fails with proper error message if System.in is not delivering all expected data"() {
+        given:
+        def incompleteStream = new ByteArrayOutputStream()
+        def dataOut = new DataOutputStream(new EncodedStream.EncodedOutput(incompleteStream))
+        dataOut.writeInt(1) // expect one classpath entry
+        dataOut.write(1234) // but the entry is not a complete UTF-8 encoded String
+
+        System.in = new ByteArrayInputStream(incompleteStream.toByteArray())
+
+        when:
+        new BootstrapSecurityManager(new TestClassLoader()).checkPermission(new AllPermission())
+
+        then:
+        RuntimeException e = thrown()
+        e.message == "Could not initialise system classpath."
+        e.cause instanceof EOFException
+    }
+
     def "installs custom SecurityManager"() {
         URLClassLoader cl = new URLClassLoader([] as URL[], getClass().classLoader)
 
