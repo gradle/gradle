@@ -226,7 +226,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
     }
 
-    private TransformerExecutionContext.TransformerExecutionBuildCacheKey calculateBuildCacheKey(ImmutableSortedMap<String, ValueSnapshot> inputSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints, File inputArtifact, Transformer transformer) {
+    private static TransformerExecutionContext.TransformerExecutionBuildCacheKey calculateBuildCacheKey(ImmutableSortedMap<String, ValueSnapshot> inputSnapshots, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints, File inputArtifact, Transformer transformer) {
         Hasher hasher = Hashing.newHasher();
         for (Map.Entry<String, ValueSnapshot> entry : inputSnapshots.entrySet()) {
             hasher.putString(entry.getKey());
