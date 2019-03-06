@@ -32,7 +32,7 @@ Standalone downloads are available at [gradle.org/release-candidate](https://gra
 Often a library needs to express that some dependencies are only required if you use a specific feature of the library.
 Those dependencies must not be there _unless_ you use that feature and therefore are often flagged as "optional" in Maven.
 For example, you should only get the `mysql` dependencies if you actually plan to use MySQL.
-Gradle now provides a powerful model for declaring those features a library provides, known as [feature variants](userguide/feature_variants.html):
+Gradle now provides a powerful model for declaring those features a library provides, known as [feature variants](userguide/feature_variants.html).
 
 A consumer which depends on this specific feature (MySQL) of your library would then just have to tell that it needs it:
 
