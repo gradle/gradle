@@ -1,7 +1,7 @@
 The Gradle team is excited to announce Gradle 5.3.
 
 This release features incubating support for publishing and consuming Gradle Module Metadata,
-[feature variants AKA "optional dependencies"](#feature-variants-aka-optional-dependencies),
+[feature variants or "optional dependencies"](#feature-variants),
 [type-safe accessors in Kotlin pre-compiled script plugins](#type-safe-accessors-in-precompiled-script-plugins), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
@@ -24,6 +24,8 @@ Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
 `./gradlew wrapper --gradle-version=5.3-rc-1`
 
 Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+
+<a name="feature-variants"></a>
 
 ## Feature variants (similar to optional dependencies in Maven)
 
