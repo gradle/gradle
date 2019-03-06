@@ -81,7 +81,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
@@ -103,6 +103,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
                     canBeConsumed = true
                     attributes {
                         attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, 'java-api-jars'))
+                        attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category, Category.LIBRARY))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
                         attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().majorVersion))
                     }
@@ -129,7 +130,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api-jars', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

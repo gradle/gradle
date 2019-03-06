@@ -80,7 +80,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             apply<org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin>()
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
@@ -100,7 +99,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         """)
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
-        buildWithPlugin("classes").apply {
+        build("classes").apply {
             assertThat(
                 output,
                 allOf(

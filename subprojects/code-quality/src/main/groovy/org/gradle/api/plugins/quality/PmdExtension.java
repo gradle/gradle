@@ -47,7 +47,9 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+     * <pre>
+     *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+     * </pre>
      */
     public List<String> getRuleSets() {
         return ruleSets;
@@ -56,7 +58,9 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.8.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
-     * Example: ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+     * <pre>
+     *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+     * </pre>
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
@@ -65,7 +69,9 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Convenience method for adding rule sets.
      *
-     * Example: ruleSets "category/java/errorprone.xml", "category/java/bestpractices.xml"
+     * <pre>
+     *     ruleSets "category/java/errorprone.xml", "category/java/bestpractices.xml"
+     * </pre>
      *
      * @param ruleSets the rule sets to be added
      */
@@ -106,7 +112,9 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * See the official documentation for the <a href="http://pmd.sourceforge.net/rule-guidelines.html">list of priorities</a>.
      *
-     * Example: rulePriority = 3
+     * <pre>
+     *     rulePriority = 3
+     * </pre>
      */
     public int getRulePriority() {
         return rulePriority;
@@ -125,7 +133,9 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set.
      *
-     * Example: ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
+     * <pre>
+     *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
+     * </pre>
      *
      * @since 2.2
      */
@@ -139,7 +149,9 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set.
      *
-     * Example: ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
+     * <pre>
+     *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
+     * </pre>
      *
      * @since 2.2
      */
@@ -149,8 +161,11 @@ public class PmdExtension extends CodeQualityExtension {
 
     /**
      * The custom rule set files to be used. See the <a href="http://pmd.sourceforge.net/howtomakearuleset.html">official documentation</a> for how to author a rule set file.
+     * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
-     * Example: ruleSetFiles = files("config/pmd/myRuleSet.xml")
+     * <pre>
+     *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
+     * </pre>
      */
     public FileCollection getRuleSetFiles() {
         return ruleSetFiles;
@@ -163,8 +178,6 @@ public class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
      * </pre>
-     *
-     * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         this.ruleSetFiles = project.getObjects().fileCollection().from(ruleSetFiles);
@@ -173,7 +186,9 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Convenience method for adding rule set files.
      *
-     * Example: ruleSetFiles "config/pmd/myRuleSet.xml"
+     * <pre>
+     *     ruleSetFiles "config/pmd/myRuleSet.xml"
+     * </pre>
      *
      * @param ruleSetFiles the rule set files to be added
      */

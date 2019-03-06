@@ -22,137 +22,44 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 
 import org.gradle.kotlin.dsl.*
-
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
-
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
-
-import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
-import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+import java.util.function.Consumer
 
-/*
+
+/**
  * Exposes `*.gradle.kts` scripts from regular Kotlin source-sets as binary Gradle plugins.
+ *
+ * @see PrecompiledScriptPluginsSupport
  */
 class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        enableScriptCompilation()
+        val compileKotlin by tasks.existing(KotlinCompile::class)
 
-        plugins.withType<JavaGradlePluginPlugin> {
-            exposeScriptsAsGradlePlugins()
-        }
-    }
-}
-
-
-private
-fun Project.enableScriptCompilation() {
-
-    dependencies {
-        "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
-        "kotlinCompilerPluginClasspath"(gradleApi())
-    }
-
-    tasks.named<KotlinCompile>("compileKotlin") {
-        kotlinOptions {
-            freeCompilerArgs += listOf(
-                "-script-templates", scriptTemplates,
-                // Propagate implicit imports and other settings
-                "-Xscript-resolver-environment=${resolverEnvironment()}"
-            )
-        }
-    }
-}
-
-
-private
-val scriptTemplates by lazy {
-    listOf(
-        // treat *.settings.gradle.kts files as Settings scripts
-        PrecompiledSettingsScript::class.qualifiedName!!,
-        // treat *.init.gradle.kts files as Gradle scripts
-        PrecompiledInitScript::class.qualifiedName!!,
-        // treat *.gradle.kts files as Project scripts
-        PrecompiledProjectScript::class.qualifiedName!!
-    ).joinToString(separator = ",")
-}
-
-
-private
-fun Project.resolverEnvironment() =
-    (PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
-        + "=\"" + implicitImports().joinToString(separator = ":") + "\"")
-
-
-private
-fun Project.implicitImports(): List<String> =
-    serviceOf<ImplicitImports>().list
-
-
-private
-fun Project.exposeScriptsAsGradlePlugins() {
-
-    val scriptSourceFiles = pluginSourceSet.allSource.matching {
-        it.include("**/*.gradle.kts")
-    }
-
-    val scriptPlugins =
-        scriptSourceFiles.map(::ScriptPlugin)
-
-    declareScriptPlugins(scriptPlugins)
-
-    generatePluginAdaptersFor(scriptPlugins)
-}
-
-
-private
-val Project.pluginSourceSet
-    get() = gradlePlugin.pluginSourceSet
-
-
-private
-val Project.gradlePlugin
-    get() = the<GradlePluginDevelopmentExtension>()
-
-
-private
-fun Project.declareScriptPlugins(scriptPlugins: List<ScriptPlugin>) {
-
-    configure<GradlePluginDevelopmentExtension> {
-        for (scriptPlugin in scriptPlugins) {
-            plugins.create(scriptPlugin.id) {
-                it.id = scriptPlugin.id
-                it.implementationClass = scriptPlugin.implementationClass
+        serviceOf<PrecompiledScriptPluginsSupport>().enableOn(
+            project,
+            sourceSets["main"].kotlin,
+            compileKotlin,
+            Consumer { kotlinCompilerArgs ->
+                compileKotlin.get().apply {
+                    kotlinOptions {
+                        freeCompilerArgs += kotlinCompilerArgs
+                    }
+                }
             }
+        )
+
+        dependencies {
+            "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
+            "kotlinCompilerPluginClasspath"(gradleApi())
         }
-    }
-}
-
-
-private
-fun Project.generatePluginAdaptersFor(scriptPlugins: List<ScriptPlugin>) {
-
-    val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin-dsl-plugins/kotlin")
-    sourceSets["main"].kotlin.srcDir(generatedSourcesDir)
-
-    val generateScriptPluginAdapters by tasks.registering(GenerateScriptPluginAdapters::class) {
-        plugins = scriptPlugins
-        outputDirectory.set(generatedSourcesDir)
-    }
-
-    tasks.named("compileKotlin") {
-        it.dependsOn(generateScriptPluginAdapters)
     }
 }
 

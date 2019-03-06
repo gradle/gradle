@@ -22,10 +22,11 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyNoMoreInteractions
 
-import org.gradle.kotlin.dsl.concurrent.IO
+import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.kotlin.dsl.support.useToRun
@@ -42,6 +43,8 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
 
+import java.io.File
+
 
 class PluginAccessorsClassPathTest : TestWithClassPath() {
 
@@ -50,6 +53,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
 
         // given:
         val pluginsJar = jarWithPluginDescriptors(
+            file("plugins.jar"),
             "my-plugin" to "MyPlugin",
             "my.own.plugin" to "my.own.Plugin"
         )
@@ -148,22 +152,10 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
     }
 
     private
-    fun jarWithPluginDescriptors(vararg pluginIdsToImplClasses: Pair<String, String>) =
-        file("plugins.jar").also {
+    fun jarWithPluginDescriptors(file: File, vararg pluginIdsToImplClasses: Pair<String, String>) =
+        file.also {
             zipTo(it, pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
-                "META-INF/gradle-plugins/$id.properties" to "implementation-class=$implClass".toByteArray()
+                pluginDescriptorEntryFor(id, implClass)
             })
         }
-}
-
-
-internal
-inline fun withSynchronousIO(action: IO.() -> Unit) {
-    action(SynchronousIO)
-}
-
-
-internal
-object SynchronousIO : IO {
-    override fun io(action: () -> Unit) = action()
 }

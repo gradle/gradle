@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
@@ -51,6 +52,8 @@ import java.util.List;
 
 import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
+import static org.gradle.api.attributes.Category.LIBRARY;
+import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.plugins.internal.JavaPluginsHelper.registerClassesDirVariant;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
@@ -136,6 +139,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configurePacking(runtimeElements);
         configureTargetPlatform(apiElements);
         configureTargetPlatform(runtimeElements);
+        configureCategory(apiElements);
+        configureCategory(runtimeElements);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
@@ -179,6 +184,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     private void configurePacking(Configuration configuration) {
         configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, EXTERNAL));
+    }
+
+    private void configureCategory(Configuration configuration) {
+        configuration.getAttributes().attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, LIBRARY));
     }
 
     private void attachArtifactToConfiguration(Configuration configuration) {

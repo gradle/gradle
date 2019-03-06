@@ -21,8 +21,6 @@ import kotlinx.metadata.jvm.KotlinClassMetadata
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
-import org.gradle.kotlin.dsl.support.bytecode.InternalName
-
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 
@@ -59,4 +57,4 @@ data class MetadataFragmentScope(
 
 
 internal
-typealias Fragments = Pair<InternalName, Sequence<AccessorFragment>>
+typealias Fragments = Pair<String, Sequence<AccessorFragment>>

@@ -47,10 +47,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaLint = "10.4.2"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.0.7"
+        static nebulaResolutionRules = "7.0.8"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("4.0.4")
@@ -59,19 +59,19 @@ abstract class AbstractSmokeTest extends Specification {
         static asciidoctor = "1.5.9.2"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "1.6.9"
+        static spotbugs = "1.6.10"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "4.3.0"
+        static docker = "4.5.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.6.RELEASE"
+        static springDependencyManagement = "1.0.7.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.1.2.RELEASE"
+        static springBoot = "2.1.3.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "28.0.3"
@@ -98,7 +98,7 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "3.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.20.0"
+        static gradleVersions = "0.21.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.4"

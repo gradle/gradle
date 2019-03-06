@@ -80,6 +80,10 @@ _and_ that Ivy dependency was substituted (using a `resolutionStrategy.force`, `
 then this fix will impact you.
 The legacy behaviour of Gradle, prior to 5.0, was still in place instead of being replaced by the changes introduced by improved pom support.
 
+==== Delete operations correctly handle symbolic links on Windows
+
+Gradle no longer ignores the `followSymlink` option on Windows for the `clean` task, all `Delete` tasks, and `project.delete {}` operations in the presence of junction points and symbolic links.
+
 [[changes_5.2]]
 == Upgrading from 5.1 and earlier
 
@@ -136,7 +140,7 @@ This may break plugins that relied on the previous behaviour.
 
 The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
 
-### Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`) 
+### Change in behavior for tasks extending `AbstractArchiveTask` or subtypes (`Zip`, `Jar`, `War`, `Ear`, `Tar`)
 
 The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#provider-files-api-reference,Provider API>>. Plugins that extend these types and override methods from the base class may no longer behave the same way. Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 

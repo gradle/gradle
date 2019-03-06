@@ -26,6 +26,7 @@ class VariantSpec {
     Map<String, String> attributes = [:]
     List<ArtifactSpec> artifacts = []
     List<CapabilitySpec> capabilities = []
+    boolean noArtifacts = false
 
     void dependsOn(coord) {
         dependsOn << coord

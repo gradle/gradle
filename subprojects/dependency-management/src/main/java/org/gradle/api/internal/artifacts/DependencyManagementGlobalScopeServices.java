@@ -49,7 +49,6 @@ import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -59,8 +58,6 @@ import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
-
-import javax.inject.Inject;
 
 class DependencyManagementGlobalScopeServices {
     FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
@@ -125,14 +122,14 @@ class DependencyManagementGlobalScopeServices {
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         // TODO - should decorate
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, Classpath.class, CompileClasspath.class, Nested.class, Inject.class, Console.class, Internal.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, Classpath.class, CompileClasspath.class, Console.class, Internal.class), instantiationScheme);
         return new ArtifactTransformParameterScheme(instantiationScheme, inspectionScheme);
     }
 
     ArtifactTransformActionScheme createArtifactTransformActionScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, Classpath.class, CompileClasspath.class), instantiationScheme);
         InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(InputArtifact.class, InputArtifactDependencies.class, Inject.class, Classpath.class, CompileClasspath.class));
         return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
     }
 }

@@ -14,24 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instantiation;
+package org.gradle.api.internal.component;
 
-import java.lang.annotation.Annotation;
+public interface IvyPublishingAwareContext extends UsageContext {
 
-public class DefaultInjectAnnotationHandler implements InjectAnnotationHandler {
-    private final Class<? extends Annotation> annotation;
-
-    public DefaultInjectAnnotationHandler(Class<? extends Annotation> annotation) {
-        this.annotation = annotation;
-    }
-
-    @Override
-    public String toString() {
-        return "handler for @" + annotation.getSimpleName();
-    }
-
-    @Override
-    public Class<? extends Annotation> getAnnotation() {
-        return annotation;
-    }
+    boolean isOptional();
 }

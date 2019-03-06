@@ -16,17 +16,28 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.UncheckedException;
+
 public class GeneratedSubclasses {
 
     private GeneratedSubclasses() {
     }
 
-    public static Class<?> unpack(Object object) {
+    public static Class<?> unpack(Class<?> type) {
+        if (GeneratedSubclass.class.isAssignableFrom(type)) {
+            try {
+                return (Class<?>) type.getMethod("generatedFrom").invoke(null);
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        return type;
+    }
+
+    public static Class<?> unpackType(Object object) {
         if (object instanceof GeneratedSubclass) {
-            GeneratedSubclass generatedSubclass = (GeneratedSubclass) object;
-            return generatedSubclass.publicType();
+            return ((GeneratedSubclass) object).publicType();
         }
         return object.getClass();
     }
-
 }

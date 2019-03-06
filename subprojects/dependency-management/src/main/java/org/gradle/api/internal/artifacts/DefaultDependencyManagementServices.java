@@ -409,7 +409,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolutionQueryFactory,
                 attributesSchema,
                 artifactTransformRegistrations,
-                artifactTypeRegistry);
+                artifactTypeRegistry,
+                NamedObjectInstantiator.INSTANCE);
         }
 
         DependencyLockingHandler createDependencyLockingHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer) {
@@ -421,7 +422,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, ComponentMetadataHandler componentMetadataHandler) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, componentMetadataHandler);
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, NamedObjectInstantiator.INSTANCE);
         }
 
         DefaultComponentMetadataHandler createComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, SimpleMapInterner interner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor componentMetadataRuleExecutor) {

@@ -152,7 +152,10 @@ fun topLevelBlock(identifier: String, identifierRange: IntRange, blockRange: Int
 
 
 internal
-data class TopLevelBlock(val identifier: String, val section: ScriptSection)
+data class TopLevelBlock(val identifier: String, val section: ScriptSection) {
+    val range: IntRange
+        get() = section.wholeRange
+}
 
 
 internal
@@ -162,6 +165,6 @@ fun List<TopLevelBlock>.singleBlockSectionOrNull(): ScriptSection? =
         1 -> get(0).section
         else -> {
             val unexpectedBlock = get(1)
-            throw UnexpectedBlock(unexpectedBlock.identifier, unexpectedBlock.section.wholeRange)
+            throw UnexpectedBlock(unexpectedBlock.identifier, unexpectedBlock.range)
         }
     }

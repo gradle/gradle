@@ -19,6 +19,7 @@ package org.gradle.internal.instantiation
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import spock.lang.Specification
 
+import javax.inject.Inject
 import java.lang.annotation.Annotation
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -27,18 +28,9 @@ import java.lang.annotation.RetentionPolicy
 class DefaultInstantiatorFactoryTest extends Specification {
     def instantiatorFactory = new DefaultInstantiatorFactory(new TestCrossBuildInMemoryCacheFactory(), [handler(Annotation1), handler(Annotation2)])
 
-    def "caches InstantiationScheme instances"() {
-        def classes = [Annotation1]
-
+    def "creates scheme with requested annotations"() {
         expect:
-        instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme(classes))
-        instantiatorFactory.injectScheme(classes as Set).is(instantiatorFactory.injectScheme(classes))
-        instantiatorFactory.injectScheme([Annotation1, Annotation1]).is(instantiatorFactory.injectScheme(classes))
-
-        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([]))
-        !instantiatorFactory.injectScheme(classes).is(instantiatorFactory.injectScheme([Annotation1, Annotation2]))
-
-        instantiatorFactory.injectScheme([Annotation2, Annotation1]).is(instantiatorFactory.injectScheme([Annotation1, Annotation2]))
+        instantiatorFactory.injectScheme([Annotation1]).injectionAnnotations == [Annotation1, Inject] as Set
     }
 
     def "uses Instantiators from inject schemes"() {
@@ -57,12 +49,6 @@ class DefaultInstantiatorFactoryTest extends Specification {
         e.message == 'Annotation @Annotation3 is not a registered injection annotation.'
     }
 
-    def handler(Class<? extends Annotation> annotation) {
-        InjectAnnotationHandler handler = Stub(InjectAnnotationHandler)
-        handler.annotation >> annotation
-        return handler
-    }
-
     def "detects properties injected by annotation"() {
         def scheme = instantiatorFactory.injectScheme([Annotation1, Annotation2])
         when:
@@ -76,6 +62,12 @@ class DefaultInstantiatorFactoryTest extends Specification {
         then:
         instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation1)
         instanceFactory.serviceInjectionTriggeredByAnnotation(Annotation2)
+    }
+
+    def handler(Class<? extends Annotation> annotation) {
+        InjectAnnotationHandler handler = Stub(InjectAnnotationHandler)
+        handler.annotationType >> annotation
+        return handler
     }
 }
 

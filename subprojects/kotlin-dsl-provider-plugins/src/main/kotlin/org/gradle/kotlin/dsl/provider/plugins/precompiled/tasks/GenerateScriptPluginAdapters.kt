@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 
@@ -33,27 +36,25 @@ import java.io.File
 @CacheableTask
 open class GenerateScriptPluginAdapters : DefaultTask() {
 
+    @get:OutputDirectory
+    var outputDirectory = directoryProperty()
+
     @get:Internal
     internal
-    lateinit var plugins: List<ScriptPlugin>
-
-    @get:OutputDirectory
-    var outputDirectory = project.objects.directoryProperty()
+    lateinit var plugins: List<PrecompiledScriptPlugin>
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @Suppress("unused")
     internal
     val scriptFiles: Set<File>
-        get() = plugins.map { it.scriptFile }.toSet()
+        get() = scriptPluginFilesOf(plugins)
 
     @TaskAction
     @Suppress("unused")
     internal
     fun generate() =
-        outputDirectory.asFile.get().let { outputDir ->
-            outputDir.deleteRecursively()
-            outputDir.mkdirs()
+        outputDirectory.withOutputDirectory { outputDir ->
             for (scriptPlugin in plugins) {
                 scriptPlugin.writeScriptPluginAdapterTo(outputDir)
             }
@@ -62,7 +63,7 @@ open class GenerateScriptPluginAdapters : DefaultTask() {
 
 
 internal
-fun ScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
+fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     val (packageDir, packageDeclaration) =
         packageName?.let { packageName ->

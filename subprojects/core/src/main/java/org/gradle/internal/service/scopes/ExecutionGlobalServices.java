@@ -58,7 +58,6 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
-import javax.inject.Inject;
 import java.util.List;
 
 public class ExecutionGlobalServices {
@@ -68,7 +67,7 @@ public class ExecutionGlobalServices {
 
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Inject.class, Console.class, ReplacedBy.class, Internal.class, OptionValues.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Console.class, ReplacedBy.class, Internal.class, OptionValues.class), instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
@@ -82,10 +81,6 @@ public class ExecutionGlobalServices {
 
     TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
         return new CacheableTaskTypeAnnotationHandler();
-    }
-
-    PropertyAnnotationHandler createInjectAnnotationHandler() {
-        return new NoOpPropertyAnnotationHandler(Inject.class);
     }
 
     PropertyAnnotationHandler createConsoleAnnotationHandler() {

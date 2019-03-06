@@ -143,7 +143,7 @@ class AbstractVariantBackedConfigurationMetadata implements ConfigurationMetadat
 
     @Override
     public List<? extends ComponentArtifactMetadata> getArtifacts() {
-        return ImmutableList.of();
+        return variant.getArtifacts();
     }
 
     @Override

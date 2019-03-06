@@ -88,11 +88,11 @@ public class DslObject implements DynamicObjectAware, ExtensionAware, IConventio
         if (object instanceof HasPublicType) {
             return uncheckedCast(((HasPublicType) object).getPublicType());
         }
-        return TypeOf.<Object>typeOf(GeneratedSubclasses.unpack(object));
+        return TypeOf.<Object>typeOf(GeneratedSubclasses.unpackType(object));
     }
 
     public Class<?> getImplementationType() {
-        return GeneratedSubclasses.unpack(object);
+        return GeneratedSubclasses.unpackType(object);
     }
 
     private static <T> T toType(Object delegate, Class<T> type) {

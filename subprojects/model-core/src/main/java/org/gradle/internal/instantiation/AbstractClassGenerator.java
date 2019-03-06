@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
@@ -94,8 +93,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         for (InjectAnnotationHandler handler : allKnownAnnotations) {
-            if (!enabledAnnotations.contains(handler.getAnnotation())) {
-                builder.add(handler.getAnnotation());
+            if (!enabledAnnotations.contains(handler.getAnnotationType())) {
+                builder.add(handler.getAnnotationType());
             }
         }
         this.disabledAnnotations = builder.build();
@@ -452,8 +451,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
          * Determines the concrete return type of the given method, resolving any type parameters.
          */
         public MethodMetadata resolveTypeVariables(Method method) {
-            Type returnType = method.getGenericReturnType();
-            Type resolvedReturnType = returnType instanceof Class ? returnType : TypeToken.of(type).method(method).getReturnType().getType();
+            Type resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(type, method);
             return new MethodMetadata(method, resolvedReturnType);
         }
 

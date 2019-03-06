@@ -27,9 +27,12 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
 import org.gradle.kotlin.dsl.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
+import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.concurrent.writeFile
 
 import org.gradle.kotlin.dsl.provider.kotlinScriptClassPathProviderOf
@@ -66,6 +69,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
+import java.io.BufferedWriter
 import java.io.File
 
 
@@ -75,7 +79,7 @@ import java.io.File
  *
  * The accessors provide content-assist for plugin ids and quick navigation to the plugin source code.
  */
-fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
+fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
 
     rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
         val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
@@ -95,20 +99,41 @@ fun pluginAccessorsClassPath(project: Project): AccessorsClassPath = project.roo
 }
 
 
+fun writeSourceCodeForPluginSpecBuildersFor(
+    pluginDescriptorsClassPath: ClassPath,
+    sourceFile: File,
+    packageName: String
+) {
+    withSynchronousIO {
+        writePluginAccessorsSourceCodeTo(
+            sourceFile,
+            pluginAccessorsFor(pluginDescriptorsClassPath),
+            format = AccessorFormats.internal,
+            header = fileHeaderFor(packageName)
+        )
+    }
+}
+
+
+private
+fun pluginAccessorsFor(pluginDescriptorsClassPath: ClassPath): List<PluginAccessor> =
+    pluginAccessorsFor(pluginTreesFrom(pluginDescriptorsClassPath)).toList()
+
+
 internal
 fun IO.buildPluginAccessorsFor(
     pluginDescriptorsClassPath: ClassPath,
     srcDir: File,
     binDir: File
 ) {
-    makeAccessorOutputDirs(srcDir, binDir)
+    makeAccessorOutputDirs(srcDir, binDir, kotlinDslPackagePath)
 
-    val pluginSpecs = pluginSpecsFrom(pluginDescriptorsClassPath)
-    val pluginTrees = PluginTree.of(pluginSpecs)
-    val accessorList = pluginAccessorsFor(pluginTrees).toList()
-    val baseFileName = "$packagePath/PluginAccessors"
+    val pluginTrees = pluginTreesFrom(pluginDescriptorsClassPath)
+
+    val baseFileName = "$kotlinDslPackagePath/PluginAccessors"
     val sourceFile = srcDir.resolve("$baseFileName.kt")
 
+    val accessorList = pluginAccessorsFor(pluginTrees).toList()
     writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
 
     val fileFacadeClassName = InternalName(baseFileName + "Kt")
@@ -154,6 +179,11 @@ fun IO.buildPluginAccessorsFor(
 }
 
 
+internal
+fun pluginTreesFrom(pluginDescriptorsClassPath: ClassPath): Map<String, PluginTree> =
+    PluginTree.of(pluginSpecsFrom(pluginDescriptorsClassPath))
+
+
 private
 fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMethodSignature) {
     val extension = accessor.extension
@@ -180,50 +210,64 @@ fun ClassWriter.emitAccessorMethodFor(accessor: PluginAccessor, signature: JvmMe
 
 
 private
-fun IO.writePluginAccessorsSourceCodeTo(sourceFile: File, accessors: List<PluginAccessor>) = io {
+fun IO.writePluginAccessorsSourceCodeTo(
+    sourceFile: File,
+    accessors: List<PluginAccessor>,
+    format: AccessorFormat = AccessorFormats.default,
+    header: String = fileHeader
+) = io {
     sourceFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeader)
-
-        appendReproducibleNewLine("""
-            import ${PluginDependenciesSpec::class.qualifiedName}
-            import ${PluginDependencySpec::class.qualifiedName}
-        """.replaceIndent())
-
-        defaultPackageTypesIn(accessors).forEach {
-            appendReproducibleNewLine("import $it")
-        }
-
-        accessors.runEach {
-            newLine()
-            newLine()
-            val extendedType = extension.receiverType.sourceName
-            val pluginsRef = pluginDependenciesSpecOf(extendedType)
-            when (this) {
-                is PluginAccessor.ForPlugin -> {
-                    appendReproducibleNewLine("""
-                        /**
-                         * The `$id` plugin implemented by [$implementationClass].
-                         */
-                        val `$extendedType`.`${extension.name}`: PluginDependencySpec
-                            get() = $pluginsRef.id("$id")
-                    """.replaceIndent())
-                }
-                is PluginAccessor.ForGroup -> {
-                    val groupType = extension.returnType.sourceName
-                    appendReproducibleNewLine("""
-                        /**
-                         * The `$id` plugin group.
-                         */
-                        class `$groupType`(internal val plugins: PluginDependenciesSpec)
+        appendReproducibleNewLine(header)
+        appendSourceCodeForPluginAccessors(accessors, format)
+    }
+}
 
 
-                        /**
-                         * Plugin ids starting with `$id`.
-                         */
-                        val `$extendedType`.`${extension.name}`: `$groupType`
-                            get() = `$groupType`($pluginsRef)
-                    """.replaceIndent())
-                }
+private
+fun BufferedWriter.appendSourceCodeForPluginAccessors(
+    accessors: List<PluginAccessor>,
+    format: AccessorFormat
+) {
+
+    appendReproducibleNewLine("""
+        import ${PluginDependenciesSpec::class.qualifiedName}
+        import ${PluginDependencySpec::class.qualifiedName}
+    """.replaceIndent())
+
+    defaultPackageTypesIn(accessors).forEach {
+        appendReproducibleNewLine("import $it")
+    }
+
+    accessors.runEach {
+        newLine()
+        newLine()
+        val extendedType = extension.receiverType.sourceName
+        val pluginsRef = pluginDependenciesSpecOf(extendedType)
+        when (this) {
+            is PluginAccessor.ForPlugin -> {
+                appendReproducibleNewLine(format("""
+                    /**
+                     * The `$id` plugin implemented by [$implementationClass].
+                     */
+                    val `$extendedType`.`${extension.name}`: PluginDependencySpec
+                        get() = $pluginsRef.id("$id")
+                """))
+            }
+            is PluginAccessor.ForGroup -> {
+                val groupType = extension.returnType.sourceName
+                appendReproducibleNewLine(format("""
+                    /**
+                     * The `$id` plugin group.
+                     */
+                    class `$groupType`(internal val plugins: PluginDependenciesSpec)
+
+
+                    /**
+                     * Plugin ids starting with `$id`.
+                     */
+                    val `$extendedType`.`${extension.name}`: `$groupType`
+                        get() = `$groupType`($pluginsRef)
+                """))
             }
         }
     }
@@ -336,7 +380,7 @@ fun pluginAccessorsFor(pluginTrees: Map<String, PluginTree>, extendedType: TypeS
 
 internal
 fun typeSpecForPluginGroupType(groupType: String) =
-    TypeSpec(groupType, InternalName("$packagePath/$groupType"))
+    TypeSpec(groupType, InternalName("$kotlinDslPackagePath/$groupType"))
 
 
 internal

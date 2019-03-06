@@ -44,6 +44,7 @@ import spock.lang.Specification
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
+
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -176,12 +177,14 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     /**
-     * Returns the set of implicit task names expected for a non-root project for the target Gradle version.
+     * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion > GradleVersion.version("3.1")) {
+        if (targetVersion >= GradleVersion.version("5.3")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'prepareKotlinBuildScriptModel']
+        } else if (targetVersion > GradleVersion.version("3.1")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model']
-        } else if (GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("2.10")) {
+        } else if (targetVersion >= GradleVersion.version("2.10")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
         } else {
             return ['components', 'dependencies', 'dependencyInsight', 'help', 'projects', 'properties', 'tasks', 'model']
@@ -189,13 +192,29 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     /**
-     * Returns the set of implicit selector names expected for a non-root project for the target Gradle version.
+     * Returns the set of implicit selector names expected for any project for the target Gradle version.
      *
      * <p>Note that in some versions the handling of implicit selectors was broken, so this method may return a different value
      * to {@link #getImplicitTasks()}.
      */
     Set<String> getImplicitSelectors() {
         return getImplicitTasks()
+    }
+
+    /**
+     * Returns the set of invisible implicit task names expected for any project for the target Gradle version.
+     */
+    Set<String> getImplicitInvisibleTasks() {
+        return targetVersion >= GradleVersion.version("5.3") ? ['prepareKotlinBuildScriptModel'] : []
+    }
+
+    /**
+     * Returns the set of invisible implicit selector names expected for any project for the target Gradle version.
+     *
+     * See {@link #getImplicitInvisibleTasks}.
+     */
+    Set<String> getImplicitInvisibleSelectors() {
+        return implicitInvisibleTasks
     }
 
     /**

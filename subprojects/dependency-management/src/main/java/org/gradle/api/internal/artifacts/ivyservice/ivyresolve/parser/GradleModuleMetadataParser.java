@@ -23,13 +23,14 @@ import com.google.gson.stream.JsonToken;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -174,10 +175,10 @@ public class GradleModuleMetadataParser {
         reader.endObject();
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
-        AttributeValue<String> entry = attributes.findEntry(PlatformSupport.COMPONENT_CATEGORY);
-        if (entry.isPresent() && PlatformSupport.REGULAR_PLATFORM.equals(entry.get())) {
+        AttributeValue<String> entry = attributes.findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
+        if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get())) {
             // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, attributesFactory.of(PlatformSupport.COMPONENT_CATEGORY, PlatformSupport.ENFORCED_PLATFORM));
+            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
             MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
             populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
         }

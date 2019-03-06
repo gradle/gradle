@@ -100,7 +100,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         // before the gc monitoring expires the daemon
         executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
-        leakRate = 1000
+        leakRate = 900
 
         when:
         leaksWhenIdle()
@@ -121,7 +121,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)
+        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) || daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
     }
 
     @Ignore
@@ -130,9 +130,9 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
         when:
         setupBuildScript = permGenLeak
-        maxBuilds = 20
+        maxBuilds = 30
         heapSize = "200m"
-        leakRate = 3300
+        leakRate = 3700
 
         then:
         daemonIsExpiredEagerly()
@@ -144,7 +144,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         // before the gc monitoring expires the daemon
         executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
-        leakRate = 1700
+        leakRate = 1300
 
         when:
         leaksWithinOneBuild()
@@ -183,7 +183,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         try {
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
-                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-XX:MaxMetaspaceSize=${heapSize}", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
                 GradleHandle gradle = executer.start()
                 gradle.waitForExit()
                 if (gradle.standardOutput ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/) {

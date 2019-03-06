@@ -19,6 +19,7 @@ import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.configuration.project.ProjectConfigureAction
 
+import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -27,9 +28,12 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
-        project.serviceOf<ToolingModelBuilderRegistry>().run {
+        project.serviceOf<ToolingModelBuilderRegistry>().apply {
             register(KotlinBuildScriptModelBuilder)
             register(KotlinBuildScriptTemplateModelBuilder)
+        }
+        project.tasks.apply {
+            register(kotlinBuildScriptModelTask)
         }
     }
 }

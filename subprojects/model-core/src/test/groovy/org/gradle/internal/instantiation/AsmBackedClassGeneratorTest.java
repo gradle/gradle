@@ -104,7 +104,9 @@ public class AsmBackedClassGeneratorTest {
     private final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.<InjectAnnotationHandler>emptyList(), Collections.<Class<? extends Annotation>>emptyList());
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
-        return newInstance(clazz, new DefaultServiceRegistry(), args);
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        services.add(InstantiatorFactory.class, TestUtil.instantiatorFactory());
+        return newInstance(clazz, services, args);
     }
 
     private <T> T newInstance(Class<T> clazz, ServiceRegistry services, Object... args) throws Exception {
@@ -135,7 +137,8 @@ public class AsmBackedClassGeneratorTest {
         Bean bean = newInstance(Bean.class);
         assertTrue(bean instanceof GeneratedSubclass);
         assertEquals(Bean.class, ((GeneratedSubclass)bean).publicType());
-        assertEquals(Bean.class, GeneratedSubclasses.unpack(bean));
+        assertEquals(Bean.class, GeneratedSubclasses.unpackType(bean));
+        assertEquals(Bean.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
 
     @Test
@@ -143,7 +146,8 @@ public class AsmBackedClassGeneratorTest {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
         assertTrue(bean instanceof GeneratedSubclass);
         assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass)bean).publicType());
-        assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean));
+        assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpackType(bean));
+        assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
 
     @Test

@@ -135,9 +135,13 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
-        public void mapToMavenScope(String scope, boolean optional) {
+        public void mapToOptional() {
+            this.optional = true;
+        }
+
+        @Override
+        public void mapToMavenScope(String scope) {
             this.mavenScope = assertValidScope(scope);
-            this.optional = optional;
         }
 
         private static String assertValidScope(String scope) {

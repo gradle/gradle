@@ -124,6 +124,7 @@ fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
     model(KotlinBuildScriptModel::class.java).apply {
         setJavaHome(request.javaHome)
         setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
+        forTasks(kotlinBuildScriptModelTask)
 
         val arguments = request.options.toMutableList()
         arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"
@@ -145,6 +146,9 @@ const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 
 
 const val kotlinBuildScriptModelCorrelationId = "org.gradle.kotlin.dsl.provider.cid"
+
+
+const val kotlinBuildScriptModelTask = "prepareKotlinBuildScriptModel"
 
 
 private

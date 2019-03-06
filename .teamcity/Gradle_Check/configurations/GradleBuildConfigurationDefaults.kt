@@ -34,7 +34,8 @@ fun gradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<S
                 if (isContinue) "--continue" else "",
                 """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
                 "-Dorg.gradle.internal.tasks.createops",
-                "-Dorg.gradle.internal.plugins.portal.url.override=http://dev12.gradle.org:8081/artifactory/gradle-plugins/")
+                "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+        )
 
 
 val m2CleanScriptUnixLike = """

@@ -36,6 +36,7 @@ import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
+
 import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
@@ -57,10 +58,12 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
+
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
+
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -227,8 +230,8 @@ class ResidualProgramCompiler(
             compileStage1(
                 plugins.fragment.source.map {
                     it.preserve(
-                        buildscript.fragment.section.wholeRange,
-                        plugins.fragment.section.wholeRange)
+                        buildscript.fragment.range,
+                        plugins.fragment.range)
                 },
                 buildscriptWithPluginsScriptDefinition,
                 pluginsBlockClassPath
@@ -467,7 +470,7 @@ class ResidualProgramCompiler(
     private
     fun compilePlugins(program: Program.Plugins) =
         compileStage1(
-            program.fragment.source.map { it.preserve(program.fragment.section.wholeRange) },
+            program.fragment.source.map { it.preserve(program.fragment.range) },
             pluginsScriptDefinition,
             pluginsBlockClassPath
         )
@@ -659,21 +662,27 @@ class ResidualProgramCompiler(
     val buildscriptWithPluginsScriptDefinition
         get() = scriptDefinitionFromTemplate(KotlinBuildscriptAndPluginsBlock::class)
 
+
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
+        scriptDefinitionFromTemplate(template, implicitImports)
+}
 
-        object : KotlinScriptDefinition(template), DependenciesResolver {
 
-            override val dependencyResolver = this
+fun scriptDefinitionFromTemplate(
+    template: KClass<out Any>,
+    implicitImports: List<String>
+): KotlinScriptDefinition = object : KotlinScriptDefinition(template), DependenciesResolver {
 
-            override fun resolve(
-                scriptContents: ScriptContents,
-                environment: Environment
-            ): DependenciesResolver.ResolveResult = DependenciesResolver.ResolveResult.Success(
-                ScriptDependencies(imports = implicitImports),
-                emptyList()
-            )
-        }
+    override val dependencyResolver = this
+
+    override fun resolve(
+        scriptContents: ScriptContents,
+        environment: Environment
+    ): DependenciesResolver.ResolveResult = DependenciesResolver.ResolveResult.Success(
+        ScriptDependencies(imports = implicitImports),
+        emptyList()
+    )
 }
 
 

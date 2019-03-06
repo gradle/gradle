@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.plugins.precompiled
+package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
@@ -34,7 +35,7 @@ import java.io.File
 
 
 internal
-data class ScriptPlugin(internal val scriptFile: File) {
+data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 
     val scriptFileName: String = scriptFile.name
 
@@ -75,7 +76,6 @@ data class ScriptPlugin(internal val scriptFile: File) {
         }
     }
 
-    private
     val scriptType
         get() = scriptTypeMatch.scriptType
 
@@ -99,10 +99,21 @@ data class ScriptPlugin(internal val scriptFile: File) {
         packageNameOf(scriptFile)
     }
 
+    val hashString by lazy {
+        Hashing.hashString(scriptText).toString()
+    }
+
+    val scriptText: String
+        get() = scriptFile.readText()
+
     private
     fun packagePrefixed(id: String) =
         packageName?.let { "$it.$id" } ?: id
 }
+
+
+internal
+fun scriptPluginFilesOf(list: List<PrecompiledScriptPlugin>) = list.map { it.scriptFile }.toSet()
 
 
 private

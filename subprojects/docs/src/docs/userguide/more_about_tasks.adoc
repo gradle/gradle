@@ -157,7 +157,7 @@ include::sample[dir="userguide/tasks/configureUsingBlock/groovy",files="build.gr
 include::sample[dir="userguide/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
 
-This works for _any_ task. Task access is just a shortcut for the `tasks.named()` method. It is important to note that if you pass a block to the `named()` method, this block is applied to _configure_ the task, not when the task executes.
+This works for _any_ task. Task access is just a shortcut for the `tasks.named()` (Kotlin) or `tasks.getByName()` (Groovy) method. It is important to note that blocks used here are for _configuring_ the task and are not evaluated when the task executes.
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
 

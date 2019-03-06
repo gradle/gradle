@@ -39,6 +39,16 @@ public interface ConfigurationVariantDetails {
     void skip();
 
     /**
+     * Provides information about the optional status of this added configuration variant.
+     *
+     * <ul>
+     *     <li>For the Maven world, this means that dependencies will be declared as {@code optional}.</li>
+     *     <li>For the Ivy world, this means that configuration marked optional will not be extended by the {@code default} configuration.</li>
+     * </ul>
+     */
+    void mapToOptional();
+
+    /**
      * Provides information about how to publish to a Maven POM file. If
      * nothing is said, Gradle will publish all dependencies from this
      * configuration to the <i>compile</i> scope. It is preferable to give
@@ -57,9 +67,8 @@ public interface ConfigurationVariantDetails {
      *
      * The mapping only applies to dependencies: dependency constraints will
      * systematically be published as import scope.
+     *  @param scope the Maven scope to use for dependencies found in this configuration variant
      *
-     * @param scope the Maven scope to use for dependencies found in this configuration variant
-     * @param optional true if the dependencies found in this configuration variant should be published as optional
      */
-    void mapToMavenScope(String scope, boolean optional);
+    void mapToMavenScope(String scope);
 }
