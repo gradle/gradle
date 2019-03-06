@@ -305,31 +305,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }).orElse(outputsAfterExecution);
         }
 
-        @Override
-        public void persistResult(final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, final boolean successful, final OriginMetadata originMetadata) {
-            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            // Only persist history if there was no failure, or some output files have been changed
-            if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
-                context.getBeforeExecutionState().ifPresent(new Consumer<BeforeExecutionState>() {
-                    @Override
-                    public void accept(BeforeExecutionState execution) {
-                        executionHistoryStore.store(
-                            task.getPath(),
-                            originMetadata,
-                            execution.getImplementation(),
-                            execution.getAdditionalImplementations(),
-                            execution.getInputProperties(),
-                            execution.getInputFileProperties(),
-                            finalOutputs,
-                            successful
-                        );
-
-                        outputFilesRepository.recordOutputs(finalOutputs.values());
-                    }
-                });
-            }
-        }
-
         private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
             return !previous.keySet().equals(current.keySet())
                 || new OutputFileChanges(previous, current, IGNORE_ADDED).hasAnyChanges();

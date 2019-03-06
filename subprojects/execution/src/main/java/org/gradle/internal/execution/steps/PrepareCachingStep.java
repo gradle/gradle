@@ -22,6 +22,8 @@ import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
 import java.util.Optional;
@@ -45,6 +47,21 @@ public class PrepareCachingStep<C extends IncrementalChangesContext, R extends R
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
                 return context.getChanges();
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
             }
 
             @Override

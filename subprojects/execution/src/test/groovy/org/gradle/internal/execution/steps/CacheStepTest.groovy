@@ -29,6 +29,8 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
@@ -56,6 +58,21 @@ class CacheStepTest extends Specification {
         @Override
         Optional<ExecutionStateChanges> getChanges() {
             return Optional.empty()
+        }
+
+        @Override
+        Optional<String> getRebuildReason() {
+            return context.getRebuildReason();
+        }
+
+        @Override
+        Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return context.getBeforeExecutionState();
         }
 
         @Override

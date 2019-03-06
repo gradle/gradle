@@ -25,6 +25,7 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
@@ -60,6 +61,21 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
                 return Optional.ofNullable(changes);
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
             }
 
             @Override

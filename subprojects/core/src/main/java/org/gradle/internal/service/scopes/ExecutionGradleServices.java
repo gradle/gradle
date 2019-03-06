@@ -112,10 +112,11 @@ public class ExecutionGradleServices {
     }
 
     public WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
-        BuildCacheController buildCacheController,
         BuildCacheCommandFactory buildCacheCommandFactory,
-        BuildInvocationScopeId buildInvocationScopeId,
+        BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
+        BuildInvocationScopeId buildInvocationScopeId,
+        ExecutionHistoryStore executionHistoryStore,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
@@ -123,7 +124,7 @@ public class ExecutionGradleServices {
         return new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
             new ResolveChangesStep<UpToDateResult>(
                 new SkipUpToDateStep<IncrementalChangesContext>(
-                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository,
+                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository, executionHistoryStore,
                         new PrepareCachingStep<IncrementalChangesContext, CurrentSnapshotResult>(
                             new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
                                 new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),

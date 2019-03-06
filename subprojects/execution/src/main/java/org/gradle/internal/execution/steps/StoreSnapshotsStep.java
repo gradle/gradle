@@ -17,21 +17,31 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.CurrentSnapshotResult;
+import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
+import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
-public class StoreSnapshotsStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
+import java.util.Optional;
+
+public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C, CurrentSnapshotResult> {
     private final OutputFilesRepository outputFilesRepository;
+    private final ExecutionHistoryStore executionHistoryStore;
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(
         OutputFilesRepository outputFilesRepository,
+        ExecutionHistoryStore executionHistoryStore,
         Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.outputFilesRepository = outputFilesRepository;
+        this.executionHistoryStore = executionHistoryStore;
         this.delegate = delegate;
     }
 
@@ -40,13 +50,33 @@ public class StoreSnapshotsStep<C extends Context> implements Step<C, CurrentSna
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
-        context.getWork().persistResult(
-            finalOutputs,
-            result.getOutcome().isSuccessful(),
-            result.getOriginMetadata()
-        );
+        context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
+            boolean successful = result.getOutcome().isSuccessful();
+            Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
+            // Only persist history if there was no failure, or some output files have been changed
+            UnitOfWork work = context.getWork();
+            if (successful
+                || !afterPreviousExecutionState.isPresent()
+                || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs, work.getOutputHandling())) {
+                executionHistoryStore.store(
+                    work.getIdentity(),
+                    result.getOriginMetadata(),
+                    beforeExecutionState.getImplementation(),
+                    beforeExecutionState.getAdditionalImplementations(),
+                    beforeExecutionState.getInputProperties(),
+                    beforeExecutionState.getInputFileProperties(),
+                    finalOutputs,
+                    successful
+                );
+            }
+        });
         outputFilesRepository.recordOutputs(finalOutputs.values());
 
         return result;
+    }
+
+    private static boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, OutputFileChanges.OutputHandling outputHandling) {
+        return !previous.keySet().equals(current.keySet())
+            || new OutputFileChanges(previous, current, outputHandling).hasAnyChanges();
     }
 }

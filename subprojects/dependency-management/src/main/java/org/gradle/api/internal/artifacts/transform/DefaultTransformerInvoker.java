@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvid
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -372,22 +371,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     }
                 }
             };
-        }
-
-        @Override
-        public void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            if (successful) {
-                executionHistoryStore.store(
-                    identityString,
-                    originMetadata,
-                    beforeExecutionState.getImplementation(),
-                    ImmutableList.of(),
-                    beforeExecutionState.getInputProperties(),
-                    beforeExecutionState.getInputFileProperties(),
-                    finalOutputs,
-                    successful
-                );
-            }
         }
 
         @Override

@@ -24,7 +24,6 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.Context
@@ -121,12 +120,11 @@ class IncrementalExecutionTest extends Specification {
 
     def unitOfWork = builder.build()
 
-
     WorkExecutor<IncrementalContext, UpToDateResult> getExecutor() {
         new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
             new ResolveChangesStep<UpToDateResult>(
                 new SkipUpToDateStep<IncrementalChangesContext>(
-                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository,
+                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository, executionHistoryStore,
                         new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                             new CreateOutputsStep<IncrementalChangesContext, Result>(
                                 new CatchExceptionStep<IncrementalChangesContext>(
@@ -791,19 +789,6 @@ class IncrementalExecutionTest extends Specification {
                     throw new UnsupportedOperationException()
                 }
 
-                @Override
-                void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-                    executionHistoryStore.store(
-                        getIdentity(),
-                        originMetadata,
-                        implementationSnapshot,
-                        additionalImplementationSnapshots,
-                        snapshotInputProperties(),
-                        snapshotInputFiles(),
-                        finalOutputs,
-                        successful
-                    )
-                }
 
                 @Override
                 Optional<? extends Iterable<String>> getChangingOutputs() {

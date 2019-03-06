@@ -23,7 +23,6 @@ import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.testing.internal.util.Specification
 
 class SkipUpToDateStepTest extends Specification {

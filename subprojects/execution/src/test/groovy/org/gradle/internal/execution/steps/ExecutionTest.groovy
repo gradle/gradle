@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.BuildCancelledException
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionException
@@ -26,11 +25,10 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.OutputFileChanges
-import org.gradle.internal.execution.steps.CancelExecutionStep
-import org.gradle.internal.execution.steps.CatchExceptionStep
-import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 
@@ -180,10 +178,6 @@ class ExecutionTest extends Specification {
             throw new UnsupportedOperationException()
         }
 
-        @Override
-        void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            throw new UnsupportedOperationException()
-        }
 
         @Override
         Optional<? extends Iterable<String>> getChangingOutputs() {
@@ -215,6 +209,21 @@ class ExecutionTest extends Specification {
         executionStep.execute(new IncrementalChangesContext() {
             @Override
             Optional<ExecutionStateChanges> getChanges() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<String> getRebuildReason() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<BeforeExecutionState> getBeforeExecutionState() {
                 return Optional.empty()
             }
 
