@@ -26,6 +26,7 @@ import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.id.UniqueId;
@@ -70,7 +71,8 @@ public class WorkExecutorTestFixture {
     private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
     private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
 
-    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
+    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror,
+                            ExecutionHistoryStore executionHistoryStore) {
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
@@ -94,10 +96,11 @@ public class WorkExecutorTestFixture {
             }
         };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
-            buildCacheController,
             buildCacheCommandFactory,
-            buildInvocationScopeId,
+            buildCacheController,
             cancellationToken,
+            buildInvocationScopeId,
+            executionHistoryStore,
             outputChangeListener,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)
