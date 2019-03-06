@@ -45,7 +45,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
-    import org.gradle.execution.*
+    import org.gradle.api.execution.incremental.*
 
     class BaseIncrementalTask extends DefaultTask {
         @InputDirectory

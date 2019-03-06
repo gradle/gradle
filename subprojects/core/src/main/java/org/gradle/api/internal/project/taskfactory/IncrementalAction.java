@@ -18,11 +18,11 @@ package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
+import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.execution.IncrementalInputs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
