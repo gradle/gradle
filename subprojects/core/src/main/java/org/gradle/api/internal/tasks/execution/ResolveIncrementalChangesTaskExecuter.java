@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
@@ -93,6 +94,11 @@ public class ResolveIncrementalChangesTaskExecuter implements TaskExecuter {
 
         @Override
         public Iterable<Change> getInputFilesChanges() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName) {
             throw new UnsupportedOperationException();
         }
 

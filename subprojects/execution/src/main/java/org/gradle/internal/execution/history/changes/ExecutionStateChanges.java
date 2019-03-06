@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -31,6 +32,11 @@ public interface ExecutionStateChanges {
      * Returns changes to input files only.
      */
     Iterable<Change> getInputFilesChanges();
+
+    /**
+     * Returns changes for the input file property with the given name.
+     */
+    Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName);
 
     /**
      * Visits any change to inputs or outputs.

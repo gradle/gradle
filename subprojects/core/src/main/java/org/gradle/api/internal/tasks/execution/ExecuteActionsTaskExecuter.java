@@ -194,7 +194,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<? extends ExecutionStateChanges> getChangesSincePreviousExecution() {
+        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
             return context.getExecutionStateChanges();
         }
 

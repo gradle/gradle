@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
@@ -29,6 +30,11 @@ public class NoHistoryTaskUpToDateState implements ExecutionStateChanges {
 
     @Override
     public Iterable<Change> getInputFilesChanges() {
+        throw new UnsupportedOperationException("Input file changes can only be queried when history is available.");
+    }
+
+    @Override
+    public Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName) {
         throw new UnsupportedOperationException("Input file changes can only be queried when history is available.");
     }
 

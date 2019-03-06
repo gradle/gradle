@@ -45,13 +45,14 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
+    import org.gradle.execution.*
 
     class BaseIncrementalTask extends DefaultTask {
         @InputDirectory
         def File inputDir
 
         @TaskAction
-        void execute(IncrementalTaskInputs inputs) {
+        void execute(IncrementalInputs inputs) {
             assert !(inputs instanceof ExtensionAware)
 
             if (project.hasProperty('forceFail')) {
@@ -60,16 +61,14 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
             incrementalExecution = inputs.incremental
 
-            inputs.outOfDate { change ->
+            inputs.getChanges(inputDir).each { change ->
                 if (change.added) {
                     addedFiles << change.file
-                } else {
+                } else if (change.modified) {
                     changedFiles << change.file
+                } else {
+                    removedFiles << change.file
                 }
-            }
-
-            inputs.removed { change ->
-                removedFiles << change.file
             }
 
             if (!inputs.incremental) {
@@ -258,7 +257,7 @@ ext.added = ['file3.txt', 'file4.txt']
         buildFile << "incremental.inputs.file('new-input.txt')"
 
         then:
-        executesWithRebuildContext("ext.changed += ['new-input.txt']")
+        executesWithRebuildContext()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
@@ -445,7 +444,7 @@ ext.added = ['file3.txt', 'file4.txt']
 
     def executesWithRebuildContext(String fileChanges = "") {
         buildFile << """
-    ext.changed = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
+    ext.added = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
     ext.incrementalExecution = false
 """
         buildFile << fileChanges

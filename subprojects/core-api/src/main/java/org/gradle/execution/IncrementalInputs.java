@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.transform;
+package org.gradle.execution;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.incremental.InputFileDetails;

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.execution.IncrementalInputs;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
@@ -65,7 +66,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 if (taskActionFactory == null) {
                     continue;
                 }
-                if (taskActionFactory instanceof IncrementalTaskActionFactory) {
+                if (taskActionFactory instanceof IncrementalTaskActionFactory || taskActionFactory instanceof IncrementalActionFactory) {
                     if (incremental) {
                         throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", IncrementalTaskInputs.class.getSimpleName()));
                     }
@@ -97,12 +98,16 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         TaskActionFactory taskActionFactory;
         if (parameterTypes.length == 1) {
-            if (!parameterTypes[0].equals(IncrementalTaskInputs.class)) {
+            Class<?> parameterType = parameterTypes[0];
+            if (parameterType.equals(IncrementalTaskInputs.class)) {
+                taskActionFactory = new IncrementalTaskActionFactory(taskType, method);
+            } else if (parameterType.equals(IncrementalInputs.class)) {
+                taskActionFactory = new IncrementalActionFactory(taskType, method);
+            } else {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
-                    declaringClass.getSimpleName(), method.getName(), parameterTypes[0]));
+                    declaringClass.getSimpleName(), method.getName(), parameterType));
             }
-            taskActionFactory = new IncrementalTaskActionFactory(taskType, method);
         } else {
             taskActionFactory = new StandardTaskActionFactory(taskType, method);
         }
@@ -146,6 +151,21 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         @Override
         public Action<? super Task> create(Instantiator instantiator) {
             return new IncrementalTaskAction(instantiator, taskType, method);
+        }
+    }
+
+    private static class IncrementalActionFactory implements TaskActionFactory {
+        private final Class<? extends Task> taskType;
+        private final Method method;
+
+        public IncrementalActionFactory(Class<? extends Task> taskType, Method method) {
+            this.taskType = taskType;
+            this.method = method;
+        }
+
+        @Override
+        public Action<? super Task> create(Instantiator instantiator) {
+            return new IncrementalAction(instantiator, taskType, method);
         }
     }
 }

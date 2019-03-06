@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.Describable;
+import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.internal.Cast;
 import org.gradle.internal.change.CachingChangeContainer;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
@@ -34,6 +36,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
     private final ChangeContainer inputFileChanges;
     private final ChangeContainer allChanges;
     private final ChangeContainer rebuildTriggeringChanges;
+    private final InputFileChanges directInputFileChanges;
 
     public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
         this.previousExecution = lastExecution;
@@ -65,7 +68,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
             thisExecution.getInputFileProperties(),
             "Input file",
             executable);
-        InputFileChanges directInputFileChanges = new InputFileChanges(
+        this.directInputFileChanges = new InputFileChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
         ChangeContainer inputFileChanges = caching(directInputFileChanges);
@@ -99,6 +102,13 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         inputFileChanges.accept(visitor);
         return visitor.getChanges();
+    }
+
+    @Override
+    public Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName) {
+        CollectingChangeVisitor collectingChangeVisitor = new CollectingChangeVisitor();
+        directInputFileChanges.accept(propertyName, collectingChangeVisitor);
+        return Cast.uncheckedNonnullCast(collectingChangeVisitor.getChanges());
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -30,7 +31,7 @@ import java.util.Optional;
 
 public class TransformerExecutionContext {
     private final TransformationWorkspaceProvider.TransformationWorkspace workspace;
-    private final TransformerExecutionStateChanges executionStateChanges;
+    private final ExecutionStateChanges executionStateChanges;
     private final Timer executionTimer;
     private final ImmutableSortedMap<String, ValueSnapshot> inputSnapshots;
 
@@ -40,7 +41,7 @@ public class TransformerExecutionContext {
 
     public TransformerExecutionContext(
         TransformationWorkspaceProvider.TransformationWorkspace workspace,
-        @Nullable TransformerExecutionStateChanges executionStateChanges,
+        @Nullable ExecutionStateChanges executionStateChanges,
         Timer executionTimer,
         ImmutableSortedMap<String, ValueSnapshot> inputSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints,
@@ -55,7 +56,7 @@ public class TransformerExecutionContext {
         this.buildCacheKey = buildCacheKey;
     }
 
-    public Optional<TransformerExecutionStateChanges> getExecutionStateChanges() {
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
         return Optional.ofNullable(executionStateChanges);
     }
 

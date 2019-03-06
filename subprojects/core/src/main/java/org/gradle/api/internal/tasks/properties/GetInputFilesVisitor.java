@@ -45,6 +45,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             FileParameterUtils.normalizerOrDefault(fileNormalizer),
+            value,
             new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
             skipWhenEmpty));
         if (skipWhenEmpty) {

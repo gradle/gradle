@@ -125,7 +125,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public Optional<? extends ExecutionStateChanges> getExecutionStateChanges() {
+    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
         return Optional.ofNullable(executionStateChanges);
     }
 

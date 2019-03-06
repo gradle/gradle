@@ -48,6 +48,7 @@ public class TransformerExecutionStateChanges implements ExecutionStateChanges {
         return ImmutableList.of();
     }
 
+    @Override
     public Iterable<InputFileDetails> getInputFilePropertyChanges(String propertyName) {
         CollectingChangeVisitor collectingChangeVisitor = new CollectingChangeVisitor();
         inputFileChanges.accept(propertyName, collectingChangeVisitor);

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.transform.IncrementalInputs;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.execution.IncrementalInputs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
@@ -146,7 +146,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 );
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = createInputFileFingerprints(inputArtifactFingerprint, dependenciesFingerprint);
 
-                Optional<TransformerExecutionStateChanges> executionStateChanges = workspaceProvider.getExecutionHistoryStore().load(transformIdentityString).map(previous -> {
+                Optional<ExecutionStateChanges> executionStateChanges = workspaceProvider.getExecutionHistoryStore().load(transformIdentityString).map(previous -> {
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsBeforeExecution = snapshotOutputs(fingerprinterRegistry.getFingerprinter(OutputNormalizer.class), workspace, fileCollectionFactory);
                     InputFileChanges inputFileChanges = new InputFileChanges(previous.getInputFileProperties(), inputFileFingerprints);
                     TransformerExecutionStateChanges.AllOutputFileChanges outputFileChanges = new TransformerExecutionStateChanges.AllOutputFileChanges(previous.getOutputFileProperties(), outputsBeforeExecution);
@@ -419,7 +419,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public Optional<? extends ExecutionStateChanges> getChangesSincePreviousExecution() {
+        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
             return context.getExecutionStateChanges();
         }
 
