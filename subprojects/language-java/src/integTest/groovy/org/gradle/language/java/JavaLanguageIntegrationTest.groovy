@@ -59,7 +59,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             model {
                 components {
                     myLib(JvmLibrarySpec) {
-                        targetPlatform "java6"
+                        targetPlatform "java7"
                     }
                 }
             }
@@ -68,7 +68,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLib/jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
+        jarFile("build/jars/myLib/jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
@@ -82,9 +82,9 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
             model {
                 components {
                     myLib(JvmLibrarySpec) {
-                        targetPlatform "java6"
                         targetPlatform "java7"
                         targetPlatform "java8"
+                        targetPlatform "java9"
                     }
                 }
             }
@@ -93,9 +93,9 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         succeeds "assemble"
 
         and:
-        jarFile("build/jars/myLib/java6Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_6
         jarFile("build/jars/myLib/java7Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_7
         jarFile("build/jars/myLib/java8Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_8
+        jarFile("build/jars/myLib/java9Jar/myLib.jar").javaVersion == JavaVersion.VERSION_1_9
     }
 
     def "erroneous target should produce reasonable error message"() {
