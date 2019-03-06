@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 interface TrackingHttpHandler {
@@ -28,9 +29,10 @@ interface TrackingHttpHandler {
      *
      * This method may block until the request is ready to be handled, but must do so using a condition created from the state lock.
      *
-     * @throws Exception on failure to handle request. The handler is considered broken.
+     * @return null when this handler is not expecting any further requests.
      */
-    ResponseProducer selectResponseProducer(int id, HttpExchange exchange) throws Exception;
+    @Nullable
+    ResponseProducer selectResponseProducer(int id, HttpExchange exchange);
 
     /**
      * Returns a precondition that asserts that this handler is not expecting any further requests to be released by the test in order to complete.
