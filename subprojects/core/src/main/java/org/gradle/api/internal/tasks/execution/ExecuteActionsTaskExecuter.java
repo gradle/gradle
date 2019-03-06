@@ -108,7 +108,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
-        final TaskExecution work = new TaskExecution(task, context);
+        final TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
         final UpToDateResult result = workExecutor.execute(new IncrementalContext() {
             @Override
             public UnitOfWork getWork() {
@@ -169,10 +169,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private class TaskExecution implements UnitOfWork {
         private final TaskInternal task;
         private final TaskExecutionContext context;
+        private final ExecutionHistoryStore executionHistoryStore;
 
-        public TaskExecution(TaskInternal task, TaskExecutionContext context) {
+        public TaskExecution(TaskInternal task, TaskExecutionContext context, ExecutionHistoryStore executionHistoryStore) {
             this.task = task;
             this.context = context;
+            this.executionHistoryStore = executionHistoryStore;
         }
 
         @Override
@@ -202,6 +204,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
             }
+        }
+
+        @Override
+        public ExecutionHistoryStore getExecutionHistoryStore() {
+            return executionHistoryStore;
         }
 
         @Override

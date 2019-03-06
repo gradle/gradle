@@ -100,7 +100,6 @@ public class WorkExecutorTestFixture {
             buildCacheController,
             cancellationToken,
             buildInvocationScopeId,
-            executionHistoryStore,
             outputChangeListener,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)

@@ -22,7 +22,6 @@ import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -32,16 +31,13 @@ import java.util.Optional;
 
 public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C, CurrentSnapshotResult> {
     private final OutputFilesRepository outputFilesRepository;
-    private final ExecutionHistoryStore executionHistoryStore;
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(
         OutputFilesRepository outputFilesRepository,
-        ExecutionHistoryStore executionHistoryStore,
         Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.outputFilesRepository = outputFilesRepository;
-        this.executionHistoryStore = executionHistoryStore;
         this.delegate = delegate;
     }
 
@@ -58,7 +54,7 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
             if (successful
                 || !afterPreviousExecutionState.isPresent()
                 || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs, work.getOutputHandling())) {
-                executionHistoryStore.store(
+                work.getExecutionHistoryStore().store(
                     work.getIdentity(),
                     result.getOriginMetadata(),
                     beforeExecutionState.getImplementation(),

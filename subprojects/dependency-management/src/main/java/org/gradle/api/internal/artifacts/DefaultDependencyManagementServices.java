@@ -198,7 +198,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          * Currently used for running artifact transformations in buildscript blocks.
          */
         WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
-            ExecutionHistoryStore executionHistoryStore,
             ListenerManager listenerManager,
             TimeoutHandler timeoutHandler
         ) {
@@ -218,7 +217,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultWorkExecutor<>(
                 new ResolveChangesStep<>(
                     new SkipUpToDateStep<>(
-                        new StoreSnapshotsStep<>(noopOutputFilesRepository, executionHistoryStore,
+                        new StoreSnapshotsStep<>(noopOutputFilesRepository,
                             new PrepareCachingStep<>(
                                 new SnapshotOutputStep<>(fixedUniqueId,
                                     new CreateOutputsStep<>(

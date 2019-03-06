@@ -27,6 +27,7 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.OutputFileChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -141,6 +142,11 @@ class ExecutionTest extends Specification {
         ExecutionOutcome execute(IncrementalChangesContext context) {
             executed = true
             return work.get()
+        }
+
+        @Override
+        ExecutionHistoryStore getExecutionHistoryStore() {
+            throw new UnsupportedOperationException()
         }
 
         @Override

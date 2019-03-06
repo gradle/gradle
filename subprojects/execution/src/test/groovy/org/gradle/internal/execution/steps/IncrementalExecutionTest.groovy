@@ -38,6 +38,7 @@ import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.OutputFileChanges
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
@@ -124,7 +125,7 @@ class IncrementalExecutionTest extends Specification {
         new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
             new ResolveChangesStep<UpToDateResult>(
                 new SkipUpToDateStep<IncrementalChangesContext>(
-                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository, executionHistoryStore,
+                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository,
                         new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                             new CreateOutputsStep<IncrementalChangesContext, Result>(
                                 new CatchExceptionStep<IncrementalChangesContext>(
@@ -750,6 +751,11 @@ class IncrementalExecutionTest extends Specification {
                 ExecutionOutcome execute(IncrementalChangesContext context) {
                     executed = true
                     return work.get()
+                }
+
+                @Override
+                ExecutionHistoryStore getExecutionHistoryStore() {
+                    return IncrementalExecutionTest.this.executionHistoryStore
                 }
 
                 @Override

@@ -315,6 +315,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public ExecutionHistoryStore getExecutionHistoryStore() {
+            return executionHistoryStore;
+        }
+
+        @Override
         public Optional<Duration> getTimeout() {
             return Optional.empty();
         }
