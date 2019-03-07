@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.internal.Factory
-import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -58,9 +57,8 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
     }
 
     def "creates Java compiler for mismatching Java home directory"() {
-        File originalJavaHomeDir = SystemProperties.instance.javaHomeDir
+        File originalJavaHomeDir = new File(System.properties['java.home'] as String)
         TestFile realJavaHome = temporaryFolder.file('my/test/java/home/real')
-        TestFile javaHomeFromToolProvidersPointOfView = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
         JavaCompiler expectedJavaCompiler = factory.create()
@@ -68,10 +66,10 @@ class JavaHomeBasedJavaCompilerFactoryTest extends Specification {
         then:
         1 * currentJvmJavaHomeFactory.create() >> realJavaHome
         1 * systemJavaCompilerFactory.create() >> {
-            assert SystemProperties.instance.javaHomeDir == realJavaHome
+            assert new File(System.properties['java.home'] as String) == realJavaHome
             javaCompiler
         }
         javaCompiler == expectedJavaCompiler
-        originalJavaHomeDir == SystemProperties.instance.javaHomeDir
+        originalJavaHomeDir == new File(System.properties['java.home'] as String)
     }
 }

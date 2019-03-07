@@ -17,11 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import org.apache.http.ssl.SSLInitializationException
-
-import org.gradle.internal.SystemProperties
-
 import spock.lang.Specification
-
 /**
  * Tests loading of keystores and truststores corresponding to system
  * properties specified.
@@ -31,7 +27,7 @@ class DefaultSslContextFactoryTest extends Specification {
     def loader
 
     void setup() {
-        props = ['java.home': SystemProperties.getInstance().javaHomeDir.path]
+        props = ['java.home': System.properties['java.home']]
         loader = new DefaultSslContextFactory.SslContextCacheLoader()
     }
 
