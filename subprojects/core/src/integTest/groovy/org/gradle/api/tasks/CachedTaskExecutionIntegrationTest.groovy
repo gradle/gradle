@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -86,9 +87,13 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skippedTasks.containsAll ":compileJava"
     }
 
-    def "cached tasks are executed with --rerun-tasks"() {
+    @Unroll
+    def "cached tasks are executed with #rerunMethod"() {
         expect:
         cacheDir.listFiles() as List == []
+        buildFile << """
+            tasks.withType(JavaCompile).configureEach { it.outputs.upToDateWhen { project.findProperty("upToDateWhenFalse") == null } }
+        """
 
         when:
         withBuildCache().run "jar"
@@ -102,7 +107,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "clean"
 
         when:
-        withBuildCache().run "jar", "--rerun-tasks"
+        withBuildCache().run "jar", rerunMethod
         def updatedCacheContents = listCacheFiles()
         def updatedModificationTimes = updatedCacheContents*.lastModified()
         then:
@@ -111,6 +116,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         originalModificationTimes.size().times { i ->
             assert originalModificationTimes[i] < updatedModificationTimes[i]
         }
+
+        where:
+        rerunMethod << ["--rerun-tasks", "-PupToDateWhenFalse=true"]
     }
 
     def "task results don't get stored when pushing is disabled"() {
