@@ -16,34 +16,69 @@
 
 package org.gradle.api.internal.changedetection
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.workers.WorkerExecutor
+import org.junit.Rule
 import spock.lang.Issue
 
 class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     // If this test starts to be flaky it points to a problem in the code!
     // See the linked issue.
     @Issue("https://github.com/gradle/gradle/issues/2827")
     def "broken build doesn't corrupt the artifact history"() {
+        server.start()
         def numberOfFiles = 10
         def numberOfOutputFilesPerTask = numberOfFiles
         def numberOfInputProperties = 10
         def numberOfTasks = 100
         def totalNumberOfOutputDirectories = numberOfTasks
-        def killPollInterval = 10
+        def numberOfExecutedTaskBeforeKilling = 11
         def totalNumberOfOutputFiles = numberOfTasks * numberOfOutputFilesPerTask + totalNumberOfOutputDirectories
 
-        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks, killPollInterval)
+        setupTestProject(numberOfFiles, numberOfInputProperties, numberOfTasks)
 
         executer.beforeExecute {
             // We need a separate JVM in order not to kill the test JVM
             requireGradleDistribution()
+            requireIsolatedDaemons()
+            requireDaemon()
         }
 
         when:
         succeeds("createFiles")
         succeeds("clean")
-        fails("createFiles", "-PkillMe=true", "--max-workers=${numberOfTasks}")
+
+        // Worker gate
+        def workerHandler = server.expectConcurrentAndBlock(numberOfTasks, (1..numberOfTasks).collect { "worker-for-output$it" } as String[])
+
+        // Kill gate
+        def killHandler = server.expectOptionalAndBlock(numberOfExecutedTaskBeforeKilling, (1..numberOfTasks).collect { "kill-ready-for-output$it" } as String[])
+
+        // Start Gradle in the background
+        def handle = executer.withArguments("createFiles", "-DkillMe=true", "--max-workers=${numberOfTasks}").start()
+
+        // Wait for all worker to start
+        workerHandler.waitForAllPendingCalls()
+
+        // Release only a few of them
+        workerHandler.release(numberOfExecutedTaskBeforeKilling)
+
+        // Wait until workers finish their jobs
+        killHandler.waitForAllPendingCalls()
+
+        // Kill the daemon
+        killRunningDaemon()
+
+        // Wait for Gradle to fail
+        handle.waitForFailure()
+
         def createdFiles = file('build').allDescendants().size() as BigDecimal
         println "\nNumber of created files when the process has been killed: ${createdFiles}"
 
@@ -52,6 +87,14 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "createFiles"
+    }
+
+    void killRunningDaemon() {
+        def fixture = DaemonLogsAnalyzer.newAnalyzer(executer.daemonBaseDir, executer.distribution.version.version)
+        assert fixture.daemons.size() == 1
+        def daemon = fixture.daemons.first()
+        daemon.assertBusy()
+        daemon.kill()
     }
 
     /**
@@ -66,7 +109,7 @@ class CorruptedTaskHistoryIntegrationTest extends AbstractIntegrationSpec {
      * If the Gradle property {@code 'killMe'} is set to some truthy value, we start a {@link Thread} which checks every {@code killPollInterval} ms if there are more than 40 output directories in 'build` and kills the Gradle process if there are.
      * Finally, there is one task depending on all the tasks which are creating files. This one is just called {@code createFiles}.
      */
-    private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks, int killPollInterval) {
+    private void setupTestProject(int numberOfFiles, int numberOfInputProperties, int numberOfTasks) {
         buildFile << """
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputDirectory
@@ -87,8 +130,14 @@ class CreateFiles implements Runnable {
 
     @Override
     void run() {
+        if (Boolean.valueOf(System.getProperty("killMe"))) {
+            ${server.callFromBuildUsingExpression('"worker-for-${outputDir.name}"')}
+        }
         (1..$numberOfFiles).each {
             new File(outputDir, "\${it}.txt").text = "output\${it}"
+        }
+        if (Boolean.valueOf(System.getProperty("killMe"))) {
+            ${server.callFromBuildUsingExpression('"kill-ready-for-${outputDir.name}"')}
         }
     }
 }            
@@ -124,17 +173,6 @@ task createFiles
             ${(1..numberOfInputProperties).collect { "inputDir$it = file('inputs')" }.join("\n")}
             outputDir = file("build/output\${num}")
     })           
-}
-
-if (project.findProperty("killMe")) {
-    new Thread({
-        while (true) {
-            Thread.sleep(${killPollInterval})
-            if (buildDir.exists() && buildDir.listFiles().size() > 20) {
-                System.exit(1)
-            }
-        }
-    }).start()
 }
         """
 
