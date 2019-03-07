@@ -154,6 +154,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         given:
         if (isolationMode == IsolationMode.PROCESS) {
             // worker starting threads can be interrupted during worker startup and cause a 'Could not initialise system classpath' exception.
+            // See: https://github.com/gradle/gradle/issues/8699
             executer.withStackTraceChecksDisabled()
         }
         buildFile << """
