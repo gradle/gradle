@@ -138,11 +138,21 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
-        toolingApi.withConnector(cl)
+        try {
+            toolingApi.withConnector(cl)
+        } catch (GradleConnectionException e) {
+            caughtGradleConnectionException = e
+            throw e
+        }
     }
 
     public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        toolingApi.withConnection(connector, cl)
+        try {
+            return toolingApi.withConnection(connector, cl)
+        } catch (GradleConnectionException e) {
+            caughtGradleConnectionException = e
+            throw e
+        }
     }
 
     def connector() {
