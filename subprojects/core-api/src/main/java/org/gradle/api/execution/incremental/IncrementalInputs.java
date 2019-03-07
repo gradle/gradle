@@ -17,31 +17,72 @@
 package org.gradle.api.execution.incremental;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 /**
- * Incremental inputs to work actions.
+ * Provides access to any input files that need to be processed by an incremental work action.
  *
- * <p>Allows querying changes of individual incremental input properties.</p>
+ * <p>
+ * An incremental work action is one that accepts a single {@link IncrementalInputs} parameter.
+ * The work action can then query what changed for an input property since the last execution to only process the changes.
+ *
+ * <pre class='autoTested'>
+ * class IncrementalReverseTask extends DefaultTask {
+ *     {@literal @}InputDirectory
+ *     def File inputDir
+ *
+ *     {@literal @}OutputDirectory
+ *     def File outputDir
+ *
+ *     {@literal @}TaskAction
+ *     void execute(IncrementalInputs inputs) {
+ *         if (!inputs.incremental)
+ *             project.delete(outputDir.listFiles())
+ *
+ *         inputs.getChanges(inputDir).each { change ->
+ *             if (change.removed) {
+ *                 def targetFile = project.file("$outputDir/${change.file.name}")
+ *                 if (targetFile.exists()) {
+ *                     targetFile.delete()
+ *                 }
+ *             } else {
+ *                 def targetFile = project.file("$outputDir/${change.file.name}")
+ *                 targetFile.text = change.file.text.reverse()
+ *             }
+ *         }
+ *     }
+ * }
+ * </pre>
+ *
+ * <p>
+ * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as added.
+ * Cases where this occurs include:
+ * <ul>
+ *     <li>There is no history available from a previous execution.</li>
+ *     <li>An non-file input property has changed since the previous execution.</li>
+ *     <li>One or more output files have changed since the previous execution.</li>
+ * </ul>
  *
  * @since 5.4
  */
+@NonExtensible
 @Incubating
 public interface IncrementalInputs {
     /**
-     * Indicates if it was possible for Gradle to determine which exactly input files were out of date compared to a previous execution.
-     * This is <em>not</em> possible in the case of no previous execution, changed input properties, output files, etc.
+     * Indicates if it was possible for Gradle to determine which input files were out of date compared to a previous execution.
+     * Incremental inputs are unavailable when history is unavailable (i.e. this piece of work has never been executed before), or if there are changes to non-file input properties, or output files.
      * <p>
      * When <code>true</code>:
      * </p>
      * <ul>
-     *     <li>{@link #getChanges(Object)} will report changes to the input files compared to the last execution.</li>
+     *     <li>{@link #getChanges(Object)} reports changes to the input files compared to the previous execution.</li>
      * </ul>
      * <p>
      * When <code>false</code>:
      * </p>
      * <ul>
-     *     <li>Every input file will be considered to be 'added' and will be reported to {@link #getChanges(Object)}.</li>
+     *     <li>Every input file is reported via {@link #getChanges(Object)} as if it was 'added'.</li>
      * </ul>
      */
     boolean isIncremental();
