@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle 5.3.
 
-This release features incubating support for publishing and consuming Gradle Module Metadata,
+This release features support for publishing and consuming Gradle Module Metadata,
 [feature variants or "optional dependencies"](#feature-variants),
 [type-safe accessors in Kotlin pre-compiled script plugins](#type-safe-accessors-in-precompiled-script-plugins), and more.
 
