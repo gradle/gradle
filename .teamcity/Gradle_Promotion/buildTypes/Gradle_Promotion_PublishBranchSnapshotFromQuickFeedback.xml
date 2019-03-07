@@ -10,7 +10,6 @@
     <parameters>
       <param name="branch.qualifier" value="%dep.Gradle_Check_Stage_QuickFeedback_Trigger.teamcity.build.branch%" />
       <param name="branch.to.promote" value="" spec="text display='prompt' description='Type in the branch of gradle/gradle you want to promote' label='Branch to promote' validationMode='not_empty'" />
-      <param name="dep.Gradle_Check_Stage_QuickFeedback_Trigger.teamcity.build.branch" value="%branch.qualifier%" />
     </parameters>
     <build-runners>
       <runner id="RUNNER_18" name="Promote" type="gradle-runner">
