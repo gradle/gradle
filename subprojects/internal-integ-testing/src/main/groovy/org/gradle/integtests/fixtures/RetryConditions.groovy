@@ -138,7 +138,7 @@ class RetryConditions {
             for (daemon in daemonsFixture.daemons) {
                 if (daemon.log.contains('Could not receive message from client.')
                     && daemon.log.contains('java.lang.NullPointerException')
-                    && daemon.log.contains('org.gradle.launcher.daemon.server.exec.LogToClient$AsynchronousLogDispatcher$1.onOutput(LogToClient.java:80)')) {
+                    && daemon.log.contains('org.gradle.launcher.daemon.server.exec.LogToClient')) {
                     println "Retrying test because the dispatcher was not ready for receiving a log event. Check log of daemon with PID ${daemon.context.pid}."
                     return cleanProjectDir(specification)
                 }
