@@ -16,20 +16,31 @@
 
 package org.gradle.launcher.daemon.server.health.gc
 
+import org.gradle.integtests.fixtures.MultiVersionSpecRunner
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
+import org.gradle.util.TestPrecondition
+import org.junit.runner.RunWith
 
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE
 import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE
 
+@RunWith(MultiVersionSpecRunner)
+@TargetCoverage({garbageCollectors})
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
+    static def version
+    GarbageCollectorUnderTest garbageCollector = version
+
     def setup() {
+        executer.withBuildJvmOpts(garbageCollector.configuration.jvmArgs.split(" "))
         executer.withEnvironmentVars(JAVA_TOOL_OPTIONS: "-D${DefaultGarbageCollectionMonitor.DISABLE_POLLING_SYSTEM_PROPERTY}=true -D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true")
     }
 
     def "expires daemon when heap leaks slowly"() {
         given:
-        configureGarbageCollectionHeapEventsFor(256, 512, 35, 1.8)
+        configureGarbageCollectionHeapEventsFor(256, 512, 35, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
 
         when:
         run "injectEvents"
@@ -43,7 +54,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     def "expires daemon immediately when garbage collector is thrashing"() {
         given:
-        configureGarbageCollectionHeapEventsFor(256, 512, 100, 5)
+        configureGarbageCollectionHeapEventsFor(256, 512, 100, garbageCollector.monitoringStrategy.thrashingThreshold + 0.2)
         waitForDaemonExpiration()
 
         when:
@@ -62,7 +73,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     def "expires daemon when heap leaks while daemon is idle"() {
         def initial = 256
         def max = 512
-        def events = eventsFor(initial, max, 35, 1.8)
+        def events = eventsFor(initial, max, 35, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
         def initScript = file("init.gradle")
         initScript << """
             ${injectionImports}
@@ -99,6 +110,39 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
+    }
+
+    def "does not expire daemon when leak does not consume heap threshold"() {
+        given:
+        configureGarbageCollectionHeapEventsFor(256, 512, 5, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
+
+        when:
+        run "injectEvents"
+
+        then:
+        daemons.daemon.becomesIdle()
+    }
+
+    def "does not expire daemon when leak does not cause excessive garbage collection"() {
+        given:
+        configureGarbageCollectionHeapEventsFor(256, 512, 35, garbageCollector.monitoringStrategy.gcRateThreshold - 0.2)
+
+        when:
+        run "injectEvents"
+
+        then:
+        daemons.daemon.becomesIdle()
+    }
+
+    def "does not expire daemon when leak does not consume metaspace threshold"() {
+        given:
+        configureGarbageCollectionNonHeapEventsFor(256, 512, 5, 0)
+
+        when:
+        run "injectEvents"
+
+        then:
+        daemons.daemon.becomesIdle()
     }
 
     void configureGarbageCollectionHeapEventsFor(long initial, long max, long leakRate, double gcRate) {
@@ -171,6 +215,11 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         return builder.toString()
     }
 
+    /**
+     * Generates garbage collection events starting at initial heap size (MB) and increasing by
+     * leakRate (MB) for every event, registering a variable number of garbage collections
+     * according to gcRate.  Heap usage will cap at max.
+     */
     Collection<Map> eventsFor(long initial, long max, long leakRate, double gcRate) {
         def events = []
         long usage = initial
@@ -196,5 +245,33 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
     String usageFrom(long initial, long max, long used) {
         return "new MemoryUsage(${fromMB(initial)}, ${fromMB(used)}, ${fromMB(used)}, ${fromMB(max)})"
+    }
+
+    static List<GarbageCollectorUnderTest> getGarbageCollectors() {
+        if (TestPrecondition.JDK_IBM.fulfilled) {
+            return [ new GarbageCollectorUnderTest(JavaGarbageCollector.IBM_ALL, GarbageCollectorMonitoringStrategy.IBM_ALL) ]
+        } else {
+            return [
+                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
+                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
+                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
+            ]
+        }
+    }
+
+    static class GarbageCollectorUnderTest {
+        final JavaGarbageCollector configuration
+        final GarbageCollectorMonitoringStrategy monitoringStrategy
+
+        GarbageCollectorUnderTest(JavaGarbageCollector configuration, GarbageCollectorMonitoringStrategy monitoringStrategy) {
+            this.configuration = configuration
+            this.monitoringStrategy = monitoringStrategy
+        }
+
+
+        @Override
+        public String toString() {
+            return configuration.name()
+        }
     }
 }

@@ -17,21 +17,12 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
-import org.gradle.launcher.daemon.fixtures.JdkVendor
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator
-import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrategy
 import org.gradle.soak.categories.SoakTest
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
-
-import static org.junit.Assume.assumeTrue
 
 @Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
@@ -155,92 +146,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             //simulate normal collectible objects
             5000.times {
                 map.put(it, "foo" * ${leakRate})
-            }
-        """
-    }
-
-    private final Closure leaksWhenIdle = {
-        buildFile << """
-            class State {
-                static int x
-                static map = [:]
-            }
-            State.x++
-
-            new Thread().start {
-                while (true) {
-                    logger.warn "leaking some heap"
-
-                    //simulate normal collectible objects
-                    5000.times {
-                        State.map.put(it, "foo" * ${leakRate})
-                    }
-
-                    //simulate the leak
-                    1000.times {
-                        State.map.put(UUID.randomUUID(), "foo" * ${leakRate})
-                    }
-                    sleep(750)
-                }
-            }
-        """
-    }
-
-    private final Closure permGenLeak = {
-        leakRate.times {
-            file("buildSrc/src/main/java/Generated${it}.java") << """
-                public class Generated${it} { }
-            """
-        }
-        buildFile << """
-            import java.net.URLClassLoader
-
-            class State {
-                static int x
-                static map = [:]
-            }
-            State.x++
-
-            //simulate normal perm gen usage
-            5.times {
-                ClassLoader classLoader1 = new URLClassLoader(buildscript.classLoader.URLs)
-                ${leakRate}.times {
-                    classLoader1.loadClass("Generated\${it}")
-                }
-                State.map.put("CL${it}", classLoader1)
-            }
-
-            //simulate the leak
-            ClassLoader classLoader2 = new URLClassLoader(buildscript.classLoader.URLs)
-            ${leakRate}.times {
-                classLoader2.loadClass("Generated\${it}")
-            }
-            State.map.put(UUID.randomUUID(), classLoader2)
-
-            println "Build: " + State.x
-        """
-    }
-
-    private final Closure leaksWithinOneBuild = {
-        buildFile << """
-            def map = [:]
-
-            while (true) {
-                if (file("leak").exists()) {
-                    logger.debug "leaking some heap"
-                    //simulate normal collectible objects
-                    10000.times {
-                        map.put(it, "foo" * ${leakRate})
-                    }
-
-                    //simulate the leak
-                    1000.times {
-                        map.put(UUID.randomUUID(), "foo" * ${leakRate})
-                    }
-                } else {
-                    logger.warn "waiting for leak to start"
-                }
-                sleep 1000
             }
         """
     }

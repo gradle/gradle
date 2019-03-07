@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.fixtures;
+package org.gradle.integtests.fixtures.daemon
 
-public enum JavaGarbageCollector {
+enum JavaGarbageCollector {
     ORACLE_PARALLEL_CMS("-XX:+UseConcMarkSweepGC"),
     ORACLE_SERIAL9("-XX:+UseSerialGC"),
     ORACLE_G1("-XX:+UnlockExperimentalVMOptions -XX:+UseG1GC"),
@@ -29,21 +29,7 @@ public enum JavaGarbageCollector {
         this.jvmArgs = jvmArgs
     }
 
-    static JavaGarbageCollector from(JdkVendor vendor, String gcName) {
-        if (vendor.equals(JdkVendor.IBM)) {
-            IBM_ALL
-        } else if (gcName.equals("PS MarkSweep")) {
-            ORACLE_PARALLEL_CMS
-        } else if (gcName.equals("MarkSweepCompact")) {
-            ORACLE_SERIAL9
-        } else if (gcName.equals("G1 Old Generation")) {
-            ORACLE_G1
-        } else {
-            UNKNOWN
-        }
-    }
-
-    public String getJvmArgs() {
+    String getJvmArgs() {
         jvmArgs
     }
 }
