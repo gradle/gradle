@@ -1,8 +1,16 @@
 package Gradle_Promotion
 
-import Gradle_Promotion.buildTypes.*
-import Gradle_Promotion.vcsRoots.*
-import jetbrains.buildServer.configs.kotlin.v2018_2.*
+import Gradle_Promotion.buildTypes.MasterSanityCheck
+import Gradle_Promotion.buildTypes.PromoteBranchSnapshotFromQuickFeedback
+import Gradle_Promotion.buildTypes.PromoteFinalRelease
+import Gradle_Promotion.buildTypes.PromoteMilestone
+import Gradle_Promotion.buildTypes.PromoteNightlySnapshot
+import Gradle_Promotion.buildTypes.PromoteReleaseCandidate
+import Gradle_Promotion.buildTypes.PromoteSnapshotFromQuickFeedback
+import Gradle_Promotion.buildTypes.StartReleaseCycle
+import Gradle_Promotion.buildTypes.StartReleaseCycleTest
+import Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches
+import Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
@@ -16,17 +24,22 @@ object Project : Project({
     vcsRoot(Gradle_Promotion_GradlePromotionBranches)
     vcsRoot(Gradle_Promotion__master_)
 
-    buildType(Gradle_Promotion_PublishBranchSnapshotFromQuickFeedback)
-    buildType(Gradle_Promotion_MilestoneMaster)
-    buildType(bt60)
-    buildType(bt61)
-    buildType(Gradle_Promotion_StartReleaseCycle)
-    buildType(Gradle_Promotion_FinalRelease)
-    buildType(bt39)
-    buildType(Gradle_Promotion_AllBranchesStartReleaseCycleTest)
-    buildType(Gradle_Promotion_MasterSanityCheck)
-    buildType(Gradle_Promotion_MasterNightlySnapshotManual)
-    buildType(Gradle_Promotion_ReleaseSnapshotFromQuickFeedback)
+    val nightlyMasterSnapshot = PromoteNightlySnapshot(uuid = "01432c63-861f-4d08-ae0a-7d127f63096e", branch = "master", hour = 0)
+    val masterSnapshotFromQuickFeedback = PromoteSnapshotFromQuickFeedback(uuid = "9a55bec1-4e70-449b-8f45-400093505afb", branch = "master")
+    val nightlyReleaseSnapshot = PromoteNightlySnapshot(uuid = "1f5ca7f8-b0f5-41f9-9ba7-6d518b2822f0", branch = "release", hour = 1)
+    val releaseSnapshotFromQuickFeedback = PromoteSnapshotFromQuickFeedback(uuid = "eeff4410-1e7d-4db6-b7b8-34c1f2754477", branch = "release")
+
+    buildType(PromoteBranchSnapshotFromQuickFeedback)
+    buildType(PromoteMilestone)
+    buildType(PromoteReleaseCandidate)
+    buildType(nightlyReleaseSnapshot)
+    buildType(StartReleaseCycle)
+    buildType(PromoteFinalRelease)
+    buildType(nightlyMasterSnapshot)
+    buildType(StartReleaseCycleTest)
+    buildType(MasterSanityCheck)
+    buildType(masterSnapshotFromQuickFeedback)
+    buildType(releaseSnapshotFromQuickFeedback)
 
     params {
         password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "credentialsJSON:0f1f842f-df6c-4db7-8271-f1f73c823aed")
@@ -52,5 +65,16 @@ object Project : Project({
             storeSecureParamsOutsideOfVcs = true
         }
     }
-    buildTypesOrder = arrayListOf(Gradle_Promotion_MasterSanityCheck, bt39, Gradle_Promotion_MasterNightlySnapshotManual, Gradle_Promotion_StartReleaseCycle, bt61, Gradle_Promotion_ReleaseSnapshotFromQuickFeedback, Gradle_Promotion_PublishBranchSnapshotFromQuickFeedback, Gradle_Promotion_MilestoneMaster, bt60, Gradle_Promotion_FinalRelease)
+    buildTypesOrder = arrayListOf(
+        MasterSanityCheck,
+        nightlyMasterSnapshot,
+        masterSnapshotFromQuickFeedback,
+        StartReleaseCycle,
+        nightlyReleaseSnapshot,
+        releaseSnapshotFromQuickFeedback,
+        PromoteBranchSnapshotFromQuickFeedback,
+        PromoteMilestone,
+        PromoteReleaseCandidate,
+        PromoteFinalRelease
+    )
 })
