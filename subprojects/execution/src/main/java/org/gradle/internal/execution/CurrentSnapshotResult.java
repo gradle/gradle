@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.Result;
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
-public interface Step<C extends Context, R extends Result> {
-    R execute(C context);
+public interface CurrentSnapshotResult extends SnapshotResult {
+    @Override
+    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 }

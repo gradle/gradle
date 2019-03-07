@@ -44,7 +44,7 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.result.skipMessage == "UP-TO-DATE"
         op.result.actionable == false
         op.result.originBuildInvocationId == null
-        op.result.upToDateMessages == null
+        op.result.upToDateMessages == []
     }
 
     def "emits operation result for failed task execution"() {

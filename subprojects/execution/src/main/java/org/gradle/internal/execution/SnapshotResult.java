@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.internal.execution.history.ExecutionState;
+package org.gradle.internal.execution;
 
-/**
- * The state for a single task execution.
- */
-public interface TaskExecution extends ExecutionState {
+import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
+public interface SnapshotResult extends Result {
+    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
+    OriginMetadata getOriginMetadata();
+
+    /**
+     * Did we reuse the output from some previous execution?
+     */
+    boolean isReused();
 }

@@ -31,7 +31,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
@@ -45,7 +44,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskExecutionMode taskExecutionMode;
     private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
-    private List<String> upToDateMessages;
     private TaskProperties properties;
     private boolean taskCachingEnabled;
     private Long executionTime;
@@ -150,17 +148,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         }
 
         return this.executionTime = executionTimer.getElapsedMillis();
-    }
-
-    @Override
-    @Nullable
-    public List<String> getUpToDateMessages() {
-        return upToDateMessages;
-    }
-
-    @Override
-    public void setUpToDateMessages(List<String> upToDateMessages) {
-        this.upToDateMessages = upToDateMessages;
     }
 
     @Override

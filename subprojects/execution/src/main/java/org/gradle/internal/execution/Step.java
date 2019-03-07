@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.CacheHandler;
-
-public interface CachingContext extends Context {
-    CacheHandler getCacheHandler();
+public interface Step<C extends Context, R extends Result> {
+    R execute(C context);
 }

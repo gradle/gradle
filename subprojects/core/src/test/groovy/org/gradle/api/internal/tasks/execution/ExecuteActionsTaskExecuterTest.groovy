@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -33,17 +33,18 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
-import org.gradle.internal.execution.impl.steps.CancelExecutionStep
-import org.gradle.internal.execution.impl.steps.CatchExceptionStep
-import org.gradle.internal.execution.impl.steps.Context
-import org.gradle.internal.execution.impl.steps.ExecuteStep
-import org.gradle.internal.execution.impl.steps.SkipUpToDateStep
-import org.gradle.internal.execution.impl.steps.SnapshotOutputStep
-import org.gradle.internal.execution.impl.steps.UpToDateResult
+import org.gradle.internal.execution.steps.CancelExecutionStep
+import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.ResolveChangesStep
+import org.gradle.internal.execution.steps.SkipUpToDateStep
+import org.gradle.internal.execution.steps.SnapshotOutputStep
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -65,32 +66,30 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def standardOutputCapture = Mock(StandardOutputCapture)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
     def asyncWorkTracker = Mock(AsyncWorkTracker)
-    def stringInterner = new StringInterner()
     def taskFingerprinter = Stub(TaskFingerprinter) {
         fingerprintTaskFiles(task, _) >> ImmutableSortedMap.of()
     }
     def executionHistoryStore = Mock(ExecutionHistoryStore)
-    def outputFilesRepository = Stub(OutputFilesRepository) {
-        isGeneratedByGradle(_) >> true
-    }
     def buildId = UniqueId.generate()
 
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def workExecutor = new DefaultWorkExecutor<UpToDateResult>(
-        new SkipUpToDateStep<Context>(
-            new SnapshotOutputStep<Context>(
-                buildId,
-                new CatchExceptionStep<Context>(
-                    new CancelExecutionStep<Context>(cancellationToken,
-                        new ExecuteStep(outputChangeListener)
+    def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
+        new ResolveChangesStep<UpToDateResult>(
+            new SkipUpToDateStep<IncrementalChangesContext>(
+                new SnapshotOutputStep<IncrementalChangesContext>(
+                    buildId,
+                    new CatchExceptionStep<IncrementalChangesContext>(
+                        new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
+                            new ExecuteStep(outputChangeListener)
+                        )
                     )
                 )
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, outputFilesRepository, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)
@@ -101,6 +100,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
         executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getExecutionStateChanges() >> Optional.empty()
+        executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
 
         executionContext.getTaskProperties() >> taskProperties
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()

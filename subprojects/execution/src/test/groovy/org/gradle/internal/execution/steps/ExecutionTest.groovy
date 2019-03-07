@@ -14,54 +14,58 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.BuildCancelledException
-import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import spock.lang.Specification
 
 import java.time.Duration
-import java.util.function.BooleanSupplier
+import java.util.function.Supplier
 
 class ExecutionTest extends Specification {
 
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
-    def executionStep = new CatchExceptionStep<Context>(
-        new CancelExecutionStep<Context>(cancellationToken,
+    def executionStep = new CatchExceptionStep<IncrementalChangesContext>(
+        new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
             new ExecuteStep(outputChangeListener)
         )
     )
 
-    def "executes the unit of work"() {
-        def unitOfWork = new TestUnitOfWork({ ->
-            return true
-        })
+    def "executes the unit of work with outcome: #outcome"() {
+        def unitOfWork = new TestUnitOfWork({ -> outcome })
         when:
-        def result = executionStep.execute { -> unitOfWork}
+        def result = execute { -> unitOfWork}
 
         then:
         unitOfWork.executed
-        result.outcome.get() == ExecutionOutcome.EXECUTED
+        result.outcome.get() == outcome
 
         1 * outputChangeListener.beforeOutputChange()
         0 * _
+
+        where:
+        outcome << [ExecutionOutcome.EXECUTED, ExecutionOutcome.EXECUTED_INCREMENTALLY]
     }
 
     def "reports no work done"() {
         when:
-        def result = executionStep.execute { ->
+        def result = execute { ->
             new TestUnitOfWork({ ->
-                return false
+                return ExecutionOutcome.UP_TO_DATE
             })
         }
 
@@ -79,7 +83,7 @@ class ExecutionTest extends Specification {
         })
 
         when:
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.failure.get() instanceof ExecutionException
@@ -92,10 +96,10 @@ class ExecutionTest extends Specification {
 
     def "invalidates only changing outputs"() {
         def changingOutputs = ['some/location']
-        def unitOfWork = new TestUnitOfWork({ -> true }, changingOutputs)
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED }, changingOutputs)
 
         when:
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.get() == ExecutionOutcome.EXECUTED
@@ -105,11 +109,11 @@ class ExecutionTest extends Specification {
     }
 
     def "fails the execution when build has been cancelled"() {
-        def unitOfWork = new TestUnitOfWork({ -> true })
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED })
 
         when:
         cancellationToken.cancel()
-        def result = executionStep.execute { -> unitOfWork }
+        def result = execute { -> unitOfWork }
 
         then:
         result.outcome.failure.get() instanceof ExecutionException
@@ -121,10 +125,10 @@ class ExecutionTest extends Specification {
 
     static class TestUnitOfWork implements UnitOfWork {
 
-        private final BooleanSupplier work
+        private final Supplier<ExecutionOutcome> work
         private final Iterable<String> changingOutputs
 
-        TestUnitOfWork(BooleanSupplier work = { -> true}, Iterable<String> changingOutputs = null) {
+        TestUnitOfWork(Supplier<ExecutionOutcome> work, Iterable<String> changingOutputs = null) {
             this.changingOutputs = changingOutputs
             this.work = work
         }
@@ -132,9 +136,14 @@ class ExecutionTest extends Specification {
         boolean executed
 
         @Override
-        ExecutionOutcome execute() {
+        ExecutionOutcome execute(IncrementalChangesContext context) {
             executed = true
-            return work.asBoolean ? ExecutionOutcome.EXECUTED : ExecutionOutcome.UP_TO_DATE
+            return work.get()
+        }
+
+        @Override
+        ExecutionHistoryStore getExecutionHistoryStore() {
+            throw new UnsupportedOperationException()
         }
 
         @Override
@@ -145,6 +154,11 @@ class ExecutionTest extends Specification {
         @Override
         void visitOutputProperties(OutputPropertyVisitor visitor) {
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        boolean includeAddedOutputs() {
+            return true
         }
 
         @Override
@@ -164,16 +178,6 @@ class ExecutionTest extends Specification {
 
         @Override
         CacheHandler createCacheHandler() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
             throw new UnsupportedOperationException()
         }
 
@@ -203,4 +207,32 @@ class ExecutionTest extends Specification {
         }
     }
 
+    def execute(Supplier<UnitOfWork> work) {
+        executionStep.execute(new IncrementalChangesContext() {
+            @Override
+            Optional<ExecutionStateChanges> getChanges() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<String> getRebuildReason() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return Optional.empty()
+            }
+
+            @Override
+            Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return Optional.empty()
+            }
+
+            @Override
+            UnitOfWork getWork() {
+                return work.get()
+            }
+        })
+    }
 }

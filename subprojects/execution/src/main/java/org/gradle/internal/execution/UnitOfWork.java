@@ -19,8 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
@@ -32,7 +31,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute();
+    ExecutionOutcome execute(IncrementalChangesContext context);
 
     Optional<Duration> getTimeout();
 
@@ -47,10 +46,6 @@ public interface UnitOfWork extends CacheableEntity {
 
     CacheHandler createCacheHandler();
 
-    void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata);
-
-    Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
-
     /**
      * Paths to locations changed by the unit of work.
      *
@@ -63,10 +58,17 @@ public interface UnitOfWork extends CacheableEntity {
      */
     Optional<? extends Iterable<String>> getChangingOutputs();
 
+    /**
+     * Whether files added are to be considered part of the output of the work.
+     */
+    boolean includeAddedOutputs();
+
     @FunctionalInterface
     interface OutputPropertyVisitor {
         void visitOutputProperty(String name, TreeType type, FileCollection roots);
     }
+
+    ExecutionHistoryStore getExecutionHistoryStore();
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
 }

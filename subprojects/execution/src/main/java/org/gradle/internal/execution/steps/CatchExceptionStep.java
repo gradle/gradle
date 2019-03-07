@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 
 public class CatchExceptionStep<C extends Context> implements Step<C, Result> {
     private final Step<C, ? extends Result> delegate;

@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 
 import java.util.Optional;
 
-public class ExecuteStep implements Step<Context, Result> {
+public class ExecuteStep implements Step<IncrementalChangesContext, Result> {
 
     private final OutputChangeListener outputChangeListener;
 
@@ -35,7 +37,7 @@ public class ExecuteStep implements Step<Context, Result> {
     }
 
     @Override
-    public Result execute(Context context) {
+    public Result execute(IncrementalChangesContext context) {
         UnitOfWork work = context.getWork();
 
         Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
@@ -43,7 +45,7 @@ public class ExecuteStep implements Step<Context, Result> {
         if (!changingOutputs.isPresent()) {
             outputChangeListener.beforeOutputChange();
         }
-        ExecutionOutcome outcome = work.execute();
+        ExecutionOutcome outcome = work.execute(context);
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {

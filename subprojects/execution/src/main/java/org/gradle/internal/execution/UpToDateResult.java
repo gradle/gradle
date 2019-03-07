@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import com.google.common.collect.ImmutableList;
 
-public interface SnapshotResult extends Result {
-    ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs();
-    OriginMetadata getOriginMetadata();
-
+public interface UpToDateResult extends SnapshotResult {
     /**
-     * Did we reuse the output from some previous execution?
+     * A list of messages describing the first few reasons encountered that caused the work to be executed.
+     * An empty list means the work was up-to-date and hasn't been executed.
      */
-    boolean isReused();
+    ImmutableList<String> getExecutionReasons();
 }

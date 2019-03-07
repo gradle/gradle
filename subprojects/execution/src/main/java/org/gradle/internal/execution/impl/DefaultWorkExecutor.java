@@ -16,26 +16,20 @@
 
 package org.gradle.internal.execution.impl;
 
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.impl.steps.Context;
-import org.gradle.internal.execution.impl.steps.Step;
 
-public class DefaultWorkExecutor<R extends Result> implements WorkExecutor<R> {
-    private final Step<? super Context, ? extends R> executeStep;
+public class DefaultWorkExecutor<C extends Context, R extends Result> implements WorkExecutor<C, R> {
+    private final Step<? super C, ? extends R> executeStep;
 
-    public DefaultWorkExecutor(Step<? super Context, ? extends R> executeStep) {
+    public DefaultWorkExecutor(Step<? super C, ? extends R> executeStep) {
         this.executeStep = executeStep;
     }
 
     @Override
-    public R execute(UnitOfWork work) {
-        return executeStep.execute(new Context() {
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-        });
+    public R execute(C context) {
+        return executeStep.execute(context);
     }
 }

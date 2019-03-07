@@ -22,15 +22,18 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -66,17 +69,20 @@ public class WorkExecutorTestFixture {
     };
     private BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
     private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
-    private final WorkExecutor<UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
 
-    WorkExecutorTestFixture() {
+    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror,
+                            ExecutionHistoryStore executionHistoryStore) {
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
+                fileSystemMirror.beforeOutputChange();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
             }
         };
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
@@ -90,17 +96,17 @@ public class WorkExecutorTestFixture {
             }
         };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
-            buildCacheController,
             buildCacheCommandFactory,
-            buildInvocationScopeId,
+            buildCacheController,
             cancellationToken,
+            buildInvocationScopeId,
             outputChangeListener,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)
         );
     }
 
-    public WorkExecutor<UpToDateResult> getWorkExecutor() {
+    public WorkExecutor<IncrementalContext, UpToDateResult> getWorkExecutor() {
         return workExecutor;
     }
 }

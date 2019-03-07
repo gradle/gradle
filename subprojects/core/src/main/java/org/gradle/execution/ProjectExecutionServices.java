@@ -39,7 +39,6 @@ import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStat
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBuildCacheKeyExecuter;
-import org.gradle.api.internal.tasks.execution.ResolveIncrementalChangesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveTaskOutputCachingStateExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
@@ -56,11 +55,12 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
-import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -104,7 +104,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     TaskExecutionListener taskExecutionListener,
-                                    WorkExecutor<UpToDateResult> workExecutor
+                                    WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -115,13 +115,11 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildCacheEnabled,
             taskFingerprinter,
             executionHistoryStore,
-            outputFilesRepository,
             buildOperationExecutor,
             asyncWorkTracker,
             actionListener,
             workExecutor
         );
-        executer = new ResolveIncrementalChangesTaskExecuter(executer);
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, resolver, executer);
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)

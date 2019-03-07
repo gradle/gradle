@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 
 public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
     private final BuildCancellationToken cancellationToken;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
@@ -22,9 +22,16 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CacheHandler
+import org.gradle.internal.execution.CachingContext
+import org.gradle.internal.execution.Context
+import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.id.UniqueId
@@ -43,9 +50,32 @@ class CacheStepTest extends Specification {
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def cachedOriginMetadata = Mock(OriginMetadata)
     def context = new CachingContext() {
+        @Override
         CacheHandler getCacheHandler() {
             CacheStepTest.this.cacheHandler
         }
+
+        @Override
+        Optional<ExecutionStateChanges> getChanges() {
+            return Optional.empty()
+        }
+
+        @Override
+        Optional<String> getRebuildReason() {
+            return context.getRebuildReason();
+        }
+
+        @Override
+        Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+            return context.getAfterPreviousExecutionState();
+        }
+
+        @Override
+        Optional<BeforeExecutionState> getBeforeExecutionState() {
+            return context.getBeforeExecutionState();
+        }
+
+        @Override
         UnitOfWork getWork() {
             unitOfWork
         }

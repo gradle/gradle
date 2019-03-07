@@ -35,7 +35,7 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
     private final ChangeContainer allChanges;
     private final ChangeContainer rebuildTriggeringChanges;
 
-    public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable) {
+    public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean includeAddedOutputs) {
         this.previousExecution = lastExecution;
 
         // Capture changes in execution outcome
@@ -79,7 +79,8 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
             executable);
         OutputFileChanges uncachedOutputChanges = new OutputFileChanges(
             lastExecution.getOutputFileProperties(),
-            thisExecution.getOutputFileProperties());
+            thisExecution.getOutputFileProperties(),
+            includeAddedOutputs);
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
         this.allChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));

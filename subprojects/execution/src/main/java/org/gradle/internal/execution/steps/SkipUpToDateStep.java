@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps;
+package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -25,7 +25,11 @@ import org.gradle.internal.Try;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.IncrementalChangesContext;
+import org.gradle.internal.execution.SnapshotResult;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Formatter;
 import java.util.List;
 
-public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResult> {
+public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
@@ -49,7 +53,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Determining if {} is up-to-date", context.getWork().getDisplayName());
         }
-        return context.getWork().getChangesSincePreviousExecution().map(changes -> {
+        return context.getChanges().map(changes -> {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
             MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, 3);
             changes.visitAllChanges(visitor);
@@ -60,7 +64,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
                 }
                 return new UpToDateResult() {
                     @Override
-                    public ImmutableList<String> getOutOfDateReasons() {
+                    public ImmutableList<String> getExecutionReasons() {
                         return ImmutableList.of();
                     }
 
@@ -91,11 +95,11 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
     }
 
     private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
-        logOutOfDateReasons(reasons, context.getWork());
+        logExecutionReasons(reasons, context.getWork());
         SnapshotResult result = delegate.execute(context);
         return new UpToDateResult() {
             @Override
-            public ImmutableList<String> getOutOfDateReasons() {
+            public ImmutableList<String> getExecutionReasons() {
                 return reasons;
             }
 
@@ -121,7 +125,7 @@ public class SkipUpToDateStep<C extends Context> implements Step<C, UpToDateResu
         };
     }
 
-    private void logOutOfDateReasons(List<String> reasons, UnitOfWork work) {
+    private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));

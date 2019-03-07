@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskOutputCachingState;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -29,13 +28,15 @@ import java.util.List;
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {
 
     private final TaskStateInternal taskState;
-    private final TaskExecutionContext ctx;
     private final OriginMetadata originMetadata;
+    private final boolean incremental;
+    private final List<String> executionReasons;
 
-    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, TaskExecutionContext ctx, @Nullable OriginMetadata originMetadata) {
+    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, @Nullable OriginMetadata originMetadata, boolean incremental, List<String> executionReasons) {
         this.taskState = taskState;
-        this.ctx = ctx;
         this.originMetadata = originMetadata;
+        this.incremental = incremental;
+        this.executionReasons = executionReasons;
     }
 
     @Nullable
@@ -78,15 +79,14 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
 
     }
 
-    @Nullable
     @Override
     public List<String> getUpToDateMessages() {
-        return ctx.getUpToDateMessages();
+        return executionReasons;
     }
 
     @Override
     public boolean isIncremental() {
-        return ctx.isTaskExecutedIncrementally();
+        return incremental;
     }
 
 }

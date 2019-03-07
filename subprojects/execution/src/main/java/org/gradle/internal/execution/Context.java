@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.internal.execution.impl.steps;
 
-import org.gradle.api.NonNullApi;
+package org.gradle.internal.execution;
+
+public interface Context {
+    UnitOfWork getWork();
+}

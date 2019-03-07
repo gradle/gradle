@@ -42,18 +42,17 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.IncrementalChangesContext;
+import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
-import org.gradle.internal.execution.impl.steps.UpToDateResult;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -78,26 +77,23 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final boolean buildCacheEnabled;
     private final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final OutputFilesRepository outputFilesRepository;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
         TaskFingerprinter taskFingerprinter,
         ExecutionHistoryStore executionHistoryStore,
-        OutputFilesRepository outputFilesRepository,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<UpToDateResult> workExecutor
+        WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
         this.taskFingerprinter = taskFingerprinter;
         this.executionHistoryStore = executionHistoryStore;
-        this.outputFilesRepository = outputFilesRepository;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
@@ -105,8 +101,29 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
-        final UpToDateResult result = workExecutor.execute(new TaskExecution(task, context));
+    public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
+        final TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
+        final UpToDateResult result = workExecutor.execute(new IncrementalContext() {
+            @Override
+            public UnitOfWork getWork() {
+                return work;
+            }
+
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getTaskExecutionMode().getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return Optional.ofNullable(context.getAfterPreviousExecution());
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+        });
         result.getOutcome().ifSuccessfulOrElse(
             new Consumer<ExecutionOutcome>() {
                 @Override
@@ -123,14 +140,33 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
         );
-        context.setUpToDateMessages(result.getOutOfDateReasons());
         return new TaskExecuterResult() {
             @Override
             public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                //noinspection RedundantTypeArguments
                 return result.isReused()
                     ? Optional.of(result.getOriginMetadata())
                     : Optional.<OriginMetadata>empty();
+            }
+
+            @Override
+            public boolean executedIncrementally() {
+                return result.getOutcome()
+                    .map(new Function<ExecutionOutcome, Boolean>() {
+                        @Override
+                        public Boolean apply(ExecutionOutcome executionOutcome) {
+                            return executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY;
+                        }
+                    }).orElseMapFailure(new Function<Throwable, Boolean>() {
+                        @Override
+                        public Boolean apply(Throwable throwable) {
+                            return false;
+                        }
+                    });
+            }
+
+            @Override
+            public List<String> getExecutionReasons() {
+                return result.getExecutionReasons();
             }
         };
     }
@@ -138,10 +174,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private class TaskExecution implements UnitOfWork {
         private final TaskInternal task;
         private final TaskExecutionContext context;
+        private final ExecutionHistoryStore executionHistoryStore;
 
-        public TaskExecution(TaskInternal task, TaskExecutionContext context) {
+        public TaskExecution(TaskInternal task, TaskExecutionContext context, ExecutionHistoryStore executionHistoryStore) {
             this.task = task;
             this.context = context;
+            this.executionHistoryStore = executionHistoryStore;
         }
 
         @Override
@@ -150,19 +188,32 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute() {
+        public ExecutionOutcome execute(IncrementalChangesContext context) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                executeActions(task, context);
+                context.getChanges().ifPresent(new Consumer<ExecutionStateChanges>() {
+                    @Override
+                    public void accept(ExecutionStateChanges changes) {
+                        TaskExecution.this.context.setExecutionStateChanges(changes);
+                    }
+                });
+                executeActions(task, this.context);
                 return task.getState().getDidWork()
-                    ? ExecutionOutcome.EXECUTED
+                    ? this.context.isTaskExecutedIncrementally()
+                        ? ExecutionOutcome.EXECUTED_INCREMENTALLY
+                        : ExecutionOutcome.EXECUTED
                     : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
             }
+        }
+
+        @Override
+        public ExecutionHistoryStore getExecutionHistoryStore() {
+            return executionHistoryStore;
         }
 
         @Override
@@ -195,8 +246,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Optional<ExecutionStateChanges> getChangesSincePreviousExecution() {
-            return context.getExecutionStateChanges();
+        public boolean includeAddedOutputs() {
+            return false;
         }
 
         @Override
@@ -260,36 +311,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         );
                     }
                 }).orElse(outputsAfterExecution);
-        }
-
-        @Override
-        public void persistResult(final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, final boolean successful, final OriginMetadata originMetadata) {
-            AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
-            // Only persist history if there was no failure, or some output files have been changed
-            if (successful || afterPreviousExecutionState == null || hasAnyOutputFileChanges(afterPreviousExecutionState.getOutputFileProperties(), finalOutputs)) {
-                context.getBeforeExecutionState().ifPresent(new Consumer<BeforeExecutionState>() {
-                    @Override
-                    public void accept(BeforeExecutionState execution) {
-                        executionHistoryStore.store(
-                            task.getPath(),
-                            originMetadata,
-                            execution.getImplementation(),
-                            execution.getAdditionalImplementations(),
-                            execution.getInputProperties(),
-                            execution.getInputFileProperties(),
-                            finalOutputs,
-                            successful
-                        );
-
-                        outputFilesRepository.recordOutputs(finalOutputs.values());
-                    }
-                });
-            }
-        }
-
-        private boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            return !previous.keySet().equals(current.keySet())
-                || new OutputFileChanges(previous, current).hasAnyChanges();
         }
 
         @Override

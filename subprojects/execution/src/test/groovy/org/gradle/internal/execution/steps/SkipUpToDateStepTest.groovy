@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl.steps
+package org.gradle.internal.execution.steps
 
 import org.gradle.internal.change.ChangeVisitor
 import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.Step
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.testing.internal.util.Specification
 
 class SkipUpToDateStepTest extends Specification {
     def delegate = Mock(Step)
-    def step = new SkipUpToDateStep<Context>(delegate)
-    def context = Mock(Context)
+    def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
+    def context = Mock(IncrementalChangesContext)
     def work = Mock(UnitOfWork)
     def changes = Mock(ExecutionStateChanges)
 
@@ -36,10 +38,9 @@ class SkipUpToDateStepTest extends Specification {
 
         then:
         result.outcome.get() == ExecutionOutcome.UP_TO_DATE
-        result.outOfDateReasons.empty
+        result.executionReasons.empty
 
-        _ * context.work >> work
-        1 * work.changesSincePreviousExecution >> Optional.of(changes)
+        1 * context.changes >> Optional.of(changes)
         1 * changes.visitAllChanges(_) >> {}
         0 * _
     }
@@ -49,10 +50,10 @@ class SkipUpToDateStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outOfDateReasons == ["change"]
+        result.executionReasons == ["change"]
 
-        _ * context.work >> work
-        1 * work.changesSincePreviousExecution >> Optional.of(changes)
+        1 * context.getWork() >> work
+        1 * context.changes >> Optional.of(changes)
         1 * changes.visitAllChanges(_) >> { ChangeVisitor visitor ->
             visitor.visitChange(new DescriptiveChange("change"))
         }
@@ -65,10 +66,10 @@ class SkipUpToDateStepTest extends Specification {
         def result = step.execute(context)
 
         then:
-        result.outOfDateReasons == ["No history is available."]
+        result.executionReasons == ["No history is available."]
 
-        _ * context.work >> work
-        1 * work.changesSincePreviousExecution >> Optional.empty()
+        1 * context.getWork() >> work
+        1 * context.changes >> Optional.empty()
         1 * delegate.execute(context)
         0 * _
     }
