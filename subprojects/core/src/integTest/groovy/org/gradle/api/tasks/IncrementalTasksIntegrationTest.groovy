@@ -62,12 +62,18 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             incrementalExecution = inputs.incremental
 
             inputs.getChanges(inputDir).each { change ->
-                if (change.added) {
-                    addedFiles << change.file
-                } else if (change.modified) {
-                    changedFiles << change.file
-                } else {
-                    removedFiles << change.file
+                switch (change) {
+                    case { it.added }:
+                        addedFiles << change.file
+                        break
+                    case { it.modified }:
+                        changedFiles << change.file
+                        break
+                    case { it.removed }:
+                        removedFiles << change.file
+                        break
+                    default:
+                        throw new IllegalStateException()
                 }
             }
 
