@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
  */
 public class GroupedOutputFixture {
     /**
-     * All tasks will start with > Task, captures everything starting with : and going until a control char
+     * All tasks will start with > Task, captures everything starting with : and going until end of line
      */
-    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n?";
-    private final static String TRANSFORMATION_HEADER = "> Transform (artifact|file) ([^\\n]+) with ([^\\n]+)\\n?";
+    private final static String TASK_HEADER = "> Task (:[\\w:]*) ?(FAILED|FROM-CACHE|UP-TO-DATE|SKIPPED|NO-SOURCE)?\\n";
+    private final static String TRANSFORMATION_HEADER = "> Transform (artifact|file) ([^\\n]+) with ([^\\n]+)\\n";
 
     private final static String EMBEDDED_BUILD_START = "> :\\w* > [:\\w]+";
     private final static String BUILD_STATUS_FOOTER = "BUILD SUCCESSFUL";
@@ -65,21 +65,21 @@ public class GroupedOutputFixture {
         return Pattern.compile(pattern);
     }
 
-    private final String originalOutput;
+    private final LogContent originalOutput;
     private final String strippedOutput;
     private Map<String, GroupedTaskFixture> tasks;
     private Map<String, GroupedTransformationFixture> transformations;
 
-    public GroupedOutputFixture(String output) {
+    public GroupedOutputFixture(LogContent output) {
         this.originalOutput = output;
         this.strippedOutput = parse(output);
     }
 
-    private String parse(String output) {
+    private String parse(LogContent output) {
         tasks = new HashMap<String, GroupedTaskFixture>();
         transformations = new HashMap<String, GroupedTransformationFixture>();
 
-        String strippedOutput = LogContent.of(output).removeAnsiChars().withNormalizedEol();
+        String strippedOutput = output.removeAnsiChars().withNormalizedEol();
         findOutputs(strippedOutput, TASK_OUTPUT_PATTERN, this::consumeTaskOutput);
         findOutputs(strippedOutput, TRANSFORMATION_OUTPUT_PATTERN, this::consumeTransformationOutput);
 
@@ -127,7 +127,7 @@ public class GroupedOutputFixture {
     }
 
     public String toString() {
-        return originalOutput;
+        return originalOutput.withNormalizedEol();
     }
 
     private void consumeTaskOutput(Matcher matcher) {

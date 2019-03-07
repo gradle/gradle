@@ -123,7 +123,7 @@ BUILD SUCCESSFUL in \\d+s\\n*
         // Check that the failure text appears either stdout or stderr
         def outputWithFailure = errorsShouldAppearOnStdout() ? failure.output : failure.error
         def outputWithoutFailure = errorsShouldAppearOnStdout() ? failure.error : failure.output
-        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeAnsiChars().removeDebugPrefix().removeBlankLines().withNormalizedEol()
+        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeAnsiChars().removeDebugPrefix().withNormalizedEol()
 
         outputWithFailure.contains("Build failed with an exception.")
         outputWithFailureAndNoDebugging.contains("""

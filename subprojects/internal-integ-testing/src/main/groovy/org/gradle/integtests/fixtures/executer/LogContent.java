@@ -18,48 +18,45 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
-import org.fusesource.jansi.AnsiOutputStream;
+import net.rubygrapefruit.ansi.AnsiParser;
+import net.rubygrapefruit.ansi.console.AnsiConsole;
+import net.rubygrapefruit.ansi.token.NewLine;
+import net.rubygrapefruit.ansi.token.Text;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Pair;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class LogContent {
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\[\\w+] \\[.+?] ");
-    private final static String PROGRESS_BAR_PATTERN = "<[-=(\u001b\\[\\d+[a-zA-Z;])]*> \\d+% (INITIALIZ|CONFIGUR|EXECUT|WAIT)ING( \\[((\\d+h )? \\d+m )?\\d+s\\])?";
-    private final static String WORK_IN_PROGRESS_PATTERN = "\u001b\\[\\d+[a-zA-Z]> (IDLE|[:a-z][\\w\\s\\d:>/\\\\\\.]+)\u001b\\[\\d*[a-zA-Z]";
-    private final static String DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN = "\u001b\\[\\d+B\\n";
-    private final static Pattern WORK_IN_PROGRESS_AREA_PATTERN = Pattern.compile(PROGRESS_BAR_PATTERN + "|" + WORK_IN_PROGRESS_PATTERN + "|" + DOWN_MOVEMENT_WITH_NEW_LINE_PATTERN);
     private final static Pattern JAVA_ILLEGAL_ACCESS_WARNING_PATTERN = Pattern.compile("(?ms)WARNING: An illegal reflective access operation has occurred$.+?"
         + "^WARNING: All illegal access operations will be denied in a future release\r?\n");
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
+    private final boolean definitelyNoAnsiChars;
     private final LogContent rawContent;
 
-    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix, LogContent rawContent) {
+    private LogContent(ImmutableList<String> lines, boolean definitelyNoDebugPrefix, boolean definitelyNoAnsiChars, LogContent rawContent) {
         this.lines = lines;
         this.rawContent = rawContent == null ? this : rawContent;
         this.definitelyNoDebugPrefix = definitelyNoDebugPrefix || lines.isEmpty();
+        this.definitelyNoAnsiChars = definitelyNoAnsiChars || lines.isEmpty();
     }
 
     /**
      * Creates a new instance, from raw characters.
      */
     public static LogContent of(String chars) {
-        String stripped = stripWorkInProgressArea(chars);
-        LogContent raw = new LogContent(toLines(stripped), false, null);
-        return new LogContent(toLines(stripJavaIllegalAccessWarnings(stripped)), false, raw);
+        LogContent raw = new LogContent(toLines(chars), false, false, null);
+        return new LogContent(toLines(stripJavaIllegalAccessWarnings(chars)), false, false, raw);
     }
 
     private static ImmutableList<String> toLines(String chars) {
@@ -91,11 +88,11 @@ public class LogContent {
      * Creates a new instance from a sequence of lines (without the line separators).
      */
     public static LogContent of(List<String> lines) {
-        return new LogContent(ImmutableList.copyOf(lines), false, null);
+        return new LogContent(ImmutableList.copyOf(lines), false, false,null);
     }
 
     public static LogContent empty() {
-        return new LogContent(ImmutableList.<String>of(), true, null);
+        return new LogContent(ImmutableList.<String>of(), true, true, null);
     }
 
     /**
@@ -135,7 +132,7 @@ public class LogContent {
         if (rawContent != this) {
             throw new UnsupportedOperationException("not implemented");
         }
-        return new LogContent(lines.subList(startLine, endLine), definitelyNoDebugPrefix, null);
+        return new LogContent(lines.subList(startLine, endLine), definitelyNoDebugPrefix, definitelyNoAnsiChars, null);
     }
 
     /**
@@ -157,8 +154,8 @@ public class LogContent {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             if (pattern.matcher(line).matches()) {
-                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, rawContent.lines(0, i));
-                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, rawContent.lines(i, lines.size()));
+                LogContent before = new LogContent(lines.subList(0, i), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
+                LogContent after = new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
                 return Pair.of(before, after);
             }
         }
@@ -182,7 +179,7 @@ public class LogContent {
      * Drops the first n lines.
      */
     public LogContent drop(int i) {
-        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, rawContent.lines(i, lines.size()));
+        return new LogContent(lines.subList(i, lines.size()), definitelyNoDebugPrefix, definitelyNoAnsiChars, rawContent);
     }
 
     /**
@@ -201,19 +198,20 @@ public class LogContent {
                 result.add(line);
             }
         }
-        return new LogContent(ImmutableList.copyOf(result), true, rawContent);
+        return new LogContent(ImmutableList.copyOf(result), true, definitelyNoAnsiChars, rawContent);
     }
 
     /**
      * Returns a copy of this log content with ANSI control characters removed.
      */
     public LogContent removeAnsiChars() {
-        if (lines.isEmpty()) {
+        if (definitelyNoAnsiChars) {
             return this;
         }
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Writer writer = new OutputStreamWriter(new AnsiOutputStream(baos));
+            AnsiConsole console = new AnsiConsole();
+            AnsiParser parser = new AnsiParser();
+            Writer writer = new OutputStreamWriter(parser.newParser("utf-8", console));
             for (int i = 0; i < lines.size(); i++) {
                 if (i > 0) {
                     writer.write("\n");
@@ -221,33 +219,21 @@ public class LogContent {
                 writer.write(lines.get(i));
             }
             writer.flush();
-            return new LogContent(toLines(baos.toString()), definitelyNoDebugPrefix, rawContent);
+            StringBuilder result = new StringBuilder();
+            console.contents(token -> {
+                if (token instanceof Text) {
+                    result.append(((Text) token).getText());
+                } else if (token instanceof NewLine) {
+                    result.append("\n");
+                }
+            });
+            return new LogContent(toLines(result.toString()), definitelyNoDebugPrefix, true, rawContent);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    /**
-     * Remove all blank lines.
-     */
-    public LogContent removeBlankLines() {
-        List<String> nonBlankLines = lines.stream().filter(StringUtils::isNotBlank).collect(Collectors.toList());
-        return new LogContent(ImmutableList.copyOf(nonBlankLines), definitelyNoDebugPrefix, rawContent);
-    }
-
-    public static String stripWorkInProgressArea(String output) {
-        String result = output;
-        for (int i = 1; i <= 10; ++i) {
-            result = result.replaceAll(workInProgressAreaScrollingPattern(i), "");
-        }
-        return WORK_IN_PROGRESS_AREA_PATTERN.matcher(result).replaceAll("");
-    }
-
     public static String stripJavaIllegalAccessWarnings(String result) {
         return JAVA_ILLEGAL_ACCESS_WARNING_PATTERN.matcher(result).replaceAll("");
-    }
-
-    private static String workInProgressAreaScrollingPattern(int scroll) {
-        return "(\u001b\\[0K\\n){" + scroll + "}\u001b\\[" + scroll + "A";
     }
 }
