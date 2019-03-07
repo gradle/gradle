@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.util.NumberUtil;
+import org.gradle.launcher.daemon.server.health.gc.DefaultGarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
@@ -34,13 +35,13 @@ public class DaemonHealthStats implements Stoppable {
     private final DaemonRunningStats runningStats;
     private final ManagedScheduledExecutor scheduler;
     private final GarbageCollectionInfo gcInfo;
-    private final GarbageCollectionMonitor gcMonitor;
+    private GarbageCollectionMonitor gcMonitor;
 
     public DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
         this.scheduler = executorFactory.createScheduled("Daemon health stats", 1);
         this.gcInfo = new GarbageCollectionInfo();
-        this.gcMonitor = new GarbageCollectionMonitor(strategy, scheduler);
+        this.gcMonitor = new DefaultGarbageCollectionMonitor(strategy, scheduler);
     }
 
     @VisibleForTesting
@@ -49,6 +50,11 @@ public class DaemonHealthStats implements Stoppable {
         this.scheduler = null;
         this.gcInfo = gcInfo;
         this.gcMonitor = gcMonitor;
+    }
+
+    @VisibleForTesting
+    public GarbageCollectionMonitor getGcMonitor() {
+        return gcMonitor;
     }
 
     @Override

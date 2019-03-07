@@ -25,7 +25,7 @@ class GarbageCollectionMonitorTest extends Specification {
 
     def "does not schedule garbage collection check when GC strategy is unknown" () {
         when:
-        new GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
+        new DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
 
         then:
         0 * scheduledExecutorService.scheduleAtFixedRate(_, _, _, _)
@@ -33,7 +33,7 @@ class GarbageCollectionMonitorTest extends Specification {
 
     def "heap stats defaults to empty given unknown garbage collector"() {
         given:
-        def monitor = new GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
+        def monitor = new DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
 
         when:
         monitor.getHeapStats()
@@ -44,7 +44,7 @@ class GarbageCollectionMonitorTest extends Specification {
 
     def "non-heap stats defaults to empty given unknown garbage collector"() {
         given:
-        def monitor = new GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
+        def monitor = new DefaultGarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
 
         when:
         monitor.getNonHeapStats()
