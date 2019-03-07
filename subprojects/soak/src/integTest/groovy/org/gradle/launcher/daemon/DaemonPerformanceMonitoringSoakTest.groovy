@@ -63,28 +63,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         40     | "1024m" | 4000
     }
 
-    def "when build leaks within available memory the daemon is not expired"() {
-        when:
-        setupBuildScript = tenuredHeapLeak
-        maxBuilds = 20
-        heapSize = "500m"
-        leakRate = 300
-
-        then:
-        !daemonIsExpiredEagerly()
-    }
-
-    def "greedy build with no leak does not expire daemon"() {
-        when:
-        setupBuildScript = greedyBuildNoLeak
-        maxBuilds = 20
-        heapSize = "200m"
-        leakRate = 3800
-
-        then:
-        !daemonIsExpiredEagerly()
-    }
-
     private boolean daemonIsExpiredEagerly() {
         def dataFile = file("stats")
         setupBuildScript()
