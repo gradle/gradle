@@ -27,6 +27,8 @@ import org.junit.rules.ExternalResource;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,6 +56,7 @@ public class BlockingHttpServer extends ExternalResource {
     private final int timeoutMs;
     private final int serverId;
     private boolean running;
+    private int clientVarCounter;
 
     public BlockingHttpServer() throws IOException {
         this(120000);
@@ -96,7 +99,19 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuild(String resource) {
         URI uri = uri(resource);
-        return "System.out.println(\"[G] calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received from " + uri + "\");";
+        String var = "connection" + (clientVarCounter++);
+        StringWriter result = new StringWriter();
+        PrintWriter writer = new PrintWriter(result);
+        writer.println("System.out.println(\"[G] calling " + uri + "\");");
+        writer.println("try {");
+        writer.println("  java.net.URLConnection " + var + " = new java.net.URL(\"" + uri + "\").openConnection();");
+        writer.println("  " + var + ".setReadTimeout(0);"); // to avoid silent retry
+        writer.println("  " + var + ".getContentLength();");
+        writer.println("} catch(Exception e) {");
+        writer.println("  throw new RuntimeException(e);");
+        writer.println("}");
+        writer.println("System.out.println(\"[G] response received for " + uri + "\");");
+        return result.toString();
     }
 
     public String callFromTaskAction(String resource) {
@@ -108,7 +123,19 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
-        return "System.out.println(\"[G] calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received from \" + " + uriExpression + ");";
+        String var = "connection" + (clientVarCounter++);
+        StringWriter result = new StringWriter();
+        PrintWriter writer = new PrintWriter(result);
+        writer.println("System.out.println(\"[G] calling \" + " + uriExpression + ");");
+        writer.println("try {");
+        writer.println("  java.net.URLConnection " + var + " = new java.net.URL(" + uriExpression + ").openConnection();");
+        writer.println("  " + var + ".setReadTimeout(0);"); // to avoid silent retry
+        writer.println("  " + var + ".getContentLength();");
+        writer.println("} catch(Exception e) {");
+        writer.println("  throw new RuntimeException(e);");
+        writer.println("}");
+        writer.println("System.out.println(\"[G] response received for \" + " + uriExpression + ");");
+        return result.toString();
     }
 
     /**
