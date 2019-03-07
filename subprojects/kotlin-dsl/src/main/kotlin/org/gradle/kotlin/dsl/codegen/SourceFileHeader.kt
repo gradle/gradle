@@ -37,6 +37,8 @@ fun fileHeaderFor(packageName: String) =
     "ObjectPropertyName"
 )
 
+/* ktlint-disable */
+
 package $packageName
 """
 
