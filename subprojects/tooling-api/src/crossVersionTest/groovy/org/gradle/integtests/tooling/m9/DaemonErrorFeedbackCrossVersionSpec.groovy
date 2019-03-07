@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 import spock.lang.Timeout
 
@@ -37,8 +38,8 @@ class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains "-Xasdf"
-        caughtGradleConnectionException.cause.message.contains "Unable to start the daemon"
+        GradleConnectionException ex = thrown()
+        ex.cause.message.contains "-Xasdf"
+        ex.cause.message.contains "Unable to start the daemon"
     }
 }
