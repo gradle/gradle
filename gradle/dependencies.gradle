@@ -95,6 +95,7 @@ libraries.slf4j_api =           [coordinates: 'org.slf4j:slf4j-api', version: '1
 libraries.jcl_to_slf4j =        [coordinates: 'org.slf4j:jcl-over-slf4j', version: libraries.slf4j_api.version]
 libraries.jul_to_slf4j =        [coordinates: 'org.slf4j:jul-to-slf4j', version: libraries.slf4j_api.version]
 libraries.log4j_to_slf4j =      [coordinates: 'org.slf4j:log4j-over-slf4j', version: libraries.slf4j_api.version]
+libraries.ansi_control_sequence_util = [coordinates: 'net.rubygrapefruit:ansi-control-sequence-util', version: '0.2']
 
 // these are transitive dependencies that are part of the Gradle distribution
 libraries.jetbrains_annotations = [coordinates: 'org.jetbrains:annotations', version: '13.0']

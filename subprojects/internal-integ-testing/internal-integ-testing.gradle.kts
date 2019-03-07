@@ -45,6 +45,7 @@ dependencies {
     compile(library("jcifs"))
     compile(library("jansi"))
     compile(library("commons_collections"))
+    compile(library("ansi_control_sequence_util"))
     compile("org.apache.mina:mina-core")
     compile(testLibrary("sampleCheck")) {
         exclude(module = "groovy-all")
