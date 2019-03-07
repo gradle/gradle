@@ -45,7 +45,7 @@ TIP: Keep the old Maven build and new Gradle build side by side.
 You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts and otherwise does what you need.
 This also means that users can try the Gradle build without getting a new copy of the source tree.
 
- . link:https://scans.gradle.com[Create a build scan for the Maven build].
+ . link:https://scans.gradle.com#maven[Create a build scan for the Maven build].
 +
 A build scan will make it easier to visualize what's happening in your existing Maven build.
 For Maven builds, you'll be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
