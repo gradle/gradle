@@ -52,7 +52,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         then:
         result.assertRawOutputContains(successMessage)
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
-BUILD SUCCESSFUL in \\d+s\\n?
+BUILD SUCCESSFUL in \\d+s\\n*
 2 actionable tasks: 2 executed
 .*"""
 
@@ -62,7 +62,7 @@ BUILD SUCCESSFUL in \\d+s\\n?
         then:
         result.assertRawOutputContains(successMessage)
         LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*
-BUILD SUCCESSFUL in \\d+s\\n?
+BUILD SUCCESSFUL in \\d+s\\n*
 2 actionable tasks: 1 executed, 1 up-to-date
 .*"""
     }
@@ -95,9 +95,8 @@ BUILD SUCCESSFUL in \\d+s\\n?
         succeeds('success')
 
         then:
-        LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*build finished
-
-BUILD SUCCESSFUL in \\d+s\\n?
+        LogContent.of(result.output).removeAnsiChars().withNormalizedEol().matches """(?s).*build finished\\n*
+BUILD SUCCESSFUL in \\d+s\\n*
 1 actionable task: 1 executed
 .*"""
     }
@@ -124,7 +123,7 @@ BUILD SUCCESSFUL in \\d+s\\n?
         // Check that the failure text appears either stdout or stderr
         def outputWithFailure = errorsShouldAppearOnStdout() ? failure.output : failure.error
         def outputWithoutFailure = errorsShouldAppearOnStdout() ? failure.error : failure.output
-        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeBlankLines().removeAnsiChars().removeDebugPrefix().withNormalizedEol()
+        def outputWithFailureAndNoDebugging = LogContent.of(outputWithFailure).removeAnsiChars().removeDebugPrefix().removeBlankLines().withNormalizedEol()
 
         outputWithFailure.contains("Build failed with an exception.")
         outputWithFailureAndNoDebugging.contains("""
