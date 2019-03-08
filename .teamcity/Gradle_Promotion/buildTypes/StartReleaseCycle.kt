@@ -28,7 +28,6 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcs
 
     artifactRules = """
         incoming-build-receipt/build-receipt.properties => incoming-build-receipt
-        promote-projects/gradle/build/reports/jdiff => jdiff
     """.trimIndent()
 
     params {
