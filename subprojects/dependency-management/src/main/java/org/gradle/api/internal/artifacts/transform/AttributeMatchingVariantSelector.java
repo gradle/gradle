@@ -173,7 +173,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested);
         if (matches.size() == 1) {
             AttributeContainerInternal singleMatch = matches.get(0);
-            return candidates.stream().filter(pair -> pair.getRight().attributes == singleMatch).collect(Collectors.toList());
+            return candidates.stream().filter(pair -> pair.getRight().attributes.equals(singleMatch)).collect(Collectors.toList());
         } else if (matches.size() > 0 && matches.size() < candidates.size()) {
             // We know all are compatibles, so this is only possible if some disambiguation happens but not getting us to 1 candidate
             return candidates.stream().filter(pair -> matches.contains(pair.getRight().attributes)).collect(Collectors.toList());
