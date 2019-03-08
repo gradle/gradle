@@ -47,7 +47,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
     @Override
     public R execute(IncrementalContext context) {
-        final UnitOfWork work = context.getWork();
+        UnitOfWork work = context.getWork();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
                 new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason))
