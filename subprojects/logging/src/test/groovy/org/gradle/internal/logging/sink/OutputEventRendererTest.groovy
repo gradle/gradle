@@ -288,7 +288,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         metaData.stdOut >> true
         metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -306,7 +306,7 @@ class OutputEventRendererTest extends OutputSpecification {
         metaData.stdOut >> true
         metaData.stdErr >> false
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -324,7 +324,7 @@ class OutputEventRendererTest extends OutputSpecification {
         metaData.stdOut >> false
         metaData.stdErr >> true
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
 
         when:
         renderer.onOutput(start('description'))
@@ -342,7 +342,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         metaData.stdOut >> true
         metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -359,7 +359,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         metaData.stdOut >> true
         metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -376,7 +376,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         metaData.stdOut >> true
         metaData.stdErr >> false
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -393,7 +393,7 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         metaData.stdOut >> false
         metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, metaData, outputs.stdOutPrintStream, outputs.stdErrPrintStream, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush

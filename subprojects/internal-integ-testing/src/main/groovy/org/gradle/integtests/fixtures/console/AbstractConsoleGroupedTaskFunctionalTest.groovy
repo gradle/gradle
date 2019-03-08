@@ -38,35 +38,99 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
     }
 
     boolean errorsShouldAppearOnStdout() {
-        // If stderr is attached to the console or if we'll use the fallback console
-        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || usesFallbackConsole()
+        // If both stdout and stderr is attached to the console, they are merged together
+        return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()
     }
 
-    boolean usesFallbackConsole() {
-        return consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose)
+    boolean stdoutUsesStyledText() {
+        if (!consoleAttachment.stdoutAttached && consoleAttachment.stderrAttached) {
+            // Can currently write rich text to one stream at a time, and we prefer stderr when it is attached to the console and stdout is not
+            return false
+        }
+        return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stdoutAttached
+    }
+
+    boolean stderrUsesStyledText() {
+        // Can currently write rich text to one stream at a time, and we prefer stdout when it is attached to the console
+        if (!consoleAttachment.stdoutAttached && consoleAttachment.stderrAttached) {
+            return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stderrAttached
+        }
+        return false
     }
 
     abstract ConsoleOutput getConsoleType()
 
-    protected StyledOutput styled(String plainOutput, Ansi.Color color, Ansi.Attribute... attributes) {
-        return new StyledOutput(plainOutput, color, attributes)
+    protected StyledOutput styled(Ansi.Color color, Ansi.Attribute attribute) {
+        return new StyledOutput(null, color, attribute)
     }
 
-    public class StyledOutput {
-        private final String plainOutput
-        private final String styledOutput
+    protected StyledOutput styled(Ansi.Attribute attribute) {
+        return new StyledOutput(null, null, attribute)
+    }
 
-        StyledOutput(String plainOutput, Ansi.Color color, Ansi.Attribute... attributes) {
-            this.plainOutput = plainOutput
-            this.styledOutput = styledText(plainOutput, color, attributes)
+    class StyledOutput {
+        final String plainOutput
+        final String styledOutput
+        private final Ansi.Color color
+        private final Ansi.Attribute attribute
+
+        private StyledOutput(StyledOutput previous, Ansi.Color color, Ansi.Attribute attribute) {
+            if (attribute != Ansi.Attribute.INTENSITY_BOLD && attribute != null) {
+                throw new UnsupportedOperationException()
+            }
+            this.color = color
+            this.attribute = attribute
+            def previousColor = null
+            def previousAttribute = null
+            def styled = ""
+            if (previous == null) {
+                this.plainOutput = ""
+            } else {
+                this.plainOutput = previous.plainOutput
+                previousColor = previous.color
+                previousAttribute = previous.attribute
+                styled = previous.styledOutput
+            }
+            if (attribute != null && previousAttribute == null) {
+                styled += "{bold-on}"
+            }
+            if (attribute == null && previousAttribute != null) {
+                styled += "{bold-off}"
+            }
+            if (color != null && color != previousColor) {
+                styled += "{foreground-color " + color.name().toLowerCase() + "}"
+            }
+            if (color == null && previousColor != null) {
+                styled += "{foreground-color default}"
+            }
+            this.styledOutput = styled
         }
 
-        public String getOutput() {
-            return consoleAttachment.stdoutAttached ? styledOutput : plainOutput
+        private StyledOutput(StyledOutput previous, String text) {
+            this.color = previous.color
+            this.attribute = previous.attribute
+            this.plainOutput = previous.plainOutput + text
+            this.styledOutput = previous.styledOutput + text
         }
 
-        public String getErrorOutput() {
-            return consoleAttachment.stderrAttached ? styledOutput : plainOutput
+        StyledOutput text(String text) {
+            return new StyledOutput(this, text)
+        }
+
+        StyledOutput styled(Ansi.Attribute attribute) {
+            return new StyledOutput(this, color, attribute)
+        }
+
+        StyledOutput off() {
+            return new StyledOutput(this, null, null)
+        }
+
+        String getOutput() {
+            return stdoutUsesStyledText() ? styledOutput : plainOutput
+        }
+
+        String getErrorOutput() {
+            return stderrUsesStyledText() ? styledOutput : plainOutput
         }
     }
 }

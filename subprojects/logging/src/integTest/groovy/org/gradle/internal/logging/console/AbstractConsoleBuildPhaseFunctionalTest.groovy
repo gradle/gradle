@@ -129,7 +129,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         gradle.waitForFinish()
 
         where:
-        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY, ConsoleAttachment.NOT_ATTACHED]
     }
 
     @Unroll
@@ -217,7 +217,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         gradle.waitForFinish()
 
         where:
-        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY, ConsoleAttachment.NOT_ATTACHED]
     }
 
     @Unroll
@@ -312,7 +312,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         gradle.waitForFinish()
 
         where:
-        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY, ConsoleAttachment.NOT_ATTACHED]
     }
 
     @Unroll
@@ -451,12 +451,13 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         gradle.waitForFinish()
 
         where:
-        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY]
+        attachment << [ConsoleAttachment.ATTACHED, ConsoleAttachment.ATTACHED_STDOUT_ONLY, ConsoleAttachment.NOT_ATTACHED]
     }
 
     @Unroll
     def "does not show progress bar when stdout is #attachment"() {
         when:
+        executer.withTestConsoleAttached(attachment)
         succeeds()
 
         then:
@@ -465,7 +466,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractIntegrati
         result.assertNotOutput("EXECUTING")
 
         where:
-        attachment << [ConsoleAttachment.ATTACHED_STDERR_ONLY, ConsoleAttachment.NOT_ATTACHED]
+        attachment << [ConsoleAttachment.ATTACHED_STDERR_ONLY]
     }
 
     void assertHasBuildPhase(String message) {

@@ -557,18 +557,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return this;
         }
 
-        @Override
-        public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-            outputResult.assertHasRawErrorOutput(expectedOutput);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertRawOutputContains(String expectedOutput) {
-            outputResult.assertRawOutputContains(expectedOutput);
-            return this;
-        }
-
         public String getError() {
             return outputResult.getError();
         }

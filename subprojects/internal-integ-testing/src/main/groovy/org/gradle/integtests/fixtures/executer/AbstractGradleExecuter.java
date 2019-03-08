@@ -76,7 +76,10 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
-import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.CollectionUtils.collect;
@@ -1403,7 +1406,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private boolean errorsShouldAppearOnStdout() {
-        // If stderr is attached to the console or if we'll use the fallback console
-        return (consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached()) || (consoleAttachment == ConsoleAttachment.NOT_ATTACHED && (consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose));
+        // If stdout and stderr are attached to the console
+        return consoleAttachment.isStderrAttached() && consoleAttachment.isStdoutAttached();
     }
 }

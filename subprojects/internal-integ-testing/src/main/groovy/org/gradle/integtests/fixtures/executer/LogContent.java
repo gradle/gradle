@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.ansi.AnsiParser;
 import net.rubygrapefruit.ansi.console.AnsiConsole;
+import net.rubygrapefruit.ansi.console.DiagnosticConsole;
 import net.rubygrapefruit.ansi.token.NewLine;
 import net.rubygrapefruit.ansi.token.Text;
 import org.gradle.api.Action;
@@ -88,7 +89,7 @@ public class LogContent {
      * Creates a new instance from a sequence of lines (without the line separators).
      */
     public static LogContent of(List<String> lines) {
-        return new LogContent(ImmutableList.copyOf(lines), false, false,null);
+        return new LogContent(ImmutableList.copyOf(lines), false, false, null);
     }
 
     public static LogContent empty() {
@@ -202,23 +203,14 @@ public class LogContent {
     }
 
     /**
-     * Returns a copy of this log content with ANSI control characters removed.
+     * Returns a copy of this log content with ANSI control characters interpreted to produce plain text.
      */
-    public LogContent removeAnsiChars() {
+    public LogContent ansiCharsToPlainText() {
         if (definitelyNoAnsiChars) {
             return this;
         }
         try {
-            AnsiConsole console = new AnsiConsole();
-            AnsiParser parser = new AnsiParser();
-            Writer writer = new OutputStreamWriter(parser.newParser("utf-8", console));
-            for (int i = 0; i < lines.size(); i++) {
-                if (i > 0) {
-                    writer.write("\n");
-                }
-                writer.write(lines.get(i));
-            }
-            writer.flush();
+            AnsiConsole console = interpretAnsiChars();
             StringBuilder result = new StringBuilder();
             console.contents(token -> {
                 if (token instanceof Text) {
@@ -231,6 +223,43 @@ public class LogContent {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    /**
+     * Returns a copy of this log content with ANSI control characters interpreted to produce plain text with text attributes included.
+     */
+    public LogContent ansiCharsToColorText() {
+        if (definitelyNoAnsiChars) {
+            return this;
+        }
+        try {
+            AnsiConsole console = interpretAnsiChars();
+            DiagnosticConsole diagnosticConsole = new DiagnosticConsole();
+            for (int i = 0; i < console.getRows().size(); i++) {
+                AnsiConsole.Row row = console.getRows().get(i);
+                if (i > 0) {
+                    diagnosticConsole.visit(NewLine.INSTANCE);
+                }
+                row.visit(diagnosticConsole);
+            }
+            return new LogContent(toLines(diagnosticConsole.toString()), definitelyNoDebugPrefix, true, rawContent);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private AnsiConsole interpretAnsiChars() throws IOException {
+        AnsiConsole console = new AnsiConsole();
+        AnsiParser parser = new AnsiParser();
+        Writer writer = new OutputStreamWriter(parser.newParser("utf-8", console));
+        for (int i = 0; i < lines.size(); i++) {
+            if (i > 0) {
+                writer.write("\n");
+            }
+            writer.write(lines.get(i));
+        }
+        writer.flush();
+        return console;
     }
 
     public static String stripJavaIllegalAccessWarnings(String result) {

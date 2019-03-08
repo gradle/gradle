@@ -16,10 +16,10 @@
 package org.gradle.integtests.resolve.suppliers
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
@@ -1040,8 +1040,8 @@ group:projectB:2.2;release
 
         then:
         noExceptionThrown()
-        result.assertRawOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:2.2"
-        result.assertRawOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
+        result.assertOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:2.2"
+        result.assertOutputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
     }
 
     def "changing the implementation of a rule invalidates the cache"() {

@@ -79,7 +79,7 @@ public class GroupedOutputFixture {
         tasks = new HashMap<String, GroupedTaskFixture>();
         transformations = new HashMap<String, GroupedTransformationFixture>();
 
-        String strippedOutput = output.removeAnsiChars().withNormalizedEol();
+        String strippedOutput = output.ansiCharsToPlainText().withNormalizedEol();
         findOutputs(strippedOutput, TASK_OUTPUT_PATTERN, this::consumeTaskOutput);
         findOutputs(strippedOutput, TRANSFORMATION_OUTPUT_PATTERN, this::consumeTransformationOutput);
 

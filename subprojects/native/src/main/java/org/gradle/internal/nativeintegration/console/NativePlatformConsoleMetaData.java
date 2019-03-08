@@ -48,4 +48,9 @@ public class NativePlatformConsoleMetaData implements ConsoleMetaData {
     public int getRows() {
         return terminal.getTerminalSize().getRows();
     }
+
+    @Override
+    public boolean isWrapStreams() {
+        return true;
+    }
 }
