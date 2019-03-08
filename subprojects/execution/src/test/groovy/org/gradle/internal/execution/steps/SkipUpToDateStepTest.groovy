@@ -16,11 +16,16 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.origin.OriginMetadata
+import org.gradle.internal.Try
 import org.gradle.internal.change.ChangeVisitor
 import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.SnapshotResult
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
 class SkipUpToDateStepTest extends StepSpec {
     def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
@@ -42,6 +47,11 @@ class SkipUpToDateStepTest extends StepSpec {
     }
 
     def "executes when outputs are not up to date"() {
+        def delegateResult = Mock(SnapshotResult)
+        def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED)
+        def delegateOriginMetadata = Mock(OriginMetadata)
+        def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
+
         when:
         def result = step.execute(context)
 
@@ -53,7 +63,34 @@ class SkipUpToDateStepTest extends StepSpec {
         1 * changes.visitAllChanges(_) >> { ChangeVisitor visitor ->
             visitor.visitChange(new DescriptiveChange("change"))
         }
-        1 * delegate.execute(context)
+        1 * delegate.execute(context) >> delegateResult
+        0 * _
+
+        when:
+        def outcome = result.outcome
+
+        then:
+        outcome == delegateOutcome
+
+        1 * delegateResult.outcome >> delegateOutcome
+        0 * _
+
+        when:
+        def originMetadata = result.originMetadata
+
+        then:
+        originMetadata == delegateOriginMetadata
+
+        1 * delegateResult.originMetadata >> delegateOriginMetadata
+        0 * _
+
+        when:
+        def finalOutputs = result.finalOutputs
+
+        then:
+        finalOutputs == delegateFinalOutputs
+
+        1 * delegateResult.finalOutputs >> delegateFinalOutputs
         0 * _
     }
 
