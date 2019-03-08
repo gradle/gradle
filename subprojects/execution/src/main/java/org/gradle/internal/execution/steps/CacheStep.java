@@ -24,6 +24,7 @@ import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
@@ -62,33 +63,38 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
         if (!buildCache.isEnabled()) {
             return executeWithoutCache(context);
         }
-        return context.getCacheHandler()
+        CacheHandler cacheHandler = context.getCacheHandler();
+        return cacheHandler
             .load(cacheKey -> load(context.getWork(), cacheKey))
-            .map(loadResult -> (CurrentSnapshotResult) new CurrentSnapshotResult() {
-                @Override
-                public Try<ExecutionOutcome> getOutcome() {
-                    return Try.successful(ExecutionOutcome.FROM_CACHE);
-                }
+            .map(loadResult -> {
+                OriginMetadata originMetadata = loadResult.getOriginMetadata();
+                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = loadResult.getResultingSnapshots();
+                return (CurrentSnapshotResult) new CurrentSnapshotResult() {
+                    @Override
+                    public Try<ExecutionOutcome> getOutcome() {
+                        return Try.successful(ExecutionOutcome.FROM_CACHE);
+                    }
 
-                @Override
-                public OriginMetadata getOriginMetadata() {
-                    return loadResult.getOriginMetadata();
-                }
+                    @Override
+                    public OriginMetadata getOriginMetadata() {
+                        return originMetadata;
+                    }
 
-                @Override
-                public boolean isReused() {
-                    return true;
-                }
+                    @Override
+                    public boolean isReused() {
+                        return true;
+                    }
 
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                    return loadResult.getResultingSnapshots();
-                }
+                    @Override
+                    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                        return finalOutputs;
+                    }
+                };
             })
             .orElseGet(() -> {
                 CurrentSnapshotResult executionResult = executeWithoutCache(context);
                 executionResult.getOutcome().ifSuccessfulOrElse(
-                    outcome -> context.getCacheHandler().store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
+                    outcome -> cacheHandler.store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
                     failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
                 );
                 return executionResult;

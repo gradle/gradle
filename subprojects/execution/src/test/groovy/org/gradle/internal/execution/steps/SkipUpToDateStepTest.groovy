@@ -20,16 +20,12 @@ import org.gradle.internal.change.ChangeVisitor
 import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.Step
-import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.testing.internal.util.Specification
 
-class SkipUpToDateStepTest extends Specification {
-    def delegate = Mock(Step)
+class SkipUpToDateStepTest extends StepSpec {
     def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
     def context = Mock(IncrementalChangesContext)
-    def work = Mock(UnitOfWork)
+
     def changes = Mock(ExecutionStateChanges)
 
     def "skips when outputs are up to date"() {
