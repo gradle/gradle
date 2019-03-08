@@ -1,5 +1,8 @@
 package configurations
 
+import common.Os
+import common.gradleWrapper
+import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
@@ -9,11 +12,9 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
-import model.OS
 import model.TestCoverage
 
 
@@ -58,7 +59,7 @@ val m2CleanScriptWindows = """
     )
 """.trimIndent()
 
-fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+fun applyDefaultSettings(buildType: BuildType, os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     buildType.artifactRules = """
         build/report-* => .
         buildSrc/build/report-* => .
@@ -74,14 +75,14 @@ fun applyDefaultSettings(buildType: BuildType, os: OS = OS.linux, timeout: Int =
     }
 
     buildType.requirements {
-        contains("teamcity.agent.jvm.os.name", os.agentRequirement)
+        requiresOs(os)
     }
 
     buildType.failureConditions {
         executionTimeoutMin = timeout
     }
 
-    if (os == OS.linux || os == OS.macos) {
+    if (os == Os.linux || os == Os.macos) {
         buildType.params {
             param("env.LC_ALL", "en_US.UTF-8")
         }
@@ -110,12 +111,12 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BaseGradleBuildType.checkCleanM2Step(os: OS = OS.linux) {
+fun BaseGradleBuildType.checkCleanM2Step(os: Os = Os.linux) {
     steps {
         script {
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = if (os == OS.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
+            scriptContent = if (os == Os.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
         }
     }
 }
@@ -146,7 +147,7 @@ fun BaseGradleBuildType.tagBuildStep(model: CIBuildModel, daemon: Boolean = true
 }
 
 private
-fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: OS = OS.linux, extraParameters: String = "", daemon: Boolean = true) {
+fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
     steps {
@@ -167,7 +168,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 }
 
 private
-fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: OS = OS.linux, extraParameters: String = "", daemon: Boolean = true) {
+fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
     steps {
@@ -190,8 +191,8 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
 }
 
 private
-fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: OS = OS.linux, daemon: Boolean = true) {
-    if (os == OS.windows) {
+fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os.linux, daemon: Boolean = true) {
+    if (os == Os.windows) {
         steps {
             gradleWrapper {
                 name = stepName
@@ -203,7 +204,7 @@ fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: OS = OS
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     applyDefaultSettings(buildType, os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
@@ -217,7 +218,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
-fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: OS = OS.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     applyDefaultSettings(buildType, os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
@@ -270,22 +271,3 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         }
     }
 }
-
-/**
- * Adds a [Gradle build step](https://confluence.jetbrains.com/display/TCDL/Gradle)
- * that runs with the Gradle wrapper.
- *
- * @see GradleBuildStep
- */
-fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep =
-        customGradle(init) {
-            useGradleWrapper = true
-            if (buildFile == null) {
-                buildFile = "" // Let Gradle detect the build script
-            }
-        }
-
-fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
-        GradleBuildStep(init)
-                .apply(custom)
-                .also { step(it) }

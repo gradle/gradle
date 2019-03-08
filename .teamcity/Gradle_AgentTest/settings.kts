@@ -1,11 +1,11 @@
 package Gradle_AgentTest
 
+import common.JvmVersion
+import common.NoBuildCache
+import common.Os
 import jetbrains.buildServer.configs.kotlin.v2018_2.project
 import jetbrains.buildServer.configs.kotlin.v2018_2.version
 import model.CIBuildModel
-import model.JvmVersion
-import model.NoBuildCache
-import model.OS
 import model.SpecificBuild
 import model.Stage
 import model.StageNames
@@ -56,7 +56,7 @@ val buildModel = CIBuildModel(
                 Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
                         runsIndependent = true,
                         specificBuilds = listOf(SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
-                        functionalTests = listOf(TestCoverage(TestType.quick, OS.linux, JvmVersion.java8)))
+                        functionalTests = listOf(TestCoverage(TestType.quick, Os.linux, JvmVersion.java8)))
         )
 )
 project(RootProject(buildModel))
