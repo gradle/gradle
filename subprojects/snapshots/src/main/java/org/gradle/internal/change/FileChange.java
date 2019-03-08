@@ -49,6 +49,7 @@ public class FileChange implements Change, InputFileDetails {
         this.currentFileType = currentFileType;
     }
 
+    @Override
     public String getMessage() {
         return title + " file " + path + " " + getDisplayedChangeType().describe() + ".";
     }
@@ -75,6 +76,7 @@ public class FileChange implements Change, InputFileDetails {
         return path;
     }
 
+    @Override
     public File getFile() {
         return new File(path);
     }
@@ -83,14 +85,17 @@ public class FileChange implements Change, InputFileDetails {
         return change;
     }
 
+    @Override
     public boolean isAdded() {
         return change == ChangeType.ADDED;
     }
 
+    @Override
     public boolean isModified() {
         return change == ChangeType.MODIFIED;
     }
 
+    @Override
     public boolean isRemoved() {
         return change == ChangeType.REMOVED;
     }
