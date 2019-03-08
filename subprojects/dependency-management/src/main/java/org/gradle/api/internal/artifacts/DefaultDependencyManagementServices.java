@@ -111,7 +111,6 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
@@ -140,7 +139,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -148,7 +146,6 @@ import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.List;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
@@ -202,22 +199,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             TimeoutHandler timeoutHandler
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
-            OutputFilesRepository noopOutputFilesRepository = new OutputFilesRepository() {
-                @Override
-                public boolean isGeneratedByGradle(File file) {
-                    return true;
-                }
-
-                @Override
-                public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
-                }
-            };
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
                 new ResolveChangesStep<>(
                     new SkipUpToDateStep<>(
-                        new StoreSnapshotsStep<>(noopOutputFilesRepository,
+                        new StoreSnapshotsStep<>(
                             new PrepareCachingStep<>(
                                 new SnapshotOutputStep<>(fixedUniqueId,
                                     new CreateOutputsStep<>(

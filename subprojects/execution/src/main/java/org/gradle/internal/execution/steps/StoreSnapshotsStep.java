@@ -23,7 +23,6 @@ import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -31,19 +30,15 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import java.util.Optional;
 
 public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C, CurrentSnapshotResult> {
-    private final OutputFilesRepository outputFilesRepository;
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(
-        OutputFilesRepository outputFilesRepository,
         Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
-        this.outputFilesRepository = outputFilesRepository;
         this.delegate = delegate;
     }
 
     @Override
-    // TODO Return a simple Result (that includes the origin metadata) here
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
@@ -65,8 +60,6 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
                 );
             }
         });
-        outputFilesRepository.recordOutputs(finalOutputs.values());
-
         return result;
     }
 

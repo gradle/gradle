@@ -65,5 +65,6 @@ class CreateOutputsStepTest extends StepSpec {
         result == expected
         1 * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
         1 * delegate.execute(context) >> expected
+        0 * _
     }
 }

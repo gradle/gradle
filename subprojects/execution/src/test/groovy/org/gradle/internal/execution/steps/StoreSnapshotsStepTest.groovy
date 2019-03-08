@@ -26,13 +26,11 @@ import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
-    def outputFilesRepository = Mock(OutputFilesRepository)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -52,7 +50,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
     def finalOutputs = fingerprintsOf(output: outputFile)
 
     def context = Mock(IncrementalContext)
-    def step = new StoreSnapshotsStep<IncrementalContext>(outputFilesRepository, delegate)
+    def step = new StoreSnapshotsStep<IncrementalContext>(delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     def "output snapshots are stored after successful execution"() {
@@ -70,9 +68,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         interaction { expectStore(true, finalOutputs) }
-
-        then:
-        1 * outputFilesRepository.recordOutputs(finalOutputs.values())
+        0 * _
     }
 
     def "output snapshots are stored after failed execution when there's no previous state available"() {
@@ -93,9 +89,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         interaction { expectStore(false, finalOutputs) }
-
-        then:
-        1 * outputFilesRepository.recordOutputs(finalOutputs.values())
+        0 * _
     }
 
     def "output snapshots are stored after failed execution with changed outputs"() {
@@ -119,9 +113,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         interaction { expectStore(false, finalOutputs) }
-
-        then:
-        1 * outputFilesRepository.recordOutputs(finalOutputs.values())
+        0 * _
     }
 
     def "output snapshots are not stored after failed execution with unchanged outputs"() {
@@ -142,9 +134,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> finalOutputs
-
-        then:
-        1 * outputFilesRepository.recordOutputs(finalOutputs.values())
+        0 * _
     }
 
     void expectStore(boolean successful, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
