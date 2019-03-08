@@ -73,7 +73,7 @@ import org.gradle.api.NonExtensible;
 @NonExtensible
 public interface IncrementalTaskInputs {
     /**
-     * Indicates if it was possible for Gradle to determine which exactly input files were out of date compared to a previous execution.
+     * Indicates if it was possible for Gradle to determine which input files were out of date compared to a previous execution.
      * This is <em>not</em> possible in the case of no previous execution, changed input properties, output files, etc.
      * <p>
      * When <code>true</code>:
