@@ -23,15 +23,14 @@ import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
 
-open class BasePromoteSnapshot(
+abstract class PublishGradleDistribution(
     branch: String,
     task: String,
     val triggerName: String,
     gitUserName: String = "Gradleware Git Bot",
     gitUserEmail: String = "gradlewaregitbot@gradleware.com",
     extraParameters: String = "",
-    vcsRoot: GitVcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion__master_,
-    init: BasePromoteSnapshot.() -> Unit = {}
+    vcsRoot: GitVcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
 ) : BasePromotionBuildType(vcsRoot = vcsRoot) {
 
     init {
@@ -52,7 +51,7 @@ open class BasePromoteSnapshot(
             }
         }
         dependencies {
-            artifacts(AbsoluteId("Gradle_Check_Stage_${this@BasePromoteSnapshot.triggerName}_Trigger")) {
+            artifacts(AbsoluteId("Gradle_Check_Stage_${this@PublishGradleDistribution.triggerName}_Trigger")) {
                 buildRule = lastSuccessful(branch)
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-build-receipt/"
@@ -62,6 +61,7 @@ open class BasePromoteSnapshot(
         requirements {
             requiresOs(Os.linux)
         }
-        this.init()
     }
 }
+
+fun String.promoteNightlyTaskName(): String = "promote${if (this == "master") "" else capitalize()}Nightly"

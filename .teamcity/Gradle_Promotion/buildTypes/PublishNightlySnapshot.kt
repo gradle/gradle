@@ -18,20 +18,25 @@ package Gradle_Promotion.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 
-class PromoteNightlySnapshot(uuid: String, branch: String, hour: Int) : PromoteSnapshot(branch = branch, triggerName = "ReadyforNightly", init = {
-    val capitalizedBranch = this.capitalizedBranch
-    this.uuid = uuid
-    id("Gradle_Promotion_${capitalizedBranch}Nightly")
-    name = "$capitalizedBranch - Nightly Snapshot"
-    description = "Promotes the latest successful changes on '$branch' from Ready for Nightly as a new nightly snapshot"
+class PublishNightlySnapshot(uuid: String, branch: String, hour: Int) : PublishGradleDistribution(
+    branch = branch,
+    task = branch.promoteNightlyTaskName(),
+    triggerName = "ReadyforNightly"
+) {
+    init {
+        this.uuid = uuid
+        id("Gradle_Promotion_${branch.capitalize()}Nightly")
+        name = "${branch.capitalize()} - Nightly Snapshot"
+        description = "Promotes the latest successful changes on '$branch' from Ready for Nightly as a new nightly snapshot"
 
-    triggers {
-        schedule {
-            schedulingPolicy = daily {
-                this.hour = hour
+        triggers {
+            schedule {
+                schedulingPolicy = daily {
+                    this.hour = hour
+                }
+                triggerBuild = always()
+                withPendingChangesOnly = false
             }
-            triggerBuild = always()
-            withPendingChangesOnly = false
         }
     }
-})
+}

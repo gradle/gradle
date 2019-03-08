@@ -18,13 +18,14 @@ package Gradle_Promotion.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
 
-object PromoteBranchSnapshotFromQuickFeedback : BasePromoteSnapshot(
+object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistribution(
     branch = "%branch.to.promote%",
     triggerName = "QuickFeedback",
     task = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier% ",
-    vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches,
-    init = {
+    vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches
+) {
+    init {
         uuid = "b7ecebd3-3812-4532-aa77-5679f9e9d6b3"
         id("Gradle_Promotion_PublishBranchSnapshotFromQuickFeedback")
         name = "Publish Branch Snapshot (from Quick Feedback)"
@@ -37,4 +38,4 @@ object PromoteBranchSnapshotFromQuickFeedback : BasePromoteSnapshot(
             text("branch.to.promote", "%branch.qualifier%", label = "Branch to promote", description = "Type in the branch of gradle/gradle you want to promote. Leave the default value when promoting an existing build.", display = ParameterDisplay.PROMPT, allowEmpty = false)
         }
     }
-)
+}

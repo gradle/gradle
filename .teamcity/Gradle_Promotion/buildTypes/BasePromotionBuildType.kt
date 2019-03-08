@@ -22,7 +22,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
 
-open class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = true, init: BasePromotionBuildType.() -> Unit = {}) : BuildType() {
+abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = true) : BuildType() {
     init {
         vcs {
             root(vcsRoot)
@@ -35,6 +35,5 @@ open class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = 
         requirements {
             requiresOs(Os.linux)
         }
-        this.init()
     }
 }

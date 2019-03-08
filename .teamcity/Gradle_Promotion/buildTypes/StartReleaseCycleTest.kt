@@ -20,32 +20,34 @@ import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 
-object StartReleaseCycleTest : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches, cleanCheckout = false, init = {
-    uuid = "59823634-f79d-4c11-bbca-782957a7d65c"
-    id("Gradle_Promotion_AllBranchesStartReleaseCycleTest")
-    name = "Master - Start Release Cycle Test"
-    description = "Test for Start Release Cycle pipeline"
+object StartReleaseCycleTest : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches, cleanCheckout = false) {
+    init {
+        uuid = "59823634-f79d-4c11-bbca-782957a7d65c"
+        id("Gradle_Promotion_AllBranchesStartReleaseCycleTest")
+        name = "Master - Start Release Cycle Test"
+        description = "Test for Start Release Cycle pipeline"
 
-    steps {
-        gradleWrapper {
-            name = "PromoteTest"
-            tasks = "clean promoteStartReleaseCycle"
-            useGradleWrapper = true
-            gradleParams = "-PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1"
-        }
-    }
-
-    triggers {
-        vcs {
-            branchFilter = "+:master"
-        }
-        schedule {
-            schedulingPolicy = daily {
-                hour = 3
+        steps {
+            gradleWrapper {
+                name = "PromoteTest"
+                tasks = "clean promoteStartReleaseCycle"
+                useGradleWrapper = true
+                gradleParams = "-PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1"
             }
-            branchFilter = "+:master"
-            triggerBuild = always()
-            withPendingChangesOnly = false
+        }
+
+        triggers {
+            vcs {
+                branchFilter = "+:master"
+            }
+            schedule {
+                schedulingPolicy = daily {
+                    hour = 3
+                }
+                branchFilter = "+:master"
+                triggerBuild = always()
+                withPendingChangesOnly = false
+            }
         }
     }
-})
+}

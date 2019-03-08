@@ -18,7 +18,7 @@ package Gradle_Promotion.buildTypes
 
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
 
-open class PromoteRelease(task: String, requiredConfirmationCode: String, branch: String = "release", init: PromoteRelease.() -> Unit = {}) : BasePromoteSnapshot(
+abstract class PublishRelease(task: String, requiredConfirmationCode: String, branch: String = "release", init: PublishRelease.() -> Unit = {}) : PublishGradleDistribution(
     branch = branch,
     task = task,
     triggerName = "ReadyforRelease",
@@ -36,21 +36,21 @@ open class PromoteRelease(task: String, requiredConfirmationCode: String, branch
     }
 }
 
-object PromoteFinalRelease : PromoteRelease(task = "promoteFinalRelease", requiredConfirmationCode = "final", init = {
+object PublishFinalRelease : PublishRelease(task = "promoteFinalRelease", requiredConfirmationCode = "final", init = {
     uuid = "44e9390f-e46c-457e-aa18-31b020aef4de"
     id("Gradle_Promotion_FinalRelease")
     name = "Release - Final"
     description = "Promotes the latest successful change on 'release' as a new release"
 })
 
-object PromoteReleaseCandidate : PromoteRelease(task = "promoteRc", requiredConfirmationCode = "rc", init = {
+object PublishReleaseCandidate : PublishRelease(task = "promoteRc", requiredConfirmationCode = "rc", init = {
     uuid = "5ed504bb-5ec3-46dc-a28a-e42a63ebbb31"
     id("Gradle_Promotion_ReleaseCandidate")
     name = "Release - Release Candidate"
     description = "Promotes the latest successful change on 'release' as a new release candidate"
 })
 
-object PromoteMilestone : PromoteRelease(task = "promoteMilestone", requiredConfirmationCode = "milestone", init = {
+object PublishMilestone : PublishRelease(task = "promoteMilestone", requiredConfirmationCode = "milestone", init = {
     uuid = "2ffb238a-08af-4f95-b863-9830d2bc3872"
     id("Gradle_Promotion_Milestone")
     name = "Release - Milestone"

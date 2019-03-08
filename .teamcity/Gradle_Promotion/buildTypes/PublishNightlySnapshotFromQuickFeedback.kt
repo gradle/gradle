@@ -16,9 +16,15 @@
 
 package Gradle_Promotion.buildTypes
 
-class PromoteSnapshotFromQuickFeedback(uuid: String, branch: String) : PromoteSnapshot(branch = branch, triggerName = "QuickFeedback", init = {
-    this.uuid = uuid
-    id("Gradle_Promotion_${capitalizedBranch}SnapshotFromQuickFeedback")
-    name = capitalizedBranch
-    description = "Promotes the latest successful changes on '$branch' from Quick Feedback as a new nightly snapshot"
-})
+class PublishNightlySnapshotFromQuickFeedback(uuid: String, branch: String) : PublishGradleDistribution(
+    branch = branch,
+    task = branch.promoteNightlyTaskName(),
+    triggerName = "QuickFeedback"
+) {
+    init {
+        this.uuid = uuid
+        id("Gradle_Promotion_${branch.capitalize()}SnapshotFromQuickFeedback")
+        name = "${branch.capitalize()} - Nightly Snapshot (from QuickFeedback)"
+        description = "Promotes the latest successful changes on '$branch' from Quick Feedback as a new nightly snapshot"
+    }
+}
