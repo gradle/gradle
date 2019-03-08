@@ -171,7 +171,7 @@ public interface ResolutionStrategy {
      * Example:
      * <pre class='autoTested'>
      * configurations {
-     *   compile.resolutionStrategy {
+     *   compileClasspath.resolutionStrategy {
      *     eachDependency { DependencyResolveDetails details -&gt;
      *       //specifying a fixed version for all libraries with 'org.gradle' group
      *       if (details.requested.group == 'org.gradle') {

@@ -256,7 +256,7 @@ public interface Script {
      * is then used to copy the files. Example:
      * <pre>
      * copy {
-     *    from configurations.runtime
+     *    from configurations.runtimeClasspath
      *    into 'build/deploy/lib'
      * }
      * </pre>

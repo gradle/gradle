@@ -1551,7 +1551,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * copy the files. Example:
      * <pre>
      * copy {
-     *    from configurations.runtime
+     *    from configurations.runtimeClasspath
      *    into 'build/deploy/lib'
      * }
      * </pre>
