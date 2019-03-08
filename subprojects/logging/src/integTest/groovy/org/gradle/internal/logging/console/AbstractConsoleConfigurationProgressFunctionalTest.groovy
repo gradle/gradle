@@ -156,7 +156,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
 
     void assertHasWorkInProgress(String message) {
         ConcurrentTestUtil.poll {
-            assert gradle.standardOutput.contains(workInProgressLine("> " + message))
+            assertHasWorkInProgress(gradle, "> " + message)
         }
     }
 }

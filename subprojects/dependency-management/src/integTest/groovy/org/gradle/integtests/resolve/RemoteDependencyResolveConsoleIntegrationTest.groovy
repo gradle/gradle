@@ -20,6 +20,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -119,12 +120,13 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
     }
 
     void outputContainsProgress(GradleHandle build, String taskProgressLine, String... progressOutputLines) {
-        assert build.standardOutput.contains(workInProgressLine(taskProgressLine)) ||
-            progressOutputLines.any { build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it)) }
+        def output = LogContent.of(build.standardOutput).ansiCharsToColorText().withNormalizedEol()
+        assert output.contains(workInProgressLine(taskProgressLine)) ||
+            progressOutputLines.any { output.contains(workInProgressLine(taskProgressLine + " " + it)) }
 
         assert progressOutputLines.every {
-            build.standardOutput.contains(workInProgressLine(it)) ||
-                build.standardOutput.contains(workInProgressLine(taskProgressLine + " " + it))
+            output.contains(workInProgressLine(it)) ||
+                output.contains(workInProgressLine(taskProgressLine + " " + it))
         }
     }
 

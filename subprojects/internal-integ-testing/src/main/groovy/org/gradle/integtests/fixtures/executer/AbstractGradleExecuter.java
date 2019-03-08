@@ -1381,7 +1381,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static LoggingServiceRegistry newCommandLineProcessLogging() {
         LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
         LoggingManagerInternal rootLoggingManager = loggingServices.get(DefaultLoggingManagerFactory.class).getRoot();
-//        rootLoggingManager.captureSystemSources();
         rootLoggingManager.attachSystemOutAndErr();
         return loggingServices;
     }

@@ -50,8 +50,8 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         succeeds('all')
 
         then:
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(successMessage)
-        LogContent.of(result.output).ansiCharsToPlainText().withNormalizedEol().matches """(?s).*
+        result.formattedOutput.contains(successMessage)
+        result.plainTextOutput.matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 2 executed
 .*"""
@@ -60,8 +60,8 @@ BUILD SUCCESSFUL in \\d+s
         succeeds('all')
 
         then:
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(successMessage)
-        LogContent.of(result.output).ansiCharsToPlainText().withNormalizedEol().matches """(?s).*
+        result.formattedOutput.contains(successMessage)
+        result.plainTextOutput.matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 1 executed, 1 up-to-date
 .*"""
@@ -95,7 +95,7 @@ BUILD SUCCESSFUL in \\d+s
         succeeds('success')
 
         then:
-        LogContent.of(result.output).ansiCharsToPlainText().withNormalizedEol().matches """(?s).*build finished
+        result.plainTextOutput.matches """(?s).*build finished
 
 BUILD SUCCESSFUL in \\d+s
 1 actionable task: 1 executed

@@ -18,8 +18,6 @@ package org.gradle.internal.logging.console.taskgrouping.rich
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest.StyledOutput
-import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.console.taskgrouping.AbstractBasicGroupedTaskLoggingFunctionalTest
 import spock.lang.Issue
 
@@ -57,7 +55,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
 
         then:
         result.groupedOutput.task(':failing').output == 'hello'
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(failingTask.output)
+        result.formattedOutput.contains(failingTask.output)
     }
 
     def "group header is printed red if task failed and there is no output"() {
@@ -72,7 +70,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(failingTask.output)
+        result.formattedOutput.contains(failingTask.output)
     }
 
     def "group header is printed white if task succeeds"() {
@@ -87,7 +85,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         succeeds('succeeding')
 
         then:
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(succeedingTask.output)
+        result.formattedOutput.contains(succeedingTask.output)
     }
 
     def "configure project group header is printed red if configuration fails with additional failures"() {
@@ -105,7 +103,7 @@ class RichConsoleBasicGroupedTaskLoggingFunctionalTest extends AbstractBasicGrou
         fails('failing')
 
         then:
-        LogContent.of(result.output).ansiCharsToColorText().withNormalizedEol().contains(configuringProject.output)
+        result.formattedOutput.contains(configuringProject.output)
     }
 
     def "tasks that complete without output do not break up other task output"() {
