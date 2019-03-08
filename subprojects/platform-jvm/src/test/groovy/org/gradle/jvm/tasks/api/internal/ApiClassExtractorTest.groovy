@@ -16,8 +16,10 @@
 
 package org.gradle.jvm.tasks.api.internal
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -284,6 +286,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
+        Assume.assumeFalse(target == '1.6' && JavaVersion.current().java12Compatible)
+
         given:
         def api = toApi(target, [A: 'public class A {}'])
 
