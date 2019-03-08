@@ -22,7 +22,6 @@ import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
 import org.gradle.soak.categories.SoakTest
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
 @Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
@@ -46,8 +45,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         )
     }
 
-    @Unroll
-    def "when build leaks slowly daemon is eventually expired (heap: #heap)"() {
+    def "when build leaks slowly daemon is eventually expired"() {
         when:
         setupBuildScript = tenuredHeapLeak
         maxBuilds = builds
