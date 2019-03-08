@@ -61,6 +61,8 @@ $ gradle myTask
 
 You can learn about what projects and tasks are available in the <<#sec:command_line_project_reporting, project reporting section>>.
 
+Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecycle_tasks,_lifecycle tasks_>>. These include the `build`, `assemble`, and `check` tasks.
+
 === Executing tasks in multi-project builds
 In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
 
