@@ -21,12 +21,7 @@ package org.gradle.internal.execution.timeout;
  */
 public interface Timeout {
     /**
-     * Returns whether the work did time out.
+     * Stops the timeout and returns whether the work did time out.
      */
-    boolean timedOut();
-
-    /**
-     * Stops the timeout.
-     */
-    void stop();
+    boolean stop();
 }
