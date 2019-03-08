@@ -121,7 +121,9 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private void reportSkipped(TestIdentifier testIdentifier) {
-        currentTestPlan.getChildren(testIdentifier).forEach(child -> executionSkipped(child));
+        currentTestPlan.getChildren(testIdentifier).stream()
+            .filter(child -> !wasStarted(child))
+            .forEach(child -> executionSkipped(child));
         if (testIdentifier.isTest()) {
             resultProcessor.completed(getId(testIdentifier), completeEvent(SKIPPED));
         } else if (isClass(testIdentifier)) {
