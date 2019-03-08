@@ -58,6 +58,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.function.Supplier
@@ -65,6 +66,8 @@ import java.util.function.Supplier
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
 
+// FIXME:lptr
+@Ignore
 class IncrementalExecutionTest extends Specification {
 
     @Rule
