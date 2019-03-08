@@ -111,6 +111,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
@@ -195,6 +196,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          * Currently used for running artifact transformations in buildscript blocks.
          */
         WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
+            ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             TimeoutHandler timeoutHandler
         ) {
@@ -202,7 +204,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new ResolveChangesStep<>(
+                new ResolveChangesStep<>(changeDetector,
                     new SkipUpToDateStep<>(
                         new StoreSnapshotsStep<>(
                             new PrepareCachingStep<>(

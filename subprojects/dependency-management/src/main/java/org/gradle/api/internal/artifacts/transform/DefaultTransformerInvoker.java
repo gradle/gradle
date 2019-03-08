@@ -328,7 +328,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean includeAddedOutputs() {
+        public boolean isAllowOverlappingOutputs() {
             return true;
         }
 

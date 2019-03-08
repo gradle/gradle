@@ -38,6 +38,7 @@ import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
@@ -76,7 +77,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-        new ResolveChangesStep<UpToDateResult>(
+        new ResolveChangesStep<UpToDateResult>(new DefaultExecutionStateChangeDetector(),
             new SkipUpToDateStep<IncrementalChangesContext>(
                 new SnapshotOutputStep<IncrementalChangesContext>(
                     buildId,

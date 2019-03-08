@@ -157,7 +157,7 @@ class ExecutionTest extends Specification {
         }
 
         @Override
-        boolean includeAddedOutputs() {
+        boolean isAllowOverlappingOutputs() {
             return true
         }
 

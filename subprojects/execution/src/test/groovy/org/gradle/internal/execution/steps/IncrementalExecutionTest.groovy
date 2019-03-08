@@ -749,7 +749,7 @@ class IncrementalExecutionTest extends Specification {
                 }
 
                 @Override
-                boolean includeAddedOutputs() {
+                boolean isAllowOverlappingOutputs() {
                     return true
                 }
 

@@ -26,15 +26,20 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.DefaultExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
+    private final ExecutionStateChangeDetector changeDetector;
     private final Step<? super IncrementalChangesContext, R> delegate;
 
-    public ResolveChangesStep(Step<? super IncrementalChangesContext, R> delegate) {
+    public ResolveChangesStep(
+        ExecutionStateChangeDetector changeDetector,
+        Step<? super IncrementalChangesContext, R> delegate
+    ) {
+        this.changeDetector = changeDetector;
         this.delegate = delegate;
     }
 
@@ -48,11 +53,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
             .orElseGet(() ->
                 context.getAfterPreviousExecutionState()
                     .flatMap(afterPreviousExecution -> context.getBeforeExecutionState()
-                        .map(beforeExecution -> new DefaultExecutionStateChanges(
+                        .map(beforeExecution -> changeDetector.detectChanges(
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            work.includeAddedOutputs())
+                            work.isAllowOverlappingOutputs())
                         )
                     )
                     .orElse(null)

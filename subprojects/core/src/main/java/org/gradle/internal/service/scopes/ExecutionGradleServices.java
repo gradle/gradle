@@ -42,6 +42,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
@@ -117,12 +118,13 @@ public class ExecutionGradleServices {
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
+        ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new ResolveChangesStep<UpToDateResult>(
+            new ResolveChangesStep<UpToDateResult>(changeDetector,
                 new SkipUpToDateStep<IncrementalChangesContext>(
                     new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
                         new StoreSnapshotsStep<IncrementalChangesContext>(
