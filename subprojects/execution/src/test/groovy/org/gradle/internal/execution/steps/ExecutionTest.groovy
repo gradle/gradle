@@ -60,7 +60,7 @@ class ExecutionTest extends Specification {
         0 * _
 
         where:
-        outcome << [ExecutionOutcome.EXECUTED, ExecutionOutcome.EXECUTED_INCREMENTALLY]
+        outcome << [ExecutionOutcome.EXECUTED_NON_INCREMENTALLY, ExecutionOutcome.EXECUTED_INCREMENTALLY]
     }
 
     def "reports no work done"() {
@@ -98,20 +98,20 @@ class ExecutionTest extends Specification {
 
     def "invalidates only changing outputs"() {
         def changingOutputs = ['some/location']
-        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED }, changingOutputs)
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_NON_INCREMENTALLY }, changingOutputs)
 
         when:
         def result = execute { -> unitOfWork }
 
         then:
-        result.outcome.get() == ExecutionOutcome.EXECUTED
+        result.outcome.get() == ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 
         1 * outputChangeListener.beforeOutputChange(changingOutputs)
         0 * _
     }
 
     def "fails the execution when build has been cancelled"() {
-        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED })
+        def unitOfWork = new TestUnitOfWork({ -> ExecutionOutcome.EXECUTED_NON_INCREMENTALLY })
 
         when:
         cancellationToken.cancel()

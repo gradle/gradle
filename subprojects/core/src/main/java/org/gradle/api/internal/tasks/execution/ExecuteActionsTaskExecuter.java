@@ -203,7 +203,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return task.getState().getDidWork()
                     ? this.context.isTaskExecutedIncrementally()
                         ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                        : ExecutionOutcome.EXECUTED
+                        : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
                     : ExecutionOutcome.UP_TO_DATE;
             } finally {
                 task.getState().setExecuting(false);

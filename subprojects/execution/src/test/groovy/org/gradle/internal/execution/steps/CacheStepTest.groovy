@@ -69,7 +69,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * context.cacheHandler >> cacheHandler
         1 * cacheHandler.load(_) >> Optional.empty()
         1 * delegate.execute(context) >> delegateResult
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED)
+        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
         1 * cacheHandler.store(_)
         0 * _
     }

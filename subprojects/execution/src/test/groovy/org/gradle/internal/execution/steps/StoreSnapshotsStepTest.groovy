@@ -64,7 +64,7 @@ class StoreSnapshotsStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * delegateResult.finalOutputs >> finalOutputs
         1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED)
+        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
         interaction { expectStore(true, finalOutputs) }

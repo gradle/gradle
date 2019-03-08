@@ -57,7 +57,7 @@ public enum TaskExecutionOutcome {
             case UP_TO_DATE:
                 return UP_TO_DATE;
             case EXECUTED_INCREMENTALLY:
-            case EXECUTED:
+            case EXECUTED_NON_INCREMENTALLY:
                 return EXECUTED;
             default:
                 throw new AssertionError();

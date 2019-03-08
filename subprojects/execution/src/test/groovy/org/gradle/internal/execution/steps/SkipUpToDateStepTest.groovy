@@ -48,7 +48,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
     def "executes when outputs are not up to date"() {
         def delegateResult = Mock(SnapshotResult)
-        def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED)
+        def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
         def delegateOriginMetadata = Mock(OriginMetadata)
         def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
 
