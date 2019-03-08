@@ -287,7 +287,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         })
         1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes, _) >> { args ->
-            args[2].matched(requestedAttributes, transform1, 2)
+            args[2].matched(otherVariantAttributes, transform1, 2)
         }
         1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes, _) >> { args ->
             args[2].matched(variantAttributes, transform2, 3)
