@@ -27,17 +27,17 @@ import java.util.Collection;
  * Resolves dependencies to {@link TransformationNode} objects.
  */
 public class TransformationNodeDependencyResolver implements DependencyResolver {
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformationNodeRegistry transformationNodeRegistry;
 
-    public TransformationNodeDependencyResolver(TransformationNodeFactory transformationNodeFactory) {
-        this.transformationNodeFactory = transformationNodeFactory;
+    public TransformationNodeDependencyResolver(TransformationNodeRegistry transformationNodeRegistry) {
+        this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultTransformationDependency) {
             DefaultTransformationDependency transformation = (DefaultTransformationDependency) node;
-            Collection<TransformationNode> transformations = transformationNodeFactory.getOrCreate(transformation.getArtifacts(), transformation.getTransformation(), transformation.getDependenciesResolver());
+            Collection<TransformationNode> transformations = transformationNodeRegistry.getOrCreate(transformation.getArtifacts(), transformation.getTransformation(), transformation.getDependenciesResolver());
             for (TransformationNode transformationNode : transformations) {
                 resolveAction.execute(transformationNode);
             }

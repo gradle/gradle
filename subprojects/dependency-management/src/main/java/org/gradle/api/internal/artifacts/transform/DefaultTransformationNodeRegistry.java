@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
+public class DefaultTransformationNodeRegistry implements TransformationNodeRegistry {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override

@@ -37,7 +37,7 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
     private final AttributeContainerInternal attributes;
     private final Transformation transformation;
     private final ExtraExecutionGraphDependenciesResolverFactory resolverFactory;
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformationNodeRegistry transformationNodeRegistry;
 
     public ConsumerProvidedResolvedVariant(
         ComponentIdentifier componentIdentifier,
@@ -45,21 +45,21 @@ public class ConsumerProvidedResolvedVariant implements ResolvedArtifactSet {
         AttributeContainerInternal target,
         Transformation transformation,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
-        TransformationNodeFactory transformationNodeFactory
+        TransformationNodeRegistry transformationNodeRegistry
     ) {
         this.componentIdentifier = componentIdentifier;
         this.delegate = delegate;
         this.attributes = target;
         this.transformation = transformation;
         this.resolverFactory = dependenciesResolverFactory;
-        this.transformationNodeFactory = transformationNodeFactory;
+        this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Map<File, TransformationResult> fileResults = Maps.newConcurrentMap();
-        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver(), transformationNodeFactory));
+        Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, listener, actions, artifactResults, fileResults, getDependenciesResolver(), transformationNodeRegistry));
         return new TransformCompletion(result, attributes, artifactResults, fileResults);
     }
 

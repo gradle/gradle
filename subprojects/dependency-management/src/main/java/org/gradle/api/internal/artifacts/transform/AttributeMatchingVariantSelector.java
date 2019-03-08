@@ -41,7 +41,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformationNodeRegistry transformationNodeRegistry;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
@@ -50,7 +50,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformationNodeFactory transformationNodeFactory,
+        TransformationNodeRegistry transformationNodeRegistry,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
@@ -58,7 +58,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
-        this.transformationNodeFactory = transformationNodeFactory;
+        this.transformationNodeRegistry = transformationNodeRegistry;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.dependenciesResolver = dependenciesResolver;
@@ -108,7 +108,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeFactory);
+            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
         }
 
         if (!candidates.isEmpty()) {

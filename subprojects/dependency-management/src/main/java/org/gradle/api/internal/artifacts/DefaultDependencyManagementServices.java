@@ -84,7 +84,7 @@ import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationW
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
-import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -200,8 +200,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
         }
 
-        TransformationNodeFactory createTransformationNodeFactory() {
-            return new TransformationNodeFactory() {
+        TransformationNodeRegistry createTransformationNodeRegistry() {
+            return new TransformationNodeRegistry() {
                 @Override
                 public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
                     throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
@@ -481,7 +481,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
                                                        BuildState currentBuild,
-                                                       TransformationNodeFactory transformationNodeFactory) {
+                                                       TransformationNodeRegistry transformationNodeRegistry) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -498,7 +498,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesFactory),
                                 attributesSchema,
                                 attributesFactory,
-                                transformationNodeFactory
+                                transformationNodeRegistry
                             ),
                             moduleIdentifierFactory,
                             buildOperationExecutor,

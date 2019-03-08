@@ -28,8 +28,8 @@ import org.gradle.testing.internal.util.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     def operationQueue = Mock(BuildOperationQueue)
-    def transformationNodeFactory = Mock(TransformationNodeFactory)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeFactory)
+    def transformationNodeRegistry = Mock(TransformationNodeRegistry)
+    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -51,7 +51,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeFactory.getCompleted(artifactId, transformation) >> null
+        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> null
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
     }
 
@@ -60,7 +60,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeFactory.getCompleted(artifactId, transformation) >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
+        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
         0 * transformation.transform(_, _ as ExecutionGraphDependenciesResolver, _)
     }
 }

@@ -30,7 +30,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
     private final Map<File, TransformationResult> fileResults;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
-    private final TransformationNodeFactory transformationNodeFactory;
+    private final TransformationNodeRegistry transformationNodeRegistry;
     private final BuildOperationQueue<RunnableBuildOperation> actions;
     private final ResolvedArtifactSet.AsyncArtifactListener delegate;
     private final Transformation transformation;
@@ -42,7 +42,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults,
         Map<File, TransformationResult> fileResults,
         ExecutionGraphDependenciesResolver dependenciesResolver,
-        TransformationNodeFactory transformationNodeFactory
+        TransformationNodeRegistry transformationNodeRegistry
     ) {
         this.artifactResults = artifactResults;
         this.actions = actions;
@@ -50,13 +50,13 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
         this.delegate = delegate;
         this.fileResults = fileResults;
         this.dependenciesResolver = dependenciesResolver;
-        this.transformationNodeFactory = transformationNodeFactory;
+        this.transformationNodeRegistry = transformationNodeRegistry;
     }
 
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
-        Optional<TransformationNode> node = transformationNodeFactory.getCompleted(artifactId, transformation);
+        Optional<TransformationNode> node = transformationNodeRegistry.getCompleted(artifactId, transformation);
         if (node.isPresent()) {
             artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
