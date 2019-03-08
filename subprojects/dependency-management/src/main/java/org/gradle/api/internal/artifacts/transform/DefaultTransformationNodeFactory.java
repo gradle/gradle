@@ -23,12 +23,11 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.Try;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
@@ -46,15 +45,14 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
     }
 
     @Override
-    @Nullable
-    public Try<TransformationSubject> getResultIfCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+    public Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
         List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         ArtifactTransformKey transformKey = new ArtifactTransformKey(artifactId, transformationChain);
         TransformationNode node = transformations.get(transformKey);
         if (node != null && node.isComplete()) {
-            return node.getTransformedSubject();
+            return Optional.of(node);
         }
-        return null;
+        return Optional.empty();
     }
 
     private void collectTransformNodes(ResolvedArtifactSet artifactSet, ImmutableList.Builder<TransformationNode> builder, Function<ResolvableArtifact, TransformationNode> nodeCreator) {

@@ -19,14 +19,14 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.internal.Try;
 
 public class PrecomputedTransformationResult implements TransformationResult {
-    private final Try<TransformationSubject> result;
+    private final Try<TransformationSubject> transformedSubject;
 
-    public PrecomputedTransformationResult(Try<TransformationSubject> result) {
-        this.result = result;
+    public PrecomputedTransformationResult(Try<TransformationSubject> transformedSubject) {
+        this.transformedSubject = transformedSubject;
     }
 
     @Override
-    public Try<TransformationSubject> getResult() {
-        return result;
+    public Try<TransformationSubject> getTransformedSubject() {
+        return transformedSubject;
     }
 }

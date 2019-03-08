@@ -19,5 +19,5 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.internal.Try;
 
 public interface TransformationResult {
-    Try<TransformationSubject> getResult();
+    Try<TransformationSubject> getTransformedSubject();
 }

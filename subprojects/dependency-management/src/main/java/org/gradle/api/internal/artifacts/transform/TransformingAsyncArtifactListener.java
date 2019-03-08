@@ -19,12 +19,12 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
-import org.gradle.internal.Try;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Optional;
 
 class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArtifactListener {
     private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
@@ -56,9 +56,9 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
-        Try<TransformationSubject> resultIfCompleted = transformationNodeFactory.getResultIfCompleted(artifactId, transformation);
-        if (resultIfCompleted != null) {
-            artifactResults.put(artifactId, new PrecomputedTransformationResult(resultIfCompleted));
+        Optional<TransformationNode> node = transformationNodeFactory.getCompleted(artifactId, transformation);
+        if (node.isPresent()) {
+            artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
             File file = artifact.getFile();
             TransformationSubject initialSubject = TransformationSubject.initial(artifactId, file);

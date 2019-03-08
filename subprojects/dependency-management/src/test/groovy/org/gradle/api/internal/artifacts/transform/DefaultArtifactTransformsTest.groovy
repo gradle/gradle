@@ -50,17 +50,7 @@ class DefaultArtifactTransformsTest extends Specification {
     def consumerSchema = Mock(AttributesSchemaInternal)
     def attributeMatcher = Mock(AttributeMatcher)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
-    def transformationNodeFactory = new TransformationNodeFactory() {
-        @Override
-        Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Try<TransformationSubject> getResultIfCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
-            return null
-        }
-    }
+    def transformationNodeFactory = Mock(TransformationNodeFactory)
     def transforms = new DefaultArtifactTransforms(matchingCache, consumerSchema, AttributeTestUtil.attributesFactory(), transformationNodeFactory)
 
     def "selects producer variant with requested attributes"() {
@@ -182,6 +172,7 @@ class DefaultArtifactTransformsTest extends Specification {
         }
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
+        _ * transformationNodeFactory.getCompleted(_, _) >> Optional.empty()
 
         1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver, _) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
 

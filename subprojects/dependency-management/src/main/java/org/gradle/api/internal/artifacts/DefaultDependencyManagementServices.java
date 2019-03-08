@@ -86,7 +86,6 @@ import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeFactory;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
-import org.gradle.api.internal.artifacts.transform.TransformationSubject;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeRegistry;
@@ -104,7 +103,6 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -159,6 +157,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -208,10 +207,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
                 }
 
-                @Nullable
                 @Override
-                public Try<TransformationSubject> getResultIfCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
-                    return null;
+                public Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+                    return Optional.empty();
                 }
             };
         }

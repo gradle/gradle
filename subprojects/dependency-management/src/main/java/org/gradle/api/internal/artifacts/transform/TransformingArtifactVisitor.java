@@ -47,8 +47,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformationResult operation = artifactResults.get(artifact.getId());
-        operation.getResult().ifSuccessfulOrElse(
+        TransformationResult result = artifactResults.get(artifact.getId());
+        result.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
                 ResolvedArtifact sourceArtifact = artifact.toPublicView();
                 for (File output : transformedSubject.getFiles()) {
@@ -80,7 +80,7 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
         TransformationResult operation = fileResults.get(file);
-        operation.getResult().ifSuccessfulOrElse(
+        operation.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
                 for (File outputFile : transformedSubject.getFiles()) {
                     visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
