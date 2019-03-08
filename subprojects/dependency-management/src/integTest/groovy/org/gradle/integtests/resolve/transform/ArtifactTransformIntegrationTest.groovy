@@ -1029,6 +1029,7 @@ Found the following transforms:
                         }
                         variant3 {
                             attributes.attribute(buildType, 'debug')
+                            attributes.attribute(flavor, 'free')
                             artifact jar1
                         }
                     }
@@ -1109,11 +1110,13 @@ Found the following transforms:
       - With source attributes:
           - artifactType 'jar'
           - buildType 'debug'
+          - flavor 'free'
           - usage 'api'
       - Candidate transform(s):
           - Transform 'BrokenTransform' producing attributes:
               - artifactType 'transformed'
               - buildType 'debug'
+              - flavor 'free'
               - usage 'api'"""
     }
 

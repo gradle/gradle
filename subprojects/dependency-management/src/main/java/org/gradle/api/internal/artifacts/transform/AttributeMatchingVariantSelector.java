@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
@@ -98,7 +99,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         if (candidates.size() > 1) {
-            candidates = tryDisambiguate(matcher, candidates);
+            candidates = tryDisambiguate(matcher, candidates, componentRequested);
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
@@ -118,7 +119,13 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
+        candidates = disambiguateWithSchema(matcher, candidates, componentRequested);
+
+        if (candidates.size() == 1) {
+            return candidates;
+        }
+
         if (candidates.size() == 2) {
             // Short circuit logic when only 2 candidates
             return compareCandidates(matcher, candidates.get(0), candidates.get(1))
@@ -159,6 +166,19 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         return shortestTransforms;
+    }
+
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
+        List<AttributeContainerInternal> candidateAttributes = candidates.stream().map(pair -> pair.getRight().attributes).collect(Collectors.toList());
+        List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested);
+        if (matches.size() == 1) {
+            AttributeContainerInternal singleMatch = matches.get(0);
+            return candidates.stream().filter(pair -> pair.getRight().attributes == singleMatch).collect(Collectors.toList());
+        } else if (matches.size() > 0 && matches.size() < candidates.size()) {
+            // We know all are compatibles, so this is only possible if some disambiguation happens but not getting us to 1 candidate
+            return candidates.stream().filter(pair -> matches.contains(pair.getRight().attributes)).collect(Collectors.toList());
+        }
+        return candidates;
     }
 
     private Optional<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> compareCandidates(AttributeMatcher matcher,
