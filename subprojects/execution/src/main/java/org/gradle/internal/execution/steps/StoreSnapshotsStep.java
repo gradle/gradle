@@ -49,12 +49,10 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getOutcome().isSuccessful();
-            Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
             // Only persist history if there was no failure, or some output files have been changed
-            UnitOfWork work = context.getWork();
             if (successful
-                || !afterPreviousExecutionState.isPresent()
-                || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs)) {
+                || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
+                UnitOfWork work = context.getWork();
                 work.getExecutionHistoryStore().store(
                     work.getIdentity(),
                     result.getOriginMetadata(),
@@ -72,10 +70,20 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
         return result;
     }
 
-    private static boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static boolean didChangeOutput(Optional<AfterPreviousExecutionState> afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        // If there is no previous state, then we do have output changes
+        if (!afterPreviousExecutionState.isPresent()) {
+            return true;
+        }
+
+        // If there are different output properties compared to the previous execution, then we do have output changes
+        ImmutableSortedMap<String, FileCollectionFingerprint> previous = afterPreviousExecutionState.get().getOutputFileProperties();
         if (!previous.keySet().equals(current.keySet())) {
             return true;
         }
+
+        // Otherwise do deep compare of outputs
         ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
         OutputFileChanges changes = new OutputFileChanges(previous, current, true);
         changes.accept(visitor);
