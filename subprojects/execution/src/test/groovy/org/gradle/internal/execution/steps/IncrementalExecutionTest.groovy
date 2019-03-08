@@ -136,35 +136,6 @@ class IncrementalExecutionTest extends Specification {
         )
     }
 
-    def "outputs are created"() {
-        def unitOfWork = builder.withOutputDirs(
-            dir: [file("outDir")],
-            dirs: [file("outDir1"), file("outDir2")],
-        ).withOutputFiles(
-            "file": [file("parent/outFile")],
-            "files": [file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")],
-        ).withWork { ->
-            EXECUTED
-        }.build()
-
-        when:
-        def result = execute(unitOfWork)
-
-        then:
-        result.outcome.get() == EXECUTED
-        !result.reused
-
-        def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
-        def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
-        allDirs.each {
-            assert it.isDirectory()
-        }
-        allFiles.each {
-            assert it.parentFile.isDirectory()
-            assert !it.exists()
-        }
-    }
-
     def "output snapshots are stored"() {
         when:
         def result = execute(unitOfWork)
