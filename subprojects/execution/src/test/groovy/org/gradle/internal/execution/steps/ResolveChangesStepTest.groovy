@@ -109,7 +109,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * work.allowOverlappingOutputs >> true
-        1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, true) >> changes
+        1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, false) >> changes
         0 * _
     }
 }

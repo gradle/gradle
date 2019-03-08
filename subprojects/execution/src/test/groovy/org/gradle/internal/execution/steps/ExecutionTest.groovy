@@ -160,7 +160,7 @@ class ExecutionTest extends Specification {
 
         @Override
         boolean isAllowOverlappingOutputs() {
-            return true
+            return false
         }
 
         @Override

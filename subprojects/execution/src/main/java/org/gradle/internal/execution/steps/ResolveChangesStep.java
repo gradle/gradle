@@ -59,7 +59,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            work.isAllowOverlappingOutputs())
+                            !work.isAllowOverlappingOutputs())
                         )
                         .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY))
                     )

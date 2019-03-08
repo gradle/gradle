@@ -247,7 +247,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public boolean isAllowOverlappingOutputs() {
-            return false;
+            return true;
         }
 
         @Override
