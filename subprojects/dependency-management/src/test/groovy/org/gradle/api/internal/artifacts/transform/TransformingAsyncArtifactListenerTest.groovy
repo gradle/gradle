@@ -37,6 +37,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         getId() >> artifactId
         getFile() >> artifactFile
     }
+    def node = Mock(TransformationNode)
 
     def "adds file transformations to the build operation queue"() {
         when:
@@ -51,7 +52,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> null
+        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Optional.empty()
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
     }
 
@@ -60,7 +61,8 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
+        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Optional.of(node)
+        1 * node.getTransformedSubject() >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
         0 * transformation.transform(_, _ as ExecutionGraphDependenciesResolver, _)
     }
 }
