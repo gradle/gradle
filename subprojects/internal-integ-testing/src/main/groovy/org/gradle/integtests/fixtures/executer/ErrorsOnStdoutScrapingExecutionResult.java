@@ -60,18 +60,6 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        delegate.assertRawOutputContains(expectedOutput);
-        return this;
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        delegate.assertRawOutputContains(expectedOutput);
-        return this;
-    }
-
-    @Override
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         delegate.assertOutputEquals(expectedOutput, ignoreExtraLines, ignoreLineOrder);
         return this;

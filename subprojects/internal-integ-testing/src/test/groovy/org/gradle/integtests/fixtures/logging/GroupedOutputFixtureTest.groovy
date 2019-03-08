@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.logging
 
+import org.gradle.integtests.fixtures.executer.LogContent
 import spock.lang.Specification
 
 class GroupedOutputFixtureTest extends Specification {
@@ -44,7 +45,7 @@ Handles lots of newline characters
 \u001B[2K
 """
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.taskCount == 3
@@ -56,21 +57,22 @@ Handles lots of newline characters
     def "parses incremental tasks"() {
         given:
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [0s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[1A\u001B[1m> :longRunningTask\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [5s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[0K
+\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[0K\u001B[35D\u001B[2B\u001B[1A\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [0s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B\u001B[1A\u001B[1m> :longRunningTask\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [5s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[0K
 \u001B[1m> Task :longRunningTask\u001B[m\u001B[0K
 First incremental output
 \u001B[0K
 \u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :longRunningTask\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [7s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[2B\u001B[2ASecond incremental output\u001B[0K
-\u001B[1B\u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :longRunningTask\u001B[m\u001B[6D\u001B[1B\u001B[2A\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :longRunningTask\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [7s]\u001B[m\u001B[33D\u001B[2B\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[2B\u001B[2ASecond incremental output\u001B[0K
+\u001B[0K
+\u001B[0K
+\u001B[1A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :longRunningTask\u001B[m\u001B[18D\u001B[1B\u001B[2A\u001B[0K
 \u001B[0K
 \u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 9s
 1 actionable task: 1 executed
 \u001B[2K
 """
         when:
-        GroupedOutputFixture fixture = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture fixture = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         fixture.taskCount == 1
@@ -98,7 +100,7 @@ Output from 3
 \u001B[2K
 """
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.taskCount == 3
@@ -134,7 +136,7 @@ Last line of text
 """
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':log').output == 'First line of text\n\n\n\nLast line of text'
@@ -155,7 +157,7 @@ Output from 1
 \u001B[2K
 """
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':1:log').output == "Output from 1"
@@ -184,7 +186,7 @@ Output from 2
 \u001B[2K
 """
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.taskCount == 3
@@ -208,7 +210,7 @@ Output from 2
 3 actionable tasks: 3 executed
 \u001B[2K
 """
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         when:
         groupedOutput.task(':doesNotExist')
@@ -233,7 +235,7 @@ Output from :log
 \u001B[2K
 """
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':log').output == 'Output from :log'
@@ -241,29 +243,26 @@ Output from :log
 
     def "handles output interleaved with end-of-line erasing"() {
         given:
-        def consoleOutput = """\u001B[1A\u001B[1m> Connecting to Daemon\u001B[m\u001B[22D\u001B[1B
-\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B
-\u001B[1A\u001B[1m> root project > Compiling /home/tcagent2/agent/work/1c72cb73edd79150/subprojects/logging/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/long_running_task_o..._5s_delay/m5mh7/build.gradle into local compilation cache\u001B[m\u001B[228D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[2B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[2B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[2B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[2B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [5s]\u001B[m\u001B[33D\u001B[2B
-\u001B[2A\u001B[0K
-\u001B[1B\u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
+        def consoleOutput = """\u001B[1A\u001B[1m> Connecting to Daemon\u001B[m\u001B[22D
+\u001B[1A\u001B[90m> IDLE\u001B[39m\u001B[0K\u001B[6D
+\u001B[1A\u001B[1m<-------------> 0% CONFIGURING [0s]\u001B[m\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D
+\u001B[1A\u001B[1m> root project > Compiling /home/tcagent2/agent/work/1c72cb73edd79150/subprojects/logging/build/tmp/test files/BasicGroupedTaskLoggingFunctionalSpec/long_running_task_o..._5s_delay/m5mh7/build.gradle into local compilation cache\u001B[m\u001B[228D
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[35D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [1s]\u001B[m\u001B[0K\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[0K\u001B[6D
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [3s]\u001B[m\u001B[33D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [4s]\u001B[m\u001B[33D\u001B[1B
 \u001B[2A\u001B[1m> Task :log\u001B[m\u001B[0K
 Before\u001B[0K
 \u001B[0K
 \u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [7s]\u001B[m\u001B[33D\u001B[2B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[2B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [6s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [7s]\u001B[m\u001B[33D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B
 \u001B[2AAfter\u001B[0K
-\u001B[1B\u001B[0K
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D\u001B[1B
+\u001B[0K
+\u001B[0K
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [8s]\u001B[m\u001B[33D\u001B[1B\u001B[1m> :log\u001B[m\u001B[6D
 \u001B[2A\u001B[0K
 \u001B[0K
 \u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 9s
@@ -271,7 +270,7 @@ Before\u001B[0K
 \u001B[2K"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':log').output == 'Before\nAfter'
@@ -294,7 +293,7 @@ Bye world
 \u001B[2K"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':buildSrc:helloWorld').output == 'Hello world'
@@ -316,14 +315,12 @@ Bye world
 \u001B[2K"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.strippedOutput == '''
 > Task :buildSrc:helloWorld
 Hello world
-
-
 
 > Task :byeWorld
 Bye world
@@ -336,17 +333,17 @@ BUILD SUCCESSFUL in 0s
 
     def "strip output removes formatted work in-progress items"() {
         def consoleOutput = """
-\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D\u001B[1B
-\u001B[1A> IDLE\u001B[0K\u001B[6D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[0K\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D\u001B[1B
-\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[0K\u001B[33D\u001B[1B> IDLE\u001B[0K\u001B[6D\u001B[1B
-\u001B[1A\u001B[1m> :run\u001B[m\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> settings\u001B[m\u001B[10D
+\u001B[1A> IDLE\u001B[0K\u001B[6D
+\u001B[2A\u001B[1m<-------------> 0% CONFIGURING [1s]\u001B[m\u001B[0K\u001B[35D\u001B[1B\u001B[1m> root project\u001B[m\u001B[14D
+\u001B[2A\u001B[1m<-------------> 0% EXECUTING [2s]\u001B[m\u001B[0K\u001B[33D\u001B[1B> IDLE\u001B[0K\u001B[6D
+\u001B[1A\u001B[1m> :run\u001B[m\u001B[6D
 \u001B[2A\u001B[0K
 \u001B[1m> Task :run\u001B[m\u001B[0K
 Hello, World!
 \u001B[0K
 \u001B[0K
-\u001B[2A\u001B[1m<=============> 100% EXECUTING [3s]\u001B[m\u001B[35D\u001B[1B> IDLE\u001B[6D\u001B[1B
+\u001B[2A\u001B[1m<=============> 100% EXECUTING [3s]\u001B[m\u001B[35D\u001B[1B> IDLE\u001B[6D
 \u001B[2A\u001B[0K
 \u001B[0K
 \u001B[32;1mBUILD SUCCESSFUL\u001B[0;39m in 6s
@@ -354,11 +351,10 @@ Hello, World!
 \u001B[2K"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.strippedOutput == '''
-
 > Task :run
 Hello, World!
 
@@ -377,7 +373,7 @@ Hello, World!
 > :otherBuild > :abc"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
@@ -391,7 +387,7 @@ Hello, World!
 > :otherBuild > Doing some work"""
 
         when:
-        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(consoleOutput)
+        GroupedOutputFixture groupedOutput = new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
@@ -406,7 +402,7 @@ Hello, World!
  [3A [1m< [0;32;1;0;39;1m-------------> 0% CONFIGURING [5s] [m [35D [1B [1m> root project > Compiling C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle into local compilation cache > Compiling build file 'C:\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
 """
         when:
-        new GroupedOutputFixture(consoleOutput)
+        new GroupedOutputFixture(LogContent.of(consoleOutput))
 
         then:
         noExceptionThrown()

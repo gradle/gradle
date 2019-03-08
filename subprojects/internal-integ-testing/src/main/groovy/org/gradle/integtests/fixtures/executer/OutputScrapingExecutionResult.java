@@ -83,7 +83,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.error = error;
 
         // Split out up the output into main content and post build content
-        LogContent filteredOutput = this.output.removeAnsiChars().removeDebugPrefix();
+        LogContent filteredOutput = this.output.ansiCharsToPlainText().removeDebugPrefix();
         Pair<LogContent, LogContent> match = filteredOutput.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
             this.mainContent = filteredOutput;
@@ -92,7 +92,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
-        this.errorContent = error.removeAnsiChars();
+        this.errorContent = error.ansiCharsToPlainText();
     }
 
     public String getOutput() {
@@ -191,16 +191,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
         return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
-    }
-
-    @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput, "Error output");
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        return assertContentContains(getOutput(), expectedOutput, "Build output");
     }
 
     public String getError() {
