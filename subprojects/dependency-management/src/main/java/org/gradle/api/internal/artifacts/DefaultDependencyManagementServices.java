@@ -120,7 +120,7 @@ import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.PrepareCachingStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -209,7 +209,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     new SkipUpToDateStep<>(
                         new StoreSnapshotsStep<>(
                             new PrepareCachingStep<>(
-                                new SnapshotOutputStep<>(fixedUniqueId,
+                                new SnapshotOutputsStep<>(fixedUniqueId,
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
                                             new TimeoutStep<>(timeoutHandler,

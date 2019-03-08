@@ -56,7 +56,7 @@ import org.gradle.internal.execution.steps.PrepareCachingStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -131,7 +131,7 @@ public class ExecutionGradleServices {
                         new StoreSnapshotsStep<IncrementalChangesContext>(
                             new PrepareCachingStep<IncrementalChangesContext, CurrentSnapshotResult>(
                                 new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                                    new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                                         new CreateOutputsStep<IncrementalChangesContext, Result>(
                                             new CatchExceptionStep<IncrementalChangesContext>(
                                                 new TimeoutStep<IncrementalChangesContext>(timeoutHandler,

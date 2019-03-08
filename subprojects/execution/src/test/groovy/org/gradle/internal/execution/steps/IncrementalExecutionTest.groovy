@@ -118,7 +118,7 @@ class IncrementalExecutionTest extends Specification {
         new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
             new SkipUpToDateStep<IncrementalChangesContext>(
                 new StoreSnapshotsStep<IncrementalChangesContext>(
-                    new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                         new BroadcastChangingOutputsStep(outputChangeListener, delegate)
                     )
                 )
