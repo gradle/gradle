@@ -290,7 +290,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:
@@ -308,7 +308,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
 
         then:
         1 * taskProperties.getInputFiles() >> taskFiles
-        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * target.execute(task, state, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         1 * taskInputsListener.onExecute(task, taskFiles)
 
         then:

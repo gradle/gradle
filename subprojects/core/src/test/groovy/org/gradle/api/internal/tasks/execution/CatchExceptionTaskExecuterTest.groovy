@@ -39,7 +39,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, state, context) >> {
             state.setOutcome(TaskExecutionOutcome.EXECUTED)
-            return TaskExecuterResult.NO_REUSED_OUTPUT
+            return TaskExecuterResult.WITHOUT_OUTPUTS
         }
         0 * _
         state.outcome == TaskExecutionOutcome.EXECUTED
