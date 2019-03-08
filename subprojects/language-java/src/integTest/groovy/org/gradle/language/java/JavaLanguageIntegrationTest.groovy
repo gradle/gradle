@@ -72,7 +72,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.sources*.classFile.fullPath as String[])
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "multiple targets should produce in the correct bytecode"() {
         when:
         app.writeSources(file("src/myLib"))

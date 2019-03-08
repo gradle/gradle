@@ -16,6 +16,8 @@
 
 package org.gradle.language.java
 
+import org.gradle.api.JavaVersion
+import org.junit.Assume
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
@@ -25,6 +27,7 @@ class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionS
     @Unroll("matching {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with {jdk #jdk2, flavors #flavors2, buildTypes #buildTypes2} #outcome")
     def "check resolution of a custom component onto a component of the same type (same class, same variant dimensions)"() {
         given:
+        Assume.assumeTrue(jdk1.max() <= Integer.valueOf(JavaVersion.current().majorVersion))
         applyJavaPlugin(buildFile)
         addCustomLibraryType(buildFile)
 
