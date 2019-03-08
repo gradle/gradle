@@ -113,6 +113,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -212,7 +213,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
                                             new TimeoutStep<>(timeoutHandler,
-                                                new ExecuteStep(outputChangeListener)
+                                                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                                    new ExecuteStep<>()
+                                                )
                                             )
                                         )
                                     )

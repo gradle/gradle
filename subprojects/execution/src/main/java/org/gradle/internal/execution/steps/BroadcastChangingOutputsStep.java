@@ -16,32 +16,36 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.ExecutionException;
-import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 
-public class CatchExceptionStep<C extends Context> implements Step<C, Result> {
+import java.util.Optional;
+
+public class BroadcastChangingOutputsStep<C extends Context> implements Step<C, Result> {
+
+    private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends Result> delegate;
 
-    public CatchExceptionStep(Step<C, ? extends Result> delegate) {
+    public BroadcastChangingOutputsStep(
+        OutputChangeListener outputChangeListener,
+        Step<? super C, ? extends Result> delegate
+    ) {
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
     @Override
     public Result execute(C context) {
-        try {
-            return delegate.execute(context);
-        } catch (Throwable t) {
-            ExecutionException failure = new ExecutionException(context.getWork(), t);
-            return new Result() {
-                @Override
-                public Try<ExecutionOutcome> getOutcome() {
-                    return Try.failure(failure);
-                }
-            };
+        UnitOfWork work = context.getWork();
+
+        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
+        changingOutputs.ifPresent(outputs -> outputChangeListener.beforeOutputChange(outputs));
+        if (!changingOutputs.isPresent()) {
+            outputChangeListener.beforeOutputChange();
         }
+        return delegate.execute(context);
     }
 }

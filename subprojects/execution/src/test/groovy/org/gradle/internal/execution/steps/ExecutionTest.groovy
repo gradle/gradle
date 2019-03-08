@@ -41,7 +41,9 @@ class ExecutionTest extends Specification {
     def cancellationToken = new DefaultBuildCancellationToken()
     def executionStep = new CatchExceptionStep<IncrementalChangesContext>(
         new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-            new ExecuteStep(outputChangeListener)
+            new BroadcastChangingOutputsStep(outputChangeListener,
+                new ExecuteStep()
+            )
         )
     )
 

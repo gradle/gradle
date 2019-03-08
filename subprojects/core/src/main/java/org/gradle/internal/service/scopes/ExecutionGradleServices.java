@@ -46,6 +46,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
@@ -135,7 +136,9 @@ public class ExecutionGradleServices {
                                             new CatchExceptionStep<IncrementalChangesContext>(
                                                 new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
                                                     new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                        new ExecuteStep(outputChangeListener)
+                                                        new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                                                            new ExecuteStep<IncrementalChangesContext>()
+                                                        )
                                                     )
                                                 )
                                             )
