@@ -57,12 +57,12 @@ class SkipUpToDateStepTest extends StepSpec {
         0 * _
     }
 
-    def "executes when there's no history available"() {
+    def "executes when change tracking is disabled"() {
         when:
         def result = step.execute(context)
 
         then:
-        result.executionReasons == ["No history is available."]
+        result.executionReasons == ["Change tracking is disabled."]
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.empty()

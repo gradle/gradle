@@ -33,6 +33,8 @@ import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
     private final ExecutionStateChangeDetector changeDetector;
+    private static final Change NO_HISTORY = new DescriptiveChange("No history is available.");
+
     private final Step<? super IncrementalChangesContext, R> delegate;
 
     public ResolveChangesStep(
@@ -48,17 +50,18 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         final UnitOfWork work = context.getWork();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(rebuildReason)
+                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason))
             )
             .orElseGet(() ->
-                context.getAfterPreviousExecutionState()
-                    .flatMap(afterPreviousExecution -> context.getBeforeExecutionState()
-                        .map(beforeExecution -> changeDetector.detectChanges(
+                context.getBeforeExecutionState()
+                    .map(beforeExecution -> context.getAfterPreviousExecutionState()
+                        .map(afterPreviousExecution -> changeDetector.detectChanges(
                             afterPreviousExecution,
                             beforeExecution,
                             work,
                             work.isAllowOverlappingOutputs())
                         )
+                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY))
                     )
                     .orElse(null)
             );
@@ -91,12 +94,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         });
     }
 
-    // TODO Use an Either type to capture rebuild reason instead of doing things like this
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
         private final Change rebuildChange;
 
-        public RebuildExecutionStateChanges(String rebuildReason) {
-            this.rebuildChange = new DescriptiveChange(rebuildReason);
+        public RebuildExecutionStateChanges(Change rebuildChange) {
+            this.rebuildChange = rebuildChange;
         }
 
         @Override

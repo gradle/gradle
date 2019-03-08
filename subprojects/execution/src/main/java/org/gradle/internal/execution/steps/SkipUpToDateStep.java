@@ -40,7 +40,7 @@ import java.util.List;
 public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
-    private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
+    private static final ImmutableList<String> CHANGE_TRACKING_DISABLED = ImmutableList.of("Change tracking is disabled.");
 
     private final Step<? super C, ? extends SnapshotResult> delegate;
 
@@ -91,7 +91,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             } else {
                 return executeBecause(reasons, context);
             }
-        }).orElseGet(() -> executeBecause(NO_HISTORY, context));
+        }).orElseGet(() -> executeBecause(CHANGE_TRACKING_DISABLED, context));
     }
 
     private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
