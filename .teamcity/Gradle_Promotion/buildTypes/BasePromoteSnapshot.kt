@@ -16,8 +16,11 @@
 
 package Gradle_Promotion.buildTypes
 
+import common.Os
+import common.builtInRemoteBuildCacheNode
+import common.gradleWrapper
+import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
 
 open class BasePromoteSnapshot(
@@ -42,11 +45,10 @@ open class BasePromoteSnapshot(
     """.trimIndent()
 
         steps {
-            gradle {
+            gradleWrapper {
                 name = "Promote"
                 tasks = task
-                useGradleWrapper = true
-                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" -Igradle/buildScanInit.gradle --build-cache "-Dgradle.cache.remote.url=%gradle.cache.remote.url%" "-Dgradle.cache.remote.username=%gradle.cache.remote.username%" "-Dgradle.cache.remote.password=%gradle.cache.remote.password%""""
+                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" -Igradle/buildScanInit.gradle ${builtInRemoteBuildCacheNode.gradleParameters(Os.linux).joinToString(" ")}"""
             }
         }
         dependencies {
@@ -58,7 +60,7 @@ open class BasePromoteSnapshot(
         }
 
         requirements {
-            contains("teamcity.agent.jvm.os.name", "Linux")
+            requiresOs(Os.linux)
         }
         this.init()
     }

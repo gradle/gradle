@@ -1,3 +1,4 @@
+import common.Os
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
 import configurations.applyTestDefaults
@@ -8,9 +9,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_2.FailureConditions
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
-import model.OS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -97,7 +96,7 @@ class ApplyDefaultConfigurationTest {
         "''     , false, '--no-daemon'"
     ])
     fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyTestDefaults(buildModel, buildType, "myTask", os = OS.windows, extraParameters = extraParameters, daemon = daemon)
+        applyTestDefaults(buildModel, buildType, "myTask", os = Os.windows, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "GRADLE_RUNNER",

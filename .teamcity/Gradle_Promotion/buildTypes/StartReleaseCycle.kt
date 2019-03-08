@@ -16,9 +16,9 @@
 
 package Gradle_Promotion.buildTypes
 
+import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.gradle
 
 object StartReleaseCycle : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion__master_, init = {
     uuid = "355487d7-45b9-4387-9fc5-713e7683e6d0"
@@ -38,7 +38,7 @@ object StartReleaseCycle : BasePromotionBuildType(vcsRoot = Gradle_Promotion.vcs
     }
 
     steps {
-        gradle {
+        gradleWrapper {
             name = "Promote"
             tasks = "clean promoteStartReleaseCycle"
             useGradleWrapper = true

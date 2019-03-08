@@ -16,6 +16,8 @@
 
 package Gradle_Promotion.buildTypes
 
+import common.Os
+import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
@@ -25,13 +27,13 @@ open class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = 
         vcs {
             root(vcsRoot)
 
-            checkoutMode = CheckoutMode.ON_SERVER
+            checkoutMode = CheckoutMode.ON_AGENT
             this.cleanCheckout = cleanCheckout
             showDependenciesChanges = true
         }
 
         requirements {
-            contains("teamcity.agent.jvm.os.name", "Linux")
+            requiresOs(Os.linux)
         }
         this.init()
     }

@@ -1,12 +1,12 @@
 
+import common.JvmVendor
+import common.JvmVersion
+import common.NoBuildCache
+import common.Os
 import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.GradleSubproject
-import model.JvmVendor
-import model.JvmVersion
-import model.NoBuildCache
-import model.OS
 import model.SpecificBuild
 import model.Stage
 import model.StageName
@@ -14,8 +14,8 @@ import model.StageNames
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import projects.RootProject
 import java.io.File
@@ -37,7 +37,7 @@ class CIConfigIntegrationTests {
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
-            assertFalse(OS.macos.ignoredSubprojects.any { subproject ->
+            assertFalse(Os.macos.ignoredSubprojects.any { subproject ->
                 buildType.name.endsWith("($subproject)")
             })
         }
@@ -108,8 +108,8 @@ class CIConfigIntegrationTests {
                                     SpecificBuild.SanityCheck,
                                     SpecificBuild.BuildDistributions),
                             functionalTests = listOf(
-                                    TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                                    TestCoverage(TestType.quick, OS.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
+                                    TestCoverage(TestType.quick, Os.linux, JvmVersion.java8),
+                                    TestCoverage(TestType.quick, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
                             omitsSlowProjects = true)
                 )
         )
@@ -131,23 +131,23 @@ class CIConfigIntegrationTests {
             stages = listOf(
                 Stage(DefaultStageName("Stage1", "Stage1 description"),
                     functionalTests = listOf(
-                        TestCoverage(TestType.quick, OS.linux, JvmVersion.java8),
-                        TestCoverage(TestType.quick, OS.windows, JvmVersion.java8)),
+                        TestCoverage(TestType.quick, Os.linux, JvmVersion.java8),
+                        TestCoverage(TestType.quick, Os.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
                 Stage(DefaultStageName("Stage2", "Stage2 description"),
                     functionalTests = listOf(
-                        TestCoverage(TestType.noDaemon, OS.linux, JvmVersion.java8),
-                        TestCoverage(TestType.noDaemon, OS.windows, JvmVersion.java8)),
+                        TestCoverage(TestType.noDaemon, Os.linux, JvmVersion.java8),
+                        TestCoverage(TestType.noDaemon, Os.windows, JvmVersion.java8)),
                     omitsSlowProjects = true),
                 Stage(DefaultStageName("Stage3", "Stage3 description"),
                     functionalTests = listOf(
-                        TestCoverage(TestType.platform, OS.linux, JvmVersion.java8),
-                       TestCoverage(TestType.platform, OS.windows, JvmVersion.java8)),
+                        TestCoverage(TestType.platform, Os.linux, JvmVersion.java8),
+                       TestCoverage(TestType.platform, Os.windows, JvmVersion.java8)),
                     omitsSlowProjects = false),
                 Stage(DefaultStageName("Stage4", "Stage4 description"),
                     functionalTests = listOf(
-                        TestCoverage(TestType.parallel, OS.linux, JvmVersion.java8),
-                        TestCoverage(TestType.parallel, OS.windows, JvmVersion.java8)),
+                        TestCoverage(TestType.parallel, Os.linux, JvmVersion.java8),
+                        TestCoverage(TestType.parallel, Os.windows, JvmVersion.java8)),
                     omitsSlowProjects = false)
             ),
             subProjects = listOf(
@@ -240,7 +240,7 @@ class CIConfigIntegrationTests {
 
     @Test
     fun long_ids_are_shortened() {
-        val testCoverage = TestCoverage(TestType.quickFeedbackCrossVersion, OS.windows, JvmVersion.java11, JvmVendor.oracle)
+        val testCoverage = TestCoverage(TestType.quickFeedbackCrossVersion, Os.windows, JvmVersion.java11, JvmVendor.oracle)
         val shortenedId = testCoverage.asConfigurationId(CIBuildModel(), "veryLongSubprojectNameLongerThanEverythingWeHave")
         assertTrue(shortenedId.length < 80)
         assertEquals(shortenedId, "Gradle_Check_QckFdbckCrssVrsn_Jv11_Orcl_Wndws_vryLngSbprjctNmLngrThnEvrythngWHv")

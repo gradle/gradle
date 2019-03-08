@@ -16,7 +16,7 @@
 
 package Gradle_Promotion.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.gradle
+import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 
@@ -27,12 +27,11 @@ object StartReleaseCycleTest : BasePromotionBuildType(vcsRoot = Gradle_Promotion
     description = "Test for Start Release Cycle pipeline"
 
     steps {
-        gradle {
+        gradleWrapper {
             name = "PromoteTest"
             tasks = "clean promoteStartReleaseCycle"
             useGradleWrapper = true
             gradleParams = "-PconfirmationCode=startCycle -Igradle/buildScanInit.gradle -PtestRun=1"
-            param("teamcity.tool.jacoco", "%teamcity.tool.jacoco.DEFAULT%")
         }
     }
 
