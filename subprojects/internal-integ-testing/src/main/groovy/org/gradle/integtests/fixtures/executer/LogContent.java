@@ -93,14 +93,7 @@ public class LogContent {
     }
 
     public static LogContent empty() {
-        return new LogContent(ImmutableList.<String>of(), true, true, null);
-    }
-
-    /**
-     * Returns the original content that this content was built from, after transforms such as {@link #removeDebugPrefix()} or {@link #splitOnFirstMatchingLine(Pattern)}.
-     */
-    public LogContent getRawContent() {
-        return rawContent;
+        return new LogContent(ImmutableList.of(), true, true, null);
     }
 
     /**
@@ -127,13 +120,6 @@ public class LogContent {
      */
     public ImmutableList<String> getLines() {
         return lines;
-    }
-
-    private LogContent lines(int startLine, int endLine) {
-        if (rawContent != this) {
-            throw new UnsupportedOperationException("not implemented");
-        }
-        return new LogContent(lines.subList(startLine, endLine), definitelyNoDebugPrefix, definitelyNoAnsiChars, null);
     }
 
     /**

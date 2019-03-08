@@ -77,7 +77,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.jar"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar")
         }
 
         when:
@@ -86,7 +86,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.jar.sha1")
         }
 
         when:
@@ -95,7 +95,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.pom"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom")
         }
 
         when:
@@ -104,7 +104,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.pom.sha1")
         }
 
         when:
@@ -113,7 +113,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-             assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > test-1.2.module > 1 KB/1 KB uploaded")
         }
 
         when:
@@ -123,7 +123,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         then:
         ConcurrentTestUtil.poll {
             // TODO - where did this one go?
-//            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > maven-metadata.xml"))
+//            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         when:
@@ -132,7 +132,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
 
         then:
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.contains(workInProgressLine("> :publishMavenPublicationToMavenRepository > maven-metadata.xml"))
+            assertHasWorkInProgress(build, "> :publishMavenPublicationToMavenRepository > maven-metadata.xml")
         }
 
         putMetaData.releaseAll()

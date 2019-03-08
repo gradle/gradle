@@ -43,6 +43,16 @@ public interface ExecutionResult {
     String getNormalizedOutput();
 
     /**
+     * Stdout of the Gradle execution, with ANSI characters interpreted and text attributes rendered as plain text.
+     */
+    String getFormattedOutput();
+
+    /**
+     * Stdout of the Gradle execution, with ANSI characters interpreted and text attributes discarded.
+     */
+    String getPlainTextOutput();
+
+    /**
      * Returns a fixture that parses the output and forms them into the expected groups
      */
     GroupedOutputFixture getGroupedOutput();

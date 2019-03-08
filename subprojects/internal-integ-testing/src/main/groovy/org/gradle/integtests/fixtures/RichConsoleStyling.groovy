@@ -15,23 +15,21 @@
  */
 
 package org.gradle.integtests.fixtures
+
+import org.gradle.integtests.fixtures.executer.GradleHandle
+import org.gradle.integtests.fixtures.executer.LogContent
+
 /**
  * A trait for testing console behavior.
  * <p>
  * <b>Note:</b> The console output contains formatting characters.
  */
 trait RichConsoleStyling {
-    public final static String CONTROL_SEQUENCE_START = "\u001B["
-
     static String workInProgressLine(String plainText) {
-        return boldOn() + plainText + reset()
+        return "{bold-on}" + plainText + "{bold-off}"
     }
 
-    private static String boldOn() {
-        "${CONTROL_SEQUENCE_START}1m"
-    }
-
-    private static String reset() {
-        "${CONTROL_SEQUENCE_START}m"
+    static void assertHasWorkInProgress(GradleHandle handle, String plainText) {
+        assert LogContent.of(handle.standardOutput).ansiCharsToColorText().withNormalizedEol().contains(workInProgressLine(plainText))
     }
 }

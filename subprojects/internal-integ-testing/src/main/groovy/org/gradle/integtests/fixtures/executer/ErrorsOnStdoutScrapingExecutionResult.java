@@ -39,6 +39,16 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getFormattedOutput() {
+        return delegate.getFormattedOutput();
+    }
+
+    @Override
+    public String getPlainTextOutput() {
+        return delegate.getPlainTextOutput();
+    }
+
+    @Override
     public GroupedOutputFixture getGroupedOutput() {
         return delegate.getGroupedOutput();
     }

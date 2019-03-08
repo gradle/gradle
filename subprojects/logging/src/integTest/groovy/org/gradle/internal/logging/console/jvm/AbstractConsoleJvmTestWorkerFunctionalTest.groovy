@@ -60,8 +60,8 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
 
         then:
         ConcurrentTestUtil.poll {
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass1.renderedClassName)
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass2.renderedClassName)
+            containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass1.renderedClassName)
+            containsTestExecutionWorkInProgressLine(gradleHandle, ':test', testClass2.renderedClassName)
         }
 
         testExecution.release(2)
@@ -93,8 +93,8 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
 
         then:
         ConcurrentTestUtil.poll {
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', testClass1.renderedClassName)
-            assert containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', testClass2.renderedClassName)
+            containsTestExecutionWorkInProgressLine(gradleHandle, ':project1:test', testClass1.renderedClassName)
+            containsTestExecutionWorkInProgressLine(gradleHandle, ':project2:test', testClass2.renderedClassName)
         }
 
         testExecution.release(2)

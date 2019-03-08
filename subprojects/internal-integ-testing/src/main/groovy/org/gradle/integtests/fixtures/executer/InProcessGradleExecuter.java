@@ -513,6 +513,16 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public String getFormattedOutput() {
+            return outputResult.getFormattedOutput();
+        }
+
+        @Override
+        public String getPlainTextOutput() {
+            return outputResult.getPlainTextOutput();
+        }
+
+        @Override
         public GroupedOutputFixture getGroupedOutput() {
             return outputResult.getGroupedOutput();
         }
