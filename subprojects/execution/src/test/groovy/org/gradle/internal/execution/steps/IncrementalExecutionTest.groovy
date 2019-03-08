@@ -31,14 +31,17 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.TestExecutionHistoryStore
+import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
+import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -58,7 +61,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.function.Supplier
@@ -66,8 +68,6 @@ import java.util.function.Supplier
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
 
-// FIXME:lptr
-@Ignore
 class IncrementalExecutionTest extends Specification {
 
     @Rule
@@ -97,6 +97,7 @@ class IncrementalExecutionTest extends Specification {
             return HashCode.fromInt(1234)
         }
     }
+    def outputFilesRepository = new TestOutputFilesRepository()
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher)
 
     final outputFile = temporaryFolder.file("output-file")
@@ -117,16 +118,57 @@ class IncrementalExecutionTest extends Specification {
 
     def unitOfWork = builder.build()
 
+    def changeDetector = new DefaultExecutionStateChangeDetector()
+
     WorkExecutor<IncrementalContext, UpToDateResult> getExecutor() {
-        new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new SkipUpToDateStep<IncrementalChangesContext>(
-                new StoreSnapshotsStep<IncrementalChangesContext>(
-                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                        new BroadcastChangingOutputsStep(outputChangeListener, delegate)
+        new DefaultWorkExecutor<>(
+            new ResolveChangesStep<UpToDateResult>(changeDetector,
+                new SkipUpToDateStep<IncrementalChangesContext>(
+                    new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
+                        new StoreSnapshotsStep<IncrementalChangesContext>(
+                            new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                new CreateOutputsStep<IncrementalChangesContext, Result>(
+                                    new CatchExceptionStep<IncrementalChangesContext>(
+                                        new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                                            new ExecuteStep<IncrementalChangesContext>()
+                                        )
+                                    )
+                                )
+                            )
+                        )
                     )
                 )
             )
         )
+    }
+
+    def "outputs are created"() {
+        def unitOfWork = builder.withOutputDirs(
+            dir: [file("outDir")],
+            dirs: [file("outDir1"), file("outDir2")],
+        ).withOutputFiles(
+            "file": [file("parent/outFile")],
+            "files": [file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")],
+        ).withWork { ->
+            EXECUTED_NON_INCREMENTALLY
+        }.build()
+
+        when:
+        def result = execute(unitOfWork)
+
+        then:
+        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        !result.reused
+
+        def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
+        def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
+        allDirs.each {
+            assert it.isDirectory()
+        }
+        allFiles.each {
+            assert it.parentFile.isDirectory()
+            assert !it.exists()
+        }
     }
 
     def "output snapshots are stored"() {
@@ -575,11 +617,11 @@ class IncrementalExecutionTest extends Specification {
         }
     }
 
-    UpToDateResult outOfDate(UnitOfWork unitOfWork, String... expectedReasons) {
+    UpToDateResult outOfDate(TestUnitOfWork unitOfWork, String... expectedReasons) {
         return outOfDate(unitOfWork, ImmutableList.<String>copyOf(expectedReasons))
     }
 
-    UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
+    UpToDateResult outOfDate(TestUnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
         assert result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         assert !result.reused
@@ -587,38 +629,37 @@ class IncrementalExecutionTest extends Specification {
         return result
     }
 
-    UpToDateResult upToDate(UnitOfWork unitOfWork) {
+    UpToDateResult upToDate(TestUnitOfWork unitOfWork) {
         def result = execute(unitOfWork)
         assert result.outcome.get() == UP_TO_DATE
         return result
     }
 
-    UpToDateResult execute(UnitOfWork unitOfWork) {
+    UpToDateResult execute(TestUnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
-        executor.execute(new IncrementalChangesContext() {
+
+        def afterPreviousExecutionState = executionHistoryStore.load(unitOfWork.identity)
+        def beforeExecutionState = unitOfWork.beforeExecutionState
+
+        executor.execute(new IncrementalContext() {
             @Override
             UnitOfWork getWork() {
                 return unitOfWork
             }
 
             @Override
-            Optional<ExecutionStateChanges> getChanges() {
-                return null
-            }
-
-            @Override
             Optional<String> getRebuildReason() {
-                return null
+                Optional.empty()
             }
 
             @Override
             Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return null
+                afterPreviousExecutionState
             }
 
             @Override
             Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return null
+                Optional.of(beforeExecutionState)
             }
         })
     }
@@ -647,6 +688,10 @@ class IncrementalExecutionTest extends Specification {
 
     UnitOfWorkBuilder getBuilder() {
         new UnitOfWorkBuilder()
+    }
+
+    interface TestUnitOfWork extends UnitOfWork {
+        BeforeExecutionState getBeforeExecutionState()
     }
 
     class UnitOfWorkBuilder {
@@ -717,14 +762,11 @@ class IncrementalExecutionTest extends Specification {
             return this
         }
 
-        UnitOfWork build() {
+        TestUnitOfWork build() {
             def outputFileSpecs = outputFiles.collectEntries { key, value -> [(key): outputFileSpec(*value)] }
             def outputDirSpecs = outputDirs.collectEntries { key, value -> [(key): outputDirectorySpec(*value)]}
-            return new UnitOfWork() {
+            return new TestUnitOfWork() {
                 private final Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
-                private final ImplementationSnapshot implementationSnapshot = implementation
-                private final ImmutableList<ImplementationSnapshot> additionalImplementationSnapshots = ImmutableList.of()
-                Optional<ExecutionStateChanges> changes
 
                 boolean executed
 
@@ -732,6 +774,17 @@ class IncrementalExecutionTest extends Specification {
                 ExecutionOutcome execute(IncrementalChangesContext context) {
                     executed = true
                     return work.get()
+                }
+
+                @Override
+                BeforeExecutionState getBeforeExecutionState() {
+                    new DefaultBeforeExecutionState(
+                        implementation,
+                        ImmutableList.of(),
+                        snapshotInputProperties(),
+                        snapshotInputFiles(),
+                        snapshotOutputs()
+                    )
                 }
 
                 @Override
@@ -753,7 +806,7 @@ class IncrementalExecutionTest extends Specification {
 
                 @Override
                 boolean isAllowOverlappingOutputs() {
-                    return false
+                    return true
                 }
 
                 @Override
