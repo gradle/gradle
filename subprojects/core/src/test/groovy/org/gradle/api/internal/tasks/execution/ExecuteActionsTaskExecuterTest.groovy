@@ -104,6 +104,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getExecutionStateChanges() >> Optional.empty()
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
+        executionContext.getBeforeExecutionState() >> Optional.empty()
 
         executionContext.getTaskProperties() >> taskProperties
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
