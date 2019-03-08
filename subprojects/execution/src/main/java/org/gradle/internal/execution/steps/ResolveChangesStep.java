@@ -86,6 +86,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         });
     }
 
+    // TODO Use an Either type to capture rebuild reason instead of doing things like this
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
         private final Change rebuildChange;
 
@@ -94,18 +95,13 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         }
 
         @Override
-        public Iterable<Change> getInputFilesChanges() {
-            throw new UnsupportedOperationException();
+        public Optional<Iterable<Change>> getInputFilesChanges() {
+            return Optional.empty();
         }
 
         @Override
         public void visitAllChanges(ChangeVisitor visitor) {
             visitor.visitChange(rebuildChange);
-        }
-
-        @Override
-        public boolean isRebuildRequired() {
-            return true;
         }
 
         @Override

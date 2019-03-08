@@ -58,9 +58,17 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
             .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
                 @Override
                 public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
-                    return changes.isRebuildRequired()
-                        ? createRebuildInputs(task)
-                        : createIncrementalInputs(changes.getInputFilesChanges());
+                    return changes.getInputFilesChanges().map(new Function<Iterable<Change>, StatefulIncrementalTaskInputs>() {
+                        @Override
+                        public StatefulIncrementalTaskInputs apply(Iterable<Change> changes) {
+                            return createIncrementalInputs(changes);
+                        }
+                    }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
+                        @Override
+                        public StatefulIncrementalTaskInputs get() {
+                            return createRebuildInputs(task);
+                        }
+                    });
                 }
             }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
                 @Override

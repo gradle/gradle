@@ -26,18 +26,17 @@ import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.execution.CacheHandler
-import org.gradle.internal.execution.Context
 import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.TestExecutionHistoryStore
-import org.gradle.internal.execution.TestOutputFilesRepository
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
+import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
@@ -59,15 +58,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.time.Duration
 import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-// FIXME:lptr
-@Ignore
+
 class IncrementalExecutionTest extends Specification {
 
     @Rule
@@ -90,7 +87,6 @@ class IncrementalExecutionTest extends Specification {
             fileSystemMirror.beforeOutputChange(affectedOutputPaths)
         }
     }
-    def outputFilesRepository = new TestOutputFilesRepository()
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
@@ -120,16 +116,10 @@ class IncrementalExecutionTest extends Specification {
 
     WorkExecutor<IncrementalContext, UpToDateResult> getExecutor() {
         new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new ResolveChangesStep<UpToDateResult>(
-                new SkipUpToDateStep<IncrementalChangesContext>(
-                    new StoreSnapshotsStep<IncrementalChangesContext>(
-                        new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                            new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                new CatchExceptionStep<IncrementalChangesContext>(
-                                    new ExecuteStep(outputChangeListener)
-                                )
-                            )
-                        )
+            new SkipUpToDateStep<IncrementalChangesContext>(
+                new StoreSnapshotsStep<IncrementalChangesContext>(
+                    new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                        new ExecuteStep(outputChangeListener)
                     )
                 )
             )
@@ -602,10 +592,30 @@ class IncrementalExecutionTest extends Specification {
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
         fileSystemMirror.beforeBuildFinished()
-        executor.execute(new Context() {
+        executor.execute(new IncrementalChangesContext() {
             @Override
             UnitOfWork getWork() {
                 return unitOfWork
+            }
+
+            @Override
+            Optional<ExecutionStateChanges> getChanges() {
+                return null
+            }
+
+            @Override
+            Optional<String> getRebuildReason() {
+                return null
+            }
+
+            @Override
+            Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return null
+            }
+
+            @Override
+            Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return null
             }
         })
     }
