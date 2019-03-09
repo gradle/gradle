@@ -16,31 +16,36 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.BuildCancelledException;
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 
-public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
-    private final BuildCancellationToken cancellationToken;
+import java.util.Optional;
+
+public class BroadcastChangingOutputsStep<C extends Context> implements Step<C, Result> {
+
+    private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends Result> delegate;
 
-    public CancelExecutionStep(
-        BuildCancellationToken cancellationToken,
+    public BroadcastChangingOutputsStep(
+        OutputChangeListener outputChangeListener,
         Step<? super C, ? extends Result> delegate
     ) {
-        this.cancellationToken = cancellationToken;
+        this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
 
     @Override
     public Result execute(C context) {
-        Result result = delegate.execute(context);
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException("Build cancelled during executing " + context.getWork().getDisplayName());
-        }
+        UnitOfWork work = context.getWork();
 
-        return result;
+        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
+        changingOutputs.ifPresent(outputs -> outputChangeListener.beforeOutputChange(outputs));
+        if (!changingOutputs.isPresent()) {
+            outputChangeListener.beforeOutputChange();
+        }
+        return delegate.execute(context);
     }
 }

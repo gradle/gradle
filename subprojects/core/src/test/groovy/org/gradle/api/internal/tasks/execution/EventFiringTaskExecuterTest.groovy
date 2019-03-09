@@ -48,7 +48,7 @@ class EventFiringTaskExecuterTest extends Specification {
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
 
         then:
         1 * taskExecutionListener.afterExecute(task, state)
@@ -95,7 +95,7 @@ class EventFiringTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, state, executionContext) >> {
             state.setOutcome(failure)
-            return TaskExecuterResult.NO_REUSED_OUTPUT
+            return TaskExecuterResult.WITHOUT_OUTPUTS
         }
 
         then:
@@ -121,7 +121,7 @@ class EventFiringTaskExecuterTest extends Specification {
         1 * taskExecutionListener.beforeExecute(task)
 
         then:
-        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
 
         then:
         1 * taskExecutionListener.afterExecute(task, state) >> {
@@ -152,7 +152,7 @@ class EventFiringTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, state, executionContext) >> {
             state.setOutcome(failure)
-            return TaskExecuterResult.NO_REUSED_OUTPUT
+            return TaskExecuterResult.WITHOUT_OUTPUTS
         }
 
         then:

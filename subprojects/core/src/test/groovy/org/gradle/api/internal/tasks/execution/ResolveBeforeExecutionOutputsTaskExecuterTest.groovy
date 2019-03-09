@@ -66,7 +66,7 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
 
         then:
         1 * context.setOutputFilesBeforeExecution(outputFilesBeforeExecution)
-        1 * delegate.execute(task, state, context) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, state, context) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * context.setOverlappingOutputs(_ as OverlappingOutputs)
     }
 
@@ -90,6 +90,6 @@ class ResolveBeforeExecutionOutputsTaskExecuterTest extends Specification {
 
         then:
         1 * context.setOutputFilesBeforeExecution(outputFilesBeforeExecution)
-        1 * delegate.execute(task, state, context) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, state, context) >> TaskExecuterResult.WITHOUT_OUTPUTS
     }
 }

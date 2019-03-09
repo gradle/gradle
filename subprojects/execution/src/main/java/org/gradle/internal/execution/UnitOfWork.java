@@ -59,9 +59,9 @@ public interface UnitOfWork extends CacheableEntity {
     Optional<? extends Iterable<String>> getChangingOutputs();
 
     /**
-     * Whether files added are to be considered part of the output of the work.
+     * When overlapping outputs are allowed, output files added between executions are ignored during change detection.
      */
-    boolean includeAddedOutputs();
+    boolean isAllowOverlappingOutputs();
 
     @FunctionalInterface
     interface OutputPropertyVisitor {

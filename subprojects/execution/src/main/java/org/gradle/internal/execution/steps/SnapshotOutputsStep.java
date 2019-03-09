@@ -28,11 +28,11 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 
-public class SnapshotOutputStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
+public class SnapshotOutputsStep<C extends Context> implements Step<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
     private final Step<? super C, ? extends Result> delegate;
 
-    public SnapshotOutputStep(
+    public SnapshotOutputsStep(
             UniqueId buildInvocationScopeId,
             Step<? super C, ? extends Result> delegate
     ) {

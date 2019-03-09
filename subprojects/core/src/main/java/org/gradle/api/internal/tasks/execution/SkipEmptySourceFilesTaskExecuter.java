@@ -103,7 +103,7 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
             }
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
             executionHistoryStore.remove(task.getPath());
-            return TaskExecuterResult.NO_REUSED_OUTPUT;
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
         } else {
             taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, properties.getInputFiles()));
         }

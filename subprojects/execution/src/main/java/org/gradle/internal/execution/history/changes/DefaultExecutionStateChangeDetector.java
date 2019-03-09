@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,9 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 
 import java.util.Optional;
 
-public class DefaultExecutionStateChanges implements ExecutionStateChanges {
-
-    private final AfterPreviousExecutionState previousExecution;
-    private final ChangeContainer inputFileChanges;
-    private final ChangeContainer allChanges;
-    private final ChangeContainer rebuildTriggeringChanges;
-
-    public DefaultExecutionStateChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean includeAddedOutputs) {
-        this.previousExecution = lastExecution;
-
+public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
+    @Override
+    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -71,7 +64,6 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
         ChangeContainer inputFileChanges = caching(directInputFileChanges);
-        this.inputFileChanges = errorHandling(executable, inputFileChanges);
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -82,11 +74,15 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         OutputFileChanges uncachedOutputChanges = new OutputFileChanges(
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties(),
-            includeAddedOutputs);
+            allowOverlappingOutputs);
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
-        this.allChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges));
-        this.rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges));
+        return new DetectedExecutionStateChanges(
+            lastExecution,
+            errorHandling(executable, inputFileChanges),
+            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
+            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges))
+        );
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {
@@ -97,29 +93,48 @@ public class DefaultExecutionStateChanges implements ExecutionStateChanges {
         return new ErrorHandlingChangeContainer(executable, wrapped);
     }
 
-    @Override
-    public Optional<Iterable<Change>> getInputFilesChanges() {
-        if (isRebuildRequired()) {
-            return Optional.empty();
+    private static class DetectedExecutionStateChanges implements ExecutionStateChanges {
+        private final AfterPreviousExecutionState previousExecution;
+        private final ChangeContainer inputFileChanges;
+        private final ChangeContainer allChanges;
+        private final ChangeContainer rebuildTriggeringChanges;
+
+        public DetectedExecutionStateChanges(
+            AfterPreviousExecutionState previousExecution,
+            ChangeContainer inputFileChanges,
+            ChangeContainer allChanges,
+            ChangeContainer rebuildTriggeringChanges
+        ) {
+            this.previousExecution = previousExecution;
+            this.inputFileChanges = inputFileChanges;
+            this.allChanges = allChanges;
+            this.rebuildTriggeringChanges = rebuildTriggeringChanges;
         }
-        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-        inputFileChanges.accept(visitor);
-        return Optional.of(visitor.getChanges());
-    }
 
-    @Override
-    public void visitAllChanges(ChangeVisitor visitor) {
-        allChanges.accept(visitor);
-    }
+        @Override
+        public Optional<Iterable<Change>> getInputFilesChanges() {
+            if (isRebuildRequired()) {
+                return Optional.empty();
+            }
+            CollectingChangeVisitor visitor = new CollectingChangeVisitor();
+            inputFileChanges.accept(visitor);
+            return Optional.of(visitor.getChanges());
+        }
 
-    private boolean isRebuildRequired() {
-        ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
-        rebuildTriggeringChanges.accept(changeDetectorVisitor);
-        return changeDetectorVisitor.hasAnyChanges();
-    }
+        @Override
+        public void visitAllChanges(ChangeVisitor visitor) {
+            allChanges.accept(visitor);
+        }
 
-    @Override
-    public AfterPreviousExecutionState getPreviousExecution() {
-        return previousExecution;
+        private boolean isRebuildRequired() {
+            ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
+            rebuildTriggeringChanges.accept(changeDetectorVisitor);
+            return changeDetectorVisitor.hasAnyChanges();
+        }
+
+        @Override
+        public AfterPreviousExecutionState getPreviousExecution() {
+            return previousExecution;
+        }
     }
 }

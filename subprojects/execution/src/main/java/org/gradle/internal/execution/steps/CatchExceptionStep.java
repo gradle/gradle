@@ -24,7 +24,7 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 
 public class CatchExceptionStep<C extends Context> implements Step<C, Result> {
-    private final Step<C, ? extends Result> delegate;
+    private final Step<? super C, ? extends Result> delegate;
 
     public CatchExceptionStep(Step<C, ? extends Result> delegate) {
         this.delegate = delegate;

@@ -64,7 +64,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.setBuildCacheKey(cacheKey)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * _
     }
 
@@ -99,7 +99,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         1 * taskContext.setBuildCacheKey({ TaskOutputCachingBuildCacheKey key -> !key.valid } as TaskOutputCachingBuildCacheKey)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * _
     }
 

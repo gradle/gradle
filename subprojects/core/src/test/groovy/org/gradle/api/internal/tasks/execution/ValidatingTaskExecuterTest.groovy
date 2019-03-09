@@ -48,7 +48,7 @@ class ValidatingTaskExecuterTest extends Specification {
         1 * task.getProject() >> project
         1 * executionContext.getTaskProperties() >> taskProperties
         1 * taskProperties.validate(_)
-        1 * target.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * target.execute(task, state, executionContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * _
     }
 
