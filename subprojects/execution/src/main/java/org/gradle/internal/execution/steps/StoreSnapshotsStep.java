@@ -44,7 +44,8 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getOutcome().isSuccessful();
-            // Do not store snapshots if there was a failure, but the outputs didn't change
+            // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
+            // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
             if (successful
                 || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
                 UnitOfWork work = context.getWork();
