@@ -32,7 +32,8 @@ plugins {
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
     com.gradle.`build-scan`
-    id("org.gradle.ci.tag-single-build") version("0.55")
+    id("org.gradle.ci.tag-single-build") version("0.57" +
+        "")
 }
 
 defaultTasks("assemble")

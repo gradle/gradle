@@ -25,7 +25,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -42,9 +41,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
 import testLibrary
-import java.lang.IllegalStateException
 import java.util.concurrent.Callable
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.jar.Attributes
 import kotlin.reflect.full.declaredFunctions
 
@@ -101,9 +98,6 @@ const val tooManyTestFailuresThreshold = 10
 
 
 class UnitTestAndCompilePlugin : Plugin<Project> {
-    private
-    val allTestFailuresCount = AtomicInteger(0)
-
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
 
@@ -202,19 +196,6 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
-    fun Test.getPreviousFailedTestClasses(): Set<String> = TestResultSerializer(binResultsDir).let { serializer ->
-        val previousFailedTestClasses = mutableSetOf<String>()
-        serializer.read {
-            if (failuresCount > 0) {
-                allTestFailuresCount.addAndGet(failuresCount)
-                previousFailedTestClasses.add(className)
-            }
-        }
-
-        previousFailedTestClasses
-    }
-
-    private
     fun Test.configureJvmForTest() {
         val javaInstallationForTest = project.rootProject.availableJavaInstallations.javaInstallationForTest
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
@@ -235,27 +216,11 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
-    fun Test.onlyRunPreviousFailedClassesIfNecessary() {
-        if (project.stringPropertyOrEmpty("onlyPreviousFailedTestClasses").toBoolean()) {
-            val previousFailedClasses = getPreviousFailedTestClasses()
-            if (allTestFailuresCount.get() > tooManyTestFailuresThreshold) {
-                throw IllegalStateException("Too many failures (${allTestFailuresCount.get()}) in first run!")
-            } else if (previousFailedClasses.isEmpty()) {
-                enabled = false
-            } else {
-                previousFailedClasses.forEach { filter.includeTestsMatching(it) }
-            }
-        }
-    }
-
-    private
     fun Project.configureTests() {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
 
             configureJvmForTest()
-
-            onlyRunPreviousFailedClassesIfNecessary()
 
             doFirst {
                 if (BuildEnvironment.isCiServer) {
