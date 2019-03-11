@@ -31,8 +31,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.CachingContext;
-import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -52,7 +50,6 @@ import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.PrepareCachingStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
@@ -129,16 +126,14 @@ public class ExecutionGradleServices {
                 new SkipUpToDateStep<IncrementalChangesContext>(
                     new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
                         new StoreSnapshotsStep<IncrementalChangesContext>(
-                            new PrepareCachingStep<IncrementalChangesContext, CurrentSnapshotResult>(
-                                new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                        new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                            new CatchExceptionStep<IncrementalChangesContext>(
-                                                new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                    new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                        new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
-                                                            new ExecuteStep<IncrementalChangesContext>()
-                                                        )
+                            new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                                new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                    new CreateOutputsStep<IncrementalChangesContext, Result>(
+                                        new CatchExceptionStep<IncrementalChangesContext>(
+                                            new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
+                                                new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
+                                                    new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                                                        new ExecuteStep<IncrementalChangesContext>()
                                                     )
                                                 )
                                             )

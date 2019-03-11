@@ -21,21 +21,21 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CacheHandler
-import org.gradle.internal.execution.CachingContext
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
+import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 
 class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
     def outputChangeListener = Mock(OutputChangeListener)
-    def step = new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
+    def step = new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
     def cacheHandler = Mock(CacheHandler)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
 
     def delegateResult = Mock(CurrentSnapshotResult)
-    def context = Mock(CachingContext)
+    def context = Mock(IncrementalChangesContext)
 
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
@@ -51,7 +51,8 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result.finalOutputs == outputsFromCache
 
         1 * buildCacheController.isEnabled() >> true
-        1 * context.cacheHandler >> cacheHandler
+        1 * context.work >> work
+        1 * work.createCacheHandler() >> cacheHandler
         1 * cacheHandler.load(_) >> Optional.of(loadMetadata)
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
@@ -66,10 +67,15 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result == delegateResult
 
         1 * buildCacheController.isEnabled() >> true
-        1 * context.cacheHandler >> cacheHandler
+        1 * context.work >> work
+        1 * work.createCacheHandler() >> cacheHandler
         1 * cacheHandler.load(_) >> Optional.empty()
+
+        then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+
+        then:
         1 * cacheHandler.store(_)
         0 * _
     }
@@ -83,10 +89,15 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         !result.reused
 
         1 * buildCacheController.isEnabled() >> true
-        1 * context.cacheHandler >> cacheHandler
+        1 * context.work >> work
+        1 * work.createCacheHandler() >> cacheHandler
         1 * cacheHandler.load(_) >> Optional.empty()
+
+        then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.failure(new RuntimeException("failure"))
+
+        then:
         1 * context.work >> work
         1 * work.displayName >> "Display name"
         0 * cacheHandler.store(_)
