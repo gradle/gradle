@@ -532,7 +532,10 @@ allprojects {
         }
 
         String getFileName() {
-            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}${noType ? '' : '.' + getType()}"
+            if (noType) {
+                return getName()
+            }
+            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
         }
     }
 
