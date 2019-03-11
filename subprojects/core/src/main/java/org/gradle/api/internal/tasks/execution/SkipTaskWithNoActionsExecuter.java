@@ -52,7 +52,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
             }
             state.setActionable(false);
             state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
-            return TaskExecuterResult.NO_REUSED_OUTPUT;
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
         return executer.execute(task, state, context);
     }

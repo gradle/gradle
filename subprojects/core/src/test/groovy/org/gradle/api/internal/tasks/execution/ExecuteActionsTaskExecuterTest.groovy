@@ -38,13 +38,15 @@ import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
-import org.gradle.internal.execution.steps.SnapshotOutputStep
+import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -76,13 +78,14 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-        new ResolveChangesStep<UpToDateResult>(
+        new ResolveChangesStep<UpToDateResult>(new DefaultExecutionStateChangeDetector(),
             new SkipUpToDateStep<IncrementalChangesContext>(
-                new SnapshotOutputStep<IncrementalChangesContext>(
-                    buildId,
+                new SnapshotOutputsStep<IncrementalChangesContext>(buildId,
                     new CatchExceptionStep<IncrementalChangesContext>(
                         new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                            new ExecuteStep(outputChangeListener)
+                            new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                                new ExecuteStep<IncrementalChangesContext>()
+                            )
                         )
                     )
                 )
@@ -101,6 +104,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getOverlappingOutputs() >> Optional.empty()
         executionContext.getExecutionStateChanges() >> Optional.empty()
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
+        executionContext.getBeforeExecutionState() >> Optional.empty()
 
         executionContext.getTaskProperties() >> taskProperties
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()

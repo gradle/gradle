@@ -37,5 +37,5 @@ public enum ExecutionOutcome {
     /**
      * The work has been executed with no incremental change information.
      */
-    EXECUTED
+    EXECUTED_NON_INCREMENTALLY
 }

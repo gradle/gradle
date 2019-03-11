@@ -38,7 +38,7 @@ public interface TaskExecuterResult {
      */
     Optional<OriginMetadata> getReusedOutputOriginMetadata();
 
-    TaskExecuterResult NO_REUSED_OUTPUT = new TaskExecuterResult() {
+    TaskExecuterResult WITHOUT_OUTPUTS = new TaskExecuterResult() {
         @Override
         public List<String> getExecutionReasons() {
             return ImmutableList.of();

@@ -266,7 +266,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             GFileUtils.deleteFileQuietly(resultsFile);
             ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies);
             writeResultsFile(outputDir, resultsFile, result);
-            return ExecutionOutcome.EXECUTED;
+            return ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -328,8 +328,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean includeAddedOutputs() {
-            return true;
+        public boolean isAllowOverlappingOutputs() {
+            return false;
         }
 
         @Override

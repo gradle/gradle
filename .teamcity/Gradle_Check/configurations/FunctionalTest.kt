@@ -1,8 +1,8 @@
 package configurations
 
+import common.Os
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import model.CIBuildModel
-import model.OS
 import model.Stage
 import model.TestCoverage
 import model.TestType
@@ -33,7 +33,7 @@ class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProject
 
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
-        if (testCoverage.os == OS.linux) {
+        if (testCoverage.os == Os.linux) {
             param("env.ANDROID_HOME", "/opt/android/sdk")
         }
     }

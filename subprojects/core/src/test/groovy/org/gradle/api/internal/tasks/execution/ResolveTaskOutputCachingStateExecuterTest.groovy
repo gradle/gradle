@@ -279,7 +279,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         1 * taskState.setTaskOutputCaching({ !it.enabled } as TaskOutputCachingState)
 
         then:
-        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         0 * _
     }
 

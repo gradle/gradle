@@ -1,5 +1,6 @@
 package configurations
 
+import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction

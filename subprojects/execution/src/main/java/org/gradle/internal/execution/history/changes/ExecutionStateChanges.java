@@ -20,6 +20,8 @@ import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
+import java.util.Optional;
+
 /**
  * Represents the complete changes in execution state
  */
@@ -28,19 +30,14 @@ public interface ExecutionStateChanges {
     int MAX_OUT_OF_DATE_MESSAGES = 3;
 
     /**
-     * Returns changes to input files only.
+     * Returns changes to input files only, or {@link Optional#empty()} if a full rebuild is required.
      */
-    Iterable<Change> getInputFilesChanges();
+    Optional<Iterable<Change>> getInputFilesChanges();
 
     /**
      * Visits any change to inputs or outputs.
      */
     void visitAllChanges(ChangeVisitor visitor);
-
-    /**
-     * Whether there are changes that force an incremental task to fully rebuild.
-     */
-    boolean isRebuildRequired();
 
     /**
      * The base execution the changes are calculated against.

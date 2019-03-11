@@ -19,33 +19,13 @@ package org.gradle.internal.execution.steps;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
-import org.gradle.internal.execution.UnitOfWork;
 
-import java.util.Optional;
-
-public class ExecuteStep implements Step<IncrementalChangesContext, Result> {
-
-    private final OutputChangeListener outputChangeListener;
-
-    public ExecuteStep(
-        OutputChangeListener outputChangeListener
-    ) {
-        this.outputChangeListener = outputChangeListener;
-    }
-
+public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C, Result> {
     @Override
-    public Result execute(IncrementalChangesContext context) {
-        UnitOfWork work = context.getWork();
-
-        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
-        changingOutputs.ifPresent(outputs -> outputChangeListener.beforeOutputChange(outputs));
-        if (!changingOutputs.isPresent()) {
-            outputChangeListener.beforeOutputChange();
-        }
-        ExecutionOutcome outcome = work.execute(context);
+    public Result execute(C context) {
+        ExecutionOutcome outcome = context.getWork().execute(context);
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {

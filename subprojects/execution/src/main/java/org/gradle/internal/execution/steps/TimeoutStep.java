@@ -32,7 +32,10 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
     private final TimeoutHandler timeoutHandler;
     private final Step<? super C, ? extends Result> delegate;
 
-    public TimeoutStep(TimeoutHandler timeoutHandler, Step<? super C, ? extends Result> delegate) {
+    public TimeoutStep(
+        TimeoutHandler timeoutHandler,
+        Step<? super C, ? extends Result> delegate
+    ) {
         this.timeoutHandler = timeoutHandler;
         this.delegate = delegate;
     }
@@ -57,8 +60,7 @@ public class TimeoutStep<C extends Context> implements Step<C, Result> {
         try {
             return executeWithoutTimeout(context);
         } finally {
-            taskTimeout.stop();
-            if (taskTimeout.timedOut()) {
+            if (taskTimeout.stop()) {
                 //noinspection ResultOfMethodCallIgnored
                 Thread.interrupted();
                 //noinspection ThrowFromFinallyBlock

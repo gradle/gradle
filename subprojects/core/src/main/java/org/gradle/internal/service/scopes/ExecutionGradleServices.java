@@ -31,8 +31,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.CachingContext;
-import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -42,18 +40,20 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.PrepareCachingStep;
+import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.SnapshotOutputStep;
+import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -116,22 +116,25 @@ public class ExecutionGradleServices {
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
+        ExecutionStateChangeDetector changeDetector,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new ResolveChangesStep<UpToDateResult>(
+            new ResolveChangesStep<UpToDateResult>(changeDetector,
                 new SkipUpToDateStep<IncrementalChangesContext>(
-                    new StoreSnapshotsStep<IncrementalChangesContext>(outputFilesRepository,
-                        new PrepareCachingStep<IncrementalChangesContext, CurrentSnapshotResult>(
-                            new CacheStep<CachingContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                                new SnapshotOutputStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                    new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
+                        new StoreSnapshotsStep<IncrementalChangesContext>(
+                            new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                                new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                                     new CreateOutputsStep<IncrementalChangesContext, Result>(
                                         new CatchExceptionStep<IncrementalChangesContext>(
                                             new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
                                                 new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                    new ExecuteStep(outputChangeListener)
+                                                    new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                                                        new ExecuteStep<IncrementalChangesContext>()
+                                                    )
                                                 )
                                             )
                                         )

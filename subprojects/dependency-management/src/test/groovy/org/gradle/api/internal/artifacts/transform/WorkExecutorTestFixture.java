@@ -28,6 +28,7 @@ import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -100,6 +101,7 @@ public class WorkExecutorTestFixture {
             buildCacheController,
             cancellationToken,
             buildInvocationScopeId,
+            new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,
             new DefaultTimeoutHandler(null)

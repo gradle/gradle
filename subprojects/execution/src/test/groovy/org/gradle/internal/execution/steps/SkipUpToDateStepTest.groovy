@@ -16,20 +16,21 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSortedMap
+import org.gradle.caching.internal.origin.OriginMetadata
+import org.gradle.internal.Try
 import org.gradle.internal.change.ChangeVisitor
 import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.Step
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.SnapshotResult
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.testing.internal.util.Specification
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
-class SkipUpToDateStepTest extends Specification {
-    def delegate = Mock(Step)
+class SkipUpToDateStepTest extends StepSpec {
     def step = new SkipUpToDateStep<IncrementalChangesContext>(delegate)
     def context = Mock(IncrementalChangesContext)
-    def work = Mock(UnitOfWork)
+
     def changes = Mock(ExecutionStateChanges)
 
     def "skips when outputs are up to date"() {
@@ -46,6 +47,11 @@ class SkipUpToDateStepTest extends Specification {
     }
 
     def "executes when outputs are not up to date"() {
+        def delegateResult = Mock(SnapshotResult)
+        def delegateOutcome = Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+        def delegateOriginMetadata = Mock(OriginMetadata)
+        def delegateFinalOutputs = ImmutableSortedMap.copyOf([test: EmptyCurrentFileCollectionFingerprint.EMPTY])
+
         when:
         def result = step.execute(context)
 
@@ -57,16 +63,43 @@ class SkipUpToDateStepTest extends Specification {
         1 * changes.visitAllChanges(_) >> { ChangeVisitor visitor ->
             visitor.visitChange(new DescriptiveChange("change"))
         }
-        1 * delegate.execute(context)
+        1 * delegate.execute(context) >> delegateResult
+        0 * _
+
+        when:
+        def outcome = result.outcome
+
+        then:
+        outcome == delegateOutcome
+
+        1 * delegateResult.outcome >> delegateOutcome
+        0 * _
+
+        when:
+        def originMetadata = result.originMetadata
+
+        then:
+        originMetadata == delegateOriginMetadata
+
+        1 * delegateResult.originMetadata >> delegateOriginMetadata
+        0 * _
+
+        when:
+        def finalOutputs = result.finalOutputs
+
+        then:
+        finalOutputs == delegateFinalOutputs
+
+        1 * delegateResult.finalOutputs >> delegateFinalOutputs
         0 * _
     }
 
-    def "executes when there's no history available"() {
+    def "executes when change tracking is disabled"() {
         when:
         def result = step.execute(context)
 
         then:
-        result.executionReasons == ["No history is available."]
+        result.executionReasons == ["Change tracking is disabled."]
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.empty()

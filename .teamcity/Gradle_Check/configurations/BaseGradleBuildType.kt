@@ -1,7 +1,7 @@
 package configurations
 
+import common.BuildCache
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import model.BuildCache
 import model.CIBuildModel
 import model.Stage
 

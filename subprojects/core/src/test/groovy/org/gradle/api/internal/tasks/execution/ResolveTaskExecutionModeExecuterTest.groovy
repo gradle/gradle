@@ -74,7 +74,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
         1 * outputs.visitRegisteredProperties(_)
 
         then: 'delegate is executed'
-        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
 
         then: 'task artifact state is removed from taskContext'
         1 * outputs.setPreviousOutputFiles(null)

@@ -23,7 +23,6 @@ import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -31,30 +30,25 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import java.util.Optional;
 
 public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C, CurrentSnapshotResult> {
-    private final OutputFilesRepository outputFilesRepository;
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public StoreSnapshotsStep(
-        OutputFilesRepository outputFilesRepository,
         Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
-        this.outputFilesRepository = outputFilesRepository;
         this.delegate = delegate;
     }
 
     @Override
-    // TODO Return a simple Result (that includes the origin metadata) here
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getOutcome().isSuccessful();
-            Optional<AfterPreviousExecutionState> afterPreviousExecutionState = context.getAfterPreviousExecutionState();
-            // Only persist history if there was no failure, or some output files have been changed
-            UnitOfWork work = context.getWork();
+            // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
+            // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
             if (successful
-                || !afterPreviousExecutionState.isPresent()
-                || hasAnyOutputFileChanges(afterPreviousExecutionState.get().getOutputFileProperties(), finalOutputs)) {
+                || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
+                UnitOfWork work = context.getWork();
                 work.getExecutionHistoryStore().store(
                     work.getIdentity(),
                     result.getOriginMetadata(),
@@ -67,15 +61,23 @@ public class StoreSnapshotsStep<C extends IncrementalContext> implements Step<C,
                 );
             }
         });
-        outputFilesRepository.recordOutputs(finalOutputs.values());
-
         return result;
     }
 
-    private static boolean hasAnyOutputFileChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static boolean didChangeOutput(Optional<AfterPreviousExecutionState> afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        // If there is no previous state, then we do have output changes
+        if (!afterPreviousExecutionState.isPresent()) {
+            return true;
+        }
+
+        // If there are different output properties compared to the previous execution, then we do have output changes
+        ImmutableSortedMap<String, FileCollectionFingerprint> previous = afterPreviousExecutionState.get().getOutputFileProperties();
         if (!previous.keySet().equals(current.keySet())) {
             return true;
         }
+
+        // Otherwise do deep compare of outputs
         ChangeDetectorVisitor visitor = new ChangeDetectorVisitor();
         OutputFileChanges changes = new OutputFileChanges(previous, current, true);
         changes.accept(visitor);

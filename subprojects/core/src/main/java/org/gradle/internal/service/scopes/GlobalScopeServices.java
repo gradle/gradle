@@ -70,6 +70,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
+import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.hash.DefaultStreamHasher;
@@ -354,5 +356,9 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     Clock createClock() {
         return Time.clock();
+    }
+
+    ExecutionStateChangeDetector createExecutionStateChangeDetector() {
+        return new DefaultExecutionStateChangeDetector();
     }
 }

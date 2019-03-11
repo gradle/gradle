@@ -54,12 +54,8 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         }
 
         @Override
-        public void stop() {
+        public boolean stop() {
             timeoutTask.cancel(true);
-        }
-
-        @Override
-        public boolean timedOut() {
             return interrupter.interrupted;
         }
     }
