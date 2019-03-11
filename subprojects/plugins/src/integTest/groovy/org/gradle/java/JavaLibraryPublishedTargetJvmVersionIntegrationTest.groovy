@@ -50,27 +50,27 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
                 .adhocVariants()
                 .variant("apiElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '6',
+                'org.gradle.jvm.version': 6,
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("apiElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '7',
+                'org.gradle.jvm.version': 7,
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("apiElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '9',
+                'org.gradle.jvm.version': 9,
                 'org.gradle.usage': 'java-api-jars'], { artifact('producer-1.0-jdk9.jar') })
                 .variant("runtimeElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '6',
+                'org.gradle.jvm.version': 6,
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk6.jar') })
                 .variant("runtimeElementsJdk7", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '7',
+                'org.gradle.jvm.version': 7,
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk7.jar') })
                 .variant("runtimeElementsJdk9", [
                 'org.gradle.dependency.bundling': 'external',
-                'org.gradle.jvm.version': '9',
+                'org.gradle.jvm.version': 9,
                 'org.gradle.usage': 'java-runtime-jars'], { artifact('producer-1.0-jdk9.jar') })
                 .publish()
 
