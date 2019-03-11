@@ -25,9 +25,9 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnapshotResult> {
+public class CacheStep<C extends IncrementalChangesContext> implements Step<C, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
 
     private final BuildCacheController buildCache;
@@ -63,7 +63,7 @@ public class CacheStep<C extends CachingContext> implements Step<C, CurrentSnaps
         if (!buildCache.isEnabled()) {
             return executeWithoutCache(context);
         }
-        CacheHandler cacheHandler = context.getCacheHandler();
+        CacheHandler cacheHandler = context.getWork().createCacheHandler();
         return cacheHandler
             .load(cacheKey -> load(context.getWork(), cacheKey))
             .map(loadResult -> {

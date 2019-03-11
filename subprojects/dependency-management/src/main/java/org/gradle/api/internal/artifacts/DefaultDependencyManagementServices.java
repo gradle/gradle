@@ -117,7 +117,6 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
-import org.gradle.internal.execution.steps.PrepareCachingStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
@@ -208,14 +207,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new ResolveChangesStep<>(changeDetector,
                     new SkipUpToDateStep<>(
                         new StoreSnapshotsStep<>(
-                            new PrepareCachingStep<>(
-                                new SnapshotOutputsStep<>(fixedUniqueId,
-                                    new CreateOutputsStep<>(
-                                        new CatchExceptionStep<>(
-                                            new TimeoutStep<>(timeoutHandler,
-                                                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                    new ExecuteStep<>()
-                                                )
+                            new SnapshotOutputsStep<>(fixedUniqueId,
+                                new CreateOutputsStep<>(
+                                    new CatchExceptionStep<>(
+                                        new TimeoutStep<>(timeoutHandler,
+                                            new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                                new ExecuteStep<>()
                                             )
                                         )
                                     )
