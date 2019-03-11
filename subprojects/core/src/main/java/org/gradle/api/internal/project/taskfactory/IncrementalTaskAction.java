@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
 import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
-import org.gradle.api.internal.changedetection.changes.StatefulIncrementalTaskInputs;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -31,8 +30,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
 
 import java.lang.reflect.Method;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
 
@@ -54,39 +51,29 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
     }
 
     protected void doExecute(final Task task, String methodName) {
-        IncrementalTaskInputs incrementalInputs = context.getExecutionStateChanges()
-            .map(new Function<ExecutionStateChanges, StatefulIncrementalTaskInputs>() {
-                @Override
-                public StatefulIncrementalTaskInputs apply(ExecutionStateChanges changes) {
-                    return changes.getInputFilesChanges().map(new Function<Iterable<Change>, StatefulIncrementalTaskInputs>() {
-                        @Override
-                        public StatefulIncrementalTaskInputs apply(Iterable<Change> changes) {
-                            return createIncrementalInputs(changes);
-                        }
-                    }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
-                        @Override
-                        public StatefulIncrementalTaskInputs get() {
-                            return createRebuildInputs(task);
-                        }
-                    });
-                }
-            }).orElseGet(new Supplier<StatefulIncrementalTaskInputs>() {
-                @Override
-                public StatefulIncrementalTaskInputs get() {
-                    return createRebuildInputs(task);
-                }
-            });
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        ExecutionStateChanges changes = context.getExecutionStateChanges().get();
+        IncrementalTaskInputs incrementalTaskInputs = changes.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<IncrementalTaskInputs>() {
+            @Override
+            public IncrementalTaskInputs visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
+                return createRebuildInputs(task, allFileInputs);
+            }
 
-        context.setTaskExecutedIncrementally(incrementalInputs.isIncremental());
-        JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalInputs);
+            @Override
+            public IncrementalTaskInputs visitIncrementalChange(Iterable<Change> inputFileChanges) {
+                return createIncrementalInputs(inputFileChanges);
+            }
+        });
+
+        context.setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
+        JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 
     private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
         return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
     }
 
-    private RebuildIncrementalTaskInputs createRebuildInputs(Task task) {
-        ImmutableCollection<CurrentFileCollectionFingerprint> currentInputs = context.getBeforeExecutionState().get().getInputFileProperties().values();
-        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs);
+    private RebuildIncrementalTaskInputs createRebuildInputs(Task task, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs) {
+        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs.values());
     }
 }

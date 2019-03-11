@@ -28,8 +28,6 @@ import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 
-import java.util.Optional;
-
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
     public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs) {
@@ -80,7 +78,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         return new DetectedExecutionStateChanges(
             errorHandling(executable, inputFileChanges),
             errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
-            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges))
+            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges)),
+            thisExecution
         );
     }
 
@@ -96,25 +95,18 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         private final ChangeContainer inputFileChanges;
         private final ChangeContainer allChanges;
         private final ChangeContainer rebuildTriggeringChanges;
+        private final BeforeExecutionState thisExecution;
 
         public DetectedExecutionStateChanges(
             ChangeContainer inputFileChanges,
             ChangeContainer allChanges,
-            ChangeContainer rebuildTriggeringChanges
+            ChangeContainer rebuildTriggeringChanges,
+            BeforeExecutionState thisExecution
         ) {
             this.inputFileChanges = inputFileChanges;
             this.allChanges = allChanges;
             this.rebuildTriggeringChanges = rebuildTriggeringChanges;
-        }
-
-        @Override
-        public Optional<Iterable<Change>> getInputFilesChanges() {
-            if (isRebuildRequired()) {
-                return Optional.empty();
-            }
-            CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-            inputFileChanges.accept(visitor);
-            return Optional.of(visitor.getChanges());
+            this.thisExecution = thisExecution;
         }
 
         @Override
@@ -122,10 +114,22 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             allChanges.accept(visitor);
         }
 
+        @Override
+        public <T> T visitInputFileChanges(IncrementalInputsVisitor<T> visitor) {
+            return isRebuildRequired() ?
+                visitor.visitRebuild(thisExecution.getInputFileProperties()) : visitor.visitIncrementalChange(collectInputFileChanges());
+        }
+
         private boolean isRebuildRequired() {
             ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
             rebuildTriggeringChanges.accept(changeDetectorVisitor);
             return changeDetectorVisitor.hasAnyChanges();
+        }
+
+        private Iterable<Change> collectInputFileChanges() {
+            CollectingChangeVisitor visitor = new CollectingChangeVisitor();
+            inputFileChanges.accept(visitor);
+            return visitor.getChanges();
         }
     }
 }

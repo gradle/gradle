@@ -16,25 +16,26 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-
-import java.util.Optional;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 /**
  * Represents the complete changes in execution state
  */
 public interface ExecutionStateChanges {
 
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
-
-    /**
-     * Returns changes to input files only, or {@link Optional#empty()} if a full rebuild is required.
-     */
-    Optional<Iterable<Change>> getInputFilesChanges();
-
     /**
      * Visits any change to inputs or outputs.
      */
     void visitAllChanges(ChangeVisitor visitor);
+
+    <T> T visitInputFileChanges(IncrementalInputsVisitor<T> visitor);
+
+    interface IncrementalInputsVisitor<T> {
+        T visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs);
+
+        T visitIncrementalChange(Iterable<Change> inputFileChanges);
+    }
 }

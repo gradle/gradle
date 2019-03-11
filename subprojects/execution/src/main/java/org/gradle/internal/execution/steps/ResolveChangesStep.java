@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
@@ -28,7 +29,9 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
@@ -48,12 +51,13 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     @Override
     public R execute(IncrementalContext context) {
         UnitOfWork work = context.getWork();
+        Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason))
+                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason), beforeExecutionState.orElse(null))
             )
             .orElseGet(() ->
-                context.getBeforeExecutionState()
+                beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
                         .map(afterPreviousExecution -> changeDetector.detectChanges(
                             afterPreviousExecution,
@@ -61,7 +65,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             work,
                             !work.isAllowOverlappingOutputs())
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY))
+                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution))
                     )
                     .orElse(null)
             );
@@ -84,7 +88,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
+                return beforeExecutionState;
             }
 
             @Override
@@ -96,19 +100,25 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
         private final Change rebuildChange;
+        private final BeforeExecutionState beforeExecutionState;
 
-        public RebuildExecutionStateChanges(Change rebuildChange) {
+        public RebuildExecutionStateChanges(Change rebuildChange, @Nullable BeforeExecutionState beforeExecutionState) {
             this.rebuildChange = rebuildChange;
-        }
-
-        @Override
-        public Optional<Iterable<Change>> getInputFilesChanges() {
-            return Optional.empty();
+            this.beforeExecutionState = beforeExecutionState;
         }
 
         @Override
         public void visitAllChanges(ChangeVisitor visitor) {
             visitor.visitChange(rebuildChange);
+        }
+
+        @Override
+        public <T> T visitInputFileChanges(IncrementalInputsVisitor<T> visitor) {
+            if (beforeExecutionState == null) {
+                throw new UnsupportedOperationException("Cannot query incremental inputs when input tracking is disabled.");
+            }
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties = beforeExecutionState.getInputFileProperties();
+            return visitor.visitRebuild(inputFileProperties);
         }
     }
 }
