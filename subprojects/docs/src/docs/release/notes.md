@@ -15,6 +15,7 @@ We would like to thank the following community contributors to this release of G
 [Ricardo Pereira](https://github.com/thc202),
 [Thad House](https://github.com/ThadHouse),
 [Joe Kutner](https://github.com/jkutner),
+[James Nelson](https://github.com/JamesXNelson),
 and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
