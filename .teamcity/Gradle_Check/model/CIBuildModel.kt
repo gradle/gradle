@@ -84,7 +84,7 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.quick, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk)
+                        TestCoverage(TestType.quick, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
                         TestCoverage(TestType.quick, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk),
                         TestCoverage(TestType.platform, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
                         TestCoverage(TestType.platform, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk))
