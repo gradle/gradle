@@ -168,7 +168,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                     variant("apiElements", [
                             'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': '7',
+                            'org.gradle.jvm.version': 7,
                             'org.gradle.usage':'java-api-jars'
                     ])
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
