@@ -26,14 +26,7 @@ import org.junit.experimental.categories.Category
 @Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
 class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest {
-    int maxBuilds
-    String heapSize
-    int leakRate
-    Closure setupBuildScript
-
     def setup() {
-        buildFile << "${logJdk()}"
-
         // Set JVM args for GC
         String jvmArgs = ""
         if (file('gradle.properties').exists()) {
@@ -47,23 +40,18 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
     def "when build leaks slowly daemon is eventually expired"() {
         when:
-        setupBuildScript = tenuredHeapLeak
-        maxBuilds = builds
-        heapSize = heap
-        leakRate = rate
-
+        setupTenuredHeapLeak(leakRate)
         then:
-        daemonIsExpiredEagerly()
+        daemonIsExpiredEagerly(maxBuilds, heapSize)
 
         where:
-        builds | heap    | rate
-        45     | "200m"  | 600
-        40     | "1024m" | 4000
+        maxBuilds | heapSize | leakRate
+        45        | "200m"   | 600
+        40        | "1024m"  | 4000
     }
 
-    private boolean daemonIsExpiredEagerly() {
+    private boolean daemonIsExpiredEagerly(int maxBuilds, String heapSize) {
         def dataFile = file("stats")
-        setupBuildScript()
         int newDaemons = 0
         try {
             for (int i = 0; i < maxBuilds; i++) {
@@ -88,8 +76,10 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         return false
     }
 
-    private final Closure tenuredHeapLeak = {
+    private final void setupTenuredHeapLeak(int leakRate) {
         buildFile << """
+            logger.warn("Build is running with JDK: " + System.getProperty('java.home'))
+
             class State {
                 static int x
                 static map = [:]
@@ -113,20 +103,5 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
                 throw new OutOfMemoryError(e?.message?.replace(' ', '_'))
             }
         """
-    }
-
-    private final Closure greedyBuildNoLeak = {
-        buildFile << """
-            Map map = [:]
-
-            //simulate normal collectible objects
-            5000.times {
-                map.put(it, "foo" * ${leakRate})
-            }
-        """
-    }
-
-    String logJdk() {
-        return """logger.warn("Build is running with JDK: \${System.getProperty('java.home')}")"""
     }
 }
