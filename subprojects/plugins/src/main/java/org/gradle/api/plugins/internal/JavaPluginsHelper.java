@@ -23,7 +23,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.compile.AbstractCompile;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -34,15 +34,15 @@ import java.util.Date;
  * into the public API.
  */
 public class JavaPluginsHelper {
-    public static void registerClassesDirVariant(final Provider<JavaCompile> javaCompile, ObjectFactory objectFactory, Configuration configuration) {
+    public static void registerClassesDirVariant(final Provider<? extends AbstractCompile> compileTask, ObjectFactory objectFactory, Configuration configuration) {
         // Define a classes variant to use for compilation
         ConfigurationPublications publications = configuration.getOutgoing();
-        ConfigurationVariant variant = publications.getVariants().create("classes");
+        ConfigurationVariant variant = publications.getVariants().maybeCreate("classes");
         variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API_CLASSES));
-        variant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, javaCompile) {
+        variant.artifact(new IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, compileTask) {
             @Override
             public File getFile() {
-                return javaCompile.get().getDestinationDir();
+                return compileTask.get().getDestinationDir();
             }
         });
     }
