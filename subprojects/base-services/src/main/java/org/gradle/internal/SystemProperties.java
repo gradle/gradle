@@ -71,32 +71,28 @@ public class SystemProperties {
     private SystemProperties() {
     }
 
-    public synchronized String getLineSeparator() {
+    public String getLineSeparator() {
         return System.getProperty("line.separator");
     }
 
-    public synchronized String getJavaIoTmpDir() {
+    public String getJavaIoTmpDir() {
         return System.getProperty("java.io.tmpdir");
     }
 
-    public synchronized String getUserHome() {
+    public String getUserHome() {
         return System.getProperty("user.home");
     }
 
-    public synchronized String getUserName() {
+    public String getUserName() {
         return System.getProperty("user.name");
     }
 
-    public synchronized String getJavaVersion() {
+    public String getJavaVersion() {
         return System.getProperty("java.version");
     }
 
-    public synchronized File getCurrentDir() {
+    public File getCurrentDir() {
         return new File(System.getProperty("user.dir"));
-    }
-
-    public synchronized File getJavaHomeDir() {
-        return new File(System.getProperty("java.home"));
     }
 
     /**

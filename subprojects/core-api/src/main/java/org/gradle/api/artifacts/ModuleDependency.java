@@ -54,10 +54,10 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * then consider using forced versions' feature: {@link ResolutionStrategy#force(Object...)}.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that I can declare 'compile' dependencies
+     * apply plugin: 'java' //so that I can declare 'implementation' dependencies
      *
      * dependencies {
-     *   compile('org.hibernate:hibernate:3.1') {
+     *   implementation('org.hibernate:hibernate:3.1') {
      *     //excluding a particular transitive dependency:
      *     exclude module: 'cglib' //by artifact name
      *     exclude group: 'org.jmock' //by group

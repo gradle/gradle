@@ -28,7 +28,7 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
         final int threadCount = 100
         Factory<String> factory = Mock()
         String factoryCreationResult = 'test'
-        File originalJavaHomeDir = SystemProperties.instance.javaHomeDir
+        File originalJavaHomeDir = new File(System.properties['java.home'] as String)
         File providedJavaHomeDir = temporaryFolder.file('my/test/java/home/toolprovider')
 
         when:
@@ -43,10 +43,10 @@ class SystemPropertiesIntegrationTest extends ConcurrentSpec {
 
         then:
         threadCount * factory.create() >> {
-            assert SystemProperties.instance.javaHomeDir == providedJavaHomeDir
+            assert new File(System.properties['java.home'] as String) == providedJavaHomeDir
             factoryCreationResult
         }
-        assert SystemProperties.instance.javaHomeDir == originalJavaHomeDir
+        assert new File(System.properties['java.home'] as String) == originalJavaHomeDir
     }
 
     def "sets a system property for the duration of a Factory operation"() {

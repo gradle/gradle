@@ -140,6 +140,10 @@ public abstract class JavaEcosystemSupport {
                     } else if (candidateValues.contains(javaApi)) {
                         // Prefer the API over the runtime when the API has been requested
                         details.closestMatch(javaApi);
+                    } else if (candidateValues.contains(javaRuntimeClasses)) {
+                        details.closestMatch(javaRuntimeClasses);
+                    } else if (candidateValues.contains(javaRuntimeJars)) {
+                        details.closestMatch(javaRuntimeJars);
                     }
                 } else if (runtimeVariants.contains(consumerValue)) {
                     // we're asking for a runtime variant, but no exact match was found

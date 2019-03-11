@@ -38,29 +38,29 @@ import java.util.Map;
  *
  * <pre>
  * dependencies {
- *     <i>configurationName</i> <i>dependencyNotation1</i>, <i>dependencyNotation2</i>, ...
+ *     <i>configurationName</i> <i>dependencyNotation</i>
  * }
  * </pre>
  *
  * <p>Example shows a basic way of declaring dependencies.
  * <pre class='autoTested'>
  * apply plugin: 'java'
- * //so that we can use 'compile', 'testCompile' for dependencies
+ * //so that we can use 'implementation', 'testImplementation' for dependencies
  *
  * dependencies {
  *   //for dependencies found in artifact repositories you can use
  *   //the group:name:version notation
- *   compile 'commons-lang:commons-lang:2.6'
- *   testCompile 'org.mockito:mockito:1.9.0-rc1'
+ *   implementation 'commons-lang:commons-lang:2.6'
+ *   testImplementation 'org.mockito:mockito:1.9.0-rc1'
  *
  *   //map-style notation:
- *   compile group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ *   implementation group: 'com.google.code.guice', name: 'guice', version: '1.0'
  *
  *   //declaring arbitrary files as dependencies
- *   compile files('hibernate.jar', 'libs/spring.jar')
+ *   implementation files('hibernate.jar', 'libs/spring.jar')
  *
  *   //putting all jars from 'libs' onto compile classpath
- *   compile fileTree('libs')
+ *   implementation fileTree('libs')
  * }
  * </pre>
  *
@@ -86,10 +86,10 @@ import java.util.Map;
  * </ul>
  *
  * <pre class='autoTested'>
- * apply plugin: 'java' //so that I can declare 'compile' dependencies
+ * apply plugin: 'java' //so that I can declare 'implementation' dependencies
  *
  * dependencies {
- *   compile('org.hibernate:hibernate:3.1') {
+ *   implementation('org.hibernate:hibernate:3.1') {
  *     //in case of versions conflict '3.1' version of hibernate wins:
  *     force = true
  *
@@ -111,14 +111,14 @@ import java.util.Map;
  * </ul>
  *
  * <pre class='autoTested'>
- * apply plugin: 'java' //so that I can declare 'compile' dependencies
+ * apply plugin: 'java' //so that I can declare 'implementation' dependencies
  *
  * dependencies {
  *   //configuring dependency to specific configuration of the module
- *   compile configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
+ *   implementation configuration: 'someConf', group: 'org.someOrg', name: 'someModule', version: '1.0'
  *
  *   //configuring dependency on 'someLib' module
- *   compile(group: 'org.myorg', name: 'someLib', version:'1.0') {
+ *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
  *     //explicitly adding the dependency artifact:
  *     artifact {
  *       //useful when some artifact properties unconventional
@@ -161,16 +161,16 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * apply plugin: 'java'
- * //so that we can use 'compile', 'testCompile' for dependencies
+ * //so that we can use 'implementation', 'testImplementation' for dependencies
  *
  * dependencies {
  *   //for dependencies found in artifact repositories you can use
  *   //the string notation, e.g. group:name:version
- *   compile 'commons-lang:commons-lang:2.6'
- *   testCompile 'org.mockito:mockito:1.9.0-rc1'
+ *   implementation 'commons-lang:commons-lang:2.6'
+ *   testImplementation 'org.mockito:mockito:1.9.0-rc1'
  *
  *   //map notation:
- *   compile group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ *   implementation group: 'com.google.code.guice', name: 'guice', version: '1.0'
  * }
  * </pre>
  *
@@ -195,14 +195,14 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * apply plugin: 'java'
- * //so that we can use 'compile', 'testCompile' for dependencies
+ * //so that we can use 'implementation', 'testImplementation' for dependencies
  *
  * dependencies {
  *   //declaring arbitrary files as dependencies
- *   compile files('hibernate.jar', 'libs/spring.jar')
+ *   implementation files('hibernate.jar', 'libs/spring.jar')
  *
  *   //putting all jars from 'libs' onto compile classpath
- *   compile fileTree('libs')
+ *   implementation fileTree('libs')
  * }
  * </pre>
  *
@@ -225,17 +225,17 @@ import java.util.Map;
  * <pre class='autoTested'>
  * //Our Gradle plugin is written in groovy
  * apply plugin: 'groovy'
- * //now we can use the 'compile' configuration for declaring dependencies
+ * //now we can use the 'implementation' configuration for declaring dependencies
  *
  * dependencies {
  *   //we will use the Groovy version that ships with Gradle:
- *   compile localGroovy()
+ *   implementation localGroovy()
  *
  *   //our plugin requires Gradle API interfaces and classes to compile:
- *   compile gradleApi()
+ *   implementation gradleApi()
  *
  *   //we will use the Gradle test-kit to test build logic:
- *   testCompile gradleTestKit()
+ *   testImplementation gradleTestKit()
  * }
  * </pre>
  *

@@ -48,7 +48,8 @@ public class DefaultSslContextFactory implements SslContextFactory {
         "javax.net.ssl.keyStoreType",
         "javax.net.ssl.keyStore",
         "javax.net.ssl.keyStoreProvider",
-        "javax.net.ssl.keyStorePassword"
+        "javax.net.ssl.keyStorePassword",
+        "java.home"
     );
 
     private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(new SslContextCacheLoader());
@@ -66,7 +67,6 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 for (String prop : SSL_SYSTEM_PROPERTIES) {
                     currentProperties.put(prop, System.getProperty(prop));
                 }
-                currentProperties.put("java.home", SystemProperties.getInstance().getJavaHomeDir().getPath());
                 return currentProperties;
             }
         });

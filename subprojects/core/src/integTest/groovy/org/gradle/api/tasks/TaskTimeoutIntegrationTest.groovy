@@ -152,6 +152,11 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "timeout stops long running work items with #isolationMode isolation"() {
         given:
+        if (isolationMode == IsolationMode.PROCESS) {
+            // worker starting threads can be interrupted during worker startup and cause a 'Could not initialise system classpath' exception.
+            // See: https://github.com/gradle/gradle/issues/8699
+            executer.withStackTraceChecksDisabled()
+        }
         buildFile << """
             import java.util.concurrent.CountDownLatch;
             import java.util.concurrent.TimeUnit;
@@ -193,6 +198,9 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         fails "block"
         failure.assertHasDescription("Execution failed for task ':block'.")
         failure.assertHasCause("Timeout has been exceeded")
+        if (isolationMode == IsolationMode.PROCESS && failure.output.contains("Caused by:")) {
+            assert failure.output.contains("Error occurred during initialization of VM")
+        }
 
         where:
         isolationMode << IsolationMode.values()

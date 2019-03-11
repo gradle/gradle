@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -168,7 +169,9 @@ project(':app') {
 
     dependencies {
         registerTransform {
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_CLASSES))
             from.attribute(artifactType, 'java-classes-directory')
+            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             to.attribute(artifactType, 'final')
             
             if (project.hasProperty('extraAttribute')) {
@@ -179,7 +182,9 @@ project(':app') {
             artifactTransform(TestTransform)
         }
         registerTransform {
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API_JARS))
             from.attribute(artifactType, 'jar')
+            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             to.attribute(artifactType, 'magic-jar')
 
             if (project.hasProperty('extraAttribute')) {
@@ -478,5 +483,125 @@ task resolve(type: Copy) {
         output.count("Minifying") == 1
         output.count('minified=true')
         output.count('Sizing') == 0
+    }
+
+    @Unroll
+    def "disambiguation leverages schema rules before doing it size based"() {
+        given:
+        settingsFile << """
+include('child')
+"""
+        buildFile << """
+def artifactType = Attribute.of('artifactType', String)
+
+apply plugin: 'java-library'
+
+allprojects {
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+}
+
+project(':child') {
+    configurations {
+        runtimeElements {
+            canBeResolved = false
+            attributes {
+                attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            }
+        }
+    }
+    
+    
+    artifacts {
+        buildDir.mkdirs()
+        file("\$buildDir/test.jar").text = "toto"
+        runtimeElements file("\$buildDir/test.jar")
+    }
+}
+
+dependencies {
+    api project(':child')
+    
+    artifactTypes.getByName("jar") {
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
+    }
+    
+    if ($apiFirst) {
+        registerTransform {
+            from.attribute(artifactType, 'jar')
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
+            to.attribute(artifactType, 'jar')
+            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            artifactTransform(Identity)
+        }
+    }
+    registerTransform {
+        from.attribute(artifactType, 'jar')
+        from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
+        to.attribute(artifactType, 'jar')
+        to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        artifactTransform(IllegalTransform)
+    }
+    if (!$apiFirst) {
+        registerTransform {
+            from.attribute(artifactType, 'jar')
+            from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
+            to.attribute(artifactType, 'jar')
+            to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            artifactTransform(Identity)
+        }
+    }
+    registerTransform {
+        from.attribute(artifactType, 'jar')
+        to.attribute(artifactType, 'size')
+        artifactTransform(FileSizer)
+    }
+}
+
+class Identity extends ArtifactTransform {
+    List<File> transform(File input) {
+        return [input]
+    }
+}
+
+class IllegalTransform extends ArtifactTransform {
+    List<File> transform(File input) {
+        throw new IllegalStateException("IllegalTransform should not be invoked")
+    }
+}
+
+class FileSizer extends ArtifactTransform {
+    List<File> transform(File input) {
+        assert outputDirectory.directory && outputDirectory.list().length == 0
+        def output = new File(outputDirectory, input.name + ".txt")
+        println "Sizing \${input.name} to \${output.name}"
+        output.text = String.valueOf(input.length())
+        return [output]
+    }
+}
+
+task resolve(type: Copy) {
+    def artifacts = configurations.compileClasspath.incoming.artifactView {
+        attributes { it.attribute(artifactType, 'size') }
+    }.artifacts
+    from artifacts.artifactFiles
+    into "\${buildDir}/libs"
+    doLast {
+        println "files: " + artifacts.collect { it.file.name }
+        println "ids: " + artifacts.collect { it.id }
+        println "components: " + artifacts.collect { it.id.componentIdentifier }
+        println "variants: " + artifacts.collect { it.variant.attributes }
+    }
+}
+"""
+        when:
+        succeeds "resolve"
+
+        then:
+        output.contains('variants: [{artifactType=size, org.gradle.dependency.bundling=external, org.gradle.usage=java-api}]')
+
+        where:
+        apiFirst << [true, false]
     }
 }

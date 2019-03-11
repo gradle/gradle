@@ -49,32 +49,36 @@ import org.gradle.internal.HasInternalProtocol;
  * An example showing how to refer to a given configuration by name
  * in order to get hold of all dependencies (e.g. jars, but only)
  * <pre class='autoTested'>
- *   apply plugin: 'java' //so that I can use 'compile' configuration
+ *   apply plugin: 'java' //so that I can use 'implementation', 'compileClasspath' configuration
  *
- *   //copying all dependencies attached to 'compile' into a specific folder
+ *   dependencies {
+ *       implementation 'org.slf4j:slf4j-api:1.7.26'
+ *   }
+ *
+ *   //copying all dependencies attached to 'compileClasspath' into a specific folder
  *   task copyAllDependencies(type: Copy) {
- *     //referring to the 'compile' configuration
- *     from configurations.compile
+ *     //referring to the 'compileClasspath' configuration
+ *     from configurations.compileClasspath
  *     into 'allLibs'
  *   }
  * </pre>
  *
  * An example showing how to declare and configure configurations
  * <pre class='autoTested'>
- * apply plugin: 'java' //so that I can use 'compile', 'testCompile' configurations
+ * apply plugin: 'java' //so that I can use 'implementation', 'testImplementation' configurations
  *
  * configurations {
  *   //adding a configuration:
  *   myConfiguration
  *
  *   //adding a configuration that extends existing configuration:
- *   //(testCompile was added by the java plugin)
- *   myIntegrationTestsCompile.extendsFrom(testCompile)
+ *   //(testImplementation was added by the java plugin)
+ *   myIntegrationTestsCompile.extendsFrom(testImplementation)
  *
  *   //configuring existing configurations not to put transitive dependencies on the compile classpath
  *   //this way you can avoid issues with implicit dependencies to transitive libraries
- *   compile.transitive = false
- *   testCompile.transitive = false
+ *   compileClasspath.transitive = false
+ *   testCompileClasspath.transitive = false
  * }
  * </pre>
  *
