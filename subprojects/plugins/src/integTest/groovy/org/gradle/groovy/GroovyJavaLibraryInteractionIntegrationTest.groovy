@@ -56,29 +56,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         dependencies {
                           $consumerConf project(':groovyLib')
                         }
-                        
-                        task assertDependsOnGroovyLib {
-                            dependsOn compileJava
-                            doLast {
-                                ${
-                    expected == 'classes' ? '''
-                                    def classesDirs = ['compileJava', 'compileGroovy']
-                                            .collect { project(':groovyLib').tasks[it].destinationDir }
-                                    
-                                    assert compileJava.classpath.files.size() == 2
-                                    assert compileJava.classpath.files.containsAll(classesDirs)
-                                ''' : '''
-                                    def jarFile = project(':groovyLib').tasks.jar.archiveFile.get().asFile
-                                    
-                                    assert compileJava.classpath.files.size() == 1
-                                    assert compileJava.classpath.files.contains(jarFile)
-                                    def openJar = new java.util.jar.JarFile(jarFile)
-                                    assert openJar.getJarEntry("GroovyClass.class")
-                                    openJar.close()
-                                '''
-                }
-                            }
-                        }
                 """
             }
         }
