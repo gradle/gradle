@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.server.health
 
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
+import org.gradle.launcher.daemon.server.health.gc.DefaultGarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
 import spock.lang.Specification
@@ -27,7 +27,7 @@ class DaemonHealthStatsTest extends Specification {
 
     def listenerManager = new DefaultListenerManager()
     def gcInfo = Stub(GarbageCollectionInfo)
-    def gcMonitor = Stub(GarbageCollectionMonitor)
+    def gcMonitor = Stub(DefaultGarbageCollectionMonitor)
     def runningStats = Stub(DaemonRunningStats)
     def healthStats = new DaemonHealthStats(runningStats, gcInfo, gcMonitor)
 

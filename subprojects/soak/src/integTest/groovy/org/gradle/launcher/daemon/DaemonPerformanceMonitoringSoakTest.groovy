@@ -17,21 +17,11 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
-import org.gradle.launcher.daemon.fixtures.JdkVendor
-import org.gradle.launcher.daemon.server.DaemonStateCoordinator
-import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrategy
 import org.gradle.soak.categories.SoakTest
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
-import spock.lang.Unroll
-
-import static org.junit.Assume.assumeTrue
 
 @Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
@@ -55,8 +45,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         )
     }
 
-    @Unroll
-    def "when build leaks slowly daemon is eventually expired (heap: #heap)"() {
+    def "when build leaks slowly daemon is eventually expired"() {
         when:
         setupBuildScript = tenuredHeapLeak
         maxBuilds = builds
@@ -70,110 +59,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         builds | heap    | rate
         45     | "200m"  | 600
         40     | "1024m" | 4000
-    }
-
-    def "when build leaks within available memory the daemon is not expired"() {
-        when:
-        setupBuildScript = tenuredHeapLeak
-        maxBuilds = 20
-        heapSize = "500m"
-        leakRate = 300
-
-        then:
-        !daemonIsExpiredEagerly()
-    }
-
-    def "greedy build with no leak does not expire daemon"() {
-        when:
-        setupBuildScript = greedyBuildNoLeak
-        maxBuilds = 20
-        heapSize = "200m"
-        leakRate = 3800
-
-        then:
-        !daemonIsExpiredEagerly()
-    }
-
-    @Ignore
-    def "when leak occurs while daemon is idle daemon is still expired"() {
-        // This is so the idle timeout expiration strategy doesn't kick in
-        // before the gc monitoring expires the daemon
-        executer.withDaemonIdleTimeoutSecs(300)
-        heapSize = "200m"
-        leakRate = 900
-
-        when:
-        leaksWhenIdle()
-        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000")
-        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
-        executer.noExtraLogging()
-        run()
-
-        then:
-        daemons.daemon.assertIdle()
-
-        and:
-        String logText = daemons.daemon.log
-        ConcurrentTestUtil.poll(30) {
-            println daemons.daemon.log - logText
-            logText = daemons.daemon.log
-            daemons.daemon.assertStopped()
-        }
-
-        and:
-        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) || daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
-    }
-
-    @Ignore
-    def "when build leaks permgen space daemon is expired"() {
-        assumeTrue(version.vendor != JdkVendor.IBM)
-
-        when:
-        setupBuildScript = permGenLeak
-        maxBuilds = 30
-        heapSize = "200m"
-        leakRate = 3700
-
-        then:
-        daemonIsExpiredEagerly()
-    }
-
-    @Ignore
-    def "detects a thrashing condition" () {
-        // This is so the idle timeout expiration strategy doesn't kick in
-        // before the gc monitoring expires the daemon
-        executer.withDaemonIdleTimeoutSecs(300)
-        heapSize = "200m"
-        leakRate = 1300
-
-        when:
-        leaksWithinOneBuild()
-        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000", "--debug")
-        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xms128m", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
-        executer.noExtraLogging()
-        GradleHandle gradle = executer.start()
-
-        then:
-        ConcurrentTestUtil.poll(10) {
-            daemons.daemon.assertBusy()
-        }
-
-        when:
-        file("leak").createFile()
-
-        then:
-        ConcurrentTestUtil.poll(60) {
-            daemons.daemon.assertStopped()
-        }
-
-        and:
-        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
-
-        when:
-        ExecutionFailure failure = gradle.waitForFailure()
-
-        then:
-        failure.assertHasDescription(DaemonStoppedException.MESSAGE + ": " + GcThrashingDaemonExpirationStrategy.EXPIRATION_REASON)
     }
 
     private boolean daemonIsExpiredEagerly() {
@@ -237,92 +122,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             //simulate normal collectible objects
             5000.times {
                 map.put(it, "foo" * ${leakRate})
-            }
-        """
-    }
-
-    private final Closure leaksWhenIdle = {
-        buildFile << """
-            class State {
-                static int x
-                static map = [:]
-            }
-            State.x++
-
-            new Thread().start {
-                while (true) {
-                    logger.warn "leaking some heap"
-
-                    //simulate normal collectible objects
-                    5000.times {
-                        State.map.put(it, "foo" * ${leakRate})
-                    }
-
-                    //simulate the leak
-                    1000.times {
-                        State.map.put(UUID.randomUUID(), "foo" * ${leakRate})
-                    }
-                    sleep(750)
-                }
-            }
-        """
-    }
-
-    private final Closure permGenLeak = {
-        leakRate.times {
-            file("buildSrc/src/main/java/Generated${it}.java") << """
-                public class Generated${it} { }
-            """
-        }
-        buildFile << """
-            import java.net.URLClassLoader
-
-            class State {
-                static int x
-                static map = [:]
-            }
-            State.x++
-
-            //simulate normal perm gen usage
-            5.times {
-                ClassLoader classLoader1 = new URLClassLoader(buildscript.classLoader.URLs)
-                ${leakRate}.times {
-                    classLoader1.loadClass("Generated\${it}")
-                }
-                State.map.put("CL${it}", classLoader1)
-            }
-
-            //simulate the leak
-            ClassLoader classLoader2 = new URLClassLoader(buildscript.classLoader.URLs)
-            ${leakRate}.times {
-                classLoader2.loadClass("Generated\${it}")
-            }
-            State.map.put(UUID.randomUUID(), classLoader2)
-
-            println "Build: " + State.x
-        """
-    }
-
-    private final Closure leaksWithinOneBuild = {
-        buildFile << """
-            def map = [:]
-
-            while (true) {
-                if (file("leak").exists()) {
-                    logger.debug "leaking some heap"
-                    //simulate normal collectible objects
-                    10000.times {
-                        map.put(it, "foo" * ${leakRate})
-                    }
-
-                    //simulate the leak
-                    1000.times {
-                        map.put(UUID.randomUUID(), "foo" * ${leakRate})
-                    }
-                } else {
-                    logger.warn "waiting for leak to start"
-                }
-                sleep 1000
             }
         """
     }
