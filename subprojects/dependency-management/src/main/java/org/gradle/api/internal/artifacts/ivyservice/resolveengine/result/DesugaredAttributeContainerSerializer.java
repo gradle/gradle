@@ -37,6 +37,7 @@ public class DesugaredAttributeContainerSerializer extends AbstractSerializer<At
     private final NamedObjectInstantiator instantiator;
     private static final byte STRING_ATTRIBUTE = 1;
     private static final byte BOOLEAN_ATTRIBUTE = 2;
+    private static final byte INTEGER_ATTRIBUTE = 3;
 
     public DesugaredAttributeContainerSerializer(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator) {
         this.attributesFactory = attributesFactory;
@@ -52,6 +53,8 @@ public class DesugaredAttributeContainerSerializer extends AbstractSerializer<At
             byte type = decoder.readByte();
             if (type == BOOLEAN_ATTRIBUTE) {
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, Boolean.class), decoder.readBoolean());
+            } else if (type == INTEGER_ATTRIBUTE) {
+                attributes = attributesFactory.concat(attributes, Attribute.of(name, Integer.class), decoder.readInt());
             } else {
                 String value = decoder.readString();
                 attributes = attributesFactory.concat(attributes, Attribute.of(name, String.class), new CoercingStringValueSnapshot(value, instantiator));
@@ -68,6 +71,9 @@ public class DesugaredAttributeContainerSerializer extends AbstractSerializer<At
             if (attribute.getType().equals(Boolean.class)) {
                 encoder.writeByte(BOOLEAN_ATTRIBUTE);
                 encoder.writeBoolean((Boolean) container.getAttribute(attribute));
+            } else if (attribute.getType().equals(Integer.class)) {
+                encoder.writeByte(INTEGER_ATTRIBUTE);
+                encoder.writeInt((Integer) container.getAttribute(attribute));
             } else {
                 assert attribute.getType().equals(String.class) : "Unexpected attribute type " + attribute.getType() + " : should be " + String.class.getSimpleName();
                 encoder.writeByte(STRING_ATTRIBUTE);
