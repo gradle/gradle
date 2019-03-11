@@ -18,7 +18,6 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
@@ -38,10 +37,4 @@ public interface ExecutionStateChanges {
      * Visits any change to inputs or outputs.
      */
     void visitAllChanges(ChangeVisitor visitor);
-
-    /**
-     * The base execution the changes are calculated against.
-     */
-    // TODO Use AfterPreviousExecutionState from context instead
-    AfterPreviousExecutionState getPreviousExecution();
 }

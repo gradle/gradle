@@ -24,6 +24,7 @@ import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.SnapshotResult
+import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 
@@ -43,6 +44,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         1 * context.changes >> Optional.of(changes)
         1 * changes.visitAllChanges(_) >> {}
+        1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
 

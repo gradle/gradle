@@ -30,6 +30,7 @@ import org.gradle.internal.execution.SnapshotResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Skipping {} as it is up-to-date.", context.getWork().getDisplayName());
                 }
+                @SuppressWarnings("OptionalGetWithoutIsPresent")
+                AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecutionState().get();
                 return new UpToDateResult() {
                     @Override
                     public ImmutableList<String> getExecutionReasons() {
@@ -70,12 +73,12 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public ImmutableSortedMap<String, FileCollectionFingerprint> getFinalOutputs() {
-                        return changes.getPreviousExecution().getOutputFileProperties();
+                        return afterPreviousExecutionState.getOutputFileProperties();
                     }
 
                     @Override
                     public OriginMetadata getOriginMetadata() {
-                        return changes.getPreviousExecution().getOriginMetadata();
+                        return afterPreviousExecutionState.getOriginMetadata();
                     }
 
                     @Override

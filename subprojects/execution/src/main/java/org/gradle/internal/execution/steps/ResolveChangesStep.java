@@ -110,10 +110,5 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         public void visitAllChanges(ChangeVisitor visitor) {
             visitor.visitChange(rebuildChange);
         }
-
-        @Override
-        public AfterPreviousExecutionState getPreviousExecution() {
-            throw new UnsupportedOperationException();
-        }
     }
 }

@@ -78,7 +78,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
         return new DetectedExecutionStateChanges(
-            lastExecution,
             errorHandling(executable, inputFileChanges),
             errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
             errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges))
@@ -94,18 +93,15 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
     }
 
     private static class DetectedExecutionStateChanges implements ExecutionStateChanges {
-        private final AfterPreviousExecutionState previousExecution;
         private final ChangeContainer inputFileChanges;
         private final ChangeContainer allChanges;
         private final ChangeContainer rebuildTriggeringChanges;
 
         public DetectedExecutionStateChanges(
-            AfterPreviousExecutionState previousExecution,
             ChangeContainer inputFileChanges,
             ChangeContainer allChanges,
             ChangeContainer rebuildTriggeringChanges
         ) {
-            this.previousExecution = previousExecution;
             this.inputFileChanges = inputFileChanges;
             this.allChanges = allChanges;
             this.rebuildTriggeringChanges = rebuildTriggeringChanges;
@@ -130,11 +126,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
             rebuildTriggeringChanges.accept(changeDetectorVisitor);
             return changeDetectorVisitor.hasAnyChanges();
-        }
-
-        @Override
-        public AfterPreviousExecutionState getPreviousExecution() {
-            return previousExecution;
         }
     }
 }
