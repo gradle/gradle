@@ -122,15 +122,15 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     WorkExecutor<IncrementalContext, UpToDateResult> getExecutor() {
         new DefaultWorkExecutor<>(
-            new ResolveChangesStep<UpToDateResult>(changeDetector,
-                new SkipUpToDateStep<IncrementalChangesContext>(
-                    new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
-                        new StoreSnapshotsStep<IncrementalChangesContext>(
-                            new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                    new CatchExceptionStep<IncrementalChangesContext>(
-                                        new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
-                                            new ExecuteStep<IncrementalChangesContext>()
+            new ResolveChangesStep<>(changeDetector,
+                new SkipUpToDateStep<>(
+                    new RecordOutputsStep<>(outputFilesRepository,
+                        new BroadcastChangingOutputsStep<>(outputChangeListener,
+                            new StoreSnapshotsStep<>(
+                                new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+                                    new CreateOutputsStep<>(
+                                        new CatchExceptionStep<>(
+                                                new ExecuteStep<>()
                                         )
                                     )
                                 )

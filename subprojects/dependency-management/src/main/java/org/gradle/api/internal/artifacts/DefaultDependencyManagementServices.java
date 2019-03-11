@@ -228,13 +228,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultWorkExecutor<>(
                 new ResolveChangesStep<>(changeDetector,
                     new SkipUpToDateStep<>(
-                        new StoreSnapshotsStep<>(
-                            new SnapshotOutputsStep<>(fixedUniqueId,
-                                new CreateOutputsStep<>(
-                                    new CatchExceptionStep<>(
-                                        new TimeoutStep<>(timeoutHandler,
-                                            new BroadcastChangingOutputsStep<>(outputChangeListener,
-                                                new ExecuteStep<>()
+                        new BroadcastChangingOutputsStep<>(outputChangeListener,
+                            new StoreSnapshotsStep<>(
+                                new SnapshotOutputsStep<>(fixedUniqueId,
+                                    new CreateOutputsStep<>(
+                                        new CatchExceptionStep<>(
+                                            new TimeoutStep<>(timeoutHandler,
+                                                    new ExecuteStep<>()
                                             )
                                         )
                                     )

@@ -98,7 +98,6 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) {
-            loadListener.beforeLoad();
             try {
                 BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());

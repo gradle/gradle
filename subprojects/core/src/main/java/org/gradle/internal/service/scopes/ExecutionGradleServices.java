@@ -31,6 +31,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -126,13 +127,13 @@ public class ExecutionGradleServices {
                 new SkipUpToDateStep<IncrementalChangesContext>(
                     new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
                         new StoreSnapshotsStep<IncrementalChangesContext>(
-                            new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
-                                new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                    new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                        new CatchExceptionStep<IncrementalChangesContext>(
-                                            new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                    new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
+                            new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
+                                new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                        new CreateOutputsStep<IncrementalChangesContext, Result>(
+                                            new CatchExceptionStep<IncrementalChangesContext>(
+                                                new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
+                                                    new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
                                                         new ExecuteStep<IncrementalChangesContext>()
                                                     )
                                                 )

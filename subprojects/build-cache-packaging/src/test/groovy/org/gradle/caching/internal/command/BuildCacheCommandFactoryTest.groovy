@@ -83,7 +83,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         def result = load.load(input)
 
         then:
-        1 * loadListener.beforeLoad()
         1 * originFactory.createReader(entity) >> originReader
 
         then:
@@ -125,7 +124,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         command.load(input)
 
         then:
-        1 * loadListener.beforeLoad()
         1 * originFactory.createReader(entity) >> originReader
 
         then:
@@ -157,7 +155,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         command.load(input)
 
         then:
-        1 * loadListener.beforeLoad()
         1 * originFactory.createReader(entity) >> originReader
 
         then:

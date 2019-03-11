@@ -17,6 +17,5 @@
 package org.gradle.caching.internal.command;
 
 public interface BuildCacheLoadListener {
-    void beforeLoad();
     void afterLoadFailedAndWasCleanedUp(Throwable error);
 }
