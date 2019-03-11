@@ -70,7 +70,7 @@ dependencies {
 }
 
 // --- Enable automatic generation of API extensions -------------------
-val apiExtensionsOutputDir = file("src/generated/kotlin")
+val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
 val publishedKotlinDslPluginVersion = "1.2.5" // TODO:kotlin-dsl
 
@@ -82,7 +82,7 @@ tasks {
     }
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputFile = apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
+        outputFile.set(apiExtensionsOutputDir.get().file("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"))
         embeddedKotlinVersion = kotlinVersion
         kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
     }
@@ -93,10 +93,6 @@ tasks {
 
     sourceSets.main {
         kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
-    }
-
-    clean {
-        delete(apiExtensionsOutputDir)
     }
 
 // -- Version manifest properties --------------------------------------

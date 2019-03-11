@@ -22,13 +22,12 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import java.io.File
 
-
+@Suppress("unused")
 open class GenerateKotlinDependencyExtensions : DefaultTask() {
 
     @get:OutputFile
-    var outputFile: File? = null
+    val outputFile = project.objects.fileProperty()
 
     @get:Input
     var embeddedKotlinVersion: String? = null
@@ -39,7 +38,7 @@ open class GenerateKotlinDependencyExtensions : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun generate() {
-        outputFile!!.writeText(
+        outputFile.get().asFile.writeText(
             """$licenseHeader
 
 package org.gradle.kotlin.dsl
