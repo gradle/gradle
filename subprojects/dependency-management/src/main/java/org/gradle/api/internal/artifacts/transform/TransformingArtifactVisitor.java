@@ -79,8 +79,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        TransformationResult operation = fileResults.get(file);
-        operation.getTransformedSubject().ifSuccessfulOrElse(
+        TransformationResult result = fileResults.get(file);
+        result.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
                 for (File outputFile : transformedSubject.getFiles()) {
                     visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
