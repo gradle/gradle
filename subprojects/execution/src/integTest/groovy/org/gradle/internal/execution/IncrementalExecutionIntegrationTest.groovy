@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps
+package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
@@ -25,24 +25,22 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
-import org.gradle.internal.execution.CacheHandler
-import org.gradle.internal.execution.ExecutionException
-import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.IncrementalContext
-import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.Result
-import org.gradle.internal.execution.TestExecutionHistoryStore
-import org.gradle.internal.execution.TestOutputFilesRepository
-import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UpToDateResult
-import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
+import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.CreateOutputsStep
+import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.RecordOutputsStep
+import org.gradle.internal.execution.steps.ResolveChangesStep
+import org.gradle.internal.execution.steps.SkipUpToDateStep
+import org.gradle.internal.execution.steps.SnapshotOutputsStep
+import org.gradle.internal.execution.steps.StoreSnapshotsStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
@@ -68,7 +66,7 @@ import java.util.function.Supplier
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
 
-class IncrementalExecutionTest extends Specification {
+class IncrementalExecutionIntegrationTest extends Specification {
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
@@ -97,7 +95,9 @@ class IncrementalExecutionTest extends Specification {
             return HashCode.fromInt(1234)
         }
     }
-    def outputFilesRepository = new TestOutputFilesRepository()
+    def outputFilesRepository = Stub(OutputFilesRepository) {
+        isGeneratedByGradle() >> true
+    }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher)
 
     final outputFile = temporaryFolder.file("output-file")
@@ -703,8 +703,8 @@ class IncrementalExecutionTest extends Specification {
         }
         private Map<String, Object> inputProperties = [prop: "value"]
         private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
-        private Map<String, ? extends Collection<? extends File>> outputFiles = IncrementalExecutionTest.this.outputFiles
-        private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionTest.this.outputDirs
+        private Map<String, ? extends Collection<? extends File>> outputFiles = IncrementalExecutionIntegrationTest.this.outputFiles
+        private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
         private
@@ -789,7 +789,7 @@ class IncrementalExecutionTest extends Specification {
 
                 @Override
                 ExecutionHistoryStore getExecutionHistoryStore() {
-                    return IncrementalExecutionTest.this.executionHistoryStore
+                    return IncrementalExecutionIntegrationTest.this.executionHistoryStore
                 }
 
                 @Override
