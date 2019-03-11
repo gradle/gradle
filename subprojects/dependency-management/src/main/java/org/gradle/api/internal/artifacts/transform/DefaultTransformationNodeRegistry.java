@@ -27,9 +27,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
-public class DefaultTransformationNodeFactory implements TransformationNodeFactory {
+public class DefaultTransformationNodeRegistry implements TransformationNodeRegistry {
     private final Map<ArtifactTransformKey, TransformationNode> transformations = Maps.newConcurrentMap();
 
     @Override
@@ -41,6 +42,17 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
         };
         collectTransformNodes(artifactSet, builder, nodeCreator);
         return builder.build();
+    }
+
+    @Override
+    public Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+        List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
+        ArtifactTransformKey transformKey = new ArtifactTransformKey(artifactId, transformationChain);
+        TransformationNode node = transformations.get(transformKey);
+        if (node != null && node.isComplete()) {
+            return Optional.of(node);
+        }
+        return Optional.empty();
     }
 
     private void collectTransformNodes(ResolvedArtifactSet artifactSet, ImmutableList.Builder<TransformationNode> builder, Function<ResolvableArtifact, TransformationNode> nodeCreator) {

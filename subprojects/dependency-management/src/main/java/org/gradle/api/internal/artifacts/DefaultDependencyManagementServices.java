@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -58,6 +59,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
@@ -76,9 +78,13 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformationRegistra
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvoker;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler;
+import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformationNode;
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformerInvoker;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -147,7 +153,9 @@ import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 
@@ -188,6 +196,20 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         OutputFileCollectionFingerprinter createOutputFingerprinter(FileSystemSnapshotter fileSystemSnapshotter) {
             return new OutputFileCollectionFingerprinter(fileSystemSnapshotter);
+        }
+
+        TransformationNodeRegistry createTransformationNodeRegistry() {
+            return new TransformationNodeRegistry() {
+                @Override
+                public Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver) {
+                    throw new UnsupportedOperationException("Cannot schedule transforms for build script dependencies");
+                }
+
+                @Override
+                public Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+                    return Optional.empty();
+                }
+            };
         }
 
         /**
@@ -447,7 +469,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ArtifactTypeRegistry artifactTypeRegistry,
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
-                                                       BuildState currentBuild) {
+                                                       BuildState currentBuild,
+                                                       TransformationNodeRegistry transformationNodeRegistry) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -463,7 +486,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     attributesSchema,
                                     attributesFactory),
                                 attributesSchema,
-                                attributesFactory
+                                attributesFactory,
+                                transformationNodeRegistry
                             ),
                             moduleIdentifierFactory,
                             buildOperationExecutor,

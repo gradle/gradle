@@ -24,11 +24,11 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import javax.annotation.Nullable;
 
-class TransformationOperation implements RunnableBuildOperation {
+class TransformationOperation implements TransformationResult, RunnableBuildOperation {
     private final Transformation transformation;
     private final TransformationSubject subject;
     private final ExecutionGraphDependenciesResolver dependenciesResolver;
-    private Try<TransformationSubject> result;
+    private Try<TransformationSubject> transformedSubject;
 
     TransformationOperation(Transformation transformation, TransformationSubject subject, ExecutionGraphDependenciesResolver dependenciesResolver) {
         this.transformation = transformation;
@@ -38,7 +38,7 @@ class TransformationOperation implements RunnableBuildOperation {
 
     @Override
     public void run(@Nullable BuildOperationContext context) {
-        result = transformation.transform(subject, dependenciesResolver, null);
+        transformedSubject = transformation.transform(subject, dependenciesResolver, null);
     }
 
     @Override
@@ -49,7 +49,8 @@ class TransformationOperation implements RunnableBuildOperation {
             .operationType(BuildOperationCategory.UNCATEGORIZED);
     }
 
-    public Try<TransformationSubject> getResult() {
-        return result;
+    @Override
+    public Try<TransformationSubject> getTransformedSubject() {
+        return transformedSubject;
     }
 }
