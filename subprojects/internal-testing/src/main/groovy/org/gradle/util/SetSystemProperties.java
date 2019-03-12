@@ -19,12 +19,7 @@ package org.gradle.util;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -33,7 +28,6 @@ import java.util.Properties;
  * A JUnit rule which restores system properties at the end of the test.
  */
 public class SetSystemProperties implements TestRule {
-    private final static Logger LOGGER = LoggerFactory.getLogger(SetSystemProperties.class);
     private final Properties properties;
     private final Map<String, Object> customProperties = new HashMap<String, Object>();
 
@@ -53,41 +47,12 @@ public class SetSystemProperties implements TestRule {
             @Override
             public void evaluate() throws Throwable {
                 System.getProperties().putAll(customProperties);
-                resetTempDirLocation();
                 try {
                     base.evaluate();
                 } finally {
                     System.setProperties(properties);
-                    resetTempDirLocation();
                 }
             }
         };
-    }
-
-    public static void resetTempDirLocation() {
-        File tmpdirFile = new File(System.getProperty("java.io.tmpdir"));
-        // reset cache in File.createTempFile
-        try {
-            Field tmpdirField = Class.forName("java.io.File$TempDirectory").getDeclaredField("tmpdir");
-            makeFinalFieldAccessible(tmpdirField);
-            tmpdirField.set(null, tmpdirFile);
-        } catch (Exception e) {
-            LOGGER.warn("Cannot reset tmpdir field used by java.io.File.createTempFile");
-        }
-        // reset cache in Files.createTempFile
-        try {
-            Field tmpdirField = Class.forName("java.nio.file.TempFileHelper").getDeclaredField("tmpdir");
-            makeFinalFieldAccessible(tmpdirField);
-            tmpdirField.set(null, tmpdirFile.toPath());
-        } catch (Exception e) {
-            LOGGER.warn("Cannot reset tmpdir field used by java.nio.file.Files.createTempFile");
-        }
-    }
-
-    private static void makeFinalFieldAccessible(Field field) throws NoSuchFieldException, IllegalAccessException {
-        field.setAccessible(true);
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
     }
 }
