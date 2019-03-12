@@ -18,10 +18,11 @@ package org.gradle.internal.execution.history.impl;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
+import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
@@ -29,15 +30,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static org.gradle.internal.execution.history.impl.DefaultIncrementalInputs.determinePropertyName;
+import static org.gradle.internal.execution.history.impl.IncrementalInputChanges.determinePropertyName;
 
-public class RebuildIncrementalInputs implements IncrementalInputs {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RebuildIncrementalInputs.class);
+public class NonIncrementalInputChanges implements InputChangesInternal {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonIncrementalInputChanges.class);
 
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
     private final Map<Object, String> propertyNameByValue;
 
-    public RebuildIncrementalInputs(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, Map<Object, String> propertyNameByValue, Describable owner) {
+    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, Map<Object, String> propertyNameByValue, Describable owner) {
         this.currentInputs = currentInputs;
         this.propertyNameByValue = propertyNameByValue;
         LOGGER.info("All input files are considered out-of-date for incremental {}.", owner.getDisplayName());
@@ -52,7 +53,20 @@ public class RebuildIncrementalInputs implements IncrementalInputs {
     public Iterable<InputFileDetails> getChanges(Object property) {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(property, propertyNameByValue));
-        currentFileCollectionFingerprint.visitChangesSince(FileCollectionFingerprint.EMPTY, "Input", true, visitor);
+        visitAllFileChanges(currentFileCollectionFingerprint, visitor);
         return Cast.uncheckedNonnullCast(visitor.getChanges());
+    }
+
+    @Override
+    public Iterable<Change> getInputFileChanges() {
+        CollectingChangeVisitor changeVisitor = new CollectingChangeVisitor();
+        for (CurrentFileCollectionFingerprint fingerprint : currentInputs.values()) {
+            visitAllFileChanges(fingerprint, changeVisitor);
+        }
+        return changeVisitor.getChanges();
+    }
+
+    private void visitAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint, CollectingChangeVisitor visitor) {
+        currentFileCollectionFingerprint.visitChangesSince(FileCollectionFingerprint.EMPTY, "Input", true, visitor);
     }
 }

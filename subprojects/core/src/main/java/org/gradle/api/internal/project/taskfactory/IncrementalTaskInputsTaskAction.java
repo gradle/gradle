@@ -16,22 +16,21 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
 import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.InputFileChanges;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
 class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalTaskInputsTaskAction.class);
 
     private final Instantiator instantiator;
 
@@ -43,33 +42,22 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
     protected void doExecute(final Task task, String methodName) {
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
-        IncrementalTaskInputs incrementalTaskInputs = changes.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<IncrementalTaskInputs>() {
-            @Override
-            public IncrementalTaskInputs visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
-                return createRebuildInputs(task, allFileInputs);
-            }
+        InputChangesInternal inputChanges = changes.getInputChanges();
 
-            @Override
-            public IncrementalTaskInputs visitIncrementalChange(InputFileChanges inputFileChanges) {
-                return createIncrementalInputs(inputFileChanges);
-            }
-        });
+        IncrementalTaskInputs incrementalTaskInputs = inputChanges.isIncremental()
+            ? createIncrementalInputs(inputChanges)
+            : createRebuildInputs(task, inputChanges);
 
         getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 
-    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(InputFileChanges inputFilesChanges) {
-        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, collectInputFileChanges(inputFilesChanges));
+    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(InputChangesInternal inputChanges) {
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputChanges.getInputFileChanges());
     }
 
-    private Iterable<Change> collectInputFileChanges(InputFileChanges inputFileChanges) {
-        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-        inputFileChanges.accept(visitor);
-        return visitor.getChanges();
-    }
-
-    private RebuildIncrementalTaskInputs createRebuildInputs(Task task, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs) {
-        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, currentInputs.values());
+    private RebuildIncrementalTaskInputs createRebuildInputs(Task task, InputChangesInternal inputChanges) {
+        LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
+        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, inputChanges);
     }
 }

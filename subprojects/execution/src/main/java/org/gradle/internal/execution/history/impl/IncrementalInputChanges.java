@@ -16,20 +16,21 @@
 
 package org.gradle.internal.execution.history.impl;
 
-import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
+import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.changes.InputFileChanges;
 
 import java.util.Map;
 
-public class DefaultIncrementalInputs implements IncrementalInputs {
+public class IncrementalInputChanges implements InputChangesInternal {
 
     private final InputFileChanges changes;
     private final Map<Object, String> propertyNameByValue;
 
-    public DefaultIncrementalInputs(InputFileChanges changes, Map<Object, String> propertyNameByValue) {
+    public IncrementalInputChanges(InputFileChanges changes, Map<Object, String> propertyNameByValue) {
         this.changes = changes;
         this.propertyNameByValue = propertyNameByValue;
     }
@@ -53,5 +54,12 @@ public class DefaultIncrementalInputs implements IncrementalInputs {
             throw new UnsupportedOperationException("Cannot query incremental changes: No property found for " + property + ".");
         }
         return propertyName;
+    }
+
+    @Override
+    public Iterable<Change> getInputFileChanges() {
+        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
+        changes.accept(visitor);
+        return visitor.getChanges();
     }
 }

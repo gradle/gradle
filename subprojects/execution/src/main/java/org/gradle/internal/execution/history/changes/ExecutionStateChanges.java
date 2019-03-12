@@ -16,9 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 /**
  * Represents the complete changes in execution state
@@ -30,11 +28,5 @@ public interface ExecutionStateChanges {
      */
     void visitAllChanges(ChangeVisitor visitor);
 
-    <T> T visitInputFileChanges(IncrementalInputsVisitor<T> visitor);
-
-    interface IncrementalInputsVisitor<T> {
-        T visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs);
-
-        T visitIncrementalChange(InputFileChanges inputFileChanges);
-    }
+    InputChangesInternal getInputChanges();
 }

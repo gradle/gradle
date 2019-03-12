@@ -16,17 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.internal.change.Change;
 
-public interface ExecutionStateChangeDetector {
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
-
-    ExecutionStateChanges detectChanges(
-        AfterPreviousExecutionState lastExecution,
-        BeforeExecutionState thisExecution,
-        UnitOfWork work,
-        boolean allowOverlappingOutputs
-    );
+public interface InputChangesInternal extends IncrementalInputs {
+    Iterable<Change> getInputFileChanges();
 }

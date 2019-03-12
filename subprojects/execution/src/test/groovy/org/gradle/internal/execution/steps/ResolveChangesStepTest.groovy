@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
@@ -24,8 +25,6 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
-import org.gradle.internal.execution.history.changes.InputFileChanges
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 
 class ResolveChangesStepTest extends StepSpec {
     def changeDetector = Mock(ExecutionStateChangeDetector)
@@ -46,10 +45,10 @@ class ResolveChangesStepTest extends StepSpec {
             def changes = delegateContext.changes.get()
             assert getRebuildReason(changes) == "Forced rebuild."
             try {
-                changes.visitInputFileChanges(Mock(ExecutionStateChanges.IncrementalInputsVisitor))
+                changes.getInputChanges()
                 assert false
             } catch (UnsupportedOperationException e) {
-                assert e.message == 'Cannot query incremental inputs when input tracking is disabled.'
+                assert e.message == 'Cannot query input changes when input tracking is disabled.'
             }
             return delegateResult
         }
@@ -85,7 +84,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert !isIncremental(changes)
+            assert !changes.getInputChanges().incremental
             assert getRebuildReason(changes) == "No history is available."
             return delegateResult
         }
@@ -93,6 +92,8 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
         1 * context.afterPreviousExecutionState >> Optional.empty()
+        1 * work.inputToPropertyNames >> ImmutableMap.of()
+        1 * work.displayName >> "Some unit of work"
         0 * _
     }
 
@@ -120,20 +121,6 @@ class ResolveChangesStepTest extends StepSpec {
         0 * _
     }
     
-    private static boolean isIncremental(ExecutionStateChanges changes) {
-        return changes.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<Boolean>() {
-            @Override
-            Boolean visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
-                return false
-            }
-
-            @Override
-            Boolean visitIncrementalChange(InputFileChanges inputFileChanges) {
-                return true
-            }
-        })
-    }
-
     private static String getRebuildReason(ExecutionStateChanges changes) {
         String change = null
         changes.visitAllChanges({ change = it.message; false })

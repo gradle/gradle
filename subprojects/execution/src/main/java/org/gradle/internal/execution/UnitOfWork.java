@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
@@ -71,4 +72,6 @@ public interface UnitOfWork extends CacheableEntity {
     ExecutionHistoryStore getExecutionHistoryStore();
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
+
+    ImmutableMap<Object, String> getInputToPropertyNames();
 }

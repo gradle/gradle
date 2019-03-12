@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -63,7 +65,9 @@ import org.gradle.internal.work.AsyncWorkTracker;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -311,6 +315,18 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         );
                     }
                 }).orElse(outputsAfterExecution);
+        }
+
+        @Override
+        public ImmutableMap<Object, String> getInputToPropertyNames() {
+            Map<Object, String> propertyNameByValue = new HashMap<Object, String>();
+            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
+                Object value = inputFileProperty.getValue().call();
+                if (value != null) {
+                    propertyNameByValue.put(value, inputFileProperty.getPropertyName());
+                }
+            }
+            return ImmutableMap.copyOf(propertyNameByValue);
         }
 
         @Override

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import org.gradle.api.file.FileCollection
@@ -872,6 +873,17 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
                     snapshotOutputs()
+                }
+
+                @Override
+                ImmutableMap<Object, String> getInputToPropertyNames() {
+                    Map<Object, String> inputToPropertyNames = [:]
+                    for (entry in inputs.entrySet()) {
+                        if (entry.value != null) {
+                            inputToPropertyNames.put(entry.value, entry.key)
+                        }
+                    }
+                    return ImmutableMap.copyOf(inputToPropertyNames)
                 }
 
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {

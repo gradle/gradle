@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -26,6 +27,7 @@ class ExecuteStepTest extends Specification {
     def step = new ExecuteStep<IncrementalChangesContext>()
     def context = Mock(IncrementalChangesContext)
     def work = Mock(UnitOfWork)
+    def changes = Optional.of(Mock(ExecutionStateChanges))
 
     @Unroll
     def "#outcome outcome is preserved"() {
@@ -36,7 +38,9 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.execute(context) >> { outcome }
+        1 * context.changes >> changes
+        1 * work.execute(changes) >> { outcome }
+        0 * _
 
         where:
         outcome << ExecutionOutcome.values()
@@ -45,14 +49,15 @@ class ExecuteStepTest extends Specification {
     @Unroll
     def "failure #failure.class.simpleName is not caught"() {
         when:
-        def result = step.execute(context)
+        step.execute(context)
 
         then:
         def ex = thrown Throwable
         ex == failure
 
         1 * context.work >> work
-        1 * work.execute(context) >> { throw failure }
+        1 * context.changes >> changes
+        1 * work.execute(changes) >> { throw failure }
 
         where:
         failure << [new RuntimeException(), new Error()]
