@@ -32,6 +32,8 @@ import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
 
+import java.util.function.Consumer
+import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -113,8 +115,8 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withFile("$baseDir/build.gradle.kts", script)
     }
 
-    protected TestFile withFile(String path, String text = "") {
-        return file(path) << text.stripIndent()
+    protected TestFile withFile(String path, String content = "") {
+        return file(path).tap { text = content.stripIndent() }
     }
 
     protected TestFile withClassJar(String path, Class<?>... classes) {
@@ -212,7 +214,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return canonicalClasspathOf(kotlinBuildScriptModelFor(projectDir, scriptFile))
     }
 
-    private List<File> classPathFor(File projectDir, File scriptFile = null) {
+    protected List<File> classPathFor(File projectDir, File scriptFile = null) {
         return kotlinBuildScriptModelFor(projectDir, scriptFile).classPath
     }
 
@@ -338,18 +340,23 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return hasItem(new File(base, "src/$set/$lang"))
     }
 
-    protected static Matcher<String> matching(String pattern) {
+    protected static Matcher<? super String> matching(String pattern) {
         def compiledPattern = Pattern.compile(pattern)
-        return new TypeSafeMatcher<String>() {
+        return matching({ it.appendText("a string matching the pattern").appendValue(pattern) }) { String item ->
+            compiledPattern.matcher(item).matches()
+        }
+    }
 
+    protected static <T> Matcher<T> matching(Consumer<Description> describe, Predicate<T> match) {
+        return new TypeSafeMatcher<T>() {
             @Override
-            protected boolean matchesSafely(String item) {
-                return compiledPattern.matcher(item).matches()
+            protected boolean matchesSafely(T item) {
+                return match.test(item)
             }
 
             @Override
             void describeTo(Description description) {
-                description.appendText("a string matching the pattern").appendValue(pattern)
+                describe.accept(description)
             }
         }
     }

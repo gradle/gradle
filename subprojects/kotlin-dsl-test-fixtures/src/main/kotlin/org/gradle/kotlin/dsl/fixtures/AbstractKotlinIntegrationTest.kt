@@ -183,7 +183,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         )
     }
 
-    protected
+    private
     fun classPathFor(scriptFile: File, projectDir: File = projectRoot) =
         kotlinBuildScriptModelFor(scriptFile, projectDir).classPath
 
