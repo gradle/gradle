@@ -146,7 +146,7 @@ public class FxApp extends Application {
         given:
         goodCode()
         buildFile << """
-compileJava.options.compilerArgs.addAll(['--release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '8'])
 """
 
         expect:
@@ -156,27 +156,28 @@ compileJava.options.compilerArgs.addAll(['--release', '7'])
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "compile fails when using newer API with release option"() {
         given:
-        file("src/main/java/compile/test/FailsOnJava7.java") << '''
+        file("src/main/java/compile/test/FailsOnJava8.java") << '''
 package compile.test;
 
-import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.function.Predicate;
 
-public class FailsOnJava7 {
-    public Optional<String> someOptional() {
-        return Optional.of("Hello");
+public class FailsOnJava8<T> {
+    public Stream<T> takeFromStream(Stream<T> stream) {
+        return stream.takeWhile(Predicate.isEqual("foo"));
     }
 }
 '''
 
         buildFile << """
-compileJava.options.compilerArgs.addAll(['--release', '7'])
+compileJava.options.compilerArgs.addAll(['--release', '8'])
 """
 
         expect:
         fails 'compileJava'
         output.contains(logStatement())
         failure.assertHasErrorOutput("cannot find symbol")
-        failure.assertHasErrorOutput("class Optional")
+        failure.assertHasErrorOutput("method takeWhile")
     }
 
     def buildScript() {

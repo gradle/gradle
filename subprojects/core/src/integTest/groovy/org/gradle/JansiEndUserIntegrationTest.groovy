@@ -188,7 +188,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
-            sourceCompatibility = '1.6'
+            sourceCompatibility = '1.7'
 
             repositories {
                 maven {
@@ -249,7 +249,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
 
                 group = '$group'
                 version = '$version'
-                sourceCompatibility = '1.6'
+                sourceCompatibility = '1.7'
 
                 dependencies {
                     compile 'org.fusesource.jansi:jansi:$JANSI_VERSION'
@@ -284,7 +284,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec {
                 import org.fusesource.jansi.AnsiConsole;
 
                 @SupportedAnnotationTypes({"org.gradle.Custom"})
-                @SupportedSourceVersion(SourceVersion.RELEASE_6)
+                @SupportedSourceVersion(SourceVersion.RELEASE_7)
                 public class MyProcessor extends AbstractProcessor {
                     @Override
                     public synchronized void init(ProcessingEnvironment processingEnv) {

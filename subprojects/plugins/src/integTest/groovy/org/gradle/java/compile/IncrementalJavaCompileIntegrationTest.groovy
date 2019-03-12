@@ -37,7 +37,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         executedAndNotSkipped ':compileJava'
 
         when:
-        buildFile << 'sourceCompatibility = 1.6\n'
+        buildFile << 'sourceCompatibility = 1.8\n'
         succeeds ':compileJava'
 
         then:
