@@ -35,7 +35,7 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
     }
 
     public void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
-        for (Change change : inputChanges.getInputFileChanges()) {
+        for (Change change : inputChanges.getAllFileChanges()) {
             InputFileDetails inputFileChange = (InputFileDetails) change;
             outOfDateAction.execute(new RebuildInputFile(inputFileChange.getFile()));
         }

@@ -40,7 +40,7 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  *         if (!inputChanges.incremental)
  *             project.delete(outputDir.listFiles())
  *
- *         inputChanges.getChanges(inputDir).each { change -&gt;
+ *         inputChanges.getFileChanges(inputDir).each { change -&gt;
  *             if (change.removed) {
  *                 def targetFile = project.file("$outputDir/${change.file.name}")
  *                 if (targetFile.exists()) {
@@ -76,13 +76,13 @@ public interface InputChanges {
      * When <code>true</code>:
      * </p>
      * <ul>
-     *     <li>{@link #getChanges(Object)} reports changes to the input files compared to the previous execution.</li>
+     *     <li>{@link #getFileChanges(Object)} reports changes to the input files compared to the previous execution.</li>
      * </ul>
      * <p>
      * When <code>false</code>:
      * </p>
      * <ul>
-     *     <li>Every input file is reported via {@link #getChanges(Object)} as if it was 'added'.</li>
+     *     <li>Every input file is reported via {@link #getFileChanges(Object)} as if it was 'added'.</li>
      * </ul>
      */
     boolean isIncremental();
@@ -94,5 +94,5 @@ public interface InputChanges {
      *
      * @param property The instance of the property to query.
      */
-    Iterable<InputFileDetails> getChanges(Object property);
+    Iterable<InputFileDetails> getFileChanges(Object property);
 }

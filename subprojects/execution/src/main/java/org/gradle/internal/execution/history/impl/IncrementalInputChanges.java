@@ -41,7 +41,7 @@ public class IncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<InputFileDetails> getChanges(Object property) {
+    public Iterable<InputFileDetails> getFileChanges(Object property) {
         String propertyName = determinePropertyName(property, propertyNameByValue);
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(propertyName, visitor);
@@ -57,7 +57,7 @@ public class IncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<Change> getInputFileChanges() {
+    public Iterable<Change> getAllFileChanges() {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(visitor);
         return visitor.getChanges();

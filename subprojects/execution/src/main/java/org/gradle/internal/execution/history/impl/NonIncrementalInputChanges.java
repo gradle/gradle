@@ -50,7 +50,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<InputFileDetails> getChanges(Object property) {
+    public Iterable<InputFileDetails> getFileChanges(Object property) {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(property, propertyNameByValue));
         visitAllFileChanges(currentFileCollectionFingerprint, visitor);
@@ -58,7 +58,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<Change> getInputFileChanges() {
+    public Iterable<Change> getAllFileChanges() {
         CollectingChangeVisitor changeVisitor = new CollectingChangeVisitor();
         for (CurrentFileCollectionFingerprint fingerprint : currentInputs.values()) {
             visitAllFileChanges(fingerprint, changeVisitor);

@@ -53,7 +53,7 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
     }
 
     private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(InputChangesInternal inputChanges) {
-        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputChanges.getInputFileChanges());
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputChanges.getAllFileChanges());
     }
 
     private RebuildIncrementalTaskInputs createRebuildInputs(Task task, InputChangesInternal inputChanges) {

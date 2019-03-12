@@ -20,5 +20,5 @@ import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.internal.change.Change;
 
 public interface InputChangesInternal extends InputChanges {
-    Iterable<Change> getInputFileChanges();
+    Iterable<Change> getAllFileChanges();
 }

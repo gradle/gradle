@@ -31,7 +31,7 @@ class IncrementalInputsIntegrationTest extends IncrementalTasksIntegrationTest {
     
                 incrementalExecution = inputChanges.incremental
     
-                inputChanges.getChanges(inputDir).each { change ->
+                inputChanges.getFileChanges(inputDir).each { change ->
                     switch (change) {
                         case { it.added }:
                             addedFiles << change.file

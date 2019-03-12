@@ -60,7 +60,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                     println "Transforming " + input.name
                     println "incremental: " + inputChanges.incremental
                     assert parameters.incrementalExecution.get() == inputChanges.incremental
-                    def changes = inputChanges.getChanges(input)
+                    def changes = inputChanges.getFileChanges(input)
                     println "changes: \\n" + changes.join("\\n")
                     assert changes.findAll { it.added }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
                     assert changes.findAll { it.removed }*.file as Set == resolveFiles(parameters.removedFiles.get())                    
