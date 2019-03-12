@@ -22,20 +22,33 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
     def "can query incremental changes"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
-        setupBuildWithColorTransform {
-            produceDirs()
-        }
-        buildFile << """
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
+
+        file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
+            import java.io.File
+            import javax.inject.Inject
+            import groovy.transform.CompileStatic
+            import org.gradle.api.provider.*
+            import org.gradle.api.tasks.*
+            import org.gradle.api.tasks.incremental.*
+            import org.gradle.api.artifacts.transform.*
+            import org.gradle.api.execution.incremental.*
+
+            abstract class MakeGreen implements TransformAction<Parameters> {
+
+                interface Parameters extends TransformParameters {
+                    @Internal
+                    ListProperty<String> getAddedFiles()
+                    @Internal
+                    ListProperty<String> getModifiedFiles()
+                    @Internal
+                    ListProperty<String> getRemovedFiles()
+                    @Internal
+                    Property<Boolean> getIncrementalExecution()
+                    @Internal
+                    Property<Boolean> getRegisterNewOutput()
                 }
-            }
-            
-            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
                 @Inject
                 abstract IncrementalInputs getIncrementalInputs()
@@ -44,22 +57,109 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 abstract File getInput()
             
                 void transform(TransformOutputs outputs) {
+                    println "Transforming " + input.name
                     println "incremental: " + incrementalInputs.incremental
-                    println "changes: \\n" + incrementalInputs.getChanges(input).join("\\n")
+                    assert parameters.incrementalExecution.get() == incrementalInputs.incremental
+                    def changes = incrementalInputs.getChanges(input)
+                    println "changes: \\n" + changes.join("\\n")
+                    assert changes.findAll { it.added }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
+                    assert changes.findAll { it.removed }*.file as Set == resolveFiles(parameters.removedFiles.get())                    
+                    assert changes.findAll { it.modified }*.file as Set == resolveFiles(parameters.modifiedFiles.get())
+                    def outputDirectory = outputs.dir("output")
+                    changes.each { change ->
+                        if (change.file != input) {
+                            File outputFile = new File(outputDirectory, change.file.name)
+                            if (change.added || change.modified) {
+                                outputFile.text = change.file.text
+                            } else {
+                                outputFile.delete()                    
+                            }                                   
+                        }
+                    }
+                }
+
+                private resolveFiles(List<String> files) {
+                    files.collect { new File(input, it) } as Set
                 }
             }
         """
 
-        when:
-        run(":a:resolve")
-        then:
-        outputContains("incremental: false")
+        setupBuildFile()
 
         when:
+        previousExecution()
         executer.withArguments("-PbContent=changed")
-        run(":a:resolve")
         then:
-        outputContains("incremental: true")
+        executesIncrementally("ext.modified=['b']")
+
+        when:
+        executer.withArguments('-PbNames=first,second,third')
+        then:
+        executesIncrementally("""
+            ext.removed = ['b']
+            ext.added = ['first', 'second', 'third']
+        """)
+
+        when:
+        executer.withArguments("-PbNames=first,second", "-PbContent=different")
+        then:
+        executesIncrementally("""
+            ext.removed = ['third']
+            ext.modified = ['first', 'second']
+        """)
     }
 
+    private void setupBuildFile() {
+        buildFile .text = """
+            ext {
+                added = []
+                modified = []
+                removed = []
+                incremental = true
+                registerNewOutput = false
+            }
+        """
+        setupBuildWithColorTransform {
+            produceDirs()
+            params("""
+                addedFiles.set(provider { added })
+                modifiedFiles.set(provider { modified })
+                removedFiles.set(provider { removed })
+                incrementalExecution.set(provider { incremental })
+                incrementalExecution.set(provider { incremental })
+                registerNewOutput.set(provider { project.registerNewOutput })
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+        """
+    }
+
+    void executesNonIncrementally(String fileChanges = "ext.added = ['', 'b']") {
+        setupBuildFile()
+        buildFile << """
+            ext.incremental = false
+            $fileChanges
+        """
+        succeeds ":a:resolve"
+        outputContains("Transforming")
+    }
+
+    void executesIncrementally(String fileChanges) {
+        setupBuildFile()
+        buildFile << """
+            ext.incremental = true
+            $fileChanges
+        """
+        succeeds ":a:resolve"
+        outputContains("Transforming")
+    }
+
+    void previousExecution() {
+        executesNonIncrementally()
+    }
 }
