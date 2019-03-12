@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.RelativePath
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.CacheableTask
@@ -46,8 +47,8 @@ import org.gradle.kotlin.dsl.*
 @Suppress("unused")
 abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
 
-    @Input
-    val excludes = project.objects.listProperty<String>()
+    @get:Input
+    abstract val excludes: ListProperty<String>
 
     @get:Classpath
     abstract val originalFiles: ConfigurableFileCollection
