@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
@@ -82,6 +83,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore("Spring repo down and not mirrored")
     @Unroll
     @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
     def "can use declare and resolve dependency with changing version with #dsl dsl"() {
