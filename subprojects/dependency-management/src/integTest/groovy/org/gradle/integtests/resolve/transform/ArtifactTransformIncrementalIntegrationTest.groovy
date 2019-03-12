@@ -51,16 +51,16 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 }
 
                 @Inject
-                abstract IncrementalInputs getIncrementalInputs()
+                abstract InputChanges getInputChanges()
                 
                 @InputArtifact
                 abstract File getInput()
             
                 void transform(TransformOutputs outputs) {
                     println "Transforming " + input.name
-                    println "incremental: " + incrementalInputs.incremental
-                    assert parameters.incrementalExecution.get() == incrementalInputs.incremental
-                    def changes = incrementalInputs.getChanges(input)
+                    println "incremental: " + inputChanges.incremental
+                    assert parameters.incrementalExecution.get() == inputChanges.incremental
+                    def changes = inputChanges.getChanges(input)
                     println "changes: \\n" + changes.join("\\n")
                     assert changes.findAll { it.added }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
                     assert changes.findAll { it.removed }*.file as Set == resolveFiles(parameters.removedFiles.get())                    

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
-import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.tasks.FileNormalizer;
@@ -54,7 +54,7 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     boolean isCacheable();
 
-    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable IncrementalInputs incrementalInputs);
+    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.internal.change.Change;
 
-public interface InputChangesInternal extends IncrementalInputs {
+public interface InputChangesInternal extends InputChanges {
     Iterable<Change> getInputFileChanges();
 }

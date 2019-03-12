@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -266,16 +266,16 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             File resultsFile = workspace.getResultsFile();
 
             @SuppressWarnings("OptionalGetWithoutIsPresent")
-            IncrementalInputs incrementalInputs = transformer.isIncremental()
+            InputChanges inputChanges = transformer.isIncremental()
                 ? context.getChanges().get().getInputChanges()
                 : null;
 
-            boolean incremental = incrementalInputs != null && incrementalInputs.isIncremental();
+            boolean incremental = inputChanges != null && inputChanges.isIncremental();
             if (!incremental) {
                 GFileUtils.cleanDirectory(outputDir);
                 GFileUtils.deleteFileQuietly(resultsFile);
             }
-            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, incrementalInputs);
+            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
             return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
         }

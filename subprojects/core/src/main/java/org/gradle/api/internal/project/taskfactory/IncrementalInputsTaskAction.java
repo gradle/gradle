@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.reflect.JavaMethod;
 import org.slf4j.Logger;
@@ -35,11 +35,11 @@ public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
     protected void doExecute(final Task task, String methodName) {
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
-        IncrementalInputs incrementalTaskInputs = changes.getInputChanges();
-        if (!incrementalTaskInputs.isIncremental()) {
+        InputChanges inputChanges = changes.getInputChanges();
+        if (!inputChanges.isIncremental()) {
             LOGGER.info("All inputs are considered out-of-date for incremental {}.", task);
         }
-        getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
-        JavaMethod.of(task, Object.class, methodName, IncrementalInputs.class).invoke(task, incrementalTaskInputs);
+        getContext().setTaskExecutedIncrementally(inputChanges.isIncremental());
+        JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, inputChanges);
     }
 }

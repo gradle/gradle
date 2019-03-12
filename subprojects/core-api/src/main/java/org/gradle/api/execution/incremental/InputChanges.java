@@ -24,7 +24,7 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  * Provides access to any input files that need to be processed by an incremental work action.
  *
  * <p>
- * An incremental work action is one that accepts a single {@link IncrementalInputs} parameter.
+ * An incremental work action is one that accepts a single {@link InputChanges} parameter.
  * The work action can then query what changed for an input property since the last execution to only process the changes.
  *
  * <pre class='autoTested'>
@@ -36,11 +36,11 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  *     def File outputDir
  *
  *     {@literal @}TaskAction
- *     void execute(IncrementalInputs inputs) {
- *         if (!inputs.incremental)
+ *     void execute(InputChanges inputChanges) {
+ *         if (!inputChanges.incremental)
  *             project.delete(outputDir.listFiles())
  *
- *         inputs.getChanges(inputDir).each { change -&gt;
+ *         inputChanges.getChanges(inputDir).each { change -&gt;
  *             if (change.removed) {
  *                 def targetFile = project.file("$outputDir/${change.file.name}")
  *                 if (targetFile.exists()) {
@@ -68,7 +68,7 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  */
 @NonExtensible
 @Incubating
-public interface IncrementalInputs {
+public interface InputChanges {
     /**
      * Indicates if it was possible for Gradle to determine which input files were out of date compared to a previous execution.
      * Incremental inputs are unavailable when history is unavailable (i.e. this piece of work has never been executed before), or if there are changes to non-file input properties, or output files.

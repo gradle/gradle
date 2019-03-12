@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
-import org.gradle.api.execution.incremental.IncrementalInputs;
+import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -114,7 +114,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
-        this.incremental = instanceFactory.requiresService(IncrementalInputs.class);
+        this.incremental = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
     }
 
@@ -164,8 +164,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     @Override
-    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable IncrementalInputs incrementalInputs) {
-        TransformAction transformAction = newTransformAction(inputArtifact, dependencies, incrementalInputs);
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+        TransformAction transformAction = newTransformAction(inputArtifact, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifact, outputDir);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
@@ -278,8 +278,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies, @Nullable IncrementalInputs incrementalInputs) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null, incrementalInputs);
+    private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null, inputChanges);
         return instanceFactory.newInstance(services);
     }
 
@@ -293,7 +293,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private static class TransformServiceLookup implements ServiceLookup {
         private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable IncrementalInputs incrementalInputs) {
+        public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, () -> inputFile));
             if (parameters != null) {
@@ -306,8 +306,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles()));
             }
-            if (incrementalInputs != null) {
-                builder.add(InjectionPoint.injectedByType(IncrementalInputs.class, () -> incrementalInputs));
+            if (inputChanges != null) {
+                builder.add(InjectionPoint.injectedByType(InputChanges.class, () -> inputChanges));
             }
             this.injectionPoints = builder.build();
         }

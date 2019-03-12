@@ -22,16 +22,16 @@ class IncrementalInputsIntegrationTest extends IncrementalTasksIntegrationTest {
 
     String getTaskAction() {
         """
-            void execute(IncrementalInputs inputs) {
-                assert !(inputs instanceof ExtensionAware)
+            void execute(InputChanges inputChanges) {
+                assert !(inputChanges instanceof ExtensionAware)
     
                 if (project.hasProperty('forceFail')) {
                     throw new RuntimeException('failed')
                 }
     
-                incrementalExecution = inputs.incremental
+                incrementalExecution = inputChanges.incremental
     
-                inputs.getChanges(inputDir).each { change ->
+                inputChanges.getChanges(inputDir).each { change ->
                     switch (change) {
                         case { it.added }:
                             addedFiles << change.file
@@ -47,7 +47,7 @@ class IncrementalInputsIntegrationTest extends IncrementalTasksIntegrationTest {
                     }
                 }
     
-                if (!inputs.incremental) {
+                if (!inputChanges.incremental) {
                     createOutputsNonIncremental()
                 }
                 
