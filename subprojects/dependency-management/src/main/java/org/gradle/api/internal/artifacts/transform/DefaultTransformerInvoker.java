@@ -17,9 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -39,7 +41,11 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputFileChanges;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.history.impl.DefaultIncrementalInputs;
+import org.gradle.internal.execution.history.impl.RebuildIncrementalInputs;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
@@ -262,11 +268,33 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         public ExecutionOutcome execute(IncrementalChangesContext context) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
-            GFileUtils.cleanDirectory(outputDir);
-            GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies);
+
+            IncrementalInputs incrementalInputs = transformer.isIncremental() ? createIncrementalInputs(context) : null;
+
+            if (incrementalInputs == null || !incrementalInputs.isIncremental()) {
+                GFileUtils.cleanDirectory(outputDir);
+                GFileUtils.deleteFileQuietly(resultsFile);
+            }
+            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, incrementalInputs);
             writeResultsFile(outputDir, resultsFile, result);
             return ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+        }
+
+        private IncrementalInputs createIncrementalInputs(IncrementalChangesContext context) {
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            ExecutionStateChanges executionStateChanges = context.getChanges().get();
+            ImmutableMap<Object, String> propertyNameByValue = ImmutableMap.of(inputArtifact, INPUT_ARTIFACT_PROPERTY_NAME);
+            return executionStateChanges.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<IncrementalInputs>() {
+                @Override
+                public IncrementalInputs visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
+                    return new RebuildIncrementalInputs(allFileInputs, propertyNameByValue, TransformerExecution.this);
+                }
+
+                @Override
+                public IncrementalInputs visitIncrementalChange(InputFileChanges inputFileChanges) {
+                    return new DefaultIncrementalInputs(inputFileChanges, propertyNameByValue);
+                }
+            });
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {

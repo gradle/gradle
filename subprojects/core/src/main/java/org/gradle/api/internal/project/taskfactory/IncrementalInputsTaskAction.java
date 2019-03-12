@@ -20,13 +20,12 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
 import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.Cast;
-import org.gradle.internal.change.CollectingChangeVisitor;
+import org.gradle.internal.Describables;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputFileChanges;
+import org.gradle.internal.execution.history.impl.DefaultIncrementalInputs;
+import org.gradle.internal.execution.history.impl.RebuildIncrementalInputs;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.reflect.JavaMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,59 +54,16 @@ public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
         IncrementalInputs incrementalTaskInputs = changes.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<IncrementalInputs>() {
             @Override
             public IncrementalInputs visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
-                return createRebuildInputs(task, allFileInputs, propertyNameByValue);
+                return new RebuildIncrementalInputs(allFileInputs, propertyNameByValue, Describables.of(task));
             }
 
             @Override
             public IncrementalInputs visitIncrementalChange(InputFileChanges inputFileChanges) {
-                return createIncrementalInputs(inputFileChanges, propertyNameByValue);
+                return new DefaultIncrementalInputs(inputFileChanges, propertyNameByValue);
             }
         });
 
         getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
         JavaMethod.of(task, Object.class, methodName, IncrementalInputs.class).invoke(task, incrementalTaskInputs);
-    }
-
-    private IncrementalInputs createIncrementalInputs(final InputFileChanges changes, final Map<Object, String> propertyNameByValue) {
-        return new IncrementalInputs() {
-            @Override
-            public boolean isIncremental() {
-                return true;
-            }
-
-            @Override
-            public Iterable<InputFileDetails> getChanges(Object property) {
-                String propertyName = determinePropertyName(property, propertyNameByValue);
-                CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-                changes.accept(propertyName, visitor);
-                return Cast.uncheckedNonnullCast(visitor.getChanges());
-            }
-        };
-    }
-
-    private IncrementalInputs createRebuildInputs(Task task, final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, final Map<Object, String> propertyNameByValue) {
-        LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
-        return new IncrementalInputs() {
-            @Override
-            public boolean isIncremental() {
-                return false;
-            }
-
-            @Override
-            public Iterable<InputFileDetails> getChanges(Object property) {
-                CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-                CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(property, propertyNameByValue));
-                currentFileCollectionFingerprint.visitChangesSince(FileCollectionFingerprint.EMPTY, "Input", true, visitor);
-                return Cast.uncheckedNonnullCast(visitor.getChanges());
-            }
-        };
-    }
-
-    private static String determinePropertyName(Object property, Map<Object, String> propertyNameByValue) {
-        String propertyName = propertyNameByValue.get(property);
-        if (propertyName == null) {
-            throw new UnsupportedOperationException("Cannot query incremental changes: No property found for " + property + ".");
-        }
-        return propertyName;
     }
 }
