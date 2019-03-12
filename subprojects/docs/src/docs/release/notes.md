@@ -1,4 +1,4 @@
-The Gradle team is excited to announce Gradle 5.3.
+The Gradle team is excited to announce Gradle @version@.
 
 This release features support for publishing and consuming Gradle Module Metadata,
 [feature variants or "optional dependencies"](#feature-variants),
@@ -20,11 +20,9 @@ and [Josh Soref](https://github.com/jsoref).
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle 5.3 RC1 by updating your wrapper properties:
+Switch your build to use Gradle @version@ by updating your wrapper:
 
-`./gradlew wrapper --gradle-version=5.3-rc-1`
-
-Standalone downloads are available at [gradle.org/release-candidate](https://gradle.org/release-candidate). 
+`./gradlew wrapper --gradle-version=@version@`
 
 <a name="feature-variants"></a>
 
@@ -79,7 +77,7 @@ Please see the [Kotlin 1.3.21 announcement](https://github.com/JetBrains/kotlin/
 
 ### Type-safe accessors in precompiled script plugins
 
-Starting with Gradle 5.3, Kotlin precompiled project script plugins now have type-safe accessors, just like regular project build scripts.
+Starting with Gradle @version@, Kotlin precompiled project script plugins now have type-safe accessors, just like regular project build scripts.
 
 For example, here is how an hypothetical plugin that sets up a Java project according to some convention would be written as a Kotlin precompiled project script plugin in `buildSrc`:
 
@@ -209,7 +207,7 @@ The method `ProjectLayout.configurableFiles()` is now deprecated, and will be re
 
 <!-- summary and links -->
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_5.3) to learn about breaking changes and considerations when upgrading to Gradle 5.3.
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about breaking changes and considerations when upgrading to Gradle @version@.
 
 <!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
