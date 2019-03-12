@@ -212,7 +212,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public JavaExecHandleBuilder classpath(Object... paths) {
-        doGetClasspath().setFrom(paths);
+        doGetClasspath().from(paths);
         return this;
     }
 
