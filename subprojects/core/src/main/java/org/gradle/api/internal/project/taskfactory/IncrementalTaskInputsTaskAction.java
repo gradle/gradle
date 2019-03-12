@@ -20,39 +20,29 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
 import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.change.Change;
+import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputFileChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
 
 import java.lang.reflect.Method;
 
-class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
+class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
 
     private final Instantiator instantiator;
-    private TaskExecutionContext context;
 
-    public IncrementalTaskAction(Instantiator instantiator, Class<? extends Task> type, Method method) {
+    public IncrementalTaskInputsTaskAction(Instantiator instantiator, Class<? extends Task> type, Method method) {
         super(type, method);
         this.instantiator = instantiator;
     }
 
-    public void contextualise(TaskExecutionContext context) {
-        this.context = context;
-    }
-
-    @Override
-    public void releaseContext() {
-        this.context = null;
-    }
-
     protected void doExecute(final Task task, String methodName) {
         @SuppressWarnings("OptionalGetWithoutIsPresent")
-        ExecutionStateChanges changes = context.getExecutionStateChanges().get();
+        ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
         IncrementalTaskInputs incrementalTaskInputs = changes.visitInputFileChanges(new ExecutionStateChanges.IncrementalInputsVisitor<IncrementalTaskInputs>() {
             @Override
             public IncrementalTaskInputs visitRebuild(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> allFileInputs) {
@@ -60,17 +50,23 @@ class IncrementalTaskAction extends StandardTaskAction implements ContextAwareTa
             }
 
             @Override
-            public IncrementalTaskInputs visitIncrementalChange(Iterable<Change> inputFileChanges) {
+            public IncrementalTaskInputs visitIncrementalChange(InputFileChanges inputFileChanges) {
                 return createIncrementalInputs(inputFileChanges);
             }
         });
 
-        context.setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
+        getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 
-    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<Change> inputFilesChanges) {
-        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputFilesChanges);
+    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(InputFileChanges inputFilesChanges) {
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, collectInputFileChanges(inputFilesChanges));
+    }
+
+    private Iterable<Change> collectInputFileChanges(InputFileChanges inputFileChanges) {
+        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
+        inputFileChanges.accept(visitor);
+        return visitor.getChanges();
     }
 
     private RebuildIncrementalTaskInputs createRebuildInputs(Task task, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs) {

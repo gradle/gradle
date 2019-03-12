@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.execution.incremental.IncrementalInputs;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
@@ -65,7 +66,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 if (taskActionFactory == null) {
                     continue;
                 }
-                if (taskActionFactory instanceof IncrementalTaskActionFactory) {
+                if (taskActionFactory instanceof AbstractIncrementalTaskActionFactory) {
                     if (incremental) {
                         throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", IncrementalTaskInputs.class.getSimpleName()));
                     }
@@ -97,12 +98,16 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         TaskActionFactory taskActionFactory;
         if (parameterTypes.length == 1) {
-            if (!parameterTypes[0].equals(IncrementalTaskInputs.class)) {
+            Class<?> parameterType = parameterTypes[0];
+            if (parameterType.equals(IncrementalTaskInputs.class)) {
+                taskActionFactory = new IncrementalTaskInputsTaskActionFactory(taskType, method);
+            } else if (parameterType.equals(IncrementalInputs.class)) {
+                taskActionFactory = new IncrementalInputsTaskActionFactory(taskType, method);
+            } else {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
-                    declaringClass.getSimpleName(), method.getName(), parameterTypes[0]));
+                    declaringClass.getSimpleName(), method.getName(), parameterType));
             }
-            taskActionFactory = new IncrementalTaskActionFactory(taskType, method);
         } else {
             taskActionFactory = new StandardTaskActionFactory(taskType, method);
         }
@@ -134,18 +139,42 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
     }
 
-    private static class IncrementalTaskActionFactory implements TaskActionFactory {
+    private static class IncrementalInputsTaskActionFactory extends AbstractIncrementalTaskActionFactory {
+        public IncrementalInputsTaskActionFactory(Class<? extends Task> taskType, Method method) {
+            super(taskType, method);
+        }
+
+        @Override
+        protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
+            return new IncrementalInputsTaskAction(taskType, method);
+        }
+    }
+
+    private static class IncrementalTaskInputsTaskActionFactory extends AbstractIncrementalTaskActionFactory {
+        public IncrementalTaskInputsTaskActionFactory(Class<? extends Task> taskType, Method method) {
+            super(taskType, method);
+        }
+
+        @Override
+        protected Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method) {
+            return new IncrementalTaskInputsTaskAction(instantiator, taskType, method);
+        }
+    }
+
+    private static abstract class AbstractIncrementalTaskActionFactory implements TaskActionFactory {
         private final Class<? extends Task> taskType;
         private final Method method;
 
-        public IncrementalTaskActionFactory(Class<? extends Task> taskType, Method method) {
+        public AbstractIncrementalTaskActionFactory(Class<? extends Task> taskType, Method method) {
             this.taskType = taskType;
             this.method = method;
         }
 
+        protected abstract Action<? super Task> doCreate(Instantiator instantiator, Class<? extends Task> taskType, Method method);
+
         @Override
         public Action<? super Task> create(Instantiator instantiator) {
-            return new IncrementalTaskAction(instantiator, taskType, method);
+            return doCreate(instantiator, taskType, method);
         }
     }
 }

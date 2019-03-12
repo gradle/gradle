@@ -18,4 +18,5 @@ package org.gradle.api.internal.tasks.properties;
 
 public interface InputFilePropertySpec extends FilePropertySpec {
     boolean isSkipWhenEmpty();
+    PropertyValue getValue();
 }

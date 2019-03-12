@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.change.Change
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.Result
@@ -25,6 +24,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.InputFileChanges
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 
 class ResolveChangesStepTest extends StepSpec {
@@ -128,7 +128,7 @@ class ResolveChangesStepTest extends StepSpec {
             }
 
             @Override
-            Boolean visitIncrementalChange(Iterable<Change> inputFileChanges) {
+            Boolean visitIncrementalChange(InputFileChanges inputFileChanges) {
                 return true
             }
         })

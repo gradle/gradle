@@ -18,11 +18,9 @@ package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
-import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -58,10 +56,10 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getInputFileProperties(),
             "Input file",
             executable);
-        InputFileChanges directInputFileChanges = new InputFileChanges(
+        InputFileChanges directInputFileChanges = new DefaultInputFileChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
-        ChangeContainer inputFileChanges = caching(directInputFileChanges);
+        InputFileChanges inputFileChanges = caching(directInputFileChanges);
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -87,18 +85,48 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         return new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
+    private static InputFileChanges caching(InputFileChanges wrapped) {
+        CachingChangeContainer cachingChangeContainer = new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+        return new InputFileChangesWrapper(wrapped, cachingChangeContainer);
+    }
+
     private static ChangeContainer errorHandling(Describable executable, ChangeContainer wrapped) {
         return new ErrorHandlingChangeContainer(executable, wrapped);
     }
 
+    private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
+        ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
+        return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
+    }
+
+    private static class InputFileChangesWrapper implements InputFileChanges {
+        private final InputFileChanges inputFileChangesDelegate;
+        private final ChangeContainer changeContainerDelegate;
+
+        public InputFileChangesWrapper(InputFileChanges inputFileChangesDelegate, ChangeContainer changeContainerDelegate) {
+            this.inputFileChangesDelegate = inputFileChangesDelegate;
+            this.changeContainerDelegate = changeContainerDelegate;
+        }
+
+        @Override
+        public boolean accept(String propertyName, ChangeVisitor visitor) {
+            return inputFileChangesDelegate.accept(propertyName, visitor);
+        }
+
+        @Override
+        public boolean accept(ChangeVisitor visitor) {
+            return changeContainerDelegate.accept(visitor);
+        }
+    }
+
     private static class DetectedExecutionStateChanges implements ExecutionStateChanges {
-        private final ChangeContainer inputFileChanges;
+        private final InputFileChanges inputFileChanges;
         private final ChangeContainer allChanges;
         private final ChangeContainer rebuildTriggeringChanges;
         private final BeforeExecutionState thisExecution;
 
         public DetectedExecutionStateChanges(
-            ChangeContainer inputFileChanges,
+            InputFileChanges inputFileChanges,
             ChangeContainer allChanges,
             ChangeContainer rebuildTriggeringChanges,
             BeforeExecutionState thisExecution
@@ -117,19 +145,13 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         @Override
         public <T> T visitInputFileChanges(IncrementalInputsVisitor<T> visitor) {
             return isRebuildRequired() ?
-                visitor.visitRebuild(thisExecution.getInputFileProperties()) : visitor.visitIncrementalChange(collectInputFileChanges());
+                visitor.visitRebuild(thisExecution.getInputFileProperties()) : visitor.visitIncrementalChange(inputFileChanges);
         }
 
         private boolean isRebuildRequired() {
             ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
             rebuildTriggeringChanges.accept(changeDetectorVisitor);
             return changeDetectorVisitor.hasAnyChanges();
-        }
-
-        private Iterable<Change> collectInputFileChanges() {
-            CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-            inputFileChanges.accept(visitor);
-            return visitor.getChanges();
         }
     }
 }
