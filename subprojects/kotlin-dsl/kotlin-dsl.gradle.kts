@@ -83,8 +83,8 @@ tasks {
 
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputFile.set(apiExtensionsOutputDir.get().file("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"))
-        embeddedKotlinVersion = kotlinVersion
-        kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
+        embeddedKotlinVersion.set(kotlinVersion)
+        kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
     val generateExtensions by registering {

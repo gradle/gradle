@@ -17,6 +17,8 @@
 package codegen
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
@@ -24,20 +26,22 @@ import org.gradle.api.tasks.TaskAction
 
 
 @Suppress("unused")
-open class GenerateKotlinDependencyExtensions : DefaultTask() {
+abstract class GenerateKotlinDependencyExtensions : DefaultTask() {
 
     @get:OutputFile
-    val outputFile = project.objects.fileProperty()
+    abstract val outputFile: RegularFileProperty
 
     @get:Input
-    var embeddedKotlinVersion: String? = null
+    abstract val embeddedKotlinVersion: Property<String>
 
     @get:Input
-    var kotlinDslPluginsVersion: String? = null
+    abstract val kotlinDslPluginsVersion: Property<String>
 
     @Suppress("unused")
     @TaskAction
     fun generate() {
+        val kotlinDslPluginsVersion = this.kotlinDslPluginsVersion.get()
+        val embeddedKotlinVersion = this.embeddedKotlinVersion.get()
         outputFile.get().asFile.writeText(
             """$licenseHeader
 
