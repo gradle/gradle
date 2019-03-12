@@ -1,4 +1,4 @@
-The Gradle team is excited to announce Gradle {gradleVersion}.
+The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
@@ -22,11 +22,9 @@ details of 2
 
 ## Upgrade Instructions
 
-Switch your build to use Gradle {gradleVersion} by updating your wrapper properties:
+Switch your build to use Gradle @version@ by updating your wrapper:
 
-`./gradlew wrapper --gradle-version={gradleVersion}`
-
-Standalone downloads are available at [gradle.org/releases](https://gradle.org/releases). 
+`./gradlew wrapper --gradle-version=@version@`
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -59,7 +57,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 <!-- summary and links -->
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_{gradleVersion}) to learn about breaking changes and considerations when upgrading to Gradle {gradleVersion}.
+See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about breaking changes and considerations when upgrading to Gradle @version@.
 
 <!-- Do not add breaking changes here! Add them to the upgrade guide instead. --> 
 
