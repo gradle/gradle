@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
 
-@TargetGradleVersion(">=5.3")
+@TargetGradleVersion(">=5.4")
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch buildSrc classpath in face of compilation errors"() {

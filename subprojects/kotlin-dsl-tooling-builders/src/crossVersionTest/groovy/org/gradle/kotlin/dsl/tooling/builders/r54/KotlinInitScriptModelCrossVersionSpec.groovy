@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat
 import static org.hamcrest.CoreMatchers.not
 
 
-@TargetGradleVersion(">=5.3")
+@TargetGradleVersion(">=5.4")
 class KotlinInitScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "initscript classpath does not include buildSrc"() {

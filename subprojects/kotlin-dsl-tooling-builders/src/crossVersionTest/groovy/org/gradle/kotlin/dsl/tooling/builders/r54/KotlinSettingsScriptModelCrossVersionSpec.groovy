@@ -24,7 +24,7 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 import static org.junit.Assert.assertThat
 
 
-@TargetGradleVersion(">=5.3")
+@TargetGradleVersion(">=5.4")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch classpath of settings script"() {
