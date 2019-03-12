@@ -17,16 +17,16 @@
 package build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.EmptyFileVisitor
-import org.gradle.api.file.FileTree
-import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.api.internal.file.archive.ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
@@ -47,16 +47,17 @@ open class PatchKotlinCompilerEmbeddable : DefaultTask() {
     val excludes = project.objects.listProperty<String>()
 
     @Classpath
-    val originalFiles = project.files()
+    val originalFiles = project.objects.fileCollection()
 
     @Classpath
-    val dependencies = project.files()
+    val dependencies = project.objects.fileCollection()
 
     @Input
     val dependenciesIncludes = project.objects.mapProperty<String, List<String>>()
 
-    @Classpath
-    lateinit var additionalFiles: FileTree
+    @InputFiles
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    val additionalRootFiles = project.objects.fileCollection()
 
     @OutputFile
     val outputFile = project.objects.fileProperty()
@@ -87,7 +88,7 @@ open class PatchKotlinCompilerEmbeddable : DefaultTask() {
         patchedJar.setComment(originalJar.comment)
         copyFromOriginalApplyingExcludes(originalJar, patchedJar)
         copyFromDependenciesApplyingIncludes(patchedJar)
-        copyAdditionalFiles(patchedJar)
+        copyAdditionalRootFiles(patchedJar)
     }
 
     private
@@ -114,19 +115,17 @@ open class PatchKotlinCompilerEmbeddable : DefaultTask() {
             }
 
     private
-    fun copyAdditionalFiles(patchedJar: ZipOutputStream) =
-        additionalFiles.visit(object : EmptyFileVisitor() {
-            override fun visitFile(fileDetails: FileVisitDetails) {
-                patchedJar.putNextEntry(ZipEntry(fileDetails.relativePath.pathString).apply {
-                    time = CONSTANT_TIME_FOR_ZIP_ENTRIES
-                    size = fileDetails.file.length()
-                })
-                fileDetails.file.inputStream().buffered().use { input ->
-                    input.copyTo(patchedJar)
-                }
-                patchedJar.closeEntry()
+    fun copyAdditionalRootFiles(patchedJar: ZipOutputStream) =
+        additionalRootFiles.forEach { additionalRootFile ->
+            patchedJar.putNextEntry(ZipEntry(additionalRootFile.name).apply {
+                time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+                size = additionalRootFile.length()
+            })
+            additionalRootFile.inputStream().buffered().use { input ->
+                input.copyTo(patchedJar)
             }
-        })
+            patchedJar.closeEntry()
+        }
 
     private
     fun copyEntry(sourceJar: ZipFile, sourceEntry: ZipEntry, destinationJar: ZipOutputStream) {
