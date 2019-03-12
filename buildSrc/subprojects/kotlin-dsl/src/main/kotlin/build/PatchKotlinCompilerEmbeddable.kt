@@ -17,6 +17,8 @@
 package build
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.gradle.api.specs.Specs
@@ -41,26 +43,27 @@ import org.gradle.kotlin.dsl.*
 
 
 @CacheableTask
-open class PatchKotlinCompilerEmbeddable : DefaultTask() {
+@Suppress("unused")
+abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
 
     @Input
     val excludes = project.objects.listProperty<String>()
 
-    @Classpath
-    val originalFiles = project.objects.fileCollection()
+    @get:Classpath
+    abstract val originalFiles: ConfigurableFileCollection
 
-    @Classpath
-    val dependencies = project.objects.fileCollection()
+    @get:Classpath
+    abstract val dependencies: ConfigurableFileCollection
 
     @Input
     val dependenciesIncludes = project.objects.mapProperty<String, List<String>>()
 
-    @InputFiles
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    val additionalRootFiles = project.objects.fileCollection()
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val additionalRootFiles: ConfigurableFileCollection
 
-    @OutputFile
-    val outputFile = project.objects.fileProperty()
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
     @TaskAction
     @Suppress("unused")
