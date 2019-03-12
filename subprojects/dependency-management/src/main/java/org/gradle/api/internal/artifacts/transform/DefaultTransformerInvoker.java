@@ -33,7 +33,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -41,6 +40,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -261,13 +261,13 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute(IncrementalChangesContext context) {
+        public ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
 
             @SuppressWarnings("OptionalGetWithoutIsPresent")
             InputChanges inputChanges = transformer.isIncremental()
-                ? context.getChanges().get().getInputChanges()
+                ? changes.get().getInputChanges()
                 : null;
 
             boolean incremental = inputChanges != null && inputChanges.isIncremental();

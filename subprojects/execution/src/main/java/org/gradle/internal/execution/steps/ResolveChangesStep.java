@@ -29,7 +29,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.history.impl.NonIncrementalInputChanges;
+import org.gradle.internal.execution.history.changes.NonIncrementalInputChanges;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -63,7 +63,8 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            !work.isAllowOverlappingOutputs())
+                            !work.isAllowOverlappingOutputs(),
+                            work)
                         )
                         .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution, work))
                     )

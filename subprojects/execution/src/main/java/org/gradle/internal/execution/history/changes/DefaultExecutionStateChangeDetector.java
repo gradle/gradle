@@ -24,15 +24,12 @@ import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.impl.IncrementalInputChanges;
-import org.gradle.internal.execution.history.impl.NonIncrementalInputChanges;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, UnitOfWork work, boolean allowOverlappingOutputs) {
+    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs, InputToPropertyMapping inputToPropertyMapping) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -41,25 +38,25 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ChangeContainer implementationChanges = new ImplementationChanges(
             lastExecution.getImplementation(), lastExecution.getAdditionalImplementations(),
             thisExecution.getImplementation(), thisExecution.getAdditionalImplementations(),
-            work);
+            executable);
 
         // Capture non-file input changes
         ChangeContainer inputPropertyChanges = new PropertyChanges(
             lastExecution.getInputProperties(),
             thisExecution.getInputProperties(),
             "Input",
-            work);
+            executable);
         ChangeContainer inputPropertyValueChanges = new InputValueChanges(
             lastExecution.getInputProperties(),
             thisExecution.getInputProperties(),
-            work);
+            executable);
 
         // Capture input files state
         ChangeContainer inputFilePropertyChanges = new PropertyChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties(),
             "Input file",
-            work);
+            executable);
         InputFileChanges directInputFileChanges = new DefaultInputFileChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
@@ -70,7 +67,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties(),
             "Output",
-            work);
+            executable);
         OutputFileChanges uncachedOutputChanges = new OutputFileChanges(
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties(),
@@ -78,11 +75,12 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
         return new DetectedExecutionStateChanges(
-            errorHandling(work, inputFileChanges),
-            errorHandling(work, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
-            errorHandling(work, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges)),
+            errorHandling(executable, inputFileChanges),
+            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
+            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges)),
             thisExecution,
-            work
+            executable,
+            inputToPropertyMapping
         );
     }
 
@@ -129,20 +127,23 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         private final ChangeContainer allChanges;
         private final ChangeContainer rebuildTriggeringChanges;
         private final BeforeExecutionState thisExecution;
-        private final UnitOfWork work;
+        private final Describable owner;
+        private final InputToPropertyMapping inputToPropertyMapping;
 
         public DetectedExecutionStateChanges(
             InputFileChanges inputFileChanges,
             ChangeContainer allChanges,
             ChangeContainer rebuildTriggeringChanges,
             BeforeExecutionState thisExecution,
-            UnitOfWork work
+            Describable owner,
+            InputToPropertyMapping inputToPropertyMapping
         ) {
             this.inputFileChanges = inputFileChanges;
             this.allChanges = allChanges;
             this.rebuildTriggeringChanges = rebuildTriggeringChanges;
             this.thisExecution = thisExecution;
-            this.work = work;
+            this.owner = owner;
+            this.inputToPropertyMapping = inputToPropertyMapping;
         }
 
         @Override
@@ -152,9 +153,9 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         @Override
         public InputChangesInternal getInputChanges() {
-            ImmutableMap<Object, String> inputToPropertyNames = work.getInputToPropertyNames();
+            ImmutableMap<Object, String> inputToPropertyNames = inputToPropertyMapping.getInputToPropertyNames();
             return isRebuildRequired()
-                ? new NonIncrementalInputChanges(thisExecution.getInputFileProperties(), inputToPropertyNames, work)
+                ? new NonIncrementalInputChanges(thisExecution.getInputFileProperties(), inputToPropertyNames, owner)
                 : new IncrementalInputChanges(inputFileChanges, inputToPropertyNames);
         }
 

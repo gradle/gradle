@@ -31,6 +31,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
@@ -772,7 +773,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                ExecutionOutcome execute(IncrementalChangesContext context) {
+                ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
                     executed = true
                     return work.get()
                 }

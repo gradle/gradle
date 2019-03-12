@@ -16,23 +16,24 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputToPropertyMapping;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import java.time.Duration;
 import java.util.Optional;
 
-public interface UnitOfWork extends CacheableEntity {
+public interface UnitOfWork extends CacheableEntity, InputToPropertyMapping {
 
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute(IncrementalChangesContext context);
+    ExecutionOutcome execute(Optional<ExecutionStateChanges> changes);
 
     Optional<Duration> getTimeout();
 
@@ -72,6 +73,4 @@ public interface UnitOfWork extends CacheableEntity {
     ExecutionHistoryStore getExecutionHistoryStore();
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
-
-    ImmutableMap<Object, String> getInputToPropertyNames();
 }

@@ -44,7 +44,6 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -192,12 +191,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute(IncrementalChangesContext context) {
+        public ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                context.getChanges().ifPresent(new Consumer<ExecutionStateChanges>() {
+                changes.ifPresent(new Consumer<ExecutionStateChanges>() {
                     @Override
                     public void accept(ExecutionStateChanges changes) {
                         TaskExecution.this.context.setExecutionStateChanges(changes);

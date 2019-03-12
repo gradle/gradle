@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history.impl;
+package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
@@ -22,7 +22,6 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static org.gradle.internal.execution.history.impl.IncrementalInputChanges.determinePropertyName;
+import static org.gradle.internal.execution.history.changes.IncrementalInputChanges.determinePropertyName;
 
 public class NonIncrementalInputChanges implements InputChangesInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonIncrementalInputChanges.class);

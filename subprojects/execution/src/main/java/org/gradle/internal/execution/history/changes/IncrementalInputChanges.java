@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history.impl;
+package org.gradle.internal.execution.history.changes;
 
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.history.changes.InputFileChanges;
 
 import java.util.Map;
 

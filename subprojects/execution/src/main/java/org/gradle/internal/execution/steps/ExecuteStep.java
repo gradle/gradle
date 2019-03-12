@@ -25,7 +25,7 @@ import org.gradle.internal.execution.Step;
 public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C, Result> {
     @Override
     public Result execute(C context) {
-        ExecutionOutcome outcome = context.getWork().execute(context);
+        ExecutionOutcome outcome = context.getWork().execute(context.getChanges());
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {

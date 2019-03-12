@@ -16,18 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.api.Describable;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import com.google.common.collect.ImmutableMap;
 
-public interface ExecutionStateChangeDetector {
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
+public interface InputToPropertyMapping {
+    ImmutableMap<Object, String> getInputToPropertyNames();
 
-    ExecutionStateChanges detectChanges(
-        AfterPreviousExecutionState lastExecution,
-        BeforeExecutionState thisExecution,
-        Describable executable,
-        boolean allowOverlappingOutputs,
-        InputToPropertyMapping inputToPropertyMapping
-    );
 }
