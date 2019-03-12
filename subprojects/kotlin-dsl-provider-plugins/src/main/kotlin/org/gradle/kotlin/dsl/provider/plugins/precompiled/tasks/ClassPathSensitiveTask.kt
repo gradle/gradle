@@ -21,34 +21,29 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Internal
 
-import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
-
 import org.gradle.internal.hash.HashCode
 
-import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.HashedClassPath
 
 
 abstract class ClassPathSensitiveTask : DefaultTask() {
 
+    @get:Internal
+    internal
+    lateinit var hashedClassPath: HashedClassPath
+
     @get:Classpath
-    lateinit var classPathFiles: FileCollection
-
-    // TODO:kotlin-dsl Replace (classPathFiles, classPath, classPathHash) by a single HashedClassPath instance shared by all tasks
-    @get:Internal
-    protected
-    val classPath by lazy {
-        DefaultClassPath.of(classPathFiles.files)
-    }
+    val classPathFiles: FileCollection
+        get() = hashedClassPath.classPathFiles
 
     @get:Internal
     protected
-    val classPathHash by lazy {
-        hashOf(classPath)
-    }
+    val classPath: ClassPath
+        get() = hashedClassPath.classPath
 
-    private
-    fun hashOf(classPath: ClassPath): HashCode =
-        project.serviceOf<ClasspathHasher>().hash(classPath)
+    @get:Internal
+    protected
+    val classPathHash: HashCode
+        get() = hashedClassPath.hash
 }

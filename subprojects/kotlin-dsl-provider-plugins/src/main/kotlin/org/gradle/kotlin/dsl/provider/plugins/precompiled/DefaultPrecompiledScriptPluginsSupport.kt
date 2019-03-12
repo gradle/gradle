@@ -26,6 +26,11 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.HashCode
+
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
@@ -42,6 +47,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPl
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -159,7 +165,10 @@ fun Project.enableScriptCompilationOf(
 
     val generatedMetadata = buildDir("kotlin-dsl/precompiled-script-plugins-metadata")
 
-    val compileClasspath by lazy { compileClasspath() }
+    val compileClasspath = HashedClassPath(
+        { compileClasspath() },
+        { hashOf(it) }
+    )
 
     tasks {
 
@@ -174,7 +183,7 @@ fun Project.enableScriptCompilationOf(
                 "generateExternalPluginSpecBuilders",
                 kotlinSourceDirectorySet
             ) {
-                classPathFiles = compileClasspath
+                hashedClassPath = compileClasspath
                 sourceCodeOutputDir.set(it)
             }
 
@@ -186,7 +195,7 @@ fun Project.enableScriptCompilationOf(
             dependsOn(generateExternalPluginSpecBuilders)
             sourceDir(externalPluginSpecBuilders)
 
-            classPathFiles = compileClasspath
+            hashedClassPath = compileClasspath
             outputDir.set(compiledPluginsBlocks)
         }
 
@@ -197,7 +206,7 @@ fun Project.enableScriptCompilationOf(
                 kotlinSourceDirectorySet
             ) {
                 dependsOn(compilePluginsBlocks)
-                classPathFiles = compileClasspath
+                hashedClassPath = compileClasspath
                 runtimeClassPathFiles = configurations["runtimeClasspath"]
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(generatedMetadata)
@@ -233,6 +242,29 @@ fun Project.enableScriptCompilationOf(
         }
     }
 }
+
+
+internal
+class HashedClassPath(
+    filesProvider: () -> FileCollection,
+    private val classPathHasher: (ClassPath) -> HashCode
+) {
+
+    val classPathFiles by lazy(filesProvider)
+
+    val classPath by lazy {
+        DefaultClassPath.of(classPathFiles.files)
+    }
+
+    val hash by lazy {
+        classPathHasher(classPath)
+    }
+}
+
+
+private
+fun Project.hashOf(classPath: ClassPath) =
+    project.serviceOf<ClasspathHasher>().hash(classPath)
 
 
 private
