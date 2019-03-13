@@ -44,6 +44,8 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
     protected abstract String getProjectDependencyBlock()
 
+    protected abstract void addDependency(String from, String to)
+
     private File java(Map projectToClassBodies) {
         File out
         projectToClassBodies.each { project, bodies ->
@@ -75,11 +77,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         settingsFile << """
             include 'app'
         """
-        buildFile << """
-            project(':app') {
-                dependencies { compile project(path:':impl', configuration: 'classesDir') }
-            }
-        """
+        addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         java api: ["class A {}"]
         java impl: ["class B extends A {}"]
@@ -98,11 +96,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         settingsFile << """
             include 'app'
         """
-        buildFile << """
-            project(':app') {
-                dependencies { compile project(path:':impl', configuration: 'classesDir') }
-            }
-        """
+        addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         java api: ["class A {}"]
         java impl: ["class B { public A a;}"]
@@ -121,11 +115,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         settingsFile << """
             include 'app'
         """
-        buildFile << """
-            project(':app') {
-                dependencies { compile project(path:':impl', configuration: 'classesDir') }
-            }
-        """
+        addDependency("app", "impl")
         def app = new CompilationOutputsFixture(file("app/build/classes"))
         java api: ["class A {}"]
         java impl: ["class B { public A a;}"]
@@ -138,7 +128,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
 
         when:
         file("api/src/main/java/A.java").delete()
-        fails "app:compileJava", "-X", "impl:compileJava"
+        run "app:compileJava", "-x", "impl:compileJava"
 
         then:
         impl.noneRecompiled()

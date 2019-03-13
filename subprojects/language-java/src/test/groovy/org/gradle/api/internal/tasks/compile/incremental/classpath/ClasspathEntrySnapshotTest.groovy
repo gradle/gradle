@@ -17,11 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
-import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet
 import org.gradle.internal.hash.HashCode
 import spock.lang.Specification
-
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependents
 
 class ClasspathEntrySnapshotTest extends Specification {
 
