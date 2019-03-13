@@ -26,6 +26,8 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.internal.time.Time
+import org.gradle.internal.time.Timer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -48,19 +50,23 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
             import ${OperationFinishEvent.name}
             import ${OperationIdentifier.name}
             import ${ProcessEnvironment.name}
+            import ${Time.name}
+            import ${Timer.name}
 
             def pid = gradle.services.get(ProcessEnvironment).maybeGetPid()
+            def timer = Time.startTimer()
 
-            def listener = new TraceListener(pid: pid)
+            def listener = new TraceListener(pid: pid, timer: timer)
             def manager = gradle.services.get(BuildOperationListenerManager)
             manager.addListener(listener)
             gradle.buildFinished { manager.removeListener(listener) }
             
             class TraceListener implements BuildOperationListener {
                 Long pid
+                Timer timer
 
                 void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                    println("[\$pid] start " + buildOperation.displayName) 
+                    println("[\$pid] [\$timer.elapsed] start " + buildOperation.displayName) 
                 }
             
                 void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
