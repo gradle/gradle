@@ -1,3 +1,3 @@
  - Feature variants AKA "optional dependencies"
- - Type-safe accessors in Kotlin pre-compiled script plugins
+ - Type-safe accessors in Kotlin precompiled script plugins
  - Gradle Module Metadata 1.0

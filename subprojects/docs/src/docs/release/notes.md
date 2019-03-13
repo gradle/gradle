@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features support for publishing and consuming Gradle Module Metadata,
 [feature variants or "optional dependencies"](#feature-variants),
-[type-safe accessors in Kotlin pre-compiled script plugins](#type-safe-accessors-in-precompiled-script-plugins), and more.
+[type-safe accessors in Kotlin precompiled script plugins](#type-safe-accessors-in-precompiled-script-plugins), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 
