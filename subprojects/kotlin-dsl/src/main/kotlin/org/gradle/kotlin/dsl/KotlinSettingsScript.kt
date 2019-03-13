@@ -49,6 +49,7 @@ import org.gradle.internal.time.Clock
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.decorators.SettingsDecorator
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -105,7 +106,9 @@ abstract class KotlinSettingsScript(
  * Standard implementation of the API exposed to all types of [Settings] scripts,
  * precompiled and otherwise.
  */
-abstract class SettingsScriptApi(settings: Settings) : Settings by settings {
+abstract class SettingsScriptApi(
+    override val delegate: Settings
+) : SettingsDecorator() {
 
     protected
     abstract val fileOperations: FileOperations

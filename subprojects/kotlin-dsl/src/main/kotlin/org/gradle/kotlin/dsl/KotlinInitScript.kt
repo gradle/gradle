@@ -37,6 +37,7 @@ import org.gradle.api.tasks.WorkResult
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.decorators.GradleDecorator
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -100,7 +101,9 @@ abstract class KotlinInitScript(
  * Standard implementation of the API exposed to all types of [Gradle] scripts,
  * precompiled and otherwise.
  */
-abstract class InitScriptApi(target: Gradle) : Gradle by target {
+abstract class InitScriptApi(
+    override val delegate: Gradle
+) : GradleDecorator() {
 
     protected
     abstract val fileOperations: FileOperations

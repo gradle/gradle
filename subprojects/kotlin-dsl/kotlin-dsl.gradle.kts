@@ -18,7 +18,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
-import build.withCompileOnlyGradleApiModulesWithParameterNames
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
@@ -31,11 +30,11 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(":toolingApi")
-
 dependencies {
 
     api(project(":distributionsDependencies"))
+
+    compileOnly(project(":toolingApi"))
 
     compile(project(":kotlinDslToolingModels"))
 

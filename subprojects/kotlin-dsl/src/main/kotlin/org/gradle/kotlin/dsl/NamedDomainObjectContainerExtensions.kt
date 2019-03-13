@@ -21,6 +21,8 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+import org.gradle.kotlin.dsl.support.decorators.NamedDomainObjectContainerDecorator
+
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -219,8 +221,8 @@ private constructor(
  */
 class NamedDomainObjectContainerScope<T : Any>
 private constructor(
-    private val container: NamedDomainObjectContainer<T>
-) : NamedDomainObjectContainer<T> by container, PolymorphicDomainObjectContainer<T> {
+    override val delegate: NamedDomainObjectContainer<T>
+) : NamedDomainObjectContainerDecorator<T>(), PolymorphicDomainObjectContainer<T> {
 
     companion object {
         fun <T : Any> of(container: NamedDomainObjectContainer<T>) =
@@ -260,7 +262,7 @@ private constructor(
      * @see [NamedDomainObjectContainer.named]
      */
     operator fun String.invoke(): NamedDomainObjectProvider<T> =
-        container.named(this)
+        delegate.named(this)
 
     /**
      * Configures an object by name, without triggering its creation or configuration, failing if there is no such object.
@@ -269,7 +271,7 @@ private constructor(
      * @see [NamedDomainObjectProvider.configure]
      */
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): NamedDomainObjectProvider<U> =
-        container.named(this, type, configuration)
+        delegate.named(this, type, configuration)
 
     /**
      * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
@@ -277,7 +279,7 @@ private constructor(
      * @see [PolymorphicDomainObjectContainer.named]
      */
     operator fun <U : T> String.invoke(type: KClass<U>): NamedDomainObjectProvider<U> =
-        container.named(this, type)
+        delegate.named(this, type)
 
     /**
      * Cast this to [PolymorphicDomainObjectContainer] or throw [IllegalArgumentException].
@@ -289,8 +291,8 @@ private constructor(
      */
     private
     fun polymorphicDomainObjectContainer() =
-        container as? PolymorphicDomainObjectContainer<T>
-            ?: throw IllegalArgumentException("Container '$container' is not polymorphic.")
+        delegate as? PolymorphicDomainObjectContainer<T>
+            ?: throw IllegalArgumentException("Container '$delegate' is not polymorphic.")
 }
 
 

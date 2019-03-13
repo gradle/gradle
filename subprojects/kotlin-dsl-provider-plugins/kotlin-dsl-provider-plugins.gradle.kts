@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import build.withCompileOnlyGradleApiModulesWithParameterNames
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -27,16 +26,15 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(
-    ":plugins",
-    ":pluginDevelopment"
-)
 
 dependencies {
 
     compile(project(":distributionsDependencies"))
 
     compile(project(":kotlinDsl"))
+
+    compileOnly(project(":plugins"))
+    compileOnly(project(":pluginDevelopment"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(project(":plugins"))
