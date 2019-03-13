@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.devel.tasks
 
-
-import org.gradle.api.ReplacedBy
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
@@ -39,6 +37,7 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.work.ReplacedBy
 import spock.lang.Unroll
 
 import javax.inject.Inject

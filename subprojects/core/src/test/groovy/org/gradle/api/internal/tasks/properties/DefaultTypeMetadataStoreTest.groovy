@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.ReplacedBy
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
@@ -48,6 +47,7 @@ import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
+import org.gradle.work.ReplacedBy
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification

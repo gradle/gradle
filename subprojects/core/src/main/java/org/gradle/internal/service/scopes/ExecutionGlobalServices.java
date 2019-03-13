@@ -16,7 +16,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.ReplacedBy;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -57,6 +56,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.work.ReplacedBy;
 
 import java.util.List;
 

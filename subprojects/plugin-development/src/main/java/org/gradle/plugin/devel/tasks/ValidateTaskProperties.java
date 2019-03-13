@@ -54,6 +54,7 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.work.ReplacedBy;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -99,7 +100,7 @@ import java.util.Map;
  *             <li>{@literal @}{@link javax.inject.Inject} marks a Gradle service used by the task.</li>
  *             <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences the console output of the task.</li>
  *             <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property of the task.</li>
- *             <li>{@literal @}{@link org.gradle.api.ReplacedBy ReplacedBy} mark a property as replaced by another (similar to {@code Internal}).</li>
+ *             <li>{@literal @}{@link ReplacedBy ReplacedBy} mark a property as replaced by another (similar to {@code Internal}).</li>
  *         </ul>
  *     </li>
  * </ul>

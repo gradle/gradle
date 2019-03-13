@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.work;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 
 import java.lang.annotation.Documented;

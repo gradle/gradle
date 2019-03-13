@@ -29,10 +29,10 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.ReplacedBy;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.GUtil;
+import org.gradle.work.ReplacedBy;
 
 import javax.annotation.Nullable;
 import java.io.File;
