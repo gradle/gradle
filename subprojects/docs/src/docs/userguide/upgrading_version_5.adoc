@@ -84,6 +84,15 @@ The legacy behaviour of Gradle, prior to 5.0, was still in place instead of bein
 
 Gradle no longer ignores the `followSymlink` option on Windows for the `clean` task, all `Delete` tasks, and `project.delete {}` operations in the presence of junction points and symbolic links.
 
+==== Fix in publication of additional artifacts
+
+In previous Gradle versions, additional artifacts registered at the project level were not published by `maven-publish` or `ivy-publish` unless they were also added as artifacts in the publication configuration.
+
+With Gradle 5.3, these artifacts are now properly accounted for and published.
+
+This means that artifacts that are registered both on the project _and_ the publication, Ivy or Maven, will cause publication to fail since it will create duplicate entries.
+The fix is to remove these artifacts from the publication configuration.
+
 [[changes_5.2]]
 == Upgrading from 5.1 and earlier
 
