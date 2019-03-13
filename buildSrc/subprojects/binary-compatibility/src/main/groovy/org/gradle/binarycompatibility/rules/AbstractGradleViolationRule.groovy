@@ -53,7 +53,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     private static boolean isAnnotatedWithDeprecated(JApiHasAnnotations member) {
-        member.annotations*.fullyQualifiedName.any { it == Deprecated.name }
+        member.annotations*.fullyQualifiedName.any { it == Deprecated.name || it == kotlin.Deprecated.name }
     }
 
     private static boolean isAnnotatedWithInject(JApiHasAnnotations member) {
