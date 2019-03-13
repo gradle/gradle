@@ -22,11 +22,11 @@ import me.champeau.gradle.japicmp.report.ViolationCheckContext;
 import java.util.Map;
 import java.util.Set;
 
-public class SinceAnnotationMissingRuleAPISourceFoldersSetup implements SetupRule {
+public class ApiSourceFoldersContextSetup implements SetupRule {
 
     private final Set<String> apiSourceFolders;
 
-    public SinceAnnotationMissingRuleAPISourceFoldersSetup(Map<String, String> sourceFolders) {
+    public ApiSourceFoldersContextSetup(Map<String, String> sourceFolders) {
         this.apiSourceFolders = sourceFolders.keySet();
     }
 

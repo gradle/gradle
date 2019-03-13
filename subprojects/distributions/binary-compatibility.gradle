@@ -142,7 +142,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
         addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
         addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
-        addSetupRule(SinceAnnotationMissingRuleAPISourceFoldersSetup, foldersWithAPISources.collectEntries { [(it): it] })
+        addSetupRule(ApiSourceFoldersContextSetup, foldersWithAPISources.collectEntries { [(it): it] })
         addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: baseVersion])
         addPostProcessRule(AcceptedRegressionsRulePostProcess)
     }
