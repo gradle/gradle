@@ -53,7 +53,9 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         when:
         server.expectConcurrent("log1", "log2", "log3")
-        result = executer.withArgument("--parallel").withTasks("log").start().waitForFinish()
+        executer.withArgument("--parallel")
+        // run build in another process to avoid interference from logging from test fixtures
+        result = executer.withTasks("log").start().waitForFinish()
 
         then:
         result.groupedOutput.taskCount == 3

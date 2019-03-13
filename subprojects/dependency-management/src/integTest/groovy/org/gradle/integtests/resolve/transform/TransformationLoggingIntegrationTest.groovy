@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 
-    private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich]
+    private static final List<ConsoleOutput> TESTED_CONSOLE_TYPES = [ConsoleOutput.Plain, ConsoleOutput.Verbose, ConsoleOutput.Rich, ConsoleOutput.Auto]
 
     def setup() {
         settingsFile << """

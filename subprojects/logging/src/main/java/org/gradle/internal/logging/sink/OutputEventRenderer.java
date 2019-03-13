@@ -230,30 +230,49 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    public OutputEventRenderer addRichConsole(Console console, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        OutputEventListener consoleChain;
-        boolean stdoutAttachedToConsole = consoleMetaData.isStdOut();
-        boolean stderrAttachedToConsole = consoleMetaData.isStdErr();
-        StandardOutputListener outputListener = new StreamBackedStandardOutputListener(stdout);
-        StandardOutputListener errorListener = new StreamBackedStandardOutputListener(stderr);
-        if (stdoutAttachedToConsole && stderrAttachedToConsole) {
-            OutputEventListener consoleListener = new StyledTextOutputBackedRenderer(console.getBuildOutputArea());
-            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
-        } else if (stderrAttachedToConsole) {
-            OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener));
-            OutputEventListener stderrChain = new FlushConsoleListener(console, new StyledTextOutputBackedRenderer(console.getBuildOutputArea()));
-            consoleChain = getPlainConsoleChain(stdoutChain, stderrChain, false, verbose);
-        } else {
-            OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(console.getBuildOutputArea());
-            OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
-            OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain, false);
-            consoleChain = getRichConsoleChain(console, consoleMetaData, verbose, consoleListener);
-        }
-
-        return addConsoleChain(consoleChain);
+    public void addRichConsoleWithErrorOutputOnStdout(Console stdout, ConsoleMetaData consoleMetaData, boolean verbose) {
+        OutputEventListener consoleListener = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        OutputEventListener consoleChain = getConsoleChainWithDynamicStdout(stdout, consoleMetaData, verbose, consoleListener);
+        addConsoleChain(consoleChain);
     }
 
-    private OutputEventListener getRichConsoleChain(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
+    public void addRichConsole(Console stdout, Console stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
+        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        OutputEventListener consoleChain = getConsoleChainWithDynamicStdout(stdout, consoleMetaData, verbose, consoleListener);
+        addConsoleChain(consoleChain);
+    }
+
+    public void addRichConsole(Console stdout, OutputStream stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
+        OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
+        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        OutputEventListener consoleChain = getConsoleChainWithDynamicStdout(stdout, consoleMetaData, verbose, consoleListener);
+        addConsoleChain(consoleChain);
+    }
+
+    public void addRichConsole(OutputStream stdout, Console stderr, boolean verbose) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
+        OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
+        OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        OutputEventListener consoleChain = getConsoleChainWithoutDynamicStdout(consoleListener, verbose);
+        addConsoleChain(consoleChain);
+    }
+
+    public void addPlainConsoleWithErrorOutputOnStdout(OutputStream stdout) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(stdoutChain, true));
+    }
+
+    public void addPlainConsole(OutputStream stdout, OutputStream stderr) {
+        OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stdout)));
+        OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
+        OutputEventListener outputListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
+        addConsoleChain(getConsoleChainWithoutDynamicStdout(outputListener, true));
+    }
+
+    private OutputEventListener getConsoleChainWithDynamicStdout(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
         return throttled(
             new UserInputConsoleRenderer(
                 new BuildStatusRenderer(
@@ -265,31 +284,22 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                         new DefaultWorkInProgressFormatter(consoleMetaData),
                         new ConsoleLayoutCalculator(consoleMetaData)
                     ),
-                console.getStatusBar(), console, consoleMetaData),
-            console)
+                    console.getStatusBar(), console, consoleMetaData),
+                console)
         );
     }
 
-    public OutputEventRenderer addPlainConsole(OutputStream stdout, OutputStream stderr, boolean redirectStderr) {
-        return addConsoleChain(getPlainConsoleChain(new StreamBackedStandardOutputListener(stdout), new StreamBackedStandardOutputListener(stderr), redirectStderr, true));
-    }
-
-    private OutputEventListener getPlainConsoleChain(StandardOutputListener outputListener, StandardOutputListener errorListener, boolean redirectStderr, boolean verbose) {
-        final OutputEventListener stdoutChain = new UserInputStandardOutputRenderer(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(outputListener)));
-        final OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(errorListener));
-        return getPlainConsoleChain(stdoutChain, stderrChain, redirectStderr, verbose);
-    }
-
-    private OutputEventListener getPlainConsoleChain(OutputEventListener stdoutChain, OutputEventListener stderrChain, boolean redirectStderr, boolean verbose) {
+    private OutputEventListener getConsoleChainWithoutDynamicStdout(OutputEventListener outputListener, boolean verbose) {
         return throttled(
-            new BuildLogLevelFilterRenderer(
-                new GroupingProgressLogEventGenerator(
-                    new ErrorOutputDispatchingListener(stderrChain, stdoutChain, redirectStderr),
-                    new PrettyPrefixedLogHeaderFormatter(),
-                    verbose
+            new UserInputStandardOutputRenderer(
+                new BuildLogLevelFilterRenderer(
+                    new GroupingProgressLogEventGenerator(
+                        outputListener,
+                        new PrettyPrefixedLogHeaderFormatter(),
+                        verbose
+                    )
                 )
-            )
-        );
+        ));
     }
 
     private OutputEventListener throttled(OutputEventListener consoleChain) {
