@@ -24,14 +24,10 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
 class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalTaskInputsTaskAction.class);
-
     private final Instantiator instantiator;
 
     public IncrementalTaskInputsTaskAction(Instantiator instantiator, Class<? extends Task> type, Method method) {
@@ -39,14 +35,14 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
         this.instantiator = instantiator;
     }
 
-    protected void doExecute(final Task task, String methodName) {
+    protected void doExecute(Task task, String methodName) {
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
         InputChangesInternal inputChanges = changes.getInputChanges();
 
         IncrementalTaskInputs incrementalTaskInputs = inputChanges.isIncremental()
             ? createIncrementalInputs(inputChanges)
-            : createRebuildInputs(task, inputChanges);
+            : createRebuildInputs(inputChanges);
 
         getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
@@ -56,8 +52,7 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
         return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputChanges.getAllFileChanges());
     }
 
-    private RebuildIncrementalTaskInputs createRebuildInputs(Task task, InputChangesInternal inputChanges) {
-        LOGGER.info("All input files are considered out-of-date for incremental {}.", task);
+    private RebuildIncrementalTaskInputs createRebuildInputs(InputChangesInternal inputChanges) {
         return instantiator.newInstance(RebuildIncrementalTaskInputs.class, inputChanges);
     }
 }

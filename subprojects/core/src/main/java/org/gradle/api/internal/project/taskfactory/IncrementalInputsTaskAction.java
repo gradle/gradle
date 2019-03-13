@@ -20,25 +20,18 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.reflect.JavaMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
 public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IncrementalInputsTaskAction.class);
-
     public IncrementalInputsTaskAction(Class<? extends Task> type, Method method) {
         super(type, method);
     }
 
-    protected void doExecute(final Task task, String methodName) {
+    protected void doExecute(Task task, String methodName) {
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
         InputChanges inputChanges = changes.getInputChanges();
-        if (!inputChanges.isIncremental()) {
-            LOGGER.info("All inputs are considered out-of-date for incremental {}.", task);
-        }
         getContext().setTaskExecutedIncrementally(inputChanges.isIncremental());
         JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, inputChanges);
     }
