@@ -21,7 +21,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.decorators.ProjectDecorator
+import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.kotlin.dsl.support.internalError
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -56,7 +56,7 @@ annotation class KotlinScriptTemplate
 @GradleDsl
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : ProjectDecorator() {
+) : ProjectDelegate() {
 
     override val delegate: Project
         get() = host.target

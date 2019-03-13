@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyConstraint
@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 /**
  * Facilitates the implementation of the [DependencyConstraintHandler] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class DependencyConstraintHandlerDecorator : DependencyConstraintHandler {
+abstract class DependencyConstraintHandlerDelegate : DependencyConstraintHandler {
 
     internal
     abstract val delegate: DependencyConstraintHandler

@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 
-import org.gradle.kotlin.dsl.support.decorators.DependencyConstraintHandlerDecorator
+import org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate
 
 
 /**
@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.support.decorators.DependencyConstraintHandlerDecor
 class DependencyConstraintHandlerScope
 private constructor(
     val constraints: DependencyConstraintHandler
-) : DependencyConstraintHandlerDecorator() {
+) : DependencyConstraintHandlerDelegate() {
 
     companion object {
         fun of(constraints: DependencyConstraintHandler) =

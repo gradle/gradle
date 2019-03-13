@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 
-import org.gradle.kotlin.dsl.support.decorators.DependencyHandlerDecorator
+import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
 
 
 /**
@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.support.decorators.DependencyHandlerDecorator
 open class DependencyHandlerScope
 private constructor(
     val dependencies: DependencyHandler
-) : DependencyHandlerDecorator() {
+) : DependencyHandlerDelegate() {
 
     companion object {
         fun of(dependencies: DependencyHandler): DependencyHandlerScope =

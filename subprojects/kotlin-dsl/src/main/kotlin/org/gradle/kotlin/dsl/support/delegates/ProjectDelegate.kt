@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -68,9 +68,9 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class ProjectDecorator() : Project {
+abstract class ProjectDelegate() : Project {
 
     internal
     abstract val delegate: Project

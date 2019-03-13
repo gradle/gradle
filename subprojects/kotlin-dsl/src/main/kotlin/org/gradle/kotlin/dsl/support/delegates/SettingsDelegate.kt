@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -39,9 +39,9 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class SettingsDecorator : Settings {
+abstract class SettingsDelegate : Settings {
 
     internal
     abstract val delegate: Settings

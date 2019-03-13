@@ -31,7 +31,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
-import org.gradle.kotlin.dsl.support.decorators.ScriptHandlerDecorator
+import org.gradle.kotlin.dsl.support.delegates.ScriptHandlerDelegate
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
@@ -41,7 +41,7 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 class ScriptHandlerScope
 private constructor(
     override val delegate: ScriptHandler
-) : ScriptHandlerDecorator() {
+) : ScriptHandlerDelegate() {
 
     companion object {
         fun of(scriptHandler: ScriptHandler) =

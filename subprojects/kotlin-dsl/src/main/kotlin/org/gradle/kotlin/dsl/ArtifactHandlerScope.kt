@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 
-import org.gradle.kotlin.dsl.support.decorators.ArtifactHandlerDecorator
+import org.gradle.kotlin.dsl.support.delegates.ArtifactHandlerDelegate
 
 
 /**
@@ -32,7 +32,7 @@ import org.gradle.kotlin.dsl.support.decorators.ArtifactHandlerDecorator
 class ArtifactHandlerScope
 private constructor(
     val artifacts: ArtifactHandler
-) : ArtifactHandlerDecorator() {
+) : ArtifactHandlerDelegate() {
 
     companion object {
         /**

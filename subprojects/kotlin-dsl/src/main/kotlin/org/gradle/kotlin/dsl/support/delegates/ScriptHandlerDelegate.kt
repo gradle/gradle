@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -31,9 +31,9 @@ import java.net.URI
 /**
  * Facilitates the implementation of the [ScriptHandler] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class ScriptHandlerDecorator : ScriptHandler {
+abstract class ScriptHandlerDelegate : ScriptHandler {
 
     internal
     abstract val delegate: ScriptHandler

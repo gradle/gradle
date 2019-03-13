@@ -37,7 +37,7 @@ import org.gradle.api.tasks.WorkResult
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.decorators.GradleDecorator
+import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -103,7 +103,7 @@ abstract class KotlinInitScript(
  */
 abstract class InitScriptApi(
     override val delegate: Gradle
-) : GradleDecorator() {
+) : GradleDelegate() {
 
     protected
     abstract val fileOperations: FileOperations

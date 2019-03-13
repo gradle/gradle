@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.GradleDsl
 import org.gradle.kotlin.dsl.KotlinScriptTemplate
 import org.gradle.kotlin.dsl.ScriptHandlerScope
-import org.gradle.kotlin.dsl.support.decorators.ProjectDecorator
+import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -58,7 +58,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 abstract class PrecompiledProjectScript(
     override val delegate: Project
-) : ProjectDecorator() {
+) : ProjectDelegate() {
 
     /**
      * Configures the build script classpath for this project.

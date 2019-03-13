@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
-import org.gradle.kotlin.dsl.support.decorators.NamedDomainObjectContainerDecorator
+import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -222,7 +222,7 @@ private constructor(
 class NamedDomainObjectContainerScope<T : Any>
 private constructor(
     override val delegate: NamedDomainObjectContainer<T>
-) : NamedDomainObjectContainerDecorator<T>(), PolymorphicDomainObjectContainer<T> {
+) : NamedDomainObjectContainerDelegate<T>(), PolymorphicDomainObjectContainer<T> {
 
     companion object {
         fun <T : Any> of(container: NamedDomainObjectContainer<T>) =

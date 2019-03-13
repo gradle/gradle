@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -36,9 +36,9 @@ import java.util.SortedSet
 /**
  * Facilitates the implementation of the [NamedDomainObjectContainer] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class NamedDomainObjectContainerDecorator<T> : NamedDomainObjectContainer<T> {
+abstract class NamedDomainObjectContainerDelegate<T> : NamedDomainObjectContainer<T> {
 
     abstract val delegate: NamedDomainObjectContainer<T>
 

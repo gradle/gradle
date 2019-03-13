@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -45,7 +45,7 @@ import java.io.File
  * Once the required interfaces are compiled with Java 8 parameter names these classes can be removed in favor
  * of Kotlin's implementation by delegation.
  */
-abstract class GradleDecorator : Gradle {
+abstract class GradleDelegate : Gradle {
 
     internal
     abstract val delegate: Gradle

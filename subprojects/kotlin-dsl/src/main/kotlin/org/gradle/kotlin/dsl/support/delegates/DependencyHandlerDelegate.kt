@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.decorators
+package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
 
@@ -36,9 +36,9 @@ import org.gradle.api.attributes.AttributesSchema
 /**
  * Facilitates the implementation of the [DependencyHandler] interface by delegation via subclassing.
  *
- * See [GradleDecorator] for details why this is currently necessary.
+ * See [GradleDelegate] for details why this is currently necessary.
  */
-abstract class DependencyHandlerDecorator : DependencyHandler {
+abstract class DependencyHandlerDelegate : DependencyHandler {
 
     internal
     abstract val delegate: DependencyHandler
