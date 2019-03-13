@@ -34,8 +34,8 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
     def "given a single project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set"() {
 
         given:
-        def implementationDependency = withClassJar("implementation.jar")
-        def classpathDependency = withClassJar("classpath.jar")
+        def implementationDependency = withEmptyJar("implementation.jar")
+        def classpathDependency = withEmptyJar("classpath.jar")
 
         and:
         withDefaultSettings()
@@ -69,8 +69,8 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
     def "given a multi-project build, the classpath of a precompiled script plugin is the compile classpath of its enclosing source-set"() {
 
         given:
-        def dependencyA = withClassJar("a.jar")
-        def dependencyB = withClassJar("b.jar")
+        def dependencyA = withEmptyJar("a.jar")
+        def dependencyB = withEmptyJar("b.jar")
 
         and:
         withDefaultSettings().append("""

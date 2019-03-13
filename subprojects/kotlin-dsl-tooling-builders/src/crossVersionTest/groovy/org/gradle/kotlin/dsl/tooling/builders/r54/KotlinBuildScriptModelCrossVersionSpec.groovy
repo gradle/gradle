@@ -186,9 +186,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
 
         withSettingsIn(location, "include(\"foo\", \"bar\")")
 
-        def parentJar = withClassJar("$location/libs/parent.jar")
-        def fooJar = withClassJar("$location/libs/foo.jar")
-        def barJar = withClassJar("$location/libs/bar.jar")
+        def parentJar = withEmptyJar("$location/libs/parent.jar")
+        def fooJar = withEmptyJar("$location/libs/foo.jar")
+        def barJar = withEmptyJar("$location/libs/bar.jar")
 
         assertTrue parentJar.isFile()
         assertTrue fooJar.isFile()
@@ -227,8 +227,8 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     def "can fetch buildscript classpath for sub-project script outside root project dir"() {
 
         given:
-        def rootDependency = withClassJar("libs/root.jar")
-        def subDependency = withClassJar("libs/sub.jar")
+        def rootDependency = withEmptyJar("libs/root.jar")
+        def subDependency = withEmptyJar("libs/sub.jar")
 
         and:
         withSettingsIn("root", """
@@ -282,9 +282,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
 
         withDefaultSettings()
 
-        def rootDependency = withClassJar("libs/root-dep.jar")
-        def nestedRootDependency = withClassJar("libs/$nestedProjectName-root-dep.jar")
-        def nestedSubDependency = withClassJar("libs/$nestedProjectName-sub-dep.jar")
+        def rootDependency = withEmptyJar("libs/root-dep.jar")
+        def nestedRootDependency = withEmptyJar("libs/$nestedProjectName-root-dep.jar")
+        def nestedSubDependency = withEmptyJar("libs/$nestedProjectName-sub-dep.jar")
 
         withSettingsIn(nestedProjectName, """
             include("sub")

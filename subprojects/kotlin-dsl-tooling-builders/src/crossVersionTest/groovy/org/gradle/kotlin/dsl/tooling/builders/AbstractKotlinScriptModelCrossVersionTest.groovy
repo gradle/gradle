@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
 
-import org.gradle.api.internal.file.archive.ZipCopyAction
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,7 +34,6 @@ import org.hamcrest.TypeSafeMatcher
 import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.regex.Pattern
-import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
@@ -119,35 +117,10 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return file(path).tap { text = content.stripIndent() }
     }
 
-    protected TestFile withClassJar(String path, Class<?>... classes) {
-        return withZip(path, classEntriesFor(classes))
-    }
-
-    // TODO rewrite invoking the kotlin impl
-    protected TestFile withZip(String zipPath, Iterable<Tuple2<String, byte[]>> entries) {
-        return file(zipPath).tap { zip ->
-            zip.parentFile.mkdirs()
-            new ZipOutputStream(zip.newOutputStream()).withCloseable { zos ->
-                entries.each { tuple ->
-                    def path = tuple.first
-                    def bytes = tuple.second
-                    zos.putNextEntry(new ZipEntry(path).tap {
-                        time = ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES
-                        size = bytes.size()
-                    })
-                    zos.write(bytes)
-                    zos.closeEntry()
-                }
-            }
-        }
-    }
-
-    // TODO rewrite invoking the kotlin impl
-    private static Iterable<Tuple2<String, byte[]>> classEntriesFor(Class<?>... classes) {
-
-        return classes.collect { clazz ->
-            def classFilePath = clazz.name.replace('.', '/') + ".class"
-            new Tuple2<String, byte[]>(classFilePath, clazz.getResource("/$classFilePath").bytes)
+    protected TestFile withEmptyJar(String path) {
+        return file(path).tap { jarFile ->
+            jarFile.parentFile.mkdirs()
+            new ZipOutputStream(jarFile.newOutputStream()).close()
         }
     }
 
