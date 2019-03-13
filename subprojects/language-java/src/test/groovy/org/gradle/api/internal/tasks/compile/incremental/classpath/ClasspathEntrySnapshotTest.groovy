@@ -31,8 +31,8 @@ class ClasspathEntrySnapshotTest extends Specification {
         new ClasspathEntrySnapshot(new ClasspathEntrySnapshotData(HashCode.fromInt(0x1234), hashes, a))
     }
 
-    private DependentsSet altered(ClasspathEntrySnapshot s1, ClasspathEntrySnapshot s2) {
-        s1.getAffectedClassesSince(s2).altered
+    private Set<String> altered(ClasspathEntrySnapshot s1, ClasspathEntrySnapshot s2) {
+        s1.getChangedClassesSince(s2).modified
     }
 
     def "knows when there are no affected classes since some other snapshot"() {
@@ -40,7 +40,7 @@ class ClasspathEntrySnapshotTest extends Specification {
         ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
 
         expect:
-        altered(s1, s2).dependentClasses.isEmpty()
+        altered(s1, s2).isEmpty()
     }
 
     def "knows when there are extra/missing classes since some other snapshot"() {
@@ -48,8 +48,8 @@ class ClasspathEntrySnapshotTest extends Specification {
         ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa)], analysis)
 
         expect:
-        altered(s1, s2).dependentClasses.isEmpty() //ignore class additions
-        altered(s2, s1).dependentClasses == ["B", "C"] as Set
+        altered(s1, s2).isEmpty() //ignore class additions
+        altered(s2, s1) == ["B", "C"] as Set
     }
 
     def "knows when there are changed classes since other snapshot"() {
@@ -57,46 +57,8 @@ class ClasspathEntrySnapshotTest extends Specification {
         ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)], analysis)
 
         expect:
-        altered(s1, s2).dependentClasses == ["B"] as Set
-        altered(s2, s1).dependentClasses == ["B", "C"] as Set
-    }
-
-    def "knows when transitive class is affected transitively via class change"() {
-        def analysis = Stub(ClassSetAnalysisData)
-        ClasspathEntrySnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
-        ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcccc)], analysis)
-
-        analysis.getDependents("C") >> dependents("B")
-        analysis.getDependents("B") >> dependents()
-
-        expect:
-        altered(s1, s2).dependentClasses == ["B", "C"] as Set
-        altered(s2, s1).dependentClasses == ["B", "C"] as Set
-    }
-
-    def "knows when transitive class is affected transitively via class removal"() {
-        def analysis = Stub(ClassSetAnalysisData)
-        ClasspathEntrySnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb), "C": HashCode.fromInt(0xcc)], analysis)
-        ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
-
-        analysis.getDependents("C") >> dependents("B")
-        analysis.getDependents("B") >> dependents()
-
-        expect:
-        altered(s1, s2).dependentClasses.isEmpty()
-        altered(s2, s1).dependentClasses == ["B", "C"] as Set
-    }
-
-    def "knows when class is dependency to all"() {
-        def analysis = Mock(ClassSetAnalysisData)
-        ClasspathEntrySnapshot s1 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbb)], analysis)
-        ClasspathEntrySnapshot s2 = snapshot(["A": HashCode.fromInt(0xaa), "B": HashCode.fromInt(0xbbbb)], analysis)
-
-        analysis.getDependents("B") >> DependentsSet.dependencyToAll()
-
-        expect:
-        altered(s1, s2).isDependencyToAll()
-        altered(s2, s1).isDependencyToAll()
+        altered(s1, s2) == ["B"] as Set
+        altered(s2, s1) == ["B", "C"] as Set
     }
 
     def "knows added classes"() {
@@ -105,8 +67,8 @@ class ClasspathEntrySnapshotTest extends Specification {
         ClasspathEntrySnapshot s3 = snapshot([:], analysis)
 
         expect:
-        s1.getAffectedClassesSince(s2).added == ["B", "C"] as Set
-        s2.getAffectedClassesSince(s1).added == [] as Set
-        s1.getAffectedClassesSince(s3).added == ["A", "B", "C"] as Set
+        s1.getChangedClassesSince(s2).added == ["B", "C"] as Set
+        s2.getChangedClassesSince(s1).added == [] as Set
+        s1.getChangedClassesSince(s3).added == ["A", "B", "C"] as Set
     }
 }

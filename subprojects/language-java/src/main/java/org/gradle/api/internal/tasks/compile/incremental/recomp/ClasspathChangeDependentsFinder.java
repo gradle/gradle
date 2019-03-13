@@ -18,10 +18,9 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
-import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassChanges;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.tasks.incremental.InputFileDetails;
@@ -42,71 +41,84 @@ public class ClasspathChangeDependentsFinder {
 
     public DependentsSet getActualDependents(InputFileDetails entryChangeDetails, File classpathEntry) {
         if (entryChangeDetails.isAdded()) {
-            if (classpathSnapshot.isAnyClassDuplicated(classpathEntry)) {
-                //at least one of the classes from the new entry is already present in classpath
-                //to avoid calculation which class gets on the classpath first, rebuild all
-                return DependentsSet.dependencyToAll("at least one of the classes of '" + classpathEntry + "' is already present in classpath");
-            } else {
-                //none of the new classes in the entry are duplicated on classpath, don't rebuild
-                return DependentsSet.empty();
-            }
+            return handleAdded(classpathEntry);
         }
-        final ClasspathEntrySnapshot previous = previousCompilation.getClasspathEntrySnapshot(entryChangeDetails.getFile());
+
+        ClasspathEntrySnapshot previous = previousCompilation.getClasspathEntrySnapshot(entryChangeDetails.getFile());
 
         if (previous == null) {
-            //we don't know what classes were dependents of the entry in the previous build
-            //for example, a class with a constant might have changed into a class without a constant - we need to rebuild everything
             return DependentsSet.dependencyToAll("missing classpath entry snapshot of '" + classpathEntry + "' from previous build");
+        } else if (entryChangeDetails.isRemoved()) {
+            return handleRemoved(previous);
+        } else if (entryChangeDetails.isModified()) {
+            return handleModified(classpathEntry, previous);
+        } else {
+            throw new IllegalArgumentException("Unknown input file details provided: " + entryChangeDetails);
+        }
+    }
+
+    private DependentsSet handleAdded(File classpathEntry) {
+        if (classpathSnapshot.isAnyClassDuplicated(classpathEntry)) {
+            return DependentsSet.dependencyToAll("at least one of the classes of '" + classpathEntry + "' is already present in classpath");
+        } else {
+            return DependentsSet.empty();
+        }
+    }
+
+    private DependentsSet handleRemoved(ClasspathEntrySnapshot previous) {
+        DependentsSet allClasses = previous.getAllClasses();
+        if (allClasses.isDependencyToAll()) {
+            return allClasses;
+        }
+        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.getDependentClasses());
+        if (affectedOnClasspath.isDependencyToAll()) {
+            return affectedOnClasspath;
+        } else {
+            return previousCompilation.getDependents(affectedOnClasspath.getDependentClasses(), previous.getAllConstants(affectedOnClasspath));
+        }
+    }
+
+    private DependentsSet handleModified(File classpathEntry, final ClasspathEntrySnapshot previous) {
+        final ClasspathEntrySnapshot currentSnapshot = classpathSnapshot.getSnapshot(classpathEntry);
+        ClassChanges classChanges = currentSnapshot.getChangedClassesSince(previous);
+
+        if (classpathSnapshot.isAnyClassDuplicated(classChanges.getAdded())) {
+            return DependentsSet.dependencyToAll("at least one of the classes of modified classpath entry '" + classpathEntry + "' is already present in the classpath");
         }
 
-        if (entryChangeDetails.isRemoved()) {
-            DependentsSet allClasses = previous.getAllClasses();
-            if (allClasses.isDependencyToAll()) {
-                return allClasses;
-            }
-            //recompile all dependents of all the classes from this entry
-            return previousCompilation.getDependents(allClasses.getDependentClasses(), previous.getAllConstants(allClasses));
+        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(Sets.union(classChanges.getModified(), classChanges.getAdded()));
+        if (affectedOnClasspath.isDependencyToAll()) {
+            return affectedOnClasspath;
+        } else {
+            return previousCompilation.getDependents(affectedOnClasspath.getDependentClasses(), currentSnapshot.getRelevantConstants(previous, affectedOnClasspath.getDependentClasses()));
         }
+    }
 
-        if (entryChangeDetails.isModified()) {
-            final ClasspathEntrySnapshot currentSnapshot = classpathSnapshot.getSnapshot(classpathEntry);
-            AffectedClasses affected = currentSnapshot.getAffectedClassesSince(previous);
-            DependentsSet altered = affected.getAltered();
-            if (altered.isDependencyToAll()) {
-                //at least one of the classes changed in the entry is a 'dependency-to-all'
-                return altered;
-            }
-
-            if (classpathSnapshot.isAnyClassDuplicated(affected.getAdded())) {
-                //A new duplicate class on classpath. As we don't fancy-handle classpath order right now, we don't know which class is on classpath first.
-                //For safe measure rebuild everything
-                return DependentsSet.dependencyToAll("at least one of the classes of modified classpath entry '" + classpathEntry + "' is already present in the classpath");
-            }
-
-            //recompile all dependents of the classes changed in the entry
-
-            final Set<String> dependentClasses = Sets.newHashSet(altered.getDependentClasses());
-            final Deque<String> queue = Lists.newLinkedList(dependentClasses);
-            while (!queue.isEmpty()) {
-                final String dependentClass = queue.poll();
-                classpathSnapshot.forEachSnapshot(new Action<ClasspathEntrySnapshot>() {
-                    @Override
-                    public void execute(ClasspathEntrySnapshot classpathEntrySnapshot) {
-                        if (classpathEntrySnapshot != previous) {
-                            ClassSetAnalysisData data = classpathEntrySnapshot.getData().getClassAnalysis();
-                            Set<String> intermediates = data.getDependents(dependentClass).getDependentClasses();
-                            for (String intermediate : intermediates) {
-                                if (dependentClasses.add(intermediate)) {
-                                    queue.add(intermediate);
-                                }
-                            }
+    private DependentsSet collectDependentsFromClasspath(Set<String> modified) {
+        final Set<String> dependentClasses = Sets.newHashSet(modified);
+        final Deque<String> queue = Lists.newLinkedList(dependentClasses);
+        while (!queue.isEmpty()) {
+            final String dependentClass = queue.poll();
+            for (File entry : classpathSnapshot.getEntries()) {
+                DependentsSet dependents = collectDependentsFromClasspathEntry(dependentClass, entry);
+                if (dependents.isDependencyToAll()) {
+                    return dependents;
+                } else {
+                    for (String intermediate : dependents.getDependentClasses()) {
+                        if (dependentClasses.add(intermediate)) {
+                            queue.add(intermediate);
                         }
                     }
-                });
+                }
             }
-            return previousCompilation.getDependents(dependentClasses, currentSnapshot.getRelevantConstants(previous, dependentClasses));
         }
-
-        throw new IllegalArgumentException("Unknown input file details provided: " + entryChangeDetails);
+        return DependentsSet.dependents(dependentClasses);
     }
+
+    private DependentsSet collectDependentsFromClasspathEntry(String dependentClass, File entry) {
+        ClasspathEntrySnapshot entrySnapshot = classpathSnapshot.getSnapshot(entry);
+        ClassSetAnalysisData data = entrySnapshot.getData().getClassAnalysis();
+        return data.getDependents(dependentClass);
+    }
+
 }

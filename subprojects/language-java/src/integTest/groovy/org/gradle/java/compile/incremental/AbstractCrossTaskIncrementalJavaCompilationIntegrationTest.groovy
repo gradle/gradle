@@ -117,6 +117,34 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         app.recompiledClasses("C")
     }
 
+    def "detects deletions of transitive dependency in an upstream project"() {
+        settingsFile << """
+            include 'app'
+        """
+        buildFile << """
+            project(':app') {
+                dependencies { compile project(path:':impl', configuration: 'classesDir') }
+            }
+        """
+        def app = new CompilationOutputsFixture(file("app/build/classes"))
+        java api: ["class A {}"]
+        java impl: ["class B { public A a;}"]
+        java app: ["class Unrelated {}", "class C { public B b; }"]
+        app.snapshot {
+            impl.snapshot {
+                run "compileJava"
+            }
+        }
+
+        when:
+        file("api/src/main/java/A.java").delete()
+        fails "app:compileJava", "-X", "impl:compileJava"
+
+        then:
+        impl.noneRecompiled()
+        app.recompiledClasses("C")
+    }
+
     def "deletion of jar without dependents does not recompile any classes"() {
         java api: ["class A {}"], impl: ["class SomeImpl {}"]
         impl.snapshot { run "compileJava" }

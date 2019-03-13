@@ -18,18 +18,18 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import java.util.Set;
 
-public class AffectedClasses {
+public class ClassChanges {
 
-    private final DependentsSet altered;
+    private final Set<String> modified;
     private final Set<String> addedClasses;
 
-    public AffectedClasses(DependentsSet altered, Set<String> addedClasses) {
-        this.altered = altered;
+    public ClassChanges(Set<String> modified, Set<String> addedClasses) {
+        this.modified = modified;
         this.addedClasses = addedClasses;
     }
 
-    public DependentsSet getAltered() {
-        return altered;
+    public Set<String> getModified() {
+        return modified;
     }
 
     public Set<String> getAdded() {
