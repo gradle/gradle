@@ -29,6 +29,7 @@ import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiHasAnnotations
 import japicmp.model.JApiMethod
+import kotlin.Metadata
 import me.champeau.gradle.japicmp.report.AbstractContextAwareViolationRule
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
@@ -123,7 +124,11 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         if (method.changeStatus == JApiChangeStatus.REMOVED) {
             return false
         }
-        return JavaParser.parse(sourceFileFor(method.jApiClass.fullyQualifiedName)).accept(visitor, null) != null
+        // TODO:kotlin-dsl remove me
+        if (isKotlinClass(method.jApiClass)) {
+            return false
+        }
+        return JavaParser.parse(sourceFileFor(method.jApiClass)).accept(visitor, null) != null
     }
 
     File sourceFileFor(String className) {

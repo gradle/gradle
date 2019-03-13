@@ -212,6 +212,11 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             return null;
         }
 
+        // TODO:kotlin-dsl remove me
+        if (isKotlinClass(jApiClass)) {
+            return null;
+        }
+
         try {
             Object result = JavaParser.parse(sourceFileFor(className)).accept(visitor, null);
             if (result == null) {

@@ -43,7 +43,6 @@ ext {
     apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
     acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
     compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
-    foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).sourceSets.main.allJava.srcDirs.flatten()
 }
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -111,6 +110,10 @@ dependencies {
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
 
+    def foldersWithAPISources = ProjectGroups.INSTANCE.getPublicJavaProjects(project).collectMany { Project p ->
+        p.sourceSets.main.allJava.srcDirs + (p.plugins.hasPlugin("kotlin") ? p.sourceSets.main.kotlin.srcDirs : [])
+    }
+
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
@@ -126,8 +129,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {
-        includedClasses = toPatterns(PublicApi.includes)
-        excludedClasses = toPatterns(PublicApi.excludes)
+        includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+        excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
         title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
@@ -152,13 +155,13 @@ tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
 }
 
 static List<String> toPatterns(List<String> packages) {
-    def patterns = packages.collect {
+    packages.collect {
         it.replaceAll('\\*\\*', '###')
             .replaceAll('/\\*', '/[A-Z][a-z_A-Z0-9]+')
+            .replaceAll('$', '\\$')
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
-    patterns
 }
 
 static Map<String, String> loadBreakingChanges(File file) {
