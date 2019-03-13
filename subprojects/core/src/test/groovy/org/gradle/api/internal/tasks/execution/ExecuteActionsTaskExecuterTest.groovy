@@ -102,7 +102,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         task.getStandardOutputCapture() >> standardOutputCapture
         executionContext.getOutputFilesBeforeExecution() >> ImmutableSortedMap.of()
         executionContext.getOverlappingOutputs() >> Optional.empty()
-        executionContext.getExecutionStateChanges() >> Optional.empty()
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getBeforeExecutionState() >> Optional.empty()
 
@@ -147,8 +146,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * action1.contextualise(executionContext)
-        then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
@@ -162,8 +159,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
-        then:
-        1 * action2.contextualise(executionContext)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -199,8 +194,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         1 * standardOutputCapture.start()
 
         then:
-        1 * action1.contextualise(executionContext)
-        then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
@@ -230,8 +223,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         then:
         1 * standardOutputCapture.start()
-        then:
-        1 * action1.contextualise(executionContext)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -264,8 +255,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * action1.contextualise(executionContext)
-        then:
         1 * action1.execute(task) >> {
             throw new StopExecutionException('stop')
         }
@@ -295,8 +284,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * action1.contextualise(executionContext)
-        then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.execute(task) >> {
@@ -310,8 +297,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         1 * standardOutputCapture.stop()
         then:
         1 * standardOutputCapture.start()
-        then:
-        1 * action2.contextualise(executionContext)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -342,8 +327,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         then:
         1 * standardOutputCapture.start()
-        then:
-        1 * action1.contextualise(executionContext)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
@@ -383,8 +366,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * standardOutputCapture.start()
         then:
-        1 * action1.contextualise(executionContext)
-        then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
         1 * action1.releaseContext()
@@ -421,8 +402,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
         then:
         1 * standardOutputCapture.start()
-        then:
-        1 * action1.contextualise(executionContext)
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:

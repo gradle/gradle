@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.DescriptiveChange;
@@ -54,7 +55,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason), beforeExecutionState.orElse(null), work)
+                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason), beforeExecutionState.orElse(null))
             )
             .orElseGet(() ->
                 beforeExecutionState
@@ -63,10 +64,9 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            !work.isAllowOverlappingOutputs(),
-                            work)
+                            !work.isAllowOverlappingOutputs())
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution, work))
+                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution))
                     )
                     .orElse(null)
             );
@@ -102,12 +102,10 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
         private final Change rebuildChange;
         private final BeforeExecutionState beforeExecutionState;
-        private final UnitOfWork work;
 
-        public RebuildExecutionStateChanges(Change rebuildChange, @Nullable BeforeExecutionState beforeExecutionState, UnitOfWork work) {
+        public RebuildExecutionStateChanges(Change rebuildChange, @Nullable BeforeExecutionState beforeExecutionState) {
             this.rebuildChange = rebuildChange;
             this.beforeExecutionState = beforeExecutionState;
-            this.work = work;
         }
 
         @Override
@@ -116,11 +114,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         }
 
         @Override
-        public InputChangesInternal getInputChanges() {
+        public InputChangesInternal getInputChanges(ImmutableListMultimap<Object, String> incrementalInputs) {
             if (beforeExecutionState == null) {
                 throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
             }
-            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), work.getInputToPropertyNames(), work);
+            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalInputs);
         }
     }
 }

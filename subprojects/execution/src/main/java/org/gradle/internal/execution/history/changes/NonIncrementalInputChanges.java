@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.Describable;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.Change;
@@ -27,20 +27,17 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 import static org.gradle.internal.execution.history.changes.IncrementalInputChanges.determinePropertyName;
 
 public class NonIncrementalInputChanges implements InputChangesInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonIncrementalInputChanges.class);
 
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
-    private final Map<Object, String> propertyNameByValue;
+    private final ImmutableListMultimap<Object, String> propertyNameByValue;
 
-    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, Map<Object, String> propertyNameByValue, Describable owner) {
+    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, ImmutableListMultimap<Object, String> propertyNamesByValue) {
         this.currentInputs = currentInputs;
-        this.propertyNameByValue = propertyNameByValue;
-        LOGGER.info("All input files are considered out-of-date for incremental {}.", owner.getDisplayName());
+        this.propertyNameByValue = propertyNamesByValue;
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import org.gradle.api.file.FileCollection
@@ -31,7 +30,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
@@ -62,6 +61,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
+import javax.annotation.Nullable
 import java.time.Duration
 import java.util.function.Supplier
 
@@ -773,7 +773,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
+                ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges) {
                     executed = true
                     return work.get()
                 }
@@ -797,6 +797,15 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 Optional<Duration> getTimeout() {
                     throw new UnsupportedOperationException()
+                }
+
+                @Override
+                void visitIncrementalFileInputs(UnitOfWork.InputFilePropertyVisitor visitor) {
+                    for (entry in inputs.entrySet()) {
+                        if (entry.value != null) {
+                            visitor.visitInputFileProperty(entry.key, entry.value)
+                        }
+                    }
                 }
 
                 @Override
@@ -877,14 +886,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableMap<Object, String> getInputToPropertyNames() {
-                    Map<Object, String> inputToPropertyNames = [:]
-                    for (entry in inputs.entrySet()) {
-                        if (entry.value != null) {
-                            inputToPropertyNames.put(entry.value, entry.key)
-                        }
-                    }
-                    return ImmutableMap.copyOf(inputToPropertyNames)
+                boolean isIncremental() {
+                    return false
                 }
 
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {

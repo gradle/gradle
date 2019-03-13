@@ -22,7 +22,6 @@ import org.gradle.api.Describable
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.ContextAwareTaskAction
-import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.internal.Cast
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -155,7 +154,7 @@ class ImplementationChangesTest extends Specification {
 
     private static class TestAction implements ContextAwareTaskAction {
         @Override
-        void contextualise(TaskExecutionContext context) {
+        void contextualise(InputChangesInternal inputChanges) {
         }
 
         @Override

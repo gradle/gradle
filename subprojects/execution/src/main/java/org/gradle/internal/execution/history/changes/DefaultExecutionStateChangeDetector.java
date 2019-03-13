@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
 import org.gradle.internal.change.ChangeContainer;
@@ -29,7 +29,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs, InputToPropertyMapping inputToPropertyMapping) {
+    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -78,9 +78,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             errorHandling(executable, inputFileChanges),
             errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
             errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges)),
-            thisExecution,
-            executable,
-            inputToPropertyMapping
+            thisExecution
         );
     }
 
@@ -127,23 +125,17 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         private final ChangeContainer allChanges;
         private final ChangeContainer rebuildTriggeringChanges;
         private final BeforeExecutionState thisExecution;
-        private final Describable owner;
-        private final InputToPropertyMapping inputToPropertyMapping;
 
         public DetectedExecutionStateChanges(
             InputFileChanges inputFileChanges,
             ChangeContainer allChanges,
             ChangeContainer rebuildTriggeringChanges,
-            BeforeExecutionState thisExecution,
-            Describable owner,
-            InputToPropertyMapping inputToPropertyMapping
+            BeforeExecutionState thisExecution
         ) {
             this.inputFileChanges = inputFileChanges;
             this.allChanges = allChanges;
             this.rebuildTriggeringChanges = rebuildTriggeringChanges;
             this.thisExecution = thisExecution;
-            this.owner = owner;
-            this.inputToPropertyMapping = inputToPropertyMapping;
         }
 
         @Override
@@ -152,11 +144,10 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         }
 
         @Override
-        public InputChangesInternal getInputChanges() {
-            ImmutableMap<Object, String> inputToPropertyNames = inputToPropertyMapping.getInputToPropertyNames();
+        public InputChangesInternal getInputChanges(ImmutableListMultimap<Object, String> incrementalInputs) {
             return isRebuildRequired()
-                ? new NonIncrementalInputChanges(thisExecution.getInputFileProperties(), inputToPropertyNames, owner)
-                : new IncrementalInputChanges(inputFileChanges, inputToPropertyNames);
+                ? new NonIncrementalInputChanges(thisExecution.getInputFileProperties(), incrementalInputs)
+                : new IncrementalInputChanges(inputFileChanges, incrementalInputs);
         }
 
         private boolean isRebuildRequired() {

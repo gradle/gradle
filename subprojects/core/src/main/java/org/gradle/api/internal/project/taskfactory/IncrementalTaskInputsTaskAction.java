@@ -20,7 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
 import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
@@ -36,15 +35,12 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
     }
 
     protected void doExecute(Task task, String methodName) {
-        @SuppressWarnings("OptionalGetWithoutIsPresent")
-        ExecutionStateChanges changes = getContext().getExecutionStateChanges().get();
-        InputChangesInternal inputChanges = changes.getInputChanges();
+        InputChangesInternal inputChanges = getInputChanges();
 
         IncrementalTaskInputs incrementalTaskInputs = inputChanges.isIncremental()
             ? createIncrementalInputs(inputChanges)
             : createRebuildInputs(inputChanges);
 
-        getContext().setTaskExecutedIncrementally(incrementalTaskInputs.isIncremental());
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 

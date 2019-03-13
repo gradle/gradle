@@ -16,10 +16,12 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableListMultimap
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,7 +29,9 @@ class ExecuteStepTest extends Specification {
     def step = new ExecuteStep<IncrementalChangesContext>()
     def context = Mock(IncrementalChangesContext)
     def work = Mock(UnitOfWork)
-    def changes = Optional.of(Mock(ExecutionStateChanges))
+    def changes = Mock(ExecutionStateChanges)
+    def optionalChanges = Optional.of(changes)
+    def inputChanges = Mock(InputChangesInternal)
 
     @Unroll
     def "#outcome outcome is preserved"() {
@@ -38,8 +42,8 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * context.changes >> changes
-        1 * work.execute(changes) >> { outcome }
+        1 * work.incremental >> false
+        1 * work.execute(null) >> { outcome }
         0 * _
 
         where:
@@ -56,10 +60,28 @@ class ExecuteStepTest extends Specification {
         ex == failure
 
         1 * context.work >> work
-        1 * context.changes >> changes
-        1 * work.execute(changes) >> { throw failure }
+        1 * work.incremental >> false
+        1 * work.execute(null) >> { throw failure }
+        0 * _
 
         where:
         failure << [new RuntimeException(), new Error()]
+    }
+
+    def "determines input changes for incremental work"() {
+        when:
+        step.execute(context)
+
+        then:
+        1 * context.work >> work
+        1 * work.incremental >> true
+        1 * context.changes >> optionalChanges
+        1 * work.visitIncrementalFileInputs(_) >> { args ->
+            ((UnitOfWork.InputFilePropertyVisitor) args[0]).visitInputFileProperty("fileInput", "some/path")
+        }
+        1 * changes.getInputChanges(ImmutableListMultimap.of("some/path", "fileInput")) >> inputChanges
+        1 * work.execute(inputChanges)
+        1 * inputChanges.incremental >> true
+        0 * _
     }
 }

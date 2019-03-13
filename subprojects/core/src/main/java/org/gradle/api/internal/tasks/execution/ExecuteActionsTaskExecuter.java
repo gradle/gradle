@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -51,7 +51,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -61,12 +61,11 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -191,20 +190,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
+        public ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                changes.ifPresent(new Consumer<ExecutionStateChanges>() {
-                    @Override
-                    public void accept(ExecutionStateChanges changes) {
-                        TaskExecution.this.context.setExecutionStateChanges(changes);
-                    }
-                });
-                executeActions(task, this.context);
+                boolean incremental = inputChanges != null && inputChanges.isIncremental();
+                executeActions(task, inputChanges);
                 return task.getState().getDidWork()
-                    ? this.context.isTaskExecutedIncrementally()
+                    ? incremental
                         ? ExecutionOutcome.EXECUTED_INCREMENTALLY
                         : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
                     : ExecutionOutcome.UP_TO_DATE;
@@ -300,6 +294,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public void visitIncrementalFileInputs(InputFilePropertyVisitor visitor) {
+            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
+                Object value = inputFileProperty.getValue().call();
+                if (value != null) {
+                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value);
+                }
+            }
+        }
+
+        @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             final AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
@@ -317,15 +321,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableMap<Object, String> getInputToPropertyNames() {
-            Map<Object, String> propertyNameByValue = new HashMap<Object, String>();
-            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
-                Object value = inputFileProperty.getValue().call();
-                if (value != null) {
-                    propertyNameByValue.put(value, inputFileProperty.getPropertyName());
+        public boolean isIncremental() {
+            for (ContextAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof AbstractIncrementalTaskAction) {
+                    return true;
                 }
             }
-            return ImmutableMap.copyOf(propertyNameByValue);
+            return false;
         }
 
         @Override
@@ -339,12 +341,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeActions(TaskInternal task, TaskExecutionContext context) {
+    private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
         for (ContextAwareTaskAction action : new ArrayList<ContextAwareTaskAction>(task.getTaskActions())) {
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
-                executeAction(action.getDisplayName(), task, action, context);
+                executeAction(action.getDisplayName(), task, action, inputChanges);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -357,8 +359,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
-        action.contextualise(context);
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
+        if (inputChanges != null) {
+            action.contextualise(inputChanges);
+        }
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {

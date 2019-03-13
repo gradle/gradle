@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Describable;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
 public interface ContextAwareTaskAction extends ImplementationAwareTaskAction, Describable {
-    void contextualise(TaskExecutionContext context);
+    void contextualise(InputChangesInternal inputChanges);
     void releaseContext();
 }

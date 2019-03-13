@@ -20,22 +20,26 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.InputToPropertyMapping;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Optional;
 
-public interface UnitOfWork extends CacheableEntity, InputToPropertyMapping {
+public interface UnitOfWork extends CacheableEntity {
 
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute(Optional<ExecutionStateChanges> changes);
+    ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges);
 
     Optional<Duration> getTimeout();
+
+    boolean isIncremental();
+
+    void visitIncrementalFileInputs(InputFilePropertyVisitor visitor);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
@@ -64,6 +68,11 @@ public interface UnitOfWork extends CacheableEntity, InputToPropertyMapping {
      * When overlapping outputs are allowed, output files added between executions are ignored during change detection.
      */
     boolean isAllowOverlappingOutputs();
+
+    @FunctionalInterface
+    interface InputFilePropertyVisitor {
+        void visitInputFileProperty(String name, Object value);
+    }
 
     @FunctionalInterface
     interface OutputPropertyVisitor {

@@ -27,7 +27,6 @@ public interface ExecutionStateChangeDetector {
         AfterPreviousExecutionState lastExecution,
         BeforeExecutionState thisExecution,
         Describable executable,
-        boolean allowOverlappingOutputs,
-        InputToPropertyMapping inputToPropertyMapping
+        boolean allowOverlappingOutputs
     );
 }

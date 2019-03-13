@@ -42,7 +42,6 @@ import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -61,6 +60,7 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -624,7 +624,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
+        public void contextualise(InputChangesInternal inputChanges) {
         }
 
         @Override
@@ -680,9 +680,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
+        public void contextualise(InputChangesInternal inputChanges) {
             if (action instanceof ContextAwareTaskAction) {
-                ((ContextAwareTaskAction) action).contextualise(context);
+                ((ContextAwareTaskAction) action).contextualise(inputChanges);
             }
         }
 

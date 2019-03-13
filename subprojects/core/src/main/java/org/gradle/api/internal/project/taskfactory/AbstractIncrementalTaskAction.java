@@ -18,28 +18,28 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
 import java.lang.reflect.Method;
 
 public abstract class AbstractIncrementalTaskAction extends StandardTaskAction implements ContextAwareTaskAction {
-    private TaskExecutionContext context;
+    private InputChangesInternal inputChanges;
 
     public AbstractIncrementalTaskAction(Class<? extends Task> type, Method method) {
         super(type, method);
     }
 
     @Override
-    public void contextualise(TaskExecutionContext context) {
-        this.context = context;
+    public void contextualise(InputChangesInternal inputChanges) {
+        this.inputChanges = inputChanges;
     }
 
     @Override
     public void releaseContext() {
-        this.context = null;
+        this.inputChanges = null;
     }
 
-    protected TaskExecutionContext getContext() {
-        return context;
+    protected InputChangesInternal getInputChanges() {
+        return inputChanges;
     }
 }

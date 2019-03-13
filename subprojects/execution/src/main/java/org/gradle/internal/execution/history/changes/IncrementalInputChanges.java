@@ -16,21 +16,21 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
 
-import java.util.Map;
-
 public class IncrementalInputChanges implements InputChangesInternal {
 
     private final InputFileChanges changes;
-    private final Map<Object, String> propertyNameByValue;
+    private final ImmutableListMultimap<Object, String> propertyNamesByValue;
 
-    public IncrementalInputChanges(InputFileChanges changes, Map<Object, String> propertyNameByValue) {
+    public IncrementalInputChanges(InputFileChanges changes, ImmutableListMultimap<Object, String> propertyNamesByValue) {
         this.changes = changes;
-        this.propertyNameByValue = propertyNameByValue;
+        this.propertyNamesByValue = propertyNamesByValue;
     }
 
     @Override
@@ -40,18 +40,21 @@ public class IncrementalInputChanges implements InputChangesInternal {
 
     @Override
     public Iterable<InputFileDetails> getFileChanges(Object property) {
-        String propertyName = determinePropertyName(property, propertyNameByValue);
+        String propertyName = determinePropertyName(property, propertyNamesByValue);
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(propertyName, visitor);
         return Cast.uncheckedNonnullCast(visitor.getChanges());
     }
 
-    public static String determinePropertyName(Object property, Map<Object, String> propertyNameByValue) {
-        String propertyName = propertyNameByValue.get(property);
-        if (propertyName == null) {
-            throw new UnsupportedOperationException("Cannot query incremental changes: No property found for " + property + ".");
+    public static String determinePropertyName(Object propertyValue, ImmutableListMultimap<Object, String> propertyNameByValue) {
+        ImmutableList<String> propertyNames = propertyNameByValue.get(propertyValue);
+        if (propertyNames.isEmpty()) {
+            throw new UnsupportedOperationException("Cannot query incremental changes: No property found for value " + propertyValue + ".");
         }
-        return propertyName;
+        if (propertyNames.size() > 1) {
+            throw new UnsupportedOperationException(String.format("Cannot query incremental changes: More that one property found with value %s: %s.", propertyValue, propertyNames));
+        }
+        return propertyNames.get(0);
     }
 
     @Override

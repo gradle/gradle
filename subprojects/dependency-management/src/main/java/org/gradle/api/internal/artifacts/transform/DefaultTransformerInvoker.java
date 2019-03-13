@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
@@ -40,7 +38,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -261,14 +259,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute(Optional<ExecutionStateChanges> changes) {
+        public ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
-
-            @SuppressWarnings("OptionalGetWithoutIsPresent")
-            InputChanges inputChanges = transformer.isIncremental()
-                ? changes.get().getInputChanges()
-                : null;
 
             boolean incremental = inputChanges != null && inputChanges.isIncremental();
             if (!incremental) {
@@ -330,6 +323,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public Optional<Duration> getTimeout() {
             return Optional.empty();
+        }
+
+        @Override
+        public void visitIncrementalFileInputs(InputFilePropertyVisitor visitor) {
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact);
         }
 
         @Override
@@ -398,8 +396,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ImmutableMap<Object, String> getInputToPropertyNames() {
-            return ImmutableMap.of(inputArtifact, INPUT_ARTIFACT_PROPERTY_NAME);
+        public boolean isIncremental() {
+            return transformer.isIncremental();
         }
 
         @Override
