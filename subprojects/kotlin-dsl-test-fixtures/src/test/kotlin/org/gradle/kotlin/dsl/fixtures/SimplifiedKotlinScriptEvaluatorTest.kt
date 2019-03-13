@@ -16,10 +16,13 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 
@@ -57,7 +60,10 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
     @Test
     fun `can eval script against Gradle mock`() {
 
-        val gradle = mock<Gradle>()
+        val includedBuild = mock<IncludedBuild>()
+        val gradle = mock<Gradle>() {
+            on { includedBuild(any()) } doReturn includedBuild
+        }
         eval(
             script = """
                 includedBuild("foo")

@@ -60,10 +60,11 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given group and module, 'exclude' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope.of(newDependencyHandlerMock())
+        val dependencyHandlerMock = newDependencyHandlerMock()
+        val dependencies = DependencyHandlerScope.of(dependencyHandlerMock)
         val dependency: ExternalModuleDependency = mock()
         val events = mutableListOf<String>()
-        whenever(dependencies.create("dependency")).then {
+        whenever(dependencyHandlerMock.create("dependency")).then {
             events.add("created")
             dependency
         }
@@ -71,7 +72,7 @@ class DependencyHandlerExtensionsTest {
             events.add("configured")
             dependency
         }
-        whenever(dependencies.add("configuration", dependency)).then {
+        whenever(dependencyHandlerMock.add("configuration", dependency)).then {
             events.add("added")
             dependency
         }
@@ -95,15 +96,16 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given path and configuration, 'project' extension will build corresponding map`() {
 
-        val dependencies = DependencyHandlerScope.of(newDependencyHandlerMock())
+        val dependencyHandlerMock = newDependencyHandlerMock()
+        val dependencies = DependencyHandlerScope.of(dependencyHandlerMock)
         val dependency: ProjectDependency = mock()
         val events = mutableListOf<String>()
         val expectedProjectMap = mapOf("path" to ":project", "configuration" to "default")
-        whenever(dependencies.project(expectedProjectMap)).then {
+        whenever(dependencyHandlerMock.project(expectedProjectMap)).then {
             events.add("created")
             dependency
         }
-        whenever(dependencies.add("configuration", dependency)).then {
+        whenever(dependencyHandlerMock.add("configuration", dependency)).then {
             events.add("added")
             dependency
         }

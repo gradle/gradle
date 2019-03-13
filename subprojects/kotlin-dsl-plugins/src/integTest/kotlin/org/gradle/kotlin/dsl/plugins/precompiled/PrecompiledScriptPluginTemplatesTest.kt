@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
@@ -44,14 +45,22 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         """)
 
-        val project = mock<Project>()
+        val task = mock<Task>()
+        val project = mock<Project> {
+            on { task(any()) } doReturn task
+        }
 
         assertInstanceOf<PrecompiledProjectScript>(
             instantiatePrecompiledScriptOf(
                 project,
-                "My_project_script_gradle"))
+                "My_project_script_gradle"
+            )
+        )
 
-        verify(project).task("my-task")
+        inOrder(project, task) {
+            verify(project).task("my-task")
+            verifyNoMoreInteractions()
+        }
     }
 
     @Test
