@@ -62,6 +62,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(classDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
@@ -69,6 +70,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(method.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
@@ -76,6 +78,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(enumDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(MethodDeclaration methodDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(methodDeclaration.getName().asString(), method.getName(), methodDeclaration)) {
@@ -98,13 +101,15 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(classDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
-                            return new Object();
+                        return new Object();
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(field.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
@@ -112,6 +117,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(enumDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getNameAsString(), field.getName(), fieldDeclaration)) {
@@ -119,6 +125,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return null;
                 }
+
                 @Override
                 public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName().asString(), field.getName(), enumConstantDeclaration)) {
@@ -141,6 +148,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(constructorDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(ClassOrInterfaceDeclaration classDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(classDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), classDeclaration)) {
@@ -148,6 +156,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(classDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), annotationDeclaration)) {
@@ -155,6 +164,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(constructor.getjApiClass().getFullyQualifiedName()), enumDeclaration)) {
@@ -162,6 +172,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(enumDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(FieldDeclaration fieldDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(fieldDeclaration.getVariables().get(0).getNameAsString(), constructor.getName(), fieldDeclaration)) {
@@ -169,6 +180,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return null;
                 }
+
                 @Override
                 public Object visit(EnumConstantDeclaration enumConstantDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumConstantDeclaration.getName().asString(), constructor.getName(), enumConstantDeclaration)) {
@@ -191,6 +203,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(classDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(AnnotationDeclaration annotationDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(annotationDeclaration.getName().asString(), toSimpleName(clazz.getFullyQualifiedName()), annotationDeclaration)) {
@@ -198,6 +211,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
                     }
                     return super.visit(annotationDeclaration, arg);
                 }
+
                 @Override
                 public Object visit(EnumDeclaration enumDeclaration, Void arg) {
                     if (matchesNameAndContainsAnnotation(enumDeclaration.getName().asString(), toSimpleName(clazz.getFullyQualifiedName()), enumDeclaration)) {
@@ -230,7 +244,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
     private String toSimpleName(String className) {
         String[] bits = className.split("\\.");
-        return bits[bits.length-1];
+        return bits[bits.length - 1];
     }
 
     private boolean matchesNameAndContainsAnnotation(String name1, String name2, BodyDeclaration declaration) {
