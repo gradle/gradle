@@ -30,6 +30,7 @@ import java.util.Properties;
 public class SetSystemProperties implements TestRule {
     private final Properties properties;
     private final Map<String, Object> customProperties = new HashMap<String, Object>();
+    private static final String[] IMMUTABLE_SYSTEM_PROPERTIES = new String[] {"java.io.tmpdir"};
 
     public SetSystemProperties() {
         properties = new Properties();
@@ -46,6 +47,12 @@ public class SetSystemProperties implements TestRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                for (String immutableProperty : IMMUTABLE_SYSTEM_PROPERTIES) {
+                    if (customProperties.containsKey(immutableProperty)) {
+                        throw new IllegalArgumentException("'" + immutableProperty + "' should not be set via a rule as its value cannot be changed once it is initialized");
+                    }
+                }
+
                 System.getProperties().putAll(customProperties);
                 try {
                     base.evaluate();
