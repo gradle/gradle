@@ -18,6 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -59,31 +60,51 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() || consoleMetaData.isStdErr()) {
-            configureRichConsole(renderer, consoleMetaData, stdout, stderr, false);
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
+        } else if (consoleMetaData.isStdOut()) {
+            // Write rich content to stdout and plain content to stderr
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(console, stderr, consoleMetaData, false);
+        } else if (consoleMetaData.isStdErr()) {
+            // Write plain content to stdout and rich content to stderr
+            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(stdout, stderrConsole, true);
         } else {
-            configurePlainConsole(renderer, consoleMetaData, stdout, stderr);
+            renderer.addPlainConsole(stdout, stderr);
         }
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        // Redirect stderr to stdout if a console is attached to both stdout and stderr
-        // This avoids interleaving problems when stdout and stderr end up at the same location
-        renderer.addPlainConsole(stdout, stderr, consoleMetaData != null && consoleMetaData.isStdOut() && consoleMetaData.isStdErr());
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
+        } else {
+            renderer.addPlainConsole(stdout, stderr);
+        }
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        boolean force = !consoleMetaData.isWrapStreams();
-        if (consoleMetaData.isStdErr() && !consoleMetaData.isStdOut()) {
-            // Only stderr is connected to a console. Currently we can write rich text to one stream only, so prefer stderr in this case
-            OutputStreamWriter errStr = new OutputStreamWriter(force ? stderr : AnsiConsoleUtil.wrapOutputStream(stderr));
-            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
-            renderer.addRichConsole(console, consoleMetaData, stdout, stderr, verbose);
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose);
         } else {
-            // Prefer stdout when is connected to a console or neither stream connected to a console
-            OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout));
-            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), consoleMetaData, force);
-            renderer.addRichConsole(console, consoleMetaData, stdout, stderr, verbose);
+            // Write rich content to both stdout and stderr
+            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose);
         }
+    }
+
+    private static Console consoleFor(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        boolean force = !consoleMetaData.isWrapStreams();
+        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout));
+        return new AnsiConsole(outStr, outStr, colourMap, consoleMetaData, force);
     }
 }

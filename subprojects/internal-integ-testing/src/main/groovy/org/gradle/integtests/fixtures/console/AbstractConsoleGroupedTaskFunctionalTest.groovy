@@ -43,19 +43,11 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
     }
 
     boolean stdoutUsesStyledText() {
-        if (!consoleAttachment.stdoutAttached && consoleAttachment.stderrAttached) {
-            // Can currently write rich text to one stream at a time, and we prefer stderr when it is attached to the console and stdout is not
-            return false
-        }
         return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stdoutAttached
     }
 
     boolean stderrUsesStyledText() {
-        // Can currently write rich text to one stream at a time, and we prefer stdout when it is attached to the console
-        if (!consoleAttachment.stdoutAttached && consoleAttachment.stderrAttached) {
-            return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stderrAttached
-        }
-        return false
+        return consoleType == ConsoleOutput.Rich || consoleType == ConsoleOutput.Verbose || consoleType == ConsoleOutput.Auto && consoleAttachment.stderrAttached
     }
 
     abstract ConsoleOutput getConsoleType()

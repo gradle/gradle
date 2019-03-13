@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package org.gradle.internal.logging.console.taskgrouping.verbose
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildResultFunctionalTest
+import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildSrcGroupedTaskFunctionalTest
 
-
-class VerboseConsoleBuildResultReportingFunctionalTest extends AbstractConsoleBuildResultFunctionalTest {
-    ConsoleOutput consoleType = ConsoleOutput.Verbose
+class AutoConsoleBuildSrcGroupedTaskFunctionalTest extends AbstractConsoleBuildSrcGroupedTaskFunctionalTest {
+    ConsoleOutput consoleType = ConsoleOutput.Auto
 }

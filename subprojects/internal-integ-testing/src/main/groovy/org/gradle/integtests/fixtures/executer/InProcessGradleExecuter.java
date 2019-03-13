@@ -319,11 +319,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         loggingManager.captureSystemSources();
 
         ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
-        if (consoleOutput == ConsoleOutput.Auto) {
-            // IDEA runs tests attached to a console, use plain so test can assume never attached to a console
-            // Should really run all tests against a plain and a rich console to make these assumptions explicit
-            consoleOutput = ConsoleOutput.Plain;
-        }
         loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;

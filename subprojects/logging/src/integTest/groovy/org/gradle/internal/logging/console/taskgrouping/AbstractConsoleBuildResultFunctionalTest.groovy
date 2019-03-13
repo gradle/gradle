@@ -23,14 +23,8 @@ import org.gradle.integtests.fixtures.executer.LogContent
 import spock.lang.Unroll
 
 abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
-    protected final String buildFailed = 'BUILD FAILED'
-    protected final String buildSuccess = 'BUILD SUCCESSFUL'
-    protected final StyledOutput buildFailedStyled = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text(buildFailed).off()
-    protected final StyledOutput buildSuccessStyled = styled(Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD).text(buildSuccess).off()
-
-    abstract String getFailureMessage()
-
-    abstract String getSuccessMessage()
+    protected final StyledOutput buildFailed = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text('BUILD FAILED').off()
+    protected final StyledOutput buildSuccessful = styled(Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD).text('BUILD SUCCESSFUL').off()
 
     def "outcome for successful build is logged with appropriate styling"() {
         given:
@@ -50,7 +44,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         succeeds('all')
 
         then:
-        result.formattedOutput.contains(successMessage)
+        result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 2 executed
@@ -60,7 +54,7 @@ BUILD SUCCESSFUL in \\d+s
         succeeds('all')
 
         then:
-        result.formattedOutput.contains(successMessage)
+        result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
 BUILD SUCCESSFUL in \\d+s
 2 actionable tasks: 1 executed, 1 up-to-date
@@ -135,7 +129,7 @@ BUILD SUCCESSFUL in \\d+s
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")
 
-        outputWithFailureAndNoDebugging.contains(failureMessage)
+        outputWithFailureAndNoDebugging.contains(buildFailed.errorOutput)
 
         where:
         level << [LogLevel.DEBUG, LogLevel.INFO, LogLevel.LIFECYCLE, LogLevel.WARN, LogLevel.QUIET]

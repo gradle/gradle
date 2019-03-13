@@ -21,6 +21,4 @@ import org.gradle.internal.logging.console.taskgrouping.AbstractConsoleBuildResu
 
 class PlainConsoleBuildResultReportingFunctionalTest extends AbstractConsoleBuildResultFunctionalTest {
     ConsoleOutput consoleType = ConsoleOutput.Plain
-    String failureMessage = buildFailed
-    String successMessage = buildSuccess
 }
