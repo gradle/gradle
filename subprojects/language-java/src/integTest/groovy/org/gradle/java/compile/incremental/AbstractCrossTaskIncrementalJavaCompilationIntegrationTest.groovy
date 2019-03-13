@@ -71,17 +71,50 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses("ImplA")
     }
 
-    def "detects change to transitive dependency in an upstream project"() {
-        java api: ["class A {}", "class B extends A {}"]
-        java impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
-        impl.snapshot { run "compileJava" }
+    def "detects change to transitive superclass in an upstream project"() {
+        settingsFile << """
+            include 'app'
+        """
+        buildFile << """
+            project(':app') {
+                dependencies { compile project(path:':impl', configuration: 'classesDir') }
+            }
+        """
+        def app = new CompilationOutputsFixture(file("app/build/classes"))
+        java api: ["class A {}"]
+        java impl: ["class B extends A {}"]
+        java app: ["class Unrelated {}", "class C extends B {}", "class D extends C {}"]
+        app.snapshot { run "compileJava" }
 
         when:
         java api: ["class A { String change; }"]
-        run "impl:compileJava"
+        run "app:compileJava"
 
         then:
-        impl.recompiledClasses("ImplB", "ImplB2")
+        app.recompiledClasses("C", "D")
+    }
+
+    def "detects change to transitive dependency in an upstream project"() {
+        settingsFile << """
+            include 'app'
+        """
+        buildFile << """
+            project(':app') {
+                dependencies { compile project(path:':impl', configuration: 'classesDir') }
+            }
+        """
+        def app = new CompilationOutputsFixture(file("app/build/classes"))
+        java api: ["class A {}"]
+        java impl: ["class B { public A a;}"]
+        java app: ["class Unrelated {}", "class C { public B b; }"]
+        app.snapshot { run "compileJava" }
+
+        when:
+        java api: ["class A { String change; }"]
+        run "app:compileJava"
+
+        then:
+        app.recompiledClasses("C")
     }
 
     def "deletion of jar without dependents does not recompile any classes"() {

@@ -93,13 +93,11 @@ public class ClasspathChangeDependentsFinder {
                     @Override
                     public void execute(ClasspathEntrySnapshot classpathEntrySnapshot) {
                         if (classpathEntrySnapshot != previous) {
-                            // we need to find classes in other entries that would potentially extend classes changed
-                            // in the current snapshot (they are intermediates)
                             ClassSetAnalysisData data = classpathEntrySnapshot.getData().getClassAnalysis();
-                            Set<String> children = data.getChildren(dependentClass);
-                            for (String child : children) {
-                                if (dependentClasses.add(child)) {
-                                    queue.add(child);
+                            Set<String> intermediates = data.getDependents(dependentClass).getDependentClasses();
+                            for (String intermediate : intermediates) {
+                                if (dependentClasses.add(intermediate)) {
+                                    queue.add(intermediate);
                                 }
                             }
                         }
