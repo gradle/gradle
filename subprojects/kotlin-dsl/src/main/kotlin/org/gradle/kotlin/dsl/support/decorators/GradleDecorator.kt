@@ -35,6 +35,16 @@ import org.gradle.api.plugins.PluginManager
 import java.io.File
 
 
+/**
+ * Facilitates the implementation of the [Gradle] interface by delegation via subclassing.
+ *
+ * So we can avoid Kotlin's [implementation by delegation](https://kotlinlang.org/docs/reference/delegation.html#implementation-by-delegation)
+ * until all required interfaces have been compiled with Java 8 parameter names (otherwise parameter names
+ * are lost in the exposed implementation).
+ *
+ * Once the required interfaces are compiled with Java 8 parameter names these classes can be removed in favor
+ * of Kotlin's implementation by delegation.
+ */
 abstract class GradleDecorator : Gradle {
 
     internal

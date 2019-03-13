@@ -28,6 +28,11 @@ import java.io.File
 import java.net.URI
 
 
+/**
+ * Facilitates the implementation of the [ScriptHandler] interface by delegation via subclassing.
+ *
+ * See [GradleDecorator] for details why this is currently necessary.
+ */
 abstract class ScriptHandlerDecorator : ScriptHandler {
 
     internal

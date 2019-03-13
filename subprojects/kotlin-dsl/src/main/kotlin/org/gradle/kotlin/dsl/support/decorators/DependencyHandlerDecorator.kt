@@ -33,6 +33,11 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributesSchema
 
 
+/**
+ * Facilitates the implementation of the [DependencyHandler] interface by delegation via subclassing.
+ *
+ * See [GradleDecorator] for details why this is currently necessary.
+ */
 abstract class DependencyHandlerDecorator : DependencyHandler {
 
     internal

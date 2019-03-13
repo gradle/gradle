@@ -65,6 +65,11 @@ import java.net.URI
 import java.util.concurrent.Callable
 
 
+/**
+ * Facilitates the implementation of the [Project] interface by delegation via subclassing.
+ *
+ * See [GradleDecorator] for details why this is currently necessary.
+ */
 abstract class ProjectDecorator() : Project {
 
     internal
