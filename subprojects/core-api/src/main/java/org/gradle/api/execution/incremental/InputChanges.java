@@ -17,7 +17,6 @@
 package org.gradle.api.execution.incremental;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonExtensible;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 /**
@@ -37,8 +36,9 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  *
  *     {@literal @}TaskAction
  *     void execute(InputChanges inputChanges) {
- *         if (!inputChanges.incremental)
+ *         if (!inputChanges.incremental) {
  *             project.delete(outputDir.listFiles())
+ *         }
  *
  *         inputChanges.getFileChanges(inputDir).each { change -&gt;
  *             if (change.removed) {
@@ -60,13 +60,12 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  * Cases where this occurs include:
  * <ul>
  *     <li>There is no history available from a previous execution.</li>
- *     <li>An non-file input property has changed since the previous execution.</li>
+ *     <li>A non-file input property has changed since the previous execution.</li>
  *     <li>One or more output files have changed since the previous execution.</li>
  * </ul>
  *
  * @since 5.4
  */
-@NonExtensible
 @Incubating
 public interface InputChanges {
     /**

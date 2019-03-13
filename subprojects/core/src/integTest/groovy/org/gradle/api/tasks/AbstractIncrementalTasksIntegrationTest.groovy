@@ -21,7 +21,7 @@ import org.gradle.internal.change.ChangeType
 import spock.lang.Issue
 import spock.lang.Unroll
 
-abstract class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
+abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getTaskAction()
 

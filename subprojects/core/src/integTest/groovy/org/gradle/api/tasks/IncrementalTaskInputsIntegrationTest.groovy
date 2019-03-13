@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.internal.change.ChangeType
 
-class IncrementalTaskInputsIntegrationTest extends IncrementalTasksIntegrationTest {
+class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
     String getTaskAction() {
         """
