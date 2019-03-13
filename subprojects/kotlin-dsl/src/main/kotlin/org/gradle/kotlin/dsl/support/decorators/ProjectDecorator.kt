@@ -175,10 +175,10 @@ abstract class ProjectDecorator() : Project {
     override fun configure(`object`: Any, configureClosure: Closure<*>): Any =
         delegate.configure(`object`, configureClosure)
 
-    override fun configure(objects: MutableIterable<*>, configureClosure: Closure<*>): MutableIterable<*> =
+    override fun configure(objects: Iterable<*>, configureClosure: Closure<*>): Iterable<*> =
         delegate.configure(objects, configureClosure)
 
-    override fun <T : Any?> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> =
+    override fun <T : Any?> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
 
     override fun exec(closure: Closure<*>): ExecResult =
@@ -279,10 +279,10 @@ abstract class ProjectDecorator() : Project {
     override fun task(name: String): Task =
         delegate.task(name)
 
-    override fun task(args: MutableMap<String, *>, name: String): Task =
+    override fun task(args: Map<String, *>, name: String): Task =
         delegate.task(args, name)
 
-    override fun task(args: MutableMap<String, *>, name: String, configureClosure: Closure<*>): Task =
+    override fun task(args: Map<String, *>, name: String, configureClosure: Closure<*>): Task =
         delegate.task(args, name, configureClosure)
 
     override fun task(name: String, configureClosure: Closure<*>): Task =
@@ -338,7 +338,7 @@ abstract class ProjectDecorator() : Project {
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
-    override fun apply(options: MutableMap<String, *>) =
+    override fun apply(options: Map<String, *>) =
         delegate.apply(options)
 
     override fun evaluationDependsOn(path: String): Project =
@@ -432,7 +432,7 @@ abstract class ProjectDecorator() : Project {
     override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree =
         delegate.fileTree(baseDir, configureAction)
 
-    override fun fileTree(args: MutableMap<String, *>): ConfigurableFileTree =
+    override fun fileTree(args: Map<String, *>): ConfigurableFileTree =
         delegate.fileTree(args)
 
     override fun getNormalization(): InputNormalizationHandler =

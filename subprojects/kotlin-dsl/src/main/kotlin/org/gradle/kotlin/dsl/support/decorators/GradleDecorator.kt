@@ -145,7 +145,7 @@ abstract class GradleDecorator : Gradle {
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
-    override fun apply(options: MutableMap<String, *>) =
+    override fun apply(options: Map<String, *>) =
         delegate.apply(options)
 
     override fun getPluginManager(): PluginManager =

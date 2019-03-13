@@ -56,7 +56,7 @@ abstract class DependencyHandlerDecorator : DependencyHandler {
     override fun module(notation: Any, configureClosure: Closure<Any>): Dependency =
         delegate.module(notation, configureClosure)
 
-    override fun project(notation: MutableMap<String, *>): Dependency =
+    override fun project(notation: Map<String, *>): Dependency =
         delegate.project(notation)
 
     override fun gradleApi(): Dependency =
