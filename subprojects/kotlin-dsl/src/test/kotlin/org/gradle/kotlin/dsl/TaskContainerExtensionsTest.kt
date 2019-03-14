@@ -80,7 +80,7 @@ class TaskContainerExtensionsTest {
 
         val taskProvider = mock<TaskProvider<Task>>()
         val tasks = mock<TaskContainer> {
-            on { register(eq("name"), any<Action<Task>>()) } doReturn taskProvider
+            on { register(eq("clean"), any<Action<Task>>()) } doReturn taskProvider
         }
 
         tasks {
