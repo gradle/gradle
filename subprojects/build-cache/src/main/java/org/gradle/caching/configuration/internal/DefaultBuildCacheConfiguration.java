@@ -26,6 +26,7 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,18 +58,24 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T local(Class<T> type) {
+        if (!type.equals(DirectoryBuildCache.class)) {
+            DeprecationLogger.nagUserOfDeprecated("Using a local cache type other than " + DirectoryBuildCache.class.getSimpleName());
+        }
         return local(type, Actions.doNothing());
     }
 
     @Override
     public <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration) {
+        if (!type.equals(DirectoryBuildCache.class)) {
+            DeprecationLogger.nagUserOfDeprecated("Using a local cache type other than " + DirectoryBuildCache.class.getSimpleName());
+        }
         if (!type.isInstance(local)) {
             if (local != null) {
                 LOGGER.info("Replacing local build cache type {} with {}", local.getClass().getCanonicalName(), type.getCanonicalName());
             }
             local = createLocalCacheConfiguration(instantiator, type, registrations);
         }
-        T configurationObject = Cast.uncheckedCast(local);
+        T configurationObject = Cast.uncheckedNonnullCast(local);
         configuration.execute(configurationObject);
         return configurationObject;
     }
@@ -96,7 +103,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             }
             remote = createRemoteCacheConfiguration(instantiator, type, registrations);
         }
-        T configurationObject = Cast.uncheckedCast(remote);
+        T configurationObject = Cast.uncheckedNonnullCast(remote);
         configuration.execute(configurationObject);
         return configurationObject;
     }
@@ -147,7 +154,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
             if (registeredConfigurationType.isAssignableFrom(configurationType)) {
                 Class<? extends BuildCacheServiceFactory<?>> buildCacheServiceFactoryType = registration.getFactoryType();
                 LOGGER.debug("Found {} registered for {}", buildCacheServiceFactoryType, registeredConfigurationType);
-                return Cast.uncheckedCast(buildCacheServiceFactoryType);
+                return Cast.uncheckedNonnullCast(buildCacheServiceFactoryType);
             }
         }
         // Couldn't find a registration for the given type

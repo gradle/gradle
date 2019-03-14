@@ -53,6 +53,12 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Using custom local build cache implementations
+
+Using a custom build cache implementation for the local build cache is now deprecated.
+The only allowed type will be `DirectoryBuildCache` going forward.
+There is no change in the support for using custom build cache implementations as the remote build cache. 
+
 ### Breaking changes
 
 <!-- summary and links -->

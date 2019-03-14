@@ -81,6 +81,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             }
         """
         executer.withBuildCacheEnabled()
+        executer.expectDeprecationWarning()
 
         when:
         succeeds("help")
