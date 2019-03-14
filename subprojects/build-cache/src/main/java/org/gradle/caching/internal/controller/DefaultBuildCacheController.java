@@ -47,7 +47,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -106,7 +105,6 @@ public class DefaultBuildCacheController implements BuildCacheController {
         return emitDebugLogging;
     }
 
-    @Nullable
     @Override
     public <T> Optional<T> load(final BuildCacheLoadCommand<T> command) {
         final Unpack<T> unpack = new Unpack<T>(command);
