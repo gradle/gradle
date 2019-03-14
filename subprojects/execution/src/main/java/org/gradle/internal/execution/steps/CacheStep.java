@@ -35,7 +35,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class CacheStep<C extends IncrementalChangesContext> implements Step<C, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
@@ -100,17 +100,16 @@ public class CacheStep<C extends IncrementalChangesContext> implements Step<C, C
             });
     }
 
-    @Nullable
-    private BuildCacheCommandFactory.LoadMetadata load(UnitOfWork work, BuildCacheKey cacheKey) {
+    private Optional<BuildCacheCommandFactory.LoadMetadata> load(UnitOfWork work, BuildCacheKey cacheKey) {
         try {
-            return buildCache.load(
+            return Optional.ofNullable(buildCache.load(
                     commandFactory.createLoad(cacheKey, work, new BuildCacheLoadListener() {
                         @Override
                         public void afterLoadFailedAndWasCleanedUp(Throwable error) {
                             work.outputsRemovedAfterFailureToLoadFromCache();
                         }
                     })
-            );
+            ));
         } catch (UnrecoverableUnpackingException e) {
             // We didn't manage to recover from the unpacking error, there might be leftover
             // garbage among the task's outputs, thus we must fail the build
@@ -118,7 +117,7 @@ public class CacheStep<C extends IncrementalChangesContext> implements Step<C, C
         } catch (Exception e) {
             // There was a failure during downloading, previous task outputs should be unaffected
             LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", work.getDisplayName(), e);
-            return null;
+            return Optional.empty();
         }
     }
 
