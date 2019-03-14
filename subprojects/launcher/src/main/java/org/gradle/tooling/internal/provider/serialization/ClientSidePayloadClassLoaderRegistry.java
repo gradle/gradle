@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.classloader.ClasspathInferer;
 
 import java.lang.ref.WeakReference;
 import java.net.URL;

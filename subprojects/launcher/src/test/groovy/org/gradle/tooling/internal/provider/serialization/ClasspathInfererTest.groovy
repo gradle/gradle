@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization
 
+import org.gradle.internal.classloader.ClasspathInferer
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles

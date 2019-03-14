@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.internal.classloader;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
-import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;

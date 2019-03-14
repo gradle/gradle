@@ -33,7 +33,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
-import org.gradle.tooling.internal.provider.serialization.ClasspathInferer;
+import org.gradle.internal.classloader.ClasspathInferer;
 import org.gradle.tooling.internal.provider.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
