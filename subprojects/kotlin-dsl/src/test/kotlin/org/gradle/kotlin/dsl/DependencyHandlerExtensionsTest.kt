@@ -163,7 +163,9 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `client module configuration`() {
 
-        val clientModule = mock<ClientModule>()
+        val clientModule = mock<ClientModule> {
+            on { setTransitive(any()) }.thenAnswer { it.mock }
+        }
 
         val commonsCliDependency = mock<ExternalModuleDependency>(name = "commonsCliDependency")
 
