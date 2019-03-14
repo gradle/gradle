@@ -24,13 +24,11 @@ import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.OutputChangeListener
 
 class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
-    def outputChangeListener = Mock(OutputChangeListener)
-    def step = new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory, delegate)
+    def step = new CacheStep<IncrementalChangesContext>(buildCacheController, buildCacheCommandFactory, delegate)
     def cacheHandler = Mock(CacheHandler)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
 

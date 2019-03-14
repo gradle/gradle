@@ -28,7 +28,6 @@ import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -41,18 +40,15 @@ public class CacheStep<C extends IncrementalChangesContext> implements Step<C, C
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
 
     private final BuildCacheController buildCache;
-    private final OutputChangeListener outputChangeListener;
     private final BuildCacheCommandFactory commandFactory;
     private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
             BuildCacheController buildCache,
-            OutputChangeListener outputChangeListener,
             BuildCacheCommandFactory commandFactory,
             Step<? super C, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
-        this.outputChangeListener = outputChangeListener;
         this.commandFactory = commandFactory;
         this.delegate = delegate;
     }

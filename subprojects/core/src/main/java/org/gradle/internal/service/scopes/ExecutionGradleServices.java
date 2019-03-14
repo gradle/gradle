@@ -128,7 +128,7 @@ public class ExecutionGradleServices {
                     new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
                         new StoreSnapshotsStep<IncrementalChangesContext>(
                             new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
-                                new CacheStep<IncrementalChangesContext>(buildCacheController, outputChangeListener, buildCacheCommandFactory,
+                                new CacheStep<IncrementalChangesContext>(buildCacheController, buildCacheCommandFactory,
                                     new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
                                         new CreateOutputsStep<IncrementalChangesContext, Result>(
                                             new CatchExceptionStep<IncrementalChangesContext>(
