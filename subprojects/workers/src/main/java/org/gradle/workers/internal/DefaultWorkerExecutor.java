@@ -216,10 +216,11 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             classpathBuilder.addAll(classpath);
         }
 
-        addVisibilityFor(actionClass, classpathBuilder, sharedPackagesBuilder, true);
+        addClasspathFor(actionClass, classpathBuilder);
+        addVisiblePackage(actionClass, sharedPackagesBuilder);
 
         for (Class<?> paramClass : paramClasses) {
-            addVisibilityFor(paramClass, classpathBuilder, sharedPackagesBuilder, false);
+            addClasspathFor(paramClass, classpathBuilder);
         }
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
@@ -237,13 +238,9 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             .build();
     }
 
-    private static void addVisibilityFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder, ImmutableSet.Builder<String> sharedPackagesBuilder, boolean addToSharedPackages) {
+    private static void addClasspathFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
         if (visibleClass.getClassLoader() != null) {
             classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
-        }
-
-        if (addToSharedPackages) {
-            addVisiblePackage(visibleClass, sharedPackagesBuilder);
         }
     }
 
