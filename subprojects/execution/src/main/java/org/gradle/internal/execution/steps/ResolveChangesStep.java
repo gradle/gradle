@@ -16,10 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DescriptiveChange;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -37,7 +35,7 @@ import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
     private final ExecutionStateChangeDetector changeDetector;
-    private static final Change NO_HISTORY = new DescriptiveChange("No history is available.");
+    private static final String NO_HISTORY = "No history is available.";
 
     private final Step<? super IncrementalChangesContext, R> delegate;
 
@@ -55,7 +53,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason), beforeExecutionState.orElse(null))
+                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState.orElse(null))
             )
             .orElseGet(() ->
                 beforeExecutionState
@@ -100,17 +98,17 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     }
 
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
-        private final Change rebuildChange;
+        private final String rebuildReason;
         private final BeforeExecutionState beforeExecutionState;
 
-        public RebuildExecutionStateChanges(Change rebuildChange, @Nullable BeforeExecutionState beforeExecutionState) {
-            this.rebuildChange = rebuildChange;
+        public RebuildExecutionStateChanges(String rebuildReason, @Nullable BeforeExecutionState beforeExecutionState) {
+            this.rebuildReason = rebuildReason;
             this.beforeExecutionState = beforeExecutionState;
         }
 
         @Override
-        public void visitAllChanges(ChangeVisitor visitor) {
-            visitor.visitChange(rebuildChange);
+        public ImmutableList<String> getAllChangeMessages() {
+            return ImmutableList.of(rebuildReason);
         }
 
         @Override

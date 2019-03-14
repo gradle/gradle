@@ -16,11 +16,13 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
+import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
@@ -60,7 +62,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         InputFileChanges directInputFileChanges = new DefaultInputFileChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
-        InputFileChanges inputFileChanges = caching(directInputFileChanges);
+        InputFileChanges inputFileChanges = errorHandling(executable, caching(directInputFileChanges));
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -74,10 +76,22 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             allowOverlappingOutputs);
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
+        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges));
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
+        rebuildTriggeringChanges.accept(visitor);
+        ImmutableList<String> rebuildReasons = builder.build();
+
+        boolean rebuildRequired = !rebuildReasons.isEmpty();
+
+        if (!rebuildRequired) {
+            inputFileChanges.accept(visitor);
+        }
+
         return new DetectedExecutionStateChanges(
-            errorHandling(executable, inputFileChanges),
-            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
-            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges)),
+            inputFileChanges,
+            builder.build(),
+            rebuildRequired,
             thisExecution
         );
     }
@@ -122,38 +136,49 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
     private static class DetectedExecutionStateChanges implements ExecutionStateChanges {
         private final InputFileChanges inputFileChanges;
-        private final ChangeContainer allChanges;
-        private final ChangeContainer rebuildTriggeringChanges;
+        private final ImmutableList<String> allChangeMessages;
+        private final boolean rebuildRequired;
         private final BeforeExecutionState thisExecution;
 
         public DetectedExecutionStateChanges(
             InputFileChanges inputFileChanges,
-            ChangeContainer allChanges,
-            ChangeContainer rebuildTriggeringChanges,
+            ImmutableList<String> allChangeMessages,
+            boolean rebuildRequired,
             BeforeExecutionState thisExecution
         ) {
             this.inputFileChanges = inputFileChanges;
-            this.allChanges = allChanges;
-            this.rebuildTriggeringChanges = rebuildTriggeringChanges;
+            this.allChangeMessages = allChangeMessages;
+            this.rebuildRequired = rebuildRequired;
             this.thisExecution = thisExecution;
         }
 
         @Override
-        public void visitAllChanges(ChangeVisitor visitor) {
-            allChanges.accept(visitor);
+        public ImmutableList<String> getAllChangeMessages() {
+            return allChangeMessages;
         }
 
         @Override
         public InputChangesInternal getInputChanges(ImmutableListMultimap<Object, String> incrementalInputs) {
-            return isRebuildRequired()
+            return rebuildRequired
                 ? new NonIncrementalInputChanges(thisExecution.getInputFileProperties(), incrementalInputs)
                 : new IncrementalInputChanges(inputFileChanges, incrementalInputs);
         }
+    }
 
-        private boolean isRebuildRequired() {
-            ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
-            rebuildTriggeringChanges.accept(changeDetectorVisitor);
-            return changeDetectorVisitor.hasAnyChanges();
+    private static class MessageCollectingChangeVisitor implements ChangeVisitor {
+        private final ImmutableCollection.Builder<String> messages;
+        private final int max;
+        private int count;
+
+        public MessageCollectingChangeVisitor(ImmutableCollection.Builder<String> messages, int max) {
+            this.messages = messages;
+            this.max = max;
+        }
+
+        @Override
+        public boolean visitChange(Change change) {
+            messages.add(change.getMessage());
+            return ++count < max;
         }
     }
 }

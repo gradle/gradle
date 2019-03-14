@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.IncrementalChangesContext
@@ -43,7 +44,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert getRebuildReason(changes) == "Forced rebuild."
+            assert changes.getAllChangeMessages() == ImmutableList.of("Forced rebuild.")
             try {
                 changes.getInputChanges(ImmutableListMultimap.of())
                 assert false
@@ -85,7 +86,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.getInputChanges(ImmutableListMultimap.of()).incremental
-            assert getRebuildReason(changes) == "No history is available."
+            assert changes.getAllChangeMessages() == ImmutableList.of("No history is available.")
             return delegateResult
         }
         1 * context.rebuildReason >> Optional.empty()
@@ -117,11 +118,5 @@ class ResolveChangesStepTest extends StepSpec {
         1 * work.allowOverlappingOutputs >> true
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, false) >> changes
         0 * _
-    }
-    
-    private static String getRebuildReason(ExecutionStateChanges changes) {
-        String change = null
-        changes.visitAllChanges({ change = it.message; false })
-        return change
     }
 }

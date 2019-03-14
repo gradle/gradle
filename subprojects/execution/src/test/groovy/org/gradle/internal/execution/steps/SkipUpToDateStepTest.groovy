@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.change.ChangeVisitor
-import org.gradle.internal.change.DescriptiveChange
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.SnapshotResult
@@ -43,7 +42,7 @@ class SkipUpToDateStepTest extends StepSpec {
         result.executionReasons.empty
 
         1 * context.changes >> Optional.of(changes)
-        1 * changes.visitAllChanges(_) >> {}
+        1 * changes.getAllChangeMessages() >> ImmutableList.of()
         1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
@@ -62,9 +61,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.of(changes)
-        1 * changes.visitAllChanges(_) >> { ChangeVisitor visitor ->
-            visitor.visitChange(new DescriptiveChange("change"))
-        }
+        1 * changes.getAllChangeMessages() >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
 

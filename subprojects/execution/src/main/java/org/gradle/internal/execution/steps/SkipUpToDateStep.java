@@ -16,14 +16,11 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.SnapshotResult;
@@ -55,10 +52,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             LOGGER.debug("Determining if {} is up-to-date", context.getWork().getDisplayName());
         }
         return context.getChanges().map(changes -> {
-            ImmutableList.Builder<String> builder = ImmutableList.builder();
-            MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, 3);
-            changes.visitAllChanges(visitor);
-            ImmutableList<String> reasons = builder.build();
+            ImmutableList<String> reasons = changes.getAllChangeMessages();
             if (reasons.isEmpty()) {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("Skipping {} as it is up-to-date.", context.getWork().getDisplayName());
@@ -136,23 +130,6 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                 formatter.format("%n  %s", message);
             }
             LOGGER.info(formatter.toString());
-        }
-    }
-
-    private static class MessageCollectingChangeVisitor implements ChangeVisitor {
-        private final ImmutableCollection.Builder<String> messages;
-        private final int max;
-        private int count;
-
-        public MessageCollectingChangeVisitor(ImmutableCollection.Builder<String> messages, int max) {
-            this.messages = messages;
-            this.max = max;
-        }
-
-        @Override
-        public boolean visitChange(Change change) {
-            messages.add(change.getMessage());
-            return ++count < max;
         }
     }
 }
