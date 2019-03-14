@@ -348,19 +348,49 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         val pluginJar = jarForPlugin(pluginId, "MyPlugin")
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
+        assertPrecompiledScriptPluginApplies(
+            pluginId,
+            "Plugin_gradle"
+        )
+    }
+
+    private
+    fun assertPrecompiledScriptPluginApplies(pluginId: String, precompiledScriptClassName: String) {
+
         compileKotlin()
 
         val (project, pluginManager) = projectAndPluginManagerMocks()
 
         instantiatePrecompiledScriptOf(
             project,
-            "Plugin_gradle"
+            precompiledScriptClassName
         )
 
         inOrder(pluginManager) {
             verify(pluginManager).apply(pluginId)
             verifyNoMoreInteractions()
         }
+    }
+
+    @Test
+    fun `can use plugin specs with jruby-gradle-plugin`() {
+
+        withKotlinDslPlugin().appendText("""
+            dependencies {
+                compile("com.github.jruby-gradle:jruby-gradle-plugin:1.4.0")
+            }
+        """)
+
+        withPrecompiledKotlinScript("plugin.gradle.kts", """
+            plugins {
+                com.github.`jruby-gradle`.base
+            }
+        """)
+
+        assertPrecompiledScriptPluginApplies(
+            "com.github.jruby-gradle.base",
+            "Plugin_gradle"
+        )
     }
 
     @Test
