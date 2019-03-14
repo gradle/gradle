@@ -19,7 +19,7 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classloader.ClasspathInferer;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -43,8 +43,13 @@ import org.gradle.workers.WorkerConfiguration;
 import org.gradle.workers.WorkerExecutionException;
 import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
@@ -57,6 +62,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final WorkerDirectoryProvider workerDirectoryProvider;
+    private final ClasspathInferer classpathInferer;
 
     public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory) {
         this.daemonWorkerFactory = daemonWorkerFactory;
@@ -68,6 +74,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.workerDirectoryProvider = workerDirectoryProvider;
+        this.classpathInferer = new ClasspathInferer(); // TODO: Move to service
     }
 
     @Override
@@ -206,22 +213,30 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         return new UnsupportedOperationException("The worker " + propertyDescription + " cannot be set when using isolation mode " + isolationMode.name());
     }
 
-    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> classpath) {
+    private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> additionalClasspath) {
         ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
 
         sharedPackagesBuilder.add("javax.inject");
 
-        if (classpath != null) {
-            classpathBuilder.addAll(classpath);
+        if (additionalClasspath != null) {
+            classpathBuilder.addAll(additionalClasspath);
         }
 
-        addClasspathFor(actionClass, classpathBuilder);
+        // TODO: Maybe not needed?
         addVisiblePackage(actionClass, sharedPackagesBuilder);
 
-        for (Class<?> paramClass : paramClasses) {
-            addClasspathFor(paramClass, classpathBuilder);
-        }
+        Set<URL> actionClasspath = inferClasspathFor(actionClass, paramClasses);
+        classpathBuilder.addAll(CollectionUtils.collect(actionClasspath, new Transformer<File, URL>() {
+            @Override
+            public File transform(URL url) {
+                try {
+                    return new File(url.toURI());
+                } catch (URISyntaxException e) {
+                    return new File(url.getPath());
+                }
+            }
+        }));
 
         Iterable<File> daemonClasspath = classpathBuilder.build();
         Iterable<String> daemonSharedPackages = sharedPackagesBuilder.build();
@@ -238,10 +253,24 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             .build();
     }
 
-    private static void addClasspathFor(Class<?> visibleClass, ImmutableSet.Builder<File> classpathBuilder) {
-        if (visibleClass.getClassLoader() != null) {
-            classpathBuilder.addAll(ClasspathUtil.getClasspath(visibleClass.getClassLoader()).getAsFiles());
+    private Set<URL> inferClasspathFor(Class<?> actionClass, Iterable<Class<?>> paramClasses) {
+        ImmutableSet.Builder<URL> classpathBuilder = ImmutableSet.builder();
+        final Set<URL> classPath = new LinkedHashSet<URL>();
+        classpathInferer.getClassPathFor(actionClass, classPath);
+        classpathBuilder.addAll(classPath);
+
+        // TODO: Annotations seem to be ignored by classpathInferer
+        final Set<URL> injectClasspath = new LinkedHashSet<URL>();
+        classpathInferer.getClassPathFor(Inject.class, injectClasspath);
+        classpathBuilder.addAll(injectClasspath);
+
+        for (Class clazz : paramClasses) {
+            final Set<URL> paramClassPath = new LinkedHashSet<URL>();
+            classpathInferer.getClassPathFor(clazz, paramClassPath);
+            classpathBuilder.addAll(paramClassPath);
         }
+
+        return classpathBuilder.build();
     }
 
     private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
