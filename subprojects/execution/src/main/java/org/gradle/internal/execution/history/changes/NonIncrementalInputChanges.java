@@ -18,12 +18,14 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
+
+import java.io.File;
+import java.util.stream.Stream;
 
 import static org.gradle.internal.execution.history.changes.IncrementalInputChanges.determinePropertyName;
 
@@ -43,22 +45,50 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
 
     @Override
     public Iterable<FileChange> getFileChanges(Object parameterValue) {
-        CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(parameterValue, propertyNameByValue));
-        visitAllFileChanges(currentFileCollectionFingerprint, visitor);
-        return Cast.uncheckedNonnullCast(visitor.getChanges());
+        return getAllFileChanges(currentFileCollectionFingerprint)::iterator;
     }
 
     @Override
-    public Iterable<Change> getAllFileChanges() {
-        CollectingChangeVisitor changeVisitor = new CollectingChangeVisitor();
-        for (CurrentFileCollectionFingerprint fingerprint : currentInputs.values()) {
-            visitAllFileChanges(fingerprint, changeVisitor);
-        }
-        return changeVisitor.getChanges();
+    public Iterable<InputFileDetails> getAllFileChanges() {
+        Iterable<FileChange> changes = currentInputs.values().stream().flatMap(NonIncrementalInputChanges::getAllFileChanges)::iterator;
+        return Cast.uncheckedNonnullCast(changes);
     }
 
-    private void visitAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint, CollectingChangeVisitor visitor) {
-        currentFileCollectionFingerprint.visitChangesSince(FileCollectionFingerprint.EMPTY, "Input", true, visitor);
+    private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
+        return currentFileCollectionFingerprint.getFingerprints().keySet().stream().map(RebuildFileChange::new);
+    }
+
+    private static class RebuildFileChange implements FileChange, InputFileDetails {
+        private final String path;
+
+        public RebuildFileChange(String path) {
+            this.path = path;
+        }
+
+        @Override
+        public File getFile() {
+            return new File(path);
+        }
+
+        @Override
+        public ChangeType getChangeType() {
+            return ChangeType.ADDED;
+        }
+
+        @Override
+        public boolean isAdded() {
+            return false;
+        }
+
+        @Override
+        public boolean isModified() {
+            return false;
+        }
+
+        @Override
+        public boolean isRemoved() {
+            return false;
+        }
     }
 }

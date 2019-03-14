@@ -18,8 +18,8 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.work.FileChange;
 
@@ -58,9 +58,9 @@ public class IncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<Change> getAllFileChanges() {
+    public Iterable<InputFileDetails> getAllFileChanges() {
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(visitor);
-        return visitor.getChanges();
+        return Cast.uncheckedNonnullCast(visitor.getChanges());
     }
 }

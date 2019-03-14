@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.changes.ChangesOnlyIncrementalTaskInputs;
 import org.gradle.api.internal.changedetection.changes.RebuildIncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaMethod;
@@ -37,18 +38,19 @@ class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
     protected void doExecute(Task task, String methodName) {
         InputChangesInternal inputChanges = getInputChanges();
 
+        Iterable<InputFileDetails> allFileChanges = inputChanges.getAllFileChanges();
         IncrementalTaskInputs incrementalTaskInputs = inputChanges.isIncremental()
-            ? createIncrementalInputs(inputChanges)
-            : createRebuildInputs(inputChanges);
+            ? createIncrementalInputs(allFileChanges)
+            : createRebuildInputs(allFileChanges);
 
         JavaMethod.of(task, Object.class, methodName, IncrementalTaskInputs.class).invoke(task, incrementalTaskInputs);
     }
 
-    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(InputChangesInternal inputChanges) {
-        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, inputChanges.getAllFileChanges());
+    private ChangesOnlyIncrementalTaskInputs createIncrementalInputs(Iterable<InputFileDetails> allFileChanges) {
+        return instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, allFileChanges);
     }
 
-    private RebuildIncrementalTaskInputs createRebuildInputs(InputChangesInternal inputChanges) {
-        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, inputChanges);
+    private RebuildIncrementalTaskInputs createRebuildInputs(Iterable<InputFileDetails> allFileChanges) {
+        return instantiator.newInstance(RebuildIncrementalTaskInputs.class, allFileChanges);
     }
 }

@@ -18,15 +18,11 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.change.Change;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
-
-import java.io.File;
 
 public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
-    private final InputChangesInternal inputChanges;
+    private final Iterable<InputFileDetails> inputChanges;
 
-    public RebuildIncrementalTaskInputs(InputChangesInternal inputChanges) {
+    public RebuildIncrementalTaskInputs(Iterable<InputFileDetails> inputChanges) {
         this.inputChanges = inputChanges;
     }
 
@@ -35,36 +31,11 @@ public class RebuildIncrementalTaskInputs extends StatefulIncrementalTaskInputs 
     }
 
     public void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
-        for (Change change : inputChanges.getAllFileChanges()) {
-            InputFileDetails inputFileChange = (InputFileDetails) change;
-            outOfDateAction.execute(new RebuildInputFile(inputFileChange.getFile()));
+        for (InputFileDetails inputFileChange : inputChanges) {
+            outOfDateAction.execute(inputFileChange);
         }
     }
 
     public void doRemoved(Action<? super InputFileDetails> removedAction) {
-    }
-
-    private static class RebuildInputFile implements InputFileDetails {
-        private final File file;
-
-        private RebuildInputFile(File file) {
-            this.file = file;
-        }
-
-        public File getFile() {
-            return file;
-        }
-
-        public boolean isAdded() {
-            return false;
-        }
-
-        public boolean isModified() {
-            return false;
-        }
-
-        public boolean isRemoved() {
-            return false;
-        }
     }
 }

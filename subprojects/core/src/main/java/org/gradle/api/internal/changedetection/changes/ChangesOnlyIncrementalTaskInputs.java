@@ -18,16 +18,15 @@ package org.gradle.api.internal.changedetection.changes;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.gradle.internal.change.Change;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInputs {
-    private final Iterable<Change> inputFilesState;
+    private final Iterable<InputFileDetails> inputFilesState;
     private final List<InputFileDetails> removedFiles = new ArrayList<InputFileDetails>();
 
-    public ChangesOnlyIncrementalTaskInputs(Iterable<Change> inputFilesState) {
+    public ChangesOnlyIncrementalTaskInputs(Iterable<InputFileDetails> inputFilesState) {
         this.inputFilesState = inputFilesState;
     }
 
@@ -37,8 +36,7 @@ public class ChangesOnlyIncrementalTaskInputs extends StatefulIncrementalTaskInp
 
     @Override
     protected void doOutOfDate(final Action<? super InputFileDetails> outOfDateAction) {
-        for (Change change : inputFilesState) {
-            InputFileDetails fileChange = (InputFileDetails) change;
+        for (InputFileDetails fileChange : inputFilesState) {
             if (fileChange.isRemoved()) {
                 removedFiles.add(fileChange);
             } else {
