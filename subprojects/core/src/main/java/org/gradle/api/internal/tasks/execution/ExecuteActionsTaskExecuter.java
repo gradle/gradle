@@ -190,18 +190,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                boolean incremental = inputChanges != null && inputChanges.isIncremental();
                 executeActions(task, inputChanges);
-                return task.getState().getDidWork()
-                    ? incremental
-                        ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                        : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-                    : ExecutionOutcome.UP_TO_DATE;
+                return task.getState().getDidWork() ? WorkResult.DID_WORK : WorkResult.DID_NO_WORK;
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);

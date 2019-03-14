@@ -37,13 +37,26 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
             ? determineInputChanges(work, context)
             : null;
 
-        ExecutionOutcome outcome = work.execute(inputChanges);
+        boolean incremental = inputChanges != null && inputChanges.isIncremental();
+        UnitOfWork.WorkResult result = work.execute(inputChanges);
+        ExecutionOutcome outcome = determineOutcome(result, incremental);
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {
                 return Try.successful(outcome);
             }
         };
+    }
+
+    private ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
+        switch (result) {
+            case DID_NO_WORK:
+                return ExecutionOutcome.UP_TO_DATE;
+            case DID_WORK:
+                return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+            default:
+                throw new IllegalArgumentException("Unknown result: " + result);
+        }
     }
 
     private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {

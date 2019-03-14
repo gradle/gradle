@@ -34,7 +34,7 @@ class ExecuteStepTest extends Specification {
     def inputChanges = Mock(InputChangesInternal)
 
     @Unroll
-    def "#outcome outcome is preserved"() {
+    def "result #workResult yields outcome #outcome (incremental false)"() {
         when:
         def result = step.execute(context)
 
@@ -43,11 +43,13 @@ class ExecuteStepTest extends Specification {
 
         1 * context.work >> work
         1 * work.incremental >> false
-        1 * work.execute(null) >> { outcome }
+        1 * work.execute(null) >> workResult
         0 * _
 
         where:
-        outcome << ExecutionOutcome.values()
+        workResult                        | outcome
+        UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 
     @Unroll
@@ -68,11 +70,14 @@ class ExecuteStepTest extends Specification {
         failure << [new RuntimeException(), new Error()]
     }
 
-    def "determines input changes for incremental work"() {
+    @Unroll
+    def "incremental work with result #workResult yields outcome #outcome (executed incrementally: #incrementalExecution)"() {
         when:
-        step.execute(context)
+        def result = step.execute(context)
 
         then:
+        result.outcome.get() == outcome
+
         1 * context.work >> work
         1 * work.incremental >> true
         1 * context.changes >> optionalChanges
@@ -80,8 +85,16 @@ class ExecuteStepTest extends Specification {
             ((UnitOfWork.InputFilePropertyVisitor) args[0]).visitInputFileProperty("fileInput", "some/path")
         }
         1 * changes.createInputChanges(ImmutableMultimap.of("some/path", "fileInput")) >> inputChanges
-        1 * work.execute(inputChanges)
-        1 * inputChanges.incremental >> true
+        1 * work.execute(inputChanges) >> workResult
+        _ * work.getDisplayName()
+        2 * inputChanges.incremental >> incrementalExecution
         0 * _
+
+        where:
+        incrementalExecution | workResult                        | outcome
+        true                 | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_INCREMENTALLY
+        false                | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        true                 | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
+        false                | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 }

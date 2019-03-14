@@ -30,7 +30,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -259,7 +258,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
 
@@ -270,7 +269,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             }
             ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
-            return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+            return WorkResult.DID_WORK;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {

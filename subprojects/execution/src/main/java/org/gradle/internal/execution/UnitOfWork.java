@@ -33,7 +33,7 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute(@Nullable InputChangesInternal inputChanges);
+    WorkResult execute(@Nullable InputChangesInternal inputChanges);
 
     Optional<Duration> getTimeout();
 
@@ -77,6 +77,11 @@ public interface UnitOfWork extends CacheableEntity {
     @FunctionalInterface
     interface OutputPropertyVisitor {
         void visitOutputProperty(String name, TreeType type, FileCollection roots);
+    }
+
+    enum WorkResult {
+        DID_WORK,
+        DID_NO_WORK
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();
