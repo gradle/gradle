@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution.incremental;
+package org.gradle.work;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.incremental.InputFileDetails;

@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
-import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -61,6 +60,7 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
 import java.io.File;

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.work.InputChanges;
 
 import java.lang.reflect.Method;
 

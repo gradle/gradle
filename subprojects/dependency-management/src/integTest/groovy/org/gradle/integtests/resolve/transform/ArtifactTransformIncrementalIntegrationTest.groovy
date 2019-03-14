@@ -33,7 +33,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             import org.gradle.api.tasks.*
             import org.gradle.api.tasks.incremental.*
             import org.gradle.api.artifacts.transform.*
-            import org.gradle.api.execution.incremental.*
+            import org.gradle.work.*
 
             abstract class MakeGreen implements TransformAction<Parameters> {
 

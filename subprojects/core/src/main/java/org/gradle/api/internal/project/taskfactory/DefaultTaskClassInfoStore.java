@@ -23,13 +23,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.execution.incremental.InputChanges;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;

@@ -15,9 +15,9 @@
  */
 
 /**
- * Classes for dealing with incremental execution.
+ * Classes used for implementing units of work.
  */
 @NonNullApi
-package org.gradle.api.execution.incremental;
+package org.gradle.work;
 
 import org.gradle.api.NonNullApi;
