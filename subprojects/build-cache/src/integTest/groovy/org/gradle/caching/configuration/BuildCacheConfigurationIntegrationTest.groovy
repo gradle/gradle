@@ -150,11 +150,17 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
             
             assert buildCache.$cache instanceof AnotherBuildCache
         """
+        if (expectDeprecation) {
+            executer.expectDeprecationWarning()
+        }
+
         expect:
         succeeds("help")
 
         where:
-        cache << ["local", "remote"]
+        cache    | expectDeprecation
+        "local"  | true
+        "remote" | false
     }
 
     def "disables remote cache with --offline"() {
