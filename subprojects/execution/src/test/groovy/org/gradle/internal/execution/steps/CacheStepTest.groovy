@@ -28,7 +28,7 @@ import org.gradle.internal.execution.IncrementalChangesContext
 class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
-    def step = new CacheStep<IncrementalChangesContext>(buildCacheController, buildCacheCommandFactory, delegate)
+    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
     def cacheHandler = Mock(CacheHandler)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
 
@@ -51,7 +51,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.isEnabled() >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.of(loadMetadata)
+        1 * cacheHandler.load(_) >> Optional.of(Try.successful(loadMetadata))
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
         0 * _
@@ -78,7 +78,49 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         0 * _
     }
 
-    def "failures are not stored in the cache"() {
+    def "executes work non-incrementally after recoverable unpack failure"() {
+        when:
+        def result = step.execute(context)
+
+        then:
+        result == delegateResult
+
+        1 * buildCacheController.isEnabled() >> true
+        1 * context.work >> work
+        1 * work.createCacheHandler() >> cacheHandler
+        1 * cacheHandler.load(_) >> Optional.of(Try.failure(new RuntimeException("unpack failure")))
+
+        then:
+        1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
+            assert delegateContext != context
+            assert !delegateContext.getChanges().present
+            delegateResult
+        }
+        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+
+        then:
+        1 * cacheHandler.store(_)
+        0 * _
+    }
+
+    def "propagates non-recoverable unpack failure"() {
+        def unrecoverableUnpackFailure = new RuntimeException("unrecoverable unpack failure")
+
+        when:
+        step.execute(context)
+
+        then:
+        def ex = thrown Exception
+        ex == unrecoverableUnpackFailure
+
+        1 * buildCacheController.isEnabled() >> true
+        1 * context.work >> work
+        1 * work.createCacheHandler() >> cacheHandler
+        1 * cacheHandler.load(_) >> { throw unrecoverableUnpackFailure }
+        0 * _
+    }
+
+    def "does not store result of failed execution in cache"() {
         when:
         def result = step.execute(context)
 

@@ -820,11 +820,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void outputsRemovedAfterFailureToLoadFromCache() {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
                 CacheHandler createCacheHandler() {
                     throw new UnsupportedOperationException()
                 }

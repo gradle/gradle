@@ -17,12 +17,12 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.apache.commons.io.FileUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
-import org.gradle.caching.internal.command.BuildCacheLoadListener;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.CurrentSnapshotResult;
@@ -30,23 +30,27 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Optional;
 
-public class CacheStep<C extends IncrementalChangesContext> implements Step<C, CurrentSnapshotResult> {
+public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
-    private final Step<? super C, ? extends CurrentSnapshotResult> delegate;
+    private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
             BuildCacheController buildCache,
             BuildCacheCommandFactory commandFactory,
-            Step<? super C, ? extends CurrentSnapshotResult> delegate
+            Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.commandFactory = commandFactory;
@@ -54,67 +58,105 @@ public class CacheStep<C extends IncrementalChangesContext> implements Step<C, C
     }
 
     @Override
-    public CurrentSnapshotResult execute(C context) {
+    public CurrentSnapshotResult execute(IncrementalChangesContext context) {
         if (!buildCache.isEnabled()) {
             return executeWithoutCache(context);
         }
         CacheHandler cacheHandler = context.getWork().createCacheHandler();
         return cacheHandler
             .load(cacheKey -> load(context.getWork(), cacheKey))
-            .map(loadResult -> {
-                OriginMetadata originMetadata = loadResult.getOriginMetadata();
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = loadResult.getResultingSnapshots();
-                return (CurrentSnapshotResult) new CurrentSnapshotResult() {
+            .map(cacheHit -> cacheHit
+                .map(loadResult -> {
+                    OriginMetadata originMetadata = loadResult.getOriginMetadata();
+                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = loadResult.getResultingSnapshots();
+                    return (CurrentSnapshotResult) new CurrentSnapshotResult() {
+                        @Override
+                        public Try<ExecutionOutcome> getOutcome() {
+                            return Try.successful(ExecutionOutcome.FROM_CACHE);
+                        }
+
+                        @Override
+                        public OriginMetadata getOriginMetadata() {
+                            return originMetadata;
+                        }
+
+                        @Override
+                        public boolean isReused() {
+                            return true;
+                        }
+
+                        @Override
+                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
+                            return finalOutputs;
+                        }
+                    };
+                })
+                .orElseMapFailure(loadFailure -> executeWithCache(cacheHandler, new IncrementalChangesContext() {
                     @Override
-                    public Try<ExecutionOutcome> getOutcome() {
-                        return Try.successful(ExecutionOutcome.FROM_CACHE);
+                    public Optional<ExecutionStateChanges> getChanges() {
+                        // Clear change information to avoid incremental execution after failed load
+                        return Optional.empty();
                     }
 
                     @Override
-                    public OriginMetadata getOriginMetadata() {
-                        return originMetadata;
+                    public Optional<String> getRebuildReason() {
+                        return context.getRebuildReason();
                     }
 
                     @Override
-                    public boolean isReused() {
-                        return true;
+                    public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                        return context.getAfterPreviousExecutionState();
                     }
 
                     @Override
-                    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs() {
-                        return finalOutputs;
+                    public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                        return context.getBeforeExecutionState();
                     }
-                };
-            })
-            .orElseGet(() -> {
-                CurrentSnapshotResult executionResult = executeWithoutCache(context);
-                executionResult.getOutcome().ifSuccessfulOrElse(
-                    outcome -> cacheHandler.store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
-                    failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
-                );
-                return executionResult;
-            });
+
+                    @Override
+                    public UnitOfWork getWork() {
+                        return context.getWork();
+                    }
+                }))
+            )
+            .orElseGet(() -> executeWithCache(cacheHandler, context));
     }
 
-    private Optional<BuildCacheCommandFactory.LoadMetadata> load(UnitOfWork work, BuildCacheKey cacheKey) {
+    private Optional<Try<BuildCacheCommandFactory.LoadMetadata>> load(UnitOfWork work, BuildCacheKey cacheKey) {
         try {
-            return Optional.ofNullable(buildCache.load(
-                    commandFactory.createLoad(cacheKey, work, new BuildCacheLoadListener() {
-                        @Override
-                        public void afterLoadFailedAndWasCleanedUp(Throwable error) {
-                            work.outputsRemovedAfterFailureToLoadFromCache();
-                        }
-                    })
-            ));
-        } catch (UnrecoverableUnpackingException e) {
-            // We didn't manage to recover from the unpacking error, there might be leftover
-            // garbage among the task's outputs, thus we must fail the build
-            throw e;
+            return buildCache.load(commandFactory.createLoad(cacheKey, work))
+                .map(loadResult -> Try.successful(loadResult));
         } catch (Exception e) {
             // There was a failure during downloading, previous task outputs should be unaffected
-            LOGGER.warn("Failed to load cache entry for {}, falling back to executing task", work.getDisplayName(), e);
-            return Optional.empty();
+            LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution", work.getDisplayName(), e);
+            cleanupTreesAfterUnpackFailure(work);
+            return Optional.of(Try.failure(e));
         }
+    }
+
+    private static void cleanupTreesAfterUnpackFailure(UnitOfWork work) {
+        work.visitOutputTrees((name, type, root) -> {
+            try {
+                if (root.exists()) {
+                    if (root.isDirectory()) {
+                        FileUtils.cleanDirectory(root);
+                    } else {
+                        FileUtils.forceDelete(root);
+                    }
+                }
+            } catch (IOException ex) {
+                throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, work.getDisplayName(), root), ex);
+            }
+        });
+    }
+
+    private CurrentSnapshotResult executeWithCache(CacheHandler cacheHandler, IncrementalChangesContext context) {
+        CurrentSnapshotResult executionResult = executeWithoutCache(context);
+        executionResult.getOutcome().ifSuccessfulOrElse(
+            outcome -> cacheHandler.store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
+            failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
+        );
+        return executionResult;
     }
 
     private void store(UnitOfWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
@@ -126,7 +168,7 @@ public class CacheStep<C extends IncrementalChangesContext> implements Step<C, C
         }
     }
 
-    private CurrentSnapshotResult executeWithoutCache(C context) {
+    private CurrentSnapshotResult executeWithoutCache(IncrementalChangesContext context) {
         return delegate.execute(context);
     }
 }

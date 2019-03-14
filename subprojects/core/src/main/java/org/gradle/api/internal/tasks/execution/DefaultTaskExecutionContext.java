@@ -42,7 +42,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
-    private boolean outputRemovedBeforeExecution;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private TaskProperties properties;
     private boolean taskCachingEnabled;
@@ -110,16 +109,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
         this.taskExecutionMode = taskExecutionMode;
-    }
-
-    @Override
-    public boolean isOutputRemovedBeforeExecution() {
-        return outputRemovedBeforeExecution;
-    }
-
-    @Override
-    public void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution) {
-        this.outputRemovedBeforeExecution = outputRemovedBeforeExecution;
     }
 
     @Override

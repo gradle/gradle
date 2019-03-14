@@ -39,11 +39,6 @@ public interface UnitOfWork extends CacheableEntity {
 
     long markExecutionTime();
 
-    /**
-     * Loading from cache failed and all outputs were removed.
-     */
-    void outputsRemovedAfterFailureToLoadFromCache();
-
     CacheHandler createCacheHandler();
 
     /**

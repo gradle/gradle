@@ -173,8 +173,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.withStackTraceChecksDisabled()
         succeeds("clean", "customTask")
-        output =~ /Cleaning task ':customTask' after failed load from cache/
-        output =~ /Failed to load cache entry for task ':customTask', falling back to executing task/
+        output =~ /Failed to load cache entry for task ':customTask', cleaning outputs and falling back to \(non-incremental\) execution/
         output =~ /Build cache entry .+ from local build cache is invalid/
         output =~ /java.io.EOFException: Unexpected end of ZLIB input stream/
 

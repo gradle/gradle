@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
-import org.gradle.caching.internal.packaging.UnrecoverableUnpackingException
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey
 import org.gradle.testing.internal.util.Specification
 import spock.lang.Ignore
@@ -150,12 +149,12 @@ class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * buildCacheCommandFactory.createLoad(*_)
-        1 * buildCacheController.load(_) >> { throw new UnrecoverableUnpackingException("unknown error") }
+        1 * buildCacheController.load(_) >> { throw new RuntimeException("unknown error") }
 
         then:
         0 * _
         then:
-        def e = thrown UnrecoverableUnpackingException
+        def e = thrown RuntimeException
         e.message == "unknown error"
     }
 

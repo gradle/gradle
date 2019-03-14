@@ -90,10 +90,6 @@ public interface TaskExecutionContext {
 
     void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
 
-    boolean isOutputRemovedBeforeExecution();
-
-    void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
-
     Optional<ExecutionStateChanges> getExecutionStateChanges();
 
     void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);

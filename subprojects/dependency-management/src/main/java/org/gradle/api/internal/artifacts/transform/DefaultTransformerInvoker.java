@@ -342,10 +342,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void outputsRemovedAfterFailureToLoadFromCache() {
-        }
-
-        @Override
         public CacheHandler createCacheHandler() {
             Hasher hasher = Hashing.newHasher();
             for (Map.Entry<String, ValueSnapshot> entry : beforeExecutionState.getInputProperties().entrySet()) {
@@ -359,7 +355,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             TransformerExecutionBuildCacheKey cacheKey = new TransformerExecutionBuildCacheKey(hasher.hash());
             return new CacheHandler() {
                 @Override
-                public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
+                public <T> Optional<Try<T>> load(Function<BuildCacheKey, Optional<Try<T>>> loader) {
                     if (!transformer.isCacheable()) {
                         return Optional.empty();
                     }
