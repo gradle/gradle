@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.accessors.runtime.externalModuleDependencyFor
 
+import org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate
 import org.gradle.kotlin.dsl.support.excludeMapFor
 import org.gradle.kotlin.dsl.support.mapOfNonNullValuesOf
 import org.gradle.kotlin.dsl.support.uncheckedCast
@@ -163,7 +164,10 @@ inline fun DependencyHandler.configureClientModule(
 class ClientModuleScope(
     private val dependencyHandler: DependencyHandler,
     val clientModule: ClientModule
-) : ClientModule by clientModule {
+) : ClientModuleDelegate() {
+
+    override val delegate: ClientModule
+        get() = clientModule
 
     fun module(
         group: String,
