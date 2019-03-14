@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 
+import javax.annotation.Nullable;
+
 public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
     private final boolean skipWhenEmpty;
     private final PropertyValue value;
@@ -35,7 +37,8 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     }
 
     @Override
-    public PropertyValue getValue() {
-        return value;
+    @Nullable
+    public Object getValue() {
+        return value.call();
     }
 }

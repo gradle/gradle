@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
@@ -44,9 +45,9 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert changes.getAllChangeMessages() == ImmutableList.of("Forced rebuild.")
+            assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
             try {
-                changes.getInputChanges(ImmutableListMultimap.of())
+                changes.createInputChanges(ImmutableListMultimap.of())
                 assert false
             } catch (UnsupportedOperationException e) {
                 assert e.message == 'Cannot query input changes when input tracking is disabled.'
@@ -85,8 +86,8 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert !changes.getInputChanges(ImmutableListMultimap.of()).incremental
-            assert changes.getAllChangeMessages() == ImmutableList.of("No history is available.")
+            assert !changes.createInputChanges(ImmutableMultimap.of()).incremental
+            assert changes.allChangeMessages == ImmutableList.of("No history is available.")
             return delegateResult
         }
         1 * context.rebuildReason >> Optional.empty()

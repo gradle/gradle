@@ -42,7 +42,7 @@ class SkipUpToDateStepTest extends StepSpec {
         result.executionReasons.empty
 
         1 * context.changes >> Optional.of(changes)
-        1 * changes.getAllChangeMessages() >> ImmutableList.of()
+        1 * changes.allChangeMessages >> ImmutableList.of()
         1 * context.afterPreviousExecutionState >> Optional.of(Mock(AfterPreviousExecutionState))
         0 * _
     }
@@ -61,7 +61,7 @@ class SkipUpToDateStepTest extends StepSpec {
 
         1 * context.getWork() >> work
         1 * context.changes >> Optional.of(changes)
-        1 * changes.getAllChangeMessages() >> ImmutableList.of("change")
+        1 * changes.allChangeMessages >> ImmutableList.of("change")
         1 * delegate.execute(context) >> delegateResult
         0 * _
 

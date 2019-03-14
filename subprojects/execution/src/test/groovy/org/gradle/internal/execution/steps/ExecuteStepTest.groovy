@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
@@ -76,10 +76,10 @@ class ExecuteStepTest extends Specification {
         1 * context.work >> work
         1 * work.incremental >> true
         1 * context.changes >> optionalChanges
-        1 * work.visitIncrementalFileInputs(_) >> { args ->
+        1 * work.visitFileInputs(_) >> { args ->
             ((UnitOfWork.InputFilePropertyVisitor) args[0]).visitInputFileProperty("fileInput", "some/path")
         }
-        1 * changes.getInputChanges(ImmutableListMultimap.of("some/path", "fileInput")) >> inputChanges
+        1 * changes.createInputChanges(ImmutableMultimap.of("some/path", "fileInput")) >> inputChanges
         1 * work.execute(inputChanges)
         1 * inputChanges.incremental >> true
         0 * _

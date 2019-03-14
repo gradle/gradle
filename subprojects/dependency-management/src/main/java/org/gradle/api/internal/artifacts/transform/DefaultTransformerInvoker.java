@@ -326,7 +326,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitIncrementalFileInputs(InputFilePropertyVisitor visitor) {
+        public void visitFileInputs(InputFilePropertyVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact);
         }
 

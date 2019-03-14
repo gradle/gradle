@@ -294,9 +294,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitIncrementalFileInputs(InputFilePropertyVisitor visitor) {
+        public void visitFileInputs(InputFilePropertyVisitor visitor) {
             for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
-                Object value = inputFileProperty.getValue().call();
+                Object value = inputFileProperty.getValue();
                 if (value != null) {
                     visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value);
                 }

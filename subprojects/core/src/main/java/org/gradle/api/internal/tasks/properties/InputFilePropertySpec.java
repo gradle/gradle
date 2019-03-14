@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import javax.annotation.Nullable;
+
 public interface InputFilePropertySpec extends FilePropertySpec {
     boolean isSkipWhenEmpty();
-    PropertyValue getValue();
+    @Nullable
+    Object getValue();
 }

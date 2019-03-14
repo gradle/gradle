@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.CollectingChangeVisitor;
@@ -26,9 +26,9 @@ import org.gradle.work.FileChange;
 public class IncrementalInputChanges implements InputChangesInternal {
 
     private final InputFileChanges changes;
-    private final ImmutableListMultimap<Object, String> propertyNamesByValue;
+    private final ImmutableMultimap<Object, String> propertyNamesByValue;
 
-    public IncrementalInputChanges(InputFileChanges changes, ImmutableListMultimap<Object, String> propertyNamesByValue) {
+    public IncrementalInputChanges(InputFileChanges changes, ImmutableMultimap<Object, String> propertyNamesByValue) {
         this.changes = changes;
         this.propertyNamesByValue = propertyNamesByValue;
     }
@@ -46,15 +46,15 @@ public class IncrementalInputChanges implements InputChangesInternal {
         return Cast.uncheckedNonnullCast(visitor.getChanges());
     }
 
-    public static String determinePropertyName(Object propertyValue, ImmutableListMultimap<Object, String> propertyNameByValue) {
-        ImmutableList<String> propertyNames = propertyNameByValue.get(propertyValue);
+    public static String determinePropertyName(Object propertyValue, ImmutableMultimap<Object, String> propertyNameByValue) {
+        ImmutableCollection<String> propertyNames = propertyNameByValue.get(propertyValue);
         if (propertyNames.isEmpty()) {
             throw new UnsupportedOperationException("Cannot query incremental changes: No property found for value " + propertyValue + ".");
         }
         if (propertyNames.size() > 1) {
             throw new UnsupportedOperationException(String.format("Cannot query incremental changes: More that one property found with value %s: %s.", propertyValue, propertyNames));
         }
-        return propertyNames.get(0);
+        return propertyNames.iterator().next();
     }
 
     @Override

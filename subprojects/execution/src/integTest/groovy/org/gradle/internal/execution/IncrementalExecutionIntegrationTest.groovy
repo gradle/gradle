@@ -800,7 +800,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitIncrementalFileInputs(UnitOfWork.InputFilePropertyVisitor visitor) {
+                void visitFileInputs(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         if (entry.value != null) {
                             visitor.visitInputFileProperty(entry.key, entry.value)

@@ -39,7 +39,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     boolean isIncremental();
 
-    void visitIncrementalFileInputs(InputFilePropertyVisitor visitor);
+    void visitFileInputs(InputFilePropertyVisitor visitor);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 

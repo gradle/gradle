@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
@@ -31,9 +31,9 @@ import static org.gradle.internal.execution.history.changes.IncrementalInputChan
 
 public class NonIncrementalInputChanges implements InputChangesInternal {
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
-    private final ImmutableListMultimap<Object, String> propertyNameByValue;
+    private final ImmutableMultimap<Object, String> propertyNameByValue;
 
-    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, ImmutableListMultimap<Object, String> propertyNamesByValue) {
+    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, ImmutableMultimap<Object, String> propertyNamesByValue) {
         this.currentInputs = currentInputs;
         this.propertyNameByValue = propertyNamesByValue;
     }

@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -112,11 +112,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         }
 
         @Override
-        public InputChangesInternal getInputChanges(ImmutableListMultimap<Object, String> incrementalInputs) {
+        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
             if (beforeExecutionState == null) {
                 throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
             }
-            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalInputs);
+            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalParameterNameByValue);
         }
     }
 }
