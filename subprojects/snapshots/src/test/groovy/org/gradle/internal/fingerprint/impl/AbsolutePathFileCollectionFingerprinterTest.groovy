@@ -19,9 +19,9 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.internal.change.ChangeType
+import org.gradle.internal.change.ChangeTypeInternal
 import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.FileChange
+import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
@@ -282,15 +282,15 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     }
 
     private static void changes(FileCollectionFingerprint newFingerprint, FileCollectionFingerprint oldFingerprint, ChangeListener<String> listener) {
-        newFingerprint.visitChangesSince(oldFingerprint, "TYPE", true) { FileChange change ->
+        newFingerprint.visitChangesSince(oldFingerprint, "TYPE", true) { DefaultFileChange change ->
             switch (change.type) {
-                case ChangeType.ADDED:
+                case ChangeTypeInternal.ADDED:
                     listener.added(change.path)
                     break
-                case ChangeType.MODIFIED:
+                case ChangeTypeInternal.MODIFIED:
                     listener.changed(change.path)
                     break
-                case ChangeType.REMOVED:
+                case ChangeTypeInternal.REMOVED:
                     listener.removed(change.path)
                     break
             }

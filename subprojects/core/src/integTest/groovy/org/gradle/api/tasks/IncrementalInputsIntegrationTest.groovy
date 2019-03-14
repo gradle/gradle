@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.internal.change.ChangeType
+import org.gradle.internal.change.ChangeTypeInternal
 
 class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
@@ -32,14 +32,14 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 incrementalExecution = inputChanges.incremental
     
                 inputChanges.getFileChanges(inputDir).each { change ->
-                    switch (change) {
-                        case { it.added }:
+                    switch (change.changeType) {
+                        case ChangeType.ADDED:
                             addedFiles << change.file
                             break
-                        case { it.modified }:
+                        case ChangeType.MODIFIED:
                             modifiedFiles << change.file
                             break
-                        case { it.removed }:
+                        case ChangeType.REMOVED:
                             removedFiles << change.file
                             break
                         default:
@@ -57,8 +57,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     }
 
     @Override
-    ChangeType getRebuildChangeType() {
-        return ChangeType.ADDED
+    ChangeTypeInternal getRebuildChangeType() {
+        return ChangeTypeInternal.ADDED
     }
 
     def "incremental task is executed non-incrementally when input file property has been added"() {

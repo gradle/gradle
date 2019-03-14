@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.util.Alignment;
 
@@ -52,10 +52,10 @@ public class RecompilationSpecProvider {
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    classpathEntryChangeProcessor.processChange(FileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
                     break;
                 case removed:
-                    classpathEntryChangeProcessor.processChange(FileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
@@ -67,7 +67,7 @@ public class RecompilationSpecProvider {
                     ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
                     ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
                     if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        classpathEntryChangeProcessor.processChange(FileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile), spec);
+                        classpathEntryChangeProcessor.processChange(DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile), spec);
                     }
                     break;
             }

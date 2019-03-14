@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.change.ChangeType
+import org.gradle.internal.change.ChangeTypeInternal
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -25,7 +25,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
     abstract String getTaskAction()
 
-    abstract ChangeType getRebuildChangeType();
+    abstract ChangeTypeInternal getRebuildChangeType();
 
     def "setup"() {
         setupTaskSources()

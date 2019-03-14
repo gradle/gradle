@@ -17,14 +17,13 @@
 package org.gradle.work;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.incremental.InputFileDetails;
 
 /**
  * Provides access to any input files that need to be processed by an incremental work action.
  *
  * <p>
  * An incremental work action is one that accepts a single {@link InputChanges} parameter.
- * The work action can then query what changed for an input property since the last execution to only process the changes.
+ * The work action can then query what changed for an input parameter since the last execution to only process the changes.
  *
  * <pre class='autoTested'>
  * class IncrementalReverseTask extends DefaultTask {
@@ -41,14 +40,16 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  *         }
  *
  *         inputChanges.getFileChanges(inputDir).each { change -&gt;
- *             if (change.removed) {
- *                 def targetFile = project.file("$outputDir/${change.file.name}")
- *                 if (targetFile.exists()) {
- *                     targetFile.delete()
- *                 }
- *             } else {
- *                 def targetFile = project.file("$outputDir/${change.file.name}")
- *                 targetFile.text = change.file.text.reverse()
+ *             switch (change.changeType) {
+ *                 case REMOVED:
+ *                     def targetFile = project.file("$outputDir/${change.file.name}")
+ *                     if (targetFile.exists()) {
+ *                         targetFile.delete()
+ *                     }
+ *                     break
+ *                 default:
+ *                     def targetFile = project.file("$outputDir/${change.file.name}")
+ *                     targetFile.text = change.file.text.reverse()
  *             }
  *         }
  *     }
@@ -56,11 +57,11 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
  * </pre>
  *
  * <p>
- * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as added.
+ * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as {@link ChangeType#ADDED}.
  * Cases where this occurs include:
  * <ul>
  *     <li>There is no history available from a previous execution.</li>
- *     <li>A non-file input property has changed since the previous execution.</li>
+ *     <li>A non-file input parameter has changed since the previous execution.</li>
  *     <li>One or more output files have changed since the previous execution.</li>
  * </ul>
  *
@@ -81,17 +82,17 @@ public interface InputChanges {
      * When <code>false</code>:
      * </p>
      * <ul>
-     *     <li>Every input file is reported via {@link #getFileChanges(Object)} as if it was 'added'.</li>
+     *     <li>Every input file is reported via {@link #getFileChanges(Object)} as if it was {@link ChangeType#ADDED}.</li>
      * </ul>
      */
     boolean isIncremental();
 
     /**
-     * Changes for the property.
+     * Changes for a parameter.
      *
-     * <p>When {@link #isIncremental()} is {@code false}, then all elements of the property are returned as added.</p>
+     * <p>When {@link #isIncremental()} is {@code false}, then all elements of the parameter are returned as {@link ChangeType#ADDED}.</p>
      *
-     * @param property The instance of the property to query.
+     * @param parameterValue The value of the parameter to query.
      */
-    Iterable<InputFileDetails> getFileChanges(Object property);
+    Iterable<FileChange> getFileChanges(Object parameterValue);
 }

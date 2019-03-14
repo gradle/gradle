@@ -62,18 +62,24 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                     assert parameters.incrementalExecution.get() == inputChanges.incremental
                     def changes = inputChanges.getFileChanges(input)
                     println "changes: \\n" + changes.join("\\n")
-                    assert changes.findAll { it.added }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
-                    assert changes.findAll { it.removed }*.file as Set == resolveFiles(parameters.removedFiles.get())                    
-                    assert changes.findAll { it.modified }*.file as Set == resolveFiles(parameters.modifiedFiles.get())
+                    assert changes.findAll { it.changeType == ChangeType.ADDED }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
+                    assert changes.findAll { it.changeType == ChangeType.REMOVED }*.file as Set == resolveFiles(parameters.removedFiles.get())                    
+                    assert changes.findAll { it.changeType == ChangeType.MODIFIED }*.file as Set == resolveFiles(parameters.modifiedFiles.get())
                     def outputDirectory = outputs.dir("output")
                     changes.each { change ->
                         if (change.file != input) {
                             File outputFile = new File(outputDirectory, change.file.name)
-                            if (change.added || change.modified) {
-                                outputFile.text = change.file.text
-                            } else {
-                                outputFile.delete()                    
-                            }                                   
+                            switch (change.changeType) {
+                                case ChangeType.ADDED:
+                                case ChangeType.MODIFIED:
+                                    outputFile.text = change.file.text
+                                    break
+                                case ChangeType.REMOVED:
+                                    outputFile.delete()
+                                    break
+                                default:
+                                    throw new IllegalArgumentException()
+                            }
                         }
                     }
                 }

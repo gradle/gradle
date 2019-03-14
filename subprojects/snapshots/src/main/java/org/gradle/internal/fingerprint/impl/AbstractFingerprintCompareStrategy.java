@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.HashCode;
@@ -58,7 +58,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
                         return true;
                     default:
                         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
-                            Change change = FileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType());
+                            Change change = DefaultFileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType());
                             if (!visitor.visitChange(change)) {
                                 return false;
                             }
@@ -89,7 +89,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
     private static boolean reportAllAdded(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle, boolean includeAdded) {
         if (includeAdded) {
             for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
-                Change change = FileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType());
+                Change change = DefaultFileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType());
                 if (!visitor.visitChange(change)) {
                     return false;
                 }
@@ -106,16 +106,16 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
             HashCode currentContent = currentFingerprint.getNormalizedContentHash();
             if (!currentContent.equals(previousContent)) {
                 String path = currentEntry.getKey();
-                Change change = FileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType());
+                Change change = DefaultFileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType());
                 return visitor.visitChange(change);
             }
             return true;
         } else {
             String previousPath = previousEntry.getKey();
-            Change remove = FileChange.removed(previousPath, propertyTitle, previousFingerprint.getType());
+            Change remove = DefaultFileChange.removed(previousPath, propertyTitle, previousFingerprint.getType());
             if (includeAdded) {
                 String currentPath = currentEntry.getKey();
-                Change add = FileChange.added(currentPath, propertyTitle, currentFingerprint.getType());
+                Change add = DefaultFileChange.added(currentPath, propertyTitle, currentFingerprint.getType());
                 return visitor.visitChange(remove) && visitor.visitChange(add);
             } else {
                 return visitor.visitChange(remove);
