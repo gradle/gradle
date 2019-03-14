@@ -145,11 +145,10 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         public void listModuleVersions(ModuleDependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             performOperationWithRetries(result,
                     () -> delegate.listModuleVersions(dependency, result),
-                    () -> new ModuleVersionResolveException(dependency.getSelector(), BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    () -> new ModuleVersionResolveException(dependency.getSelector(), () -> BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
                     throwable -> {
                         ModuleComponentSelector selector = dependency.getSelector();
-                        String message = "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".";
-                        return new ModuleVersionResolveException(selector, message, throwable);
+                        return new ModuleVersionResolveException(selector, () -> "Failed to list versions for " + selector.getGroup() + ":" + selector.getModule() + ".", throwable);
                     });
         }
 
@@ -157,7 +156,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             performOperationWithRetries(result,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                    () -> new ModuleVersionResolveException(moduleComponentIdentifier, BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
+                    () -> new ModuleVersionResolveException(moduleComponentIdentifier, () -> BLACKLISTED_REPOSITORY_ERROR_MESSAGE),
                     throwable -> new ModuleVersionResolveException(moduleComponentIdentifier, throwable)
             );
         }

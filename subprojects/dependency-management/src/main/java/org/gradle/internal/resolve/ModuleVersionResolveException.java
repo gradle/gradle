@@ -22,10 +22,11 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,16 +35,16 @@ import java.util.Formatter;
 import java.util.List;
 
 @Contextual
-public class ModuleVersionResolveException extends DefaultMultiCauseException {
+public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
     private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<List<? extends ComponentIdentifier>>();
     private final ComponentSelector selector;
 
-    public ModuleVersionResolveException(ComponentSelector selector, String message, Throwable cause) {
+    public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message, Throwable cause) {
         super(message, cause);
         this.selector = selector;
     }
 
-    public ModuleVersionResolveException(ComponentSelector selector, String message) {
+    public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message) {
         super(message);
         this.selector = selector;
     }
@@ -58,15 +59,15 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
         initCauses(causes);
     }
 
-    public ModuleVersionResolveException(ModuleVersionSelector selector, String message) {
+    public ModuleVersionResolveException(ModuleVersionSelector selector, Factory<String> message) {
         this(DefaultModuleComponentSelector.newSelector(selector), message);
     }
 
-    public ModuleVersionResolveException(ModuleVersionIdentifier id, String message) {
+    public ModuleVersionResolveException(ModuleVersionIdentifier id, Factory<String> message) {
         this(DefaultModuleComponentSelector.newSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
     }
 
-    public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
+    public ModuleVersionResolveException(ModuleComponentIdentifier id, Factory<String> messageFormat) {
         this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), messageFormat);
     }
 
@@ -93,8 +94,8 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
         return selector;
     }
 
-    protected static String format(String messageFormat, ComponentSelector selector) {
-        return String.format(messageFormat, selector.getDisplayName());
+    protected static Factory<String> format(String messageFormat, ComponentSelector selector) {
+        return () -> String.format(messageFormat, selector.getDisplayName());
     }
 
     /**
@@ -130,10 +131,15 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
 
     protected ModuleVersionResolveException createCopy() {
         try {
-            return getClass().getConstructor(ComponentSelector.class, String.class).newInstance(selector, getMessage());
+            String message = getMessage();
+            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(selector, new Factory<String>() {
+                @Override
+                public String create() {
+                    return message;
+                }
+            });
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
-
 }

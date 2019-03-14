@@ -119,7 +119,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     }
                 });
                 if (entry == null) {
-                    result.failed(new ModuleVersionResolveException(depSelector, spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
+                    result.failed(new ModuleVersionResolveException(depSelector, () -> spec.getDisplayName() + " did not contain a project publishing the specified dependency."));
                 } else {
                     LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(entry.right);
                     result.resolved(componentMetaData);

@@ -74,15 +74,16 @@ class CachingDependencyResultFactoryTest extends Specification {
     def "creates and caches unresolved dependencies"() {
         def fromModule = newModule('from')
         def selectedModule = Mock(ComponentSelectionReason)
+        org.gradle.internal.Factory<String> broken = { " foo" }
 
         when:
-        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
-        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
+        def dep = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), broken))
+        def same = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), broken))
 
-        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('xxx'), "foo"))
-        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
-        def differentConstraint = factory.createUnresolvedDependency(selector('requested'), fromModule, true, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
-        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), "foo"))
+        def differentRequested = factory.createUnresolvedDependency(selector('xxx'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('xxx'), broken))
+        def differentFrom = factory.createUnresolvedDependency(selector('requested'), newModule('xxx'), false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), broken))
+        def differentConstraint = factory.createUnresolvedDependency(selector('requested'), fromModule, true, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), broken))
+        def differentFailure = factory.createUnresolvedDependency(selector('requested'), fromModule, false, selectedModule, new ModuleVersionResolveException(moduleVersionSelector('requested'), broken))
 
         then:
         dep.is(same)
