@@ -83,7 +83,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.error = error;
 
         // Split out up the output into main content and post build content
-        LogContent filteredOutput = this.output.removeAnsiChars().removeDebugPrefix();
+        LogContent filteredOutput = this.output.ansiCharsToPlainText().removeDebugPrefix();
         Pair<LogContent, LogContent> match = filteredOutput.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
             this.mainContent = filteredOutput;
@@ -92,7 +92,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
-        this.errorContent = error.removeAnsiChars();
+        this.errorContent = error.ansiCharsToPlainText();
     }
 
     public String getOutput() {
@@ -112,9 +112,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getFormattedOutput() {
+        return output.ansiCharsToColorText().withNormalizedEol();
+    }
+
+    @Override
+    public String getPlainTextOutput() {
+        return output.ansiCharsToPlainText().withNormalizedEol();
+    }
+
+    @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getMainContent().getRawContent().withNormalizedEol());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent());
         }
         return groupedOutputFixture;
     }
@@ -185,7 +195,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return getError().contains(expectedOutput) || getRawError().contains(expectedOutput);
+        return getError().contains(expectedOutput);
     }
 
     @Override
@@ -193,22 +203,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
     }
 
-    @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput, "Error output");
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        return assertContentContains(getOutput(), expectedOutput, "Build output");
-    }
-
     public String getError() {
         return error.withNormalizedEol();
-    }
-
-    public String getRawError() {
-        return errorContent.getRawContent().withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {

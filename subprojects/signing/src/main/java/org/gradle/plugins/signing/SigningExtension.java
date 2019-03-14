@@ -38,12 +38,14 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider;
+import org.gradle.plugins.signing.signatory.internal.pgp.InMemoryPgpSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider;
 import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider;
 import org.gradle.plugins.signing.type.SignatureType;
 import org.gradle.plugins.signing.type.SignatureTypeProvider;
 import org.gradle.util.DeferredUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -230,6 +232,25 @@ public class SigningExtension {
     @Incubating
     public void useGpgCmd() {
         setSignatories(new GnupgSignatoryProvider());
+    }
+
+    /**
+     * Use the supplied ascii-armored in-memory PGP secret key and password
+     * instead of reading it from a keyring.
+     *
+     * <pre><code>
+     * signing {
+     *     def secretKey = findProperty("mySigningKey")
+     *     def password = findProperty("mySigningPassword")
+     *     useInMemoryPgpKeys(secretKey, password)
+     * }
+     * </code></pre>
+     *
+     * @since 5.4
+     */
+    @Incubating
+    public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
+        setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
     }
 
     /**

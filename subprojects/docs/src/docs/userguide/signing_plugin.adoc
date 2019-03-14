@@ -111,6 +111,19 @@ gradle.taskGraph.whenReady {
 
 Note that the presence of a null value for any these three properties will cause an exception.
 
+[[sec:in-memory-keys]]
+=== Using in-memory ascii-armored keys
+
+In some setups it is easier to use environment variables to pass the secret key and password used for signing.
+For instance, when using a CI server to sign artifacts, securely providing the keyring file is often troublesome.
+On the other hand, most CI servers provide means to securely store environment variables and provide them to builds.
+Using the following setup, you can pass the secret key (in ascii-armored format) and the password using the `ORG_GRADLE_PROJECT_signingKey` and `ORG_GRADLE_PROJECT_signingPassword` environment variables, respectively:
+
+====
+include::sample[dir="signing/in-memory/groovy",files="build.gradle[tags=signing]"]
+include::sample[dir="signing/in-memory/kotlin",files="build.gradle.kts[tags=signing]"]
+====
+
 [[sec:subkeys]]
 === Using OpenPGP subkeys
 

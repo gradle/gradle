@@ -373,8 +373,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
         gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
-            assertRawOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
-            assertRawOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
+            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
         }
     }
 

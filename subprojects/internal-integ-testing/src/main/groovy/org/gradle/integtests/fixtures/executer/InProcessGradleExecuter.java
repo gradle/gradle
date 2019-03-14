@@ -319,11 +319,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         loggingManager.captureSystemSources();
 
         ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
-        if (consoleOutput == ConsoleOutput.Auto) {
-            // IDEA runs tests attached to a console, use plain so test can assume never attached to a console
-            // Should really run all tests against a plain and a rich console to make these assumptions explicit
-            consoleOutput = ConsoleOutput.Plain;
-        }
         loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
@@ -513,6 +508,16 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public String getFormattedOutput() {
+            return outputResult.getFormattedOutput();
+        }
+
+        @Override
+        public String getPlainTextOutput() {
+            return outputResult.getPlainTextOutput();
+        }
+
+        @Override
         public GroupedOutputFixture getGroupedOutput() {
             return outputResult.getGroupedOutput();
         }
@@ -554,18 +559,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertHasErrorOutput(String expectedOutput) {
             outputResult.assertHasErrorOutput(expectedOutput);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-            outputResult.assertHasRawErrorOutput(expectedOutput);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertRawOutputContains(String expectedOutput) {
-            outputResult.assertRawOutputContains(expectedOutput);
             return this;
         }
 

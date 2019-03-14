@@ -45,4 +45,9 @@ public enum FallbackConsoleMetaData implements ConsoleMetaData {
     public int getRows() {
         return 0;
     }
+
+    @Override
+    public boolean isWrapStreams() {
+        return attached;
+    }
 }

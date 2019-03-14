@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.Jvm
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -102,6 +103,22 @@ class JavaExecHandleBuilderTest extends Specification {
         then:
         !builder.classpath.contains(jar1)
         builder.classpath.contains(jar2)
+    }
+
+    @Issue("gradle/gradle#8748")
+    def "can prepend to classpath"() {
+        given:
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
+
+        builder.classpath(jar1)
+
+        when:
+        builder.setClasspath(fileCollectionFactory.resolving(jar2, builder.getClasspath()))
+
+        then:
+        builder.commandLine.contains("$jar2$File.pathSeparator$jar1".toString())
+
     }
 
     def "detects null entries early"() {

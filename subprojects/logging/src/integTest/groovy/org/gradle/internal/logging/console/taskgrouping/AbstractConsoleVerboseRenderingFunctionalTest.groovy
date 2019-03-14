@@ -20,22 +20,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseBasicFunctionalTest {
-    def 'failed task result can be rendered'() {
-        given:
-        buildFile << '''
-            task myFailure {
-                doLast {
-                    assert false
-                }
-            }
-        '''
-
-        when:
-        fails('myFailure')
-
-        then:
-        result.groupedOutput.task(':myFailure').outcome == 'FAILED'
-    }
 
     def 'up-to-date task result can be rendered'() {
         given:
