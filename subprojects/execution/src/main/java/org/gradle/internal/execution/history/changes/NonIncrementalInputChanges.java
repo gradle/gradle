@@ -24,14 +24,11 @@ import org.gradle.internal.change.Change;
 import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.work.FileChange;
 
 import static org.gradle.internal.execution.history.changes.IncrementalInputChanges.determinePropertyName;
 
 public class NonIncrementalInputChanges implements InputChangesInternal {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NonIncrementalInputChanges.class);
-
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
     private final ImmutableListMultimap<Object, String> propertyNameByValue;
 
