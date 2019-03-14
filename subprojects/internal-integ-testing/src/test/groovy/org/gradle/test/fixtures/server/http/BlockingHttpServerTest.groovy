@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -261,6 +262,54 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         then:
         instant.aDone > instant.aBlocked
+    }
+
+    def "can call from client code"() {
+        server.start()
+        def script = TestUtil.createScript """
+            def prefix = "a"
+            ${server.callFromBuild("a1")}
+            ${server.callFromBuildUsingExpression("prefix + '2'")}
+        """
+
+        given:
+        server.expect("a1")
+        server.expect("a2")
+
+        when:
+        script.run()
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "client code fails when making unexpected request"() {
+        server.start()
+        def script = TestUtil.createScript """
+            def prefix = "a"
+            ${server.callFromBuild("a1")}
+            ${server.callFromBuildUsingExpression("prefix + '2'")}
+        """
+
+        given:
+        server.expect("a1")
+        server.expect("other")
+
+        when:
+        script.run()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Received error response from ${server.uri}/a2"
+
+        when:
+        server.stop()
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2.message == 'Failed to handle all HTTP requests.'
+        e2.causes.message == ['Unexpected request GET /a2 received. Waiting for [GET /other], already received []']
     }
 
     def "succeeds when expected concurrent requests are made"() {

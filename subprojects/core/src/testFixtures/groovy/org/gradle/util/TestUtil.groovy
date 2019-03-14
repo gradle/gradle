@@ -76,7 +76,6 @@ class TestUtil {
         return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory())
     }
 
-
     static NamedObjectInstantiator objectInstantiator() {
         return NamedObjectInstantiator.INSTANCE
     }
