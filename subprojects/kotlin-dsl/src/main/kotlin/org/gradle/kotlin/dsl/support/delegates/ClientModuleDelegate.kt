@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
@@ -45,8 +46,9 @@ abstract class ClientModuleDelegate : ClientModule {
     internal
     abstract val delegate: ClientModule
 
-    override fun getGroup(): String? =
-        delegate.group
+    override fun getGroup(): String =
+        /** Because this also implements [ModuleVersionSelector.getGroup] it must not return `null` */
+        delegate.group ?: ""
 
     override fun addDependency(dependency: ModuleDependency) =
         delegate.addDependency(dependency)
