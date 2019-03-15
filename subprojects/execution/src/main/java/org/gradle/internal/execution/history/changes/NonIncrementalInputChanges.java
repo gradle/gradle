@@ -46,12 +46,12 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     @Override
     public Iterable<FileChange> getFileChanges(Object parameterValue) {
         CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(parameterValue, propertyNameByValue));
-        return getAllFileChanges(currentFileCollectionFingerprint)::iterator;
+        return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
     }
 
     @Override
     public Iterable<InputFileDetails> getAllFileChanges() {
-        Iterable<FileChange> changes = currentInputs.values().stream().flatMap(NonIncrementalInputChanges::getAllFileChanges)::iterator;
+        Iterable<FileChange> changes = () -> currentInputs.values().stream().flatMap(NonIncrementalInputChanges::getAllFileChanges).iterator();
         return Cast.uncheckedNonnullCast(changes);
     }
 
