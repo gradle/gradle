@@ -33,16 +33,15 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.ImplementationAwareTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -61,6 +60,7 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -95,7 +95,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final ProjectInternal project;
 
-    private List<ContextAwareTaskAction> actions;
+    private List<InputChangesAwareTaskAction> actions;
 
     private boolean enabled = true;
 
@@ -227,9 +227,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public List<ContextAwareTaskAction> getTaskActions() {
+    public List<InputChangesAwareTaskAction> getTaskActions() {
         if (actions == null) {
-            actions = new ArrayList<ContextAwareTaskAction>(3);
+            actions = new ArrayList<InputChangesAwareTaskAction>(3);
         }
         return actions;
     }
@@ -589,17 +589,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         };
     }
 
-    private ContextAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
+    private InputChangesAwareTaskAction convertClosureToAction(Closure actionClosure, String actionName) {
         return new ClosureTaskAction(actionClosure, actionName);
     }
 
-    private ContextAwareTaskAction wrap(final Action<? super Task> action) {
+    private InputChangesAwareTaskAction wrap(final Action<? super Task> action) {
         return wrap(action, "unnamed action");
     }
 
-    private ContextAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
-        if (action instanceof ContextAwareTaskAction) {
-            return (ContextAwareTaskAction) action;
+    private InputChangesAwareTaskAction wrap(final Action<? super Task> action, String actionName) {
+        if (action instanceof InputChangesAwareTaskAction) {
+            return (InputChangesAwareTaskAction) action;
         }
         return new TaskActionWrapper(action, actionName);
     }
@@ -614,7 +614,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class ClosureTaskAction implements ContextAwareTaskAction {
+    private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure closure;
         private final String actionName;
 
@@ -624,11 +624,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
+        public void setInputChanges(InputChangesInternal inputChanges) {
         }
 
         @Override
-        public void releaseContext() {
+        public void clearInputChanges() {
         }
 
         @Override
@@ -665,7 +665,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
     }
 
-    private static class TaskActionWrapper implements ContextAwareTaskAction {
+    private static class TaskActionWrapper implements InputChangesAwareTaskAction {
         private final Action<? super Task> action;
         private final String maybeActionName;
 
@@ -680,16 +680,16 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
-        public void contextualise(TaskExecutionContext context) {
-            if (action instanceof ContextAwareTaskAction) {
-                ((ContextAwareTaskAction) action).contextualise(context);
+        public void setInputChanges(InputChangesInternal inputChanges) {
+            if (action instanceof InputChangesAwareTaskAction) {
+                ((InputChangesAwareTaskAction) action).setInputChanges(inputChanges);
             }
         }
 
         @Override
-        public void releaseContext() {
-            if (action instanceof ContextAwareTaskAction) {
-                ((ContextAwareTaskAction) action).releaseContext();
+        public void clearInputChanges() {
+            if (action instanceof InputChangesAwareTaskAction) {
+                ((InputChangesAwareTaskAction) action).clearInputChanges();
             }
         }
 
@@ -872,9 +872,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             return super.remove(wrap((Action<? super Task>) action));
         }
 
-        private Collection<ContextAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
-            return Collections2.transform(c, new Function<Object, ContextAwareTaskAction>() {
-                public ContextAwareTaskAction apply(@Nullable Object input) {
+        private Collection<InputChangesAwareTaskAction> transformToContextAwareTaskActions(Collection<Object> c) {
+            return Collections2.transform(c, new Function<Object, InputChangesAwareTaskAction>() {
+                public InputChangesAwareTaskAction apply(@Nullable Object input) {
                     return wrap((Action<? super Task>) input);
                 }
             });

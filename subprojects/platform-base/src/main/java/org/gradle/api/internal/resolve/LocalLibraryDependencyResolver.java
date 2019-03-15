@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
@@ -135,13 +136,25 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
             return;
         }
 
-        Collection<? extends Binary> matchingVariants = chooseMatchingVariants(selectedLibrary, variant);
+        final Collection<? extends Binary> matchingVariants = chooseMatchingVariants(selectedLibrary, variant);
         if (matchingVariants.isEmpty()) {
             // no compatible variant found
-            Iterable<? extends Binary> values = selectedLibrary.getVariants();
-            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, values)));
+            final Iterable<? extends Binary> values = selectedLibrary.getVariants();
+            result.failed(new ModuleVersionResolveException(selector, new Factory<String>() {
+                @Nullable
+                @Override
+                public String create() {
+                    return errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, values);
+                }
+            }));
         } else if (matchingVariants.size() > 1) {
-            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, matchingVariants)));
+            result.failed(new ModuleVersionResolveException(selector, new Factory<String>() {
+                @Nullable
+                @Override
+                public String create() {
+                    return errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, matchingVariants);
+                }
+            }));
         } else {
             Binary selectedBinary = matchingVariants.iterator().next();
             // TODO:Cedric This is not quite right. We assume that if we are asking for a specific binary, then we resolve to the assembly instead

@@ -44,7 +44,8 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     }
 
     def "can mark as failed"() {
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), "broken")
+        org.gradle.internal.Factory<String> broken = { "too bad" }
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         descriptor.failed(failure)
@@ -112,8 +113,9 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     }
 
     def "cannot get meta-data when failed"() {
+        org.gradle.internal.Factory<String> broken = { "too bad" }
         given:
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), "broken")
+        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
         descriptor.failed(failure)
 
         when:

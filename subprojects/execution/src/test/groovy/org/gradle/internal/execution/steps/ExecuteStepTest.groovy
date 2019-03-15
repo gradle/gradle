@@ -16,9 +16,12 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableMultimap
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -26,9 +29,12 @@ class ExecuteStepTest extends Specification {
     def step = new ExecuteStep<IncrementalChangesContext>()
     def context = Mock(IncrementalChangesContext)
     def work = Mock(UnitOfWork)
+    def changes = Mock(ExecutionStateChanges)
+    def optionalChanges = Optional.of(changes)
+    def inputChanges = Mock(InputChangesInternal)
 
     @Unroll
-    def "#outcome outcome is preserved"() {
+    def "result #workResult yields outcome #outcome (incremental false)"() {
         when:
         def result = step.execute(context)
 
@@ -36,25 +42,59 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.execute(context) >> { outcome }
+        1 * work.requiresInputChanges >> false
+        1 * work.execute(null) >> workResult
+        0 * _
 
         where:
-        outcome << ExecutionOutcome.values()
+        workResult                        | outcome
+        UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 
     @Unroll
     def "failure #failure.class.simpleName is not caught"() {
         when:
-        def result = step.execute(context)
+        step.execute(context)
 
         then:
         def ex = thrown Throwable
         ex == failure
 
         1 * context.work >> work
-        1 * work.execute(context) >> { throw failure }
+        1 * work.requiresInputChanges >> false
+        1 * work.execute(null) >> { throw failure }
+        0 * _
 
         where:
         failure << [new RuntimeException(), new Error()]
+    }
+
+    @Unroll
+    def "incremental work with result #workResult yields outcome #outcome (executed incrementally: #incrementalExecution)"() {
+        when:
+        def result = step.execute(context)
+
+        then:
+        result.outcome.get() == outcome
+
+        1 * context.work >> work
+        1 * work.requiresInputChanges >> true
+        1 * context.changes >> optionalChanges
+        1 * work.visitFileInputs(_) >> { args ->
+            ((UnitOfWork.InputFilePropertyVisitor) args[0]).visitInputFileProperty("fileInput", "some/path")
+        }
+        1 * changes.createInputChanges(ImmutableMultimap.of("some/path", "fileInput")) >> inputChanges
+        1 * work.execute(inputChanges) >> workResult
+        _ * work.getDisplayName()
+        2 * inputChanges.incremental >> incrementalExecution
+        0 * _
+
+        where:
+        incrementalExecution | workResult                        | outcome
+        true                 | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_INCREMENTALLY
+        false                | UnitOfWork.WorkResult.DID_WORK    | ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        true                 | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
+        false                | UnitOfWork.WorkResult.DID_NO_WORK | ExecutionOutcome.UP_TO_DATE
     }
 }

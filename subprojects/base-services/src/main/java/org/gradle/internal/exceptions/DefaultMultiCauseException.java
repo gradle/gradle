@@ -16,6 +16,8 @@
 package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.Factory;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.PrintStream;
@@ -27,24 +29,48 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class DefaultMultiCauseException extends GradleException implements MultiCauseException {
     private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
+    private transient Factory<String> messageFactory;
+    private String message;
 
     public DefaultMultiCauseException(String message) {
         super(message);
+        this.message = message;
     }
 
     public DefaultMultiCauseException(String message, Throwable... causes) {
         super(message);
+        this.message = message;
         this.causes.addAll(Arrays.asList(causes));
     }
 
     public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes) {
         super(message);
+        this.message = message;
+        initCauses(causes);
+    }
+
+    public DefaultMultiCauseException(Factory<String> messageFactory) {
+        this.messageFactory = messageFactory;
+    }
+
+    public DefaultMultiCauseException(Factory<String> messageFactory, Throwable... causes) {
+        this(messageFactory);
+        this.causes.addAll(Arrays.asList(causes));
+    }
+
+    public DefaultMultiCauseException(Factory<String> messageFactory, Iterable<? extends Throwable> causes) {
+        this(messageFactory);
         initCauses(causes);
     }
 
     private void readObject(ObjectInputStream inputStream) throws IOException, ClassNotFoundException {
         inputStream.defaultReadObject();
         hideCause = threadLocal();
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        getMessage();
+        out.defaultWriteObject();
     }
 
     private ThreadLocal<Boolean> threadLocal() {
@@ -107,5 +133,15 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         } finally {
             hideCause.set(false);
         }
+    }
+
+    @Override
+    public String getMessage() {
+        if (messageFactory != null) {
+            message = messageFactory.create();
+            messageFactory = null;
+            return message;
+        }
+        return message;
     }
 }

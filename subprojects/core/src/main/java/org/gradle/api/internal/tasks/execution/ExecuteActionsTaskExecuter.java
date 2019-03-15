@@ -20,13 +20,15 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -43,7 +45,6 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -51,7 +52,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -61,6 +62,7 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -189,23 +191,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionOutcome execute(IncrementalChangesContext context) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
             task.getState().setExecuting(true);
             try {
                 LOGGER.debug("Executing actions for {}.", task);
                 actionListener.beforeActions(task);
-                context.getChanges().ifPresent(new Consumer<ExecutionStateChanges>() {
-                    @Override
-                    public void accept(ExecutionStateChanges changes) {
-                        TaskExecution.this.context.setExecutionStateChanges(changes);
-                    }
-                });
-                executeActions(task, this.context);
-                return task.getState().getDidWork()
-                    ? this.context.isTaskExecutedIncrementally()
-                        ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                        : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-                    : ExecutionOutcome.UP_TO_DATE;
+                executeActions(task, inputChanges);
+                return task.getState().getDidWork() ? WorkResult.DID_WORK : WorkResult.DID_NO_WORK;
             } finally {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
@@ -293,6 +285,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public void visitFileInputs(InputFilePropertyVisitor visitor) {
+            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
+                Object value = inputFileProperty.getValue();
+                if (value != null) {
+                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value);
+                }
+            }
+        }
+
+        @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             final AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecution();
             final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputsAfterExecution = taskFingerprinter.fingerprintTaskFiles(task, context.getTaskProperties().getOutputFileProperties());
@@ -310,6 +312,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public boolean isRequiresInputChanges() {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof AbstractIncrementalTaskAction) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
         public long markExecutionTime() {
             return context.markExecutionTime();
         }
@@ -320,12 +332,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeActions(TaskInternal task, TaskExecutionContext context) {
-        for (ContextAwareTaskAction action : new ArrayList<ContextAwareTaskAction>(task.getTaskActions())) {
+    private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
+        for (InputChangesAwareTaskAction action : new ArrayList<InputChangesAwareTaskAction>(task.getTaskActions())) {
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
-                executeAction(action.getDisplayName(), task, action, context);
+                executeAction(action.getDisplayName(), task, action, inputChanges);
             } catch (StopActionException e) {
                 // Ignore
                 LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
@@ -338,8 +350,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, TaskExecutionContext context) {
-        action.contextualise(context);
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
+        if (inputChanges != null) {
+            action.setInputChanges(inputChanges);
+        }
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
             public BuildOperationDescriptor.Builder description() {
@@ -355,7 +369,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 } catch (Throwable t) {
                     actionFailure = t;
                 } finally {
-                    action.releaseContext();
+                    action.clearInputChanges();
                 }
 
                 try {

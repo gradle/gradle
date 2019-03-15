@@ -16,32 +16,23 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-
-import java.util.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 
 /**
  * Represents the complete changes in execution state
  */
 public interface ExecutionStateChanges {
 
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
+    /**
+     * Returns all change messages for inputs and outputs.
+     */
+    ImmutableList<String> getAllChangeMessages();
 
     /**
-     * Returns changes to input files only, or {@link Optional#empty()} if a full rebuild is required.
+     * Creates the input changes for the given.
+     *
+     * @param incrementalParameterNameByValue Mapping from the actual value of to the parameter name.
      */
-    Optional<Iterable<Change>> getInputFilesChanges();
-
-    /**
-     * Visits any change to inputs or outputs.
-     */
-    void visitAllChanges(ChangeVisitor visitor);
-
-    /**
-     * The base execution the changes are calculated against.
-     */
-    // TODO Use AfterPreviousExecutionState from context instead
-    AfterPreviousExecutionState getPreviousExecution();
+    InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue);
 }

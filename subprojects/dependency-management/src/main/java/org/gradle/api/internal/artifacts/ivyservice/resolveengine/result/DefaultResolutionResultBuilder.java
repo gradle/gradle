@@ -102,7 +102,7 @@ public class DefaultResolutionResultBuilder {
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
             root.addDependency(dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
                     ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONSTRAINT, Describables.of("Dependency locking"))),
-                new ModuleVersionResolveException(failureComponentSelector, "Dependency lock state out of date", failure.getProblem())));
+                new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem())));
         }
     }
 

@@ -16,18 +16,26 @@
 
 package org.gradle.internal.change;
 
-public enum ChangeType {
-    ADDED("has been added"),
-    MODIFIED("has changed"),
-    REMOVED("has been removed");
+import org.gradle.work.ChangeType;
+
+public enum ChangeTypeInternal {
+    ADDED("has been added", ChangeType.ADDED),
+    MODIFIED("has changed", ChangeType.MODIFIED),
+    REMOVED("has been removed", ChangeType.REMOVED);
 
     private final String description;
+    private final ChangeType publicType;
 
-    ChangeType(String description) {
+    ChangeTypeInternal(String description, ChangeType publicType) {
         this.description = description;
+        this.publicType = publicType;
     }
 
     public String describe() {
         return description;
+    }
+
+    public ChangeType getPublicType() {
+        return publicType;
     }
 }

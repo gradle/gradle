@@ -17,7 +17,7 @@
 package org.gradle.internal.fingerprint.impl
 
 import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.FileChange
+import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy
@@ -294,14 +294,14 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def added(String path) {
-        FileChange.added(path, "test", FileType.RegularFile)
+        DefaultFileChange.added(path, "test", FileType.RegularFile)
     }
 
     def removed(String path) {
-        FileChange.removed(path, "test", FileType.RegularFile)
+        DefaultFileChange.removed(path, "test", FileType.RegularFile)
     }
 
     def modified(String path, FileType previous, FileType current) {
-        FileChange.modified(path, "test", previous, current)
+        DefaultFileChange.modified(path, "test", previous, current)
     }
 }

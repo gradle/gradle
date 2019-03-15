@@ -16,6 +16,10 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableMultimap
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.Result
@@ -28,6 +32,7 @@ class ResolveChangesStepTest extends StepSpec {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<Result>(changeDetector, delegate)
     def context = Mock(IncrementalContext)
+    def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
 
     def "doesn't provide input file changes when rebuild is forced"() {
@@ -40,13 +45,17 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert !changes.inputFilesChanges.present
-            String change = null
-            changes.visitAllChanges({ change = it.message; false })
-            assert change == "Forced rebuild."
+            assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
+            try {
+                changes.createInputChanges(ImmutableListMultimap.of())
+                assert false
+            } catch (UnsupportedOperationException e) {
+                assert e.message == 'Cannot query input changes when input tracking is disabled.'
+            }
             return delegateResult
         }
         1 * context.rebuildReason >> Optional.of("Forced rebuild.")
+        1 * context.beforeExecutionState >> Optional.empty()
         0 * _
     }
 
@@ -77,14 +86,13 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.work >> work
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
-            assert !changes.inputFilesChanges.present
-            String change = null
-            changes.visitAllChanges({ change = it.message; false })
-            assert change == "No history is available."
+            assert !changes.createInputChanges(ImmutableMultimap.of()).incremental
+            assert changes.allChangeMessages == ImmutableList.of("No history is available.")
             return delegateResult
         }
         1 * context.rebuildReason >> Optional.empty()
-        1 * context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState))
+        1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
+        1 * beforeExecutionState.getInputFileProperties() >> ImmutableSortedMap.of()
         1 * context.afterPreviousExecutionState >> Optional.empty()
         0 * _
     }

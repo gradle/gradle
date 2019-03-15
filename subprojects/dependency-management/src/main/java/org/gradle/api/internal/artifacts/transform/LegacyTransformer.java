@@ -32,7 +32,9 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -54,12 +56,17 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public boolean requiresInputChanges() {
+        return false;
+    }
+
+    @Override
     public boolean isCacheable() {
         return false;
     }
 
     @Override
-    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(inputArtifact);

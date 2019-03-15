@@ -1,6 +1,6 @@
+// tag::custom-source-set[]
 val sourceSets = the<SourceSetContainer>()
 
-// tag::custom-source-set[]
 sourceSets {
     create("integTest") {
         java.srcDir(file("src/integTest/java"))

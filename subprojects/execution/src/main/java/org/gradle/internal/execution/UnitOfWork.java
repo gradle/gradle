@@ -20,9 +20,11 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -31,9 +33,13 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute(IncrementalChangesContext context);
+    WorkResult execute(@Nullable InputChangesInternal inputChanges);
 
     Optional<Duration> getTimeout();
+
+    boolean isRequiresInputChanges();
+
+    void visitFileInputs(InputFilePropertyVisitor visitor);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
@@ -59,8 +65,18 @@ public interface UnitOfWork extends CacheableEntity {
     boolean isAllowOverlappingOutputs();
 
     @FunctionalInterface
+    interface InputFilePropertyVisitor {
+        void visitInputFileProperty(String name, Object value);
+    }
+
+    @FunctionalInterface
     interface OutputPropertyVisitor {
         void visitOutputProperty(String name, TreeType type, FileCollection roots);
+    }
+
+    enum WorkResult {
+        DID_WORK,
+        DID_NO_WORK
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();

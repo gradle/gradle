@@ -16,21 +16,65 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C, Result> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteStep.class);
+
     @Override
     public Result execute(C context) {
-        ExecutionOutcome outcome = context.getWork().execute(context);
+        UnitOfWork work = context.getWork();
+        InputChangesInternal inputChanges = work.isRequiresInputChanges()
+            ? determineInputChanges(work, context)
+            : null;
+
+        boolean incremental = inputChanges != null && inputChanges.isIncremental();
+        UnitOfWork.WorkResult result = work.execute(inputChanges);
+        ExecutionOutcome outcome = determineOutcome(result, incremental);
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {
                 return Try.successful(outcome);
             }
         };
+    }
+
+    private ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
+        switch (result) {
+            case DID_NO_WORK:
+                return ExecutionOutcome.UP_TO_DATE;
+            case DID_WORK:
+                return incremental ? ExecutionOutcome.EXECUTED_INCREMENTALLY : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+            default:
+                throw new IllegalArgumentException("Unknown result: " + result);
+        }
+    }
+
+    private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
+        return context.getChanges()
+            .map(changes -> {
+                ImmutableMultimap<Object, String> incrementalParameterNameByValue = determineIncrementalParameterNameByValue(work);
+                InputChangesInternal inputChanges = changes.createInputChanges(incrementalParameterNameByValue);
+                if (!inputChanges.isIncremental()) {
+                    LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
+                }
+                return inputChanges;
+            })
+        .orElseThrow(() -> new UnsupportedOperationException("Cannot use input changes when input tracking is disabled."));
+    }
+
+    private ImmutableMultimap<Object, String> determineIncrementalParameterNameByValue(UnitOfWork work) {
+        ImmutableMultimap.Builder<Object, String> builder = ImmutableMultimap.builder();
+        work.visitFileInputs((name, value) -> builder.put(value, name));
+        return builder.build();
     }
 }

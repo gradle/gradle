@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.work;
 
-import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 
-public interface ContextAwareTaskAction extends ImplementationAwareTaskAction, Describable {
-    void contextualise(TaskExecutionContext context);
-    void releaseContext();
+/**
+ * The type of change for e.g. an input file.
+ *
+ * @since 5.4
+ */
+@Incubating
+public enum ChangeType {
+    ADDED,
+    MODIFIED,
+    REMOVED
 }

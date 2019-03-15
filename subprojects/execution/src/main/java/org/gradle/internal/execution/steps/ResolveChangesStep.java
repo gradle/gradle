@@ -16,9 +16,8 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.change.Change;
-import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.DescriptiveChange;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -28,12 +27,15 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.history.changes.NonIncrementalInputChanges;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
     private final ExecutionStateChangeDetector changeDetector;
-    private static final Change NO_HISTORY = new DescriptiveChange("No history is available.");
+    private static final String NO_HISTORY = "No history is available.";
 
     private final Step<? super IncrementalChangesContext, R> delegate;
 
@@ -48,12 +50,13 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     @Override
     public R execute(IncrementalContext context) {
         UnitOfWork work = context.getWork();
+        Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(new DescriptiveChange(rebuildReason))
+                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState.orElse(null))
             )
             .orElseGet(() ->
-                context.getBeforeExecutionState()
+                beforeExecutionState
                     .map(beforeExecution -> context.getAfterPreviousExecutionState()
                         .map(afterPreviousExecution -> changeDetector.detectChanges(
                             afterPreviousExecution,
@@ -61,7 +64,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             work,
                             !work.isAllowOverlappingOutputs())
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY))
+                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution))
                     )
                     .orElse(null)
             );
@@ -84,7 +87,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
 
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
+                return beforeExecutionState;
             }
 
             @Override
@@ -95,25 +98,25 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     }
 
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
-        private final Change rebuildChange;
+        private final String rebuildReason;
+        private final BeforeExecutionState beforeExecutionState;
 
-        public RebuildExecutionStateChanges(Change rebuildChange) {
-            this.rebuildChange = rebuildChange;
+        public RebuildExecutionStateChanges(String rebuildReason, @Nullable BeforeExecutionState beforeExecutionState) {
+            this.rebuildReason = rebuildReason;
+            this.beforeExecutionState = beforeExecutionState;
         }
 
         @Override
-        public Optional<Iterable<Change>> getInputFilesChanges() {
-            return Optional.empty();
+        public ImmutableList<String> getAllChangeMessages() {
+            return ImmutableList.of(rebuildReason);
         }
 
         @Override
-        public void visitAllChanges(ChangeVisitor visitor) {
-            visitor.visitChange(rebuildChange);
-        }
-
-        @Override
-        public AfterPreviousExecutionState getPreviousExecution() {
-            throw new UnsupportedOperationException();
+        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
+            if (beforeExecutionState == null) {
+                throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
+            }
+            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalParameterNameByValue);
         }
     }
 }

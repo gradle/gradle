@@ -24,7 +24,9 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -43,11 +45,16 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     boolean requiresDependencies();
 
     /**
+     * Whether the transformer requires {@link InputChanges} to be injected.
+     */
+    boolean requiresInputChanges();
+
+    /**
      * Whether the transformer is cacheable.
      */
     boolean isCacheable();
 
-    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies);
+    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.

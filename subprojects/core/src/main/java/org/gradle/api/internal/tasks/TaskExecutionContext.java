@@ -20,12 +20,10 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 
@@ -80,19 +78,6 @@ public interface TaskExecutionContext {
     boolean isTaskCachingEnabled();
 
     void setTaskCachingEnabled(boolean enabled);
-
-    /**
-     * Returns if this task was executed incrementally.
-     *
-     * @see IncrementalTaskInputs#isIncremental()
-     */
-    boolean isTaskExecutedIncrementally();
-
-    void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
-
-    Optional<ExecutionStateChanges> getExecutionStateChanges();
-
-    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 
     Optional<OverlappingOutputs> getOverlappingOutputs();
 

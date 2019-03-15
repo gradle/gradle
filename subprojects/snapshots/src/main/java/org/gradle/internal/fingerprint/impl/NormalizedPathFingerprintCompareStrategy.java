@@ -20,7 +20,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
@@ -88,12 +88,12 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
                 FilePathWithType addedFile = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(FileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType()))) {
+                if (!visitor.visitChange(DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType()))) {
                     return false;
                 }
             } else {
                 FilePathWithType removedFile = unaccountedForPreviousFingerprintEntry.getValue();
-                if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
+                if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                     return false;
                 }
             }
@@ -101,7 +101,7 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
 
         if (includeAdded) {
             for (FilePathWithType addedFile : addedFilesByNormalizedPath.values()) {
-                if (!visitor.visitChange(FileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType()))) {
+                if (!visitor.visitChange(DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType()))) {
                     return false;
                 }
             }

@@ -97,7 +97,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             ProjectComponentIdentifier projectId = componentIdentifierFactory.createProjectComponentIdentifier(selector);
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
             if (componentMetaData == null) {
-                result.failed(new ModuleVersionResolveException(selector, projectId + " not found."));
+                result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
             } else {
                 result.resolved(componentMetaData);
             }
@@ -110,7 +110,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
             if (componentMetaData == null) {
-                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
+                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), () -> projectId + " not found."));
             } else {
                 result.resolved(componentMetaData);
             }

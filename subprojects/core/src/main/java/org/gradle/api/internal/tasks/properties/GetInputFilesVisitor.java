@@ -46,7 +46,9 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             propertyName,
             FileParameterUtils.normalizerOrDefault(fileNormalizer),
             new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
-            skipWhenEmpty));
+            value,
+            skipWhenEmpty
+        ));
         if (skipWhenEmpty) {
             hasSourceFiles = true;
         }
