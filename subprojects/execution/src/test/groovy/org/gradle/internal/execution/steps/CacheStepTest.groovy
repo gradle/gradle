@@ -70,7 +70,6 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         }
 
         then:
-        1 * context.work >> work
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
@@ -94,7 +93,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -127,12 +126,11 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<Try<?>>> loader ->
+        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Try<Optional<?>>> loader ->
             loader.apply(cacheKey)
         }
 
         then:
-        1 * context.work >> work
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> {
             loadedOutputFile << "output"
@@ -195,7 +193,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -222,7 +220,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
 
         then:
         1 * delegate.execute(context) >> delegateResult

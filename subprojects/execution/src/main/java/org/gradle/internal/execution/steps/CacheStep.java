@@ -62,13 +62,14 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         if (!buildCache.isEnabled()) {
             return executeWithoutCache(context);
         }
-        CacheHandler cacheHandler = context.getWork().createCacheHandler();
+        UnitOfWork work = context.getWork();
+        CacheHandler cacheHandler = work.createCacheHandler();
         return cacheHandler
-            .load(cacheKey -> load(context.getWork(), cacheKey))
-            .map(cacheHit -> cacheHit
-                .map(loadResult -> {
-                    OriginMetadata originMetadata = loadResult.getOriginMetadata();
-                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = loadResult.getResultingSnapshots();
+            .load(cacheKey -> Try.ofFailable(() -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
+            .map(successfulLoad -> successfulLoad
+                .map(cacheHit -> {
+                    OriginMetadata originMetadata = cacheHit.getOriginMetadata();
+                    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
                         public Try<ExecutionOutcome> getOutcome() {
@@ -91,7 +92,14 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                         }
                     };
                 })
-                .orElseMapFailure(loadFailure -> executeAndStoreInCache(cacheHandler, new IncrementalChangesContext() {
+                .orElseGet(() -> executeAndStoreInCache(cacheHandler, context))
+            )
+            .orElseMapFailure(loadFailure -> {
+                LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution",
+                    work.getDisplayName(), loadFailure);
+                cleanupTreesAfterLoadFailure(work);
+
+                return executeAndStoreInCache(cacheHandler, new IncrementalChangesContext() {
                     @Override
                     public Optional<ExecutionStateChanges> getChanges() {
                         // Clear change information to avoid incremental execution after failed load
@@ -115,26 +123,13 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
                     @Override
                     public UnitOfWork getWork() {
-                        return context.getWork();
+                        return work;
                     }
-                }))
-            )
-            .orElseGet(() -> executeAndStoreInCache(cacheHandler, context));
+                });
+            });
     }
 
-    private Optional<Try<BuildCacheCommandFactory.LoadMetadata>> load(UnitOfWork work, BuildCacheKey cacheKey) {
-        try {
-            return buildCache.load(commandFactory.createLoad(cacheKey, work))
-                .map(loadResult -> Try.successful(loadResult));
-        } catch (Exception e) {
-            // There was a failure during downloading, previous task outputs should be unaffected
-            LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution", work.getDisplayName(), e);
-            cleanupTreesAfterUnpackFailure(work);
-            return Optional.of(Try.failure(e));
-        }
-    }
-
-    private static void cleanupTreesAfterUnpackFailure(UnitOfWork work) {
+    private static void cleanupTreesAfterLoadFailure(UnitOfWork work) {
         work.visitOutputTrees((name, type, root) -> {
             try {
                 if (root.exists()) {

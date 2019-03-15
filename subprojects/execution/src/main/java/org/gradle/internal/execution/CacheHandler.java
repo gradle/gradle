@@ -24,6 +24,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface CacheHandler {
-    <T> Optional<Try<T>> load(Function<BuildCacheKey, Optional<Try<T>>> loader);
+    <T> Try<Optional<T>> load(Function<BuildCacheKey, Try<Optional<T>>> loader);
     void store(Consumer<BuildCacheKey> storer);
 }

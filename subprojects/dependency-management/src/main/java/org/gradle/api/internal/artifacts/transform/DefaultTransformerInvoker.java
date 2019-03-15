@@ -363,9 +363,9 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             TransformerExecutionBuildCacheKey cacheKey = new TransformerExecutionBuildCacheKey(hasher.hash());
             return new CacheHandler() {
                 @Override
-                public <T> Optional<Try<T>> load(Function<BuildCacheKey, Optional<Try<T>>> loader) {
+                public <T> Try<Optional<T>> load(Function<BuildCacheKey, Try<Optional<T>>> loader) {
                     if (!transformer.isCacheable()) {
-                        return Optional.empty();
+                        return Try.successful(Optional.empty());
                     }
                     return loader.apply(cacheKey);
                 }
