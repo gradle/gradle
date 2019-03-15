@@ -243,6 +243,12 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.internal.service.DefaultServiceRegistry;
             import org.gradle.internal.service.scopes.GlobalScopeServices;
 
+            configurations {
+                additional
+            }
+            dependencies {
+                additional gradleApi()
+            }
             task doWorkInWorker(type: WorkerTask)
             
             class WorkerTask extends DefaultTask {
@@ -254,6 +260,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     (1..8).each {
                         workerExecutor.submit(ToolSetupRunnable) { WorkerConfiguration config ->
                             config.isolationMode = IsolationMode.PROCESS
+                            config.classpath = project.configurations.additional
                         }
                     }
                 }
