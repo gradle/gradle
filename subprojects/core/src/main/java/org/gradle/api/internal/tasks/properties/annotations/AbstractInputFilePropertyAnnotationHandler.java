@@ -27,6 +27,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.work.Incremental;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -47,6 +48,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
             getFilePropertyType()

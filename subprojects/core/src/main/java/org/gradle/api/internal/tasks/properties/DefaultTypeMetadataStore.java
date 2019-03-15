@@ -48,6 +48,7 @@ import org.gradle.internal.reflect.PropertyExtractor;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.ValidationProblem;
 import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.work.Incremental;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -121,6 +122,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 .add(Optional.class)
                 .add(SkipWhenEmpty.class)
                 .add(PathSensitive.class)
+                .add(Incremental.class)
                 .build();
     }
 

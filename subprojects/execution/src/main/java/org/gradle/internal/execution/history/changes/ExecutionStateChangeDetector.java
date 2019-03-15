@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Describable;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -27,6 +28,6 @@ public interface ExecutionStateChangeDetector {
         AfterPreviousExecutionState lastExecution,
         BeforeExecutionState thisExecution,
         Describable executable,
-        boolean allowOverlappingOutputs
-    );
+        boolean allowOverlappingOutputs,
+        ImmutableSet<String> incrementalPropertyNames);
 }

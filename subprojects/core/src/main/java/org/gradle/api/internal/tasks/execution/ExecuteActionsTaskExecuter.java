@@ -16,11 +16,13 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -289,11 +291,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitFileInputs(InputFilePropertyVisitor visitor) {
-            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            boolean requiresInputChanges = isRequiresInputChanges();
+            boolean usesIncrementalTaskInputs = requiresInputChanges && isUsesIncrementalTaskInputs();
+            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
+            for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
                 if (value != null) {
-                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value);
+                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, usesIncrementalTaskInputs || inputFileProperty.isIncremental());
                 }
             }
         }
@@ -319,6 +324,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public boolean isRequiresInputChanges() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof AbstractIncrementalTaskAction) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean isUsesIncrementalTaskInputs() {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
                     return true;
                 }
             }

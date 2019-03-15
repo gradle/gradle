@@ -62,8 +62,8 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
     private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
         return context.getChanges()
             .map(changes -> {
-                ImmutableMultimap<Object, String> incrementalParameterNameByValue = determineIncrementalParameterNameByValue(work);
-                InputChangesInternal inputChanges = changes.createInputChanges(incrementalParameterNameByValue);
+                ImmutableMultimap<Object, String> incrementalParameterNamesByValue = determineIncrementalParameterNamesByValue(work);
+                InputChangesInternal inputChanges = changes.createInputChanges(incrementalParameterNamesByValue);
                 if (!inputChanges.isIncremental()) {
                     LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
                 }
@@ -72,9 +72,13 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
         .orElseThrow(() -> new UnsupportedOperationException("Cannot use input changes when input tracking is disabled."));
     }
 
-    private ImmutableMultimap<Object, String> determineIncrementalParameterNameByValue(UnitOfWork work) {
+    private ImmutableMultimap<Object, String> determineIncrementalParameterNamesByValue(UnitOfWork work) {
         ImmutableMultimap.Builder<Object, String> builder = ImmutableMultimap.builder();
-        work.visitFileInputs((name, value) -> builder.put(value, name));
+        work.visitInputFileProperties((name, value, incremental) -> {
+            if (incremental) {
+                builder.put(value, name);
+            }
+        });
         return builder.build();
     }
 }

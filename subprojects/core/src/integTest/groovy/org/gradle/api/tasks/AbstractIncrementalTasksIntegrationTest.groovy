@@ -27,7 +27,9 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
     abstract ChangeTypeInternal getRebuildChangeType();
 
-    def "setup"() {
+    abstract String getPrimaryInputAnnotation();
+
+    def setup() {
         setupTaskSources()
         buildFile << buildFileBase
         buildFile << """
@@ -45,8 +47,8 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('outputs/file2.txt') << "outputFile2"
     }
 
-    private void setupTaskSources() {
-        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy") << """
+    private void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
+        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy").text = """
     import org.gradle.api.*
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
@@ -54,6 +56,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
     import org.gradle.work.*
 
     class BaseIncrementalTask extends DefaultTask {
+        ${inputDirAnnotation}
         @InputDirectory
         def File inputDir
 

@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
@@ -60,6 +61,7 @@ public class ClasspathPropertyAnnotationHandler implements OverridingPropertyAnn
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            propertyMetadata.isAnnotationPresent(Incremental.class),
             ClasspathNormalizer.class,
             value,
             InputFilePropertyType.FILES

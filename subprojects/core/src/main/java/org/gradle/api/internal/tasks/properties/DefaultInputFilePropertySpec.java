@@ -23,17 +23,23 @@ import javax.annotation.Nullable;
 
 public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
     private final boolean skipWhenEmpty;
+    private final boolean incremental;
     private final PropertyValue value;
 
-    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollection files, PropertyValue value, boolean skipWhenEmpty) {
+    public DefaultInputFilePropertySpec(String propertyName, Class<? extends FileNormalizer> normalizer, FileCollection files, PropertyValue value, boolean skipWhenEmpty, boolean incremental) {
         super(propertyName, normalizer, files);
-        this.value = value;
         this.skipWhenEmpty = skipWhenEmpty;
+        this.incremental = incremental;
+        this.value = value;
     }
 
     @Override
     public boolean isSkipWhenEmpty() {
         return skipWhenEmpty;
+    }
+
+    public boolean isIncremental() {
+        return incremental;
     }
 
     @Override

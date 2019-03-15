@@ -27,7 +27,7 @@ import org.gradle.internal.reflect.JavaMethod;
 
 import java.lang.reflect.Method;
 
-class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
+public class IncrementalTaskInputsTaskAction extends AbstractIncrementalTaskAction {
     private final Instantiator instantiator;
 
     public IncrementalTaskInputsTaskAction(Instantiator instantiator, Class<? extends Task> type, Method method) {

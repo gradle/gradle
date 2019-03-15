@@ -57,6 +57,11 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         ChangeTypeInternal.MODIFIED
     }
 
+    @Override
+    String getPrimaryInputAnnotation() {
+        return ""
+    }
+
     def "incremental task is executed non-incrementally when input file property has been added"() {
         given:
         file('new-input.txt').text = "new input file"

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -62,7 +63,8 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             afterPreviousExecution,
                             beforeExecution,
                             work,
-                            !work.isAllowOverlappingOutputs())
+                            !work.isAllowOverlappingOutputs(),
+                            determineIncrementalPropertyNames(work))
                         )
                         .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution))
                     )
@@ -97,6 +99,19 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         });
     }
 
+    private static ImmutableSet<String> determineIncrementalPropertyNames(UnitOfWork work) {
+        if (work.isRequiresInputChanges()) {
+            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+            work.visitInputFileProperties((name, value, incremental) -> {
+                if (incremental) {
+                    builder.add(name);
+                }
+            });
+            return builder.build();
+        }
+        return ImmutableSet.of();
+    }
+
     private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
         private final String rebuildReason;
         private final BeforeExecutionState beforeExecutionState;
@@ -112,11 +127,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         }
 
         @Override
-        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
+        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNamesByValue) {
             if (beforeExecutionState == null) {
                 throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
             }
-            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalParameterNameByValue);
+            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalParameterNamesByValue);
         }
     }
 }

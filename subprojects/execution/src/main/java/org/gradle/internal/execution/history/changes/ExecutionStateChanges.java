@@ -32,7 +32,7 @@ public interface ExecutionStateChanges {
     /**
      * Creates the input changes for the given.
      *
-     * @param incrementalParameterNameByValue Mapping from the actual value of to the parameter name.
+     * @param incrementalParameterNamesByValue Mapping from the actual value of to the parameter name.
      */
-    InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue);
+    InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNamesByValue);
 }

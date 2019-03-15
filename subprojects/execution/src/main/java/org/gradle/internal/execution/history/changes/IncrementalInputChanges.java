@@ -16,8 +16,10 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.CollectingChangeVisitor;
@@ -49,10 +51,10 @@ public class IncrementalInputChanges implements InputChangesInternal {
     public static String determinePropertyName(Object propertyValue, ImmutableMultimap<Object, String> propertyNameByValue) {
         ImmutableCollection<String> propertyNames = propertyNameByValue.get(propertyValue);
         if (propertyNames.isEmpty()) {
-            throw new UnsupportedOperationException("Cannot query incremental changes: No property found for value " + propertyValue + ".");
+            throw new InvalidUserDataException("Cannot query incremental changes: No property found for value " + propertyValue + ". Incremental properties: " + Joiner.on(", ").join(propertyNameByValue.values()) + ".");
         }
         if (propertyNames.size() > 1) {
-            throw new UnsupportedOperationException(String.format("Cannot query incremental changes: More that one property found with value %s: %s.", propertyValue, propertyNames));
+            throw new InvalidUserDataException(String.format("Cannot query incremental changes: More that one property found with value %s: %s.", propertyValue, propertyNames));
         }
         return propertyNames.iterator().next();
     }
