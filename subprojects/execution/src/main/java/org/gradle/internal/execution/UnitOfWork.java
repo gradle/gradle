@@ -39,6 +39,8 @@ public interface UnitOfWork extends CacheableEntity {
 
     boolean isRequiresInputChanges();
 
+    boolean isRequiresLegacyInputChanges();
+
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);

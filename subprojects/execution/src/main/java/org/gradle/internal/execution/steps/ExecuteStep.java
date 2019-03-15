@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
@@ -62,23 +61,12 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
     private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
         return context.getChanges()
             .map(changes -> {
-                ImmutableMultimap<Object, String> incrementalParameterNamesByValue = determineIncrementalParameterNamesByValue(work);
-                InputChangesInternal inputChanges = changes.createInputChanges(incrementalParameterNamesByValue);
+                InputChangesInternal inputChanges = changes.createInputChanges();
                 if (!inputChanges.isIncremental()) {
                     LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
                 }
                 return inputChanges;
             })
         .orElseThrow(() -> new UnsupportedOperationException("Cannot use input changes when input tracking is disabled."));
-    }
-
-    private ImmutableMultimap<Object, String> determineIncrementalParameterNamesByValue(UnitOfWork work) {
-        ImmutableMultimap.Builder<Object, String> builder = ImmutableMultimap.builder();
-        work.visitInputFileProperties((name, value, incremental) -> {
-            if (incremental) {
-                builder.put(value, name);
-            }
-        });
-        return builder.build();
     }
 }

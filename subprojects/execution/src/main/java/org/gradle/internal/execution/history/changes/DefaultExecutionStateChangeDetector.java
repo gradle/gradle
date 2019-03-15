@@ -18,8 +18,6 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.Describable;
@@ -36,7 +34,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
-    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs, ImmutableSet<String> incrementalPropertyNames) {
+    public ExecutionStateChanges detectChanges(AfterPreviousExecutionState lastExecution, BeforeExecutionState thisExecution, Describable executable, boolean allowOverlappingOutputs, IncrementalInputProperties incrementalInputProperties) {
         // Capture changes in execution outcome
         ChangeContainer previousSuccessState = new PreviousSuccessChanges(
             lastExecution.isSuccessful());
@@ -65,12 +63,12 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             "Input file",
             executable);
         InputFileChanges nonIncrementalInputFileChanges = nonIncrementalChanges(
-            incrementalPropertyNames,
+            incrementalInputProperties,
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties()
         );
         InputFileChanges directIncrementalInputFileChanges = incrementalChanges(
-            incrementalPropertyNames,
+            incrementalInputProperties,
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties()
         );
@@ -103,8 +101,8 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         ImmutableList<String> allChangeMessages = builder.build();
         return rebuildRequired
-            ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties())
-            : new IncrementalDetectedExecutionStateChanges(incrementalInputFileChanges, allChangeMessages);
+            ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputProperties)
+            : new IncrementalDetectedExecutionStateChanges(incrementalInputFileChanges, allChangeMessages, incrementalInputProperties);
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {
@@ -125,31 +123,31 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
     }
 
-    public static InputFileChanges incrementalChanges(ImmutableSet<String> incrementalPropertyNames, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-        if (incrementalPropertyNames.isEmpty()) {
+    public static InputFileChanges incrementalChanges(IncrementalInputProperties incrementalInputProperties, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        if (incrementalInputProperties == IncrementalInputProperties.NONE) {
             return InputFileChanges.EMPTY;
         }
-        if (current.keySet().equals(incrementalPropertyNames)) {
+        if (incrementalInputProperties == IncrementalInputProperties.ALL) {
             return new DefaultInputFileChanges(previous, current);
         }
 
         return new DefaultInputFileChanges(
-            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, propertyName -> incrementalPropertyNames.contains(propertyName))),
-            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, propertyName -> incrementalPropertyNames.contains(propertyName)))
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, propertyName -> incrementalInputProperties.isIncrementalProperty(propertyName))),
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, propertyName -> incrementalInputProperties.isIncrementalProperty(propertyName)))
         );
     }
 
-    public static InputFileChanges nonIncrementalChanges(ImmutableSet<String> incrementalPropertyNames, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-        if (incrementalPropertyNames.isEmpty()) {
+    public static InputFileChanges nonIncrementalChanges(IncrementalInputProperties incrementalInputProperties, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        if (incrementalInputProperties == IncrementalInputProperties.NONE) {
             return new DefaultInputFileChanges(previous, current);
         }
-        if (current.keySet().equals(incrementalPropertyNames)) {
+        if (incrementalInputProperties == IncrementalInputProperties.ALL) {
             return InputFileChanges.EMPTY;
         }
 
         return new DefaultInputFileChanges(
-            Maps.filterKeys(previous, propertyName -> !incrementalPropertyNames.contains(propertyName)),
-            Maps.filterKeys(current, propertyName -> !incrementalPropertyNames.contains(propertyName))
+            Maps.filterKeys(previous, propertyName -> !incrementalInputProperties.isIncrementalProperty(propertyName)),
+            Maps.filterKeys(current, propertyName -> !incrementalInputProperties.isIncrementalProperty(propertyName))
         );
     }
 
@@ -175,35 +173,41 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
     private static class IncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
         private final InputFileChanges inputFileChanges;
+        private final IncrementalInputProperties incrementalInputProperties;
 
         public IncrementalDetectedExecutionStateChanges(
             InputFileChanges inputFileChanges,
-            ImmutableList<String> allChangeMessages
+            ImmutableList<String> allChangeMessages,
+            IncrementalInputProperties incrementalInputProperties
         ) {
             super(allChangeMessages);
             this.inputFileChanges = inputFileChanges;
+            this.incrementalInputProperties = incrementalInputProperties;
         }
 
         @Override
-        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNamesByValue) {
-            return new IncrementalInputChanges(inputFileChanges, incrementalParameterNamesByValue);
+        public InputChangesInternal createInputChanges() {
+            return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
         }
     }
 
     private static class NonIncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
+        private final IncrementalInputProperties incrementalInputProperties;
 
         public NonIncrementalDetectedExecutionStateChanges(
             ImmutableList<String> allChangeMessages,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+            IncrementalInputProperties incrementalInputProperties
         ) {
             super(allChangeMessages);
             this.inputFileProperties = inputFileProperties;
+            this.incrementalInputProperties = incrementalInputProperties;
         }
 
         @Override
-        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNamesByValue) {
-            return new NonIncrementalInputChanges(inputFileProperties, incrementalParameterNamesByValue);
+        public InputChangesInternal createInputChanges() {
+            return new NonIncrementalInputChanges(inputFileProperties, incrementalInputProperties);
         }
     }
 

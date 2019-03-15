@@ -400,6 +400,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public boolean isRequiresLegacyInputChanges() {
+            return false;
+        }
+
+        @Override
         public String getIdentity() {
             return identityString;
         }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.history.changes
 
-import com.google.common.collect.ImmutableMultimap
+import com.google.common.collect.ImmutableBiMap
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
@@ -30,7 +30,7 @@ class NonIncrementalInputChangesTest extends Specification {
     def "can iterate changes more than once"() {
         def fingerprint = DefaultCurrentFileCollectionFingerprint.from([new RegularFileSnapshot("/some/where", "where", HashCode.fromInt(1234), 0)], AbsolutePathFingerprintingStrategy.INCLUDE_MISSING)
 
-        def changes = new NonIncrementalInputChanges(ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of("input", fingerprint), ImmutableMultimap.of("value", "input"))
+        def changes = new NonIncrementalInputChanges(ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of("input", fingerprint), new DefaultIncrementalInputProperties(ImmutableBiMap.of("input", "value")))
         def expectedChangedFiles = [new File("/some/where")]
 
         when:

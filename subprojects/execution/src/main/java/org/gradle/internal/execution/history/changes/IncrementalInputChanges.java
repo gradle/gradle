@@ -16,10 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMultimap;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.CollectingChangeVisitor;
@@ -28,11 +24,11 @@ import org.gradle.work.FileChange;
 public class IncrementalInputChanges implements InputChangesInternal {
 
     private final InputFileChanges changes;
-    private final ImmutableMultimap<Object, String> propertyNamesByValue;
+    private final IncrementalInputProperties incrementalInputProperties;
 
-    public IncrementalInputChanges(InputFileChanges changes, ImmutableMultimap<Object, String> propertyNamesByValue) {
+    public IncrementalInputChanges(InputFileChanges changes, IncrementalInputProperties incrementalInputProperties) {
         this.changes = changes;
-        this.propertyNamesByValue = propertyNamesByValue;
+        this.incrementalInputProperties = incrementalInputProperties;
     }
 
     @Override
@@ -42,21 +38,10 @@ public class IncrementalInputChanges implements InputChangesInternal {
 
     @Override
     public Iterable<FileChange> getFileChanges(Object parameterValue) {
-        String propertyName = determinePropertyName(parameterValue, propertyNamesByValue);
+        String propertyName = incrementalInputProperties.getPropertyNameFor(parameterValue);
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(propertyName, visitor);
         return Cast.uncheckedNonnullCast(visitor.getChanges());
-    }
-
-    public static String determinePropertyName(Object propertyValue, ImmutableMultimap<Object, String> propertyNameByValue) {
-        ImmutableCollection<String> propertyNames = propertyNameByValue.get(propertyValue);
-        if (propertyNames.isEmpty()) {
-            throw new InvalidUserDataException("Cannot query incremental changes: No property found for value " + propertyValue + ". Incremental properties: " + Joiner.on(", ").join(propertyNameByValue.values()) + ".");
-        }
-        if (propertyNames.size() > 1) {
-            throw new InvalidUserDataException(String.format("Cannot query incremental changes: More that one property found with value %s: %s.", propertyValue, propertyNames));
-        }
-        return propertyNames.iterator().next();
     }
 
     @Override

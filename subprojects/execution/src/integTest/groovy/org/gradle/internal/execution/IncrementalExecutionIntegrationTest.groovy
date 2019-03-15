@@ -890,6 +890,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     return false
                 }
 
+                @Override
+                boolean isRequiresLegacyInputChanges() {
+                    return false
+                }
+
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {
                     def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
                     outputs.each { propertyName, spec ->

@@ -292,13 +292,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            boolean requiresInputChanges = isRequiresInputChanges();
-            boolean usesLegacyIncrementalTaskInputs = requiresInputChanges && isUsesLegacyIncrementalTaskInputs();
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
                 if (value != null) {
-                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, isIncremental(usesLegacyIncrementalTaskInputs, inputFileProperty));
+                    boolean incremental = inputFileProperty.isIncremental()
+                        // SkipWhenEmpty implies incremental.
+                        // If this file property is empty, then we clean up the previously generated outputs.
+                        // That means that there is a very close relation between the file property and the output.
+                        || inputFileProperty.isSkipWhenEmpty();
+                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, incremental);
                 }
             }
         }
@@ -330,7 +333,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             return false;
         }
 
-        private boolean isUsesLegacyIncrementalTaskInputs() {
+        @Override
+        public boolean isRequiresLegacyInputChanges() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof IncrementalTaskInputsTaskAction) {
                     return true;
@@ -417,17 +421,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
         });
-    }
-
-    private static boolean isIncremental(boolean usesLegacyIncrementalTaskInputs, InputFilePropertySpec inputFileProperty) {
-        return
-            // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
-            usesLegacyIncrementalTaskInputs
-                || inputFileProperty.isIncremental()
-                // SkipWhenEmpty implies incremental.
-                // If this file property is empty, then we clean up the previously generated outputs.
-                // That means that there is a very close relation between the file property and the output.
-                || inputFileProperty.isSkipWhenEmpty();
     }
 
     @Contextual
