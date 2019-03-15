@@ -39,7 +39,7 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
  *
- * See [GradleDelegate] for details why this is currently necessary.
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class SettingsDelegate : Settings {
 

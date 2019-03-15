@@ -39,7 +39,7 @@ import org.gradle.api.capabilities.Capability
 /**
  * Facilitates the implementation of the [ClientModule] interface by delegation via subclassing.
  *
- * See [GradleDelegate] for details why this is currently necessary.
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class ClientModuleDelegate : ClientModule {
 

@@ -36,7 +36,7 @@ import org.gradle.api.attributes.AttributesSchema
 /**
  * Facilitates the implementation of the [DependencyHandler] interface by delegation via subclassing.
  *
- * See [GradleDelegate] for details why this is currently necessary.
+ * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class DependencyHandlerDelegate : DependencyHandler {
 
