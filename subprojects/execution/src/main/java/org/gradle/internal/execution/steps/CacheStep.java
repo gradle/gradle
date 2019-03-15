@@ -91,7 +91,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                         }
                     };
                 })
-                .orElseMapFailure(loadFailure -> executeWithCache(cacheHandler, new IncrementalChangesContext() {
+                .orElseMapFailure(loadFailure -> executeAndStoreInCache(cacheHandler, new IncrementalChangesContext() {
                     @Override
                     public Optional<ExecutionStateChanges> getChanges() {
                         // Clear change information to avoid incremental execution after failed load
@@ -119,7 +119,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                     }
                 }))
             )
-            .orElseGet(() -> executeWithCache(cacheHandler, context));
+            .orElseGet(() -> executeAndStoreInCache(cacheHandler, context));
     }
 
     private Optional<Try<BuildCacheCommandFactory.LoadMetadata>> load(UnitOfWork work, BuildCacheKey cacheKey) {
@@ -150,7 +150,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         });
     }
 
-    private CurrentSnapshotResult executeWithCache(CacheHandler cacheHandler, IncrementalChangesContext context) {
+    private CurrentSnapshotResult executeAndStoreInCache(CacheHandler cacheHandler, IncrementalChangesContext context) {
         CurrentSnapshotResult executionResult = executeWithoutCache(context);
         executionResult.getOutcome().ifSuccessfulOrElse(
             outcome -> cacheHandler.store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
