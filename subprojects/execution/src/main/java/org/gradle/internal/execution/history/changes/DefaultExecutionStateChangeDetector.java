@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
 import org.gradle.internal.change.Change;
@@ -31,6 +32,7 @@ import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
@@ -62,11 +64,17 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getInputFileProperties(),
             "Input file",
             executable);
-        DefaultInputFileChanges allInputFileChanges = new DefaultInputFileChanges(
+        InputFileChanges nonIncrementalInputFileChanges = nonIncrementalChanges(
+            incrementalPropertyNames,
             lastExecution.getInputFileProperties(),
-            thisExecution.getInputFileProperties());
-        InputFileChanges nonIncrementalInputFileChanges = allInputFileChanges.nonIncrementalChanges(incrementalPropertyNames);
-        InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(allInputFileChanges.incrementalChanges(incrementalPropertyNames)));
+            thisExecution.getInputFileProperties()
+        );
+        InputFileChanges directIncrementalInputFileChanges = incrementalChanges(
+            incrementalPropertyNames,
+            lastExecution.getInputFileProperties(),
+            thisExecution.getInputFileProperties()
+        );
+        InputFileChanges incrementalInputFileChanges = errorHandling(executable, caching(directIncrementalInputFileChanges));
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -115,6 +123,34 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
     private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
         ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
         return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
+    }
+
+    public static InputFileChanges incrementalChanges(ImmutableSet<String> incrementalPropertyNames, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        if (incrementalPropertyNames.isEmpty()) {
+            return InputFileChanges.EMPTY;
+        }
+        if (current.keySet().equals(incrementalPropertyNames)) {
+            return new DefaultInputFileChanges(previous, current);
+        }
+
+        return new DefaultInputFileChanges(
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(previous, propertyName -> incrementalPropertyNames.contains(propertyName))),
+            ImmutableSortedMap.copyOfSorted(Maps.filterKeys(current, propertyName -> incrementalPropertyNames.contains(propertyName)))
+        );
+    }
+
+    public static InputFileChanges nonIncrementalChanges(ImmutableSet<String> incrementalPropertyNames, ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
+        if (incrementalPropertyNames.isEmpty()) {
+            return new DefaultInputFileChanges(previous, current);
+        }
+        if (current.keySet().equals(incrementalPropertyNames)) {
+            return InputFileChanges.EMPTY;
+        }
+
+        return new DefaultInputFileChanges(
+            Maps.filterKeys(previous, propertyName -> !incrementalPropertyNames.contains(propertyName)),
+            Maps.filterKeys(current, propertyName -> !incrementalPropertyNames.contains(propertyName))
+        );
     }
 
     private static class InputFileChangesWrapper implements InputFileChanges {
