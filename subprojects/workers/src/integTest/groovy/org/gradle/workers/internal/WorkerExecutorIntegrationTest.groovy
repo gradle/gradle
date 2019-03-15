@@ -19,6 +19,7 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.workers.IsolationMode
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -374,6 +375,57 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
         expect:
         succeeds "verifyNotIsolated"
+    }
+
+    def "classloader is minimal when using #isolationMode"() {
+        fixture.withRunnableClassInBuildSrc()
+
+        buildFile << """         
+            class SneakyRunnable extends TestRunnable {            
+                @Inject
+                public SneakyRunnable(List<String> files, File outputDir, Foo foo) {
+                    super(files, outputDir, foo);
+                }
+                
+                public void run() {
+                    super.run()
+                    // These classes were chosen to be relatively stable and would be unusual to see in a worker. 
+                    def gradleApiClasses = [
+                        "org.gradle.api.tasks.scala.ScalaCompile",
+                        "${com.google.common.collect.Lists.canonicalName}",
+                        "org.gradle.api.internal.artifacts.configurations.DefaultConfiguration"
+                    ]
+                    def reachableClasses = gradleApiClasses.findAll { reachable(it) }
+                    if (!reachableClasses.empty) {
+                        throw new IllegalArgumentException("These classes should not be visible to the worker action: " + reachableClasses)
+                    }
+                }
+                
+                private boolean reachable(String classname) {
+                    try {
+                        Class.forName(classname)
+                        // bad! the class was leaked into the worker classpath
+                        return true
+                    } catch (Exception e) {
+                        // The class was not found in the classpath
+                        return false
+                    }
+                }
+            }
+            
+            task runInWorker(type: WorkerTask) {
+                isolationMode = IsolationMode.$isolationMode
+                runnableClass = SneakyRunnable
+            } 
+        """
+
+        when:
+        succeeds("runInWorker")
+        then:
+        assertRunnableExecuted("runInWorker")
+
+        where:
+        isolationMode << [IsolationMode.CLASSLOADER, IsolationMode.PROCESS]
     }
 
     void withParameterClassReferencingClassInAnotherPackage() {
