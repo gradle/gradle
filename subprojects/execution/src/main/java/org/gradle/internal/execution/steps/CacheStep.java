@@ -37,11 +37,14 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
 public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
+
+    private static final String FAILED_LOAD_REBUILD_REASON = "Outputs removed due to failed load from cache";
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
@@ -62,6 +65,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         if (!buildCache.isEnabled()) {
             return executeWithoutCache(context);
         }
+
         UnitOfWork work = context.getWork();
         CacheHandler cacheHandler = work.createCacheHandler();
         return Try.ofFailable(() -> cacheHandler.load(cacheKey -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
@@ -96,18 +100,19 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
             .orElseMapFailure(loadFailure -> {
                 LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution",
                     work.getDisplayName(), loadFailure);
-                cleanupTreesAfterLoadFailure(work);
+
+                cleanOutputsAfterLoadFailure(work);
+                Optional<ExecutionStateChanges> rebuildChanges = context.getChanges().map(changes -> changes.withEnforcedRebuild(FAILED_LOAD_REBUILD_REASON));
 
                 return executeAndStoreInCache(cacheHandler, new IncrementalChangesContext() {
                     @Override
                     public Optional<ExecutionStateChanges> getChanges() {
-                        // Clear change information to avoid incremental execution after failed load
-                        return Optional.empty();
+                        return rebuildChanges;
                     }
 
                     @Override
                     public Optional<String> getRebuildReason() {
-                        return context.getRebuildReason();
+                        return Optional.of(FAILED_LOAD_REBUILD_REASON);
                     }
 
                     @Override
@@ -128,18 +133,20 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
             });
     }
 
-    private static void cleanupTreesAfterLoadFailure(UnitOfWork work) {
-        work.visitOutputTrees((name, type, root) -> {
-            try {
-                if (root.exists()) {
-                    if (root.isDirectory()) {
-                        FileUtils.cleanDirectory(root);
-                    } else {
-                        FileUtils.forceDelete(root);
+    private static void cleanOutputsAfterLoadFailure(UnitOfWork work) {
+        work.visitOutputProperties((name, type, roots) -> {
+            for (File root : roots) {
+                try {
+                    if (root.exists()) {
+                        if (root.isDirectory()) {
+                            FileUtils.cleanDirectory(root);
+                        } else {
+                            FileUtils.forceDelete(root);
+                        }
                     }
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, work.getDisplayName(), root), ex);
                 }
-            } catch (IOException ex) {
-                throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, work.getDisplayName(), root), ex);
             }
         });
     }

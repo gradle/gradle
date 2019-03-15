@@ -29,7 +29,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
     def remoteCache = new TestBuildCache(file("remote-cache"))
 
     def setup() {
-        executer.beforeExecute { it.withBuildCacheEnabled() }
+        executer.beforeExecute { withBuildCacheEnabled() }
         settingsFile << localCache.localCacheConfiguration()
     }
 
@@ -222,6 +222,40 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds("cacheable")
+    }
+
+    def "corrupted cache disables incremental execution"() {
+        when:
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @OutputDirectory File outputDir = new File(temporaryDir, 'output')
+                @TaskAction
+                void generate(IncrementalTaskInputs inputs) {
+                    println "> Incremental: \${inputs.incremental}"
+                    new File(outputDir, "output").text = "OK"
+                }
+            }
+
+            task cacheable(type: CustomTask)
+        """
+        succeeds("cacheable")
+
+        then:
+        localCache.listCacheFiles().size() == 1
+
+        when:
+        cleanBuildDir()
+
+        and:
+        executer.withStackTraceChecksDisabled()
+        corruptMetadata({ metadata -> metadata.text = "corrupt" })
+        succeeds("cacheable")
+
+        then:
+        output =~ /Cached result format error, corrupted origin metadata\./
+        output =~ /> Incremental: false/
+        localCache.listCacheFailedFiles().size() == 1
     }
 
     @Unroll

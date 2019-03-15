@@ -35,4 +35,9 @@ public interface ExecutionStateChanges {
      * @param incrementalParameterNameByValue Mapping from the actual value of to the parameter name.
      */
     InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue);
+
+    /**
+     * Turn these changes into ones forcing a rebuild with the given reason.
+     */
+    ExecutionStateChanges withEnforcedRebuild(String rebuildReason);
 }

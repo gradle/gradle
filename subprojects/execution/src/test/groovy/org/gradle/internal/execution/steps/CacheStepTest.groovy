@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
@@ -29,7 +29,11 @@ import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.file.TreeType
+import spock.lang.Shared
+import spock.lang.Unroll
 
 import java.util.function.Consumer
 import java.util.function.Function
@@ -43,6 +47,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
 
     def cacheKey = Stub(BuildCacheKey)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
+    @Shared def rebuildChanges = Mock(ExecutionStateChanges)
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
@@ -112,7 +117,8 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         0 * _
     }
 
-    def "executes work non-incrementally and stores after unpack failure"() {
+    @Unroll
+    def "executes work #description non-incrementally and stores after unpack failure"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
 
@@ -134,11 +140,11 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * work.displayName >> "work"
-        1 * work.visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
-            visitor.visitOutputTree("outputFile", TreeType.FILE, loadedOutputFile)
-            visitor.visitOutputTree("outputDir", TreeType.DIRECTORY, loadedOutputDir)
-            visitor.visitOutputTree("missingOutputFile", TreeType.FILE, file("missing.txt"))
-            visitor.visitOutputTree("missingOutputDir", TreeType.DIRECTORY, file("missing"))
+        1 * work.visitOutputProperties(_) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+            visitor.visitOutputProperty("outputFile", TreeType.FILE, ImmutableFileCollection.of(loadedOutputFile))
+            visitor.visitOutputProperty("outputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(loadedOutputDir))
+            visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableFileCollection.of(file("missing.txt")))
+            visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("missing")))
         }
 
         then:
@@ -146,9 +152,10 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         loadedOutputDir.assertIsEmptyDir()
 
         then:
+        1 * context.changes >> Optional.ofNullable(changes)
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             assert delegateContext != context
-            assert !delegateContext.getChanges().present
+            check(delegateContext)
             delegateResult
         }
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
@@ -156,6 +163,13 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * cacheHandler.store(_)
         0 * _
+
+        where:
+        description       | check                                                                                        | changes
+        "without changes" | { IncrementalChangesContext context -> assert !context.getChanges().present }                | null
+        "with changes"    | { IncrementalChangesContext context -> assert context.getChanges().get() == rebuildChanges } | Mock(ExecutionStateChanges) {
+            1 * withEnforcedRebuild("Outputs removed due to failed load from cache") >> rebuildChanges
+        }
     }
 
     def "propagates non-recoverable unpack failure"() {
@@ -173,7 +187,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
 
         then:
         1 * work.displayName >> "work"
-        1 * work.visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+        1 * work.visitOutputProperties(_) >> {
             throw new RuntimeException("cleanup failure")
         }
         0 * _
