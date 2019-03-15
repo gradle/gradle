@@ -58,16 +58,13 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     @Override
     public <T extends BuildCache> T local(Class<T> type) {
-        if (!type.equals(DirectoryBuildCache.class)) {
-            DeprecationLogger.nagUserOfDeprecated("Using a local cache type other than " + DirectoryBuildCache.class.getSimpleName());
-        }
         return local(type, Actions.doNothing());
     }
 
     @Override
     public <T extends BuildCache> T local(Class<T> type, Action<? super T> configuration) {
         if (!type.equals(DirectoryBuildCache.class)) {
-            DeprecationLogger.nagUserOfDeprecated("Using a local cache type other than " + DirectoryBuildCache.class.getSimpleName());
+            DeprecationLogger.nagUserOfDeprecated("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName());
         }
         if (!type.isInstance(local)) {
             if (local != null) {

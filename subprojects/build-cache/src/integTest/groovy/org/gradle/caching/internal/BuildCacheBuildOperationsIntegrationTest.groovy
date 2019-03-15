@@ -297,18 +297,11 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         operations.orderedSerialSiblings(remoteMissLoadOp, packOp, remoteStoreOp)
 
         where:
-        config << [
-            "remote($remoteCacheClass) { push = true }",
-            "local.push = false; remote($remoteCacheClass) { push = true }",
-            "local.enabled = false; remote($remoteCacheClass) { push = true }",
-            "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
-        ]
-        localStore << [
-            true, false, false, false
-        ]
-        expectDeprecation << [
-            false, false, false, true
-        ]
+        localStore | expectDeprecation | config
+        true       | false             | "remote($remoteCacheClass) { push = true }"
+        false      | false             | "local.push = false; remote($remoteCacheClass) { push = true }"
+        false      | false             | "local.enabled = false; remote($remoteCacheClass) { push = true }"
+        false      | true              | "local($remoteCacheClass) { push = true }; remote($remoteCacheClass) { push = true }; "
     }
 
     def "records ops for remote hit"() {

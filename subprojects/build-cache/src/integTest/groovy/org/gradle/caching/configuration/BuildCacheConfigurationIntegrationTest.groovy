@@ -297,7 +297,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        output.contains("Using a local cache type other than DirectoryBuildCache has been deprecated. This is scheduled to be removed in Gradle 6.0.")
+        output.contains("Using a local build cache type other than DirectoryBuildCache has been deprecated. This is scheduled to be removed in Gradle 6.0.")
 
         where:
         customCacheConfig << [
