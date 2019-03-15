@@ -57,8 +57,6 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    def localStateFile = temporaryFolder.file("local-state.txt").createFile()
-
     def "load invokes unpacker and fingerprints trees"() {
         def outputFile = temporaryFolder.file("output.txt")
         def outputDir = temporaryFolder.file("outputDir")
@@ -105,9 +103,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         result.metadata.resultingSnapshots["outputFile"].fingerprints.keySet() == [outputFile.absolutePath] as Set
         result.metadata.resultingSnapshots["outputDir"].fingerprints.keySet() == [outputDir, outputDirFile]*.absolutePath as Set
         0 * _
-
-        then:
-        !localStateFile.exists()
     }
 
     def "after failed unpacking error is propagated and output is not removed"() {
@@ -133,9 +128,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         ex.message == "unpacking error"
         outputFile.exists()
         0 * _
-
-        then:
-        !localStateFile.exists()
     }
 
     def "store invokes packer"() {
@@ -162,9 +154,6 @@ class BuildCacheCommandFactoryTest extends Specification {
         return Stub(CacheableEntity) {
             visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 trees.each { visitor.visitOutputTree(it.name, it.type, it.root) }
-            }
-            visitLocalState(_) >> { CacheableEntity.LocalStateVisitor visitor ->
-                visitor.visitLocalStateRoot(localStateFile)
             }
         }
     }

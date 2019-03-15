@@ -71,6 +71,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         return Try.ofFailable(() -> cacheHandler.load(cacheKey -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
+                    cleanLocalState(work);
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
@@ -101,6 +102,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                 LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution",
                     work.getDisplayName(), loadFailure);
 
+                cleanLocalState(work);
                 cleanOutputsAfterLoadFailure(work);
                 Optional<ExecutionStateChanges> rebuildChanges = context.getChanges().map(changes -> changes.withEnforcedRebuild(FAILED_LOAD_REBUILD_REASON));
 
@@ -133,22 +135,36 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
             });
     }
 
+    private static void cleanLocalState(UnitOfWork work) {
+        work.visitLocalState(localStateFile -> {
+            try {
+                remove(localStateFile);
+            } catch (IOException ex) {
+                throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
+            }
+        });
+    }
+
     private static void cleanOutputsAfterLoadFailure(UnitOfWork work) {
         work.visitOutputProperties((name, type, roots) -> {
             for (File root : roots) {
                 try {
-                    if (root.exists()) {
-                        if (root.isDirectory()) {
-                            FileUtils.cleanDirectory(root);
-                        } else {
-                            FileUtils.forceDelete(root);
-                        }
-                    }
+                    remove(root);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(String.format("Failed to clean up files for tree '%s' of %s: %s", name, work.getDisplayName(), root), ex);
                 }
             }
         });
+    }
+
+    private static void remove(File root) throws IOException {
+        if (root.exists()) {
+            if (root.isDirectory()) {
+                FileUtils.cleanDirectory(root);
+            } else {
+                FileUtils.forceDelete(root);
+            }
+        }
     }
 
     private CurrentSnapshotResult executeAndStoreInCache(CacheHandler cacheHandler, IncrementalChangesContext context) {

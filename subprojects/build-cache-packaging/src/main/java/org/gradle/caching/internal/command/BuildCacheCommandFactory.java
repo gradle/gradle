@@ -17,8 +17,6 @@
 package org.gradle.caching.internal.command;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -93,34 +91,30 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
-            try {
-                BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
-                LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
-                return new Result<LoadMetadata>() {
-                    @Override
-                    public long getArtifactEntryCount() {
-                        return unpackResult.getEntries();
-                    }
+            BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
+            LOGGER.info("Unpacked trees for {} from cache.", entity.getDisplayName());
+            return new Result<LoadMetadata>() {
+                @Override
+                public long getArtifactEntryCount() {
+                    return unpackResult.getEntries();
+                }
 
-                    @Override
-                    public LoadMetadata getMetadata() {
-                        return new LoadMetadata() {
-                            @Override
-                            public OriginMetadata getOriginMetadata() {
-                                return unpackResult.getOriginMetadata();
-                            }
+                @Override
+                public LoadMetadata getMetadata() {
+                    return new LoadMetadata() {
+                        @Override
+                        public OriginMetadata getOriginMetadata() {
+                            return unpackResult.getOriginMetadata();
+                        }
 
-                            @Override
-                            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
-                                return snapshots;
-                            }
-                        };
-                    }
-                };
-            } finally {
-                cleanLocalState();
-            }
+                        @Override
+                        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getResultingSnapshots() {
+                            return snapshots;
+                        }
+                    };
+                }
+            };
         }
 
         private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
@@ -157,18 +151,6 @@ public class BuildCacheCommandFactory {
                 builder.put(treeName, DefaultCurrentFileCollectionFingerprint.from(roots, fingerprintingStrategy));
             });
             return builder.build();
-        }
-
-        private void cleanLocalState() {
-            entity.visitLocalState(localStateFile -> {
-                try {
-                    if (localStateFile.exists()) {
-                        FileUtils.forceDelete(localStateFile);
-                    }
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", entity.getDisplayName(), localStateFile), ex);
-                }
-            });
         }
     }
 

@@ -826,7 +826,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitLocalState(CacheableEntity.LocalStateVisitor visitor) {
+                void visitLocalState(UnitOfWork.LocalStateVisitor visitor) {
                     throw new UnsupportedOperationException()
                 }
 

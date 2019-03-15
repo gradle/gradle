@@ -48,6 +48,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def cacheKey = Stub(BuildCacheKey)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     @Shared def rebuildChanges = Mock(ExecutionStateChanges)
+    def localStateFile = file("local-state.txt") << "local state"
 
     def step = new CacheStep(buildCacheController, buildCacheCommandFactory, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
@@ -81,6 +82,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * loadMetadata.originMetadata >> cachedOriginMetadata
         1 * loadMetadata.resultingSnapshots >> outputsFromCache
+        interaction { localStateIsRemoved() }
         0 * _
     }
 
@@ -146,10 +148,9 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
             visitor.visitOutputProperty("missingOutputFile", TreeType.FILE, ImmutableFileCollection.of(file("missing.txt")))
             visitor.visitOutputProperty("missingOutputDir", TreeType.DIRECTORY, ImmutableFileCollection.of(file("missing")))
         }
-
-        then:
         loadedOutputFile.assertDoesNotExist()
         loadedOutputDir.assertIsEmptyDir()
+        interaction { localStateIsRemoved() }
 
         then:
         1 * context.changes >> Optional.ofNullable(changes)
@@ -190,6 +191,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * work.visitOutputProperties(_) >> {
             throw new RuntimeException("cleanup failure")
         }
+        interaction { localStateIsRemoved() }
         0 * _
     }
 
@@ -261,5 +263,12 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> false
         1 * delegate.execute(_) >> delegateResult
         0 * _
+    }
+
+    private void localStateIsRemoved() {
+        1 * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
+            visitor.visitLocalStateRoot(localStateFile)
+        }
+        !localStateFile.exists()
     }
 }
