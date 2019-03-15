@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 #
 # Copyright 2015 the original author or authors.
@@ -37,7 +37,7 @@ while [ -h "\$PRG" ] ; do
 done
 SAVED="`pwd`"
 cd "`dirname \"\$PRG\"`/${appHomeRelativePath}" >/dev/null
-APP_HOME="`pwd -P`"
+APP_HOME=$(printf "%q" `pwd -P`)
 cd "\$SAVED" >/dev/null
 
 APP_NAME="${applicationName}"
