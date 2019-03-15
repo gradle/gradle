@@ -29,6 +29,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,7 +80,7 @@ public class SyncCopyActionDecorator implements CopyAction {
         private final PatternSet preserveSet;
         private boolean didWork;
 
-        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, PatternFilterable preserveSpec) {
+        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, @Nullable PatternFilterable preserveSpec) {
             this.visited = visited;
             PatternSet preserveSet = new PatternSet();
             if (preserveSpec != null) {
@@ -102,11 +103,7 @@ public class SyncCopyActionDecorator implements CopyAction {
             RelativePath path = fileDetails.getRelativePath();
             if (!visited.contains(path)) {
                 if (preserveSet.isEmpty() || !preserveSpec.isSatisfiedBy(fileDetails)) {
-                    if (isDir) {
-                        GFileUtils.deleteDirectory(fileDetails.getFile());
-                    } else {
-                        GFileUtils.deleteQuietly(fileDetails.getFile());
-                    }
+                    GFileUtils.forceDelete(fileDetails.getFile());
                     didWork = true;
                 }
             }
