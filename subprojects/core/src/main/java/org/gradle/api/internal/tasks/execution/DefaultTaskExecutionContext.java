@@ -24,7 +24,6 @@ import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
@@ -38,7 +37,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private OverlappingOutputs overlappingOutputs;
-    private ExecutionStateChanges executionStateChanges;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
@@ -50,7 +48,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
     private final Timer executionTimer;
-    private boolean taskExecutedIncrementally;
 
     public DefaultTaskExecutionContext(LocalTaskNode localTaskNode) {
         this.localTaskNode = localTaskNode;
@@ -123,16 +120,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
-        return Optional.ofNullable(executionStateChanges);
-    }
-
-    @Override
-    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
-        this.executionStateChanges = executionStateChanges;
-    }
-
-    @Override
     public TaskOutputCachingBuildCacheKey getBuildCacheKey() {
         return buildCacheKey;
     }
@@ -168,16 +155,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskCachingEnabled(boolean taskCachingEnabled) {
         this.taskCachingEnabled = taskCachingEnabled;
-    }
-
-    @Override
-    public boolean isTaskExecutedIncrementally() {
-        return taskExecutedIncrementally;
-    }
-
-    @Override
-    public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
-        this.taskExecutedIncrementally = taskExecutedIncrementally;
     }
 
     @Override

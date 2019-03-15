@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.work;
 
-import javax.annotation.Nullable;
+import org.gradle.api.Incubating;
 
-public interface InputFilePropertySpec extends FilePropertySpec {
-    boolean isSkipWhenEmpty();
-    @Nullable
-    Object getValue();
+import java.io.File;
+
+/**
+ * A change to a file.
+ *
+ * @since 5.4
+ */
+@Incubating
+public interface FileChange {
+
+    /**
+     * The file, which may no longer exist.
+     */
+    File getFile();
+
+    /**
+     * The type of change to the file.
+     */
+    ChangeType getChangeType();
 }

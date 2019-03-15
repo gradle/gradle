@@ -19,29 +19,31 @@ package org.gradle.internal.change;
 import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.file.FileType;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
 
 import java.io.File;
 
-public class FileChange implements Change, InputFileDetails {
+public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     private final String path;
-    private final ChangeType change;
+    private final ChangeTypeInternal change;
     private final String title;
     private final FileType previousFileType;
     private final FileType currentFileType;
 
-    public static FileChange added(String path, String title, FileType currentFileType) {
-        return new FileChange(path, ChangeType.ADDED, title, FileType.Missing, currentFileType);
+    public static DefaultFileChange added(String path, String title, FileType currentFileType) {
+        return new DefaultFileChange(path, ChangeTypeInternal.ADDED, title, FileType.Missing, currentFileType);
     }
 
-    public static FileChange removed(String path, String title, FileType previousFileType) {
-        return new FileChange(path, ChangeType.REMOVED, title, previousFileType, FileType.Missing);
+    public static DefaultFileChange removed(String path, String title, FileType previousFileType) {
+        return new DefaultFileChange(path, ChangeTypeInternal.REMOVED, title, previousFileType, FileType.Missing);
     }
 
-    public static FileChange modified(String path, String title, FileType previousFileType, FileType currentFileType) {
-        return new FileChange(path, ChangeType.MODIFIED, title, previousFileType, currentFileType);
+    public static DefaultFileChange modified(String path, String title, FileType previousFileType, FileType currentFileType) {
+        return new DefaultFileChange(path, ChangeTypeInternal.MODIFIED, title, previousFileType, currentFileType);
     }
 
-    private FileChange(String path, ChangeType change, String title, FileType previousFileType, FileType currentFileType) {
+    private DefaultFileChange(String path, ChangeTypeInternal change, String title, FileType previousFileType, FileType currentFileType) {
         this.path = path;
         this.change = change;
         this.title = title;
@@ -49,21 +51,22 @@ public class FileChange implements Change, InputFileDetails {
         this.currentFileType = currentFileType;
     }
 
+    @Override
     public String getMessage() {
         return title + " file " + path + " " + getDisplayedChangeType().describe() + ".";
     }
 
-    private ChangeType getDisplayedChangeType() {
-        if (change != ChangeType.MODIFIED) {
+    private ChangeTypeInternal getDisplayedChangeType() {
+        if (change != ChangeTypeInternal.MODIFIED) {
             return change;
         }
         if (previousFileType == FileType.Missing) {
-            return ChangeType.ADDED;
+            return ChangeTypeInternal.ADDED;
         }
         if (currentFileType == FileType.Missing) {
-            return ChangeType.REMOVED;
+            return ChangeTypeInternal.REMOVED;
         }
-        return ChangeType.MODIFIED;
+        return ChangeTypeInternal.MODIFIED;
     }
 
     @Override
@@ -75,24 +78,35 @@ public class FileChange implements Change, InputFileDetails {
         return path;
     }
 
+    @Override
     public File getFile() {
         return new File(path);
     }
 
-    public ChangeType getType() {
+    @Override
+    public ChangeType getChangeType() {
+        // TODO wolfs: Shall we do something about file type Missing -> File
+        // should this be file type ADDED instead of MODIFIED
+        return change.getPublicType();
+    }
+
+    public ChangeTypeInternal getType() {
         return change;
     }
 
+    @Override
     public boolean isAdded() {
-        return change == ChangeType.ADDED;
+        return change == ChangeTypeInternal.ADDED;
     }
 
+    @Override
     public boolean isModified() {
-        return change == ChangeType.MODIFIED;
+        return change == ChangeTypeInternal.MODIFIED;
     }
 
+    @Override
     public boolean isRemoved() {
-        return change == ChangeType.REMOVED;
+        return change == ChangeTypeInternal.REMOVED;
     }
 
     @Override
@@ -103,7 +117,7 @@ public class FileChange implements Change, InputFileDetails {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        FileChange that = (FileChange) o;
+        DefaultFileChange that = (DefaultFileChange) o;
         return Objects.equal(path, that.path)
             && change == that.change
             && Objects.equal(title, that.title)

@@ -30,8 +30,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -39,6 +37,7 @@ import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -259,14 +258,18 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public ExecutionOutcome execute(IncrementalChangesContext context) {
+        public WorkResult execute(@Nullable InputChangesInternal inputChanges) {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
-            GFileUtils.cleanDirectory(outputDir);
-            GFileUtils.deleteFileQuietly(resultsFile);
-            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies);
+
+            boolean incremental = inputChanges != null && inputChanges.isIncremental();
+            if (!incremental) {
+                GFileUtils.cleanDirectory(outputDir);
+                GFileUtils.deleteFileQuietly(resultsFile);
+            }
+            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
-            return ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+            return WorkResult.DID_WORK;
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -319,6 +322,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public Optional<Duration> getTimeout() {
             return Optional.empty();
+        }
+
+        @Override
+        public void visitFileInputs(InputFilePropertyVisitor visitor) {
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact);
         }
 
         @Override
@@ -384,6 +392,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             return snapshotOutputs(outputFingerprinter, fileCollectionFactory, workspace);
+        }
+
+        @Override
+        public boolean isRequiresInputChanges() {
+            return transformer.requiresInputChanges();
         }
 
         @Override

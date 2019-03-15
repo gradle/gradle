@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
+import org.gradle.api.Describable;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
-public interface InputFilePropertySpec extends FilePropertySpec {
-    boolean isSkipWhenEmpty();
-    @Nullable
-    Object getValue();
+public interface InputChangesAwareTaskAction extends ImplementationAwareTaskAction, Describable {
+    void setInputChanges(InputChangesInternal inputChanges);
+    void clearInputChanges();
 }

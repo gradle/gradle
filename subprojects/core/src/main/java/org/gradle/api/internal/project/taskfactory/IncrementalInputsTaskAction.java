@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history.changes;
+package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeVisitor;
+import org.gradle.api.Task;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.work.InputChanges;
 
-public interface InputFileChanges extends ChangeContainer {
-    boolean accept(String propertyName, ChangeVisitor visitor);
+import java.lang.reflect.Method;
+
+public class IncrementalInputsTaskAction extends AbstractIncrementalTaskAction {
+    public IncrementalInputsTaskAction(Class<? extends Task> type, Method method) {
+        super(type, method);
+    }
+
+    protected void doExecute(Task task, String methodName) {
+        JavaMethod.of(task, Object.class, methodName, InputChanges.class).invoke(task, getInputChanges());
+    }
 }

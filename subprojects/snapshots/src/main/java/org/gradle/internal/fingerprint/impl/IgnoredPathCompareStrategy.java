@@ -20,7 +20,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -74,7 +74,7 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
             List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
                 if (includeAdded) {
-                    if (!visitor.visitChange(FileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType()))) {
+                    if (!visitor.visitChange(DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType()))) {
                         return false;
                     }
                 }
@@ -87,7 +87,7 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
         for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
             FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
-            if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
+            if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
                 return false;
             }
         }

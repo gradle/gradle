@@ -18,7 +18,7 @@ package org.gradle.internal.fingerprint.classpath.impl;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -137,18 +137,18 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
         void added() {
             if (includeAdded) {
-                changeConsumer.visitChange(FileChange.added(current.getKey(), propertyTitle, current.getValue().getType()));
+                changeConsumer.visitChange(DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType()));
             }
             current = nextEntry(currentEntries);
         }
 
         void removed() {
-            changeConsumer.visitChange(FileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType()));
+            changeConsumer.visitChange(DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType()));
             previous = nextEntry(previousEntries);
         }
 
         void modified() {
-            changeConsumer.visitChange(FileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType()));
+            changeConsumer.visitChange(DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType()));
             previous = nextEntry(previousEntries);
             current = nextEntry(currentEntries);
         }

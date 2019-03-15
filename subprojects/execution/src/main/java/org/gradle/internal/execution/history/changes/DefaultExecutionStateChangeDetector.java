@@ -16,19 +16,20 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.internal.change.CachingChangeContainer;
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeContainer;
-import org.gradle.internal.change.ChangeDetectorVisitor;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.CollectingChangeVisitor;
 import org.gradle.internal.change.ErrorHandlingChangeContainer;
 import org.gradle.internal.change.SummarizingChangeContainer;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-
-import java.util.Optional;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 public class DefaultExecutionStateChangeDetector implements ExecutionStateChangeDetector {
     @Override
@@ -60,10 +61,10 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getInputFileProperties(),
             "Input file",
             executable);
-        InputFileChanges directInputFileChanges = new InputFileChanges(
+        InputFileChanges directInputFileChanges = new DefaultInputFileChanges(
             lastExecution.getInputFileProperties(),
             thisExecution.getInputFileProperties());
-        ChangeContainer inputFileChanges = caching(directInputFileChanges);
+        InputFileChanges inputFileChanges = errorHandling(executable, caching(directInputFileChanges));
 
         // Capture output files state
         ChangeContainer outputFilePropertyChanges = new PropertyChanges(
@@ -77,64 +78,123 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             allowOverlappingOutputs);
         ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
-        return new DetectedExecutionStateChanges(
-            lastExecution,
-            errorHandling(executable, inputFileChanges),
-            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, inputFileChanges)),
-            errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, inputFilePropertyChanges, outputFilePropertyChanges, outputFileChanges))
-        );
+        ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges));
+
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        MessageCollectingChangeVisitor visitor = new MessageCollectingChangeVisitor(builder, ExecutionStateChangeDetector.MAX_OUT_OF_DATE_MESSAGES);
+        rebuildTriggeringChanges.accept(visitor);
+        ImmutableList<String> rebuildReasons = builder.build();
+
+        boolean rebuildRequired = !rebuildReasons.isEmpty();
+
+        if (!rebuildRequired) {
+            inputFileChanges.accept(visitor);
+        }
+
+        ImmutableList<String> allChangeMessages = builder.build();
+        return rebuildRequired
+            ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties())
+            : new IncrementalDetectedExecutionStateChanges(inputFileChanges, allChangeMessages);
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {
         return new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
+    private static InputFileChanges caching(InputFileChanges wrapped) {
+        CachingChangeContainer cachingChangeContainer = new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
+        return new InputFileChangesWrapper(wrapped, cachingChangeContainer);
+    }
+
     private static ChangeContainer errorHandling(Describable executable, ChangeContainer wrapped) {
         return new ErrorHandlingChangeContainer(executable, wrapped);
     }
 
-    private static class DetectedExecutionStateChanges implements ExecutionStateChanges {
-        private final AfterPreviousExecutionState previousExecution;
-        private final ChangeContainer inputFileChanges;
-        private final ChangeContainer allChanges;
-        private final ChangeContainer rebuildTriggeringChanges;
+    private static InputFileChanges errorHandling(Describable executable, InputFileChanges wrapped) {
+        ErrorHandlingChangeContainer errorHandlingChangeContainer = new ErrorHandlingChangeContainer(executable, wrapped);
+        return new InputFileChangesWrapper(wrapped, errorHandlingChangeContainer);
+    }
 
-        public DetectedExecutionStateChanges(
-            AfterPreviousExecutionState previousExecution,
-            ChangeContainer inputFileChanges,
-            ChangeContainer allChanges,
-            ChangeContainer rebuildTriggeringChanges
+    private static class InputFileChangesWrapper implements InputFileChanges {
+        private final InputFileChanges inputFileChangesDelegate;
+        private final ChangeContainer changeContainerDelegate;
+
+        public InputFileChangesWrapper(InputFileChanges inputFileChangesDelegate, ChangeContainer changeContainerDelegate) {
+            this.inputFileChangesDelegate = inputFileChangesDelegate;
+            this.changeContainerDelegate = changeContainerDelegate;
+        }
+
+        @Override
+        public boolean accept(String propertyName, ChangeVisitor visitor) {
+            return inputFileChangesDelegate.accept(propertyName, visitor);
+        }
+
+        @Override
+        public boolean accept(ChangeVisitor visitor) {
+            return changeContainerDelegate.accept(visitor);
+        }
+    }
+
+    private static class IncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
+        private final InputFileChanges inputFileChanges;
+
+        public IncrementalDetectedExecutionStateChanges(
+            InputFileChanges inputFileChanges,
+            ImmutableList<String> allChangeMessages
         ) {
-            this.previousExecution = previousExecution;
+            super(allChangeMessages);
             this.inputFileChanges = inputFileChanges;
-            this.allChanges = allChanges;
-            this.rebuildTriggeringChanges = rebuildTriggeringChanges;
         }
 
         @Override
-        public Optional<Iterable<Change>> getInputFilesChanges() {
-            if (isRebuildRequired()) {
-                return Optional.empty();
-            }
-            CollectingChangeVisitor visitor = new CollectingChangeVisitor();
-            inputFileChanges.accept(visitor);
-            return Optional.of(visitor.getChanges());
+        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
+            return new IncrementalInputChanges(inputFileChanges, incrementalParameterNameByValue);
+        }
+    }
+
+    private static class NonIncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
+        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
+
+        public NonIncrementalDetectedExecutionStateChanges(
+            ImmutableList<String> allChangeMessages,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties
+        ) {
+            super(allChangeMessages);
+            this.inputFileProperties = inputFileProperties;
         }
 
         @Override
-        public void visitAllChanges(ChangeVisitor visitor) {
-            allChanges.accept(visitor);
+        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
+            return new NonIncrementalInputChanges(inputFileProperties, incrementalParameterNameByValue);
+        }
+    }
+
+    private static class AbstractDetectedExecutionStateChanges {
+        private final ImmutableList<String> allChangeMessages;
+
+        public AbstractDetectedExecutionStateChanges(ImmutableList<String> allChangeMessages) {
+            this.allChangeMessages = allChangeMessages;
         }
 
-        private boolean isRebuildRequired() {
-            ChangeDetectorVisitor changeDetectorVisitor = new ChangeDetectorVisitor();
-            rebuildTriggeringChanges.accept(changeDetectorVisitor);
-            return changeDetectorVisitor.hasAnyChanges();
+        public ImmutableList<String> getAllChangeMessages() {
+            return allChangeMessages;
+        }
+    }
+
+    private static class MessageCollectingChangeVisitor implements ChangeVisitor {
+        private final ImmutableCollection.Builder<String> messages;
+        private final int max;
+        private int count;
+
+        public MessageCollectingChangeVisitor(ImmutableCollection.Builder<String> messages, int max) {
+            this.messages = messages;
+            this.max = max;
         }
 
         @Override
-        public AfterPreviousExecutionState getPreviousExecution() {
-            return previousExecution;
+        public boolean visitChange(Change change) {
+            messages.add(change.getMessage());
+            return ++count < max;
         }
     }
 }

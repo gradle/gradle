@@ -21,11 +21,11 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class FileChangeTest extends Specification {
+class DefaultFileChangeTest extends Specification {
 
     def "change message for ChangeType MODIFIED from #previous to #current is '#message'"() {
         expect:
-        FileChange.modified("somePath", "test", previous, current).message == "test file somePath ${message}."
+        DefaultFileChange.modified("somePath", "test", previous, current).message == "test file somePath ${message}."
 
         where:
         previous             | current              | message
@@ -41,10 +41,10 @@ class FileChangeTest extends Specification {
         fileChange.message == "test file somePath ${message}."
 
         where:
-        fileChange                                                   | message
-        FileChange.removed("somePath", "test", FileType.RegularFile) | "has been removed"
-        FileChange.removed("somePath", "test", FileType.Directory)   | "has been removed"
-        FileChange.added("somePath", "test", FileType.RegularFile)   | "has been added"
-        FileChange.added("somePath", "test", FileType.Directory)     | "has been added"
+        fileChange                                                          | message
+        DefaultFileChange.removed("somePath", "test", FileType.RegularFile) | "has been removed"
+        DefaultFileChange.removed("somePath", "test", FileType.Directory)   | "has been removed"
+        DefaultFileChange.added("somePath", "test", FileType.RegularFile)   | "has been added"
+        DefaultFileChange.added("somePath", "test", FileType.Directory)     | "has been added"
     }
 }

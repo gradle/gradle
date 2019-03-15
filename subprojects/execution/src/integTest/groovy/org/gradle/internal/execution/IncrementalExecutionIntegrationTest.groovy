@@ -30,6 +30,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
+import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
@@ -60,6 +61,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.Specification
 import org.junit.Rule
 
+import javax.annotation.Nullable
 import java.time.Duration
 import java.util.function.Supplier
 
@@ -150,7 +152,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             "file": [file("parent/outFile")],
             "files": [file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")],
         ).withWork { ->
-            EXECUTED_NON_INCREMENTALLY
+            UnitOfWork.WorkResult.DID_WORK
         }.build()
 
         when:
@@ -695,11 +697,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     class UnitOfWorkBuilder {
-        private Supplier<ExecutionOutcome> work = { ->
+        private Supplier<UnitOfWork.WorkResult> work = { ->
             create.each { it ->
                 it.createFile()
             }
-            return EXECUTED_NON_INCREMENTALLY
+            return UnitOfWork.WorkResult.DID_WORK
         }
         private Map<String, Object> inputProperties = [prop: "value"]
         private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
@@ -709,7 +711,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
         private
 
-        UnitOfWorkBuilder withWork(Supplier<ExecutionOutcome> closure) {
+        UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
             return this
         }
@@ -771,7 +773,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                ExecutionOutcome execute(IncrementalChangesContext context) {
+                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges) {
                     executed = true
                     return work.get()
                 }
@@ -795,6 +797,15 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 Optional<Duration> getTimeout() {
                     throw new UnsupportedOperationException()
+                }
+
+                @Override
+                void visitFileInputs(UnitOfWork.InputFilePropertyVisitor visitor) {
+                    for (entry in inputs.entrySet()) {
+                        if (entry.value != null) {
+                            visitor.visitInputFileProperty(entry.key, entry.value)
+                        }
+                    }
                 }
 
                 @Override
@@ -872,6 +883,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
                     snapshotOutputs()
+                }
+
+                @Override
+                boolean isRequiresInputChanges() {
+                    return false
                 }
 
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {

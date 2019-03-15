@@ -299,6 +299,9 @@ allprojects { p ->
                     if (project.hasProperty("\${project.name}Name")) {
                         names = [project.property("\${project.name}Name")]
                     }
+                    if (project.hasProperty("\${project.name}Names")) {
+                        names.set(project.property("\${project.name}Names").split(',') as List)
+                    }
                     if (project.hasProperty("\${project.name}DirName")) {
                         output = layout.buildDir.dir(project.property("\${project.name}DirName"))
                     }
