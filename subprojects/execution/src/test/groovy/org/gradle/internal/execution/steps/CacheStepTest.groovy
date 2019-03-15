@@ -65,7 +65,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<Try<?>>> loader ->
+        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<?>> loader ->
             loader.apply(cacheKey)
         }
 
@@ -93,7 +93,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
+        1 * cacheHandler.load(_) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -112,8 +112,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         0 * _
     }
 
-    def "executes work non-incrementally and stores after recoverable unpack failure"() {
-        def loadCommand = Mock(BuildCacheLoadCommand)
+    def "executes work non-incrementally and stores after unpack failure"() {
         def loadedOutputFile = file("output.txt")
         def loadedOutputDir = file("output")
 
@@ -126,13 +125,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Try<Optional<?>>> loader ->
-            loader.apply(cacheKey)
-        }
-
-        then:
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
-        1 * buildCacheController.load(loadCommand) >> {
+        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<?>> loader ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
             loadedOutputDir.file("output.txt") << "output"
@@ -166,19 +159,23 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     }
 
     def "propagates non-recoverable unpack failure"() {
-        def unrecoverableUnpackFailure = new RuntimeException("unrecoverable unpack failure")
-
         when:
         step.execute(context)
 
         then:
         def ex = thrown Exception
-        ex == unrecoverableUnpackFailure
+        ex.message == "cleanup failure"
 
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { throw unrecoverableUnpackFailure }
+        1 * cacheHandler.load(_) >> { throw new RuntimeException("unpack failure") }
+
+        then:
+        1 * work.displayName >> "work"
+        1 * work.visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+            throw new RuntimeException("cleanup failure")
+        }
         0 * _
     }
 
@@ -193,7 +190,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
+        1 * cacheHandler.load(_) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -220,7 +217,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * buildCacheController.enabled >> true
         1 * context.work >> work
         1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Try.successful(Optional.empty())
+        1 * cacheHandler.load(_) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult

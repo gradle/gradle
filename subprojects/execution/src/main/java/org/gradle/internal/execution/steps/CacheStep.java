@@ -64,8 +64,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         }
         UnitOfWork work = context.getWork();
         CacheHandler cacheHandler = work.createCacheHandler();
-        return cacheHandler
-            .load(cacheKey -> Try.ofFailable(() -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
+        return Try.ofFailable(() -> cacheHandler.load(cacheKey -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
                     OriginMetadata originMetadata = cacheHit.getOriginMetadata();

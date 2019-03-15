@@ -37,7 +37,6 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -252,7 +251,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public CacheHandler createCacheHandler() {
             return new CacheHandler() {
                 @Override
-                public <T> Try<Optional<T>> load(Function<BuildCacheKey, Try<Optional<T>>> loader) {
+                public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
                     // TODO Log this when creating the build cache key perhaps?
                     if (task.isHasCustomActions()) {
                         LOGGER.info("Custom actions are attached to {}.", task);
@@ -263,7 +262,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     ) {
                         return loader.apply(context.getBuildCacheKey());
                     } else {
-                        return Try.successful(Optional.<T>empty());
+                        return Optional.empty();
                     }
                 }
 

@@ -17,13 +17,12 @@
 package org.gradle.internal.execution;
 
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.Try;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface CacheHandler {
-    <T> Try<Optional<T>> load(Function<BuildCacheKey, Try<Optional<T>>> loader);
+    <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader);
     void store(Consumer<BuildCacheKey> storer);
 }
