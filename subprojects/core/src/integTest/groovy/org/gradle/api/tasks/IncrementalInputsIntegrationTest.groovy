@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.internal.change.ChangeTypeInternal
+import org.gradle.work.Incremental
 
 class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
@@ -78,7 +79,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
     @Override
     String getPrimaryInputAnnotation() {
-        return "@Incremental"
+        return "@${Incremental.simpleName}"
     }
 
     def setup() {
@@ -131,4 +132,18 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         then:        
         executesWithRebuildContext("ext.added += ['new-input-file.txt']")
     }
+    
+    def "properties annotated with SkipWhenEmpty are incremental"() {
+        setupTaskSources("@${SkipWhenEmpty.simpleName}")
+
+        given:
+        previousExecution()
+
+        when:
+        file('inputs/file1.txt') << "changed content"
+
+        then:
+        executesWithIncrementalContext("ext.modified = ['file1.txt']")
+    }
+
 }

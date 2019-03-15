@@ -298,7 +298,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
                 if (value != null) {
-                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, usesIncrementalTaskInputs || inputFileProperty.isIncremental());
+                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, usesIncrementalTaskInputs || inputFileProperty.isIncremental() || inputFileProperty.isSkipWhenEmpty());
                 }
             }
         }

@@ -47,7 +47,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('outputs/file2.txt') << "outputFile2"
     }
 
-    private void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
+    void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
         file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy").text = """
     import org.gradle.api.*
     import org.gradle.api.plugins.*
@@ -75,7 +75,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         def incrementalExecution
     }
         """
-        file("buildSrc/src/main/groovy/IncrementalTask.groovy") << """
+        file("buildSrc/src/main/groovy/IncrementalTask.groovy").text = """
     import org.gradle.api.*
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
