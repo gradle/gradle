@@ -217,17 +217,14 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private DaemonForkOptions toDaemonOptions(Class<?> actionClass, Iterable<Class<?>> paramClasses, JavaForkOptions userForkOptions, Iterable<File> additionalClasspath) {
-        ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         ImmutableSet.Builder<String> sharedPackagesBuilder = ImmutableSet.builder();
+        addVisiblePackage(actionClass, sharedPackagesBuilder);
+        addVisiblePackage(Inject.class, sharedPackagesBuilder);
 
-        sharedPackagesBuilder.add("javax.inject");
-
+        ImmutableSet.Builder<File> classpathBuilder = ImmutableSet.builder();
         if (additionalClasspath != null) {
             classpathBuilder.addAll(additionalClasspath);
         }
-
-        // TODO: Maybe not needed?
-        addVisiblePackage(actionClass, sharedPackagesBuilder);
 
         Set<URL> actionClasspath = inferClasspathFor(actionClass, paramClasses);
         classpathBuilder.addAll(CollectionUtils.collect(actionClasspath, new Transformer<File, URL>() {
