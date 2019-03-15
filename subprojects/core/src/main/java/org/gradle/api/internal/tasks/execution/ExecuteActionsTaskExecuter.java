@@ -316,7 +316,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean isIncremental() {
+        public boolean isRequiresInputChanges() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof AbstractIncrementalTaskAction) {
                     return true;

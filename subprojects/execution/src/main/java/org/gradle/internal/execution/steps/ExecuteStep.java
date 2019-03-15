@@ -33,7 +33,7 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
     @Override
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
-        InputChangesInternal inputChanges = work.isIncremental()
+        InputChangesInternal inputChanges = work.isRequiresInputChanges()
             ? determineInputChanges(work, context)
             : null;
 

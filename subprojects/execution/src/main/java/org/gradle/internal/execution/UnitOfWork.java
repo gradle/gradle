@@ -37,7 +37,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     Optional<Duration> getTimeout();
 
-    boolean isIncremental();
+    boolean isRequiresInputChanges();
 
     void visitFileInputs(InputFilePropertyVisitor visitor);
 

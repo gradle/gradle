@@ -83,11 +83,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     private final FileCollectionFactory fileCollectionFactory;
     private final PropertyWalker parameterPropertyWalker;
     private final boolean requiresDependencies;
+    private final boolean requiresInputChanges;
     private final InstanceFactory<? extends TransformAction> instanceFactory;
     private final boolean cacheable;
 
     private IsolatedParameters isolatedParameters;
-    private final boolean incremental;
 
     public DefaultTransformer(
         Class<? extends TransformAction> implementationClass,
@@ -114,7 +114,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.parameterPropertyWalker = parameterPropertyWalker;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
-        this.incremental = instanceFactory.requiresService(InputChanges.class);
+        this.requiresInputChanges = instanceFactory.requiresService(InputChanges.class);
         this.cacheable = cacheable;
     }
 
@@ -149,8 +149,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     @Override
-    public boolean isIncremental() {
-        return incremental;
+    public boolean requiresInputChanges() {
+        return requiresInputChanges;
     }
 
     @Override

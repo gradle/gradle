@@ -42,7 +42,7 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.incremental >> false
+        1 * work.requiresInputChanges >> false
         1 * work.execute(null) >> workResult
         0 * _
 
@@ -62,7 +62,7 @@ class ExecuteStepTest extends Specification {
         ex == failure
 
         1 * context.work >> work
-        1 * work.incremental >> false
+        1 * work.requiresInputChanges >> false
         1 * work.execute(null) >> { throw failure }
         0 * _
 
@@ -79,7 +79,7 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.incremental >> true
+        1 * work.requiresInputChanges >> true
         1 * context.changes >> optionalChanges
         1 * work.visitFileInputs(_) >> { args ->
             ((UnitOfWork.InputFilePropertyVisitor) args[0]).visitInputFileProperty("fileInput", "some/path")

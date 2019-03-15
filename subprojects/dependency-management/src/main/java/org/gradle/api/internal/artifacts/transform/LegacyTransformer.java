@@ -56,7 +56,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public boolean isIncremental() {
+    public boolean requiresInputChanges() {
         return false;
     }
 

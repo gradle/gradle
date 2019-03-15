@@ -395,8 +395,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean isIncremental() {
-            return transformer.isIncremental();
+        public boolean isRequiresInputChanges() {
+            return transformer.requiresInputChanges();
         }
 
         @Override

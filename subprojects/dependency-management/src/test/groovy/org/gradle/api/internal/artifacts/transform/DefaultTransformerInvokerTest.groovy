@@ -127,7 +127,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        boolean isIncremental() {
+        boolean requiresInputChanges() {
             return false
         }
 

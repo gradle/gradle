@@ -45,9 +45,9 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     boolean requiresDependencies();
 
     /**
-     * Whether the transformer supports incremental execution.
+     * Whether the transformer requires {@link InputChanges} to be injected.
      */
-    boolean isIncremental();
+    boolean requiresInputChanges();
 
     /**
      * Whether the transformer is cacheable.

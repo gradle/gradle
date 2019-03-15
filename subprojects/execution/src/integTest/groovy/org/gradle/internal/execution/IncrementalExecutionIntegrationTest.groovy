@@ -886,7 +886,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                boolean isIncremental() {
+                boolean isRequiresInputChanges() {
                     return false
                 }
 
