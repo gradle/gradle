@@ -21,7 +21,7 @@ import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -317,7 +317,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public boolean isIncremental() {
-            for (ContextAwareTaskAction taskAction : task.getTaskActions()) {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof AbstractIncrementalTaskAction) {
                     return true;
                 }
@@ -337,7 +337,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private void executeActions(TaskInternal task, @Nullable InputChangesInternal inputChanges) {
-        for (ContextAwareTaskAction action : new ArrayList<ContextAwareTaskAction>(task.getTaskActions())) {
+        for (InputChangesAwareTaskAction action : new ArrayList<InputChangesAwareTaskAction>(task.getTaskActions())) {
             task.getState().setDidWork(true);
             task.getStandardOutputCapture().start();
             try {
@@ -354,9 +354,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
     }
 
-    private void executeAction(final String actionDisplayName, final TaskInternal task, final ContextAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
+    private void executeAction(final String actionDisplayName, final TaskInternal task, final InputChangesAwareTaskAction action, @Nullable InputChangesInternal inputChanges) {
         if (inputChanges != null) {
-            action.contextualise(inputChanges);
+            action.setInputChanges(inputChanges);
         }
         buildOperationExecutor.run(new RunnableBuildOperation() {
             @Override
@@ -373,7 +373,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 } catch (Throwable t) {
                     actionFailure = t;
                 } finally {
-                    action.releaseContext();
+                    action.clearInputChanges();
                 }
 
                 try {

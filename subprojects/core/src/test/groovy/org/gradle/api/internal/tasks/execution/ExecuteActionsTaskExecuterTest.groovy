@@ -21,7 +21,7 @@ import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -59,8 +59,8 @@ import static java.util.Collections.emptyList
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
-    def action1 = Mock(ContextAwareTaskAction)
-    def action2 = Mock(ContextAwareTaskAction)
+    def action1 = Mock(InputChangesAwareTaskAction)
+    def action2 = Mock(InputChangesAwareTaskAction)
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
     def taskProperties = Mock(TaskProperties)
@@ -152,7 +152,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             assert state.executing
         }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -164,7 +164,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.execute(task)
         then:
-        1 * action2.releaseContext()
+        1 * action2.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -200,7 +200,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             task.getActions().add(action2)
         }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -226,7 +226,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -259,7 +259,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             throw new StopExecutionException('stop')
         }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -290,7 +290,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             throw new StopActionException('stop')
         }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -302,7 +302,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * action2.execute(task)
         then:
-        1 * action2.releaseContext()
+        1 * action2.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true)
         then:
@@ -330,7 +330,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
@@ -368,7 +368,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", new RuntimeException("failure 1"), new RuntimeException("failure 2"))
@@ -405,7 +405,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         then:
         1 * buildOperationExecutor.run(_ as RunnableBuildOperation) >> { args -> args[0].run(Stub(BuildOperationContext)) }
         then:
-        1 * action1.releaseContext()
+        1 * action1.clearInputChanges()
         then:
         1 * asyncWorkTracker.waitForCompletion(_, true) >> {
             throw new DefaultMultiCauseException("mock failures", failure)

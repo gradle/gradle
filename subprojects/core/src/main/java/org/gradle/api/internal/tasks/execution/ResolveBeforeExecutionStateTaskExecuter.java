@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -77,7 +77,7 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
 
     private BeforeExecutionState createExecutionState(TaskInternal task, TaskProperties properties, @Nullable AfterPreviousExecutionState afterPreviousExecutionState, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFiles) {
         Class<? extends TaskInternal> taskClass = task.getClass();
-        List<ContextAwareTaskAction> taskActions = task.getTaskActions();
+        List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         ImplementationSnapshot taskImplementation = ImplementationSnapshot.of(taskClass, classLoaderHierarchyHasher);
         ImmutableList<ImplementationSnapshot> taskActionImplementations = collectActionImplementations(taskActions, classLoaderHierarchyHasher);
 
@@ -101,12 +101,12 @@ public class ResolveBeforeExecutionStateTaskExecuter implements TaskExecuter {
         );
     }
 
-    private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<ContextAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    private static ImmutableList<ImplementationSnapshot> collectActionImplementations(Collection<InputChangesAwareTaskAction> taskActions, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         if (taskActions.isEmpty()) {
             return ImmutableList.of();
         }
         ImmutableList.Builder<ImplementationSnapshot> actionImplementations = ImmutableList.builder();
-        for (ContextAwareTaskAction taskAction : taskActions) {
+        for (InputChangesAwareTaskAction taskAction : taskActions) {
             actionImplementations.add(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }
         return actionImplementations.build();
