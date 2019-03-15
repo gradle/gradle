@@ -19,10 +19,13 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.logging.Logger;
 import org.gradle.internal.classloader.ClasspathInferer;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.resources.ResourceLock;
@@ -259,18 +262,24 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         classpathInferer.getClassPathFor(actionClass, classPath);
         classpathBuilder.addAll(classPath);
 
-        // TODO: Annotations seem to be ignored by classpathInferer
-        final Set<URL> injectClasspath = new LinkedHashSet<URL>();
-        classpathInferer.getClassPathFor(Inject.class, injectClasspath);
-        classpathBuilder.addAll(injectClasspath);
-
         for (Class clazz : paramClasses) {
             final Set<URL> paramClassPath = new LinkedHashSet<URL>();
             classpathInferer.getClassPathFor(clazz, paramClassPath);
             classpathBuilder.addAll(paramClassPath);
         }
 
+        // TODO: This shouldn't be necessary
+        addHacks(classpathBuilder, Inject.class, Logger.class, ConsoleMetaData.class, ListenerBroadcast.class);
+
         return classpathBuilder.build();
+    }
+
+    private void addHacks(ImmutableSet.Builder<URL> classpathBuilder, Class<?>... classes) {
+        for (Class<?> clazz : classes) {
+            final Set<URL> classpath = new LinkedHashSet<URL>();
+            classpathInferer.getClassPathFor(clazz, classpath);
+            classpathBuilder.addAll(classpath);
+        }
     }
 
     private static void addVisiblePackage(Class<?> visibleClass, ImmutableSet.Builder<String> sharedPackagesBuilder) {
