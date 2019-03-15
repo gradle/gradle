@@ -32,7 +32,7 @@ public interface InputFileChanges extends ChangeContainer {
 
         @Override
         public boolean accept(String propertyName, ChangeVisitor visitor) {
-            throw new InvalidUserDataException("Cannot query incremental changes: No incremental properties declared.");
+            throw new InvalidUserDataException("Cannot query incremental changes for property " + propertyName + ": No incremental properties declared.");
         }
     };
 }
