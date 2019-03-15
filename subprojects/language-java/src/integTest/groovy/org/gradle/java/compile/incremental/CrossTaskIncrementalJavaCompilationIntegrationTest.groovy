@@ -27,4 +27,13 @@ class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTa
             }
         '''
     }
+
+    @Override
+    protected void addDependency(String from, String to) {
+        buildFile << """
+            project(':$from') {
+                dependencies { compile project(':$to') }
+            }
+        """
+    }
 }

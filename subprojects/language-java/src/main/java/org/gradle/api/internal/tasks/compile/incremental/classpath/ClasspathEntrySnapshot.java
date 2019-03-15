@@ -19,9 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
-import org.gradle.api.internal.tasks.compile.incremental.deps.AffectedClasses;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassChanges;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.internal.hash.HashCode;
 
@@ -70,38 +69,23 @@ public class ClasspathEntrySnapshot {
         return result;
     }
 
-    public AffectedClasses getAffectedClassesSince(ClasspathEntrySnapshot other) {
-        DependentsSet affectedClasses = affectedSince(other);
+    public ClassChanges getChangedClassesSince(ClasspathEntrySnapshot other) {
+        Set<String> modifiedClasses = modifiedSince(other);
         Set<String> addedClasses = addedSince(other);
-        return new AffectedClasses(affectedClasses, addedClasses);
+        return new ClassChanges(modifiedClasses, addedClasses);
     }
 
-    private DependentsSet affectedSince(ClasspathEntrySnapshot other) {
-        final Set<String> affected = new HashSet<String>();
+    private Set<String> modifiedSince(ClasspathEntrySnapshot other) {
+        final Set<String> modified = new HashSet<String>();
         for (Map.Entry<String, HashCode> otherClass : other.getHashes().entrySet()) {
             String otherClassName = otherClass.getKey();
             HashCode otherClassBytes = otherClass.getValue();
             HashCode thisClsBytes = getHashes().get(otherClassName);
             if (thisClsBytes == null || !thisClsBytes.equals(otherClassBytes)) {
-                affected.add(otherClassName);
-                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(otherClassName, IntSets.EMPTY_SET);
-                if (dependents.isDependencyToAll()) {
-                    return dependents;
-                }
-                affected.addAll(dependents.getDependentClasses());
+                modified.add(otherClassName);
             }
         }
-        for (String added : addedSince(other)) {
-            if (added.endsWith(ClassSetAnalysisData.PACKAGE_INFO)) {
-                affected.add(added);
-                DependentsSet dependents = other.getClassAnalysis().getRelevantDependents(added, IntSets.EMPTY_SET);
-                if (dependents.isDependencyToAll()) {
-                    return dependents;
-                }
-                affected.addAll(dependents.getDependentClasses());
-            }
-        }
-        return DependentsSet.dependents(affected);
+        return modified;
     }
 
     private Set<String> addedSince(ClasspathEntrySnapshot other) {

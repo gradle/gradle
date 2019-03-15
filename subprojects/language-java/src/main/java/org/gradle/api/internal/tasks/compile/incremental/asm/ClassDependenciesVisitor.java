@@ -21,8 +21,8 @@ import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
@@ -41,7 +41,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private final MethodVisitor methodVisitor;
     private final FieldVisitor fieldVisitor;
     private final IntSet constants;
-    private final Set<String> superTypes;
     private final Set<String> types;
     private final Predicate<String> typeFilter;
     private final StringInterner interner;
@@ -54,7 +53,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         super(API);
         this.constants = new IntOpenHashSet(2);
         this.types = Sets.newHashSet();
-        this.superTypes = Sets.newHashSet();
         this.methodVisitor = new MethodVisitor();
         this.fieldVisitor = new FieldVisitor();
         this.retentionPolicyVisitor = new RetentionPolicyVisitor();
@@ -67,7 +65,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     public static ClassAnalysis analyze(String className, ClassReader reader, StringInterner interner) {
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor(new ClassRelevancyFilter(className), reader, interner);
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-        return new ClassAnalysis(interner.intern(className), visitor.getClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants(), visitor.getSuperTypes());
+        return new ClassAnalysis(interner.intern(className), visitor.getClassDependencies(), visitor.isDependencyToAll(), visitor.getConstants());
     }
 
     @Override
@@ -77,13 +75,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             // superName can be null if what we are analyzing is `java.lang.Object`
             // which can happen when a custom Java SDK is on classpath (typically, android.jar)
             String type = typeOfFromSlashyString(superName);
-            maybeAddSuperType(type);
             maybeAddDependentType(type);
         }
         for (String s : interfaces) {
             String interfaceType = typeOfFromSlashyString(s);
             maybeAddDependentType(interfaceType);
-            maybeAddSuperType(interfaceType);
         }
 
     }
@@ -117,12 +113,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         }
     }
 
-    protected void maybeAddSuperType(String type) {
-        if (typeFilter.apply(type)) {
-            superTypes.add(intern(type));
-        }
-    }
-
     protected void maybeAddDependentType(String type) {
         if (typeFilter.apply(type)) {
             types.add(intern(type));
@@ -135,10 +125,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     protected String typeOfFromSlashyString(String slashyStyleDesc) {
         return Type.getObjectType(slashyStyleDesc).getClassName();
-    }
-
-    public Set<String> getSuperTypes() {
-        return superTypes;
     }
 
     public Set<String> getClassDependencies() {
