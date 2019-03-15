@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 
+import org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate
+
 
 /**
  * Receiver for `dependencies.constraints` block providing convenient utilities for configuring dependency constraints.
@@ -32,12 +34,15 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 class DependencyConstraintHandlerScope
 private constructor(
     val constraints: DependencyConstraintHandler
-) : DependencyConstraintHandler by constraints {
+) : DependencyConstraintHandlerDelegate() {
 
     companion object {
         fun of(constraints: DependencyConstraintHandler) =
             DependencyConstraintHandlerScope(constraints)
     }
+
+    override val delegate: DependencyConstraintHandler
+        get() = constraints
 
     /**
      * Adds a dependency constraint to the given configuration.

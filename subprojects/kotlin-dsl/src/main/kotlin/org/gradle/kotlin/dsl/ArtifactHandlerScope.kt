@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 
+import org.gradle.kotlin.dsl.support.delegates.ArtifactHandlerDelegate
+
 
 /**
  * Receiver for `artifacts` block providing convenient utilities for configuring artifacts.
@@ -30,7 +32,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 class ArtifactHandlerScope
 private constructor(
     val artifacts: ArtifactHandler
-) : ArtifactHandler by artifacts {
+) : ArtifactHandlerDelegate() {
 
     companion object {
         /**
@@ -40,6 +42,9 @@ private constructor(
         fun of(artifacts: ArtifactHandler) =
             ArtifactHandlerScope(artifacts)
     }
+
+    override val delegate: ArtifactHandler
+        get() = artifacts
 
     /**
      * Adds an artifact to the given configuration.

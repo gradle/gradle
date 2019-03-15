@@ -31,6 +31,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
+import org.gradle.kotlin.dsl.support.delegates.ScriptHandlerDelegate
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
 
@@ -39,8 +40,8 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
  */
 class ScriptHandlerScope
 private constructor(
-    scriptHandler: ScriptHandler
-) : ScriptHandler by scriptHandler {
+    override val delegate: ScriptHandler
+) : ScriptHandlerDelegate() {
 
     companion object {
         fun of(scriptHandler: ScriptHandler) =
@@ -50,7 +51,7 @@ private constructor(
     /**
      * The dependencies of the script.
      */
-    val dependencies by unsafeLazy { DependencyHandlerScope.of(scriptHandler.dependencies) }
+    val dependencies by unsafeLazy { DependencyHandlerScope.of(delegate.dependencies) }
 
     /**
      * The script classpath configuration.

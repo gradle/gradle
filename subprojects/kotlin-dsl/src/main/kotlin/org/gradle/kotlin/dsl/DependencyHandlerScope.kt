@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 
+import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
+
 
 /**
  * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
@@ -32,7 +34,7 @@ import org.gradle.api.plugins.ExtensionAware
 open class DependencyHandlerScope
 private constructor(
     val dependencies: DependencyHandler
-) : DependencyHandler by dependencies {
+) : DependencyHandlerDelegate() {
 
     companion object {
         fun of(dependencies: DependencyHandler): DependencyHandlerScope =
@@ -43,6 +45,9 @@ private constructor(
             dependencies: DependencyHandler
         ) : DependencyHandlerScope(dependencies), ExtensionAware by (dependencies as ExtensionAware)
     }
+
+    override val delegate: DependencyHandler
+        get() = dependencies
 
     /**
      * Adds a dependency to the given configuration.
