@@ -64,6 +64,11 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             File anotherIncrementalInput
             
             @Optional
+            @Incremental
+            @InputDirectory
+            File anotherIncrementalInputDirectory
+            
+            @Optional
             @InputFile
             File nonIncrementalInput
             
@@ -144,6 +149,18 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
         then:
         executesWithIncrementalContext("ext.modified = ['file1.txt']")
+    }
+
+    def "two incremental inputs cannot have the same value"() {
+        buildFile << """
+            tasks.withType(IncrementalTask).configureEach {
+                anotherIncrementalInputDirectory = inputDir
+            }
+        """
+
+        expect:
+        fails("incremental")
+        failureHasCause("Multiple entries with same key: ${file('inputs').absolutePath}=inputDir and ${file('inputs').absolutePath}=anotherIncrementalInputDirectory")
     }
 
 }
