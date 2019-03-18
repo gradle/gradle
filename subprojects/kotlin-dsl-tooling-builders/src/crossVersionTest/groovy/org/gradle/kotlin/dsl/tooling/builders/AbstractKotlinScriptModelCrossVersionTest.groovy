@@ -81,12 +81,16 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected String getTargetKotlinVersion() {
         if (targetKotlinVersion == null) {
-            def props = new JarTestFixture(targetDist.gradleHomeDir.file("lib").listFiles().find {
-                it.name.startsWith("gradle-kotlin-dsl-${targetVersion.baseVersion.version}")
-            }).content("gradle-kotlin-dsl-versions.properties")
-            targetKotlinVersion = new Properties().tap { load(new StringReader(props)) }.getProperty("kotlin")
+            targetKotlinVersion = loadTargetDistKotlinVersion()
         }
         return targetKotlinVersion
+    }
+
+    private static String loadTargetDistKotlinVersion() {
+        def props = new JarTestFixture(targetDist.gradleHomeDir.file("lib").listFiles().find {
+            it.name.startsWith("gradle-kotlin-dsl-${targetVersion.baseVersion.version}")
+        }).content("gradle-kotlin-dsl-versions.properties")
+        return new Properties().tap { load(new StringReader(props)) }.getProperty("kotlin")
     }
 
     protected TestFile withDefaultSettings() {
@@ -97,11 +101,11 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withSettingsIn(".", script)
     }
 
-    private TestFile withDefaultSettingsIn(String baseDir) {
+    protected TestFile withDefaultSettingsIn(String baseDir) {
         return withSettingsIn(baseDir, defaultSettingsScript)
     }
 
-    protected TestFile withSettingsIn(String baseDir, String script) {
+    private TestFile withSettingsIn(String baseDir, String script) {
         return withFile("$baseDir/settings.gradle.kts", script)
     }
 
@@ -143,7 +147,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     }
 
     protected ProjectSourceRoots[] withMultiProjectKotlinBuildSrc() {
-        withSettingsIn("buildSrc", """
+        withDefaultSettingsIn("buildSrc").append("""
             include(":a", ":b", ":c")
         """)
         withFile("buildSrc/build.gradle.kts", """

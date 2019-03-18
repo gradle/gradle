@@ -43,14 +43,15 @@ class KotlinInitScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         assertContainsGradleKotlinDslJars(classPath)
         assertThat(
             classPath.collect { it.name },
-            not(hasBuildSrc()))
+            not(hasBuildSrc())
+        )
     }
 
     def "can fetch initscript classpath in face of compilation errors"() {
 
         given:
         withDefaultSettings()
-        withFile("classes.jar")
+        withEmptyJar("classes.jar")
 
         and:
         def initScript =
@@ -71,7 +72,8 @@ class KotlinInitScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         assertContainsGradleKotlinDslJars(classPath)
         assertClassPathContains(
             classPath,
-            file("classes.jar"))
+            file("classes.jar")
+        )
     }
 
     List<File> canonicalClassPathFor(File initScript) {

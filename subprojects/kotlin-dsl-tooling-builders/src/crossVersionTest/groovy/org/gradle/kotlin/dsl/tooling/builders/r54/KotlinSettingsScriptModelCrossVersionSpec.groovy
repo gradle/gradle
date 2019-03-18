@@ -33,7 +33,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         withBuildSrc()
 
         and:
-        def settingsDependency = withFile("settings-dependency.jar")
+        def settingsDependency = withEmptyJar("settings-dependency.jar")
         def settings = withSettings("""
             buildscript {
                 dependencies {
@@ -43,7 +43,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         """)
 
         and:
-        def projectDependency = withFile("project-dependency.jar")
+        def projectDependency = withEmptyJar("project-dependency.jar")
         file("build.gradle") << """
             buildscript {
                 dependencies {
@@ -69,7 +69,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         withDefaultSettings()
 
         and:
-        def settingsDependency = withFile("settings-dependency.jar", "")
+        def settingsDependency = withEmptyJar("settings-dependency.jar")
         def settings = withFile("my.settings.gradle.kts", """
             buildscript {
                 dependencies {
@@ -79,7 +79,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         """)
 
         and:
-        def projectDependency = withFile("project-dependency.jar", "")
+        def projectDependency = withEmptyJar("project-dependency.jar")
         withFile("build.gradle", """
             buildscript {
                 dependencies {
@@ -103,7 +103,9 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         withKotlinBuildSrc()
-        def settings = withSettings("""include(":sub")""")
+        def settings = withDefaultSettings().append("""
+            include(":sub")
+        """)
 
         expect:
         assertThat(
@@ -116,7 +118,9 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         def sourceRoots = withMultiProjectKotlinBuildSrc()
-        def settings = withSettings("""include(":sub")""")
+        def settings = withDefaultSettings().append("""
+            include(":sub")
+        """)
 
         expect:
         assertThat(

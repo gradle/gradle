@@ -70,9 +70,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     def "can fetch buildscript classpath in face of compilation errors"() {
 
         given:
-        projectDir.createFile("classes.jar")
-        settingsFile << ""
-        buildFileKts << """
+        withEmptyJar("classes.jar")
+        withDefaultSettings()
+        withBuildScript("""
             buildscript {
                 dependencies {
                     classpath(files("classes.jar"))
@@ -80,11 +80,12 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             }
 
             val p =
-        """.stripIndent()
+        """)
 
         expect:
         assertClassPathContains(
-            file("classes.jar"))
+            file("classes.jar")
+        )
     }
 
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
@@ -117,7 +118,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         given:
         withBuildSrc()
 
-        withFile("classes.jar")
+        withEmptyJar("classes.jar")
 
         withDefaultSettings()
         withFile("build.gradle", """
@@ -134,7 +135,8 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         then:
         assertThat(
             classPath.collect { it.name } as List<String>,
-            hasItems("classes.jar"))
+            hasItems("classes.jar")
+        )
 
         assertContainsBuildSrc(classPath)
 
@@ -144,12 +146,13 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     def "can fetch buildscript classpath for sub-project script when parent has errors"() {
 
         given:
-        withSettings("""include("sub")""")
+        withDefaultSettings().append("""
+            include("sub")
+        """)
 
-        withDefaultSettings()
         withBuildScript("val p =")
 
-        def jar = withFile("libs/jar.jar")
+        def jar = withEmptyJar("libs/jar.jar")
 
         def subProjectScript =
             withFile("sub/build.gradle.kts", """
@@ -184,7 +187,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     @CompileStatic
     private void assertCanFetchClassPathForSubProjectScriptIn(String location) {
 
-        withSettingsIn(location, "include(\"foo\", \"bar\")")
+        withDefaultSettingsIn(location).append("""
+            include("foo", "bar")
+        """)
 
         def parentJar = withEmptyJar("$location/libs/parent.jar")
         def fooJar = withEmptyJar("$location/libs/foo.jar")
@@ -231,7 +236,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         def subDependency = withEmptyJar("libs/sub.jar")
 
         and:
-        withSettingsIn("root", """
+        withDefaultSettingsIn("root").append("""
             include("sub")
             project(":sub").apply {
                 projectDir = file("../sub")
@@ -286,7 +291,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         def nestedRootDependency = withEmptyJar("libs/$nestedProjectName-root-dep.jar")
         def nestedSubDependency = withEmptyJar("libs/$nestedProjectName-sub-dep.jar")
 
-        withSettingsIn(nestedProjectName, """
+        withDefaultSettingsIn(nestedProjectName).append("""
             include("sub")
             project(":sub").apply {
                 projectDir = file("../$nestedProjectName-sub")
@@ -341,13 +346,13 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         withBuildSrc()
 
         def buildSrcDependency =
-            withFile("buildSrc-dependency.jar")
+            withEmptyJar("buildSrc-dependency.jar")
 
         withFile("buildSrc/build.gradle", """
             dependencies { compile(files("../${buildSrcDependency.name}")) }
         """)
 
-        def rootProjectDependency = withFile("rootProject-dependency.jar")
+        def rootProjectDependency = withEmptyJar("rootProject-dependency.jar")
 
         withDefaultSettings()
         withFile("build.gradle", """
@@ -394,7 +399,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         withDefaultSettings()
 
         def scriptPluginDependency =
-            withFile("script-plugin-dependency.jar")
+            withEmptyJar("script-plugin-dependency.jar")
 
         def scriptPlugin = withFile("plugin.gradle.kts", """
             buildscript {
@@ -412,13 +417,15 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         assertThat(
             "Script body shouldn't be evaluated",
             model.exceptions,
-            equalTo([]))
+            equalTo([])
+        )
 
         and:
         def scriptPluginClassPath = canonicalClasspathOf(model)
         assertThat(
             scriptPluginClassPath.collect { it.name } as List<String>,
-            hasItem(scriptPluginDependency.name))
+            hasItem(scriptPluginDependency.name)
+        )
 
         assertContainsGradleKotlinDslJars(scriptPluginClassPath)
     }
@@ -489,7 +496,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
 
         given:
         withKotlinBuildSrc()
-        withSettings("""include(":sub")""")
+        withDefaultSettings().append("""
+            include(":sub")
+        """)
 
         expect:
         assertThat(
@@ -503,7 +512,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
 
         given:
         def sourceRoots = withMultiProjectKotlinBuildSrc()
-        withSettings("""include(":sub")""")
+        withDefaultSettings().append("""
+            include(":sub")
+        """)
 
         expect:
         assertThat(
@@ -546,7 +557,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     ) {
 
         def subProjectName = "sub"
-        withSettings("""
+        withDefaultSettings().append("""
             include("$subProjectName")
         """)
 
