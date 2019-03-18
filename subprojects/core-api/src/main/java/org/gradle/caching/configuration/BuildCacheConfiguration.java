@@ -46,6 +46,8 @@ public interface BuildCacheConfiguration {
     /**
      * Configures the local cache with the given type.
      *
+     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is deprecated.</p>
+     *
      * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
      * <p>Storing ("push") in the local build cache is enabled by default.</p>
      *
@@ -55,6 +57,8 @@ public interface BuildCacheConfiguration {
 
     /**
      * Configures the local cache with the given type.
+     *
+     * <p><strong>Note:</strong> using any type except {@link org.gradle.caching.local.DirectoryBuildCache} is deprecated.</p>
      *
      * <p>If a local build cache has already been configured with a different type, this method replaces it.</p>
      * <p>If a local build cache has already been configured with the <b>same</b> type, this method configures it.</p>

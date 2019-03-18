@@ -33,6 +33,17 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_5.4]]
+== Upgrading from 5.3 and earlier
+
+=== Deprecated classes, methods and properties
+
+==== Using custom local build cache implementations
+
+Using a custom build cache implementation for the local build cache is now deprecated.
+The only allowed type will be `DirectoryBuildCache` going forward.
+There is no change in the support for using custom build cache implementations as the remote build cache.
+
 [[changes_5.3]]
 == Upgrading from 5.2 and earlier
 
