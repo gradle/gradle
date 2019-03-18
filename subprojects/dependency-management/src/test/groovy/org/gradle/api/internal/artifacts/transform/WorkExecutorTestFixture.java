@@ -36,8 +36,8 @@ import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public class WorkExecutorTestFixture {
 
@@ -52,10 +52,9 @@ public class WorkExecutorTestFixture {
             return false;
         }
 
-        @Nullable
         @Override
-        public <T> T load(BuildCacheLoadCommand<T> command) {
-            return null;
+        public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
+            return Optional.empty();
         }
 
         @Override

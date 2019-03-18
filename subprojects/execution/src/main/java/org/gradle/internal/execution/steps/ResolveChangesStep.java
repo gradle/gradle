@@ -16,8 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -27,10 +25,8 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.history.changes.NonIncrementalInputChanges;
+import org.gradle.internal.execution.history.changes.RebuildExecutionStateChanges;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
@@ -53,7 +49,9 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
             .<ExecutionStateChanges>map(rebuildReason ->
-                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState.orElse(null))
+                new RebuildExecutionStateChanges(rebuildReason, beforeExecutionState
+                    .map(beforeExecution -> beforeExecution.getInputFileProperties())
+                    .orElse(null))
             )
             .orElseGet(() ->
                 beforeExecutionState
@@ -64,7 +62,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
                             work,
                             !work.isAllowOverlappingOutputs())
                         )
-                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution))
+                        .orElseGet(() -> new RebuildExecutionStateChanges(NO_HISTORY, beforeExecution.getInputFileProperties()))
                     )
                     .orElse(null)
             );
@@ -97,26 +95,4 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         });
     }
 
-    private static class RebuildExecutionStateChanges implements ExecutionStateChanges {
-        private final String rebuildReason;
-        private final BeforeExecutionState beforeExecutionState;
-
-        public RebuildExecutionStateChanges(String rebuildReason, @Nullable BeforeExecutionState beforeExecutionState) {
-            this.rebuildReason = rebuildReason;
-            this.beforeExecutionState = beforeExecutionState;
-        }
-
-        @Override
-        public ImmutableList<String> getAllChangeMessages() {
-            return ImmutableList.of(rebuildReason);
-        }
-
-        @Override
-        public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
-            if (beforeExecutionState == null) {
-                throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
-            }
-            return new NonIncrementalInputChanges(beforeExecutionState.getInputFileProperties(), incrementalParameterNameByValue);
-        }
-    }
 }

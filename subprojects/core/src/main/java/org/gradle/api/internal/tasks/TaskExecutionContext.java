@@ -79,10 +79,6 @@ public interface TaskExecutionContext {
 
     void setTaskCachingEnabled(boolean enabled);
 
-    boolean isOutputRemovedBeforeExecution();
-
-    void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
-
     Optional<OverlappingOutputs> getOverlappingOutputs();
 
     void setOverlappingOutputs(OverlappingOutputs overlappingOutputs);

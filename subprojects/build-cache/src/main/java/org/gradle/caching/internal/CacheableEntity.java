@@ -29,15 +29,8 @@ public interface CacheableEntity extends Describable {
 
     void visitOutputTrees(CacheableTreeVisitor visitor);
 
-    void visitLocalState(LocalStateVisitor visitor);
-
     @FunctionalInterface
     interface CacheableTreeVisitor {
         void visitOutputTree(String name, TreeType type, File root);
-    }
-
-    @FunctionalInterface
-    interface LocalStateVisitor {
-        void visitLocalStateRoot(File localStateRoot);
     }
 }

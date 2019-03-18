@@ -33,7 +33,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
-import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UpToDateResult
@@ -77,14 +76,15 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def actionListener = Mock(TaskActionListener)
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
+    def changeDetector = new DefaultExecutionStateChangeDetector()
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-        new ResolveChangesStep<UpToDateResult>(new DefaultExecutionStateChangeDetector(),
-            new SkipUpToDateStep<IncrementalChangesContext>(
-                new SnapshotOutputsStep<IncrementalChangesContext>(buildId,
-                    new CatchExceptionStep<IncrementalChangesContext>(
-                        new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                            new BroadcastChangingOutputsStep<IncrementalChangesContext>(outputChangeListener,
-                                new ExecuteStep<IncrementalChangesContext>()
+        new ResolveChangesStep<>(changeDetector,
+            new SkipUpToDateStep<>(
+                new BroadcastChangingOutputsStep<>(outputChangeListener,
+                    new SnapshotOutputsStep<>(buildId,
+                        new CatchExceptionStep<>(
+                            new CancelExecutionStep<>(cancellationToken,
+                                new ExecuteStep<>()
                             )
                         )
                     )

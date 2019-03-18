@@ -94,7 +94,7 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         ImmutableList<String> allChangeMessages = builder.build();
         return rebuildRequired
             ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties())
-            : new IncrementalDetectedExecutionStateChanges(inputFileChanges, allChangeMessages);
+            : new IncrementalDetectedExecutionStateChanges(inputFileChanges, allChangeMessages, thisExecution.getInputFileProperties());
     }
 
     private static ChangeContainer caching(ChangeContainer wrapped) {
@@ -135,14 +135,14 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         }
     }
 
-    private static class IncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
+    private static class IncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges {
         private final InputFileChanges inputFileChanges;
 
         public IncrementalDetectedExecutionStateChanges(
             InputFileChanges inputFileChanges,
-            ImmutableList<String> allChangeMessages
-        ) {
-            super(allChangeMessages);
+            ImmutableList<String> allChangeMessages,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties) {
+            super(allChangeMessages, inputFileProperties);
             this.inputFileChanges = inputFileChanges;
         }
 
@@ -152,15 +152,12 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         }
     }
 
-    private static class NonIncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
-        private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
-
+    private static class NonIncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges {
         public NonIncrementalDetectedExecutionStateChanges(
             ImmutableList<String> allChangeMessages,
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties
         ) {
-            super(allChangeMessages);
-            this.inputFileProperties = inputFileProperties;
+            super(allChangeMessages, inputFileProperties);
         }
 
         @Override
@@ -169,15 +166,24 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         }
     }
 
-    private static class AbstractDetectedExecutionStateChanges {
+    private static abstract class AbstractDetectedExecutionStateChanges implements ExecutionStateChanges {
         private final ImmutableList<String> allChangeMessages;
+        protected final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
 
-        public AbstractDetectedExecutionStateChanges(ImmutableList<String> allChangeMessages) {
+        public AbstractDetectedExecutionStateChanges(
+            ImmutableList<String> allChangeMessages,
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties) {
             this.allChangeMessages = allChangeMessages;
+            this.inputFileProperties = inputFileProperties;
         }
 
         public ImmutableList<String> getAllChangeMessages() {
             return allChangeMessages;
+        }
+
+        @Override
+        public ExecutionStateChanges withEnforcedRebuild(String rebuildReason) {
+            return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties);
         }
     }
 
