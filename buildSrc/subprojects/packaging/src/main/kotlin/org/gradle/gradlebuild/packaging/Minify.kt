@@ -17,6 +17,7 @@
 package org.gradle.gradlebuild.packaging
 
 import com.google.common.io.Files
+import org.gradle.api.artifacts.transform.CacheableTransform
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -31,6 +32,7 @@ import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
 
+@CacheableTransform
 abstract class Minify : TransformAction<Minify.Parameters> {
 
     interface Parameters : TransformParameters {
