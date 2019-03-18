@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.logging.slf4j.ContextAwareBuildLogger;
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -57,14 +57,14 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
             private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
                 Logger logger = task.getLogger();
-                ContextAwareBuildLogger contextAwareBuildLogger = null;
+                ContextAwareTaskLogger contextAwareBuildLogger = null;
                 try {
                     taskExecutionListener.beforeExecute(task);
                     BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
-                    if(logger instanceof ContextAwareBuildLogger) {
-                        contextAwareBuildLogger = (ContextAwareBuildLogger) logger;
+//                    if(logger instanceof ContextAwareTaskLogger) {
+                        contextAwareBuildLogger = (ContextAwareTaskLogger) logger;
                         contextAwareBuildLogger.setFallbackBuildOperationId(currentOperation.getId());
-                    }
+//                    }
                 } catch (Throwable t) {
                     state.setOutcome(new TaskExecutionException(task, t));
                     return TaskExecuterResult.WITHOUT_OUTPUTS;

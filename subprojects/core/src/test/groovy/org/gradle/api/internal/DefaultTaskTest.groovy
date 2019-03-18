@@ -30,7 +30,7 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.logging.slf4j.ContextAwareBuildLogger
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -527,7 +527,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can replace task logger"() {
         expect:
-        task.logger instanceof ContextAwareBuildLogger
+        task.logger instanceof ContextAwareTaskLogger
         task.logger.delegate == AbstractTask.BUILD_LOGGER
 
         when:

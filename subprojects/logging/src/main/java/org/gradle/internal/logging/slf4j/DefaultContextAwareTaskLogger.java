@@ -25,12 +25,12 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
-public class ContextAwareBuildLogger implements Logger {
+public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
-    private final BuildOperationAwareLogger delegate;
+    private BuildOperationAwareLogger delegate;
     private OperationIdentifier fallbackOperationIdentifier = null;
 
-    public ContextAwareBuildLogger(Logger delegate) {
+    public DefaultContextAwareTaskLogger(Logger delegate) {
         this.delegate = (BuildOperationAwareLogger) delegate;
     }
 

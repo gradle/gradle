@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logger
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -72,8 +73,8 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 private
 fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
     replaceLoggerWith(
-        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger, project.toString(), project.experimentalWarningLink)
-        else KotlinCompilerWarningSilencingLogger(logger)
+        if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger as ContextAwareTaskLogger, project.toString(), project.experimentalWarningLink)
+        else KotlinCompilerWarningSilencingLogger(logger as ContextAwareTaskLogger)
     )
 
 
@@ -93,10 +94,10 @@ fun KotlinCompile.replaceLoggerWith(logger: Logger) {
 
 private
 class KotlinCompilerWarningSubstitutingLogger(
-    private val delegate: Logger,
+    private val delegate: ContextAwareTaskLogger,
     private val target: String,
     private val link: String
-) : Logger by delegate {
+) : ContextAwareTaskLogger by delegate {
 
     override fun warn(message: String) {
         if (message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) delegate.warn(kotlinDslPluginExperimentalWarning(target, link))
@@ -107,8 +108,8 @@ class KotlinCompilerWarningSubstitutingLogger(
 
 private
 class KotlinCompilerWarningSilencingLogger(
-    private val delegate: Logger
-) : Logger by delegate {
+    private val delegate: ContextAwareTaskLogger
+) : ContextAwareTaskLogger by delegate {
 
     override fun warn(message: String) {
         if (!message.contains(KotlinCompilerArguments.samConversionForKotlinFunctions)) {
