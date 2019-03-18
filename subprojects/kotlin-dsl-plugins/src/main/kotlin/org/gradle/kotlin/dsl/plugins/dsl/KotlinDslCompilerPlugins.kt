@@ -71,11 +71,12 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
 
 
 private
-fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) =
+fun KotlinCompile.applyExperimentalWarning(experimentalWarning: Boolean) {
     replaceLoggerWith(
         if (experimentalWarning) KotlinCompilerWarningSubstitutingLogger(logger as ContextAwareTaskLogger, project.toString(), project.experimentalWarningLink)
         else KotlinCompilerWarningSilencingLogger(logger as ContextAwareTaskLogger)
     )
+}
 
 
 object KotlinCompilerArguments {

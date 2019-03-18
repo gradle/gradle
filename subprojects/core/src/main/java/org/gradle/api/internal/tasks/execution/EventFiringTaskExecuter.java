@@ -57,14 +57,18 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
             private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
                 Logger logger = task.getLogger();
-                ContextAwareTaskLogger contextAwareBuildLogger = null;
+                ContextAwareTaskLogger contextAwareTaskLogger = null;
                 try {
                     taskExecutionListener.beforeExecute(task);
                     BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
-//                    if(logger instanceof ContextAwareTaskLogger) {
-                        contextAwareBuildLogger = (ContextAwareTaskLogger) logger;
-                        contextAwareBuildLogger.setFallbackBuildOperationId(currentOperation.getId());
-//                    }
+                    if (logger != null){
+                        contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
+                        contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
+                    } else {
+                        for (Class<?> anInterface : logger.getClass().getInterfaces()) {
+                            System.out.println("### = " + anInterface);
+                        }
+                    }
                 } catch (Throwable t) {
                     state.setOutcome(new TaskExecutionException(task, t));
                     return TaskExecuterResult.WITHOUT_OUTPUTS;
@@ -72,8 +76,8 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
                 TaskExecuterResult result = delegate.execute(task, state, context);
 
-                if(contextAwareBuildLogger != null){
-                    contextAwareBuildLogger.setFallbackBuildOperationId(null);
+                if (contextAwareTaskLogger != null) {
+                    contextAwareTaskLogger.setFallbackBuildOperationId(null);
                 }
                 operationContext.setResult(new ExecuteTaskBuildOperationResult(
                     state,
