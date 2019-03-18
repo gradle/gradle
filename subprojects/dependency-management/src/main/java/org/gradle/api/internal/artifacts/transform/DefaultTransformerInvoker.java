@@ -325,8 +325,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public void visitFileInputs(InputFilePropertyVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact);
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact, true);
         }
 
         @Override
@@ -393,6 +393,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public boolean isRequiresInputChanges() {
             return transformer.requiresInputChanges();
+        }
+
+        @Override
+        public boolean isRequiresLegacyInputChanges() {
+            return false;
         }
 
         @Override

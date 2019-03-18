@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
 
 /**
  * Represents the complete changes in execution state
@@ -29,12 +28,7 @@ public interface ExecutionStateChanges {
      */
     ImmutableList<String> getAllChangeMessages();
 
-    /**
-     * Creates the input changes for the given.
-     *
-     * @param incrementalParameterNameByValue Mapping from the actual value of to the parameter name.
-     */
-    InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue);
+    InputChangesInternal createInputChanges();
 
     /**
      * Turn these changes into ones forcing a rebuild with the given reason.

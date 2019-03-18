@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
@@ -27,15 +26,13 @@ import org.gradle.work.FileChange;
 import java.io.File;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.execution.history.changes.IncrementalInputChanges.determinePropertyName;
-
 public class NonIncrementalInputChanges implements InputChangesInternal {
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs;
-    private final ImmutableMultimap<Object, String> propertyNameByValue;
+    private final IncrementalInputProperties incrementalInputProperties;
 
-    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, ImmutableMultimap<Object, String> propertyNamesByValue) {
+    public NonIncrementalInputChanges(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> currentInputs, IncrementalInputProperties incrementalInputProperties) {
         this.currentInputs = currentInputs;
-        this.propertyNameByValue = propertyNamesByValue;
+        this.incrementalInputProperties = incrementalInputProperties;
     }
 
     @Override
@@ -45,7 +42,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
 
     @Override
     public Iterable<FileChange> getFileChanges(Object parameterValue) {
-        CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(determinePropertyName(parameterValue, propertyNameByValue));
+        CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameterValue));
         return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
     }
 

@@ -18,8 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.change.ChangeTypeInternal
-import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -27,7 +25,9 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
     abstract ChangeTypeInternal getRebuildChangeType();
 
-    def "setup"() {
+    abstract String getPrimaryInputAnnotation();
+
+    def setup() {
         setupTaskSources()
         buildFile << buildFileBase
         buildFile << """
@@ -45,15 +45,17 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('outputs/file2.txt') << "outputFile2"
     }
 
-    private void setupTaskSources() {
-        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy") << """
+    void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
+        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy").text = """
     import org.gradle.api.*
+    import org.gradle.api.file.*
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
     import org.gradle.work.*
 
-    class BaseIncrementalTask extends DefaultTask {
+    abstract class BaseIncrementalTask extends DefaultTask {
+        ${inputDirAnnotation}
         @InputDirectory
         def File inputDir
 
@@ -72,13 +74,13 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         def incrementalExecution
     }
         """
-        file("buildSrc/src/main/groovy/IncrementalTask.groovy") << """
+        file("buildSrc/src/main/groovy/IncrementalTask.groovy").text = """
     import org.gradle.api.*
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
 
-    class IncrementalTask extends BaseIncrementalTask {
+    abstract class IncrementalTask extends BaseIncrementalTask {
         @Input
         def String prop
 
@@ -123,7 +125,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
 
     def "incremental task is informed that all input files are 'out-of-date' when run for the first time"() {
         expect:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is skipped when run with no changes since last execution"() {
@@ -145,7 +147,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('inputs/file1.txt') << "changed content"
 
         then:
-        executesWithIncrementalContext("ext.modified = ['file1.txt']")
+        executesIncrementally(modified: ['file1.txt'])
     }
 
     def "incremental task is informed of 'out-of-date' files when input file added"() {
@@ -156,7 +158,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('inputs/file3.txt') << "file3 content"
 
         then:
-        executesWithIncrementalContext("ext.added = ['file3.txt']")
+        executesIncrementally(added: ['file3.txt'])
     }
 
     def "incremental task is informed of 'out-of-date' files when input file removed"() {
@@ -167,7 +169,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('inputs/file2.txt').delete()
 
         then:
-        executesWithIncrementalContext("ext.removed = ['file2.txt']")
+        executesIncrementally(removed: ['file2.txt'])
     }
 
     def "incremental task is informed of 'out-of-date' files when all input files removed"() {
@@ -180,7 +182,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('inputs/file2.txt').delete()
 
         then:
-        executesWithIncrementalContext("ext.removed = ['file0.txt', 'file1.txt', 'file2.txt']")
+        executesIncrementally(removed: ['file0.txt', 'file1.txt', 'file2.txt'])
     }
 
     def "incremental task is informed of 'out-of-date' files with added, removed and modified files"() {
@@ -194,11 +196,11 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         file('inputs/file4.txt') << "new file 4"
 
         then:
-        executesWithIncrementalContext("""
-ext.modified = ['file1.txt']
-ext.removed = ['file2.txt']
-ext.added = ['file3.txt', 'file4.txt']
-""")
+        executesIncrementally(
+            modified: ['file1.txt'],
+            removed: ['file2.txt'],
+            added: ['file3.txt', 'file4.txt']
+        )
     }
 
     def "incremental task is informed of 'out-of-date' files when task has no declared outputs or properties"() {
@@ -216,7 +218,7 @@ ext.added = ['file3.txt', 'file4.txt']
         file('inputs/file3.txt') << "file3 content"
 
         then:
-        executesWithIncrementalContext("ext.added = ['file3.txt']")
+        executesIncrementally(added: ['file3.txt'])
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when input property has changed"() {
@@ -227,7 +229,7 @@ ext.added = ['file3.txt', 'file4.txt']
         buildFile << "incremental.prop = 'changed'"
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when input file property has been removed"() {
@@ -245,7 +247,7 @@ ext.added = ['file3.txt', 'file4.txt']
         toBeRemovedInputFile.delete()
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when task class has changed"() {
@@ -255,14 +257,14 @@ ext.added = ['file3.txt', 'file4.txt']
         when:
         buildFile.text = buildFileBase
         buildFile << """
-    class IncrementalTask2 extends BaseIncrementalTask {}
+    abstract class IncrementalTask2 extends BaseIncrementalTask {}
     task incremental(type: IncrementalTask2) {
         inputDir = project.mkdir('inputs')
     }
 """
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when output directory is changed"() {
@@ -273,7 +275,7 @@ ext.added = ['file3.txt', 'file4.txt']
         buildFile << "incremental.outputDir = project.mkdir('new-outputs')"
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when output file has changed"() {
@@ -284,7 +286,7 @@ ext.added = ['file3.txt', 'file4.txt']
         file("outputs/file1.txt") << "further change"
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when output file has been removed"() {
@@ -295,7 +297,7 @@ ext.added = ['file3.txt', 'file4.txt']
         file("outputs/file1.txt").delete()
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when all output files have been removed"() {
@@ -306,7 +308,7 @@ ext.added = ['file3.txt', 'file4.txt']
         file("outputs").deleteDir()
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when Task.upToDate() is false"() {
@@ -317,7 +319,7 @@ ext.added = ['file3.txt', 'file4.txt']
         buildFile << "incremental.outputs.upToDateWhen { false }"
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed that all input files are 'out-of-date' when gradle is executed with --rerun-tasks"() {
@@ -328,7 +330,7 @@ ext.added = ['file3.txt', 'file4.txt']
         executer.withArgument("--rerun-tasks")
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
@@ -342,51 +344,7 @@ ext.added = ['file3.txt', 'file4.txt']
         failedExecution()
 
         then:
-        executesWithIncrementalContext("ext.modified = ['file1.txt']")
-    }
-
-    @Unroll
-    @Issue("https://github.com/gradle/gradle/issues/4166")
-    def "file in input dir appears in task inputs for #inputAnnotation"() {
-        buildFile << """
-            class MyTask extends DefaultTask {
-                @${inputAnnotation}
-                File input
-                @OutputFile
-                File output
-                
-                @TaskAction
-                void doStuff(IncrementalTaskInputs inputs) {
-                    def out = []
-                    inputs.outOfDate {
-                        out << file.name
-                    }
-                    assert out.contains('child')
-                    output.text = out.join('\\n')
-                }
-            }           
-            
-            task myTask(type: MyTask) {
-                input = mkdir(inputDir)
-                output = file("build/output.txt")
-            }          
-        """
-        String myTask = ':myTask'
-
-        when:
-        file("inputDir1/child") << "inputFile1"
-        run myTask, '-PinputDir=inputDir1'
-        then:
-        executedAndNotSkipped(myTask)
-
-        when:
-        file("inputDir2/child") << "inputFile2"
-        run myTask, '-PinputDir=inputDir2'
-        then:
-        executedAndNotSkipped(myTask)
-
-        where:
-        inputAnnotation << [InputFiles.name, InputDirectory.name]
+        executesIncrementally(modified: ['file1.txt'])
     }
 
     /*
@@ -407,17 +365,31 @@ ext.added = ['file3.txt', 'file4.txt']
         executer.withArguments()
     }
 
-    def executesWithIncrementalContext(String fileChanges) {
-        buildFile << fileChanges
-        succeeds "incrementalCheck"
+    def executesIncrementally(Map changes) {
+        executesIncrementalTask(incremental: true, *:changes)
     }
 
-    def executesWithRebuildContext(String fileChanges = "") {
+    def executesNonIncrementally(List<String> rebuiltFiles = preexistingInputs) {
+        executesIncrementalTask(
+            incremental: false,
+            (rebuildChangeType.name().toLowerCase(Locale.US)): rebuiltFiles
+        )
+    }
+
+    List<String> preexistingInputs = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
+
+    def executesIncrementalTask(Map options) {
+        boolean incremental = options.incremental != false
+        List<String> added = options.added ?: []
+        List<String> modified = options.modified ?: []
+        List<String> removed = options.removed ?: []
+
         buildFile << """
-    ext.${rebuildChangeType.name().toLowerCase(Locale.US)} = ['file0.txt', 'file1.txt', 'file2.txt', 'inputs']
-    ext.incrementalExecution = false
-"""
-        buildFile << fileChanges
-        succeeds "incrementalCheck"
+            ext.added = ${added.collect { "'${it}'"}}
+            ext.modified = ${modified.collect { "'${it}'"}}
+            ext.removed = ${removed.collect { "'${it}'"}}
+            ext.incrementalExecution = ${incremental}
+        """
+        succeeds("incrementalCheck")
     }
 }

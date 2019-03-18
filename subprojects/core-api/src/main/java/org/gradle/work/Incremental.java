@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.history.changes;
+package org.gradle.work;
 
-import org.gradle.api.Describable;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.api.Incubating;
 
-public interface ExecutionStateChangeDetector {
-    int MAX_OUT_OF_DATE_MESSAGES = 3;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    ExecutionStateChanges detectChanges(
-        AfterPreviousExecutionState lastExecution,
-        BeforeExecutionState thisExecution,
-        Describable executable,
-        boolean allowOverlappingOutputs,
-        IncrementalInputProperties incrementalInputProperties);
+/**
+ * Track input changes for the annotated parameter.
+ *
+ * <p>
+ *     Inputs annotated with {@link Incremental} can be queried for changes via {@link InputChanges#getFileChanges(Object)}.
+ * </p>
+ *
+ * @since 5.4
+ */
+@Incubating
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.FIELD})
+@Documented
+public @interface Incremental {
 }

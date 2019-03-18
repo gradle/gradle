@@ -92,6 +92,10 @@ public interface InputChanges {
      *
      * <p>When {@link #isIncremental()} is {@code false}, then all elements of the parameter are returned as {@link ChangeType#ADDED}.</p>
      *
+     * <p>
+     *     Only input file properties annotated with {@link Incremental} or {@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
+     * </p>
+     *
      * @param parameterValue The value of the parameter to query.
      */
     Iterable<FileChange> getFileChanges(Object parameterValue);

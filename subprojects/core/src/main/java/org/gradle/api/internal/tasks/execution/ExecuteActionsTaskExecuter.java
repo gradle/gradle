@@ -16,11 +16,13 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
@@ -284,12 +286,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitFileInputs(InputFilePropertyVisitor visitor) {
-            for (InputFilePropertySpec inputFileProperty : context.getTaskProperties().getInputFileProperties()) {
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
+            for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
-                if (value != null) {
-                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value);
-                }
+                boolean incremental = inputFileProperty.isIncremental()
+                    // SkipWhenEmpty implies incremental.
+                    // If this file property is empty, then we clean up the previously generated outputs.
+                    // That means that there is a very close relation between the file property and the output.
+                    || inputFileProperty.isSkipWhenEmpty();
+                visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, incremental);
             }
         }
 
@@ -314,6 +320,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public boolean isRequiresInputChanges() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof AbstractIncrementalTaskAction) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean isRequiresLegacyInputChanges() {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
                     return true;
                 }
             }

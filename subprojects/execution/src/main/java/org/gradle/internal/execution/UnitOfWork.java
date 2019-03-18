@@ -40,7 +40,9 @@ public interface UnitOfWork extends CacheableEntity {
 
     boolean isRequiresInputChanges();
 
-    void visitFileInputs(InputFilePropertyVisitor visitor);
+    boolean isRequiresLegacyInputChanges();
+
+    void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
@@ -74,7 +76,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     @FunctionalInterface
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String name, Object value);
+        void visitInputFileProperty(String name, @Nullable Object value, boolean incremental);
     }
 
     @FunctionalInterface

@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
@@ -26,10 +25,16 @@ import javax.annotation.Nullable;
 public class RebuildExecutionStateChanges implements ExecutionStateChanges {
     private final String rebuildReason;
     private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
+    private final IncrementalInputProperties incrementalInputProperties;
 
-    public RebuildExecutionStateChanges(String rebuildReason, @Nullable ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties) {
+    public RebuildExecutionStateChanges(
+        String rebuildReason,
+        @Nullable ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties,
+        IncrementalInputProperties incrementalInputProperties
+    ) {
         this.rebuildReason = rebuildReason;
         this.inputFileProperties = inputFileProperties;
+        this.incrementalInputProperties = incrementalInputProperties;
     }
 
     @Override
@@ -38,15 +43,15 @@ public class RebuildExecutionStateChanges implements ExecutionStateChanges {
     }
 
     @Override
-    public InputChangesInternal createInputChanges(ImmutableMultimap<Object, String> incrementalParameterNameByValue) {
+    public InputChangesInternal createInputChanges() {
         if (inputFileProperties == null) {
             throw new UnsupportedOperationException("Cannot query input changes when input tracking is disabled.");
         }
-        return new NonIncrementalInputChanges(inputFileProperties, incrementalParameterNameByValue);
+        return new NonIncrementalInputChanges(inputFileProperties, incrementalInputProperties);
     }
 
     @Override
     public ExecutionStateChanges withEnforcedRebuild(String rebuildReason) {
-        return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties);
+        return new RebuildExecutionStateChanges(rebuildReason, inputFileProperties, incrementalInputProperties);
     }
 }
