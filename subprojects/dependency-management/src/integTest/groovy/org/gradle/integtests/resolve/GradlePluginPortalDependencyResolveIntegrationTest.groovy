@@ -22,7 +22,17 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.ONLINE)
 class GradlePluginPortalDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
-    def gradlePluginPortalRepository = "repositories { gradlePluginPortal() }"
+    def gradlePluginPortalRepository = """
+        repositories { 
+            gradlePluginPortal() 
+            gradlePluginPortal { // just test this syntax works.
+                name = "otherPluginPortal"
+                content {
+                    includeGroup 'org.sample'
+                }
+            }            
+        }
+    """
     def pluginClasspathDependency = "org.gradle:gradle-hello-world-plugin:0.2"
 
     def "buildscript dependencies can be resolved from gradlePluginPortal()"() {

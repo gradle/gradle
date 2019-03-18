@@ -72,6 +72,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public ArtifactRepository gradlePluginPortal() {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
+    
+    @Override
+    public ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action) {
+        return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME, action);
+    }
 
     public MavenArtifactRepository mavenCentral() {
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME);

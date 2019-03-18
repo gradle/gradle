@@ -89,6 +89,16 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     @Incubating
     ArtifactRepository gradlePluginPortal();
+    
+    /**
+     * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.
+     * 
+     * @param action a configuration action
+     * @return the added resolver
+     * @since 5.4
+     */
+    @Incubating
+    ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action);
 
     /**
      * Adds a repository which looks in Bintray's JCenter repository for dependencies.
