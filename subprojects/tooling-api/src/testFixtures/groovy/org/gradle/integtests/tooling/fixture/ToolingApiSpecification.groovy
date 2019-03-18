@@ -85,6 +85,7 @@ abstract class ToolingApiSpecification extends Specification {
     @Rule
     public RuleChain chain = RuleChain.outerRule(temporaryFolder).around(temporaryDistributionFolder).around(toolingApi)
 
+    // reflectively invoked by ToolingApiCompatibilitySuiteRunner
     static void selectTargetDist(GradleDistribution version) {
         VERSION.set(version)
     }
@@ -155,7 +156,7 @@ abstract class ToolingApiSpecification extends Specification {
         }
     }
 
-    def connector() {
+    GradleConnector connector() {
         toolingApi.connector()
     }
 

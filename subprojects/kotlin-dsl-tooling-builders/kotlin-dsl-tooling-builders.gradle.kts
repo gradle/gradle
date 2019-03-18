@@ -40,4 +40,14 @@ dependencies {
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+
+    crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
+}
+
+tasks {
+
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        enabled = false
+    }
 }
