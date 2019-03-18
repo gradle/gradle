@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Track input changes for the annotated parameter.
  *
  * <p>
- *     Parameters annotated with {@link Incremental} can be queried via {@link InputChanges#getFileChanges(Object)}.
+ *     Inputs annotated with {@link Incremental} can be queried for changes via {@link InputChanges#getFileChanges(Object)}.
  * </p>
  *
  * @since 5.4

@@ -76,11 +76,10 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
             thisExecution.getOutputFileProperties(),
             "Output",
             executable);
-        OutputFileChanges uncachedOutputChanges = new OutputFileChanges(
+        OutputFileChanges outputFileChanges = new OutputFileChanges(
             lastExecution.getOutputFileProperties(),
             thisExecution.getOutputFileProperties(),
             allowOverlappingOutputs);
-        ChangeContainer outputFileChanges = caching(uncachedOutputChanges);
 
         ChangeContainer rebuildTriggeringChanges = errorHandling(executable, new SummarizingChangeContainer(previousSuccessState, implementationChanges, inputPropertyChanges, inputPropertyValueChanges, outputFilePropertyChanges, outputFileChanges, inputFilePropertyChanges, nonIncrementalInputFileChanges));
 
@@ -99,10 +98,6 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         return rebuildRequired
             ? new NonIncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputProperties)
             : new IncrementalDetectedExecutionStateChanges(allChangeMessages, thisExecution.getInputFileProperties(), incrementalInputFileChanges, incrementalInputProperties);
-    }
-
-    private static ChangeContainer caching(ChangeContainer wrapped) {
-        return new CachingChangeContainer(MAX_OUT_OF_DATE_MESSAGES, wrapped);
     }
 
     private static InputFileChanges caching(InputFileChanges wrapped) {
