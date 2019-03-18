@@ -250,7 +250,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         def failedUnpackOp = operations.only(BuildCacheArchiveUnpackBuildOperationType)
         failedUnpackOp.details.cacheKey != null
         failedUnpackOp.result == null
-        failedUnpackOp.failure =~ /Failed to unpack trees for task ':t'/
+        failedUnpackOp.failure =~ /java.util.zip.ZipException: Not in GZIP format/
     }
 
     def "records ops for miss then store"() {
