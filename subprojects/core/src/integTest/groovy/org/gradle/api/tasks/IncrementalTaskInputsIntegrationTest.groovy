@@ -73,7 +73,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         buildFile << "incremental.inputs.file('new-input.txt')"
 
         then:
-        executesWithRebuildContext("ext.modified += ['new-input.txt']")
+        executesNonIncrementally(preexistingInputs + ['new-input.txt'])
     }
 
     @Unroll

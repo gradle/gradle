@@ -78,7 +78,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         buildFile << "incremental.inputs.file('new-input.txt')"
 
         then:
-        executesWithRebuildContext()
+        executesNonIncrementally()
     }
 
     @Unroll
@@ -189,7 +189,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         file('inputs/file1.txt') << "changed content"
 
         then:
-        executesWithIncrementalContext("ext.modified = ['file1.txt']")
+        executesIncrementally(modified: ['file1.txt'])
     }
 
     def "two incremental inputs cannot have the same value"() {
