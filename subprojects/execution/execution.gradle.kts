@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":snapshots"))
     implementation(project(":buildCachePackaging"))
+    implementation(library("commons_io"))
     implementation(library("commons_lang"))
 
     testImplementation(project(":internalTesting"))

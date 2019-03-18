@@ -25,6 +25,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -45,12 +46,14 @@ public interface UnitOfWork extends CacheableEntity {
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
-    long markExecutionTime();
+    void visitLocalState(LocalStateVisitor visitor);
 
-    /**
-     * Loading from cache failed and all outputs were removed.
-     */
-    void outputsRemovedAfterFailureToLoadFromCache();
+    @FunctionalInterface
+    interface LocalStateVisitor {
+        void visitLocalStateRoot(File localStateRoot);
+    }
+
+    long markExecutionTime();
 
     CacheHandler createCacheHandler();
 

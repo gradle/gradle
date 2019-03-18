@@ -253,7 +253,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public CacheHandler createCacheHandler() {
             return new CacheHandler() {
                 @Override
-                public <T> Optional<T> load(Function<BuildCacheKey, T> loader) {
+                public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
                     // TODO Log this when creating the build cache key perhaps?
                     if (task.isHasCustomActions()) {
                         LOGGER.info("Custom actions are attached to {}.", task);
@@ -262,7 +262,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                             && context.getTaskExecutionMode().isAllowedToUseCachedResults()
                             && context.getBuildCacheKey().isValid()
                     ) {
-                        return Optional.ofNullable(loader.apply(context.getBuildCacheKey()));
+                        return loader.apply(context.getBuildCacheKey());
                     } else {
                         return Optional.empty();
                     }
@@ -278,11 +278,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     }
                 }
             };
-        }
-
-        @Override
-        public void outputsRemovedAfterFailureToLoadFromCache() {
-            context.setOutputRemovedBeforeExecution(true);
         }
 
         @Override

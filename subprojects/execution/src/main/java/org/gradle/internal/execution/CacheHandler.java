@@ -23,6 +23,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface CacheHandler {
-    <T> Optional<T> load(Function<BuildCacheKey, T> loader);
+    <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader);
     void store(Consumer<BuildCacheKey> storer);
 }
