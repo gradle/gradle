@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.internal.change.ChangeTypeInternal
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
@@ -72,5 +74,49 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
         then:
         executesWithRebuildContext("ext.modified += ['new-input.txt']")
+    }
+
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/4166")
+    def "file in input dir appears in task inputs for #inputAnnotation"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @${inputAnnotation}
+                File input
+                @OutputFile
+                File output
+                
+                @TaskAction
+                void doStuff(IncrementalTaskInputs inputs) {
+                    def out = []
+                    inputs.outOfDate {
+                        out << file.name
+                    }
+                    assert out.contains('child')
+                    output.text = out.join('\\n')
+                }
+            }           
+            
+            task myTask(type: MyTask) {
+                input = mkdir(inputDir)
+                output = file("build/output.txt")
+            }          
+        """
+        String myTask = ':myTask'
+
+        when:
+        file("inputDir1/child") << "inputFile1"
+        run myTask, '-PinputDir=inputDir1'
+        then:
+        executedAndNotSkipped(myTask)
+
+        when:
+        file("inputDir2/child") << "inputFile2"
+        run myTask, '-PinputDir=inputDir2'
+        then:
+        executedAndNotSkipped(myTask)
+
+        where:
+        inputAnnotation << [InputFiles.name, InputDirectory.name]
     }
 }

@@ -76,7 +76,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     @FunctionalInterface
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String name, Object value, boolean incremental);
+        void visitInputFileProperty(String name, @Nullable Object value, boolean incremental);
     }
 
     @FunctionalInterface

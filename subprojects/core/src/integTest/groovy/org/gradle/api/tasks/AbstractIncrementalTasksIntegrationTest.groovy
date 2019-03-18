@@ -18,8 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.change.ChangeTypeInternal
-import spock.lang.Issue
-import spock.lang.Unroll
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
 
@@ -50,12 +48,13 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
     void setupTaskSources(String inputDirAnnotation = primaryInputAnnotation) {
         file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy").text = """
     import org.gradle.api.*
+    import org.gradle.api.file.*
     import org.gradle.api.plugins.*
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
     import org.gradle.work.*
 
-    class BaseIncrementalTask extends DefaultTask {
+    abstract class BaseIncrementalTask extends DefaultTask {
         ${inputDirAnnotation}
         @InputDirectory
         def File inputDir
@@ -81,7 +80,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
     import org.gradle.api.tasks.*
     import org.gradle.api.tasks.incremental.*
 
-    class IncrementalTask extends BaseIncrementalTask {
+    abstract class IncrementalTask extends BaseIncrementalTask {
         @Input
         def String prop
 
@@ -258,7 +257,7 @@ ext.added = ['file3.txt', 'file4.txt']
         when:
         buildFile.text = buildFileBase
         buildFile << """
-    class IncrementalTask2 extends BaseIncrementalTask {}
+    abstract class IncrementalTask2 extends BaseIncrementalTask {}
     task incremental(type: IncrementalTask2) {
         inputDir = project.mkdir('inputs')
     }
@@ -346,50 +345,6 @@ ext.added = ['file3.txt', 'file4.txt']
 
         then:
         executesWithIncrementalContext("ext.modified = ['file1.txt']")
-    }
-
-    @Unroll
-    @Issue("https://github.com/gradle/gradle/issues/4166")
-    def "file in input dir appears in task inputs for #inputAnnotation"() {
-        buildFile << """
-            class MyTask extends DefaultTask {
-                @${inputAnnotation}
-                File input
-                @OutputFile
-                File output
-                
-                @TaskAction
-                void doStuff(IncrementalTaskInputs inputs) {
-                    def out = []
-                    inputs.outOfDate {
-                        out << file.name
-                    }
-                    assert out.contains('child')
-                    output.text = out.join('\\n')
-                }
-            }           
-            
-            task myTask(type: MyTask) {
-                input = mkdir(inputDir)
-                output = file("build/output.txt")
-            }          
-        """
-        String myTask = ':myTask'
-
-        when:
-        file("inputDir1/child") << "inputFile1"
-        run myTask, '-PinputDir=inputDir1'
-        then:
-        executedAndNotSkipped(myTask)
-
-        when:
-        file("inputDir2/child") << "inputFile2"
-        run myTask, '-PinputDir=inputDir2'
-        then:
-        executedAndNotSkipped(myTask)
-
-        where:
-        inputAnnotation << [InputFiles.name, InputDirectory.name]
     }
 
     /*

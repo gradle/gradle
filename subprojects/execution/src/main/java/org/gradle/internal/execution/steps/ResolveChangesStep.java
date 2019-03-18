@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
@@ -111,6 +112,9 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
         ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
         work.visitInputFileProperties((name, value, incremental) -> {
             if (incremental) {
+                if (value == null) {
+                    throw new InvalidUserDataException("Must specify a value for incremental input property '" + name + "'.");
+                }
                 builder.put(name, value);
             }
         });

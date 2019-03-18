@@ -290,14 +290,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
-                if (value != null) {
-                    boolean incremental = inputFileProperty.isIncremental()
-                        // SkipWhenEmpty implies incremental.
-                        // If this file property is empty, then we clean up the previously generated outputs.
-                        // That means that there is a very close relation between the file property and the output.
-                        || inputFileProperty.isSkipWhenEmpty();
-                    visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, incremental);
-                }
+                boolean incremental = inputFileProperty.isIncremental()
+                    // SkipWhenEmpty implies incremental.
+                    // If this file property is empty, then we clean up the previously generated outputs.
+                    // That means that there is a very close relation between the file property and the output.
+                    || inputFileProperty.isSkipWhenEmpty();
+                visitor.visitInputFileProperty(inputFileProperty.getPropertyName(), value, incremental);
             }
         }
 
