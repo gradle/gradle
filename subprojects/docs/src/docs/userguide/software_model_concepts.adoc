@@ -17,7 +17,9 @@
 
 [CAUTION]
 ====
-Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated].
+New plugins should not use this concept.
+Instead, use the standard approach described in the <<custom_plugins.adoc#custom_plugins, Writing Custom Plugins>> chapter.
 ====
 
 The software model describes how a piece of software is built and how the components of the software relate to each other. The software model is organized around some key concepts:
@@ -28,3 +30,5 @@ The software model describes how a piece of software is built and how the compon
 * A _binary_ represents some output that is built for a component. A component may produce multiple different output binaries. For example, for a C++ library, both a shared library and a static library binary may be produced. Each binary is initially configured to be built from the component sources, but additional source sets can be added to specific binary variants.
 * A _variant_ represents some mutually exclusive binary of a component. A library, for example, might target Java 7 and Java 8, effectively producing two distinct binaries: a Java 7 Jar and a Java 8 Jar. These are different variants of the library.
 * The _API_ of a library represents the artifacts and dependencies that are required to compile against that library. The API typically consists of a binary together with a set of dependencies.
+
+The <<software_model_extend.adoc#software_model_extend, software model can be extended>>, enabling deep modeling of specific domains via richly typed DSLs.
