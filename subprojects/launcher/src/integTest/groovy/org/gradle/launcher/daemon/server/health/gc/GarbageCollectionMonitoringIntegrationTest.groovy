@@ -58,7 +58,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     def "expires daemon immediately when garbage collector is thrashing"() {
         given:
         configureGarbageCollectionHeapEventsFor(256, 512, 100, garbageCollector.monitoringStrategy.thrashingThreshold + 0.2)
-        waitForDaemonExpiration()
+        waitForImmediateDaemonExpiration()
 
         when:
         fails "injectEvents"
@@ -191,7 +191,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         """
     }
 
-    void waitForDaemonExpiration() {
+    void waitForImmediateDaemonExpiration() {
         buildFile << """
             import org.gradle.internal.event.ListenerManager
             import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
@@ -206,7 +206,12 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
                 }
             })
             
-            injectEvents.doLast { latch.await(6, TimeUnit.SECONDS) }
+            injectEvents.doLast { 
+                // Wait for a daemon expiration event to occur
+                latch.await(6, TimeUnit.SECONDS)
+                // Give the monitor a chance to stop the daemon abruptly
+                sleep 6000 
+            }
         """
     }
 
