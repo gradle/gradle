@@ -31,10 +31,6 @@ import java.util.Set;
  */
 public abstract class Node implements Comparable<Node> {
 
-    protected Iterable<Node> getAllPredecessors() {
-        return getDependencyPredecessors();
-    }
-
     @VisibleForTesting
     enum ExecutionState {
         UNKNOWN, NOT_REQUIRED, SHOULD_RUN, MUST_RUN, MUST_NOT_RUN, EXECUTING, EXECUTED, SKIPPED
@@ -209,6 +205,11 @@ public abstract class Node implements Comparable<Node> {
             }
         }
         return true;
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    protected Iterable<Node> getAllPredecessors() {
+        return getDependencyPredecessors();
     }
 
     public abstract void prepareForExecution();
