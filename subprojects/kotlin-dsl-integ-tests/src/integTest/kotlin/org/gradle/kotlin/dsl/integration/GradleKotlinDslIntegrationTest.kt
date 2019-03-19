@@ -22,7 +22,6 @@ import okhttp3.mockwebserver.MockWebServer
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
@@ -38,7 +37,7 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 
-class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
+class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
