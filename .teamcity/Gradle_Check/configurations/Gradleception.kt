@@ -1,5 +1,6 @@
 package configurations
 
+import common.buildToolGradleParameters
 import common.customGradle
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
@@ -18,7 +19,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     }
 
     val buildScanTagForType = buildScanTag("Gradleception")
-    val defaultParameters = (gradleParameters() + listOf(buildScanTagForType)).joinToString(separator = " ")
+    val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType)).joinToString(separator = " ")
 
     applyDefaults(model, this, ":install", notQuick = true, extraParameters = "-Pgradle_installPath=dogfood-first $buildScanTagForType", extraSteps = {
         localGradle {

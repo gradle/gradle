@@ -16,9 +16,18 @@
 
 package common
 
+import configurations.m2CleanScriptUnixLike
+import configurations.m2CleanScriptWindows
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2018_2.Dependencies
+import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.Requirements
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
@@ -41,4 +50,70 @@ fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep 
 
 fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
+}
+
+fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
+    artifactRules = """
+        build/report-* => .
+        buildSrc/build/report-* => .
+        subprojects/*/build/tmp/test files/** => test-files
+        build/errorLogs/** => errorLogs
+        build/reports/incubation/** => incubation-reports
+    """.trimIndent()
+
+    vcs {
+        root(AbsoluteId(vcsRoot))
+        checkoutMode = CheckoutMode.ON_AGENT
+        buildDefaultBranch = !vcsRoot.contains("Branches")
+    }
+
+    requirements {
+        requiresOs(os)
+    }
+
+    failureConditions {
+        executionTimeoutMin = timeout
+    }
+
+    if (os == Os.linux || os == Os.macos) {
+        params {
+            param("env.LC_ALL", "en_US.UTF-8")
+        }
+    }
+}
+
+fun BuildSteps.checkCleanM2(os: Os = Os.linux) {
+    script {
+        name = "CHECK_CLEAN_M2"
+        executionMode = BuildStep.ExecutionMode.ALWAYS
+        scriptContent = if (os == Os.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
+    }
+}
+
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+    listOf(
+        "-PmaxParallelForks=%maxParallelForks%",
+        "-s",
+        if (daemon) "--daemon" else "--no-daemon",
+        if (isContinue) "--continue" else "",
+        """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
+        "-Dorg.gradle.internal.tasks.createops",
+        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+    )
+
+
+fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
+    // Compile All has to succeed before anything else is started
+    dependency(AbsoluteId(compileAllId)) {
+        snapshot {
+            onDependencyFailure = FailureAction.CANCEL
+            onDependencyCancel = FailureAction.CANCEL
+        }
+    }
+    // Get the build receipt from sanity check to reuse the timestamp
+    artifacts(AbsoluteId(compileAllId)) {
+        id = "ARTIFACT_DEPENDENCY_$compileAllId"
+        cleanDestination = true
+        artifactRules = "build-receipt.properties => incoming-distributions"
+    }
 }

@@ -1,7 +1,11 @@
 package Gradle_Util_Performance.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.*
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.gradle
+import common.gradleWrapper
+import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 
 object Gradle_Util_Performance_AdHocPerformanceScenarioLinux : BuildType({
@@ -40,9 +44,8 @@ object Gradle_Util_Performance_AdHocPerformanceScenarioLinux : BuildType({
     }
 
     steps {
-        gradle {
+        gradleWrapper {
             name = "GRADLE_RUNNER"
-            buildFile = ""
             gradleParams = """clean %templates% performance:performanceAdHocTest --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% -x prepareSamples  -PmaxParallelForks=%maxParallelForks% %additional.gradle.parameters% -Dorg.gradle.logging.level=LIFECYCLE -s --no-daemon --continue -I ./gradle/init-scripts/build-scan.init.gradle.kts --build-cache "-Dgradle.cache.remote.url=%gradle.cache.remote.url%" "-Dgradle.cache.remote.username=%gradle.cache.remote.username%" "-Dgradle.cache.remote.password=%gradle.cache.remote.password%" -PtestJavaHome=%linux.java8.oracle.64bit% -Porg.gradle.performance.branchName=%teamcity.build.branch%"""
         }
         script {

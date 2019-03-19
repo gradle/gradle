@@ -1,18 +1,19 @@
 package configurations
 
 import common.Os
+import common.applyDefaultSettings
+import common.buildToolGradleParameters
+import common.checkCleanM2
+import common.compileAllDependency
 import common.gradleWrapper
-import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
 import model.GradleSubproject
 import model.TestCoverage
@@ -25,19 +26,7 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
 
-fun gradleParameterString(daemon: Boolean = true) = gradleParameters(daemon).joinToString(separator = " ")
-
-fun gradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
-        listOf(
-                "-PmaxParallelForks=%maxParallelForks%",
-                "-s",
-                if (daemon) "--daemon" else "--no-daemon",
-                if (isContinue) "--continue" else "",
-                """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
-                "-Dorg.gradle.internal.tasks.createops",
-                "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
-        )
-
+fun gradleParameterString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -58,36 +47,6 @@ val m2CleanScriptWindows = """
         EXIT 1
     )
 """.trimIndent()
-
-fun applyDefaultSettings(buildType: BuildType, os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
-    buildType.artifactRules = """
-        build/report-* => .
-        buildSrc/build/report-* => .
-        subprojects/*/build/tmp/test files/** => test-files
-        build/errorLogs/** => errorLogs
-        build/reports/incubation/** => incubation-reports
-    """.trimIndent()
-
-    buildType.vcs {
-        root(AbsoluteId(vcsRoot))
-        checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = !vcsRoot.contains("Branches")
-    }
-
-    buildType.requirements {
-        requiresOs(os)
-    }
-
-    buildType.failureConditions {
-        executionTimeoutMin = timeout
-    }
-
-    if (os == Os.linux || os == Os.macos) {
-        buildType.params {
-            param("env.LC_ALL", "en_US.UTF-8")
-        }
-    }
-}
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
@@ -111,17 +70,6 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BaseGradleBuildType.checkCleanM2Step(os: Os = Os.linux) {
-    steps {
-        script {
-            name = "CHECK_CLEAN_M2"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = if (os == Os.windows) m2CleanScriptWindows else m2CleanScriptUnixLike
-        }
-    }
-}
-
-private
 fun BaseGradleBuildType.verifyTestFilesCleanupStep(daemon: Boolean = true) {
     steps {
         gradleWrapper {
@@ -130,6 +78,22 @@ fun BaseGradleBuildType.verifyTestFilesCleanupStep(daemon: Boolean = true) {
             gradleParams = gradleParameterString(daemon)
         }
     }
+}
+
+private
+fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
+    if (tagBuild) {
+        gradleWrapper {
+            name = "TAG_BUILD"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            tasks = "tagBuild"
+            gradleParams = "${gradleParameterString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+        }
+    }
+}
+
+fun BuildSteps.tagBuild(model: CIBuildModel, daemon: Boolean = true) {
+    tagBuild(tagBuild = model.tagBuilds, daemon = daemon)
 }
 
 private
@@ -192,20 +156,20 @@ fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os
 }
 
 fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
-    applyDefaultSettings(buildType, os, timeout)
+    buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps.extraSteps()
 
-    buildType.checkCleanM2Step(os)
+    buildType.steps.checkCleanM2(os)
     buildType.verifyTestFilesCleanupStep(daemon)
 
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
 fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
-    applyDefaultSettings(buildType, os, timeout)
+    buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
@@ -214,7 +178,7 @@ fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradl
 
     buildType.steps.extraSteps()
 
-    buildType.checkCleanM2Step(os)
+    buildType.steps.checkCleanM2(os)
     buildType.verifyTestFilesCleanupStep(daemon)
 
     applyDefaultDependencies(model, buildType, notQuick)
@@ -239,20 +203,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
 
     if (buildType !is CompileAll) {
         buildType.dependencies {
-            val compileAllId = CompileAll.buildTypeId(model)
-            // Compile All has to succeed before anything else is started
-            dependency(AbsoluteId(compileAllId)) {
-                snapshot {
-                    onDependencyFailure = FailureAction.CANCEL
-                    onDependencyCancel = FailureAction.CANCEL
-                }
-            }
-            // Get the build receipt from sanity check to reuse the timestamp
-            artifacts(AbsoluteId(compileAllId)) {
-                id = "ARTIFACT_DEPENDENCY_$compileAllId"
-                cleanDestination = true
-                artifactRules = "build-receipt.properties => incoming-distributions"
-            }
+            compileAllDependency(CompileAll.buildTypeId(model))
         }
     }
 }

@@ -1,5 +1,6 @@
 package configurations
 
+import common.applyDefaultSettings
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
@@ -20,7 +21,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
     id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
 
-    applyDefaultSettings(this)
+    applyDefaultSettings()
     artifactRules = "build/build-receipt.properties"
 
     val triggerExcludes = """
