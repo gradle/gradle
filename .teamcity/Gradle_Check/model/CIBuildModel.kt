@@ -173,7 +173,7 @@ data class CIBuildModel (
             GradleSubproject("kotlinDsl", unitTests = true, functionalTests = true),
             GradleSubproject("kotlinDslProviderPlugins", unitTests = true, functionalTests = true),
             GradleSubproject("kotlinDslToolingModels", unitTests = false, functionalTests = false),
-            GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true),
+            GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true, crossVersionTests = true),
             GradleSubproject("kotlinDslPlugins", unitTests = true, functionalTests = true),
             GradleSubproject("kotlinDslTestFixtures", unitTests = true, functionalTests = false),
             GradleSubproject("kotlinDslIntegTests", unitTests = false, functionalTests = true),
