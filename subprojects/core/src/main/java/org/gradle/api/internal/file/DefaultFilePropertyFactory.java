@@ -290,6 +290,10 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public void set(File file) {
+            if (file == null) {
+                value(null);
+                return;
+            }
             set(new FixedFile(fileResolver.resolve(file)));
         }
 
@@ -376,6 +380,10 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public void set(File dir) {
+            if (dir == null) {
+                value(null);
+                return;
+            }
             File resolved = resolver.resolve(dir);
             set(new FixedDirectory(resolved, resolver.newResolver(resolved)));
         }

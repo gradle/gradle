@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -49,7 +50,7 @@ public interface DirectoryProperty extends Property<Directory> {
     /**
      * Sets the location of this directory.
      */
-    void set(File dir);
+    void set(@Nullable File dir);
 
     /**
      * {@inheritDoc}

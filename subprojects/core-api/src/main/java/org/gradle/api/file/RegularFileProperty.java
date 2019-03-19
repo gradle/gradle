@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -44,7 +45,7 @@ public interface RegularFileProperty extends Property<RegularFile> {
     /**
      * Sets the location of this file, using a {@link File} instance.
      */
-    void set(File file);
+    void set(@Nullable File file);
 
     /**
      * {@inheritDoc}

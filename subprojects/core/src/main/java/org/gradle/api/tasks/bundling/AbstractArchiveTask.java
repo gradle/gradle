@@ -189,7 +189,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
-        archiveDestinationDirectory.set(destinationDir);
+        archiveDestinationDirectory.set(getProject().file(destinationDir));
     }
 
     /**
