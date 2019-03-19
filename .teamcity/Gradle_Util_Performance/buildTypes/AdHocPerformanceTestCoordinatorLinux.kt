@@ -13,6 +13,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 
 object AdHocPerformanceTestCoordinatorLinux : BuildType({
     uuid = "a28ced77-77d1-41fd-bc3b-fe9c9016bf7b"
+    id("Gradle_Util_Performance_PerformanceTestCoordinatorLinux")
     name = "AdHoc Performance Test Coordinator - Linux"
 
     applyPerformanceTestSettings(os = Os.linux, timeout = 420)

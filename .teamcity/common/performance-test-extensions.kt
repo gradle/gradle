@@ -27,7 +27,6 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
-        // TODO this can be removed once https://github.com/gradle/gradle-private/issues/1861 is closed
         doesNotContain("teamcity.agent.name", "ec2")
     }
     params {
