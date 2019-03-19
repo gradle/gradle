@@ -75,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -103,7 +104,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Node, MutationInfo> mutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
-    private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
+    private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
+    private boolean maybeNodesReady;
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
@@ -258,6 +260,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }));
         int visitingSegmentCounter = nodeQueue.size();
+        Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
 
         HashMultimap<Node, Integer> visitingNodes = HashMultimap.create();
         Deque<GraphEdge> walkedShouldRunAfterEdges = new ArrayDeque<GraphEdge>();
@@ -269,10 +272,13 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             int currentSegment = nodeInVisitingSegment.visitingSegment;
             Node node = nodeInVisitingSegment.node;
 
-            if (node.isIncludeInGraph() || nodeMapping.contains(node)) {
+            if (!node.isIncludeInGraph() || nodeMapping.contains(node)) {
                 nodeQueue.remove(0);
                 visitingNodes.remove(node, currentSegment);
                 maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
                 continue;
             }
 
@@ -313,6 +319,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 visitingNodes.remove(node, currentSegment);
                 path.pop();
                 nodeMapping.add(node);
+                if (node.requiresMonitoring()) {
+                    dependenciesWhichRequireMonitoring.add(node);
+                }
 
                 MutationInfo mutations = getOrCreateMutationsOf(node);
                 for (Node dependency : node.getDependencySuccessors()) {
@@ -335,6 +344,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
+        for (Node node : executionQueue) {
+            maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
+        }
+        this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
 
     private MutationInfo getOrCreateMutationsOf(Node node) {
@@ -505,7 +518,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         mutations.clear();
         canonicalizedFileCache.clear();
         reachableCache.clear();
-        dependenciesCompleteCache.clear();
+        dependenciesWhichRequireMonitoring.clear();
         runningNodes.clear();
     }
 
@@ -540,10 +553,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+            Node node = iterator.next();
+            if (node.isComplete()) {
+                updateAllDependenciesCompleteForPredecessors(node);
+                iterator.remove();
+            }
+        }
+        if (!maybeNodesReady) {
+            return null;
+        }
         Iterator<Node> iterator = executionQueue.iterator();
+        boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            if (node.isReady() && allDependenciesComplete(node)) {
+            if (node.isReady() && node.allDependenciesComplete()) {
+                foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
                 // TODO: convert output file checks to a resource lock
@@ -559,13 +584,20 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     node.startExecution();
                 } else {
                     node.skipExecution();
+                    updateAllDependenciesCompleteForPredecessors(node);
                 }
                 iterator.remove();
-
                 return node;
             }
         }
+        maybeNodesReady = foundReadyNode;
         return null;
+    }
+
+    private void updateAllDependenciesCompleteForPredecessors(Node node) {
+        for (Node predecessor : node.getAllPredecessors()) {
+            maybeNodesReady |= predecessor.updateAllDependenciesComplete() && predecessor.isReady();
+        }
     }
 
     private boolean tryLockProjectFor(Node node) {
@@ -678,19 +710,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
         }
-    }
-
-    private boolean allDependenciesComplete(Node node) {
-        if (dependenciesCompleteCache.contains(node)) {
-            return true;
-        }
-
-        boolean dependenciesComplete = node.allDependenciesComplete();
-        if (dependenciesComplete) {
-            dependenciesCompleteCache.add(node);
-        }
-
-        return dependenciesComplete;
     }
 
     private boolean allProjectsLocked() {
@@ -863,6 +882,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (canRemoveMutation(mutations)) {
             this.mutations.remove(node);
         }
+        updateAllDependenciesCompleteForPredecessors(node);
     }
 
     private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
@@ -874,6 +894,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         try {
             if (!node.isComplete()) {
                 enforceFinalizers(node);
+                maybeNodesReady = true;
                 if (node.isFailed()) {
                     handleFailure(node);
                 }
@@ -889,7 +910,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private static void enforceFinalizers(Node node) {
         for (Node finalizerNode : node.getFinalizers()) {
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
-                enforceWithDependencies(finalizerNode, Sets.<Node>newHashSet());
+                HashSet<Node> enforcedNodes = Sets.newHashSet();
+                enforceWithDependencies(finalizerNode, enforcedNodes);
             }
         }
     }
@@ -907,6 +929,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.isMustNotRun() || node.isRequired()) {
                     node.enforceRun();
+                    // Completed changed from true to false - inform all nodes depending on this one.
+                    for (Node predecessor : node.getAllPredecessors()) {
+                        predecessor.forceAllDependenciesCompleteUpdate();
+                    }
                 }
             }
         }
@@ -963,6 +989,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.abortExecution();
                 aborted = true;
             }
+            updateAllDependenciesCompleteForPredecessors(node);
         }
         return aborted;
     }

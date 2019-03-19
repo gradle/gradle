@@ -673,6 +673,88 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
     }
 
+    def "must run after is sometimes not respected for finalizers"() {
+        Task dependency = project.task("dependency", type: Async)
+        Task finalized = project.task("finalized", type: Async)
+        Task finalizer = project.task("finalizer", type: Async)
+        Task mustRunAfter = project.task("mustRunAfter", type: Async)
+
+        finalized.dependsOn(dependency)
+        finalized.finalizedBy(finalizer)
+        mustRunAfter.mustRunAfter(finalizer)
+
+        when:
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([mustRunAfter])
+        executionPlan.determineExecutionPlan()
+
+        and:
+        def dependencyNode = selectNextTaskNode()
+        def mustRunAfterNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        dependencyNode.task == dependency
+        mustRunAfterNode.task == mustRunAfter
+
+        when:
+        executionPlan.nodeComplete(dependencyNode)
+
+        def finalizedNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizedNode.task == finalized
+
+        when:
+        executionPlan.nodeComplete(finalizedNode)
+
+        def finalizerNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizerNode.task == finalizer
+    }
+
+    def "must run after is sometimes respected for finalizers"() {
+        Task dependency = project.task("dependency", type: Async)
+        Task finalized = project.task("finalized", type: Async)
+        Task finalizer = project.task("finalizer", type: Async)
+        Task mustRunAfter = project.task("mustRunAfter", type: Async)
+
+        finalized.dependsOn(dependency)
+        finalized.finalizedBy(finalizer)
+        mustRunAfter.mustRunAfter(finalizer)
+
+        when:
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([mustRunAfter])
+        executionPlan.determineExecutionPlan()
+
+        and:
+        def dependencyNode = selectNextTaskNode()
+        then:
+        dependencyNode.task == dependency
+
+        when:
+        executionPlan.nodeComplete(dependencyNode)
+
+        def finalizedNode = selectNextTaskNode()
+        then:
+        finalizedNode.task == finalized
+
+        when:
+        executionPlan.nodeComplete(finalizedNode)
+
+        def finalizerNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizerNode.task == finalizer
+
+        when:
+        executionPlan.nodeComplete(finalizerNode)
+        then:
+        selectNextTask() == mustRunAfter
+        selectNextTask() == null
+    }
+
     def "handles an exception while walking the task graph when an enforced task is present"() {
         given:
         Task finalizer = project.task("finalizer", type: BrokenTask)

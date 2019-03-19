@@ -63,6 +63,11 @@ class ActionNode extends Node {
     }
 
     @Override
+    public boolean requiresMonitoring() {
+        return false;
+    }
+
+    @Override
     public String toString() {
         return "work action " + action;
     }
