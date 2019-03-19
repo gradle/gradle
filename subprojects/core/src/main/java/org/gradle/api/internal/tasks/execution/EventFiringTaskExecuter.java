@@ -64,11 +64,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
                     if (logger != null){
                         contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
                         contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
-                    } else {
-                        for (Class<?> anInterface : logger.getClass().getInterfaces()) {
-                            System.out.println("### = " + anInterface);
-                        }
-                    }
+                    } 
                 } catch (Throwable t) {
                     state.setOutcome(new TaskExecutionException(task, t));
                     return TaskExecuterResult.WITHOUT_OUTPUTS;
