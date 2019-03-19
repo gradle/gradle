@@ -16,11 +16,10 @@
 = Building native software
 
 
-[NOTE]
+[CAUTION]
 ====
-
-The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed. We recommend new projects looking to build C++ applications and libraries use the newer <<cpp_plugins.adoc#cpp_plugin,replacement plugins>>.
-
+The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[software model] is being retired and the plugins mentioned in this chapter will eventually be deprecated and removed.
+We recommend new projects looking to build C++ applications and libraries use the newer <<cpp_plugins.adoc#cpp_plugin,replacement plugins>>.
 ====
 
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.

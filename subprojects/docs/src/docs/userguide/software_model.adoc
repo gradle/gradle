@@ -17,7 +17,9 @@
 
 [CAUTION]
 ====
-Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated]. New plugins should not use this concept.
+Rule based configuration link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[will be deprecated].
+New plugins should not use this concept.
+Instead, use the standard approach described in the <<custom_plugins.adoc#custom_plugins, Writing Custom Plugins>> chapter.
 ====
 
 Rule based model configuration enables _configuration logic to itself have dependencies_ on other elements of configuration, and to make use of the resolved states of those other elements of configuration while performing its own configuration.
