@@ -34,8 +34,8 @@ public abstract class TaskNode extends Node {
     private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
 
     @Override
-    public boolean allDependenciesComplete() {
-        if (!super.allDependenciesComplete()) {
+    public boolean doCheckDependenciesComplete() {
+        if (!super.doCheckDependenciesComplete()) {
             return false;
         }
         for (Node dependency : mustSuccessors) {
@@ -107,7 +107,7 @@ public abstract class TaskNode extends Node {
 
     @Override
     public Iterable<Node> getAllPredecessors() {
-        return Iterables.concat(mustPredecessors, super.getAllPredecessors());
+        return Iterables.concat(mustPredecessors, finalizers, super.getAllPredecessors());
     }
 
     @Override

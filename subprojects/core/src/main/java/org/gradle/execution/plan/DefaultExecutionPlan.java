@@ -104,10 +104,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private final Map<Node, MutationInfo> mutations = Maps.newIdentityHashMap();
     private final Map<File, String> canonicalizedFileCache = Maps.newIdentityHashMap();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = Maps.newHashMap();
-    private final Set<Node> dependenciesCompleteCache = Sets.newHashSet();
-    private final Set<Node> dependenciesWithChanges = Sets.newHashSet();
     private final List<Node> dependenciesWhichRequireMonitoring = Lists.newArrayList();
-    private final Set<Node> readyToExecute = Sets.newHashSet();
+    private boolean maybeNodesReady;
     private final WorkerLeaseService workerLeaseService;
     private final GradleInternal gradle;
 
@@ -346,7 +344,9 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
         executionQueue.clear();
         Iterables.addAll(executionQueue, nodeMapping);
-        Iterables.addAll(dependenciesWithChanges, nodeMapping);
+        for (Node node : executionQueue) {
+            maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
+        }
         this.dependenciesWhichRequireMonitoring.addAll(dependenciesWhichRequireMonitoring);
     }
 
@@ -518,10 +518,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         mutations.clear();
         canonicalizedFileCache.clear();
         reachableCache.clear();
-        dependenciesCompleteCache.clear();
-        dependenciesWithChanges.clear();
         dependenciesWhichRequireMonitoring.clear();
-        readyToExecute.clear();
         runningNodes.clear();
     }
 
@@ -556,22 +553,22 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Node node : dependenciesWhichRequireMonitoring) {
-            if (dependenciesCompleteCache.contains(node)) {
-                continue;
-            }
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+            Node node = iterator.next();
             if (node.isComplete()) {
-                dependenciesCompleteCache.add(node);
-                Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
+                updateAllDependenciesCompleteForPredecessors(node);
+                iterator.remove();
             }
         }
-        if (readyToExecute.isEmpty() && dependenciesWithChanges.isEmpty()) {
+        if (!maybeNodesReady) {
             return null;
         }
         Iterator<Node> iterator = executionQueue.iterator();
+        boolean foundReadyNode = false;
         while (iterator.hasNext()) {
             Node node = iterator.next();
-            if (node.isReady() && allDependenciesComplete(node)) {
+            if (node.isReady() && node.allDependenciesComplete()) {
+                foundReadyNode = true;
                 MutationInfo mutations = getResolvedMutationInfo(node);
 
                 // TODO: convert output file checks to a resource lock
@@ -579,7 +576,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     || !workerLease.tryLock()
                     || !canRunWithCurrentlyExecutedNodes(node, mutations)) {
                     resourceLockState.releaseLocks();
-                    readyToExecute.add(node);
                     continue;
                 }
 
@@ -587,15 +583,21 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     recordNodeStarted(node);
                     node.startExecution();
                 } else {
-                    Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
                     node.skipExecution();
+                    updateAllDependenciesCompleteForPredecessors(node);
                 }
                 iterator.remove();
-                readyToExecute.remove(node);
                 return node;
             }
         }
+        maybeNodesReady = foundReadyNode;
         return null;
+    }
+
+    private void updateAllDependenciesCompleteForPredecessors(Node node) {
+        for (Node predecessor : node.getAllPredecessors()) {
+            maybeNodesReady |= predecessor.updateAllDependenciesComplete() && predecessor.isReady();
+        }
     }
 
     private boolean tryLockProjectFor(Node node) {
@@ -708,23 +710,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         } catch (ResourceDeadlockException e) {
             throw new IllegalStateException(String.format("A deadlock was detected while resolving the %s for task '%s'. This can be caused, for instance, by %s property causing dependency resolution.", description, task, singular), e);
         }
-    }
-
-    private boolean allDependenciesComplete(Node node) {
-        if (dependenciesCompleteCache.contains(node)) {
-            return true;
-        }
-
-        if (!dependenciesWithChanges.contains(node)) {
-            return false;
-        }
-        boolean dependenciesComplete = node.allDependenciesComplete();
-        dependenciesWithChanges.remove(node);
-        if (dependenciesComplete) {
-            dependenciesCompleteCache.add(node);
-        }
-
-        return dependenciesComplete;
     }
 
     private boolean allProjectsLocked() {
@@ -886,7 +871,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     private void recordNodeCompleted(Node node) {
         runningNodes.remove(node);
-        Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
         MutationInfo mutations = this.mutations.get(node);
         for (Node producer : mutations.producingNodes) {
             MutationInfo producerMutations = this.mutations.get(producer);
@@ -898,6 +882,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         if (canRemoveMutation(mutations)) {
             this.mutations.remove(node);
         }
+        updateAllDependenciesCompleteForPredecessors(node);
     }
 
     private static boolean canRemoveMutation(@Nullable MutationInfo mutations) {
@@ -908,7 +893,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public void nodeComplete(Node node) {
         try {
             if (!node.isComplete()) {
-                enforceFinalizers(node, dependenciesWithChanges);
+                enforceFinalizers(node);
+                maybeNodesReady = true;
                 if (node.isFailed()) {
                     handleFailure(node);
                 }
@@ -921,13 +907,11 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
     }
 
-    private static void enforceFinalizers(Node node, Set<Node> nodesWithDependencyChanges) {
+    private static void enforceFinalizers(Node node) {
         for (Node finalizerNode : node.getFinalizers()) {
-            nodesWithDependencyChanges.add(finalizerNode);
             if (finalizerNode.isRequired() || finalizerNode.isMustNotRun()) {
                 HashSet<Node> enforcedNodes = Sets.newHashSet();
                 enforceWithDependencies(finalizerNode, enforcedNodes);
-                nodesWithDependencyChanges.addAll(enforcedNodes);
             }
         }
     }
@@ -945,6 +929,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
                 if (node.isMustNotRun() || node.isRequired()) {
                     node.enforceRun();
+                    // Completed changed from true to false - inform all nodes depending on this one.
+                    for (Node predecessor : node.getAllPredecessors()) {
+                        predecessor.forceAllDependenciesCompleteUpdate();
+                    }
                 }
             }
         }
@@ -990,7 +978,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private boolean abortExecution(boolean abortAll) {
         boolean aborted = false;
         for (Node node : nodeMapping) {
-            Iterables.addAll(dependenciesWithChanges, node.getAllPredecessors());
             // Allow currently executing and enforced tasks to complete, but skip everything else.
             if (node.isRequired()) {
                 node.skipExecution();
@@ -1002,6 +989,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                 node.abortExecution();
                 aborted = true;
             }
+            updateAllDependenciesCompleteForPredecessors(node);
         }
         return aborted;
     }

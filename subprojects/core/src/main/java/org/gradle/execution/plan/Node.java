@@ -42,6 +42,7 @@ public abstract class Node implements Comparable<Node> {
 
     private ExecutionState state;
     private boolean dependenciesProcessed;
+    private boolean allDependenciesComplete;
     private Throwable executionFailure;
     private final NavigableSet<Node> dependencySuccessors = Sets.newTreeSet();
     private final NavigableSet<Node> dependencyPredecessors = Sets.newTreeSet();
@@ -172,7 +173,7 @@ public abstract class Node implements Comparable<Node> {
     }
 
     @OverridingMethodsMustInvokeSuper
-    public boolean allDependenciesComplete() {
+    protected boolean doCheckDependenciesComplete() {
         for (Node dependency : dependencySuccessors) {
             if (!dependency.isComplete()) {
                 return false;
@@ -180,6 +181,25 @@ public abstract class Node implements Comparable<Node> {
         }
 
         return true;
+    }
+
+    /**
+     * Returns if all dependencies completed, but have not been completed in the last check.
+     */
+    public boolean updateAllDependenciesComplete() {
+        if (!allDependenciesComplete) {
+            forceAllDependenciesCompleteUpdate();
+            return allDependenciesComplete;
+        }
+        return false;
+    }
+
+    public void forceAllDependenciesCompleteUpdate() {
+        allDependenciesComplete = doCheckDependenciesComplete();
+    }
+
+    public boolean allDependenciesComplete() {
+        return allDependenciesComplete;
     }
 
     public boolean allDependenciesSuccessful() {
