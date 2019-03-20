@@ -17,23 +17,23 @@
 package org.gradle.play.tasks;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.twirl.TwirlImports;
 import org.gradle.language.twirl.TwirlTemplateFormat;
@@ -46,6 +46,9 @@ import org.gradle.play.internal.twirl.TwirlCompileSpec;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
+import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -81,9 +84,20 @@ public class TwirlCompile extends SourceTask {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @Internal("Input tracking happens via getSourceProperty()")
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    protected FileTree getSourceProperty() {
+        return super.getSourceProperty();
     }
 
     /**
@@ -139,25 +153,23 @@ public class TwirlCompile extends SourceTask {
     }
 
     @TaskAction
-    void compile(IncrementalTaskInputs inputs) {
+    void compile(InputChanges inputs) {
         RelativeFileCollector relativeFileCollector = new RelativeFileCollector();
-        getSource().visit(relativeFileCollector);
+        getSourceProperty().visit(relativeFileCollector);
         TwirlCompileSpec spec = new DefaultTwirlCompileSpec(relativeFileCollector.relativeFiles, getOutputDirectory(), getForkOptions(), getDefaultImports(), userTemplateFormats, additionalImports);
         if (!inputs.isIncremental()) {
             new CleaningPlayToolCompiler<TwirlCompileSpec>(getCompiler(), getOutputs()).execute(spec);
         } else {
             final Set<File> sourcesToCompile = new HashSet<File>();
-            inputs.outOfDate(new Action<InputFileDetails>() {
-                public void execute(InputFileDetails inputFileDetails) {
-                    sourcesToCompile.add(inputFileDetails.getFile());
-                }
-            });
             final Set<File> staleOutputFiles = new HashSet<File>();
-            inputs.removed(new Action<InputFileDetails>() {
-                public void execute(InputFileDetails inputFileDetails) {
-                    staleOutputFiles.add(inputFileDetails.getFile());
+            for (FileChange fileChange : inputs.getFileChanges(getSourceProperty())) {
+                File sourceFile = fileChange.getFile();
+                if (fileChange.getChangeType() == ChangeType.REMOVED) {
+                    staleOutputFiles.add(sourceFile);
+                } else {
+                    sourcesToCompile.add(sourceFile);
                 }
-            });
+            }
             if (cleaner == null) {
                 cleaner = new TwirlStaleOutputCleaner(getOutputDirectory());
             }
