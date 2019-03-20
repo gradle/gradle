@@ -101,6 +101,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
     )
 
+fun buildToolParametersString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")
 
 fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
     // Compile All has to succeed before anything else is started
@@ -115,5 +116,13 @@ fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_Compi
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
+    }
+}
+
+fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true) {
+    gradleWrapper {
+        name = "VERIFY_TEST_FILES_CLEANUP"
+        tasks = "verifyTestFilesCleanup"
+        gradleParams = buildToolParametersString(daemon)
     }
 }

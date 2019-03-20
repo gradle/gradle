@@ -3,9 +3,11 @@ package configurations
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
+import common.buildToolParametersString
 import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
+import common.verifyTestFilesCleanup
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
@@ -25,8 +27,6 @@ fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boo
     // since we only have a small pool of macOS agents
     return testConfig.os.ignoredSubprojects.contains(subProject.name)
 }
-
-fun gradleParameterString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -70,24 +70,13 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BaseGradleBuildType.verifyTestFilesCleanupStep(daemon: Boolean = true) {
-    steps {
-        gradleWrapper {
-            name = "VERIFY_TEST_FILES_CLEANUP"
-            tasks = "verifyTestFilesCleanup"
-            gradleParams = gradleParameterString(daemon)
-        }
-    }
-}
-
-private
 fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
     if (tagBuild) {
         gradleWrapper {
             name = "TAG_BUILD"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "tagBuild"
-            gradleParams = "${gradleParameterString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+            gradleParams = "${buildToolParametersString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
         }
     }
 }
@@ -105,14 +94,14 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
-                    listOf(gradleParameterString(daemon)) +
-                            this@gradleRunnerStep.buildCache.gradleParameters(os) +
-                            listOf(extraParameters) +
-                            "-PteamCityUsername=%teamcity.username.restbot%" +
-                            "-PteamCityPassword=%teamcity.password.restbot%" +
-                            "-PteamCityBuildId=%teamcity.build.id%" +
-                            buildScanTags.map { configurations.buildScanTag(it) }
-                    ).joinToString(separator = " ")
+                buildToolGradleParameters(daemon) +
+                    this@gradleRunnerStep.buildCache.gradleParameters(os) +
+                    listOf(extraParameters) +
+                    "-PteamCityUsername=%teamcity.username.restbot%" +
+                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityBuildId=%teamcity.build.id%" +
+                    buildScanTags.map { configurations.buildScanTag(it) }
+                ).joinToString(separator = " ")
         }
     }
 }
@@ -127,16 +116,16 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             tasks = "$gradleTasks tagBuild"
             executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
             gradleParams = (
-                    listOf(gradleParameterString(daemon)) +
-                            this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                            listOf(extraParameters) +
-                            "-PteamCityUsername=%teamcity.username.restbot%" +
-                            "-PteamCityPassword=%teamcity.password.restbot%" +
-                            "-PteamCityBuildId=%teamcity.build.id%" +
-                            buildScanTags.map { configurations.buildScanTag(it) } +
-                            "-PonlyPreviousFailedTestClasses=true" +
-                            "-PgithubToken=%github.ci.oauth.token%"
-                    ).joinToString(separator = " ")
+                buildToolGradleParameters(daemon) +
+                    this@gradleRerunnerStep.buildCache.gradleParameters(os) +
+                    listOf(extraParameters) +
+                    "-PteamCityUsername=%teamcity.username.restbot%" +
+                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityBuildId=%teamcity.build.id%" +
+                    buildScanTags.map { configurations.buildScanTag(it) } +
+                    "-PonlyPreviousFailedTestClasses=true" +
+                    "-PgithubToken=%github.ci.oauth.token%"
+                ).joinToString(separator = " ")
         }
     }
 }
@@ -149,7 +138,7 @@ fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os
                 name = stepName
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "killExistingProcessesStartedByGradle"
-                gradleParams = gradleParameterString(daemon)
+                gradleParams = buildToolParametersString(daemon)
             }
         }
     }
@@ -160,10 +149,11 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    buildType.steps.extraSteps()
-
-    buildType.steps.checkCleanM2(os)
-    buildType.verifyTestFilesCleanupStep(daemon)
+    buildType.steps {
+        extraSteps()
+        checkCleanM2(os)
+        verifyTestFilesCleanup(daemon)
+    }
 
     applyDefaultDependencies(model, buildType, notQuick)
 }
@@ -176,10 +166,11 @@ fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradl
     buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)
 
-    buildType.steps.extraSteps()
-
-    buildType.steps.checkCleanM2(os)
-    buildType.verifyTestFilesCleanupStep(daemon)
+    buildType.steps {
+        extraSteps()
+        checkCleanM2(os)
+        verifyTestFilesCleanup(daemon)
+    }
 
     applyDefaultDependencies(model, buildType, notQuick)
 }
