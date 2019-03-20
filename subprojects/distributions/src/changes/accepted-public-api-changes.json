@@ -13,6 +13,12 @@
             "member": "Method org.gradle.api.plugins.antlr.AntlrTask.execute(org.gradle.work.InputChanges)",
             "acceptation": "Migrated to the new incremental tasks API",
             "changes": []
+        },
+        {
+            "type": "org.gradle.language.rc.tasks.WindowsResourceCompile",
+            "member": "Method org.gradle.language.rc.tasks.WindowsResourceCompile.compile(org.gradle.work.InputChanges)",
+            "acceptation": "Migrated to the new incremental tasks API",
+            "changes": []
         }
     ]
 }
