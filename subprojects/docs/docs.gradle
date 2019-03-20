@@ -263,7 +263,6 @@ def dslStandaloneDocbook = tasks.register("dslStandaloneDocbook", UserGuideTrans
     javadocUrl = '../javadoc'
     dsldocUrl = '../dsl'
     websiteUrl = 'https://gradle.org'
-    tags = ["noNavBar"]
 }
 
 def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
