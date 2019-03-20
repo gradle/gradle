@@ -40,5 +40,33 @@ class SourceTaskTest extends AbstractTaskTest {
         expect:
         task.source.asList() == [file1, file2]
     }
+
+    def "can prepend to source"() {
+        given:
+        File file1 = temporaryFolder.file('file1.txt').createFile()
+        File file2 = temporaryFolder.file('file2.txt').createFile()
+        file2.createNewFile()
+
+        task.source = file1
+        task.source = project.layout.files(file2) + task.source
+
+        expect:
+        task.source.asList() == [file2, file1]
+    }
+
+    def "can do complicated replacement"() {
+        given:
+        File file1 = temporaryFolder.file('file1.txt').createFile()
+        File file2 = temporaryFolder.file('file2.txt').createFile()
+        File file3 = temporaryFolder.file('file3.txt').createFile()
+        file2.createNewFile()
+        file3.createNewFile()
+
+        task.source = file1
+        task.source = task.source + project.layout.files(file2) + task.source + project.layout.files(file3)
+
+        expect:
+        task.source.asList() == [file1, file2, file3]
+    }
 }
 

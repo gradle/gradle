@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
@@ -39,9 +41,16 @@ import java.util.Set;
 public class SourceTask extends ConventionTask implements PatternFilterable {
     private final List<Object> source = new ArrayList<Object>();
     private final PatternFilterable patternSet;
+    private final FileTree sourceProperty;
 
     public SourceTask() {
         patternSet = getPatternSetFactory().create();
+        sourceProperty = getProject().getObjects().fileCollection().from(new Callable<FileTree>() {
+            @Override
+            public FileTree call() {
+                return getSource();
+            }
+        }).getAsFileTree();
     }
 
     @Inject
@@ -193,5 +202,21 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     public SourceTask setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
+    }
+
+    /**
+     * A stable property for {@link #getSource()}.
+     *
+     * <p>
+     *     Should be used in combination with {@link org.gradle.work.InputChanges#getFileChanges(Object)} to query file changes.
+     *     For this to work, the subclass needs to override this property and add an input file annotation to it, and override {@link #getSource()} and add {@link Internal} to it.
+     * </p>
+     *
+     * @since 5.4
+     */
+    @Incubating
+    @Internal
+    protected FileTree getSourceProperty() {
+        return sourceProperty;
     }
 }
