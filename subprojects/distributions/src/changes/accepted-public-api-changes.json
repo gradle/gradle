@@ -1,3 +1,18 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.execute(org.gradle.api.tasks.incremental.IncrementalTaskInputs)",
+            "acceptation": "Migrated to the new incremental tasks API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrTask",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrTask.execute(org.gradle.work.InputChanges)",
+            "acceptation": "Migrated to the new incremental tasks API",
+            "changes": []
+        }
+    ]
 }
