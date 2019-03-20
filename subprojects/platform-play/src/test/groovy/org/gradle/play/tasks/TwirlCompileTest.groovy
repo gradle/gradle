@@ -16,21 +16,21 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.api.Action
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.internal.twirl.TwirlCompileSpec
 import org.gradle.play.platform.PlayPlatform
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.work.ChangeType
+import org.gradle.work.FileChange
+import org.gradle.work.InputChanges
 
 class TwirlCompileTest extends AbstractProjectBuilderSpec {
     TwirlCompile compile
     Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
-    IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
+    InputChanges inputChanges = Mock(InputChanges)
 
     def setup() {
         compile = project.tasks.create("compile", TwirlCompile)
@@ -55,9 +55,9 @@ class TwirlCompileTest extends AbstractProjectBuilderSpec {
         1 * twirlCompiler.execute(_)
     }
 
-    IncrementalTaskInputs withNonIncrementalInputs() {
-        _ * taskInputs.isIncremental() >> false
-        taskInputs;
+    InputChanges withNonIncrementalInputs() {
+        _ * inputChanges.isIncremental() >> false
+        inputChanges;
     }
 
     def "deletes stale output files"(){
@@ -73,17 +73,12 @@ class TwirlCompileTest extends AbstractProjectBuilderSpec {
         1 * twirlCompiler.execute(_)
     }
 
-    IncrementalTaskInputs withDeletedInputFile() {
-        def details = someInputFileDetails();
-        _ * taskInputs.isIncremental() >> true;
-        _ * taskInputs.outOfDate(_)
-        _ * taskInputs.removed({Action<InputFileDetails> action -> action.execute(details)})
-        taskInputs
-    }
-
-    private InputFileDetails someInputFileDetails() {
-        def inputFileDetails = Mock(InputFileDetails)
-        _  * inputFileDetails.getFile() >> new File("some/path/index.scala.html");
-        inputFileDetails
+    InputChanges withDeletedInputFile() {
+        def fileChange = Mock(FileChange)
+        _ * fileChange.changeType >> ChangeType.REMOVED
+        _ * fileChange.file >> new File("some/path/index.scala.html")
+        _ * inputChanges.isIncremental() >> true;
+        _ * inputChanges.getFileChanges(_) >> [fileChange]
+        inputChanges
     }
 }
