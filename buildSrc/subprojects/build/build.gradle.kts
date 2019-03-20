@@ -1,3 +1,8 @@
+plugins {
+    groovy
+    `java-gradle-plugin`
+}
+
 dependencies {
     api("com.google.guava:guava:26.0-jre")
     api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
