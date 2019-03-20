@@ -68,7 +68,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 }
                 if (taskActionFactory instanceof AbstractIncrementalTaskActionFactory) {
                     if (incremental) {
-                        throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", IncrementalTaskInputs.class.getSimpleName()));
+                        throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s or %s parameter.", InputChanges.class.getSimpleName(), IncrementalTaskInputs.class.getSimpleName()));
                     }
                     incremental = true;
                 }
