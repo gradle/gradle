@@ -113,7 +113,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, getGradleStep("GRADLE_RERUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true -PteamCityBuildId=%teamcity.build.id%", getGradleStep("GRADLE_RERUNNER").gradleParams)
+        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true -PgithubToken=%github.ci.oauth.token%", getGradleStep("GRADLE_RERUNNER").gradleParams)
         assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
         assertEquals("myTask tagBuild", getGradleStep("GRADLE_RERUNNER").tasks)
     }
