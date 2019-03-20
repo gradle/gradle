@@ -480,12 +480,5 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
         }
     }
 
-    public OutputEventListenerBackedLoggerContext getContext() {
-        return context;
-    }
-
-    public Clock getClock() {
-        return clock;
-    }
 
 }
