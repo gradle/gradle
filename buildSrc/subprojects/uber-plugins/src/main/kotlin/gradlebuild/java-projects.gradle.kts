@@ -15,13 +15,11 @@
  */
 package gradlebuild
 
-plugins {
-    id("gradlebuild.unittest-and-compile")
-    id("gradlebuild.test-fixtures")
-    id("gradlebuild.distribution-testing")
-    id("gradlebuild.int-test-image")
-    id("gradlebuild.incubation-report")
-}
+apply(plugin = "gradlebuild.unittest-and-compile")
+apply(plugin = "gradlebuild.test-fixtures")
+apply(plugin = "gradlebuild.distribution-testing")
+apply(plugin = "gradlebuild.int-test-image")
+apply(plugin = "gradlebuild.incubation-report")
 
 if (file("src/integTest").isDirectory) {
     apply(plugin = "gradlebuild.integration-tests")
