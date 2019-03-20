@@ -19,8 +19,6 @@ package org.gradle.testing.internal.util
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SecondParam
 
-import java.util.concurrent.atomic.AtomicBoolean
-
 /**
  * This fixes Spock's Mock() and Stub() methods to be understandable by IDEA.
  * By using this subclass, IDEA knows the closure delegate type when using Mock() or Stub().
@@ -48,12 +46,4 @@ class Specification extends spock.lang.Specification {
         super.Stub(type, closure)
     }
 
-    static AtomicBoolean checked = new AtomicBoolean(false)
-
-
-    void setup() {
-        if(!checked.getAndSet(true)) {
-            assert System.currentTimeMillis() % 2 == 0
-        }
-    }
 }
