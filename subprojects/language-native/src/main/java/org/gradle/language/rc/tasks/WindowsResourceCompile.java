@@ -32,7 +32,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
@@ -47,6 +46,8 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.work.Incremental;
+import org.gradle.work.InputChanges;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -79,7 +80,7 @@ public class WindowsResourceCompile extends DefaultTask {
         incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes, macros, Providers.FALSE);
         getInputs().property("outputType", new Callable<String>() {
             @Override
-            public String call() throws Exception {
+            public String call() {
                 NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
                 NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
                 return NativeToolChainInternal.Identifier.identify(nativeToolChain, nativePlatform);
@@ -98,7 +99,7 @@ public class WindowsResourceCompile extends DefaultTask {
     }
 
     @TaskAction
-    public void compile(IncrementalTaskInputs inputs) {
+    public void compile(InputChanges inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
 
         NativeCompileSpec spec = new DefaultWindowsResourceCompileSpec();
@@ -161,6 +162,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * Returns the header directories to be used for compilation.
      */
+    @Incremental
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getIncludes() {
@@ -177,6 +179,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * Returns the source files to be compiled.
      */
+    @Incremental
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public ConfigurableFileCollection getSource() {
@@ -218,6 +221,7 @@ public class WindowsResourceCompile extends DefaultTask {
      *
      * @since 4.5
      */
+    @Incremental
     @InputFiles
     @PathSensitive(PathSensitivity.NAME_ONLY)
     protected FileCollection getHeaderDependencies() {
