@@ -101,7 +101,7 @@ This value must contain an array of 0 or more capabilities. Each capability is a
 
 This value must contain an object with the following values:
 
-- `url`: The location of the metadata file that describes the variant. A string. In version 0.4, this must be a path relative to the module.
+- `url`: The location of the metadata file that describes the variant. A string. In version 1.0, this must be a path relative to the module.
 - `group`: The group of the module. A string
 - `module`: The name of the module. A string
 - `version`: The version of the module. A string
@@ -152,7 +152,7 @@ This value must contain an array with zero or more elements. Each element must b
 This value must contain an array with zero or more elements. Each element must be an object with the following values:
 
 - `name`: The name of the file. A string. This will be used to calculate the name of the file in the cache.
-- `url`: The location of the file. A string. In version 0.4, this must be a path relative to the module.
+- `url`: The location of the file. A string. In version 1.0, this must be a path relative to the module.
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
 - `md5`: The MD5 hash of the file content. A hex string.
