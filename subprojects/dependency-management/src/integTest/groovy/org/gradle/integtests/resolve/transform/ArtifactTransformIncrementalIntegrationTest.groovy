@@ -30,8 +30,8 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
             import javax.inject.Inject
             import groovy.transform.CompileStatic
             import org.gradle.api.provider.*
+            import org.gradle.api.file.*
             import org.gradle.api.tasks.*
-            import org.gradle.api.tasks.incremental.*
             import org.gradle.api.artifacts.transform.*
             import org.gradle.work.*
 
@@ -54,10 +54,10 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 abstract InputChanges getInputChanges()
                 
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInput()
             
                 void transform(TransformOutputs outputs) {
-                    println "Transforming " + input.name
+                    println "Transforming " + input.get().asFile.name
                     println "incremental: " + inputChanges.incremental
                     assert parameters.incrementalExecution.get() == inputChanges.incremental
                     def changes = inputChanges.getFileChanges(input)
@@ -67,7 +67,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                     assert changes.findAll { it.changeType == ChangeType.MODIFIED }*.file as Set == resolveFiles(parameters.modifiedFiles.get())
                     def outputDirectory = outputs.dir("output")
                     changes.each { change ->
-                        if (change.file != input) {
+                        if (change.file != input.get().asFile) {
                             File outputFile = new File(outputDirectory, change.file.name)
                             switch (change.changeType) {
                                 case ChangeType.ADDED:
@@ -85,7 +85,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
                 }
 
                 private resolveFiles(List<String> files) {
-                    files.collect { new File(input, it) } as Set
+                    files.collect { new File(input.get().asFile, it) } as Set
                 }
             }
         """

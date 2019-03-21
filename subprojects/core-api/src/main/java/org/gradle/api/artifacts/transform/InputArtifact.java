@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.transform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 
 import java.io.File;
@@ -29,12 +30,16 @@ import java.lang.annotation.Target;
 /**
  * Attached to a property that should receive the <em>input artifact</em> for an artifact transform. This is the artifact that the transform should be applied to.
  *
+ * <p>
+ *     The input artifact can be injected as a plain {@link File} or a {@link Provider}&lt;{@link org.gradle.api.file.FileSystemLocation}&gt;.
+ * </p>
+ *
  * @since 5.3
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 @Documented
-@InjectionPointQualifier(supportedTypes = File.class)
+@InjectionPointQualifier(supportedTypes = { File.class, Provider.class })
 public @interface InputArtifact {
 }

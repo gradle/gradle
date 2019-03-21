@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.transform
 
-
+import com.google.common.reflect.TypeToken
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -40,7 +41,8 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
+    @Unroll
+    def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -73,11 +75,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
 
                 @InputArtifact
-                abstract File getInput()
+                abstract ${inputArtifactType} getInput()
                 
                 void transform(TransformOutputs outputs) {
-                    println "processing \${input.name}"
-                    def output = outputs.file(input.name + "." + parameters.extension)
+                    File inputFile = input${convertToFile}
+                    println "processing \${inputFile.name}"
+                    def output = outputs.file(inputFile.name + "." + parameters.extension)
                     output.text = "ok"
                 }
             }
@@ -90,6 +93,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        inputArtifactType | convertToFile
+        'File'                         | ''
+        'Provider<FileSystemLocation>' | '.get().asFile'
     }
 
     @Unroll
@@ -651,7 +659,7 @@ abstract class MakeGreen extends ArtifactTransform {
     }
 
     @Unroll
-    def "transform cannot use @InputArtifact to receive dependencies"() {
+    def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -666,10 +674,10 @@ project(':a') {
 
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
-    abstract FileCollection getDependencies()
+    abstract ${propertyType instanceof Class ? propertyType.name : propertyType} getInput()
     
     void transform(TransformOutputs outputs) {
-        dependencies.files
+        input
         throw new RuntimeException("broken")
     }
 }
@@ -682,7 +690,10 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         // Documents existing behaviour. Should fail eagerly and with a better error message
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type interface ${FileCollection.name} available.")
+        failure.assertHasCause("No service of type ${propertyType} available.")
+
+        where:
+        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
     def "transform cannot use @Inject to receive input file"() {

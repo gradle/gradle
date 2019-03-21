@@ -19,8 +19,10 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -66,7 +68,8 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
-    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+    public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+        File inputArtifact = inputArtifactProvider.get().getAsFile();
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(inputArtifact);

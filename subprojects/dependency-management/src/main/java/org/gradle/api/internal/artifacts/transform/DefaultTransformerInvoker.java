@@ -20,11 +20,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.provider.Provider;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
@@ -233,6 +236,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         private final ArtifactTransformDependencies dependencies;
         private final FileCollectionFingerprinter outputFingerprinter;
         private final Timer executionTimer;
+        private final Provider<FileSystemLocation> inputArtifactProvider;
 
         public TransformerExecution(
             Transformer transformer,
@@ -255,6 +259,17 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             this.dependencies = dependencies;
             this.outputFingerprinter = outputFingerprinter;
             this.executionTimer = Time.startTimer();
+            this.inputArtifactProvider = Providers.of(new FileSystemLocation() {
+                @Override
+                public File getAsFile() {
+                    return inputArtifact;
+                }
+
+                @Override
+                public String toString() {
+                    return inputArtifact.toString();
+                }
+            });
         }
 
         @Override
@@ -267,7 +282,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                 GFileUtils.cleanDirectory(outputDir);
                 GFileUtils.deleteFileQuietly(resultsFile);
             }
-            ImmutableList<File> result = transformer.transform(inputArtifact, outputDir, dependencies, inputChanges);
+            ImmutableList<File> result = transformer.transform(inputArtifactProvider, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
             return WorkResult.DID_WORK;
         }
@@ -326,7 +341,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifact, true);
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, true);
         }
 
         @Override
