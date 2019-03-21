@@ -119,20 +119,7 @@ abstract class FileContentGenerator {
             <modules>
                 ${(0..config.subProjects - 1).collect { "<module>project$it</module>" }.join("\n                ")}
             </modules>
-            """
-        } else {
-            def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
-            def subProjectDependencies = ''
-            if (subProjectNumbers?.size() > 0) {
-                subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
-            }
-            body = """
-            <dependencies>
-                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
-                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
-                ${convertToPomDependency('junit:junit:4.12', 'test')}
-                ${subProjectDependencies}
-            </dependencies>
+
             <build>
                 <plugins>
                     <plugin>
@@ -173,6 +160,25 @@ abstract class FileContentGenerator {
                     </plugin>
                 </plugins>
             </build>
+            """
+        } else {
+            def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
+            def subProjectDependencies = ''
+            if (subProjectNumbers?.size() > 0) {
+                subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
+            }
+            body = """
+            <parent>
+                <groupId>org.gradle.test.performance</groupId>
+                <artifactId>project</artifactId>
+                <version>1.0</version>
+            </parent>
+            <dependencies>
+                ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
+                ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
+                ${convertToPomDependency('junit:junit:4.12', 'test')}
+                ${subProjectDependencies}
+            </dependencies>
             """
         }
         """
