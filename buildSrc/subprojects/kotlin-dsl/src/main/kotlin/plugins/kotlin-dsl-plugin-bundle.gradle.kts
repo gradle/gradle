@@ -44,7 +44,7 @@ afterEvaluate {
 
 
 tasks {
-    validateTaskProperties {
+    "validateTaskProperties"(ValidateTaskProperties::class) {
         failOnWarning = true
         enableStricterValidation = true
     }
