@@ -95,8 +95,25 @@ dependencies {
     }
 }
 
-// Set gradlebuild.skipBuildSrcChecks Gradle property to "true" to disable all buildSrc verification tasks
-if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
+
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
+val isCiServer: Boolean by extra { "CI" in System.getenv() }
+
+
+/**
+ * Controls whether verification tasks are skipped.
+ *
+ * Set the `buildSrcCheck` Gradle property to `true` to run the verification tasks.
+ * Set it to `false` to skip the verification tasks.
+ *
+ * When that property is unset, defaults to `false` on CI, to `true` otherwise.
+ */
+val isSkipBuildSrcVerification: Boolean =
+    (findProperty("buildSrcCheck") as String?)
+        ?.let { it == "false" }
+        ?: !isCiServer
+
+if (isSkipBuildSrcVerification) {
     allprojects {
         tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
             enabled = false
@@ -104,8 +121,6 @@ if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
     }
 }
 
-// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
-val isCiServer: Boolean by extra { "CI" in System.getenv() }
 if (isCiServer) {
     gradle.buildFinished {
         allprojects.forEach { project ->
