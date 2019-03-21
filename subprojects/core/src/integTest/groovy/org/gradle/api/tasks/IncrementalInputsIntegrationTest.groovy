@@ -85,10 +85,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     @Issue("https://github.com/gradle/gradle/issues/4166")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
-            class MyTask extends DefaultTask {
+            abstract class MyTask extends DefaultTask {
                 @${inputAnnotation}
                 @Incremental
-                File input
+                abstract DirectoryProperty getInput()
                 @OutputFile
                 File output
                 
@@ -129,7 +129,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             abstract class WithNonIncrementalInput extends BaseIncrementalTask {
                 
                 @InputFile
-                File nonIncrementalInput
+                abstract RegularFileProperty getNonIncrementalInput()
                 
                 @Override
                 void execute(InputChanges inputChanges) {
@@ -146,7 +146,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
         expect:
         fails("withNonIncrementalInput")
-        failure.assertHasCause("Cannot query incremental changes: No property found for value ${file("nonIncremental").absolutePath}. Incremental properties: inputDir.")
+        failure.assertHasCause("Cannot query incremental changes: No property found for value property(interface org.gradle.api.file.RegularFile, fixed(class org.gradle.api.internal.file.DefaultFilePropertyFactory\$FixedFile, ${file( "nonIncremental").absolutePath})). Incremental properties: inputDir.")
     }
 
     def "changes to non-incremental input parameters cause a rebuild"() {

@@ -57,7 +57,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
     abstract class BaseIncrementalTask extends DefaultTask {
         ${inputDirAnnotation}
         @InputDirectory
-        def File inputDir
+        abstract DirectoryProperty getInputDir()
 
         @TaskAction
         $taskAction
