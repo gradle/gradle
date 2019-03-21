@@ -1,3 +1,1 @@
- - Feature variants AKA "optional dependencies"
- - Type-safe accessors in Kotlin precompiled script plugins
- - Gradle Module Metadata 1.0
+ - JDK12 support
