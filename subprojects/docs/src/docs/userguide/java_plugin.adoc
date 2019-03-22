@@ -656,7 +656,7 @@ Gradle will always recompile any files the processor generates.
 
 [NOTE]
 ====
-Many popular annotation processors support incremental compilation (see the table below). Check with the annotation processor project directly for the most up-to-date information and documentation.
+Many popular annotation processors support incremental annotation processing (see the table below). Check with the annotation processor project directly for the most up-to-date information and documentation.
 ====
 
 [cols="a,a,a", options="header"]
@@ -679,7 +679,7 @@ Many popular annotation processors support incremental compilation (see the tabl
 
 | link:https://github.com/JakeWharton/butterknife[Butterknife]
 | Unsupported.
-| link:https://github.com/stephanenicolas/butterknife[Community fork supports incremental compilation]
+| link:https://github.com/stephanenicolas/butterknife[Community fork supports incremental annotation processing]
 
 | link:https://github.com/rzwitserloot/lombok[Lombok]
 | link:https://github.com/rzwitserloot/lombok/releases/tag/v1.16.22[1.16.22]
@@ -771,6 +771,10 @@ Many popular annotation processors support incremental compilation (see the tabl
 
 | Moxy
 | link:https://github.com/Arello-Mobile/Moxy/issues/240[Open issue]
+| N/A
+
+| Epoxy
+| link:https://github.com/airbnb/epoxy/issues/423[Open issue]
 | N/A
 
 |===
