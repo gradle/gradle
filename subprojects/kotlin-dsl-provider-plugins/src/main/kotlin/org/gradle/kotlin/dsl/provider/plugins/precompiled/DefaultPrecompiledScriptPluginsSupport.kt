@@ -122,31 +122,41 @@ import java.util.function.Consumer
  */
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
-    override fun enableOn(
-        project: Project,
-        kotlinSourceDirectorySet: SourceDirectorySet,
-        kotlinCompileTask: TaskProvider<out Task>,
-        kotlinCompilerArgsConsumer: Consumer<List<String>>
-    ): Unit = project.run {
+    override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
 
         val scriptPlugins = collectScriptPlugins()
         if (scriptPlugins.isEmpty()) {
-            return
+            return false
         }
 
         enableScriptCompilationOf(
             scriptPlugins,
-            kotlinCompileTask,
-            kotlinSourceDirectorySet,
-            kotlinCompilerArgsConsumer
+            target.kotlinCompileTask,
+            target.kotlinSourceDirectorySet,
+            target::applyKotlinCompilerArgs
         )
 
         plugins.withType<JavaGradlePluginPlugin> {
             exposeScriptsAsGradlePlugins(
                 scriptPlugins,
-                kotlinSourceDirectorySet
+                target.kotlinSourceDirectorySet
             )
         }
+        return true
+    }
+
+    override fun enableOn(
+        project: Project,
+        kotlinSourceDirectorySet: SourceDirectorySet,
+        kotlinCompileTask: TaskProvider<out Task>,
+        kotlinCompilerArgsConsumer: Consumer<List<String>>
+    ) {
+        enableOn(object : PrecompiledScriptPluginsSupport.Target {
+            override val project get() = project
+            override val kotlinSourceDirectorySet get() = kotlinSourceDirectorySet
+            override val kotlinCompileTask get() = kotlinCompileTask
+            override fun applyKotlinCompilerArgs(args: List<String>) = kotlinCompilerArgsConsumer.accept(args)
+        })
     }
 }
 
@@ -156,7 +166,7 @@ fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
     kotlinCompileTask: TaskProvider<out Task>,
     kotlinSourceDirectorySet: SourceDirectorySet,
-    kotlinCompilerArgsConsumer: Consumer<List<String>>
+    kotlinCompilerArgsConsumer: (List<String>) -> Unit
 ) {
 
     val extractedPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/extracted")
@@ -225,7 +235,7 @@ fun Project.enableScriptCompilationOf(
 
         configurePrecompiledScriptDependenciesResolver {
             onConfigure { resolverEnvironment ->
-                kotlinCompilerArgsConsumer.accept(
+                kotlinCompilerArgsConsumer(
                     listOf(
                         "-script-templates", scriptTemplates,
                         // Propagate implicit imports and other settings

@@ -17,9 +17,11 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -28,8 +30,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
-import java.util.function.Consumer
 
 
 /**
@@ -41,24 +41,31 @@ class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
-        val compileKotlin by tasks.existing(KotlinCompile::class)
+        if (serviceOf<PrecompiledScriptPluginsSupport>().enableOn(Target(project))) {
 
-        serviceOf<PrecompiledScriptPluginsSupport>().enableOn(
-            project,
-            sourceSets["main"].kotlin,
-            compileKotlin,
-            Consumer { kotlinCompilerArgs ->
-                compileKotlin.get().apply {
-                    kotlinOptions {
-                        freeCompilerArgs += kotlinCompilerArgs
-                    }
+            dependencies {
+                "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
+                "kotlinCompilerPluginClasspath"(gradleApi())
+            }
+        }
+    }
+
+    private
+    class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
+
+        override val kotlinSourceDirectorySet: SourceDirectorySet
+            get() = project.sourceSets["main"].kotlin
+
+        override val kotlinCompileTask: TaskProvider<out Task>
+            get() = project.tasks.named("compileKotlin")
+
+        override fun applyKotlinCompilerArgs(kotlinCompilerArgs: List<String>) {
+            kotlinCompileTask {
+                require(this is KotlinCompile)
+                kotlinOptions {
+                    freeCompilerArgs += kotlinCompilerArgs
                 }
             }
-        )
-
-        dependencies {
-            "kotlinCompilerPluginClasspath"(gradleKotlinDslJarsOf(project))
-            "kotlinCompilerPluginClasspath"(gradleApi())
         }
     }
 }
