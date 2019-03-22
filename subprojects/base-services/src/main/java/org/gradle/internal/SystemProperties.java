@@ -15,9 +15,13 @@
  */
 package org.gradle.internal;
 
+import com.google.common.collect.Maps;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -116,26 +120,71 @@ public class SystemProperties {
      * @param factory Instance created by the Factory implementation
      */
     public synchronized <T> T withSystemProperty(String propertyName, String value, Factory<T> factory) {
-        String originalValue = System.getProperty(propertyName);
-        System.setProperty(propertyName, value);
+        String originalValue = overrideProperty(propertyName, value);
 
         try {
             return factory.create();
         } finally {
-            if (originalValue != null) {
-                System.setProperty(propertyName, originalValue);
-            } else {
-                System.clearProperty(propertyName);
-            }
+            restoreProperty(propertyName, originalValue);
         }
     }
 
     /**
      * Provides safe access to the system properties, preventing concurrent {@link #withSystemProperty(String, String, Factory)} calls.
+     *
      * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     *
+     * This method should not be used when you need to temporarily change system properties.
      */
     public synchronized <T> T withSystemProperties(Factory<T> factory) {
         return factory.create();
+    }
+
+    /**
+     * Provides safe access to the system properties, preventing concurrent calls to change system properties.
+     *
+     * This can be used to wrap 3rd party APIs that iterate over the system properties, so they won't result in {@link java.util.ConcurrentModificationException}s.
+     *
+     * This method can be used to override system properties temporarily.  The original values of the given system properties are restored before returning.
+     */
+    public synchronized <T> T withSystemProperties(Map<String, String> properties, Factory<T> factory) {
+        Map<String, String> originalProperties = Maps.newHashMap();
+        for (Map.Entry<String, String> property : properties.entrySet()) {
+            String propertyName = property.getKey();
+            String value = property.getValue();
+            String originalValue = overrideProperty(propertyName, value);
+            originalProperties.put(propertyName, originalValue);
+        }
+
+        try {
+            return factory.create();
+        } finally {
+            for (Map.Entry<String, String> property : originalProperties.entrySet()) {
+                String propertyName = property.getKey();
+                String originalValue = property.getValue();
+                restoreProperty(propertyName, originalValue);
+            }
+        }
+    }
+
+    @Nullable
+    private String overrideProperty(String propertyName, String value) {
+        // Overwrite property
+        String originalValue = System.getProperty(propertyName);
+        if (value != null) {
+            System.setProperty(propertyName, value);
+        } else {
+            System.clearProperty(propertyName);
+        }
+        return originalValue;
+    }
+
+    private void restoreProperty(String propertyName, @Nullable String originalValue) {
+        if (originalValue != null) {
+            System.setProperty(propertyName, originalValue);
+        } else {
+            System.clearProperty(propertyName);
+        }
     }
 
     /**
