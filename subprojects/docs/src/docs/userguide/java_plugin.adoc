@@ -462,66 +462,6 @@ The manifest to include in all JAR files. Default value: an empty manifest.
 
 These properties are provided by convention objects of type link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
 
-[[sec:javadoc]]
-== Javadoc
-
-The `javadoc` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]. It supports the core Javadoc options and the options of the standard doclet described in the link:{javadocReferenceUrl}[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions].
-
-=== Javadoc properties
-
-`link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
-Default value: `sourceSets.main.output` + `sourceSets.main.compileClasspath`
-
-`link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] source`::
-Default value: `sourceSets.main.allJava`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__docsDir__/javadoc`
-
-`String title`::
-Default value: The name and version of the project
-
-[[sec:clean]]
-== Clean
-
-The `clean` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]. It simply removes the directory denoted by its `dir` property.
-
-=== Clean properties
-
-`File dir`::
-Default value: `__buildDir__`
-
-
-== Resources
-
-The Java plugin uses the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files,File copying in depth>>.
-
-=== ProcessResources properties
-
-`Object srcDirs`::
-Default value: `__sourceSet__.resources`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<working_with_files.adoc#sec:locating_files,file paths in depth>>.
-
-
-== CompileJava
-
-The Java plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] instance for each source set in the project. Some of the most common configuration options are shown below.
-
-=== Compile properties
-
-`link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
-Default value: `__sourceSet__.compileClasspath`
-
-`link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] source`::
-Default value: `__sourceSet__.java`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__sourceSet__.java.outputDir`
-
-By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
-
 [[sec:incremental_compile]]
 === Incremental Java compilation
 
