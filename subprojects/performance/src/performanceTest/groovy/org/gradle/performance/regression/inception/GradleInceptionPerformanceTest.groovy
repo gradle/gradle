@@ -111,6 +111,6 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                   | 40
         LARGE_JAVA_MULTI_PROJECT            | ""                   | 20
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                   | 10
-        // TODO:kotlin-dsl 'gradleBuildCurrent'                | "subprojects/build/" | 10
+        'gradleBuildCurrent'                | "subprojects/build/" | 10
     }
 }
