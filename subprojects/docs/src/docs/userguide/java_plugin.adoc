@@ -652,6 +652,133 @@ include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/j
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
 Gradle will always recompile any files the processor generates.
 
+=== State of support in popular annotation processors
+
+[NOTE]
+====
+Many popular annotation processors support incremental annotation processing (see the table below). Check with the annotation processor project directly for the most up-to-date information and documentation.
+====
+
+[cols="a,a,a", options="header"]
+|===
+| Annotation Processor
+| Supported since
+| Details
+
+| link:https://github.com/google/auto[Auto Value]
+| link:https://github.com/google/auto/releases/tag/auto-value-1.6.3[1.6.3]
+| N/A
+
+| link:https://github.com/google/auto[Auto Service]
+| link:https://github.com/google/auto/releases/tag/auto-value-1.6.3[1.6.3]
+| N/A
+
+| link:https://github.com/google/auto[Auto Value extensions]
+| Partly supported.
+| link:https://github.com/google/auto/issues/673[Details in issue]
+
+| link:https://github.com/JakeWharton/butterknife[Butterknife]
+| Unsupported.
+| link:https://github.com/stephanenicolas/butterknife[Community fork supports incremental annotation processing]
+
+| link:https://github.com/rzwitserloot/lombok[Lombok]
+| link:https://github.com/rzwitserloot/lombok/releases/tag/v1.16.22[1.16.22]
+| N/A
+
+| DataBinding
+| link:https://issuetracker.google.com/issues/110061530#comment28[AGP 3.5.0-alpha5]
+| Hidden behind a feature toggle
+
+| Dagger
+| link:https://github.com/google/dagger/issues/1120[2.18]
+| Hidden behind a feature toggle
+
+| kapt
+| link:https://youtrack.jetbrains.com/issue/KT-23880[1.3.30]
+| Hidden behind a feature toggle
+
+| Toothpick
+| link:https://github.com/stephanenicolas/toothpick/pull/320[2.0]
+| N/A
+
+| Glide
+| link:https://github.com/bumptech/glide/releases/tag/v4.9.0[4.9.0]
+| N/A
+
+| Toothpick
+| link:https://github.com/stephanenicolas/toothpick/pull/320[2.0]
+| N/A
+
+| Android-State
+| link:https://github.com/evernote/android-state/releases/tag/v1.3.0[1.3.0]
+| N/A
+
+| Parceler
+| link:https://github.com/johncarl81/parceler/releases/tag/parceler-project-1.1.11[1.1.11]
+| N/A
+
+| Dart and Henson
+| link:https://github.com/f2prateek/dart/releases/tag/3.1.0[3.1.0]
+| N/A
+
+| MapStruct
+| link:https://github.com/mapstruct/mapstruct/issues/1420[Open issue]
+| N/A
+
+| Realm
+| link:https://github.com/realm/realm-java/issues/5906[Open issue]
+| N/A
+
+| Requery
+| link:https://github.com/requery/requery/issues/773[Open issue]
+| N/A
+
+| EventBus
+| link:https://github.com/greenrobot/EventBus/issues/528[Open issue]
+| N/A
+
+| EclipseLink
+| link:https://bugs.eclipse.org/bugs/show_bug.cgi?id=535985[Open issue]
+| N/A
+
+| PermissionsDispatcher
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/issues/473[PR merged, waiting for release]
+| N/A
+
+| Immutables
+| link:https://github.com/immutables/immutables/issues/804[Open issue]
+| N/A
+
+| link:https://developer.android.com/topic/libraries/architecture/room)[Room]
+| Unsupported
+| Unlikely to be incremental
+
+| Android Annotations
+| link:https://github.com/androidannotations/androidannotations/issues/2193[Open issue]
+| N/A
+
+| DBFlow
+| link:https://github.com/agrosner/DBFlow/issues/1648[Open issue]
+| N/A
+
+| AndServer
+| link:https://github.com/yanzhenjie/AndServer/issues/152[Open issue]
+| N/A
+
+| Litho
+| link:https://github.com/facebook/litho/issues/482[Open issue]
+| N/A
+
+| Moxy
+| link:https://github.com/Arello-Mobile/Moxy/issues/240[Open issue]
+| N/A
+
+| Epoxy
+| link:https://github.com/airbnb/epoxy/issues/423[Open issue]
+| N/A
+
+|===
+
 [[sec:java_compile_avoidance]]
 === Compile avoidance
 
