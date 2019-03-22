@@ -94,7 +94,7 @@ public interface InputChanges {
      * <p>When {@link #isIncremental()} is {@code false}, then all elements of the parameter are returned as {@link ChangeType#ADDED}.</p>
      *
      * <p>
-     *     Only input file properties annotated with {@link Incremental} or {@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
+     *     Only input file properties annotated with {@literal @}{@link Incremental} or {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
      * </p>
      *
      * @param parameter The value of the parameter to query.
@@ -108,11 +108,11 @@ public interface InputChanges {
      *
      * <p>
      *     This method allows querying properties of type {@link org.gradle.api.file.RegularFileProperty} and {@link org.gradle.api.file.DirectoryProperty} for changes.
-     *     These two types are typically used for {@link org.gradle.api.tasks.InputFile} and {@link org.gradle.api.tasks.InputDirectory} properties.
+     *     These two types are typically used for {@literal @}{@link org.gradle.api.tasks.InputFile} and {@literal @}{@link org.gradle.api.tasks.InputDirectory} properties.
      * </p>
      *
      * <p>
-     *     Only input file properties annotated with {@link Incremental} or {@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
+     *     Only input file properties annotated with {@literal @}{@link Incremental} or {@literal @}{@link org.gradle.api.tasks.SkipWhenEmpty} can be queried for changes.
      * </p>
      *
      * @param parameter The value of the parameter to query.
