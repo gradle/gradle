@@ -112,14 +112,18 @@ abstract class FileContentGenerator {
     }
 
     def generatePomXML(Integer subProjectNumber, DependencyTree dependencyTree) {
-        def body
+        def body = ""
+        def isParent = subProjectNumber == null || config.subProjects == 0
         def hasSources = subProjectNumber != null || config.subProjects == 0
-        if (!hasSources) {
-            body = """
-            <modules>
-                ${(0..config.subProjects - 1).collect { "<module>project$it</module>" }.join("\n                ")}
-            </modules>
-
+        if (isParent) {
+            if (config.subProjects != 0) {
+                body += """
+                    <modules>
+                        ${(0..config.subProjects - 1).collect { "<module>project$it</module>" }.join("\n                ")}
+                    </modules>
+                """
+            }
+            body += """
             <build>
                 <plugins>
                     <plugin>
@@ -162,17 +166,21 @@ abstract class FileContentGenerator {
             </build>
             """
         } else {
+            body += """
+                <parent>
+                    <groupId>org.gradle.test.performance</groupId>
+                    <artifactId>project</artifactId>
+                    <version>1.0</version>
+                </parent>
+            """
+        }
+        if (hasSources) {
             def subProjectNumbers = dependencyTree.getChildProjectIds(subProjectNumber)
             def subProjectDependencies = ''
             if (subProjectNumbers?.size() > 0) {
                 subProjectDependencies = subProjectNumbers.collect { convertToPomDependency("org.gradle.test.performance:project$it:1.0") }.join()
             }
-            body = """
-            <parent>
-                <groupId>org.gradle.test.performance</groupId>
-                <artifactId>project</artifactId>
-                <version>1.0</version>
-            </parent>
+            body += """
             <dependencies>
                 ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
                 ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
