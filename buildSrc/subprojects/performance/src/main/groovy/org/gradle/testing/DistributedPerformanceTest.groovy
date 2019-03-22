@@ -134,13 +134,16 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
-                webUrl: scenarioResult.buildResult.webUrl.toString(),
-                status: scenarioResult.buildResult.status.toString(),
+                webUrl: scenarioResult.buildResult.webUrl,
+                status: scenarioResult.buildResult.status,
+                agentName: scenarioResult.buildResult.agent.name,
+                agentUrl: scenarioResult.buildResult.agent.webUrl,
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }

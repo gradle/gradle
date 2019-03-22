@@ -26,6 +26,8 @@ class ScenarioBuildResultData {
     String teamCityBuildId
     String scenarioName
     String webUrl
+    String agentName
+    String agentUrl
     String testFailure
     String status
     boolean crossBuild

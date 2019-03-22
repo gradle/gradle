@@ -51,6 +51,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
                     spec.args(reportDir.path, resultJson.path, getProject().getName())
                     spec.systemProperties(databaseParameters)
                     spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                    spec.systemProperty("githubToken", project.findProperty("githubToken"))
                     spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
                 }
             })
