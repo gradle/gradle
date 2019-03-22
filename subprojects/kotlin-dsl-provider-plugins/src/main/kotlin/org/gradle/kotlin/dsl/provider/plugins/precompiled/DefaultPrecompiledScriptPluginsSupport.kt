@@ -152,10 +152,17 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
         kotlinCompilerArgsConsumer: Consumer<List<String>>
     ) {
         enableOn(object : PrecompiledScriptPluginsSupport.Target {
-            override val project get() = project
-            override val kotlinSourceDirectorySet get() = kotlinSourceDirectorySet
-            override val kotlinCompileTask get() = kotlinCompileTask
-            override fun applyKotlinCompilerArgs(args: List<String>) = kotlinCompilerArgsConsumer.accept(args)
+            override val project
+                get() = project
+
+            override val kotlinSourceDirectorySet
+                get() = kotlinSourceDirectorySet
+
+            override val kotlinCompileTask
+                get() = kotlinCompileTask
+
+            override fun applyKotlinCompilerArgs(args: List<String>) =
+                kotlinCompilerArgsConsumer.accept(args)
         })
     }
 }
