@@ -82,7 +82,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.runs = runs
-        runner.args = extraGradleBuildArguments() + ["-PbuildSrcCheck=false"]
+        runner.args = extraGradleBuildArguments() + ["-PbuildSrcCheck=false", "-Pgradlebuild.skipBuildSrcChecks=true"]
 
         and:
         def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
