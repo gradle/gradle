@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
@@ -34,8 +33,7 @@ public class CatchExceptionStep<C extends Context> implements Step<C, Result> {
     public Result execute(C context) {
         try {
             return delegate.execute(context);
-        } catch (Throwable t) {
-            ExecutionException failure = new ExecutionException(context.getWork(), t);
+        } catch (Throwable failure) {
             return new Result() {
                 @Override
                 public Try<ExecutionOutcome> getOutcome() {

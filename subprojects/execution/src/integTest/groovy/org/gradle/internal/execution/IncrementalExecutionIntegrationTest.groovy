@@ -244,8 +244,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             throw failure
         }.build())
         then:
-        result.outcome.failure.get() instanceof ExecutionException
-        result.outcome.failure.get().cause == failure
+        result.outcome.failure.get() == failure
         !result.reused
         def origin = result.originMetadata.buildInvocationId
 
@@ -308,7 +307,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.failure.get().message == "Execution failed for Test unit of work."
+        !result.outcome.successful
         !result.reused
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
@@ -323,7 +322,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.failure.get().message == "Execution failed for Test unit of work."
+        !result.outcome.successful
         !result.reused
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }

@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Context
-import org.gradle.internal.execution.ExecutionException
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Result
 import spock.lang.Unroll
@@ -45,12 +44,9 @@ class CatchExceptionStepTest extends StepSpec {
         def result = step.execute(context)
 
         then:
-        result.outcome.failure.get() instanceof ExecutionException
-        result.outcome.failure.get().cause == failure
+        result.outcome.failure.get() == failure
 
         1 * delegate.execute(context) >> { throw failure }
-        1 * context.work >> work
-        1 * work.displayName >> "Failing work"
         0 * _
 
         where:

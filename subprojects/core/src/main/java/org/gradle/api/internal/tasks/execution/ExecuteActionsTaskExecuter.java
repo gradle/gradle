@@ -44,7 +44,6 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.execution.CacheHandler;
-import org.gradle.internal.execution.ExecutionException;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
@@ -138,9 +137,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             new Consumer<Throwable>() {
                 @Override
                 public void accept(Throwable failure) {
-                    state.setOutcome(failure instanceof ExecutionException
-                        ? new TaskExecutionException(task, failure.getCause())
-                        : new TaskExecutionException(task, failure));
+                    state.setOutcome(new TaskExecutionException(task, failure));
                 }
             }
         );
