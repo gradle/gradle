@@ -58,7 +58,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
                         return true;
                     default:
                         for (Map.Entry<String, FileSystemLocationFingerprint> entry : previous.entrySet()) {
-                            Change change = DefaultFileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType());
+                            Change change = DefaultFileChange.removed(entry.getKey(), propertyTitle, entry.getValue().getType(), entry.getValue().getNormalizedPath());
                             if (!visitor.visitChange(change)) {
                                 return false;
                             }
@@ -89,7 +89,7 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
     private static boolean reportAllAdded(ChangeVisitor visitor, Map<String, FileSystemLocationFingerprint> current, String propertyTitle, boolean includeAdded) {
         if (includeAdded) {
             for (Map.Entry<String, FileSystemLocationFingerprint> entry : current.entrySet()) {
-                Change change = DefaultFileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType());
+                Change change = DefaultFileChange.added(entry.getKey(), propertyTitle, entry.getValue().getType(), entry.getValue().getNormalizedPath());
                 if (!visitor.visitChange(change)) {
                     return false;
                 }
@@ -106,16 +106,16 @@ public abstract class AbstractFingerprintCompareStrategy implements FingerprintC
             HashCode currentContent = currentFingerprint.getNormalizedContentHash();
             if (!currentContent.equals(previousContent)) {
                 String path = currentEntry.getKey();
-                Change change = DefaultFileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType());
+                Change change = DefaultFileChange.modified(path, propertyTitle, previousFingerprint.getType(), currentFingerprint.getType(), currentFingerprint.getNormalizedPath());
                 return visitor.visitChange(change);
             }
             return true;
         } else {
             String previousPath = previousEntry.getKey();
-            Change remove = DefaultFileChange.removed(previousPath, propertyTitle, previousFingerprint.getType());
+            Change remove = DefaultFileChange.removed(previousPath, propertyTitle, previousFingerprint.getType(), previousFingerprint.getNormalizedPath());
             if (includeAdded) {
                 String currentPath = currentEntry.getKey();
-                Change add = DefaultFileChange.added(currentPath, propertyTitle, currentFingerprint.getType());
+                Change add = DefaultFileChange.added(currentPath, propertyTitle, currentFingerprint.getType(), currentFingerprint.getNormalizedPath());
                 return visitor.visitChange(remove) && visitor.visitChange(add);
             } else {
                 return visitor.visitChange(remove);

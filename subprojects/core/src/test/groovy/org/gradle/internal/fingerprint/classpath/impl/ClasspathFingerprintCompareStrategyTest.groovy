@@ -54,7 +54,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy     | includeAdded | results
-        CLASSPATH    | true         | [added("one-new")]
+        CLASSPATH    | true         | [added("one-new", "one")]
         CLASSPATH    | false        | []
     }
 
@@ -68,7 +68,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [added("two-new")]
+        CLASSPATH  | true         | [added("two-new", "two")]
         CLASSPATH  | false        | []
     }
 
@@ -78,7 +78,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             [:],
             ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old")]
+        ) as List == [removed("one-old", "one")]
 
         where:
         strategy   | includeAdded
@@ -92,7 +92,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one")],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
-        ) == [removed("two-old")]
+        ) == [removed("two-old", "two")]
 
         where:
         strategy   | includeAdded
@@ -106,7 +106,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
-        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
+        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile, "two")]
 
         where:
         strategy   | includeAdded
@@ -124,8 +124,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("one-old"), added("two-new")]
-        CLASSPATH  | false        | [removed("one-old")]
+        CLASSPATH  | true         | [removed("one-old", "one"), added("two-new", "two")]
+        CLASSPATH  | false        | [removed("one-old", "one")]
     }
 
     @Unroll
@@ -138,8 +138,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("three-old"), added("two-new")]
-        CLASSPATH  | false        | [removed("three-old")]
+        CLASSPATH  | true         | [removed("three-old", "three"), added("two-new", "two")]
+        CLASSPATH  | false        | [removed("three-old", "three")]
     }
 
     @Unroll
@@ -152,8 +152,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("three-old"), added("two-new"), removed("two-old"), added("three-new")]
-        CLASSPATH  | false        | [removed("three-old"), removed("two-old")]
+        CLASSPATH  | true         | [removed("three-old", "three"), added("two-new", "two"), removed("two-old", "two"), added("three-new", "three")]
+        CLASSPATH  | false        | [removed("three-old", "three"), removed("two-old", "two")]
     }
 
     @Unroll
@@ -236,12 +236,6 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
-        visitor.getChanges().toList()
-    }
-
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
         return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
@@ -250,15 +244,15 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
     }
 
-    def added(String path) {
-        DefaultFileChange.added(path, "test", FileType.RegularFile)
+    def added(String path, String normalizedPath = "") {
+        DefaultFileChange.added(path, "test", FileType.RegularFile, normalizedPath)
     }
 
-    def removed(String path) {
-        DefaultFileChange.removed(path, "test", FileType.RegularFile)
+    def removed(String path, String normalizedPath = "") {
+        DefaultFileChange.removed(path, "test", FileType.RegularFile, normalizedPath)
     }
 
-    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
-        DefaultFileChange.modified(path, "test", previous, current)
+    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile, String normalizedPath = "") {
+        DefaultFileChange.modified(path, "test", previous, current, normalizedPath)
     }
 }

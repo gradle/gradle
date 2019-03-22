@@ -24,6 +24,7 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class NonIncrementalInputChanges implements InputChangesInternal {
@@ -53,14 +54,16 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
-        return currentFileCollectionFingerprint.getFingerprints().keySet().stream().map(RebuildFileChange::new);
+        return currentFileCollectionFingerprint.getFingerprints().entrySet().stream().map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath()));
     }
 
     private static class RebuildFileChange implements FileChange, InputFileDetails {
         private final String path;
+        private final String normalizedPath;
 
-        public RebuildFileChange(String path) {
+        public RebuildFileChange(String path, String normalizedPath) {
             this.path = path;
+            this.normalizedPath = normalizedPath;
         }
 
         @Override
@@ -71,6 +74,11 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
         @Override
         public ChangeType getChangeType() {
             return ChangeType.ADDED;
+        }
+
+        @Override
+        public String getNormalizedPath() {
+            return normalizedPath;
         }
 
         @Override
@@ -86,6 +94,29 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
         @Override
         public boolean isRemoved() {
             return false;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            RebuildFileChange that = (RebuildFileChange) o;
+            return path.equals(that.path) &&
+                normalizedPath.equals(that.normalizedPath);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(path, normalizedPath);
+        }
+
+        @Override
+        public String toString() {
+            return "Input file " + path + " added for rebuild.";
         }
     }
 }

@@ -42,7 +42,7 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     @Override
     public boolean visitChangesSince(FileCollectionFingerprint oldFingerprint, final String title, boolean includeAdded, ChangeVisitor visitor) {
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : oldFingerprint.getFingerprints().entrySet()) {
-            if (!visitor.visitChange(DefaultFileChange.removed(entry.getKey(), title, entry.getValue().getType()))) {
+            if (!visitor.visitChange(DefaultFileChange.removed(entry.getKey(), title, entry.getValue().getType(), entry.getValue().getNormalizedPath()))) {
                 return false;
             }
         }

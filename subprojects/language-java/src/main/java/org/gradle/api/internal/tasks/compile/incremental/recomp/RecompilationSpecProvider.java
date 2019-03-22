@@ -52,10 +52,10 @@ public class RecompilationSpecProvider {
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    classpathEntryChangeProcessor.processChange(DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, ""), spec);
                     break;
                 case removed:
-                    classpathEntryChangeProcessor.processChange(DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile), spec);
+                    classpathEntryChangeProcessor.processChange(DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, ""), spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
@@ -67,7 +67,7 @@ public class RecompilationSpecProvider {
                     ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
                     ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
                     if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        classpathEntryChangeProcessor.processChange(DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile), spec);
+                        classpathEntryChangeProcessor.processChange(DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile, ""), spec);
                     }
                     break;
             }

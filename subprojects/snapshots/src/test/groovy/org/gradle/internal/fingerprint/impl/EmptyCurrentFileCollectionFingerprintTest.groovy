@@ -42,8 +42,8 @@ class EmptyCurrentFileCollectionFingerprintTest extends Specification {
         }
         expect:
         getChanges(fingerprint, empty, includeAdded).toList() == [
-            DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile),
-            DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile)
+            DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
+            DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile, "file2.txt")
         ]
 
         where:

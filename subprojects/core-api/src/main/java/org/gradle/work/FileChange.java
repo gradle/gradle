@@ -37,4 +37,17 @@ public interface FileChange {
      * The type of change to the file.
      */
     ChangeType getChangeType();
+
+    /**
+     * The normalized path of the file, as specified by the path normalization strategy.
+     *
+     * <p>
+     *    Examples:
+     * </p>
+     * <ul>
+     *     <li>For {@link org.gradle.api.tasks.PathSensitivity#NAME_ONLY} this is the file name.</li>
+     *     <li>For {@literal @}{@link org.gradle.api.tasks.Classpath} this is empty for Jar files and the relative path (i.e. package name) of the class files.</li>
+     * </ul>
+     */
+    String getNormalizedPath();
 }

@@ -295,4 +295,70 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         where:
         propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()", "File input"]
     }
+
+    @Unroll
+    def "provides normalized paths (#pathSensitivity)"() {
+        buildFile << """
+            abstract class MyCopy extends DefaultTask {
+                @Incremental
+                @PathSensitive(PathSensitivity.${pathSensitivity.name()})
+                @InputDirectory
+                abstract DirectoryProperty getInputDirectory()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+                
+                @TaskAction
+                void copy(InputChanges changes) {
+                    if (!changes.incremental) {
+                        org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
+                    }
+                    changes.getFileChanges(inputDirectory).each { change ->
+                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)                        
+                        if (change.changeType == ChangeType.REMOVED) {
+                            outputFile.delete()                            
+                        } else {
+                            if (change.file.file) {
+                                outputFile.parentFile.mkdirs()
+                                outputFile.text = change.file.text
+                            }
+                        }
+                    }
+                }
+            }
+            
+            task copy(type: MyCopy) {
+                inputDirectory = file("input")
+                outputDirectory = file("build/output")
+            }
+        """
+        def toBeModifiedPath = "in/some/subdir/input1.txt"
+        def toBeRemovedPath = "in/some/subdir/input2.txt"
+        def toBeAddedPath = "in/some/other/subdir/other-input.txt"
+        file("input/$toBeModifiedPath").text = "input to copy"
+        file("input/${toBeRemovedPath}").text = "input to copy"
+
+        when:
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/output/${normalizedPaths.modified}").text == "input to copy"
+        file("build/output/${normalizedPaths.removed}").text == "input to copy"
+
+        when:
+        file("input/${toBeAddedPath}").text = "other input"
+        file("input/${toBeModifiedPath}").text = "modified"
+        assert file("input/${toBeRemovedPath}").delete()
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/output/${normalizedPaths.modified}").text == "modified"
+        !file("build/output/${normalizedPaths.removed}").exists()
+        file("build/output/${normalizedPaths.added}").text == "other input"
+
+        where:
+        pathSensitivity           | normalizedPaths
+        PathSensitivity.RELATIVE  | [modified: "in/some/subdir/input1.txt", added: "in/some/other/subdir/other-input.txt", removed: "in/some/subdir/input2.txt"]
+        PathSensitivity.NAME_ONLY | [modified: "input1.txt", added: "other-input.txt", removed: "input2.txt"]
+    }
 }

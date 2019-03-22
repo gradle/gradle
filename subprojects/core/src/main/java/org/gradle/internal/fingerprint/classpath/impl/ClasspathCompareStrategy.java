@@ -137,18 +137,18 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
         void added() {
             if (includeAdded) {
-                changeConsumer.visitChange(DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType()));
+                changeConsumer.visitChange(DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath()));
             }
             current = nextEntry(currentEntries);
         }
 
         void removed() {
-            changeConsumer.visitChange(DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType()));
+            changeConsumer.visitChange(DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType(), previous.getValue().getNormalizedPath()));
             previous = nextEntry(previousEntries);
         }
 
         void modified() {
-            changeConsumer.visitChange(DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType()));
+            changeConsumer.visitChange(DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType(), current.getValue().getNormalizedPath()));
             previous = nextEntry(previousEntries);
             current = nextEntry(currentEntries);
         }

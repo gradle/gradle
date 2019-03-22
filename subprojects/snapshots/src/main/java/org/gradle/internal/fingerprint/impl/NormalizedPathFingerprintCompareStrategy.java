@@ -88,20 +88,21 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
                 FilePathWithType addedFile = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType()))) {
+                if (!visitor.visitChange(DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType(), normalizedPath))) {
                     return false;
                 }
             } else {
                 FilePathWithType removedFile = unaccountedForPreviousFingerprintEntry.getValue();
-                if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
+                if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), normalizedPath))) {
                     return false;
                 }
             }
         }
 
         if (includeAdded) {
-            for (FilePathWithType addedFile : addedFilesByNormalizedPath.values()) {
-                if (!visitor.visitChange(DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType()))) {
+            for (Map.Entry<String, FilePathWithType> entry : addedFilesByNormalizedPath.entries()) {
+                FilePathWithType addedFile = entry.getValue();
+                if (!visitor.visitChange(DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType(), entry.getKey()))) {
                     return false;
                 }
             }
