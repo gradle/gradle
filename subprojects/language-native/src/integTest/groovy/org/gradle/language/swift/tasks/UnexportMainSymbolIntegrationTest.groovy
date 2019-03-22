@@ -98,6 +98,47 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
         file("build/relocated").assertHasDescendants("main.o", "other.o")
     }
 
+    def "relocate _main symbol works incrementally"() {
+        writeMainSwift()
+
+        when:
+        succeeds("unexport")
+        then:
+        assertMainSymbolIsNotExported("build/relocated/main.o")
+        file("build/relocated").assertHasDescendants("main.o")
+
+        when:
+        def mainObject = file("build/relocated/main.o")
+        def oldTimestamp = mainObject.lastModified()
+        def otherFile = file("src/main/swift/other.swift")
+        otherFile << """
+            class Other {}
+        """
+        succeeds("unexport")
+        then:
+        assertMainSymbolIsNotExported("build/relocated/main.o")
+        file("build/relocated").assertHasDescendants("main.o", "other.o")
+        mainObject.lastModified() == oldTimestamp
+
+        when:
+        assert otherFile.delete()
+        succeeds("unexport")
+        then:
+        assertMainSymbolIsNotExported("build/relocated/main.o")
+        file("build/relocated").assertHasDescendants("main.o")
+        mainObject.lastModified() == oldTimestamp
+
+        when:
+        otherFile << """
+            class Other {}
+        """
+        succeeds("unexport")
+        assert file("build/relocated/other.o").delete()
+        succeeds("unexport")
+        then:
+        mainObject.lastModified() > oldTimestamp
+    }
+
     def "can relocate when there is no main symbol"() {
         file("src/main/swift/notMain.swift") << """
             class NotMain {}
