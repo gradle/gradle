@@ -50,6 +50,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
+import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -429,17 +430,35 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @Test
     fun `can use plugin spec builders in multi-project builds with local and external plugins`() {
 
+        testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
+    }
+
+    @Ignore("wip")
+    @Test
+    fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
+
+        testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage("p")
+    }
+
+    private
+    fun testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(packageName: String?) {
+
+        val packageDeclaration = packageName?.let { "package $it" } ?: ""
+        val packageQualifier = packageName?.let { "$it." } ?: ""
+
         withProjectRoot(newDir("external-plugins")) {
             withFolders {
                 "external-foo" {
                     withKotlinDslPlugin()
                     withFile("src/main/kotlin/external-foo.gradle.kts", """
+                        $packageDeclaration
                         println("*external-foo applied*")
                     """)
                 }
                 "external-bar" {
                     withKotlinDslPlugin()
                     withFile("src/main/kotlin/external-bar.gradle.kts", """
+                        $packageDeclaration
                         println("*external-bar applied*")
                     """)
                 }
@@ -457,7 +476,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "buildSrc" {
                 "local-foo" {
                     withFile("src/main/kotlin/local-foo.gradle.kts", """
-                        plugins { `external-foo` }
+                        $packageDeclaration
+                        plugins { $packageQualifier`external-foo` }
                     """)
                     withKotlinDslPlugin().appendText("""
                         dependencies {
@@ -467,7 +487,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 }
                 "local-bar" {
                     withFile("src/main/kotlin/local-bar.gradle.kts", """
-                        plugins { `external-bar` }
+                        $packageDeclaration
+                        plugins { $packageQualifier`external-bar` }
                     """)
                     withKotlinDslPlugin().appendText("""
                         dependencies {
@@ -489,8 +510,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
         withBuildScript("""
             plugins {
-                `local-foo`
-                `local-bar`
+                $packageQualifier`local-foo`
+                $packageQualifier`local-bar`
             }
         """)
 
