@@ -44,17 +44,17 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<FileChange> getFileChanges(FileCollection parameterValue) {
-        return getObjectFileChanges(parameterValue);
+    public Iterable<FileChange> getFileChanges(FileCollection parameter) {
+        return getObjectFileChanges(parameter);
     }
 
     @Override
-    public Iterable<FileChange> getFileChanges(Provider<? extends FileSystemLocation> parameterValue) {
-        return getObjectFileChanges(parameterValue);
+    public Iterable<FileChange> getFileChanges(Provider<? extends FileSystemLocation> parameter) {
+        return getObjectFileChanges(parameter);
     }
 
-    public Iterable<FileChange> getObjectFileChanges(Object parameterValue) {
-        CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameterValue));
+    public Iterable<FileChange> getObjectFileChanges(Object parameter) {
+        CurrentFileCollectionFingerprint currentFileCollectionFingerprint = currentInputs.get(incrementalInputProperties.getPropertyNameFor(parameter));
         return () -> getAllFileChanges(currentFileCollectionFingerprint).iterator();
     }
 

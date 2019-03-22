@@ -40,17 +40,17 @@ public class IncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<FileChange> getFileChanges(FileCollection parameterValue) {
-        return getObjectFileChanges(parameterValue);
+    public Iterable<FileChange> getFileChanges(FileCollection parameter) {
+        return getObjectFileChanges(parameter);
     }
 
     @Override
-    public Iterable<FileChange> getFileChanges(Provider<? extends FileSystemLocation> parameterValue) {
-        return getObjectFileChanges(parameterValue);
+    public Iterable<FileChange> getFileChanges(Provider<? extends FileSystemLocation> parameter) {
+        return getObjectFileChanges(parameter);
     }
 
-    private Iterable<FileChange> getObjectFileChanges(Object parameterValue) {
-        String propertyName = incrementalInputProperties.getPropertyNameFor(parameterValue);
+    private Iterable<FileChange> getObjectFileChanges(Object parameter) {
+        String propertyName = incrementalInputProperties.getPropertyNameFor(parameter);
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(propertyName, visitor);
         return Cast.uncheckedNonnullCast(visitor.getChanges());

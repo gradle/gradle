@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Track input changes for the annotated parameter.
  *
  * <p>
- *     Inputs annotated with {@link Incremental} can be queried for changes via {@link InputChanges#getFileChanges(org.gradle.api.file.FileCollection)}.
+ *     Inputs annotated with {@link Incremental} can be queried for changes via {@link InputChanges#getFileChanges(org.gradle.api.file.FileCollection)} or {@link org.gradle.work.InputChanges#getFileChanges(org.gradle.api.provider.Provider)}.
  * </p>
  *
  * @since 5.4
