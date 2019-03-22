@@ -30,10 +30,14 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.tasks.internal.SymbolHider;
 import org.gradle.process.ExecSpec;
+import org.gradle.util.GFileUtils;
+import org.gradle.work.ChangeType;
+import org.gradle.work.FileChange;
+import org.gradle.work.InputChanges;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,40 +86,58 @@ public class UnexportMainSymbol extends DefaultTask {
     }
 
     @TaskAction
-    public void unexport() {
-        for (final File file: source) {
-            final File relocatedObject = outputDirectory.file(file.getName()).get().getAsFile();
-            if (OperatingSystem.current().isWindows()) {       
-                try {
-                    final SymbolHider symbolHider = new SymbolHider(file);
-                    symbolHider.hideSymbol("main");     // 64 bit
-                    symbolHider.hideSymbol("_main");    // 32 bit
-                    symbolHider.saveTo(relocatedObject);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }   
+    public void unexport(InputChanges inputChanges) {
+        if (!inputChanges.isIncremental()) {
+            GFileUtils.cleanDirectory(outputDirectory.get().getAsFile());
+        }
+        for (FileChange change : inputChanges.getFileChanges(getObjects())) {
+            if (change.getChangeType() == ChangeType.REMOVED) {
+                File relocatedFileLocation = relocatedObject(change.getFile());
+                relocatedFileLocation.delete();
             } else {
-                getProject().exec(new Action<ExecSpec>() {
-                    @Override
-                    public void execute(ExecSpec execSpec) {
-                        // TODO: should use target platform to make this decision
-                        if (OperatingSystem.current().isMacOsX()) {
-                            execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
-                            execSpec.args(file);
-                            execSpec.args("-o", relocatedObject);
-                            execSpec.args("-r"); // relink, produce another object file
-                            execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
-                        } else if (OperatingSystem.current().isLinux()) {
-                            execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
-                            execSpec.args("-L", "main"); // hide main symbol
-                            execSpec.args(file);
-                            execSpec.args(relocatedObject);
-                        } else {
-                            throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
-                        }
-                    }
-                });
+                if (change.getFile().isFile()) {
+                    unexportMainSymbol(change.getFile());
+                }
             }
         }
+    }
+
+    private void unexportMainSymbol(File object) {
+        final File relocatedObject = relocatedObject(object);
+        if (OperatingSystem.current().isWindows()) {
+            try {
+                final SymbolHider symbolHider = new SymbolHider(object);
+                symbolHider.hideSymbol("main");     // 64 bit
+                symbolHider.hideSymbol("_main");    // 32 bit
+                symbolHider.saveTo(relocatedObject);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } else {
+            getProject().exec(new Action<ExecSpec>() {
+                @Override
+                public void execute(ExecSpec execSpec) {
+                    // TODO: should use target platform to make this decision
+                    if (OperatingSystem.current().isMacOsX()) {
+                        execSpec.executable("ld"); // TODO: Locate this tool from a tool provider
+                        execSpec.args(object);
+                        execSpec.args("-o", relocatedObject);
+                        execSpec.args("-r"); // relink, produce another object file
+                        execSpec.args("-unexported_symbol", "_main"); // hide _main symbol
+                    } else if (OperatingSystem.current().isLinux()) {
+                        execSpec.executable("objcopy"); // TODO: Locate this tool from a tool provider
+                        execSpec.args("-L", "main"); // hide main symbol
+                        execSpec.args(object);
+                        execSpec.args(relocatedObject);
+                    } else {
+                        throw new IllegalStateException("Do not know how to unexport a main symbol on " + OperatingSystem.current());
+                    }
+                }
+            });
+        }
+    }
+
+    private File relocatedObject(File object) {
+        return outputDirectory.file(object.getName()).get().getAsFile();
     }
 }

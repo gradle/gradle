@@ -27,6 +27,12 @@
             "changes": [
                 "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.compile(org.gradle.api.tasks.incremental.IncrementalTaskInputs)"
             ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.swift.tasks.UnexportMainSymbol.unexport(org.gradle.work.InputChanges)",
+            "acceptation": "Migrated to the new incremental tasks API",
+            "changes": []
         }
     ]
 }
