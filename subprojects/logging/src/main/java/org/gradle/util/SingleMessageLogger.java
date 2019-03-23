@@ -17,7 +17,7 @@
 package org.gradle.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;

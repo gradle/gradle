@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.sink;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;

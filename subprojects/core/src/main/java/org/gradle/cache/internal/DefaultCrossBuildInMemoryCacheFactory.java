@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;

@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.workers.IsolationMode;

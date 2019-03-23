@@ -17,7 +17,7 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.model.Path;

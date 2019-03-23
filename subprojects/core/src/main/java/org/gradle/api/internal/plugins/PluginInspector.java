@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Plugin;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;

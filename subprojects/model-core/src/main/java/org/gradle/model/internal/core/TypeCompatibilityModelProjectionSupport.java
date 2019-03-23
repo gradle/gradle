@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.core;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;

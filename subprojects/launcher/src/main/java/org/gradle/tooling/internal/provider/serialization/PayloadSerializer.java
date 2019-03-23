@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;

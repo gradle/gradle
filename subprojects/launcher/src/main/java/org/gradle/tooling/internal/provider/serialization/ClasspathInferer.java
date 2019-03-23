@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.collect.MapMaker;
 import com.google.common.io.ByteStreams;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathUtil;

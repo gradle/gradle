@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.remote.Address;
 
 import java.util.Collection;

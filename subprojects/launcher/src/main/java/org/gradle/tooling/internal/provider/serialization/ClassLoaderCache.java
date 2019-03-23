@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 

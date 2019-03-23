@@ -17,7 +17,7 @@
 package org.gradle.model.internal.report;
 
 import com.google.common.collect.ImmutableList;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
