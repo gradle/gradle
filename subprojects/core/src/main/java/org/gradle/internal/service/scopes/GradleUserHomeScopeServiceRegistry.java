@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;

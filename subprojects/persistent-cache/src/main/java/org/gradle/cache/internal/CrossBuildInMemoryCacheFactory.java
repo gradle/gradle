@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.

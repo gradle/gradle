@@ -17,7 +17,7 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;

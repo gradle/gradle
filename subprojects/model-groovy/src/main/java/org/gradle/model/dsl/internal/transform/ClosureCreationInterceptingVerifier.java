@@ -16,7 +16,7 @@
 
 package org.gradle.model.dsl.internal.transform;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;

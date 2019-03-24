@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.adapter;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;

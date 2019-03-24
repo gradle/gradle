@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 
 /**
