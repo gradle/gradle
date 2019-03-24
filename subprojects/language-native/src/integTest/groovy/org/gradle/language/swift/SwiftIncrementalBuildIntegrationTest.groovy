@@ -32,6 +32,7 @@ import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.VersionNumber
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -347,6 +348,9 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
             result.add(swiftdocFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(dependFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
             result.add(swiftDepsFileFor(swiftFile).relativizeFrom(intermediateFilesDir).path)
+        }
+        if (toolChain.version.compareTo(VersionNumber.parse("4.2")) >= 0) {
+            result.add("module.swiftdeps~moduleonly")
         }
         result.add("module.swiftdeps")
         result.add("output-file-map.json")
