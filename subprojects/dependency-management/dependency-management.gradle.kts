@@ -37,7 +37,6 @@ dependencies {
     implementation(library("ivy"))
     implementation(library("slf4j_api"))
     implementation(library("gson"))
-    implementation(library("jcip"))
     implementation(library("maven3"))
 
     runtimeOnly(library("bouncycastle_provider"))

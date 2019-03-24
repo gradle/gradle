@@ -65,7 +65,6 @@ dependencies {
     implementation(library("commons_collections"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
     implementation(library("nativePlatform"))
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))

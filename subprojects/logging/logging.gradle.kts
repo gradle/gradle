@@ -21,7 +21,6 @@ dependencies {
     implementation(library("commons_lang"))
     implementation(library("guava"))
     implementation(library("jansi"))
-    implementation(library("jcip"))
 
     runtimeOnly(library("log4j_to_slf4j"))
     runtimeOnly(library("jcl_to_slf4j"))

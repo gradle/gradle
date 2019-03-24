@@ -46,7 +46,6 @@ dependencies {
     compile(project(":wrapper"))
     compile(project(":baseServices"))
     publishCompile(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
-    compile(library("jcip"))
 
     testFixturesApi(project(":baseServicesGroovy"))
     testFixturesApi(project(":internalIntegTesting"))

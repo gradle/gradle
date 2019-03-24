@@ -32,7 +32,6 @@ dependencies {
     implementation(library("ant"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
     implementation(library("inject"))
 
     testFixturesImplementation(project(":internalTesting"))
