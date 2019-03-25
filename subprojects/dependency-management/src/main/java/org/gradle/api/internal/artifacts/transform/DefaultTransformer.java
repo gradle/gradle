@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.plugins.DslObject;
@@ -38,6 +39,7 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -164,9 +166,9 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     @Override
-    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
-        TransformAction transformAction = newTransformAction(inputArtifact, dependencies, inputChanges);
-        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifact, outputDir);
+    public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+        TransformAction transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
+        DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
     }
@@ -278,8 +280,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    private TransformAction newTransformAction(File inputFile, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
-        ServiceLookup services = new TransformServiceLookup(inputFile, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null, inputChanges);
+    private TransformAction newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+        ServiceLookup services = new TransformServiceLookup(inputArtifactProvider, getIsolatedParameters().getIsolatedParameterObject().isolate(), requiresDependencies ? artifactTransformDependencies : null, inputChanges);
         return instanceFactory.newInstance(services);
     }
 
@@ -291,11 +293,14 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     }
 
     private static class TransformServiceLookup implements ServiceLookup {
+        private static final Type FILE_SYSTEM_LOCATION_PROVIDER = new TypeToken<Provider<FileSystemLocation>>() {}.getType();
+
         private final ImmutableList<InjectionPoint> injectionPoints;
 
-        public TransformServiceLookup(File inputFile, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
+        public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, () -> inputFile));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> inputFileProvider.get().getAsFile()));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (parameters != null) {
                 builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));
             } else {
@@ -349,18 +354,22 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         private static class InjectionPoint {
             private final Class<? extends Annotation> annotation;
-            private final Class<?> injectedType;
+            private final Type injectedType;
             private final Supplier<Object> valueToInject;
 
             public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Supplier<Object> valueToInject) {
                 return new InjectionPoint(annotation, determineTypeFromAnnotation(annotation), valueToInject);
             }
 
+            public static InjectionPoint injectedByAnnotation(Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
+                return new InjectionPoint(annotation, injectedType, valueToInject);
+            }
+
             public static InjectionPoint injectedByType(Class<?> injectedType, Supplier<Object> valueToInject) {
                 return new InjectionPoint(null, injectedType, valueToInject);
             }
 
-            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Class<?> injectedType, Supplier<Object> valueToInject) {
+            private InjectionPoint(@Nullable Class<? extends Annotation> annotation, Type injectedType, Supplier<Object> valueToInject) {
                 this.annotation = annotation;
                 this.injectedType = injectedType;
                 this.valueToInject = valueToInject;
@@ -379,7 +388,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 return annotation;
             }
 
-            public Class<?> getInjectedType() {
+            public Type getInjectedType() {
                 return injectedType;
             }
 

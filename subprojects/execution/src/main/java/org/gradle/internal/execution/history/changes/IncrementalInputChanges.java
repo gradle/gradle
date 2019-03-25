@@ -16,6 +16,9 @@
 
 package org.gradle.internal.execution.history.changes;
 
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
 import org.gradle.internal.change.CollectingChangeVisitor;
@@ -37,8 +40,17 @@ public class IncrementalInputChanges implements InputChangesInternal {
     }
 
     @Override
-    public Iterable<FileChange> getFileChanges(Object parameterValue) {
-        String propertyName = incrementalInputProperties.getPropertyNameFor(parameterValue);
+    public Iterable<FileChange> getFileChanges(FileCollection parameter) {
+        return getObjectFileChanges(parameter);
+    }
+
+    @Override
+    public Iterable<FileChange> getFileChanges(Provider<? extends FileSystemLocation> parameter) {
+        return getObjectFileChanges(parameter);
+    }
+
+    private Iterable<FileChange> getObjectFileChanges(Object parameter) {
+        String propertyName = incrementalInputProperties.getPropertyNameFor(parameter);
         CollectingChangeVisitor visitor = new CollectingChangeVisitor();
         changes.accept(propertyName, visitor);
         return Cast.uncheckedNonnullCast(visitor.getChanges());
