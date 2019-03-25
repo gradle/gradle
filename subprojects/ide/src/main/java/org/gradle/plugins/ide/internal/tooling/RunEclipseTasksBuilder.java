@@ -25,10 +25,11 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunEclipseSynchronizationTasksBuilder implements ToolingModelBuilder {
+public class RunEclipseTasksBuilder implements ToolingModelBuilder {
+
     @Override
     public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks");
+        return isSyncModel(modelName) || isAutoBuildModel(modelName);
     }
 
     @Override
@@ -37,11 +38,21 @@ public class RunEclipseSynchronizationTasksBuilder implements ToolingModelBuilde
         List<String> taskPaths = new ArrayList<String>();
         taskPaths.addAll(startParameter.getTaskNames());
 
+        boolean isSyncModel = isSyncModel(modelName);
+        boolean isAutoBuildModel = isAutoBuildModel(modelName);
+
         for (Project p : project.getAllprojects()) {
             EclipseModel model = p.getExtensions().findByType(EclipseModel.class);
             if (model != null) {
-                for (Task t : model.getSynchronizationTasks().getDependencies(null)) {
-                    taskPaths.add(t.getPath());
+                if (isSyncModel) {
+                    for (Task t : model.getSynchronizationTasks().getDependencies(null)) {
+                        taskPaths.add(t.getPath());
+                    }
+                }
+                if (isAutoBuildModel) {
+                    for (Task t : model.getAutoBuildTasks().getDependencies(null)) {
+                        taskPaths.add(t.getPath());
+                    }
                 }
             }
         }
@@ -58,7 +69,16 @@ public class RunEclipseSynchronizationTasksBuilder implements ToolingModelBuilde
         return null;
     }
 
-    private String placeHolderTaskName(Project project, String baseName) {
+    private static boolean isSyncModel(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseSynchronizationTasks");
+    }
+
+
+    private static boolean isAutoBuildModel(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.eclipse.RunEclipseAutoBuildTasks");
+    }
+
+    private static String placeHolderTaskName(Project project, String baseName) {
         if (project.getTasks().findByName(baseName) == null) {
             return baseName;
         } else {

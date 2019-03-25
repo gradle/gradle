@@ -74,8 +74,11 @@ public class EclipseModel {
 
     private final DefaultTaskDependency synchronizationTasks;
 
+    private final DefaultTaskDependency autoBuildTasks;
+
     public EclipseModel() {
         synchronizationTasks = new DefaultTaskDependency();
+        autoBuildTasks = new DefaultTaskDependency();
     }
 
     /**
@@ -86,6 +89,7 @@ public class EclipseModel {
     @Incubating
     public EclipseModel(Project project) {
         this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
+        this.autoBuildTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
     }
 
     /**
@@ -239,7 +243,7 @@ public class EclipseModel {
     }
 
     /**
-     * The tasks to execute before the Eclipse synchronization starts.
+     * Returns the tasks to be executed before the Eclipse synchronization starts.
      * <p>
      * This property doesn't have a direct effect to the Gradle Eclipse plugin's behaviour. It is used, however, by
      * Buildship to execute the configured tasks each time before the user imports the project or before a project
@@ -262,6 +266,31 @@ public class EclipseModel {
     @Incubating
     public void synchronizationTasks(Object... synchronizationTasks) {
         this.synchronizationTasks.add(synchronizationTasks);
+    }
+
+    /**
+     * Returns the tasks to be executed during the Eclipse auto-build.
+     * <p>
+     * This property doesn't have a direct effect to the Gradle Eclipse plugin's behaviour. It is used, however, by
+     * Buildship to execute the configured tasks each time when the Eclipse automatic build is triggered for the project.
+     *
+     * @return the tasks names
+     * @since 5.4
+     */
+    @Incubating
+    public TaskDependency getAutoBuildTasks() {
+        return autoBuildTasks;
+    }
+
+    /**
+     * Set tasks to be executed during the Eclipse auto-build.
+     *
+     * @see #getAutoBuildTasks()
+     * @since 5.4
+     */
+    @Incubating
+    public void autoBuildTasks(Object... autoBuildTasks) {
+        this.autoBuildTasks.add(autoBuildTasks);
     }
 
     /**
