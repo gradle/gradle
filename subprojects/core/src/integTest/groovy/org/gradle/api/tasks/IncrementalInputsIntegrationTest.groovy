@@ -361,4 +361,97 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         PathSensitivity.RELATIVE  | [modified: "in/some/subdir/input1.txt", added: "in/some/other/subdir/other-input.txt", removed: "in/some/subdir/input2.txt"]
         PathSensitivity.NAME_ONLY | [modified: "input1.txt", added: "other-input.txt", removed: "input2.txt"]
     }
+
+    @Unroll
+    def "provides the file type"() {
+        file("buildSrc").deleteDir()
+        buildFile.text = """
+            abstract class MyCopy extends DefaultTask {
+                @Incremental
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @InputFiles
+                abstract DirectoryProperty getInputDirectory()
+                
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+                
+                @TaskAction
+                void copy(InputChanges changes) {
+                    if (!changes.incremental) {
+                        println("Full rebuild - cleaning output directory")
+                        org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
+                    }
+                    changes.getFileChanges(inputDirectory).each { change ->
+                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)                        
+                        if (change.changeType == ChangeType.REMOVED) {
+                            assert change.fileType == determineFileType(outputFile)
+                            if (change.fileType == FileType.FILE) {
+                                println "deleting \${outputFile}"
+                                assert outputFile.delete()
+                            }
+                        } else {
+                            assert change.fileType == determineFileType(change.file)
+                            if (change.fileType == FileType.FILE) {
+                                outputFile.parentFile.mkdirs()
+                                outputFile.text = change.file.text
+                            }
+                        }
+                    }
+                }
+                
+                protected FileType determineFileType(File file) {
+                    if (file.file) {
+                        return FileType.FILE
+                    }
+                    if (file.directory) {
+                        return FileType.DIRECTORY
+                    }
+                    return FileType.MISSING
+                }
+            }
+            
+            task copy(type: MyCopy) {
+                inputDirectory = file("input")
+                outputDirectory = file("build/output")
+            }
+        """
+        def inputDir = file("input")
+        def outputDir = file("build/output")
+        inputDir.file("modified.txt").text = "input to copy"
+        inputDir.file("subdir/removed.txt").text = "input to copy"
+
+        when:
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        outputDir.assertHasDescendants("modified.txt", "subdir/removed.txt")
+
+        when:
+        inputDir.file("added.txt").text = "other input"
+        inputDir.file("modified.txt").text = "modified"
+        assert inputDir.file("subdir/removed.txt").delete()
+        assert inputDir.file("subdir").delete()
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        outputDir.assertHasDescendants("modified.txt", "added.txt")
+
+        when:
+        inputDir.forceDeleteDir()
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        outputDir.assertHasDescendants()
+
+        when:
+        inputDir.file("modified.txt").text = "some input"
+        run("copy")
+        // force rebuild
+        outputDir.file("modified.txt").text = "changed"
+        inputDir.forceDeleteDir()
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        outputDir.assertHasDescendants()
+    }
 }

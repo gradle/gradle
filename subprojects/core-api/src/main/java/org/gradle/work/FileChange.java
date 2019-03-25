@@ -39,6 +39,16 @@ public interface FileChange {
     ChangeType getChangeType();
 
     /**
+     * The file type of the file.
+     *
+     * <p>
+     *     For {@link ChangeType#ADDED} and {@link ChangeType#MODIFIED}, the type of the file which was added/modified is reported.
+     *     For {@link ChangeType#REMOVED} the type of the file which was removed is reported.
+     * </p>
+     */
+    FileType getFileType();
+
+    /**
      * The normalized path of the file, as specified by the path normalization strategy.
      *
      * <p>

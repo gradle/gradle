@@ -22,6 +22,8 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
+import org.gradle.internal.change.DefaultFileChange;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
@@ -66,16 +68,19 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
     }
 
     private static Stream<FileChange> getAllFileChanges(CurrentFileCollectionFingerprint currentFileCollectionFingerprint) {
-        return currentFileCollectionFingerprint.getFingerprints().entrySet().stream().map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath()));
+        return currentFileCollectionFingerprint.getFingerprints().entrySet().stream()
+            .map(entry -> new RebuildFileChange(entry.getKey(), entry.getValue().getNormalizedPath(), entry.getValue().getType()));
     }
 
     private static class RebuildFileChange implements FileChange, InputFileDetails {
         private final String path;
         private final String normalizedPath;
+        private final FileType fileType;
 
-        public RebuildFileChange(String path, String normalizedPath) {
+        public RebuildFileChange(String path, String normalizedPath, FileType fileType) {
             this.path = path;
             this.normalizedPath = normalizedPath;
+            this.fileType = fileType;
         }
 
         @Override
@@ -86,6 +91,11 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
         @Override
         public ChangeType getChangeType() {
             return ChangeType.ADDED;
+        }
+
+        @Override
+        public org.gradle.work.FileType getFileType() {
+            return DefaultFileChange.convertToPublicType(fileType);
         }
 
         @Override

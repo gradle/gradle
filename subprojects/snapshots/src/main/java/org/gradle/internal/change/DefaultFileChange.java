@@ -87,9 +87,13 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
 
     @Override
     public ChangeType getChangeType() {
-        // TODO wolfs: Shall we do something about file type Missing -> File
-        //   should this be file type ADDED instead of MODIFIED
         return change.getPublicType();
+    }
+
+    @Override
+    public org.gradle.work.FileType getFileType() {
+        FileType typeToConvert = change == ChangeTypeInternal.REMOVED ? previousFileType : currentFileType;
+        return convertToPublicType(typeToConvert);
     }
 
     @Override
@@ -114,6 +118,19 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     @Override
     public boolean isRemoved() {
         return change == ChangeTypeInternal.REMOVED;
+    }
+
+    public static org.gradle.work.FileType convertToPublicType(FileType fileType) {
+        switch (fileType) {
+            case RegularFile:
+                return org.gradle.work.FileType.FILE;
+            case Directory:
+                return org.gradle.work.FileType.DIRECTORY;
+            case Missing:
+                return org.gradle.work.FileType.MISSING;
+            default:
+                throw new AssertionError("Unsupported file type:" + fileType);
+        }
     }
 
     @Override
