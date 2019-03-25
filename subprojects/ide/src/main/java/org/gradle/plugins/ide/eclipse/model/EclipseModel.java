@@ -74,6 +74,16 @@ public class EclipseModel {
 
     private final DefaultTaskDependency synchronizationTasks;
 
+    public EclipseModel() {
+        synchronizationTasks = new DefaultTaskDependency();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 5.4
+     */
+    @Incubating
     public EclipseModel(Project project) {
         this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
     }
