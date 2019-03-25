@@ -457,6 +457,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
         addEtag(response, content, etags)
         response.outputStream << content
+        response.outputStream.flush()
     }
 
     private addEtag(HttpServletResponse response, byte[] bytes, etagStrategy) {
