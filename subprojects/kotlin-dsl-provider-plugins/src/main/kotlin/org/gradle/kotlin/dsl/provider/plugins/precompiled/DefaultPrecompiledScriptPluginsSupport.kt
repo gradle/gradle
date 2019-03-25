@@ -173,7 +173,7 @@ fun Project.enableScriptCompilationOf(
     scriptPlugins: List<PrecompiledScriptPlugin>,
     kotlinCompileTask: TaskProvider<out Task>,
     kotlinSourceDirectorySet: SourceDirectorySet,
-    kotlinCompilerArgsConsumer: (List<String>) -> Unit
+    applyKotlinCompilerArgs: (List<String>) -> Unit
 ) {
 
     val extractedPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/extracted")
@@ -186,6 +186,10 @@ fun Project.enableScriptCompilationOf(
         { compileClasspath() },
         { hashOf(it) }
     )
+
+    val pluginSpecBuildersPackage = provider {
+        "gradle.kotlin.dsl.plugins._${compileClasspath.hash}"
+    }
 
     tasks {
 
@@ -202,6 +206,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 hashedClassPath = compileClasspath
                 sourceCodeOutputDir.set(it)
+                sharedAccessorsPackage.set(pluginSpecBuildersPackage)
             }
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
@@ -214,6 +219,7 @@ fun Project.enableScriptCompilationOf(
 
             hashedClassPath = compileClasspath
             outputDir.set(compiledPluginsBlocks)
+            sharedAccessorsPackage.set(pluginSpecBuildersPackage)
         }
 
         val (generatePrecompiledScriptPluginAccessors, _) =
@@ -234,15 +240,9 @@ fun Project.enableScriptCompilationOf(
         val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
             dependsOn(generatePrecompiledScriptPluginAccessors)
             metadataDir.set(generatedMetadata)
-        }
-
-        kotlinCompileTask {
-            dependsOn(configurePrecompiledScriptDependenciesResolver)
-        }
-
-        configurePrecompiledScriptDependenciesResolver {
+            sharedAccessorsPackage.set(pluginSpecBuildersPackage)
             onConfigure { resolverEnvironment ->
-                kotlinCompilerArgsConsumer(
+                applyKotlinCompilerArgs(
                     listOf(
                         "-script-templates", scriptTemplates,
                         // Propagate implicit imports and other settings
@@ -250,6 +250,10 @@ fun Project.enableScriptCompilationOf(
                     )
                 )
             }
+        }
+
+        kotlinCompileTask {
+            dependsOn(configurePrecompiledScriptDependenciesResolver)
         }
 
         if (inClassPathMode()) {

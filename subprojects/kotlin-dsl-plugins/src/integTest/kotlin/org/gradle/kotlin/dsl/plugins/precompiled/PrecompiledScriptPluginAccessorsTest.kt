@@ -50,7 +50,6 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -433,7 +432,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
     }
 
-    @Ignore("wip")
     @Test
     fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
 
