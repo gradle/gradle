@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,36 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.language.swift;
+package org.gradle.nativeplatform.fixtures.app
 
-import org.gradle.api.Incubating;
+class Swift5WithXCTest extends MainWithXCTestSourceElement {
+    final Swift5 main
+    final XCTestSourceElement test
 
-/**
- * Swift version.
- *
- * @since 4.6
- */
-@Incubating
-public enum SwiftVersion {
-    SWIFT3(3), SWIFT4(4),
-
-    /**
-     * Swift 5 major version.
-     *
-     * @since 5.4
-     */
-    SWIFT5(5);
-
-    private final int version;
-
-    SwiftVersion(int version) {
-        this.version = version;
-    }
-
-    /**
-     * Returns the Swift language version in numerical value
-     */
-    public int getVersion() {
-        return version;
+    Swift5WithXCTest(String projectName) {
+        super(projectName)
+        this.main = new Swift5(projectName)
+        this.test = new XCTestSourceElement(projectName) {
+            @Override
+            List<XCTestSourceFileElement> getTestSuites() {
+                return [new Swift5Test().withImport(main.moduleName)]
+            }
+        }
     }
 }

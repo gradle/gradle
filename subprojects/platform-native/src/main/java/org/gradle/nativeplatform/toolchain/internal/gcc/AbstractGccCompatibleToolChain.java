@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.gcc;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
@@ -228,7 +227,7 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         for (GccCommandLineToolConfigurationInternal tool : platformToolChain.getCompilers()) {
             CommandLineToolSearchResult compiler = locate(tool);
             if (compiler.isAvailable()) {
-                SearchResult<GccMetadata> gccMetadata = getMetaDataProvider().getCompilerMetaData(compiler.getTool(), platformToolChain.getCompilerProbeArgs(), toolSearchPath.getPath());
+                SearchResult<GccMetadata> gccMetadata = getMetaDataProvider().getCompilerMetaData(toolSearchPath.getPath(), spec -> spec.executable(compiler.getTool()).args(platformToolChain.getCompilerProbeArgs()));
                 availability.mustBeAvailable(gccMetadata);
                 if (!gccMetadata.isAvailable()) {
                     return;
@@ -350,8 +349,11 @@ public abstract class AbstractGccCompatibleToolChain extends ExtendableToolChain
         }
 
         @Override
-        public SearchResult<GccMetadata> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> searchPath) {
-            return delegate.getCompilerMetaData(binary, ImmutableList.<String>builder().addAll(compilerProbeArgs).addAll(additionalArgs).build(), searchPath);
+        public SearchResult<GccMetadata> getCompilerMetaData(List<File> searchPath, Action<? super CompilerExecSpec> configureAction) {
+            return delegate.getCompilerMetaData(searchPath, execSpec -> {
+                execSpec.args(compilerProbeArgs);
+                configureAction.execute(execSpec);
+            });
         }
 
         @Override

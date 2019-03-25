@@ -20,6 +20,7 @@ import org.gradle.ide.xcode.fixtures.ProjectFile
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
+import org.gradle.nativeplatform.fixtures.app.Swift5
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 import spock.lang.Unroll
 
@@ -49,6 +50,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         fixture         | sourceCompatibility
         swift3Component | SwiftVersion.SWIFT3
         swift4Component | SwiftVersion.SWIFT4
+        swift5Component | SwiftVersion.SWIFT5
     }
 
     @Unroll
@@ -74,6 +76,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         fixture         | sourceCompatibility
         swift3Component | SwiftVersion.SWIFT3
         swift4Component | SwiftVersion.SWIFT4
+        swift5Component | SwiftVersion.SWIFT5
     }
 
     @Unroll
@@ -102,6 +105,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         "null"                | null
         "SwiftVersion.SWIFT3" | "3.0"
         "SwiftVersion.SWIFT4" | "4.0"
+        "SwiftVersion.SWIFT5" | "5.0"
     }
 
     SwiftSourceElement getSwift3Component() {
@@ -110,6 +114,10 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
 
     SwiftSourceElement getSwift4Component() {
         return new Swift4(rootProjectName)
+    }
+
+    SwiftSourceElement getSwift5Component() {
+        return new Swift5(rootProjectName);
     }
 
     void assertHasSwiftVersion(SwiftVersion expectedSwiftVersion, List<ProjectFile.PBXTarget> targets) {

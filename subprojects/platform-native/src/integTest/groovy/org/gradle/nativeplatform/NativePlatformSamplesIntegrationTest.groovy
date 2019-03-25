@@ -25,6 +25,9 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
+import static org.junit.Assume.assumeTrue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -123,6 +126,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         installation(flavors.dir.file("build/install/main/french")).exec().out == "Bonjour monde!\n"
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     def variants() {
         given:
         sample variants
@@ -183,6 +187,8 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     def "target platforms"() {
+        assumeTrue(toolchainUnderTest.meets(SUPPORTS_32))
+
         given:
         sample targetPlatforms
 
