@@ -74,7 +74,8 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
             List<FilePathWithType> previousFilesForContent = unaccountedForPreviousFiles.get(normalizedContentHash);
             if (previousFilesForContent.isEmpty()) {
                 if (includeAdded) {
-                    if (!visitor.visitChange(DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH))) {
+                    DefaultFileChange added = DefaultFileChange.added(currentAbsolutePath, propertyTitle, currentFingerprint.getType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                    if (!visitor.visitChange(added)) {
                         return false;
                     }
                 }
@@ -87,7 +88,8 @@ public class IgnoredPathCompareStrategy extends AbstractFingerprintCompareStrate
         Collections.sort(unaccountedForPreviousEntries, ENTRY_COMPARATOR);
         for (Map.Entry<HashCode, FilePathWithType> unaccountedForPreviousEntry : unaccountedForPreviousEntries) {
             FilePathWithType removedFile = unaccountedForPreviousEntry.getValue();
-            if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH))) {
+            DefaultFileChange removed = DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+            if (!visitor.visitChange(removed)) {
                 return false;
             }
         }

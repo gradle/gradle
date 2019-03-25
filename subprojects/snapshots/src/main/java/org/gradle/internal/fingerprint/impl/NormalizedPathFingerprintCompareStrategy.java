@@ -88,12 +88,14 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
                 FilePathWithType addedFile = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType(), normalizedPath))) {
+                DefaultFileChange modified = DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType(), normalizedPath);
+                if (!visitor.visitChange(modified)) {
                     return false;
                 }
             } else {
                 FilePathWithType removedFile = unaccountedForPreviousFingerprintEntry.getValue();
-                if (!visitor.visitChange(DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), normalizedPath))) {
+                DefaultFileChange removed = DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), normalizedPath);
+                if (!visitor.visitChange(removed)) {
                     return false;
                 }
             }
@@ -102,7 +104,8 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
         if (includeAdded) {
             for (Map.Entry<String, FilePathWithType> entry : addedFilesByNormalizedPath.entries()) {
                 FilePathWithType addedFile = entry.getValue();
-                if (!visitor.visitChange(DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType(), entry.getKey()))) {
+                DefaultFileChange added = DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType(), entry.getKey());
+                if (!visitor.visitChange(added)) {
                     return false;
                 }
             }

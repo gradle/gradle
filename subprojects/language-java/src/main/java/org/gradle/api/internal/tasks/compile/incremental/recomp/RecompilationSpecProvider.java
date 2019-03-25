@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntr
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
 
 import java.io.File;
@@ -52,10 +53,12 @@ public class RecompilationSpecProvider {
         for (Alignment<File> fileAlignment : alignment) {
             switch (fileAlignment.getKind()) {
                 case added:
-                    classpathEntryChangeProcessor.processChange(DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, ""), spec);
+                    DefaultFileChange added = DefaultFileChange.added(fileAlignment.getCurrentValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                    classpathEntryChangeProcessor.processChange(added, spec);
                     break;
                 case removed:
-                    classpathEntryChangeProcessor.processChange(DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, ""), spec);
+                    DefaultFileChange removed = DefaultFileChange.removed(fileAlignment.getPreviousValue().getAbsolutePath(), "classpathEntry", FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                    classpathEntryChangeProcessor.processChange(removed, spec);
                     break;
                 case transformed:
                     // If we detect a transformation in the classpath, we need to recompile, because we could typically be facing the case where
@@ -67,7 +70,8 @@ public class RecompilationSpecProvider {
                     ClasspathEntrySnapshot previousSnapshot = previous.getClasspathEntrySnapshot(key);
                     ClasspathEntrySnapshot snapshot = currentSnapshots.getSnapshot(key);
                     if (previousSnapshot == null || !snapshot.getHash().equals(previousSnapshot.getHash())) {
-                        classpathEntryChangeProcessor.processChange(DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile, ""), spec);
+                        DefaultFileChange modified = DefaultFileChange.modified(key.getAbsolutePath(), "classpathEntry", FileType.RegularFile, FileType.RegularFile, IgnoredPathFingerprintingStrategy.IGNORED_PATH);
+                        classpathEntryChangeProcessor.processChange(modified, spec);
                     }
                     break;
             }

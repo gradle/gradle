@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.classpath.impl
 
+import com.google.common.collect.Iterables
 import org.gradle.internal.change.CollectingChangeVisitor
 import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.file.FileType
@@ -54,7 +55,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy     | includeAdded | results
-        CLASSPATH    | true         | [added("one-new", "one")]
+        CLASSPATH    | true         | [added("one-new": "one")]
         CLASSPATH    | false        | []
     }
 
@@ -68,7 +69,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [added("two-new", "two")]
+        CLASSPATH  | true         | [added("two-new": "two")]
         CLASSPATH  | false        | []
     }
 
@@ -78,7 +79,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             [:],
             ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old", "one")]
+        ) as List == [removed("one-old": "one")]
 
         where:
         strategy   | includeAdded
@@ -92,7 +93,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one")],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
-        ) == [removed("two-old", "two")]
+        ) == [removed("two-old": "two")]
 
         where:
         strategy   | includeAdded
@@ -106,7 +107,7 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
-        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile, "two")]
+        ) == [modified("two-new": "two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         strategy   | includeAdded
@@ -124,8 +125,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("one-old", "one"), added("two-new", "two")]
-        CLASSPATH  | false        | [removed("one-old", "one")]
+        CLASSPATH  | true         | [removed("one-old": "one"), added("two-new": "two")]
+        CLASSPATH  | false        | [removed("one-old": "one")]
     }
 
     @Unroll
@@ -138,8 +139,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("three-old", "three"), added("two-new", "two")]
-        CLASSPATH  | false        | [removed("three-old", "three")]
+        CLASSPATH  | true         | [removed("three-old": "three"), added("two-new": "two")]
+        CLASSPATH  | false        | [removed("three-old": "three")]
     }
 
     @Unroll
@@ -152,8 +153,8 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        CLASSPATH  | true         | [removed("three-old", "three"), added("two-new", "two"), removed("two-old", "two"), added("three-new", "three")]
-        CLASSPATH  | false        | [removed("three-old", "three"), removed("two-old", "two")]
+        CLASSPATH  | true         | [removed("three-old": "three"), added("two-new": "two"), removed("two-old": "two"), added("three-new": "three")]
+        CLASSPATH  | false        | [removed("three-old": "three"), removed("two-old": "two")]
     }
 
     @Unroll
@@ -244,15 +245,30 @@ class ClasspathFingerprintCompareStrategyTest extends Specification {
         return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
     }
 
-    def added(String path, String normalizedPath = "") {
-        DefaultFileChange.added(path, "test", FileType.RegularFile, normalizedPath)
+    def added(String path) {
+        added((path): "")
     }
 
-    def removed(String path, String normalizedPath = "") {
-        DefaultFileChange.removed(path, "test", FileType.RegularFile, normalizedPath)
+    def added(Map<String, String> entry) {
+        def singleEntry = Iterables.getOnlyElement(entry.entrySet())
+        DefaultFileChange.added(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
     }
 
-    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile, String normalizedPath = "") {
-        DefaultFileChange.modified(path, "test", previous, current, normalizedPath)
+    def removed(String path) {
+        removed((path): "")
+    }
+
+    def removed(Map<String, String> entry) {
+        def singleEntry = Iterables.getOnlyElement(entry.entrySet())
+        DefaultFileChange.removed(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+    }
+
+    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+        modified((path): "", previous, current)
+    }
+
+    def modified(Map<String, String> paths, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+        def singleEntry = Iterables.getOnlyElement(paths.entrySet())
+        DefaultFileChange.modified(singleEntry.key, "test", previous, current, singleEntry.value)
     }
 }
