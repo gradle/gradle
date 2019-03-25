@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -58,7 +57,9 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
                     visitor.visitArtifact(variantName, target, resolvedArtifact);
                 }
             },
-            failure -> visitor.visitFailure(new ArtifactTransformException(artifact.getId(), target, failure))
+            failure -> visitor.visitFailure(
+                new TransformException(String.format("Failed to transform artifact '%s' to match attributes %s.",
+                    artifact.getId(), target), failure))
         );
     }
 
@@ -86,7 +87,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
                     visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
                 }
             },
-            failure -> visitor.visitFailure(new ArtifactTransformException(file, target, failure))
+            failure -> visitor.visitFailure(new TransformException(String.format("Failed to transform file '%s' to match attributes %s",
+                file.getName(), target), failure))
         );
     }
 }

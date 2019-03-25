@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 
-/**
- * An {@code ExecutionException} is thrown when a unit of work fails to execute successfully.
- */
 @Contextual
-public class ExecutionException extends GradleException {
-    public ExecutionException(UnitOfWork work, Throwable cause) {
-        super(String.format("Execution failed for %s.", work.getDisplayName()), cause);
+public class TransformException extends GradleException {
+
+    public TransformException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
