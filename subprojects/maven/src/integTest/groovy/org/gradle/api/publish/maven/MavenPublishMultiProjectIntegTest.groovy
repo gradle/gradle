@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -386,13 +387,14 @@ project(":project2") {
         }
     }
 
-    def "publish and resolve java-library with dependency on java-platform"() {
+    @Unroll
+    def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
         settingsFile << """
-include "platform", "library"
+include "$platformName", "library"
 """
 
         buildFile << """
@@ -403,7 +405,7 @@ allprojects {
     version = "1.0"
 }
 
-project(":platform") {
+project(":$platformName") {
     apply plugin: 'java-platform'
 
     javaPlatform {
@@ -430,7 +432,7 @@ project(":library") {
     apply plugin: 'java-library'
 
     dependencies {
-        api platform(project(":platform"))
+        api platform(project(":$platformName"))
         api "org.test:bar"
     }
     publishing {
@@ -446,7 +448,7 @@ project(":library") {
         when:
         run "publish"
 
-        def platformModule = mavenRepo.module("org.test", "platform", "1.0").removeGradleMetadataRedirection()
+        def platformModule = mavenRepo.module("org.test", platformName, "1.0").removeGradleMetadataRedirection()
         def libraryModule = mavenRepo.module("org.test", "library", "1.0").removeGradleMetadataRedirection()
 
         then:
@@ -462,10 +464,10 @@ project(":library") {
         libraryModule.parsedPom.packaging == null
         libraryModule.parsedPom.scopes.compile.assertDependsOn("org.test:bar:")
         libraryModule.parsedPom.scopes.compile.assertDependencyManagement()
-        libraryModule.parsedPom.scopes['import'].expectDependencyManagement("org.test:platform:1.0").hasType('pom')
+        libraryModule.parsedPom.scopes['import'].expectDependencyManagement("org.test:$platformName:1.0").hasType('pom')
         libraryModule.parsedModuleMetadata.variant('apiElements') {
             dependency("org.test:bar:").exists()
-            dependency("org.test:platform:1.0").exists()
+            dependency("org.test:$platformName:1.0").exists()
             noMoreDependencies()
         }
 
@@ -481,6 +483,9 @@ project(":library") {
                 expectFiles 'bar-1.1.jar', 'library-1.0.jar'
             }
         }
+
+        where:
+        platformName << ['platform', 'aplatform']
     }
 
     private void createBuildScripts(String append = "") {
