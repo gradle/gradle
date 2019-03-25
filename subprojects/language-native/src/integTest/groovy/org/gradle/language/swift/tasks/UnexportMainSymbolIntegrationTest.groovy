@@ -109,6 +109,7 @@ class UnexportMainSymbolIntegrationTest extends AbstractInstalledToolChainIntegr
 
         when:
         def mainObject = file("build/relocated/main.o")
+        mainObject.makeOlder()
         def oldTimestamp = mainObject.lastModified()
         def otherFile = file("src/main/swift/other.swift")
         otherFile << """
