@@ -26,7 +26,7 @@ import java.util.function.Consumer
 
 interface PrecompiledScriptPluginsSupport {
 
-    @Deprecated("Use enableOn(Host)")
+    @Deprecated("Use enableOn(Target)")
     fun enableOn(
         project: Project,
         kotlinSourceDirectorySet: SourceDirectorySet,
