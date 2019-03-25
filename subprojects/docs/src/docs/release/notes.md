@@ -8,7 +8,8 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-[Ian Kerins](https://github.com/isker)
+[Ian Kerins](https://github.com/isker),
+and [Stefan M.](https://github.com/StefMa).
 
 <!-- 
 ## 1
