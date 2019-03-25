@@ -19,7 +19,12 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
@@ -66,6 +71,22 @@ public class EclipseModel {
     private EclipseJdt jdt;
 
     private EclipseWtp wtp;
+
+    private final DefaultTaskDependency synchronizationTasks;
+
+    public EclipseModel() {
+        synchronizationTasks = new DefaultTaskDependency();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 5.4
+     */
+    @Incubating
+    public EclipseModel(Project project) {
+        this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
+    }
 
     /**
      * Injects and returns an instance of {@link ObjectFactory}.
@@ -215,6 +236,32 @@ public class EclipseModel {
      */
     public void jdt(Action<? super EclipseJdt> action) {
         action.execute(getJdt());
+    }
+
+    /**
+     * The tasks to execute before the Eclipse synchronization starts.
+     * <p>
+     * This property doesn't have a direct effect to the Gradle Eclipse plugin's behaviour. It is used, however, by
+     * Buildship to execute the configured tasks each time before the user imports the project or before a project
+     * synchronization starts.
+     *
+     * @return the tasks names
+     * @since 5.4
+     */
+    @Incubating
+    public TaskDependency getSynchronizationTasks() {
+        return synchronizationTasks;
+    }
+
+    /**
+     * Set tasks to be executed before the Eclipse synchronization.
+     *
+     * @see #getSynchronizationTasks()
+     * @since 5.4
+     */
+    @Incubating
+    public void synchronizationTasks(Object... synchronizationTasks) {
+        this.synchronizationTasks.add(synchronizationTasks);
     }
 
     /**
