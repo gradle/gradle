@@ -84,7 +84,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     private RESTClient client
 
-    private Map<String, Scenario> scheduledBuilds = [:]
+    protected Map<String, Scenario> scheduledBuilds = [:]
 
     private Map<String, ScenarioResult> finishedBuilds = [:]
 

@@ -81,5 +81,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
         String testFailure
         // SUCCESS/FAILURE/UNKNOWN
         String status
+        String agentName
+        String agentUrl
     }
 }
