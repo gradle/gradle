@@ -112,7 +112,7 @@ public class ClasspathChangeDependentsFinder {
                 }
             }
         }
-        return DependentsSet.dependents(dependentClasses);
+        return DependentsSet.dependentClasses(dependentClasses);
     }
 
     private DependentsSet collectDependentsFromClasspathEntry(String dependentClass, File entry) {

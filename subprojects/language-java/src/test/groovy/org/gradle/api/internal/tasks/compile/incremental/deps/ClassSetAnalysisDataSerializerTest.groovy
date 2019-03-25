@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependencyToAll
-import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependents
+import static org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet.dependentClasses
 
 class ClassSetAnalysisDataSerializerTest extends Specification {
 
@@ -34,7 +34,7 @@ class ClassSetAnalysisDataSerializerTest extends Specification {
 
     def "serializes"() {
         def data = new ClassSetAnalysisData(["A", "B", "C", "D"] as Set,
-            ["A": dependents("B", "C"), "B": dependents("C"), "C": dependents(), "D": dependencyToAll(),],
+            ["A": dependentClasses("B", "C"), "B": dependentClasses("C"), "C": dependentClasses(), "D": dependencyToAll(),],
             [C: new IntOpenHashSet([1, 2]) as IntSet, D: IntSets.EMPTY_SET]
             ,"Because"
         )

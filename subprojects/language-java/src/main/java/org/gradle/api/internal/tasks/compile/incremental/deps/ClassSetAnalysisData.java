@@ -68,7 +68,7 @@ public class ClassSetAnalysisData {
                 typesInPackage.add(type);
             }
         }
-        return DependentsSet.dependents(typesInPackage);
+        return DependentsSet.dependentClasses(typesInPackage);
     }
 
     public IntSet getConstants(String className) {
@@ -150,7 +150,7 @@ public class ClassSetAnalysisData {
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }
-            return DependentsSet.dependents(builder.build());
+            return DependentsSet.dependentClasses(builder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {

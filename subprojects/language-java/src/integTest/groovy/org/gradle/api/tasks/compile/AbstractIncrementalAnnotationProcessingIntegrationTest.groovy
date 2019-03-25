@@ -149,5 +149,4 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         succeeds 'compileJava'
         outputs.recompiledClasses("A")
     }
-
 }

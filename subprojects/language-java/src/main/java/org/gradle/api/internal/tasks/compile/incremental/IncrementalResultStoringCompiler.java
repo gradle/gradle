@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnap
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshotProvider;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
@@ -80,14 +81,16 @@ class IncrementalResultStoringCompiler implements Compiler<JavaCompileSpec> {
             AnnotationProcessingResult processingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
             return convertProcessingResult(processingResult);
         }
-        return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), "the chosen compiler did not support incremental annotation processing");
+        return new AnnotationProcessingData(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), ImmutableMap.<String, Set<GeneratedResource>>of(), ImmutableSet.<GeneratedResource>of(), "the chosen compiler did not support incremental annotation processing");
     }
 
     private AnnotationProcessingData convertProcessingResult(AnnotationProcessingResult processingResult) {
         Map<String, Set<String>> generatedTypesByOrigin = processingResult.getGeneratedTypesWithIsolatedOrigin();
+        Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = processingResult.getGeneratedResourcesWithIsolatedOrigin();
         Set<String> aggregatedTypes = processingResult.getAggregatedTypes();
         Set<String> aggregatingTypes = processingResult.getGeneratedAggregatingTypes();
-        return new AnnotationProcessingData(intern(generatedTypesByOrigin), intern(aggregatedTypes), intern(aggregatingTypes), processingResult.getFullRebuildCause());
+        Set<GeneratedResource> aggregatingResources = processingResult.getGeneratedAggregatingResources();
+        return new AnnotationProcessingData(intern(generatedTypesByOrigin), intern(aggregatedTypes), intern(aggregatingTypes), generatedResourcesByOrigin, aggregatingResources, processingResult.getFullRebuildCause());
     }
 
     private Set<String> intern(Set<String> types) {

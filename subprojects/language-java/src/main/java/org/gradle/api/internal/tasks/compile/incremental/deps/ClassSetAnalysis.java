@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -30,7 +31,8 @@ public class ClassSetAnalysis {
 
     private final ClassSetAnalysisData classAnalysis;
     private final AnnotationProcessingData annotationProcessingData;
-    private final ImmutableSetMultimap<String, String> dependenciesFromAnnotationProcessing;
+    private final ImmutableSetMultimap<String, String> classDependenciesFromAnnotationProcessing;
+    private final ImmutableSetMultimap<String, GeneratedResource> resourceDependenciesFromAnnotationProcessing;
 
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis) {
         this(classAnalysis, new AnnotationProcessingData());
@@ -39,15 +41,24 @@ public class ClassSetAnalysis {
     public ClassSetAnalysis(ClassSetAnalysisData classAnalysis, AnnotationProcessingData annotationProcessingData) {
         this.classAnalysis = classAnalysis;
         this.annotationProcessingData = annotationProcessingData;
-        ImmutableSetMultimap.Builder<String, String> dependenciesFromAnnotationProcessing = ImmutableSetMultimap.builder();
+        ImmutableSetMultimap.Builder<String, String> classDependenciesFromAnnotationProcessing = ImmutableSetMultimap.builder();
         for (Map.Entry<String, Set<String>> entry : annotationProcessingData.getGeneratedTypesByOrigin().entrySet()) {
             for (String generated : entry.getValue()) {
                 String origin = entry.getKey();
-                dependenciesFromAnnotationProcessing.put(origin, generated);
-                dependenciesFromAnnotationProcessing.put(generated, origin);
+                classDependenciesFromAnnotationProcessing.put(origin, generated);
+                classDependenciesFromAnnotationProcessing.put(generated, origin);
             }
         }
-        this.dependenciesFromAnnotationProcessing = dependenciesFromAnnotationProcessing.build();
+        this.classDependenciesFromAnnotationProcessing = classDependenciesFromAnnotationProcessing.build();
+
+        ImmutableSetMultimap.Builder<String, GeneratedResource> resourceDependenciesFromAnnotationProcessing = ImmutableSetMultimap.builder();
+        for (Map.Entry<String, Set<GeneratedResource>> entry : annotationProcessingData.getGeneratedResourcesByOrigin().entrySet()) {
+            for (GeneratedResource generated : entry.getValue()) {
+                String origin = entry.getKey();
+                resourceDependenciesFromAnnotationProcessing.put(origin, generated);
+            }
+        }
+        this.resourceDependenciesFromAnnotationProcessing = resourceDependenciesFromAnnotationProcessing.build();
     }
 
     public ClassSetAnalysis withAnnotationProcessingData(AnnotationProcessingData annotationProcessingData) {
@@ -55,22 +66,28 @@ public class ClassSetAnalysis {
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
-        Set<String> result = null;
+        Set<String> resultClasses = null;
+        Set<GeneratedResource> resultResources = null;
         for (String cls : classes) {
             DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
             Set<String> dependentClasses = d.getDependentClasses();
-            if (dependentClasses.isEmpty()) {
+            Set<GeneratedResource> dependentResources = d.getDependentResources();
+            if (dependentClasses.isEmpty() && dependentResources.isEmpty()) {
                 continue;
             }
-            if (result == null) {
-                result = Sets.newLinkedHashSet();
+            if (resultClasses == null) {
+                resultClasses = Sets.newLinkedHashSet();
             }
-            result.addAll(dependentClasses);
+            resultClasses.addAll(dependentClasses);
+            if (resultResources == null) {
+                resultResources = Sets.newLinkedHashSet();
+            }
+            resultResources.addAll(dependentResources);
         }
-        return result == null ? DependentsSet.empty() : DependentsSet.dependents(result);
+        return resultClasses == null ? DependentsSet.empty() : DependentsSet.dependents(resultClasses, resultResources);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
@@ -85,15 +102,19 @@ public class ClassSetAnalysis {
         if (!constants.isEmpty()) {
             return DependentsSet.dependencyToAll();
         }
-        Set<String> dependingOnAllOthers = annotationProcessingData.getGeneratedTypesDependingOnAllOthers();
-        if (deps.getDependentClasses().isEmpty() && dependingOnAllOthers.isEmpty()) {
+        Set<String> classesDependingOnAllOthers = annotationProcessingData.getGeneratedTypesDependingOnAllOthers();
+        Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.getGeneratedResourcesDependingOnAllOthers();
+        if (deps.getDependentClasses().isEmpty() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
             return deps;
         }
-        Set<String> result = new HashSet<String>();
-        recurseDependents(new HashSet<String>(), result, deps.getDependentClasses());
-        recurseDependents(new HashSet<String>(), result, dependingOnAllOthers);
-        result.remove(className);
-        return DependentsSet.dependents(result);
+
+        Set<String> resultClasses = new HashSet<String>();
+        Set<GeneratedResource> resultResources = new HashSet<GeneratedResource>(resourcesDependingOnAllOthers);
+        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, deps.getDependentClasses());
+        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, classesDependingOnAllOthers);
+        resultClasses.remove(className);
+
+        return DependentsSet.dependents(resultClasses, resultResources);
     }
 
     public Set<String> getTypesToReprocess() {
@@ -104,17 +125,22 @@ public class ClassSetAnalysis {
         return classAnalysis.getDependents(className).isDependencyToAll();
     }
 
-    private void recurseDependents(Set<String> visited, Set<String> result, Iterable<String> dependentClasses) {
+    /**
+     * Recursively accumulate dependent classes and resources.  Dependent classes discovered can themselves be used to query
+     * further dependents, while resources are just data accumulated along the way.
+     */
+    private void recurseDependentClasses(Set<String> visitedClasses, Set<String> resultClasses, Set<GeneratedResource> resultResources, Iterable<String> dependentClasses) {
         for (String d : dependentClasses) {
-            if (!visited.add(d)) {
+            if (!visitedClasses.add(d)) {
                 continue;
             }
             if (!isNestedClass(d)) {
-                result.add(d);
+                resultClasses.add(d);
             }
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {
-                recurseDependents(visited, result, currentDependents.getDependentClasses());
+                resultResources.addAll(currentDependents.getDependentResources());
+                recurseDependentClasses(visitedClasses, resultClasses, resultResources, currentDependents.getDependentClasses());
             }
         }
     }
@@ -124,11 +150,12 @@ public class ClassSetAnalysis {
         if (dependents.isDependencyToAll()) {
             return dependents;
         }
-        ImmutableSet<String> additionalDeps = dependenciesFromAnnotationProcessing.get(className);
-        if (additionalDeps.isEmpty()) {
+        ImmutableSet<String> additionalClassDeps = classDependenciesFromAnnotationProcessing.get(className);
+        ImmutableSet<GeneratedResource> additionalResourceDeps = resourceDependenciesFromAnnotationProcessing.get(className);
+        if (additionalClassDeps.isEmpty() && additionalResourceDeps.isEmpty()) {
             return dependents;
         }
-        return DependentsSet.dependents(Sets.union(dependents.getDependentClasses(), additionalDeps));
+        return DependentsSet.dependents(Sets.union(dependents.getDependentClasses(), additionalClassDeps), Sets.union(dependents.getDependentResources(), additionalResourceDeps));
     }
 
     private boolean isNestedClass(String d) {

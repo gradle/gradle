@@ -80,7 +80,7 @@ public class ClassDependentsAccumulator {
             builder.put(s, DependentsSet.dependencyToAll());
         }
         for (Map.Entry<String, Set<String>> entry : dependents.entrySet()) {
-            builder.put(entry.getKey(), DependentsSet.dependents(entry.getValue()));
+            builder.put(entry.getKey(), DependentsSet.dependentClasses(entry.getValue()));
         }
         return builder.build();
     }
