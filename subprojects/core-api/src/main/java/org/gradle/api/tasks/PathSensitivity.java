@@ -33,6 +33,19 @@ public enum PathSensitivity {
 
     /**
      * Use the location of the file related to a hierarchy.
+     *
+     * <p>
+     *     If the property a contains directory, then the path of the directory will be ignored.
+     *     For files in the directory, the normalized path is the relative path of the file to the directory.
+     *     For files in the root of the file collection, the file name is used as the normalized path.
+     * </p>
+     *
+     * <br />
+     * Example: The property is an input directory.
+     * <ul>
+     *     <li>The path of the input directory is ignored.</li>
+     *     <li>The path of the files in the input directory are considered relative to the input directory.</li>
+     * </ul>
      */
     RELATIVE,
 
