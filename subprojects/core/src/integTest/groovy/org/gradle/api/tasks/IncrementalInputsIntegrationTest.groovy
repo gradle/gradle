@@ -27,13 +27,13 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         """
             void execute(InputChanges inputChanges) {
                 assert !(inputChanges instanceof ExtensionAware)
-    
+
                 if (project.hasProperty('forceFail')) {
                     throw new RuntimeException('failed')
                 }
-    
+
                 incrementalExecution = inputChanges.incremental
-    
+
                 inputChanges.getFileChanges(inputDir).each { change ->
                     switch (change.changeType) {
                         case ChangeType.ADDED:
@@ -49,11 +49,11 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                             throw new IllegalStateException()
                     }
                 }
-    
+
                 if (!inputChanges.incremental) {
                     createOutputsNonIncremental()
                 }
-                
+
                 touchOutputs()
             }
         """
@@ -91,19 +91,19 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 abstract DirectoryProperty getInput()
                 @OutputFile
                 File output
-                
+
                 @TaskAction
                 void doStuff(InputChanges changes) {
                     def changed = changes.getFileChanges(input)*.file*.name as List
                     assert changed.contains('child')
                     output.text = changed.join('\\n')
                 }
-            }           
-            
+            }
+
             task myTask(type: MyTask) {
                 input = mkdir(inputDir)
                 output = file("build/output.txt")
-            }          
+            }
         """
         String myTask = ':myTask'
 
@@ -127,16 +127,16 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         given:
         buildFile << """
             abstract class WithNonIncrementalInput extends BaseIncrementalTask {
-                
+
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
-                
+
                 @Override
                 void execute(InputChanges inputChanges) {
                     inputChanges.getFileChanges(nonIncrementalInput)
                 }
             }
-            
+
             task withNonIncrementalInput(type: WithNonIncrementalInput) {
                 inputDir = file("inputs")
                 nonIncrementalInput = file("nonIncremental")
@@ -153,17 +153,17 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         given:
         buildFile << """
             abstract class WithNonIncrementalInput extends BaseIncrementalTask {
-                
+
                 @InputFile
                 File nonIncrementalInput
-                
+
                 @Override
                 void execute(InputChanges changes) {
                     super.execute(changes)
                     assert !changes.incremental
                 }
             }
-            
+
             task withNonIncrementalInput(type: WithNonIncrementalInput) {
                 inputDir = file("inputs")
                 nonIncrementalInput = file("nonIncremental")
@@ -178,7 +178,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         then:
         succeeds("withNonIncrementalInput")
     }
-    
+
     def "properties annotated with SkipWhenEmpty are incremental"() {
         setupTaskSources("@${SkipWhenEmpty.simpleName}")
 
@@ -199,14 +199,14 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @Incremental
                 @InputDirectory
                 File inputOne
-            
+
                 @Incremental
                 @InputDirectory
                 File inputTwo
 
                 @OutputDirectory
                 File outputDirectory
-                            
+
                 @TaskAction
                 void run(InputChanges changes) {
                     new File(outputDirectory, "one.txt").text = changes.getFileChanges(inputOne)*.file*.name.join("\\n")
@@ -220,7 +220,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 outputDirectory = file("build/output")
             }
         """
-        
+
         file("input").createDir()
 
         expect:
@@ -234,14 +234,14 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @Incremental
                 @InputDirectory
                 abstract DirectoryProperty getInputOne()
-            
+
                 @Incremental
                 @InputDirectory
                 abstract DirectoryProperty getInputTwo()
 
                 @OutputDirectory
                 File outputDirectory
-                            
+
                 @TaskAction
                 void run(InputChanges changes) {
                     new File(outputDirectory, "one.txt").text = changes.getFileChanges(inputOne)*.file*.name.join("\\n")
@@ -273,7 +273,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
                 @OutputDirectory
                 File outputDirectory
-                            
+
                 @TaskAction
                 void run(InputChanges changes) {
                     new File(outputDirectory, "output.txt").text = "Success"
@@ -304,19 +304,19 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @PathSensitive(PathSensitivity.${pathSensitivity.name()})
                 @InputDirectory
                 abstract DirectoryProperty getInputDirectory()
-                
+
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDirectory()
-                
+
                 @TaskAction
                 void copy(InputChanges changes) {
                     if (!changes.incremental) {
                         org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
-                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)                        
+                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
                         if (change.changeType == ChangeType.REMOVED) {
-                            outputFile.delete()                            
+                            outputFile.delete()
                         } else {
                             if (change.file.file) {
                                 outputFile.parentFile.mkdirs()
@@ -326,7 +326,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                     }
                 }
             }
-            
+
             task copy(type: MyCopy) {
                 inputDirectory = file("input")
                 outputDirectory = file("build/output")
@@ -371,10 +371,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @PathSensitive(PathSensitivity.RELATIVE)
                 @InputFiles
                 abstract DirectoryProperty getInputDirectory()
-                
+
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDirectory()
-                
+
                 @TaskAction
                 void copy(InputChanges changes) {
                     if (!changes.incremental) {
@@ -382,7 +382,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                         org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
-                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)                        
+                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
                         if (change.changeType == ChangeType.REMOVED) {
                             assert change.fileType == determineFileType(outputFile)
                             if (change.fileType == FileType.FILE) {
@@ -398,7 +398,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                         }
                     }
                 }
-                
+
                 protected FileType determineFileType(File file) {
                     if (file.file) {
                         return FileType.FILE
@@ -409,7 +409,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                     return FileType.MISSING
                 }
             }
-            
+
             task copy(type: MyCopy) {
                 inputDirectory = file("input")
                 outputDirectory = file("build/output")
