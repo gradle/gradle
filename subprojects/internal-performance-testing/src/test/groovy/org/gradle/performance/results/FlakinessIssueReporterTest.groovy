@@ -61,16 +61,15 @@ class FlakinessIssueReporterTest extends Specification {
         1 * issue.comment("""
 FROM-BOT
 
-Url: myUrl
+Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Worker url: myUrl
 Agent: [myAgent](myAgentUrl)
 Details:
 
-```
 | Iteration | Difference | Confidence |
 |---|---|---|
 |1|1.0 %|100.0%|
 |2|-1.0 %|98.0%|
-```
 """)
     }
 
@@ -95,16 +94,15 @@ MESSAGE: Flaky performance test scenario
         1 * issue.comment("""
 FROM-BOT
 
-Url: myUrl
+Coordinator url: https://builds.gradle.org/viewLog.html?buildId=${System.getenv("BUILD_ID")}
+Worker url: myUrl
 Agent: [myAgent](myAgentUrl)
 Details:
 
-```
 | Iteration | Difference | Confidence |
 |---|---|---|
 |1|1.0 %|100.0%|
 |2|-1.0 %|98.0%|
-```
 """)
     }
 

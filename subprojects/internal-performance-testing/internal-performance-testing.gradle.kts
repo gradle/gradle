@@ -44,7 +44,7 @@ dependencies {
     compile(library("commons_math"))
     compile(library("jcl_to_slf4j"))
     compile("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
-    compile("org.gradle.ci.health:tagging:0.62")
+    compile("org.gradle.ci.health:tagging:0.63")
 
     runtime("com.h2database:h2:1.4.192")
 }
