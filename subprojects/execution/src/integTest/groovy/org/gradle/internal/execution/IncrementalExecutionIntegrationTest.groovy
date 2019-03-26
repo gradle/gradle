@@ -39,6 +39,7 @@ import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
+import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreSnapshotsStep
@@ -132,7 +133,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
                                 new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
+                                            new ResolveInputChangesStep<>(
                                                 new ExecuteStep<>()
+                                            )
                                         )
                                     )
                                 )

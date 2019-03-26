@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -25,8 +25,8 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class ExecuteStepTest extends Specification {
-    def step = new ExecuteStep<IncrementalChangesContext>()
-    def context = Mock(IncrementalChangesContext)
+    def step = new ExecuteStep<InputChangesContext>()
+    def context = Mock(InputChangesContext)
     def work = Mock(UnitOfWork)
     def changes = Mock(ExecutionStateChanges)
     def optionalChanges = Optional.of(changes)
@@ -41,7 +41,8 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.requiresInputChanges >> false
+        1 * context.incrementalExecution >> false
+        1 * context.inputChanges >> Optional.empty()
         1 * work.execute(null) >> workResult
         0 * _
 
@@ -61,7 +62,7 @@ class ExecuteStepTest extends Specification {
         ex == failure
 
         1 * context.work >> work
-        1 * work.requiresInputChanges >> false
+        1 * context.inputChanges >> Optional.empty()
         1 * work.execute(null) >> { throw failure }
         0 * _
 
@@ -78,12 +79,9 @@ class ExecuteStepTest extends Specification {
         result.outcome.get() == outcome
 
         1 * context.work >> work
-        1 * work.requiresInputChanges >> true
-        1 * context.changes >> optionalChanges
-        1 * changes.createInputChanges() >> inputChanges
+        1 * context.incrementalExecution >> incrementalExecution
+        1 * context.inputChanges >> Optional.of(inputChanges)
         1 * work.execute(inputChanges) >> workResult
-        _ * work.getDisplayName()
-        2 * inputChanges.incremental >> incrementalExecution
         0 * _
 
         where:

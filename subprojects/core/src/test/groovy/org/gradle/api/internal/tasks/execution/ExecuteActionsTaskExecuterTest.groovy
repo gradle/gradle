@@ -44,6 +44,7 @@ import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
+import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.id.UniqueId
@@ -84,7 +85,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
                     new SnapshotOutputsStep<>(buildId,
                         new CatchExceptionStep<>(
                             new CancelExecutionStep<>(cancellationToken,
-                                new ExecuteStep<>()
+                                new ResolveInputChangesStep<>(
+                                    new ExecuteStep<>()
+                                )
                             )
                         )
                     )

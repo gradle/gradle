@@ -34,6 +34,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UpToDateResult;
@@ -53,6 +54,7 @@ import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
@@ -134,7 +136,9 @@ public class ExecutionGradleServices {
                                             new CatchExceptionStep<IncrementalChangesContext>(
                                                 new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
                                                     new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                        new ExecuteStep<IncrementalChangesContext>()
+                                                        new ResolveInputChangesStep<IncrementalChangesContext>(
+                                                            new ExecuteStep<InputChangesContext>()
+                                                        )
                                                     )
                                                 )
                                             )
