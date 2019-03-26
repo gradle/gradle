@@ -163,19 +163,25 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-                task all(dependsOn: tasks.matching{it.name.startsWith('myTask')})
+                task all(dependsOn: tasks.matching{it.name.startsWith('myTask')}) {
+                    doLast {
+                        tasks.matching{it.name.startsWith('myTask')}.each { myTask ->
+                            myTask.logger.lifecycle("log all task via \${myTask.path} logger")
+                        }
+                    }
+                }
+                
+                gradle.buildFinished {
+                    tasks.all.logger.lifecycle("build finished from \${tasks.all.path}")
+                }
             }
-            
             
             threaded {
                 println("threaded configuration output")
             }
             
             def threaded(Closure action) {
-                CountDownLatch latch = new CountDownLatch(1);
-                def t = new Thread({ action.call(); latch.countDown(); } as Runnable)
-                t.start() 
-                latch.await();
+                Thread.start(action).join()
             }
         """
 
@@ -184,11 +190,18 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
         10.times {  projectCount ->
+            def allExecutionOp = operations.only("Execute doLast {} action for :project-${projectCount}:all")
+            def allExecutionOpTaskProgresses = allExecutionOp.progress
+
             10.times { taskCount ->
                 def taskExecutionOp = operations.only("Task :project-${projectCount}:myTask$taskCount")
                 def classesTaskProgresses = taskExecutionOp.progress
                 def threadedTaskLoggingProgress = classesTaskProgresses.find { it.detailsType == LogEvent && it.details.message == "from :project-${projectCount}:myTask$taskCount task external thread" }
                 assert threadedTaskLoggingProgress.details.logLevel == 'LIFECYCLE'
+
+                // logging done from task-a logger during task-b execution will result in logging linked to task-b
+                def allLoggingProgress = allExecutionOpTaskProgresses.find { it.detailsType == LogEvent && it.details.message == "log all task via :project-${projectCount}:myTask$taskCount logger" }
+                assert allLoggingProgress.details.logLevel == 'LIFECYCLE'
             }
         }
 
@@ -198,6 +211,12 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         threadedConfigurationProgress.details.spans.size == 1
         threadedConfigurationProgress.details.spans[0].styleName == 'Normal'
         threadedConfigurationProgress.details.spans[0].text == "threaded configuration output${getPlatformLineSeparator()}"
+
+
+        // loggings from logger of finished task
+        10.times { projectCount ->
+            runBuildProgress.find { it.detailsType == LogEvent && it.details.message == "build finished from :project-${projectCount}:all" }
+        }
     }
 
     def "captures output from buildSrc"() {

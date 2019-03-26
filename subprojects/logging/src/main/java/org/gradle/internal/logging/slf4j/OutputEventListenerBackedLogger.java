@@ -128,8 +128,7 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-        log(logLevel, throwable, message, buildOperationId);
+        log(logLevel, throwable, message, CurrentBuildOperationRef.instance().getId());
     }
 
     void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
@@ -154,7 +153,6 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
         FormattingTuple tuple = MessageFormatter.arrayFormat(format, args);
         Throwable loggedThrowable = throwable == null ? tuple.getThrowable() : throwable;
-
         log(logLevel, loggedThrowable, tuple.getMessage());
     }
 
