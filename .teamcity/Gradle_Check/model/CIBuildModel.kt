@@ -260,7 +260,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {
     test("PerformanceTest", 420, "defaults"),
     experiment("PerformanceExperiment", 420, "defaults"),
-    flakinessDetection("FlakinessDetection", 420, "flakiness-detection-commit"),
+    flakinessDetection("FlakinessDetection", 420, "flakiness-detection-commit", "-PgithubToken=%github.ci.oauth.token%"),
     historical("FullPerformanceTest", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
     fun asId(model : CIBuildModel): String {
