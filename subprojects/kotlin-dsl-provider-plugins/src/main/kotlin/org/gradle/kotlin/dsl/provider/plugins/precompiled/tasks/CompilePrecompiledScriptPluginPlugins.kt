@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.file.Directory
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
@@ -33,10 +32,10 @@ import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 
 
 @CacheableTask
-open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
+abstract class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask(), SharedAccessorsPackageAware {
 
     @get:OutputDirectory
-    var outputDir = directoryProperty()
+    val outputDir = directoryProperty()
 
     @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
@@ -67,8 +66,3 @@ open class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask() {
         }
     }
 }
-
-
-internal
-fun AbstractTask.implicitImportsForPrecompiledScriptPlugins() =
-    project.implicitImports() + "gradle.kotlin.dsl.plugins.*" // TODO:kotlin-dsl read this value from GenerateExternalPluginSpecBuilder

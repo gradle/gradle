@@ -23,11 +23,10 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
-
 import org.gradle.kotlin.dsl.support.serviceOf
 
 
-open class ConfigurePrecompiledScriptDependenciesResolver : DefaultTask() {
+abstract class ConfigurePrecompiledScriptDependenciesResolver : DefaultTask(), SharedAccessorsPackageAware {
 
     @Internal
     val metadataDir = project.objects.directoryProperty()
