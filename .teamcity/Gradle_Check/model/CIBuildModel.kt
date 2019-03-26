@@ -39,10 +39,10 @@ data class CIBuildModel (
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk)), omitsSlowProjects = true),
+                            TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk)), omitsSlowProjects = true),
             Stage(StageNames.QUICK_FEEDBACK,
                     functionalTests = listOf(
-                            TestCoverage(TestType.quick, Os.windows, JvmVersion.java8)),
+                            TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java8)),
                     functionalTestsDependOnSpecificBuilds = true,
                     omitsSlowProjects = true,
                     dependsOnSanityCheck = true),
@@ -52,28 +52,28 @@ data class CIBuildModel (
                             SpecificBuild.Gradleception,
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
-                            TestCoverage(TestType.platform, Os.linux, JvmVersion.java8),
-                            TestCoverage(TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
+                            TestCoverage(3, TestType.platform, Os.linux, JvmVersion.java8),
+                            TestCoverage(4, TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage(StageNames.READY_FOR_NIGHTLY,
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
-                            TestCoverage(TestType.quickFeedbackCrossVersion, Os.linux, JvmVersion.java8),
-                            TestCoverage(TestType.quickFeedbackCrossVersion, Os.windows, JvmVersion.java8),
-                            TestCoverage(TestType.parallel, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk))
+                            TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.linux, JvmVersion.java8),
+                            TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmVersion.java8),
+                            TestCoverage(7, TestType.parallel, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk))
             ),
             Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
-                            TestCoverage(TestType.soak, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk),
-                            TestCoverage(TestType.soak, Os.windows, JvmVersion.java8),
-                            TestCoverage(TestType.allVersionsCrossVersion, Os.linux, JvmVersion.java8),
-                            TestCoverage(TestType.allVersionsCrossVersion, Os.windows, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, Os.linux, JvmVersion.java8),
-                            TestCoverage(TestType.noDaemon, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk),
-                            TestCoverage(TestType.platform, Os.macos, JvmVersion.java8),
-                            TestCoverage(TestType.forceRealizeDependencyManagement, Os.linux, JvmVersion.java8)),
+                            TestCoverage(8, TestType.soak, Os.linux, JvmVersion.java11, vendor = JvmVendor.openjdk),
+                            TestCoverage(9, TestType.soak, Os.windows, JvmVersion.java8),
+                            TestCoverage(10, TestType.allVersionsCrossVersion, Os.linux, JvmVersion.java8),
+                            TestCoverage(11, TestType.allVersionsCrossVersion, Os.windows, JvmVersion.java8),
+                            TestCoverage(12, TestType.noDaemon, Os.linux, JvmVersion.java8),
+                            TestCoverage(13, TestType.noDaemon, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk),
+                            TestCoverage(14, TestType.platform, Os.macos, JvmVersion.java8),
+                            TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmVersion.java8)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -84,10 +84,10 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(TestType.quick, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.quick, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.platform, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.platform, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk))
+                        TestCoverage(16, TestType.quick, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
+                        TestCoverage(17, TestType.quick, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk),
+                        TestCoverage(18, TestType.platform, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
+                        TestCoverage(19, TestType.platform, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk))
             )
         ),
     val subProjects : List<GradleSubproject> = listOf(
@@ -212,14 +212,14 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
     val id = stageName.id
 }
 
-data class TestCoverage(val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
+data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}$testCoveragePrefix"
     }
 
     private
     val testCoveragePrefix
-        get() = "${testType.name.capitalize()}_${testJvmVersion.name.capitalize()}_${vendor.name.capitalize()}_${os.name.capitalize()}"
+        get() = "${testType.name.capitalize()}_$uuid"
 
     fun asConfigurationId(model : CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
