@@ -302,7 +302,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCode
             hashedSchema.schema,
             classPath,
             sourceCodeOutputDir.get().asFile,
-            temporaryDir.resolve("accessors"),
+            null,
             hashedSchema.packageName,
             AccessorFormats.internal
         )
