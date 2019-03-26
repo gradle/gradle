@@ -441,7 +441,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         run("copy")
         then:
         executedAndNotSkipped(":copy")
-        outputDir.assertHasDescendants()
+        outputDir.assertIsEmptyDir()
 
         when:
         inputDir.file("modified.txt").text = "some input"
@@ -452,6 +452,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         run("copy")
         then:
         executedAndNotSkipped(":copy")
-        outputDir.assertHasDescendants()
+        outputDir.assertIsEmptyDir()
     }
 }
