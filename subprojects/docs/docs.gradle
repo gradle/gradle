@@ -293,7 +293,7 @@ def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciido
         'source-highlighter': 'coderay'
 }
 
-def javaApiUrl = "https://docs.oracle.com/en/java/javase/11/docs/api"
+def javaApiUrl = "https://docs.oracle.com/javase/8/docs/api"
 def groovyApiUrl = "http://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi"
 def mavenApiUrl = "http://maven.apache.org/ref/${libraries.maven3.version}/maven-model/apidocs"
 
@@ -307,6 +307,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.charSet = 'utf-8'
     options.addStringOption 'Xdoclint:syntax,html,reference', '-quiet'
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
+    options.addStringOption "source", "8"
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = configurations.gradleApiRuntime
