@@ -106,7 +106,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             public Set<? extends OutgoingVariant> getChildren() {
                 PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
                 LeafOutgoingVariant leafOutgoingVariant = new LeafOutgoingVariant(displayName, attributes, allArtifactSet);
-                if (variants == null) {
+                if (variants == null || variants.isEmpty()) {
                     return Collections.singleton(leafOutgoingVariant);
                 }
                 boolean hasArtifacts = !allArtifactSet.isEmpty();
