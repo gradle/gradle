@@ -69,7 +69,7 @@ public abstract class Try<T> {
 
     public abstract <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction);
 
-    private static class Success<T> extends Try<T> {
+    private static final class Success<T> extends Try<T> {
         private final T value;
 
         public Success(T value) {
@@ -145,7 +145,7 @@ public abstract class Try<T> {
         }
     }
 
-    private static class Failure<T> extends Try<T> {
+    private static final class Failure<T> extends Try<T> {
         private final Throwable failure;
 
         public Failure(Throwable failure) {
