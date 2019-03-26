@@ -82,12 +82,7 @@ data class CIBuildModel (
                         PerformanceTestType.historical, PerformanceTestType.flakinessDetection)),
             Stage(StageNames.EXPERIMENTAL,
                     trigger = Trigger.never,
-                    runsIndependent = true,
-                    functionalTests = listOf( // TODO update to java13
-                        TestCoverage(TestType.quick, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.quick, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.platform, Os.linux, JvmVersion.java12, vendor = JvmVendor.openjdk),
-                        TestCoverage(TestType.platform, Os.windows, JvmVersion.java12, vendor = JvmVendor.openjdk))
+                    runsIndependent = true
             )
         ),
     val subProjects : List<GradleSubproject> = listOf(
