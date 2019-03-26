@@ -29,7 +29,6 @@ import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.util.Path;
 
 import java.util.function.Function;
 
@@ -54,11 +53,6 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
         @Override
         public String toString() {
             return "INVALID";
-        }
-
-        @Override
-        public Path getTaskPath() {
-            throw new UnsupportedOperationException();
         }
 
         @Override

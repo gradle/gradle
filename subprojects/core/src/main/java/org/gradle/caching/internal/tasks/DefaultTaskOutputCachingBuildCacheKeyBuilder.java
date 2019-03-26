@@ -26,7 +26,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -35,7 +34,6 @@ import java.util.Collection;
 public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputCachingBuildCacheKeyBuilder {
 
     private final Hasher hasher = Hashing.newHasher();
-    private final Path taskPath;
     private ImplementationSnapshot taskImplementation;
     private ImmutableList<ImplementationSnapshot> actionImplementations;
     private final ImmutableSortedMap.Builder<String, HashCode> inputValueHashes = ImmutableSortedMap.naturalOrder();
@@ -43,8 +41,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
     private final ImmutableSortedMap.Builder<String, String> nonCacheableInputProperties = ImmutableSortedMap.naturalOrder();
     private final ImmutableSortedSet.Builder<String> outputPropertyNames = ImmutableSortedSet.naturalOrder();
 
-    public DefaultTaskOutputCachingBuildCacheKeyBuilder(Path taskPath) {
-        this.taskPath = taskPath;
+    public DefaultTaskOutputCachingBuildCacheKeyBuilder() {
     }
 
     @Override
@@ -99,24 +96,17 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
         } else {
             hash = hasher.hash();
         }
-        return new DefaultTaskOutputCachingBuildCacheKey(taskPath, hash, inputs);
+        return new DefaultTaskOutputCachingBuildCacheKey(hash, inputs);
     }
 
     private static class DefaultTaskOutputCachingBuildCacheKey implements TaskOutputCachingBuildCacheKey {
 
-        private final Path taskPath;
         private final HashCode hashCode;
         private final BuildCacheKeyInputs inputs;
 
-        private DefaultTaskOutputCachingBuildCacheKey(Path taskPath, @Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
-            this.taskPath = taskPath;
+        private DefaultTaskOutputCachingBuildCacheKey(@Nullable HashCode hashCode, BuildCacheKeyInputs inputs) {
             this.hashCode = hashCode;
             this.inputs = inputs;
-        }
-
-        @Override
-        public Path getTaskPath() {
-            return taskPath;
         }
 
         @Override
@@ -141,10 +131,7 @@ public class DefaultTaskOutputCachingBuildCacheKeyBuilder implements TaskOutputC
 
         @Override
         public String getDisplayName() {
-            if (hashCode == null) {
-                return "INVALID cache key for task '" + taskPath + "'";
-            }
-            return hashCode + " for task '" + taskPath + "'";
+            return hashCode != null ? hashCode.toString() : "INVALID";
         }
 
         @Override
