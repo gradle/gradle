@@ -113,6 +113,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
@@ -121,6 +122,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
+import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
@@ -236,7 +238,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                         new CatchExceptionStep<>(
                                             new TimeoutStep<>(timeoutHandler,
                                                 new ResolveInputChangesStep<>(
-                                                    new ExecuteStep<>()
+                                                    new CleanupOutputsStep(
+                                                        new ExecuteStep<InputChangesContext>()
+                                                    )
                                                 )
                                             )
                                         )

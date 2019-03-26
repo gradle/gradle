@@ -242,6 +242,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public boolean isOverlappingOutputsDetected() {
+            return context.getOverlappingOutputs().isPresent();
+        }
+
+        @Override
+        public boolean isCleanupOutputsOnNonIncrementalExecution() {
+            return isRequiresInputChanges() && !isRequiresLegacyInputChanges();
+        }
+
+        @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
             return Optional.empty();
         }

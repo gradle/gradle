@@ -35,6 +35,7 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
@@ -134,7 +135,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
                                             new ResolveInputChangesStep<>(
-                                                new ExecuteStep<>()
+                                                new CleanupOutputsStep(
+                                                    new ExecuteStep<InputChangesContext>()
+                                                )
                                             )
                                         )
                                     )
@@ -818,6 +821,16 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 boolean isAllowOverlappingOutputs() {
                     return true
+                }
+
+                @Override
+                boolean isOverlappingOutputsDetected() {
+                    return false
+                }
+
+                @Override
+                boolean isCleanupOutputsOnNonIncrementalExecution() {
+                    return false
                 }
 
                 @Override

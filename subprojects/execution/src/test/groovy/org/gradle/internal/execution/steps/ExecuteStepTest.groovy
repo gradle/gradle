@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -28,8 +27,6 @@ class ExecuteStepTest extends Specification {
     def step = new ExecuteStep<InputChangesContext>()
     def context = Mock(InputChangesContext)
     def work = Mock(UnitOfWork)
-    def changes = Mock(ExecutionStateChanges)
-    def optionalChanges = Optional.of(changes)
     def inputChanges = Mock(InputChangesInternal)
 
     @Unroll

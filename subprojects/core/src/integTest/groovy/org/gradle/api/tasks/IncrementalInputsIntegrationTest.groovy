@@ -310,9 +310,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
 
                 @TaskAction
                 void copy(InputChanges changes) {
-                    if (!changes.incremental) {
-                        org.gradle.util.GFileUtils.cleanDirectory(outputDirectory.get().asFile)
-                    }
                     changes.getFileChanges(inputDirectory).each { change ->
                         File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
                         if (change.changeType == ChangeType.REMOVED) {

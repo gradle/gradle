@@ -50,6 +50,7 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
+import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
@@ -137,7 +138,9 @@ public class ExecutionGradleServices {
                                                 new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
                                                     new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
                                                         new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                            new ExecuteStep<InputChangesContext>()
+                                                            new CleanupOutputsStep(
+                                                                new ExecuteStep<InputChangesContext>()
+                                                            )
                                                         )
                                                     )
                                                 )

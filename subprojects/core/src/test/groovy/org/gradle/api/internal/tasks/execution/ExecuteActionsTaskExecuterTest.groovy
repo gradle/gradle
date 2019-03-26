@@ -34,6 +34,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.IncrementalContext
+import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -42,6 +43,7 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
@@ -86,7 +88,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
                         new CatchExceptionStep<>(
                             new CancelExecutionStep<>(cancellationToken,
                                 new ResolveInputChangesStep<>(
-                                    new ExecuteStep<>()
+                                    new CleanupOutputsStep(
+                                        new ExecuteStep<InputChangesContext>()
+                                    )
                                 )
                             )
                         )

@@ -21,6 +21,8 @@ import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,21 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             ? Optional.of(determineInputChanges(work, context))
             : Optional.empty();
         return delegate.execute(new InputChangesContext() {
+            @Override
+            public Optional<String> getRebuildReason() {
+                return context.getRebuildReason();
+            }
+
+            @Override
+            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                return context.getAfterPreviousExecutionState();
+            }
+
+            @Override
+            public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                return context.getBeforeExecutionState();
+            }
+
             @Override
             public Optional<InputChangesInternal> getInputChanges() {
                 return inputChanges;

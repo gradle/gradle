@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
@@ -32,6 +33,15 @@ abstract trait FingerprinterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
 
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(
+        new DefaultFileSystemSnapshotter(
+            new TestFileHasher(),
+            new StringInterner(),
+            TestFiles.fileSystem(),
+            new DefaultFileSystemMirror(new NoWellKnownFileLocations())
+        )
+    )
+
+    final OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(
         new DefaultFileSystemSnapshotter(
             new TestFileHasher(),
             new StringInterner(),

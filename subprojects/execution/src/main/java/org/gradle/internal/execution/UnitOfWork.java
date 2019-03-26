@@ -74,6 +74,13 @@ public interface UnitOfWork extends CacheableEntity {
      */
     boolean isAllowOverlappingOutputs();
 
+    /**
+     * Whether the current execution detected that there are overlapping outputs.
+     */
+    boolean isOverlappingOutputsDetected();
+
+    boolean isCleanupOutputsOnNonIncrementalExecution();
+
     @FunctionalInterface
     interface InputFilePropertyVisitor {
         void visitInputFileProperty(String name, @Nullable Object value, boolean incremental);
