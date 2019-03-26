@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputCachingState
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskExecuterResult
-import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
-import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.specs.Spec
@@ -38,7 +34,7 @@ import org.gradle.testing.internal.util.Specification
 
 import javax.annotation.Nullable
 
-class ResolveTaskOutputCachingStateExecuterTest extends Specification {
+class TaskOutputCachingStateResolverTest extends Specification {
 
     def task = Stub(TaskInternal)
     def cacheableOutputProperty = Mock(CacheableOutputFilePropertySpec)
@@ -46,6 +42,7 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         isValid() >> true
     }
     def relativeFilePathResolver = Mock(RelativeFilePathResolver)
+    def resolver = new TaskOutputCachingStateResolver(relativeFilePathResolver)
 
     def "error message contains which cacheIf spec failed to evaluate"() {
         when:
@@ -266,23 +263,6 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         state.disabledReasonCategory == TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
     }
 
-    def "when build cache is disabled, state is DISABLED"() {
-        def taskState = Mock(TaskStateInternal)
-        def taskContext = Mock(TaskExecutionContext)
-        def delegate = Mock(TaskExecuter)
-        def executer = new ResolveTaskOutputCachingStateExecuter(false, relativeFilePathResolver, delegate)
-
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * taskState.setTaskOutputCaching({ !it.enabled } as TaskOutputCachingState)
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
-        0 * _
-    }
-
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {
         new SelfDescribingSpec<TaskInternal>(spec, description)
     }
@@ -295,15 +275,14 @@ class ResolveTaskOutputCachingStateExecuterTest extends Specification {
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
         @Nullable OverlappingOutputs overlappingOutputs
     ) {
-        return ResolveTaskOutputCachingStateExecuter.resolveCachingState(
+        return resolver.resolveCachingState(
             !outputFileProperties.isEmpty(),
             ImmutableSortedSet.copyOf(outputFileProperties),
             buildCacheKey,
             task,
             cacheIfSpecs,
             doNotCacheIfSpecs,
-            overlappingOutputs,
-            relativeFilePathResolver
+            overlappingOutputs
         )
     }
 }

@@ -77,6 +77,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
+    def taskOutputCachingStateResolver = Mock(TaskOutputCachingStateResolver)
     def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
         new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
@@ -92,7 +93,16 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(
+        false,
+        taskFingerprinter,
+        executionHistoryStore,
+        buildOperationExecutor,
+        asyncWorkTracker,
+        actionListener,
+        taskOutputCachingStateResolver,
+        workExecutor
+    )
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

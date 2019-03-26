@@ -21,13 +21,16 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
+import org.gradle.api.internal.tasks.DefaultTaskOutputCachingState;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
+import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
@@ -76,6 +79,7 @@ import java.util.function.Function;
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private static final TaskOutputCachingState BUILD_CACHE_DISABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Task output caching is disabled");
 
     private final boolean buildCacheEnabled;
     private final TaskFingerprinter taskFingerprinter;
@@ -83,6 +87,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
+    private final TaskOutputCachingStateResolver taskOutputCachingStateResolver;
     private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
@@ -92,6 +97,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
+        TaskOutputCachingStateResolver taskOutputCachingStateResolver,
         WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
@@ -100,11 +106,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
+        this.taskOutputCachingStateResolver = taskOutputCachingStateResolver;
         this.workExecutor = workExecutor;
     }
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
+        if (!buildCacheEnabled) {
+            task.getState().setTaskOutputCaching(BUILD_CACHE_DISABLED);
+        }
+
         final TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
         final UpToDateResult result = workExecutor.execute(new IncrementalContext() {
             @Override
@@ -248,16 +259,32 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public CacheHandler createCacheHandler() {
+            TaskOutputCachingState taskOutputCachingState = taskOutputCachingStateResolver.resolveCachingState(
+                context.getTaskProperties().hasDeclaredOutputs(),
+                context.getTaskProperties().getOutputFileProperties(),
+                context.getBuildCacheKey(),
+                task,
+                task.getOutputs().getCacheIfSpecs(),
+                task.getOutputs().getDoNotCacheIfSpecs(),
+                context.getOverlappingOutputs().orElse(null));
+
+            task.getState().setTaskOutputCaching(taskOutputCachingState);
+
+            if (!taskOutputCachingState.isEnabled()) {
+                LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
+                return CacheHandler.NO_OP;
+            }
+
+            // TODO Log this when creating the build cache key perhaps?
+            if (task.isHasCustomActions()) {
+                LOGGER.info("Custom actions are attached to {}.", task);
+            }
+
             return new CacheHandler() {
                 @Override
                 public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
-                    // TODO Log this when creating the build cache key perhaps?
-                    if (task.isHasCustomActions()) {
-                        LOGGER.info("Custom actions are attached to {}.", task);
-                    }
-                    if (context.isTaskCachingEnabled()
-                            && context.getTaskExecutionMode().isAllowedToUseCachedResults()
-                            && context.getBuildCacheKey().isValid()
+                    if (context.getTaskExecutionMode().isAllowedToUseCachedResults()
+                        && context.getBuildCacheKey().isValid()
                     ) {
                         return loader.apply(context.getBuildCacheKey());
                     } else {
@@ -267,9 +294,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
                 @Override
                 public void store(Consumer<BuildCacheKey> storer) {
-                    if (buildCacheEnabled
-                            && context.isTaskCachingEnabled()
-                            && context.getBuildCacheKey().isValid()
+                    if (context.getBuildCacheKey().isValid()
                     ) {
                         storer.accept(context.getBuildCacheKey());
                     }

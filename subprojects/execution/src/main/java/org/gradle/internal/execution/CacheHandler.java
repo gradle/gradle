@@ -25,4 +25,15 @@ import java.util.function.Function;
 public interface CacheHandler {
     <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader);
     void store(Consumer<BuildCacheKey> storer);
+
+    CacheHandler NO_OP = new CacheHandler() {
+        @Override
+        public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void store(Consumer<BuildCacheKey> storer) {
+        }
+    };
 }

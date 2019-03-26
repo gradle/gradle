@@ -42,7 +42,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private TaskExecutionMode taskExecutionMode;
     private TaskOutputCachingBuildCacheKey buildCacheKey;
     private TaskProperties properties;
-    private boolean taskCachingEnabled;
     private Long executionTime;
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
@@ -134,16 +133,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public TaskProperties getTaskProperties() {
         return properties;
-    }
-
-    @Override
-    public boolean isTaskCachingEnabled() {
-        return taskCachingEnabled;
-    }
-
-    @Override
-    public void setTaskCachingEnabled(boolean taskCachingEnabled) {
-        this.taskCachingEnabled = taskCachingEnabled;
     }
 
     @Override

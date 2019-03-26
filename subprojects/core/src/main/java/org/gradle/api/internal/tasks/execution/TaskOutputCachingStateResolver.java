@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -24,26 +23,19 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputCachingState;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskExecuterResult;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
-import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_INPUTS;
@@ -51,57 +43,26 @@ import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCateg
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TASK_IMPLEMENTATION;
 import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT;
 
-public class ResolveTaskOutputCachingStateExecuter implements TaskExecuter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveTaskOutputCachingStateExecuter.class);
-
+public class TaskOutputCachingStateResolver {
     private static final TaskOutputCachingState ENABLED = DefaultTaskOutputCachingState.enabled();
-    private static final TaskOutputCachingState DISABLED = DefaultTaskOutputCachingState.disabled(BUILD_CACHE_DISABLED, "Task output caching is disabled");
     private static final TaskOutputCachingState CACHING_NOT_ENABLED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task");
     private static final TaskOutputCachingState NO_OUTPUTS_DECLARED = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
-    private final boolean buildCacheEnabled;
     private final RelativeFilePathResolver relativeFilePathResolver;
-    private final TaskExecuter delegate;
 
-    public ResolveTaskOutputCachingStateExecuter(boolean buildCacheEnabled, RelativeFilePathResolver relativeFilePathResolver, TaskExecuter delegate) {
-        this.buildCacheEnabled = buildCacheEnabled;
+    public TaskOutputCachingStateResolver(RelativeFilePathResolver relativeFilePathResolver) {
         this.relativeFilePathResolver = relativeFilePathResolver;
-        this.delegate = delegate;
     }
 
-    @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (buildCacheEnabled) {
-            TaskOutputCachingState taskOutputCachingState = resolveCachingState(
-                context.getTaskProperties().hasDeclaredOutputs(),
-                context.getTaskProperties().getOutputFileProperties(),
-                context.getBuildCacheKey(),
-                task,
-                task.getOutputs().getCacheIfSpecs(),
-                task.getOutputs().getDoNotCacheIfSpecs(),
-                context.getOverlappingOutputs().orElse(null),
-                relativeFilePathResolver);
-            context.setTaskCachingEnabled(taskOutputCachingState.isEnabled());
-            state.setTaskOutputCaching(taskOutputCachingState);
-            if (!taskOutputCachingState.isEnabled()) {
-                LOGGER.info("Caching disabled for {}: {}", task, taskOutputCachingState.getDisabledReason());
-            }
-        } else {
-            state.setTaskOutputCaching(DISABLED);
-        }
-        return delegate.execute(task, state, context);
-    }
-
-    @VisibleForTesting
-    static TaskOutputCachingState resolveCachingState(
+    public TaskOutputCachingState resolveCachingState(
         boolean hasDeclaredOutputs,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         TaskOutputCachingBuildCacheKey buildCacheKey,
         TaskInternal task,
         Collection<SelfDescribingSpec<TaskInternal>> cacheIfSpecs,
         Collection<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs,
-        @Nullable OverlappingOutputs overlappingOutputs,
-        RelativeFilePathResolver relativeFilePathResolver) {
+        @Nullable OverlappingOutputs overlappingOutputs
+    ) {
         if (cacheIfSpecs.isEmpty()) {
             return CACHING_NOT_ENABLED;
         }
