@@ -22,20 +22,19 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.caching.internal.tasks.BuildCacheKeyInputs;
 import org.gradle.caching.internal.tasks.TaskCacheKeyCalculator;
 import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 
 public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
 
-    private static final Logger LOGGER = Logging.getLogger(ResolveBuildCacheKeyExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResolveBuildCacheKeyExecuter.class);
     private static final BuildCacheKeyInputs NO_CACHE_KEY_INPUTS = new BuildCacheKeyInputs(
         null,
         null,
@@ -111,8 +110,11 @@ public class ResolveBuildCacheKeyExecuter implements TaskExecuter {
                 public TaskOutputCachingBuildCacheKey apply(BeforeExecutionState beforeExecutionState) {
                     TaskOutputCachingBuildCacheKey cacheKey = calculator.calculate(task, beforeExecutionState, properties, buildCacheDebugLogging);
                     if (properties.hasDeclaredOutputs() && cacheKey.isValid()) { // A task with no outputs has no cache key.
-                        LogLevel logLevel = buildCacheDebugLogging ? LogLevel.LIFECYCLE : LogLevel.INFO;
-                        LOGGER.log(logLevel, "Build cache key for {} is {}", task, cacheKey.getHashCode());
+                        if (buildCacheDebugLogging) {
+                            LOGGER.warn("Build cache key for {} is {}", task, cacheKey.getHashCode());
+                        } else {
+                            LOGGER.info("Build cache key for {} is {}", task, cacheKey.getHashCode());
+                        }
                     }
                     return cacheKey;
                 }

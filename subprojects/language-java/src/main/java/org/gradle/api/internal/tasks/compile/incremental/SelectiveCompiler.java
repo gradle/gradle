@@ -24,18 +24,18 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.CurrentCompilati
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
 class SelectiveCompiler implements org.gradle.language.base.internal.compile.Compiler<JavaCompileSpec> {
-    private static final Logger LOG = Logging.getLogger(SelectiveCompiler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
     private final IncrementalTaskInputs inputs;
     private final PreviousCompilation previousCompilation;
     private final CleaningJavaCompiler cleaningCompiler;

@@ -19,8 +19,6 @@ package org.gradle.execution.plan;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.MutableBoolean;
@@ -34,6 +32,8 @@ import org.gradle.internal.time.TimeFormatting;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.concurrent.Executor;
@@ -45,7 +45,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NonNullApi
 public class DefaultPlanExecutor implements PlanExecutor {
-    private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
     private final WorkerLeaseService workerLeaseService;

@@ -20,12 +20,12 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * the cache.
  */
 public class ClassPathToClassLoaderCache implements Stoppable {
-    private final static Logger LOG = Logging.getLogger(ClassPathToClassLoaderCache.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ClassPathToClassLoaderCache.class);
 
     private final FinalizerThread finalizerThread;
 
