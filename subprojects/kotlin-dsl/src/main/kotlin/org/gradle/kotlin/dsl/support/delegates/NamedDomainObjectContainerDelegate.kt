@@ -40,6 +40,7 @@ import java.util.SortedSet
  */
 abstract class NamedDomainObjectContainerDelegate<T> : NamedDomainObjectContainer<T> {
 
+    internal
     abstract val delegate: NamedDomainObjectContainer<T>
 
     override fun contains(element: T): Boolean =
