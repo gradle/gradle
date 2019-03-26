@@ -1,34 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.getForkOptionsFactory()",
-            "acceptation": "Added injection method",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.google(org.gradle.api.Action)",
-            "acceptation": "Ability to configure repository",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.mavenCentral(org.gradle.api.Action)",
-            "acceptation": "Ability to configure repository",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
-            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.mavenLocal(org.gradle.api.Action)",
-            "acceptation": "Ability to configure repository",
-            "changes": [
-                "Method added to interface"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
