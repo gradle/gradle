@@ -37,4 +37,13 @@ public interface FileChange {
      * The type of change to the file.
      */
     ChangeType getChangeType();
+
+    /**
+     * The normalized path of the file, as specified by the path normalization strategy.
+     *
+     * <p>
+     *    See {@link org.gradle.api.tasks.PathSensitivity}, {@link org.gradle.api.tasks.Classpath} and {@link org.gradle.api.tasks.CompileClasspath} for the different path normalization strategies.
+     * </p>
+     */
+    String getNormalizedPath();
 }

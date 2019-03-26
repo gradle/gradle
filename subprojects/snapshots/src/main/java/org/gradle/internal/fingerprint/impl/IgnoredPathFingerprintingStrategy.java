@@ -34,6 +34,7 @@ import java.util.Map;
 public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStrategy {
 
     public static final IgnoredPathFingerprintingStrategy INSTANCE = new IgnoredPathFingerprintingStrategy();
+    public static final String IGNORED_PATH = "";
 
     private IgnoredPathFingerprintingStrategy() {
         super("IGNORED_PATH", IgnoredPathCompareStrategy.INSTANCE);
@@ -41,7 +42,7 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
 
     @Override
     public String normalizePath(FileSystemLocationSnapshot snapshot) {
-        return "";
+        return IGNORED_PATH;
     }
 
     @Override
