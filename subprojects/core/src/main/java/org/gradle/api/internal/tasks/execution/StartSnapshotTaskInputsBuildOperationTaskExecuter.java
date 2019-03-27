@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -27,7 +29,9 @@ import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import java.util.function.Consumer;
 
-public class StartSnapshotTaskInputsBuildOperationTaskExecuter implements SnapshotTaskInputsMeasuringTaskExecuter {
+public class StartSnapshotTaskInputsBuildOperationTaskExecuter implements TaskExecuter {
+    private static SnapshotTaskInputsBuildOperationType.Details DETAILS_INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
+
     private static final String BUILD_OPERATION_NAME = "Snapshot task inputs";
 
     private final BuildOperationExecutor buildOperationExecutor;
@@ -55,7 +59,7 @@ public class StartSnapshotTaskInputsBuildOperationTaskExecuter implements Snapsh
             context.removeSnapshotTaskInputsBuildOperation().ifPresent(new Consumer<ExecutingBuildOperation>() {
                 @Override
                 public void accept(ExecutingBuildOperation operation) {
-                    operation.setResult(new OperationResultImpl(ResolveBuildCacheKeyExecuter.NO_CACHE_KEY));
+                    operation.setResult(new SnapshotTaskInputsBuildOperationResult(ResolveBuildCacheKeyExecuter.NO_CACHE_KEY));
                 }
             });
         }

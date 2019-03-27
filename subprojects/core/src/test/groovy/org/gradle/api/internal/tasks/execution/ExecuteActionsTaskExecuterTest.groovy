@@ -92,7 +92,16 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(
+        false,
+        false,
+        taskFingerprinter,
+        executionHistoryStore,
+        buildOperationExecutor,
+        asyncWorkTracker,
+        actionListener,
+        workExecutor
+    )
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

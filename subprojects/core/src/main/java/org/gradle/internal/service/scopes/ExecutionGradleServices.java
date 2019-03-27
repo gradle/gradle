@@ -57,6 +57,7 @@ import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
+import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -123,18 +124,20 @@ public class ExecutionGradleServices {
         TimeoutHandler timeoutHandler
     ) {
         return new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new ResolveChangesStep<UpToDateResult>(changeDetector,
-                new SkipUpToDateStep<IncrementalChangesContext>(
-                    new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
-                        new StoreSnapshotsStep<IncrementalChangesContext>(
-                            new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
-                                new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                        new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                            new CatchExceptionStep<IncrementalChangesContext>(
-                                                new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                    new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                        new ExecuteStep<IncrementalChangesContext>()
+            new MarkSnapshottingInputsFinishedStep<IncrementalContext, UpToDateResult>(
+                new ResolveChangesStep<UpToDateResult>(changeDetector,
+                    new SkipUpToDateStep<IncrementalChangesContext>(
+                        new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
+                            new StoreSnapshotsStep<IncrementalChangesContext>(
+                                new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
+                                    new CacheStep(buildCacheController, buildCacheCommandFactory,
+                                        new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                            new CreateOutputsStep<IncrementalChangesContext, Result>(
+                                                new CatchExceptionStep<IncrementalChangesContext>(
+                                                    new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
+                                                        new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
+                                                            new ExecuteStep<IncrementalChangesContext>()
+                                                        )
                                                     )
                                                 )
                                             )

@@ -34,7 +34,6 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskFingerprinter;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter;
-import org.gradle.api.internal.tasks.execution.FinishSnapshotTaskInputsBuildOperationTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveAfterPreviousExecutionStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionOutputsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ResolveBeforeExecutionStateTaskExecuter;
@@ -113,6 +112,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
 
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheEnabled,
+            scanPluginApplied,
             taskFingerprinter,
             executionHistoryStore,
             buildOperationExecutor,
@@ -120,11 +120,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
-        // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
-        if (buildCacheEnabled || scanPluginApplied) {
-            executer = new FinishSnapshotTaskInputsBuildOperationTaskExecuter(executer);
-        }
         executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, resolver, executer);
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);

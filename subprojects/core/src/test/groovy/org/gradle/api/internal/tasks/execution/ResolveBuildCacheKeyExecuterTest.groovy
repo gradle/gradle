@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -109,7 +110,7 @@ class ResolveBuildCacheKeyExecuterTest extends Specification {
         def key = Mock(TaskOutputCachingBuildCacheKey) {
             getInputs() >> inputs
         }
-        def adapter = new SnapshotTaskInputsMeasuringTaskExecuter.OperationResultImpl(key)
+        def adapter = new SnapshotTaskInputsBuildOperationResult(key)
 
         when:
         inputs.inputValueHashes >> ImmutableSortedMap.copyOf(b: HashCode.fromInt(0x000000bb), a: HashCode.fromInt(0x000000aa))

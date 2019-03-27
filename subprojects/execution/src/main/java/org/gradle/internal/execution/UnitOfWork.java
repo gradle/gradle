@@ -55,6 +55,11 @@ public interface UnitOfWork extends CacheableEntity {
 
     long markExecutionTime();
 
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markSnapshottingInputsFinished() {}
+
     CacheHandler createCacheHandler();
 
     /**

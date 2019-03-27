@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -39,6 +40,7 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -59,6 +61,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 
@@ -78,6 +81,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
 
     private final boolean buildCacheEnabled;
+    private final boolean scanPluginApplied;
     private final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -87,6 +91,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
+        boolean scanPluginApplied,
         TaskFingerprinter taskFingerprinter,
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
@@ -95,6 +100,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
+        this.scanPluginApplied = scanPluginApplied;
         this.taskFingerprinter = taskFingerprinter;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -336,6 +342,22 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public long markExecutionTime() {
             return context.markExecutionTime();
+        }
+
+        @Override
+        public void markSnapshottingInputsFinished() {
+            // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+            //   expects it to be added also when the build cache is enabled (but not the scan plugin)
+            if (buildCacheEnabled || scanPluginApplied) {
+                context.removeSnapshotTaskInputsBuildOperation()
+                    .ifPresent(new Consumer<ExecutingBuildOperation>() {
+                        @Override
+                        public void accept(ExecutingBuildOperation operation) {
+                            TaskOutputCachingBuildCacheKey cacheKey = context.getBuildCacheKey();
+                            operation.setResult(new SnapshotTaskInputsBuildOperationResult(cacheKey));
+                        }
+                    });
+            }
         }
 
         @Override
