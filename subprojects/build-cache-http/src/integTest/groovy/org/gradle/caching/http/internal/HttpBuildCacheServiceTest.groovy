@@ -25,6 +25,7 @@ import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -58,14 +59,21 @@ class HttpBuildCacheServiceTest extends Specification {
     BuildCacheServiceFactory.Describer buildCacheDescriber
 
     def key = new BuildCacheKey() {
+        def hashCode = HashCode.fromString("0123456abcdef")
+
         @Override
         String getHashCode() {
-            return '0123456abcdef'
+            return hashCode.toString()
         }
 
         @Override
         String toString() {
             return getHashCode()
+        }
+
+        @Override
+        byte[] toByteArray() {
+            return hashCode.toByteArray()
         }
 
         @Override
