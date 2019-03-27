@@ -120,12 +120,12 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             actionListener,
             workExecutor
         );
-        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, resolver, executer);
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
         // TODO:lptr expects it to be added also when the build cache is enabled (but not the scan plugin)
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new FinishSnapshotTaskInputsBuildOperationTaskExecuter(executer);
         }
+        executer = new ResolveTaskOutputCachingStateExecuter(buildCacheEnabled, resolver, executer);
         if (buildCacheEnabled || scanPluginApplied) {
             executer = new ResolveBuildCacheKeyExecuter(cacheKeyCalculator, buildCacheController.isEmitDebugLogging(), executer);
         }
