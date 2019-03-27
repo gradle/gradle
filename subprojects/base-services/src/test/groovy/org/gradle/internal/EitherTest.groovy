@@ -21,7 +21,7 @@ import spock.lang.Specification
 class EitherTest extends Specification {
     def value = new Object()
 
-    def "left()"() {
+    def "left"() {
         expect:
         Either.left(value).getLeft() == value
 
@@ -31,7 +31,7 @@ class EitherTest extends Specification {
         thrown NoSuchElementException
     }
 
-    def "right()"() {
+    def "right"() {
         expect:
         Either.right(value).getRight() == value
 
@@ -41,31 +41,31 @@ class EitherTest extends Specification {
         thrown NoSuchElementException
     }
 
-    def "isLeft()"() {
+    def "isLeft"() {
         expect:
         Either.left(value).isLeft()
         !Either.right(value).isLeft()
     }
 
-    def "isRight()"() {
+    def "isRight"() {
         expect:
         !Either.left(value).isRight()
         Either.right(value).isRight()
     }
 
-    def "get()"() {
+    def "get"() {
         expect:
         Either.left(value).get({ it == value }, { throw new RuntimeException() })
         Either.right(value).get({ throw new RuntimeException() }, { it == value })
     }
 
-    def "apply()"() {
+    def "apply"() {
         expect:
         Either.left(value).apply({ assert it == value }, { throw new RuntimeException() })
         Either.right(value).apply({ throw new RuntimeException() }, { assert it == value })
     }
 
-    def "map()"() {
+    def "map"() {
         when:
         def leftMapped = Either.left(value).map({ it == value}, { throw new RuntimeException() })
         then:
