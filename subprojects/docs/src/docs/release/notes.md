@@ -24,7 +24,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-Please use the latest patch release. Gradle @baseVersion@ has had **one** patch release. 
+Please use the latest patch release. Gradle 5.3 has had **one** patch release. 
 
 <a name="feature-variants"></a>
 
