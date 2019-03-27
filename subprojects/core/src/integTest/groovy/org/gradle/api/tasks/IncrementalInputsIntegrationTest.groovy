@@ -451,4 +451,61 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         executedAndNotSkipped(":copy")
         outputDir.assertIsEmptyDir()
     }
+
+    def "outputs are cleaned out on rebuild"() {
+        file("buildSrc").deleteDir()
+        buildFile.text = """
+            abstract class MyCopy extends DefaultTask {
+                @Incremental
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @InputDirectory
+                abstract DirectoryProperty getInputDirectory()
+
+                @InputFile
+                abstract RegularFileProperty getNonIncrementalInput()
+
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+
+                @TaskAction
+                void copy(InputChanges changes) {
+                    if (!changes.incremental) {
+                        println("Rebuilding")
+                    }
+                    changes.getFileChanges(inputDirectory).each { change ->
+                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
+                        if (change.changeType != ChangeType.REMOVED
+                            && change.file.file) {
+                            outputFile.parentFile.mkdirs()
+                            outputFile.text = change.file.text
+                        }
+                    }
+                }
+            }
+
+            task copy(type: MyCopy) {
+                inputDirectory = file("input")
+                nonIncrementalInput = file("nonIncremental.txt")
+                outputDirectory = file("build/output")
+            }
+        """
+        def inputFilePath = "in/some/input.txt"
+        def nonIncrementalInput = file("nonIncremental.txt")
+        nonIncrementalInput.text = "original"
+        file("input/${inputFilePath}").text = "input to copy"
+
+        when:
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/output/${inputFilePath}").isFile()
+
+        when:
+        assert file("input/${inputFilePath}").delete()
+        nonIncrementalInput.text = "changed"
+        run("copy")
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/output").assertIsEmptyDir()
+    }
 }
