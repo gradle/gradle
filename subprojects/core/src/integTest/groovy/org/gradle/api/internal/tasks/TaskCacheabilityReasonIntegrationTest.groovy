@@ -22,7 +22,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
@@ -96,18 +95,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor null, null
     }
 
-    @Ignore
-    def "cacheability for a lifecycle task is NO_OUTPUTS_DECLARED"() {
-        buildFile << """
-            task lifecycle()
-        """
-        when:
-        withBuildCache().run "lifecycle"
-        then:
-        assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
-    }
-
-    @Ignore
     def "cacheability for a task with no outputs is NO_OUTPUTS_DECLARED"() {
         buildFile << """
             @CacheableTask

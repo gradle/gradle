@@ -38,43 +38,25 @@ public interface CachingState {
      */
     Optional<CachingInputs> getInputs();
 
-    CachingState NOT_DETERMINED = new CachingState() {
-        private final ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(
-            new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Cacheability was not determined"));
+    CachingState NOT_DETERMINED = disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Cacheability was not determined"));
 
-        @Override
-        public Optional<BuildCacheKey> getKey() {
-            return Optional.empty();
-        }
+    static CachingState disabledWithoutInputs(CachingDisabledReason reason) {
+        ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(reason);
+        return new CachingState() {
+            @Override
+            public Optional<BuildCacheKey> getKey() {
+                return Optional.empty();
+            }
 
-        @Override
-        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
-            return reasons;
-        }
+            @Override
+            public ImmutableList<CachingDisabledReason> getDisabledReasons() {
+                return reasons;
+            }
 
-        @Override
-        public Optional<CachingInputs> getInputs() {
-            return Optional.empty();
-        }
-    };
-
-    CachingState BUILD_CACHE_DISABLED = new CachingState() {
-        private final ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(
-            new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled"));
-
-        @Override
-        public Optional<BuildCacheKey> getKey() {
-            return Optional.empty();
-        }
-
-        @Override
-        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
-            return reasons;
-        }
-
-        @Override
-        public Optional<CachingInputs> getInputs() {
-            return Optional.empty();
-        }
-    };
+            @Override
+            public Optional<CachingInputs> getInputs() {
+                return Optional.empty();
+            }
+        };
+    }
 }

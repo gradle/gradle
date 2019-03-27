@@ -47,7 +47,8 @@ import java.util.Optional;
 
 public class ResolveCachingStateStep implements Step<IncrementalContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
-    private static final CachingDisabledReason BUILD_CACHE_DISABLED = new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled");
+    private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled");
+    private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
 
     private final BuildCacheController buildCache;
     private final boolean buildScansEnabled;
@@ -68,11 +69,14 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         UnitOfWork work = context.getWork();
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
-            cachingState = CachingState.BUILD_CACHE_DISABLED;
+            cachingState = BUILD_CACHE_DISABLED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
-                .orElse(CachingState.NOT_DETERMINED);
+                .orElseGet(() -> work.shouldDisableCaching()
+                    .map(disabledReason -> CachingState.disabledWithoutInputs(disabledReason))
+                    .orElse(CachingState.NOT_DETERMINED)
+                );
         }
 
         ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
@@ -148,7 +152,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
             : new DefaultCachingStateBuilder();
 
         if (!buildCache.isEnabled()) {
-            builder.markNotCacheable(BUILD_CACHE_DISABLED);
+            builder.markNotCacheable(BUILD_CACHE_DISABLED_REASON);
         }
         work.shouldDisableCaching().ifPresent(noCacheReason -> {
             builder.markNotCacheable(noCacheReason);
