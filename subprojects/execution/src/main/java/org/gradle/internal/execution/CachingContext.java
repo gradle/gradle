@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution;
 
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.caching.CachingState;
 
 public interface CachingContext extends IncrementalContext {

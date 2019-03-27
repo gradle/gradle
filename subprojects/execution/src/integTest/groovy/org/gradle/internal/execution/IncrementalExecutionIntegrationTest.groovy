@@ -36,7 +36,6 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
-import org.gradle.internal.execution.steps.CachingContext
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep

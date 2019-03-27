@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.steps.legacy;
 
+import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
-import org.gradle.internal.execution.steps.CachingContext;
 
 /**
  * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.

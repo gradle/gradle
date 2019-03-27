@@ -17,7 +17,6 @@
 package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
-import org.gradle.internal.execution.steps.CachingContext;
 
 import java.util.Optional;
 
