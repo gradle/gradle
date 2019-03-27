@@ -54,7 +54,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         executer.withStackTraceChecksDisabled()
         succeeds "customTask"
-        output =~ /Failed to store cache entry .+ for task ':customTask'/
+        output =~ /Failed to store cache entry .+/
         output =~ /Could not pack tree 'output'/
         localCache.empty
         localCache.listCacheTempFiles().empty
