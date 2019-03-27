@@ -91,7 +91,7 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
     }
 
     @Override
-    public org.gradle.work.FileType getFileType() {
+    public org.gradle.api.file.FileType getFileType() {
         FileType typeToConvert = change == ChangeTypeInternal.REMOVED ? previousFileType : currentFileType;
         return convertToPublicType(typeToConvert);
     }
@@ -120,14 +120,14 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
         return change == ChangeTypeInternal.REMOVED;
     }
 
-    public static org.gradle.work.FileType convertToPublicType(FileType fileType) {
+    public static org.gradle.api.file.FileType convertToPublicType(FileType fileType) {
         switch (fileType) {
             case RegularFile:
-                return org.gradle.work.FileType.FILE;
+                return org.gradle.api.file.FileType.FILE;
             case Directory:
-                return org.gradle.work.FileType.DIRECTORY;
+                return org.gradle.api.file.FileType.DIRECTORY;
             case Missing:
-                return org.gradle.work.FileType.MISSING;
+                return org.gradle.api.file.FileType.MISSING;
             default:
                 throw new AssertionError("Unsupported file type:" + fileType);
         }

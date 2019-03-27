@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.work;
+package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 
 /**
- * The type of a file used for an input.
+ * The type of a file.
  *
  * @since 5.4
  */

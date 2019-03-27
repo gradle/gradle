@@ -17,6 +17,7 @@
 package org.gradle.work;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileType;
 
 import java.io.File;
 

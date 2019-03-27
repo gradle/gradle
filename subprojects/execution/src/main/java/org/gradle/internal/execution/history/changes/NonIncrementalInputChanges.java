@@ -94,7 +94,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
         }
 
         @Override
-        public org.gradle.work.FileType getFileType() {
+        public org.gradle.api.file.FileType getFileType() {
             return DefaultFileChange.convertToPublicType(fileType);
         }
 
