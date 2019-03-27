@@ -18,15 +18,20 @@ package org.gradle.internal.execution.caching;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.Either;
 
 import java.util.Optional;
 
 public interface CachingState {
     /**
-     * The cache key if a valid cache key could be built.
+     * The cache key if a valid cache key could be built. Might be present even when caching is disabled.
      */
-    Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey();
+    Optional<BuildCacheKey> getKey();
+
+    /**
+     * Reasons for the caching to be disabled for the work, empty when enabled.
+     * If empty, {@link #getKey()} is never empty.
+     */
+    ImmutableList<CachingDisabledReason> getDisabledReasons();
 
     /**
      * Individual fingerprints for each of the work's inputs.
@@ -34,12 +39,17 @@ public interface CachingState {
     Optional<CachingInputs> getInputs();
 
     CachingState NOT_DETERMINED = new CachingState() {
-        private final Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> reason = Either.left(ImmutableList.of(
-            new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Cacheability was not determined")));
+        private final ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(
+            new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Cacheability was not determined"));
 
         @Override
-        public Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey() {
-            return reason;
+        public Optional<BuildCacheKey> getKey() {
+            return Optional.empty();
+        }
+
+        @Override
+        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
+            return reasons;
         }
 
         @Override
@@ -49,12 +59,17 @@ public interface CachingState {
     };
 
     CachingState BUILD_CACHE_DISABLED = new CachingState() {
-        private final Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> reason = Either.left(ImmutableList.of(
-            new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled")));
+        private final ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(
+            new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled"));
 
         @Override
-        public Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey() {
-            return reason;
+        public Optional<BuildCacheKey> getKey() {
+            return Optional.empty();
+        }
+
+        @Override
+        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
+            return reasons;
         }
 
         @Override

@@ -28,7 +28,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
@@ -55,7 +54,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == ['outputFile1', 'outputFile2']
     }
 
-    @Ignore
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         buildFile << customTaskCode('foo', 'bar')
@@ -117,7 +115,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.outputPropertyNames == null
     }
 
-    @Ignore
     def "handles task with no inputs"() {
         when:
         buildScript """

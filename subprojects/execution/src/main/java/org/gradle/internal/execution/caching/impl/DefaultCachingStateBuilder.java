@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.Either;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
 import org.gradle.internal.execution.caching.CachingInputs;
@@ -33,6 +32,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 
@@ -161,9 +161,12 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         ImmutableList<CachingDisabledReason> cachingDisabledReasons = noCachingReasonsBuilder.build();
 
         if (cachingDisabledReasons.isEmpty()) {
-            return new CachedState(new DefaultBuildCacheKey(hasher.hash()), inputs);
+            return new CachedState(hasher.hash(), inputs);
         } else {
-            return new NonCachedState(cachingDisabledReasons, inputs);
+            HashCode key = (hasher.isValid() && nonCacheableInputProperties.isEmpty())
+                ? hasher.hash()
+                : null;
+            return new NonCachedState(key, cachingDisabledReasons, inputs);
         }
     }
 
@@ -171,14 +174,19 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         private final BuildCacheKey key;
         private final CachingInputs inputs;
 
-        public CachedState(BuildCacheKey key, CachingInputs inputs) {
-            this.key = key;
+        public CachedState(HashCode key, CachingInputs inputs) {
+            this.key = new DefaultBuildCacheKey(key);
             this.inputs = inputs;
         }
 
         @Override
-        public Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey() {
-            return Either.right(key);
+        public Optional<BuildCacheKey> getKey() {
+            return Optional.of(key);
+        }
+
+        @Override
+        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
+            return ImmutableList.of();
         }
 
         @Override
@@ -188,17 +196,26 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
     }
 
     private static class NonCachedState implements CachingState {
-        private final ImmutableList<CachingDisabledReason> cachingDisabledReasons;
+        private final BuildCacheKey key;
+        private final ImmutableList<CachingDisabledReason> disabledReasons;
         private final CachingInputs inputs;
 
-        public NonCachedState(Iterable<CachingDisabledReason> noCachingReasons, CachingInputs inputs) {
-            this.cachingDisabledReasons = ImmutableList.copyOf(noCachingReasons);
+        public NonCachedState(@Nullable HashCode key, Iterable<CachingDisabledReason> disabledReasons, CachingInputs inputs) {
+            this.key = key == null
+                ? null
+                : new DefaultBuildCacheKey(key);
+            this.disabledReasons = ImmutableList.copyOf(disabledReasons);
             this.inputs = inputs;
         }
 
         @Override
-        public Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey() {
-            return Either.left(cachingDisabledReasons);
+        public Optional<BuildCacheKey> getKey() {
+            return Optional.ofNullable(key);
+        }
+
+        @Override
+        public ImmutableList<CachingDisabledReason> getDisabledReasons() {
+            return disabledReasons;
         }
 
         @Override

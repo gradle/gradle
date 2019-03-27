@@ -37,7 +37,8 @@ class DefaultCachingStateBuilderTest extends Specification {
         def cachingState = builder.build()
 
         then:
-        cachingState.key.isRight()
+        cachingState.key.present
+        cachingState.disabledReasons.empty
         cachingState.inputs.get().implementation == implementation
         cachingState.inputs.get().additionalImplementations == [additionalImplementation]
         cachingState.inputs.get().inputValueFingerprints.keySet().toList() == ["input.number", "input.string"]
@@ -52,8 +53,9 @@ class DefaultCachingStateBuilderTest extends Specification {
         def cachingState = builder.build()
 
         then:
-        cachingState.key.left*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_IMPLEMENTATION]
-        cachingState.key.left*.message == ["Implementation type was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
+        !cachingState.key.present
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_IMPLEMENTATION]
+        cachingState.disabledReasons*.message == ["Implementation type was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
     }
 
     def "caching is disabled when cache key is invalid because of invalid additional implementation"() {
@@ -64,8 +66,9 @@ class DefaultCachingStateBuilderTest extends Specification {
         def cachingState = builder.build()
 
         then:
-        cachingState.key.left*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION]
-        cachingState.key.left*.message == ["Additional implementation type was loaded with an unknown classloader (class 'org.gradle.AdditionalWorkType')."]
+        !cachingState.key.present
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION]
+        cachingState.disabledReasons*.message == ["Additional implementation type was loaded with an unknown classloader (class 'org.gradle.AdditionalWorkType')."]
     }
 
     def "caching is disabled when cache key is invalid because of invalid input"() {
@@ -76,8 +79,9 @@ class DefaultCachingStateBuilderTest extends Specification {
         def cachingState = builder.build()
 
         then:
-        cachingState.key.left*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_INPUTS]
-        cachingState.key.left*.message == ["Non-cacheable inputs: property 'input.invalid' was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
+        !cachingState.key.present
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_INPUTS]
+        cachingState.disabledReasons*.message == ["Non-cacheable inputs: property 'input.invalid' was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
     }
 
     def withValidInputs() {

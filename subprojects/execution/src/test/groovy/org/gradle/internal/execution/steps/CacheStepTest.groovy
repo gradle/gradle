@@ -24,7 +24,6 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
-import org.gradle.internal.Either
 import org.gradle.internal.Try
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
@@ -264,7 +263,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         !result.reused
 
         1 * context.cachingState >> cachingState
-        1 * cachingState.key >> Either.left(ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Unknown")))
+        1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Unknown"))
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }
@@ -272,7 +271,8 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     private void withValidCacheKey() {
         1 * context.work >> work
         1 * context.cachingState >> cachingState
-        1 * cachingState.key >> Either.right(cacheKey)
+        1 * cachingState.disabledReasons >> ImmutableList.of()
+        1 * cachingState.key >> Optional.of(cacheKey)
     }
 
     private void outputStored(Closure storeResult) {

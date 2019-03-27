@@ -74,13 +74,13 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
                 .orElse(CachingState.NOT_DETERMINED);
         }
 
-        cachingState.getKey().apply(
-            noCachingReasons -> {
-                logNoCachingReasons(noCachingReasons, work);
-            },
-            cacheKey -> {
-                logCacheKey(cacheKey, work);
-            });
+        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
+        if (disabledReasons.isEmpty()) {
+            //noinspection OptionalGetWithoutIsPresent
+            logCacheKey(cachingState.getKey().get(), work);
+        } else {
+            logDisabledReasons(disabledReasons, work);
+        }
 
         UpToDateResult result = delegate.execute(new CachingContext() {
             @Override
@@ -178,7 +178,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         }
     }
 
-    private void logNoCachingReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
+    private void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("Caching disabled for %s because:", work.getDisplayName());

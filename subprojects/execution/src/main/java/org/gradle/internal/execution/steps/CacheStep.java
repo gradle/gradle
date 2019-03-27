@@ -63,10 +63,11 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     @Override
     public CurrentSnapshotResult execute(IncrementalChangesContext context) {
-        return context.getCachingState().getKey().get(
-            noCachingReasons -> executeWithoutCache(context),
-            cacheKey -> executeWithCache(context, cacheKey)
-        );
+        CachingState cachingState = context.getCachingState();
+        //noinspection OptionalGetWithoutIsPresent
+        return cachingState.getDisabledReasons().isEmpty()
+            ? executeWithCache(context, cachingState.getKey().get())
+            : executeWithoutCache(context);
     }
 
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {

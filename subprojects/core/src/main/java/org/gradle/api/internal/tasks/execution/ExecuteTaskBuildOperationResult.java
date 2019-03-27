@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
@@ -28,7 +27,6 @@ import org.gradle.internal.id.UniqueId;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Function;
 
 public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperationType.Result {
 
@@ -73,35 +71,19 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Nullable
     @Override
     public String getCachingDisabledReasonMessage() {
-        return cachingState.getKey().get(new Function<ImmutableList<CachingDisabledReason>, String>() {
-            @Override
-            public String apply(ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-                return cachingDisabledReasons.get(0).getMessage();
-            }
-        }, new Function<BuildCacheKey, String>() {
-            @Nullable
-            @Override
-            public String apply(BuildCacheKey cacheKey) {
-                return null;
-            }
-        });
+        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
+        return disabledReasons.isEmpty()
+            ? null
+            : disabledReasons.get(0).getMessage();
     }
 
     @Nullable
     @Override
     public String getCachingDisabledReasonCategory() {
-        return cachingState.getKey().get(new Function<ImmutableList<CachingDisabledReason>, String>() {
-            @Override
-            public String apply(ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-                return convertNoCacheReasonCategory(cachingDisabledReasons.get(0).getCategory()).name();
-            }
-        }, new Function<BuildCacheKey, String>() {
-            @Nullable
-            @Override
-            public String apply(BuildCacheKey cacheKey) {
-                return null;
-            }
-        });
+        ImmutableList<CachingDisabledReason> disabledReasons = cachingState.getDisabledReasons();
+        return disabledReasons.isEmpty()
+            ? null
+            : convertNoCacheReasonCategory(disabledReasons.get(0).getCategory()).name();
     }
 
     private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCatwgory category) {

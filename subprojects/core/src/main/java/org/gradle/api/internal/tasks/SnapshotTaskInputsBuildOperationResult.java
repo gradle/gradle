@@ -18,13 +18,12 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
 import org.gradle.caching.BuildCacheKey;
-import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
@@ -70,9 +69,14 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     public Map<String, byte[]> getInputValueHashesBytes() {
         return cachingState.getInputs()
             .map(new java.util.function.Function<CachingInputs, Map<String, byte[]>>() {
+                @Nullable
                 @Override
                 public Map<String, byte[]> apply(CachingInputs cachingInputs) {
-                    return Maps.transformValues(cachingInputs.getInputValueFingerprints(), new Function<HashCode, byte[]>() {
+                    ImmutableSortedMap<String, HashCode> inputValueFingerprints = cachingInputs.getInputValueFingerprints();
+                    if (inputValueFingerprints.isEmpty()) {
+                        return null;
+                    }
+                    return Maps.transformValues(inputValueFingerprints, new Function<HashCode, byte[]>() {
                         @Override
                         public byte[] apply(HashCode input) {
                             return input.toByteArray();
@@ -301,21 +305,14 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Override
     public byte[] getHashBytes() {
-        return cachingState.getKey().get(
-            new java.util.function.Function<ImmutableList<CachingDisabledReason>, byte[]>() {
-                @Nullable
-                @Override
-                public byte[] apply(ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
-                    return null;
-                }
-            },
-            new java.util.function.Function<BuildCacheKey, byte[]>() {
+        return cachingState.getKey()
+            .map(new java.util.function.Function<BuildCacheKey, byte[]>() {
                 @Override
                 public byte[] apply(BuildCacheKey cacheKey) {
                     return cacheKey.toByteArray();
                 }
-            }
-        );
+            })
+            .orElse(null);
     }
 
     @Override
