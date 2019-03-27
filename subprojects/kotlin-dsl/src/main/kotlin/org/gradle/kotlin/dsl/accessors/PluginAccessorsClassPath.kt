@@ -137,7 +137,7 @@ fun IO.buildPluginAccessorsFor(
     writePluginAccessorsSourceCodeTo(sourceFile, accessorList)
 
     val fileFacadeClassName = InternalName(baseFileName + "Kt")
-    val moduleName = "kotlin-dsl-plugin-spec-accessors"
+    val moduleName = "kotlin-dsl-plugin-spec-builders"
     val moduleMetadata = moduleMetadataBytesFor(listOf(fileFacadeClassName))
     writeFile(
         moduleFileFor(binDir, moduleName),

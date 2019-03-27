@@ -180,7 +180,9 @@ fun Project.enableScriptCompilationOf(
 
     val compiledPluginsBlocks = buildDir("kotlin-dsl/plugins-blocks/compiled")
 
-    val generatedMetadata = buildDir("kotlin-dsl/precompiled-script-plugins-metadata")
+    val accessorsMetadata = buildDir("kotlin-dsl/precompiled-script-plugins-metadata/accessors")
+
+    val pluginSpecBuildersMetadata = buildDir("kotlin-dsl/precompiled-script-plugins-metadata/plugin-spec-builders")
 
     val compileClasspath = HashedClassPath(
         { compileClasspath() },
@@ -206,6 +208,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 hashedClassPath = compileClasspath
                 sourceCodeOutputDir.set(it)
+                metadataOutputDir.set(pluginSpecBuildersMetadata)
                 sharedAccessorsPackage.set(pluginSpecBuildersPackage)
             }
 
@@ -232,14 +235,14 @@ fun Project.enableScriptCompilationOf(
                 hashedClassPath = compileClasspath
                 runtimeClassPathFiles = configurations["runtimeClasspath"]
                 sourceCodeOutputDir.set(it)
-                metadataOutputDir.set(generatedMetadata)
+                metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
                 plugins = scriptPlugins
             }
 
         val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
             dependsOn(generatePrecompiledScriptPluginAccessors)
-            metadataDir.set(generatedMetadata)
+            metadataDir.set(accessorsMetadata)
             sharedAccessorsPackage.set(pluginSpecBuildersPackage)
             onConfigure { resolverEnvironment ->
                 applyKotlinCompilerArgs(
