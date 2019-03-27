@@ -26,10 +26,20 @@ import java.util.function.Consumer
 
 interface PrecompiledScriptPluginsSupport {
 
+    @Deprecated("Use enableOn(Target)")
     fun enableOn(
         project: Project,
         kotlinSourceDirectorySet: SourceDirectorySet,
         kotlinCompileTask: TaskProvider<out Task>,
         kotlinCompilerArgsConsumer: Consumer<List<String>>
     )
+
+    fun enableOn(target: Target): Boolean
+
+    interface Target {
+        val project: Project
+        val kotlinSourceDirectorySet: SourceDirectorySet
+        val kotlinCompileTask: TaskProvider<out Task>
+        fun applyKotlinCompilerArgs(args: List<String>)
+    }
 }
