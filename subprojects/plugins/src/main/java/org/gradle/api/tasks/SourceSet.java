@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 /**
  * A {@code SourceSet} represents a logical group of Java source and resource files. They
  * are covered in more detail in the
- * <a href="/userguide/building_java_projects.html#sec:java_source_sets">user manual</a>.
+ * <a href="https://docs.gradle.org/current/userguide/building_java_projects.html#sec:java_source_sets">user manual</a>.
  * <p>
  * The following example shows how you can configure the 'main' source set, which in this
  * case involves excluding classes whose package begins 'some.unwatned.package' from
