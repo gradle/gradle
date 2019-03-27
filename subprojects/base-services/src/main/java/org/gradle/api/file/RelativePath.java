@@ -15,8 +15,9 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.internal.file.FilePathUtil;
+import org.gradle.api.file.internal.FilePathUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;
@@ -44,7 +45,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         this(endsWithFile, null, segments);
     }
 
-    private RelativePath(boolean endsWithFile, RelativePath parentPath, String... childSegments) {
+    private RelativePath(boolean endsWithFile, @Nullable RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
         int targetOffsetForChildSegments;
         if (parentPath != null) {
@@ -68,9 +69,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     }
 
     private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
-        for (int i = 0; i < source.length; i++) {
-            target[targetOffset + i] = source[i];
-        }
+        System.arraycopy(source, 0, target, targetOffset, source.length);
     }
 
     public String[] getSegments() {
@@ -143,6 +142,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         return new File(baseDir, getPathString());
     }
 
+    @Nullable
     public String getLastName() {
         if (segments.length > 0) {
             return segments[segments.length - 1];
@@ -185,6 +185,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @return The parent of this path, or null if this is the root path.
      */
+    @Nullable
     public RelativePath getParent() {
         switch (segments.length) {
             case 0:
@@ -202,7 +203,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         return parse(isFile, null, path);
     }
 
-    public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
+    public static RelativePath parse(boolean isFile, @Nullable RelativePath parent, String path) {
         String[] names = FilePathUtil.getPathSegments(path);
         return new RelativePath(isFile, parent, names);
     }
@@ -271,8 +272,8 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         }
 
         int lim = Math.min(len1, len2);
-        String v1[] = segments;
-        String v2[] = o.segments;
+        String[] v1 = segments;
+        String[] v2 = o.segments;
 
         int k = 0;
         while (k < lim) {

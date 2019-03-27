@@ -17,6 +17,7 @@
 package org.gradle.work;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileType;
 
 import java.io.File;
 
@@ -37,6 +38,16 @@ public interface FileChange {
      * The type of change to the file.
      */
     ChangeType getChangeType();
+
+    /**
+     * The file type of the file.
+     *
+     * <p>
+     *     For {@link ChangeType#ADDED} and {@link ChangeType#MODIFIED}, the type of the file which was added/modified is reported.
+     *     For {@link ChangeType#REMOVED} the type of the file which was removed is reported.
+     * </p>
+     */
+    FileType getFileType();
 
     /**
      * The normalized path of the file, as specified by the path normalization strategy.
