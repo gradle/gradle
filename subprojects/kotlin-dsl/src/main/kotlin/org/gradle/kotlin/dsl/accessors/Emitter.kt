@@ -115,9 +115,8 @@ fun IO.emitClassFor(
         }
     }
 
-    val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
     writeAccessorsTo(
-        sourceFile,
+        sourceFileFor(className, srcDir),
         sourceCode,
         importsRequiredBy(accessor),
         outputPackage.name
@@ -125,6 +124,11 @@ fun IO.emitClassFor(
 
     return className
 }
+
+
+private
+fun sourceFileFor(className: InternalName, srcDir: File) =
+    srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
 
 
 private
