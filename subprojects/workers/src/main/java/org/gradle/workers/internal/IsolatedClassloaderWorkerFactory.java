@@ -18,15 +18,10 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.initialization.GradleApiUtil;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -36,6 +31,7 @@ import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.serialize.ExceptionReplacingObjectInputStream;
 import org.gradle.internal.serialize.ExceptionReplacingObjectOutputStream;
 import org.gradle.util.GUtil;
@@ -43,6 +39,7 @@ import org.gradle.workers.IsolationMode;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -51,13 +48,10 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
-
-    private final ClassLoaderFactory classLoaderFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
 
-    public IsolatedClassloaderWorkerFactory(ClassLoaderFactory classLoaderFactory, BuildOperationExecutor buildOperationExecutor) {
-        this.classLoaderFactory = classLoaderFactory;
+    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -82,9 +76,8 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
-        ClassLoader actionClasspathLoader = createActionClasspathLoader(forkOptions);
-        GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(actionClasspathLoader);
-        ClassLoader workerClassLoader = createWorkerClassLoader(actionClasspathLoader, forkOptions.getSharedPackages(), spec.getClass());
+        ClassLoader workerClassLoader = createWorkerClassLoader(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+        GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
@@ -96,37 +89,15 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             actionClasspathGroovy.shutdown();
-            CompositeStoppable.stoppable(workerClassLoader, actionClasspathLoader).stop();
+            CompositeStoppable.stoppable(workerClassLoader).stop();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
     }
 
-    private ClassLoader createActionClasspathLoader(DaemonForkOptions forkOptions) {
-        return classLoaderFactory.createIsolatedClassLoader("worker-action-loader", DefaultClassPath.of(forkOptions.getClasspath()));
-    }
+    private ClassLoader createWorkerClassLoader(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
+        ClassLoader gradleApiLoader = new FilteringClassLoader(workerInfrastructureClassloader, GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE));
 
-    private ClassLoader createWorkerClassLoader(ClassLoader actionClasspathLoader, Iterable<String> sharedPackages, Class<?> actionClass) {
-        FilteringClassLoader.Spec actionFilterSpec = new FilteringClassLoader.Spec();
-        for (String packageName : sharedPackages) {
-            actionFilterSpec.allowPackage(packageName);
-        }
-        ClassLoader actionFilteredClasspathLoader = classLoaderFactory.createFilteringClassLoader(actionClasspathLoader, actionFilterSpec);
-
-        FilteringClassLoader.Spec gradleApiFilterSpec = new FilteringClassLoader.Spec();
-        // Logging
-        gradleApiFilterSpec.allowPackage("org.slf4j");
-        gradleApiFilterSpec.allowClass(Logger.class);
-        gradleApiFilterSpec.allowClass(LogLevel.class);
-        // Native
-        gradleApiFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
-        gradleApiFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
-        gradleApiFilterSpec.allowPackage("net.rubygrapefruit.platform");
-        // TODO:pm Add Gradle API and a way to opt out of it (for compiler workers)
-        ClassLoader gradleApiLoader = classLoaderFactory.createFilteringClassLoader(actionClass.getClassLoader(), gradleApiFilterSpec);
-
-        ClassLoader actionAndGradleApiLoader = new CachingClassLoader(new MultiParentClassLoader(gradleApiLoader, actionFilteredClasspathLoader));
-
-        return new VisitableURLClassLoader("worker-loader", actionAndGradleApiLoader, ClasspathUtil.getClasspath(actionClass.getClassLoader()));
+        return new VisitableURLClassLoader("worker-loader", gradleApiLoader, DefaultClassPath.of(userClasspath));
     }
 
     private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
