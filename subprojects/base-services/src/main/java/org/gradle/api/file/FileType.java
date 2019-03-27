@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file;
+package org.gradle.api.file;
 
+import org.gradle.api.Incubating;
+
+/**
+ * The type of a file.
+ *
+ * @since 5.4
+ */
+@Incubating
 public enum FileType {
-    RegularFile(org.gradle.api.file.FileType.FILE),
-    Directory(org.gradle.api.file.FileType.DIRECTORY),
-    Missing(org.gradle.api.file.FileType.MISSING);
-
-    private final org.gradle.api.file.FileType publicType;
-
-    FileType(org.gradle.api.file.FileType publicType) {
-        this.publicType = publicType;
-    }
-
-    public org.gradle.api.file.FileType toPublicType() {
-        return publicType;
-    }
+    FILE,
+    DIRECTORY,
+    /**
+     * Element of an input property pointing to a non-existing file.
+     */
+    MISSING
 }

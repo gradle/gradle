@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file
+package org.gradle.api.file.internal
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.file.FilePathUtil.sizeOfCommonPrefix
+import static org.gradle.api.file.internal.FilePathUtil.sizeOfCommonPrefix
 
 class FilePathUtilTest extends Specification {
 

@@ -87,9 +87,13 @@ public class DefaultFileChange implements Change, FileChange, InputFileDetails {
 
     @Override
     public ChangeType getChangeType() {
-        // TODO wolfs: Shall we do something about file type Missing -> File
-        //   should this be file type ADDED instead of MODIFIED
         return change.getPublicType();
+    }
+
+    @Override
+    public org.gradle.api.file.FileType getFileType() {
+        FileType typeToConvert = change == ChangeTypeInternal.REMOVED ? previousFileType : currentFileType;
+        return typeToConvert.toPublicType();
     }
 
     @Override

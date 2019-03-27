@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.file;
+package org.gradle.api.file.internal;
 
 import org.apache.commons.lang.StringUtils;
 
