@@ -24,7 +24,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 import javax.annotation.Nullable;
 import java.io.File;
 
-class FileValueSnapshot extends AbstractScalarValueSnapshot<String> implements Isolatable<File> {
+public class FileValueSnapshot extends AbstractScalarValueSnapshot<String> implements Isolatable<File> {
     public FileValueSnapshot(File value) {
         super(value.getPath());
     }

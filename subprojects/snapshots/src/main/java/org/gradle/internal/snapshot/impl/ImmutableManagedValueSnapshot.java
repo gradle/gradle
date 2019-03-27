@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import javax.annotation.Nullable;
 
-class ImmutableManagedValueSnapshot implements ValueSnapshot {
+public class ImmutableManagedValueSnapshot implements ValueSnapshot {
     private final String className;
     private final String value;
 

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-class ArrayValueSnapshot extends AbstractArraySnapshot<ValueSnapshot> implements ValueSnapshot {
+public class ArrayValueSnapshot extends AbstractArraySnapshot<ValueSnapshot> implements ValueSnapshot {
     public static final ArrayValueSnapshot EMPTY = new ArrayValueSnapshot(ImmutableList.of());
 
     public ArrayValueSnapshot(ImmutableList<ValueSnapshot> elements) {

@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Isolates a Serialized value and is a snapshot for that value.
  */
-class IsolatedSerializedValueSnapshot extends SerializedValueSnapshot implements Isolatable<Object> {
+public class IsolatedSerializedValueSnapshot extends SerializedValueSnapshot implements Isolatable<Object> {
     private final Class<?> originalClass;
 
     public IsolatedSerializedValueSnapshot(HashCode implementationHash, byte[] serializedValue, Class<?> originalClass) {
