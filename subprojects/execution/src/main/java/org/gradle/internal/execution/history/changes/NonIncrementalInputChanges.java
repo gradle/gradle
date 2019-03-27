@@ -22,7 +22,6 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.internal.Cast;
-import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.work.ChangeType;
@@ -95,7 +94,7 @@ public class NonIncrementalInputChanges implements InputChangesInternal {
 
         @Override
         public org.gradle.api.file.FileType getFileType() {
-            return DefaultFileChange.convertToPublicType(fileType);
+            return fileType.toPublicType();
         }
 
         @Override
