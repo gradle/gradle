@@ -17,19 +17,21 @@
 package codegen
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+
+import java.io.File
 
 
 @Suppress("unused")
 abstract class GenerateKotlinDependencyExtensions : DefaultTask() {
 
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
 
     @get:Input
     abstract val embeddedKotlinVersion: Property<String>
@@ -40,10 +42,32 @@ abstract class GenerateKotlinDependencyExtensions : DefaultTask() {
     @Suppress("unused")
     @TaskAction
     fun generate() {
+
         val kotlinDslPluginsVersion = this.kotlinDslPluginsVersion.get()
         val embeddedKotlinVersion = this.embeddedKotlinVersion.get()
-        outputFile.get().asFile.writeText(
-            """$licenseHeader
+
+        outputDir.get().asFile.apply {
+
+            recreate()
+
+            // IMPORTANT: kotlinDslPluginsVersion should NOT be made a `const` to avoid inlining
+            writeFile(
+                "org/gradle/kotlin/dsl/support/KotlinDslPlugins.kt",
+                """$licenseHeader
+
+package org.gradle.kotlin.dsl.support
+
+
+/**
+ * Expected version of the `kotlin-dsl` plugin for the running Gradle version.
+ */
+@Suppress("unused")
+val kotlinDslPluginsVersion = "$kotlinDslPluginsVersion"
+""")
+
+            writeFile(
+                "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt",
+                """$licenseHeader
 
 package org.gradle.kotlin.dsl
 
@@ -134,6 +158,21 @@ val PluginDependenciesSpec.`kotlin-dsl-base`: PluginDependencySpec
 val PluginDependenciesSpec.`kotlin-dsl-precompiled-script-plugins`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"
 """)
+        }
+    }
+
+    private
+    fun File.recreate() {
+        deleteRecursively()
+        mkdirs()
+    }
+
+    private
+    fun File.writeFile(relativePath: String, text: String) {
+        resolve(relativePath).apply {
+            parentFile.mkdirs()
+            writeText(text)
+        }
     }
 }
 
