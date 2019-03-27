@@ -17,6 +17,7 @@
 package org.gradle.caching;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 
 /**
  * Cache key identifying an entry in the build cache.
@@ -31,6 +32,9 @@ public interface BuildCacheKey extends Describable {
 
     /**
      * Returns the byte array representation of the cache key.
+     *
+     * @since 5.4
      */
+    @Incubating
     byte[] toByteArray();
 }
