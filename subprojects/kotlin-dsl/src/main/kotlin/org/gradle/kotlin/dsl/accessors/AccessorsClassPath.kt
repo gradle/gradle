@@ -152,7 +152,7 @@ fun IO.buildAccessorsFor(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
-    binDir: File,
+    binDir: File?,
     packageName: String = kotlinDslPackageName,
     format: AccessorFormat = AccessorFormats.default
 ) {

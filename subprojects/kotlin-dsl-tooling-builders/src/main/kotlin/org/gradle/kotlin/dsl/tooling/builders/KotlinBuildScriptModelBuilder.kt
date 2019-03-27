@@ -36,6 +36,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.resource.BasicTextResourceLoader
 import org.gradle.internal.time.Time.startTimer
 
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.pluginSpecBuildersClassPath
 import org.gradle.kotlin.dsl.accessors.projectAccessorsClassPath
@@ -62,7 +63,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-import org.gradle.kotlin.dsl.typeOf
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -71,7 +71,7 @@ import java.io.PrintWriter
 import java.io.Serializable
 import java.io.StringWriter
 
-import java.util.*
+import java.util.EnumSet
 
 
 private
@@ -207,10 +207,13 @@ fun precompiledScriptPluginModelBuilder(
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
     enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
     additionalImports = {
-        implicitImportsFor(
-            hashOf(scriptFile),
-            enclosingSourceSet.project.precompiledScriptPluginsMetadataDir
-        ) ?: emptyList()
+        enclosingSourceSet.project.precompiledScriptPluginsMetadataDir.run {
+            implicitImportsFrom(
+                resolve("accessors").resolve(hashOf(scriptFile))
+            ) + implicitImportsFrom(
+                resolve("plugin-spec-builders").resolve("implicit-imports")
+            )
+        }
     }
 )
 
@@ -223,11 +226,8 @@ val Project.precompiledScriptPluginsMetadataDir: File
 
 
 private
-fun implicitImportsFor(precompiledScriptPluginHash: String, metadataDir: File): List<String>? =
-    metadataDir
-        .resolve(precompiledScriptPluginHash)
-        .takeIf { it.isFile }
-        ?.readLines()
+fun implicitImportsFrom(file: File): List<String> =
+    file.takeIf { it.isFile }?.readLines() ?: emptyList()
 
 
 private

@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -45,10 +46,10 @@ import java.io.File
  * and writes it to a file with the same name under [outputDir].
  */
 @CacheableTask
-open class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
+abstract class ExtractPrecompiledScriptPluginPlugins : DefaultTask() {
 
     @get:OutputDirectory
-    var outputDir = directoryProperty()
+    abstract val outputDir: DirectoryProperty
 
     @get:Internal
     internal

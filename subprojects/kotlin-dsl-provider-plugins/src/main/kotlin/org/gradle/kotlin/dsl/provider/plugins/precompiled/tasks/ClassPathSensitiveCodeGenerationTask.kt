@@ -16,11 +16,12 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
 
 
 abstract class ClassPathSensitiveCodeGenerationTask : ClassPathSensitiveTask() {
 
     @get:OutputDirectory
-    var sourceCodeOutputDir = directoryProperty()
+    abstract val sourceCodeOutputDir: DirectoryProperty
 }

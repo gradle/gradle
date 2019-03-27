@@ -43,7 +43,7 @@ dependencies {
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.4") {
+    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
         isTransitive = false
     }
 

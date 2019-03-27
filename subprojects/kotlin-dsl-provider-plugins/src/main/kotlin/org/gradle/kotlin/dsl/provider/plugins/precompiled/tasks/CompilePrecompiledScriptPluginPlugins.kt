@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
@@ -35,16 +37,18 @@ import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 abstract class CompilePrecompiledScriptPluginPlugins : ClassPathSensitiveTask(), SharedAccessorsPackageAware {
 
     @get:OutputDirectory
-    val outputDir = directoryProperty()
+    abstract val outputDir: DirectoryProperty
 
-    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
-    val sourceFiles = sourceDirectorySet(
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val sourceFiles: SourceDirectorySet = project.objects.sourceDirectorySet(
         "precompiled-script-plugin-plugins",
         "Precompiled script plugin plugins"
     )
 
-    fun sourceDir(dir: Provider<Directory>) = sourceFiles.srcDir(dir)
+    fun sourceDir(dir: Provider<Directory>) {
+        sourceFiles.srcDir(dir)
+    }
 
     @TaskAction
     fun compile() {
