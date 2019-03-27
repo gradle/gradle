@@ -161,7 +161,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().run "cacheable", "cacheableWithOverlap"
         then:
         assertCachingDisabledFor null, null, ":cacheable"
-        assertCachingDisabledFor OVERLAPPING_OUTPUTS, "Gradle does not know how file 'build/tmp/cacheable/output.txt' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness.", ":cacheableWithOverlap"
+        assertCachingDisabledFor OVERLAPPING_OUTPUTS, "Gradle does not know how file 'build${File.separator}tmp${File.separator}cacheable${File.separator}output.txt' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness.", ":cacheableWithOverlap"
     }
 
     def "cacheability for a task with a cacheIf is CACHE_IF_SPEC_NOT_SATISFIED"() {
