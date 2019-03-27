@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.caching.impl;
 
-package org.gradle.caching;
-
-import org.gradle.api.Describable;
-
-/**
- * Cache key identifying an entry in the build cache.
- *
- * @since 3.3
- */
-public interface BuildCacheKey extends Describable {
-    /**
-     * Returns the string representation of the cache key.
-     */
-    String getHashCode();
-
-    /**
-     * Returns the byte array representation of the cache key.
-     */
-    byte[] toByteArray();
-}
+import org.gradle.api.NonNullApi;

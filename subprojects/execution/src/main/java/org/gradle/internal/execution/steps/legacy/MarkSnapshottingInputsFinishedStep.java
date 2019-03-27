@@ -16,23 +16,23 @@
 
 package org.gradle.internal.execution.steps.legacy;
 
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.steps.CachingContext;
 
 /**
  * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
  */
-public class MarkSnapshottingInputsFinishedStep<C extends Context, R extends Result> implements Step<C, R> {
-    private final Step<? super C, ? extends R> delegate;
+public class MarkSnapshottingInputsFinishedStep<R extends Result> implements Step<CachingContext, R> {
+    private final Step<? super CachingContext, ? extends R> delegate;
 
-    public MarkSnapshottingInputsFinishedStep(Step<? super C, ? extends R> delegate) {
+    public MarkSnapshottingInputsFinishedStep(Step<? super CachingContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(C context) {
-        context.getWork().markSnapshottingInputsFinished();
+    public R execute(CachingContext context) {
+        context.getWork().markSnapshottingInputsFinished(context.getCachingState());
         return delegate.execute(context);
     }
 }

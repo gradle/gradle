@@ -17,10 +17,11 @@
 package org.gradle.internal.execution;
 
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.steps.CachingContext;
 
 import java.util.Optional;
 
-public interface IncrementalChangesContext extends IncrementalContext {
+public interface IncrementalChangesContext extends CachingContext {
     /**
      * Returns changes detected between the execution state after the last execution and before the current execution.
      * Empty if changes couldn't be detected (e.g. because history was unavailable).

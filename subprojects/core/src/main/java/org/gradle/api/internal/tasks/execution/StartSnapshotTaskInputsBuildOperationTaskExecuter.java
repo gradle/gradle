@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.ExecutingBuildOperation;
@@ -59,7 +60,7 @@ public class StartSnapshotTaskInputsBuildOperationTaskExecuter implements TaskEx
             context.removeSnapshotTaskInputsBuildOperation().ifPresent(new Consumer<ExecutingBuildOperation>() {
                 @Override
                 public void accept(ExecutingBuildOperation operation) {
-                    operation.setResult(new SnapshotTaskInputsBuildOperationResult(ResolveBuildCacheKeyExecuter.NO_CACHE_KEY));
+                    operation.setResult(new SnapshotTaskInputsBuildOperationResult(CachingState.NOT_DETERMINED));
                 }
             });
         }

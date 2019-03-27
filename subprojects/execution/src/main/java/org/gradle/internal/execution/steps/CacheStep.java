@@ -21,15 +21,16 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
+import org.gradle.caching.internal.command.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.CacheHandler;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
@@ -51,9 +52,9 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
     public CacheStep(
-            BuildCacheController buildCache,
-            BuildCacheCommandFactory commandFactory,
-            Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
+        BuildCacheController buildCache,
+        BuildCacheCommandFactory commandFactory,
+        Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate
     ) {
         this.buildCache = buildCache;
         this.commandFactory = commandFactory;
@@ -62,13 +63,18 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     @Override
     public CurrentSnapshotResult execute(IncrementalChangesContext context) {
-        if (!buildCache.isEnabled()) {
-            return executeWithoutCache(context);
-        }
+        return context.getCachingState().getKey().get(
+            noCachingReasons -> executeWithoutCache(context),
+            cacheKey -> executeWithCache(context, cacheKey)
+        );
+    }
 
+    private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
-        CacheHandler cacheHandler = work.createCacheHandler();
-        return Try.ofFailable(() -> cacheHandler.load(cacheKey -> buildCache.load(commandFactory.createLoad(cacheKey, work))))
+        return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
+                ? buildCache.load(commandFactory.createLoad(cacheKey, work))
+                : Optional.<LoadMetadata>empty()
+            )
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
                     cleanLocalState(work);
@@ -96,7 +102,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                         }
                     };
                 })
-                .orElseGet(() -> executeAndStoreInCache(cacheHandler, context))
+                .orElseGet(() -> executeAndStoreInCache(cacheKey, context))
             )
             .orElseMapFailure(loadFailure -> {
                 LOGGER.warn("Failed to load cache entry for {}, cleaning outputs and falling back to (non-incremental) execution",
@@ -106,10 +112,15 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                 cleanOutputsAfterLoadFailure(work);
                 Optional<ExecutionStateChanges> rebuildChanges = context.getChanges().map(changes -> changes.withEnforcedRebuild(FAILED_LOAD_REBUILD_REASON));
 
-                return executeAndStoreInCache(cacheHandler, new IncrementalChangesContext() {
+                return executeAndStoreInCache(cacheKey, new IncrementalChangesContext() {
                     @Override
                     public Optional<ExecutionStateChanges> getChanges() {
                         return rebuildChanges;
+                    }
+
+                    @Override
+                    public CachingState getCachingState() {
+                        return context.getCachingState();
                     }
 
                     @Override
@@ -167,10 +178,10 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         }
     }
 
-    private CurrentSnapshotResult executeAndStoreInCache(CacheHandler cacheHandler, IncrementalChangesContext context) {
+    private CurrentSnapshotResult executeAndStoreInCache(BuildCacheKey cacheKey, IncrementalChangesContext context) {
         CurrentSnapshotResult executionResult = executeWithoutCache(context);
         executionResult.getOutcome().ifSuccessfulOrElse(
-            outcome -> cacheHandler.store(cacheKey -> store(context.getWork(), cacheKey, executionResult)),
+            outcome -> store(context.getWork(), cacheKey, executionResult),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
         );
         return executionResult;

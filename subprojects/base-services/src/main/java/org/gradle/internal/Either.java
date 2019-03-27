@@ -107,6 +107,11 @@ public abstract class Either<L, R> {
         public int hashCode() {
             return leftValue.hashCode();
         }
+
+        @Override
+        public String toString() {
+            return leftValue.toString();
+        }
     }
 
     private final static class Right<L, R> extends Either<L, R> {
@@ -168,6 +173,11 @@ public abstract class Either<L, R> {
         @Override
         public int hashCode() {
             return rightValue.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return rightValue.toString();
         }
     }
 }

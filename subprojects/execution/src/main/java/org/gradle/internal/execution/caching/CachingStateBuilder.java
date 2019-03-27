@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks;
+package org.gradle.internal.execution.caching;
 
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import java.util.Collection;
+public interface CachingStateBuilder {
+    void appendImplementation(ImplementationSnapshot implementation);
 
-public interface TaskOutputCachingBuildCacheKeyBuilder {
-    void appendTaskImplementation(ImplementationSnapshot taskImplementation);
+    void appendAdditionalImplementation(ImplementationSnapshot additionalImplementation);
 
-    void appendTaskActionImplementations(Collection<ImplementationSnapshot> taskActionImplementations);
+    void appendInputValueFingerprint(String propertyName, ValueSnapshot fingerprint);
 
-    void appendInputValuePropertyHash(String propertyName, HashCode hashCode);
-
-    void appendInputFilesProperty(String propertyName, CurrentFileCollectionFingerprint fingerprint);
+    void appendInputFilesPropertyFingerprints(String propertyName, CurrentFileCollectionFingerprint fingerprints);
 
     void appendOutputPropertyName(String propertyName);
 
-    TaskOutputCachingBuildCacheKey build();
+    void markNotCacheable(CachingDisabledReason reason);
 
-    void inputPropertyNotCacheable(String propertyName, String nonCacheableReason);
+    CachingState build();
 }

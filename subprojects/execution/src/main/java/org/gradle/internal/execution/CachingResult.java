@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.caching;
+package org.gradle.internal.execution;
 
-import org.gradle.api.Describable;
+import org.gradle.internal.execution.caching.CachingState;
 
-/**
- * Cache key identifying an entry in the build cache.
- *
- * @since 3.3
- */
-public interface BuildCacheKey extends Describable {
-    /**
-     * Returns the string representation of the cache key.
-     */
-    String getHashCode();
-
-    /**
-     * Returns the byte array representation of the cache key.
-     */
-    byte[] toByteArray();
+public interface CachingResult extends UpToDateResult {
+    CachingState getCachingState();
 }

@@ -18,12 +18,15 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.NonNullApi;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingInputs;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -42,8 +45,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 
 /**
  * This operation represents the work of analyzing the task's inputs plus the calculating the cache key.
@@ -57,25 +60,27 @@ import java.util.TreeMap;
 public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInputsBuildOperationType.Result, CustomOperationTraceSerialization {
 
     @VisibleForTesting
-    final TaskOutputCachingBuildCacheKey key;
+    final CachingState cachingState;
 
-    public SnapshotTaskInputsBuildOperationResult(TaskOutputCachingBuildCacheKey key) {
-        this.key = key;
+    public SnapshotTaskInputsBuildOperationResult(CachingState cachingState) {
+        this.cachingState = cachingState;
     }
 
     @Override
     public Map<String, byte[]> getInputValueHashesBytes() {
-        ImmutableSortedMap<String, HashCode> inputHashes = key.getInputs().getInputValueHashes();
-        if (inputHashes == null || inputHashes.isEmpty()) {
-            return null;
-        } else {
-            return Maps.transformValues(inputHashes, new Function<HashCode, byte[]>() {
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, Map<String, byte[]>>() {
                 @Override
-                public byte[] apply(HashCode input) {
-                    return input.toByteArray();
+                public Map<String, byte[]> apply(CachingInputs cachingInputs) {
+                    return Maps.transformValues(cachingInputs.getInputValueFingerprints(), new Function<HashCode, byte[]>() {
+                        @Override
+                        public byte[] apply(HashCode input) {
+                            return input.toByteArray();
+                        }
+                    });
                 }
-            });
-        }
+            })
+            .orElse(null);
     }
 
     @NonNullApi
@@ -175,92 +180,142 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     }
 
     @Override
-    public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-        State state = new State(visitor);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFiles = key.getInputs().getInputFiles();
-        if (inputFiles == null) {
-            return;
-        }
-        for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputFiles.entrySet()) {
-            CurrentFileCollectionFingerprint fingerprint = entry.getValue();
+    public void visitInputFileProperties(final InputFilePropertyVisitor visitor) {
+        cachingState.getInputs().ifPresent(new Consumer<CachingInputs>() {
+            @Override
+            public void accept(CachingInputs inputs) {
+                State state = new State(visitor);
+                for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : inputs.getInputFileFingerprints().entrySet()) {
+                    CurrentFileCollectionFingerprint fingerprint = entry.getValue();
 
-            state.propertyName = entry.getKey();
-            state.propertyHash = fingerprint.getHash();
-            state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
-            state.fingerprints = fingerprint.getFingerprints();
+                    state.propertyName = entry.getKey();
+                    state.propertyHash = fingerprint.getHash();
+                    state.propertyNormalizationStrategyIdentifier = fingerprint.getStrategyIdentifier();
+                    state.fingerprints = fingerprint.getFingerprints();
 
-            visitor.preProperty(state);
-            fingerprint.accept(state);
-            visitor.postProperty();
-        }
+                    visitor.preProperty(state);
+                    fingerprint.accept(state);
+                    visitor.postProperty();
+                }
+            }
+        });
     }
 
     @Nullable
     @Override
     public Set<String> getInputPropertiesLoadedByUnknownClassLoader() {
-        SortedMap<String, String> invalidInputProperties = key.getInputs().getNonCacheableInputProperties();
-        if (invalidInputProperties == null || invalidInputProperties.isEmpty()) {
-            return null;
-        }
-        return invalidInputProperties.keySet();
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, Set<String>>() {
+                @Nullable
+                @Override
+                public Set<String> apply(CachingInputs inputs) {
+                    ImmutableSortedSet<String> invalidInputProperties = inputs.getNonCacheableInputProperties();
+                    return !invalidInputProperties.isEmpty()
+                        ? invalidInputProperties
+                        : null;
+                }
+            })
+            .orElse(null);
     }
 
 
     @Override
     public byte[] getClassLoaderHashBytes() {
-        ImplementationSnapshot taskImplementation = key.getInputs().getTaskImplementation();
-        if (taskImplementation == null || taskImplementation.getClassLoaderHash() == null) {
-            return null;
-        }
-        return taskImplementation.getClassLoaderHash().toByteArray();
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, byte[]>() {
+                @Nullable
+                @Override
+                public byte[] apply(CachingInputs inputs) {
+                    ImplementationSnapshot implementation = inputs.getImplementation();
+                    return implementation.getClassLoaderHash() != null
+                        ? implementation.getClassLoaderHash().toByteArray()
+                        : null;
+                }
+            })
+            .orElse(null);
     }
 
     @Override
     public List<byte[]> getActionClassLoaderHashesBytes() {
-        List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
-        if (actionImplementations == null || actionImplementations.isEmpty()) {
-            return null;
-        } else {
-            return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, byte[]>() {
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, List<byte[]>>() {
+                @Nullable
                 @Override
-                public byte[] apply(ImplementationSnapshot input) {
-                    return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray();
+                public List<byte[]> apply(CachingInputs inputs) {
+                    List<ImplementationSnapshot> actionImplementations = inputs.getAdditionalImplementations();
+                    if (actionImplementations.isEmpty()) {
+                        return null;
+                    }
+                    return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, byte[]>() {
+                        @Override
+                        public byte[] apply(ImplementationSnapshot input) {
+                            return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray();
+                        }
+                    });
                 }
-            });
-        }
+            })
+            .orElse(null);
     }
 
     @Nullable
     @Override
     public List<String> getActionClassNames() {
-        List<ImplementationSnapshot> actionImplementations = key.getInputs().getActionImplementations();
-        if (actionImplementations == null || actionImplementations.isEmpty()) {
-            return null;
-        } else {
-            return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, List<String>>() {
+                @Nullable
                 @Override
-                public String apply(ImplementationSnapshot input) {
-                    return input.getTypeName();
+                public List<String> apply(CachingInputs inputs) {
+                    List<ImplementationSnapshot> actionImplementations = inputs.getAdditionalImplementations();
+                    if (actionImplementations.isEmpty()) {
+                        return null;
+                    }
+                    return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
+                        @Override
+                        public String apply(ImplementationSnapshot input) {
+                            return input.getTypeName();
+                        }
+                    });
                 }
-            });
-        }
+            })
+            .orElse(null);
     }
 
     @Nullable
     @Override
     public List<String> getOutputPropertyNames() {
-        // Copy should be a NOOP as this is an immutable sorted set upstream.
-        ImmutableSortedSet<String> outputPropertyNames = key.getInputs().getOutputPropertyNames();
-        if (outputPropertyNames == null || outputPropertyNames.isEmpty()) {
-            return null;
-        } else {
-            return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
-        }
+        return cachingState.getInputs()
+            .map(new java.util.function.Function<CachingInputs, List<String>>() {
+                @Nullable
+                @Override
+                public List<String> apply(CachingInputs inputs) {
+                    ImmutableSortedSet<String> outputPropertyNames = inputs.getOutputProperties();
+                    if (outputPropertyNames.isEmpty()) {
+                        return null;
+                    }
+                    // Copy should be a NOOP as this is an immutable sorted set upstream.
+                    return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
+                }
+            })
+            .orElse(null);
     }
 
     @Override
     public byte[] getHashBytes() {
-        return key.isValid() ? key.getHashCodeBytes() : null;
+        return cachingState.getKey().get(
+            new java.util.function.Function<ImmutableList<CachingDisabledReason>, byte[]>() {
+                @Nullable
+                @Override
+                public byte[] apply(ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
+                    return null;
+                }
+            },
+            new java.util.function.Function<BuildCacheKey, byte[]>() {
+                @Override
+                public byte[] apply(BuildCacheKey cacheKey) {
+                    return cacheKey.toByteArray();
+                }
+            }
+        );
     }
 
     @Override

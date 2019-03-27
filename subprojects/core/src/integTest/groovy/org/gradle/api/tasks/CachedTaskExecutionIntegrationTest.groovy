@@ -414,11 +414,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.empty
         [
-            "taskImplementation",
-            "actionImplementation",
-            "inputValuePropertyHash for 'options.fork'",
-            "inputFilePropertyHash for 'classpath'",
-            "outputPropertyName",
+            "implementation",
+            "additional implementation",
+            "input value fingerprint for 'options.fork'",
+            "input file fingerprints for 'classpath'",
+            "output property name",
         ].each {
             assert output.contains("Appending ${it} to build cache key:")
         }
@@ -435,8 +435,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.empty
         output.contains("Build cache key for task ':compileJava' is ")
-        !output.contains("Appending taskClass to build cache key:")
-        !output.contains("Appending inputPropertyHash for")
+        !output.contains("Appending implementation to build cache key:")
+        !output.contains("Appending input value fingerprint for")
     }
 
     def "compileJava is not cached if forked executable is used"() {
@@ -449,7 +449,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "compileJava", "--info"
         then:
         skippedTasks.empty
-        output.contains "Caching disabled for task ':compileJava': 'Forking compiler via ForkOptions.executable' satisfied"
+        output.contains "Caching disabled for task ':compileJava' because:\n" +
+            "  'Forking compiler via ForkOptions.executable' satisfied"
 
         expect:
         succeeds "clean"

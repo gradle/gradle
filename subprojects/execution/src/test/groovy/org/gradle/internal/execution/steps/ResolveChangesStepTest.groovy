@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.IncrementalChangesContext
-import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
@@ -29,7 +28,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 class ResolveChangesStepTest extends StepSpec {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<Result>(changeDetector, delegate)
-    def context = Mock(IncrementalContext)
+    def context = Mock(CachingContext)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
 

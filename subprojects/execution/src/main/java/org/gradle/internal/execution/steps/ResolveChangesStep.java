@@ -19,10 +19,10 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableBiMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.IncrementalChangesContext;
-import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
@@ -33,7 +33,7 @@ import org.gradle.internal.execution.history.changes.RebuildExecutionStateChange
 
 import java.util.Optional;
 
-public class ResolveChangesStep<R extends Result> implements Step<IncrementalContext, R> {
+public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
     private final ExecutionStateChangeDetector changeDetector;
     private static final String NO_HISTORY = "No history is available.";
 
@@ -48,7 +48,7 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     }
 
     @Override
-    public R execute(IncrementalContext context) {
+    public R execute(CachingContext context) {
         UnitOfWork work = context.getWork();
         Optional<BeforeExecutionState> beforeExecutionState = context.getBeforeExecutionState();
         ExecutionStateChanges changes = context.getRebuildReason()
@@ -77,6 +77,11 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
             @Override
             public Optional<ExecutionStateChanges> getChanges() {
                 return Optional.ofNullable(changes);
+            }
+
+            @Override
+            public CachingState getCachingState() {
+                return context.getCachingState();
             }
 
             @Override

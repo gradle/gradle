@@ -25,6 +25,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -34,6 +36,7 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
+import org.gradle.internal.execution.steps.CachingContext
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
@@ -642,10 +645,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def afterPreviousExecutionState = executionHistoryStore.load(unitOfWork.identity)
         def beforeExecutionState = unitOfWork.beforeExecutionState
 
-        executor.execute(new IncrementalContext() {
+        executor.execute(new CachingContext() {
             @Override
             UnitOfWork getWork() {
-                return unitOfWork
+                unitOfWork
             }
 
             @Override
@@ -661,6 +664,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
             @Override
             Optional<BeforeExecutionState> getBeforeExecutionState() {
                 Optional.of(beforeExecutionState)
+            }
+
+            @Override
+            CachingState getCachingState() {
+                CachingState.NOT_DETERMINED
             }
         })
     }
@@ -828,10 +836,14 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                CacheHandler createCacheHandler() {
+                Optional<CachingDisabledReason> shouldDisableCaching() {
                     throw new UnsupportedOperationException()
                 }
 
+                @Override
+                boolean isAllowedToLoadFromCache() {
+                    throw new UnsupportedOperationException()
+                }
 
                 @Override
                 Optional<? extends Iterable<String>> getChangingOutputs() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.caching;
 
-import org.gradle.caching.BuildCacheKey;
+public class CachingDisabledReason {
+    private final CachingDisabledReasonCatwgory category;
+    private final String message;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
+    public CachingDisabledReason(CachingDisabledReasonCatwgory category, String message) {
+        this.category = category;
+        this.message = message;
+    }
 
-public interface CacheHandler {
-    <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader);
-    void store(Consumer<BuildCacheKey> storer);
+    public CachingDisabledReasonCatwgory getCategory() {
+        return category;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

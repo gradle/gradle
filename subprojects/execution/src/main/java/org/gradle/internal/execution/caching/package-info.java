@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.caching;
 
-package org.gradle.caching.internal.tasks;
-
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-
-public interface TaskCacheKeyCalculator {
-    TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties properties, boolean buildCacheDebugLogging);
-}
+import org.gradle.api.NonNullApi;

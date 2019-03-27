@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -50,10 +49,6 @@ public interface TaskExecutionContext {
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getOutputFilesBeforeExecution();
 
     void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
-
-    TaskOutputCachingBuildCacheKey getBuildCacheKey();
-
-    void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
 
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.

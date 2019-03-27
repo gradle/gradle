@@ -19,6 +19,8 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
@@ -56,11 +58,21 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     /**
+     * Return a reason to disable caching for this work.
+     * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
+     */
+    Optional<CachingDisabledReason> shouldDisableCaching();
+
+    /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
-    default void markSnapshottingInputsFinished() {}
+    default void markSnapshottingInputsFinished(CachingState cachingState) {}
 
-    CacheHandler createCacheHandler();
+    /**
+     * Is this work item allowed to load from the cache, or if we only allow it to be stored.
+     */
+    // TODO Make this part of CachingState instead
+    boolean isAllowedToLoadFromCache();
 
     /**
      * Paths to locations changed by the unit of work.
