@@ -58,7 +58,6 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
                 outputs.file("out.txt")
                 outputs.cacheIf { true }
                 doLast {
-                    assert state.taskOutputCaching.enabled
                     project.file("out.txt") << "xxx"
                     if (project.hasProperty("fail")) {
                         throw new RuntimeException("Boo!")

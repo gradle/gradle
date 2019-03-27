@@ -67,7 +67,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         UnitOfWork work = context.getWork();
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
-            cachingState = CachingState.NOT_DETERMINED;
+            cachingState = CachingState.BUILD_CACHE_DISABLED;
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))

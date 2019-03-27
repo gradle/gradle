@@ -59,7 +59,7 @@ class HttpBuildCacheServiceTest extends Specification {
     BuildCacheServiceFactory.Describer buildCacheDescriber
 
     def key = new BuildCacheKey() {
-        def hashCode = HashCode.fromString("0123456abcdef")
+        def hashCode = HashCode.fromString("01234567abcdef")
 
         @Override
         String getHashCode() {

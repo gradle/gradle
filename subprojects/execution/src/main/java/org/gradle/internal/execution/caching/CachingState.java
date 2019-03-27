@@ -47,4 +47,19 @@ public interface CachingState {
             return Optional.empty();
         }
     };
+
+    CachingState BUILD_CACHE_DISABLED = new CachingState() {
+        private final Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> reason = Either.left(ImmutableList.of(
+            new CachingDisabledReason(CachingDisabledReasonCatwgory.BUILD_CACHE_DISABLED, "Build cache is disabled")));
+
+        @Override
+        public Either<ImmutableList<CachingDisabledReason>, BuildCacheKey> getKey() {
+            return reason;
+        }
+
+        @Override
+        public Optional<CachingInputs> getInputs() {
+            return Optional.empty();
+        }
+    };
 }
