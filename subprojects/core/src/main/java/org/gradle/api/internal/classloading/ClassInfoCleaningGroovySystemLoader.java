@@ -17,8 +17,8 @@
 package org.gradle.api.internal.classloading;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -28,7 +28,7 @@ import java.util.Iterator;
 
 public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
 
-    private final static Logger LOG = Logging.getLogger(ClassInfoCleaningGroovySystemLoader.class);
+    private final static Logger LOG = LoggerFactory.getLogger(ClassInfoCleaningGroovySystemLoader.class);
 
     private final Method removeFromGlobalClassValue;
     private final Method globalClassSetIteratorMethod;

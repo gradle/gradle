@@ -16,7 +16,9 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
@@ -27,10 +29,13 @@ import java.io.File
 @CacheableTask
 abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenerationTask(), SharedAccessorsPackageAware {
 
+    @get:OutputDirectory
+    abstract val metadataOutputDir: DirectoryProperty
+
     @TaskAction
     @Suppress("unused")
     internal
-    fun generate() =
+    fun generate() {
         sourceCodeOutputDir.withOutputDirectory { outputDir ->
             val packageDir = createPackageDirIn(outputDir)
             val outputFile = packageDir.resolve("PluginSpecBuilders.kt")
@@ -40,6 +45,12 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
                 packageName()
             )
         }
+        metadataOutputDir.withOutputDirectory { outputDir ->
+            outputDir.resolve("implicit-imports").writeText(
+                packageName() + ".*"
+            )
+        }
+    }
 
     private
     fun createPackageDirIn(outputDir: File) = outputDir.resolve(packagePath()).apply { mkdirs() }

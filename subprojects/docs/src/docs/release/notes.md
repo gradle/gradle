@@ -9,6 +9,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 [Ian Kerins](https://github.com/isker),
+[Rodolfo Forte](https://github.com/Tschis),
 and [Stefan M.](https://github.com/StefMa).
 
 <!-- 

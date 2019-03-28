@@ -17,9 +17,9 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
+import org.gradle.api.file.internal.FilePathUtil;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
@@ -64,6 +64,7 @@ public class JarHasher implements RegularFileHasher, ConfigurableNormalizer {
         classpathResourceFilter.appendConfigurationToHasher(hasher);
     }
 
+    @Nullable
     private HashCode hashJarContents(RegularFileSnapshot jarFileSnapshot) {
         try {
             List<FileSystemLocationFingerprint> fingerprints = fingerprintZipEntries(jarFileSnapshot.getAbsolutePath());

@@ -37,7 +37,8 @@ import java.io.File
 internal
 data class PrecompiledScriptPlugin(internal val scriptFile: File) {
 
-    val scriptFileName: String = scriptFile.name
+    val scriptFileName: String
+        get() = scriptFile.name
 
     /**
      * Gradle plugin id inferred from the script file name and package declaration (if any).

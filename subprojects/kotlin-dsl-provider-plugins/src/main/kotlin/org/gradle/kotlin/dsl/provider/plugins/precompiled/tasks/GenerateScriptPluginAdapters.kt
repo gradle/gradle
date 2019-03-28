@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -34,10 +35,10 @@ import java.io.File
 
 
 @CacheableTask
-open class GenerateScriptPluginAdapters : DefaultTask() {
+abstract class GenerateScriptPluginAdapters : DefaultTask() {
 
     @get:OutputDirectory
-    var outputDirectory = directoryProperty()
+    abstract val outputDirectory: DirectoryProperty
 
     @get:Internal
     internal

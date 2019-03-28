@@ -33,8 +33,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -64,6 +62,8 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -78,7 +78,7 @@ import java.util.function.Function;
  * A {@link TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteActionsTaskExecuter.class);
 
     private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCatwgory.NO_OUTPUTS_DECLARED, "No outputs declared");
 

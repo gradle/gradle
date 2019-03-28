@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
+package org.gradle.api.file;
 
-import org.gradle.api.internal.AbstractTask
+import org.gradle.api.Incubating;
 
-
-internal
-fun AbstractTask.directoryProperty() = project.objects.directoryProperty()
-
-
-internal
-fun AbstractTask.sourceDirectorySet(name: String, displayName: String) = project.objects.sourceDirectorySet(name, displayName)
+/**
+ * The type of a file.
+ *
+ * @since 5.4
+ */
+@Incubating
+public enum FileType {
+    FILE,
+    DIRECTORY,
+    /**
+     * Element of an input property pointing to a non-existing file.
+     */
+    MISSING
+}
