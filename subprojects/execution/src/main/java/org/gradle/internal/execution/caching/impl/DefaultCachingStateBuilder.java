@@ -142,10 +142,12 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
                     .append("' ")
                     .append(entry.getValue());
             }
+            String message = builder.toString();
             noCachingReasonsBuilder.add(new CachingDisabledReason(
                 CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS,
-                builder.toString()
+                message
             ));
+            hasher.markAsInvalid(message);
         }
         ImmutableSortedSet<String> nonCacheableInputProperties = nonCacheableInputPropertiesMap.keySet();
 
@@ -163,7 +165,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         if (cachingDisabledReasons.isEmpty()) {
             return new CachedState(hasher.hash(), inputs);
         } else {
-            HashCode key = (hasher.isValid() && nonCacheableInputProperties.isEmpty())
+            HashCode key = hasher.isValid()
                 ? hasher.hash()
                 : null;
             return new NonCachedState(key, cachingDisabledReasons, inputs);
