@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.collections.CollectionUtils.containsAny;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
@@ -60,7 +59,7 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
-            if (!containsAny(args, asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet"))) {
+            if (!containsLoggingArgument(args)) {
                 args.add(0, "-i");
             }
         }
@@ -71,6 +70,15 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         }
 
         return args;
+    }
+
+    private boolean containsLoggingArgument(List<String> args) {
+        for (String logArg : asList("-i", "--info", "-d", "--debug", "-w", "--warn", "-q", "--quiet")) {
+            if (args.contains(logArg)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
