@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,84 +17,95 @@
 package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.logging.events.LogEvent;
-import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.time.Clock;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
-public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
+public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
 
-    private final String name;
-    private final OutputEventListenerBackedLoggerContext context;
-    private final Clock clock;
+    private BuildOperationAwareLogger delegate;
+    private OperationIdentifier fallbackOperationIdentifier = null;
 
-    public OutputEventListenerBackedLogger(String name, OutputEventListenerBackedLoggerContext context, Clock clock) {
-        this.name = name;
-        this.context = context;
-        this.clock = clock;
+    public DefaultContextAwareTaskLogger(Logger delegate) {
+        this.delegate = (BuildOperationAwareLogger) delegate;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    private boolean isLevelAtMost(LogLevel levelLimit) {
-        return levelLimit.compareTo(context.getLevel()) >= 0;
-    }
-
-    public boolean isTraceEnabled() {
-        return false;
-    }
-
-    public boolean isTraceEnabled(Marker marker) {
-        return isTraceEnabled();
-    }
-
-    public boolean isDebugEnabled() {
-        return isLevelAtMost(LogLevel.DEBUG);
-    }
-
-    public boolean isDebugEnabled(Marker marker) {
-        return isDebugEnabled();
-    }
-
-    public boolean isInfoEnabled() {
-        return isLevelAtMost(LogLevel.INFO);
-    }
-
-    public boolean isInfoEnabled(Marker marker) {
-        return isLevelAtMost(toLogLevel(marker));
-    }
-
-    public boolean isWarnEnabled() {
-        return isLevelAtMost(LogLevel.WARN);
-    }
-
-    public boolean isWarnEnabled(Marker marker) {
-        return isWarnEnabled();
-    }
-
-    public boolean isErrorEnabled() {
-        return isLevelAtMost(LogLevel.ERROR);
-    }
-
-    public boolean isErrorEnabled(Marker marker) {
-        return isErrorEnabled();
+    public void setFallbackBuildOperationId(OperationIdentifier operationIdentifier) {
+        this.fallbackOperationIdentifier = operationIdentifier;
     }
 
     @Override
     public boolean isLifecycleEnabled() {
-        return isLevelAtMost(LogLevel.LIFECYCLE);
+        return delegate.isLifecycleEnabled();
     }
 
     @Override
     public boolean isQuietEnabled() {
-        return isLevelAtMost(LogLevel.QUIET);
+        return delegate.isQuietEnabled();
+    }
+
+    @Override
+    public boolean isEnabled(LogLevel level) {
+        return delegate.isEnabled(level);
+    }
+
+    @Override
+    public String getName() {
+        return delegate.getName();
+    }
+
+    @Override
+    public boolean isTraceEnabled() {
+        return delegate.isTraceEnabled();
+    }
+
+    @Override
+    public boolean isTraceEnabled(Marker marker) {
+        return delegate.isTraceEnabled(marker);
+    }
+
+    @Override
+    public boolean isDebugEnabled() {
+        return delegate.isDebugEnabled();
+    }
+
+    @Override
+    public boolean isDebugEnabled(Marker marker) {
+        return delegate.isDebugEnabled(marker);
+    }
+
+    @Override
+    public boolean isInfoEnabled() {
+        return delegate.isInfoEnabled();
+    }
+
+    @Override
+    public boolean isInfoEnabled(Marker marker) {
+        return delegate.isInfoEnabled(marker);
+    }
+
+    @Override
+    public boolean isWarnEnabled() {
+        return delegate.isWarnEnabled();
+    }
+
+    @Override
+    public boolean isWarnEnabled(Marker marker) {
+        return delegate.isWarnEnabled(marker);
+    }
+
+    @Override
+    public boolean isErrorEnabled() {
+        return delegate.isErrorEnabled();
+    }
+
+    @Override
+    public boolean isErrorEnabled(Marker marker) {
+        return delegate.isErrorEnabled(marker);
     }
 
     public void trace(String msg) {
@@ -128,18 +139,11 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        log(logLevel, throwable, message, CurrentBuildOperationRef.instance().getId());
-    }
-
-    void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
-        LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, operationIdentifier);
-        OutputEventListener outputEventListener = context.getOutputEventListener();
-        try {
-            outputEventListener.onOutput(logEvent);
-        } catch (Throwable e) {
-            // fall back to standard out
-            e.printStackTrace(System.out);
+        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
+        if (buildOperationId == null) {
+            buildOperationId = fallbackOperationIdentifier;
         }
+        delegate.log(logLevel, throwable, message, buildOperationId);
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
@@ -153,6 +157,7 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
         FormattingTuple tuple = MessageFormatter.arrayFormat(format, args);
         Throwable loggedThrowable = throwable == null ? tuple.getThrowable() : throwable;
+
         log(logLevel, loggedThrowable, tuple.getMessage());
     }
 
@@ -281,11 +286,6 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
         if (isQuietEnabled()) {
             log(LogLevel.QUIET, throwable, message);
         }
-    }
-
-    @Override
-    public boolean isEnabled(LogLevel level) {
-        return isLevelAtMost(level);
     }
 
     @Override
@@ -477,6 +477,5 @@ public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
             log(LogLevel.ERROR, t, msg);
         }
     }
-
 
 }
