@@ -77,7 +77,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
     public abstract String getUnknownReason();
 
     @Override
-    public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
+    public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot other = snapshotter.snapshot(value);
         if (this.isSameSnapshot(other)) {
             return this;
@@ -85,7 +85,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         return other;
     }
 
-    protected abstract boolean isSameSnapshot(Object o);
+    protected abstract boolean isSameSnapshot(@Nullable Object o);
 
     private static class DefaultImplementationSnapshot extends ImplementationSnapshot {
         private final HashCode classLoaderHash;
@@ -103,7 +103,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        protected boolean isSameSnapshot(Object o) {
+        protected boolean isSameSnapshot(@Nullable Object o) {
             if (this == o) {
                 return true;
             }
@@ -177,7 +177,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        protected boolean isSameSnapshot(Object o) {
+        protected boolean isSameSnapshot(@Nullable Object o) {
             if (this == o) {
                 return true;
             }
@@ -234,7 +234,7 @@ public abstract class ImplementationSnapshot implements ValueSnapshot {
         }
 
         @Override
-        protected boolean isSameSnapshot(Object o) {
+        protected boolean isSameSnapshot(@Nullable Object o) {
             if (this == o) {
                 return true;
             }
