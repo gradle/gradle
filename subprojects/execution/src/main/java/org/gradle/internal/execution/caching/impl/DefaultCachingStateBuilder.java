@@ -33,6 +33,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Map;
 import java.util.Optional;
 
@@ -54,6 +55,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         processImplementation(implementation);
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected void processImplementation(ImplementationSnapshot implementation) {
         if (implementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
@@ -71,6 +73,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         }
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected void processAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
         if (additionalImplementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
@@ -94,33 +97,30 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         });
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected void recordInputValueFingerprint(String propertyName, HashCode fingerprint) {
         inputValueFingerprintsBuilder.put(propertyName, fingerprint);
     }
 
+    @OverridingMethodsMustInvokeSuper
     protected void markInputValuePropertyNotCacheable(String propertyName, String nonCacheableReason) {
         nonCacheableInputPropertiesBuilder.put(propertyName, nonCacheableReason);
     }
 
     @Override
-    public final void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
+    @OverridingMethodsMustInvokeSuper
+    public void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
         this.inputFileFingerprints = ImmutableSortedMap.copyOf(fingerprints);
-        fingerprints.forEach((propertyName, fingerprint) -> processInputFileFingerprint(propertyName, fingerprint));
-    }
-
-    protected void processInputFileFingerprint(String propertyName, CurrentFileCollectionFingerprint fingerprint) {
     }
 
     @Override
-    public final void withOutputPropertyNames(Iterable<String> propertyNames) {
+    @OverridingMethodsMustInvokeSuper
+    public void withOutputPropertyNames(Iterable<String> propertyNames) {
         this.outputProperties = ImmutableSortedSet.copyOf(propertyNames);
-        propertyNames.forEach(propertyName -> processOutputPropertyName(propertyName));
-    }
-
-    protected void processOutputPropertyName(String propertyName) {
     }
 
     @Override
+    @OverridingMethodsMustInvokeSuper
     public void markNotCacheable(CachingDisabledReason reason) {
         noCachingReasonsBuilder.add(reason);
     }

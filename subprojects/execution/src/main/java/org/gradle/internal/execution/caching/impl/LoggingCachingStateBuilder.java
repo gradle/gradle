@@ -23,6 +23,8 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class LoggingCachingStateBuilder extends DefaultCachingStateBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingCachingStateBuilder.class);
 
@@ -51,15 +53,19 @@ public class LoggingCachingStateBuilder extends DefaultCachingStateBuilder {
     }
 
     @Override
-    protected void processInputFileFingerprint(String propertyName, CurrentFileCollectionFingerprint fingerprint) {
-        LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {}", propertyName, fingerprint.getHash());
-        super.processInputFileFingerprint(propertyName, fingerprint);
+    public void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
+        fingerprints.forEach((propertyName, fingerprint) -> {
+            LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {}", propertyName, fingerprint.getHash());
+        });
+        super.withInputFilePropertyFingerprints(fingerprints);
     }
 
     @Override
-    protected void processOutputPropertyName(String propertyName) {
-        LOGGER.warn("Appending output property name to build cache key: {}", propertyName);
-        super.processOutputPropertyName(propertyName);
+    public void withOutputPropertyNames(Iterable<String> propertyNames) {
+        propertyNames.forEach(propertyName -> {
+            LOGGER.warn("Appending output property name to build cache key: {}", propertyName);
+        });
+        super.withOutputPropertyNames(propertyNames);
     }
 
     @Override
