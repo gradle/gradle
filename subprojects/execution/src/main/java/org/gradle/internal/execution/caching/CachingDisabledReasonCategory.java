@@ -63,10 +63,11 @@ public enum CachingDisabledReasonCategory {
      * Reasons for non-cacheable implementations:
      * <ul>
      *     <li>the type is loaded via an unknown classloader,</li>
-     *     <li>a Java lambda was used (see https://github.com/gradle/gradle/issues/5510).</li>
+     *     <li>a Java lambda was used.</li>
      * </ul>
+     *
+     * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>
      */
-    // TODO Link to user guide instead of issue
     NON_CACHEABLE_IMPLEMENTATION,
 
     /**
@@ -75,10 +76,11 @@ public enum CachingDisabledReasonCategory {
      * Reasons for non-cacheable implementations:
      * <ul>
      *     <li>the type is loaded via an unknown classloader,</li>
-     *     <li>a Java lambda was used (see https://github.com/gradle/gradle/issues/5510).</li>
+     *     <li>a Java lambda was used.</li>
      * </ul>
+     *
+     * @see <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:how_does_it_work">How fingerprinting works</a>
      */
-    // TODO Link to user guide instead of issue
     NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
 
     /**
