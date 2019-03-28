@@ -52,7 +52,7 @@ import java.util.function.Consumer;
  *
  * <p>
  * These two operations should be captured separately, but for historical reasons we don't yet do that.
- * To reproduce this composite operation why capture across executors by starting an operation
+ * To reproduce this composite operation we capture across executors by starting an operation
  * in {@link StartSnapshotTaskInputsBuildOperationTaskExecuter} and finished in {@link MarkSnapshottingInputsFinishedStep}.
  * </p>
  */
@@ -214,9 +214,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 @Override
                 public Set<String> apply(CachingInputs inputs) {
                     ImmutableSortedSet<String> invalidInputProperties = inputs.getNonCacheableInputProperties();
-                    return !invalidInputProperties.isEmpty()
-                        ? invalidInputProperties
-                        : null;
+                    if (invalidInputProperties.isEmpty()) {
+                        return null;
+                    }
+                    return invalidInputProperties;
                 }
             })
             .orElse(null);
@@ -231,9 +232,10 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 @Override
                 public byte[] apply(CachingInputs inputs) {
                     ImplementationSnapshot implementation = inputs.getImplementation();
-                    return implementation.getClassLoaderHash() != null
-                        ? implementation.getClassLoaderHash().toByteArray()
-                        : null;
+                    if (implementation.getClassLoaderHash() == null) {
+                        return null;
+                    }
+                    return implementation.getClassLoaderHash().toByteArray();
                 }
             })
             .orElse(null);
@@ -246,11 +248,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 @Nullable
                 @Override
                 public List<byte[]> apply(CachingInputs inputs) {
-                    List<ImplementationSnapshot> actionImplementations = inputs.getAdditionalImplementations();
-                    if (actionImplementations.isEmpty()) {
+                    List<ImplementationSnapshot> additionalImplementations = inputs.getAdditionalImplementations();
+                    if (additionalImplementations.isEmpty()) {
                         return null;
                     }
-                    return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, byte[]>() {
+                    return Lists.transform(additionalImplementations, new Function<ImplementationSnapshot, byte[]>() {
                         @Override
                         public byte[] apply(ImplementationSnapshot input) {
                             return input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray();
@@ -269,11 +271,11 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
                 @Nullable
                 @Override
                 public List<String> apply(CachingInputs inputs) {
-                    List<ImplementationSnapshot> actionImplementations = inputs.getAdditionalImplementations();
-                    if (actionImplementations.isEmpty()) {
+                    List<ImplementationSnapshot> additionalImplementations = inputs.getAdditionalImplementations();
+                    if (additionalImplementations.isEmpty()) {
                         return null;
                     }
-                    return Lists.transform(actionImplementations, new Function<ImplementationSnapshot, String>() {
+                    return Lists.transform(additionalImplementations, new Function<ImplementationSnapshot, String>() {
                         @Override
                         public String apply(ImplementationSnapshot input) {
                             return input.getTypeName();
@@ -286,18 +288,17 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Nullable
     @Override
-    public List<String> getOutputPropertyNames() {
+    public Set<String> getOutputPropertyNames() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, List<String>>() {
+            .map(new java.util.function.Function<CachingInputs, Set<String>>() {
                 @Nullable
                 @Override
-                public List<String> apply(CachingInputs inputs) {
+                public Set<String> apply(CachingInputs inputs) {
                     ImmutableSortedSet<String> outputPropertyNames = inputs.getOutputProperties();
                     if (outputPropertyNames.isEmpty()) {
                         return null;
                     }
-                    // Copy should be a NOOP as this is an immutable sorted set upstream.
-                    return ImmutableSortedSet.copyOf(outputPropertyNames).asList();
+                    return outputPropertyNames;
                 }
             })
             .orElse(null);

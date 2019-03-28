@@ -36,7 +36,7 @@ import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -71,7 +71,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
-    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCatwgory.NOT_CACHEABLE, "Caching not enabled.");
+    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";

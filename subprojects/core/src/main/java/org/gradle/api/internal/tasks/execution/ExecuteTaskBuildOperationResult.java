@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.id.UniqueId;
 
@@ -86,7 +86,7 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
             : convertNoCacheReasonCategory(disabledReasons.get(0).getCategory()).name();
     }
 
-    private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCatwgory category) {
+    private static TaskOutputCachingDisabledReasonCategory convertNoCacheReasonCategory(CachingDisabledReasonCategory category) {
         switch (category) {
             case UNKNOWN:
                 return TaskOutputCachingDisabledReasonCategory.UNKNOWN;

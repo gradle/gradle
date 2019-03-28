@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.caching;
 
-public enum CachingDisabledReasonCatwgory {
+public enum CachingDisabledReasonCategory {
     /**
      * Reason for disabled caching is not known.
      */

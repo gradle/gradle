@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.caching.impl
 
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -54,7 +54,7 @@ class DefaultCachingStateBuilderTest extends Specification {
 
         then:
         !cachingState.key.present
-        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_IMPLEMENTATION]
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.NON_CACHEABLE_IMPLEMENTATION]
         cachingState.disabledReasons*.message == ["Implementation type was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
     }
 
@@ -67,7 +67,7 @@ class DefaultCachingStateBuilderTest extends Specification {
 
         then:
         !cachingState.key.present
-        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION]
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION]
         cachingState.disabledReasons*.message == ["Additional implementation type was loaded with an unknown classloader (class 'org.gradle.AdditionalWorkType')."]
     }
 
@@ -80,7 +80,7 @@ class DefaultCachingStateBuilderTest extends Specification {
 
         then:
         !cachingState.key.present
-        cachingState.disabledReasons*.category == [CachingDisabledReasonCatwgory.NON_CACHEABLE_INPUTS]
+        cachingState.disabledReasons*.category == [CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS]
         cachingState.disabledReasons*.message == ["Non-cacheable inputs: property 'input.invalid' was loaded with an unknown classloader (class 'org.gradle.WorkType')."]
     }
 

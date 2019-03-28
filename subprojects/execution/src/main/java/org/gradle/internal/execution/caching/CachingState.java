@@ -38,7 +38,7 @@ public interface CachingState {
      */
     Optional<CachingInputs> getInputs();
 
-    CachingState NOT_DETERMINED = disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Cacheability was not determined"));
+    CachingState NOT_DETERMINED = disabledWithoutInputs(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined"));
 
     static CachingState disabledWithoutInputs(CachingDisabledReason reason) {
         ImmutableList<CachingDisabledReason> reasons = ImmutableList.of(reason);

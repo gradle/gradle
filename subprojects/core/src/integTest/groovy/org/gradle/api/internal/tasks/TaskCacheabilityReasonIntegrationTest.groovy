@@ -111,17 +111,22 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
 
-    def "cacheability for a task with no actions is UNKNOWN"() {
+    @Unroll
+    def "cacheability for a task with no actions is UNKNOWN (cacheable: #cacheable)"() {
         buildFile << """
-            @CacheableTask
             class NoActions extends DefaultTask {}
 
-            task noActions(type: NoActions) {}
+            task noActions {
+                outputs.cacheIf { $cacheable }
+            }
         """
         when:
         withBuildCache().run "noActions"
         then:
         assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
+
+        where:
+        cacheable << [true, false]
     }
 
     @Unroll

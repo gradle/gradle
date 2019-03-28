@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingInputs;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateBuilder;
@@ -50,7 +50,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         this.implementation = implementation;
         if (implementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
-                CachingDisabledReasonCatwgory.NON_CACHEABLE_IMPLEMENTATION,
+                CachingDisabledReasonCategory.NON_CACHEABLE_IMPLEMENTATION,
                 "Implementation type " + implementation.getUnknownReason()
             ));
         }
@@ -61,7 +61,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         this.additionalImplementationsBuilder.add(additionalImplementation);
         if (additionalImplementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
-                CachingDisabledReasonCatwgory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
+                CachingDisabledReasonCategory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
                 "Additional implementation type " + additionalImplementation.getUnknownReason()
             ));
         }
@@ -143,7 +143,7 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
                     .append(entry.getValue());
             }
             noCachingReasonsBuilder.add(new CachingDisabledReason(
-                CachingDisabledReasonCatwgory.NON_CACHEABLE_INPUTS,
+                CachingDisabledReasonCategory.NON_CACHEABLE_INPUTS,
                 builder.toString()
             ));
         }

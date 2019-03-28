@@ -30,6 +30,11 @@ import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import java.util.function.Consumer;
 
+/**
+ * The operation started here is finished in {@link MarkSnapshottingInputsFinishedStep}.
+ *
+ * @see SnapshotTaskInputsBuildOperationResult
+ */
 public class StartSnapshotTaskInputsBuildOperationTaskExecuter implements TaskExecuter {
     private static final SnapshotTaskInputsBuildOperationType.Details DETAILS_INSTANCE = new SnapshotTaskInputsBuildOperationType.Details() {};
 

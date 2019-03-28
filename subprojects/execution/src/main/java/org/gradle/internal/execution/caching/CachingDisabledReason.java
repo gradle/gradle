@@ -17,15 +17,15 @@
 package org.gradle.internal.execution.caching;
 
 public class CachingDisabledReason {
-    private final CachingDisabledReasonCatwgory category;
+    private final CachingDisabledReasonCategory category;
     private final String message;
 
-    public CachingDisabledReason(CachingDisabledReasonCatwgory category, String message) {
+    public CachingDisabledReason(CachingDisabledReasonCategory category, String message) {
         this.category = category;
         this.message = message;
     }
 
-    public CachingDisabledReasonCatwgory getCategory() {
+    public CachingDisabledReasonCategory getCategory() {
         return category;
     }
 

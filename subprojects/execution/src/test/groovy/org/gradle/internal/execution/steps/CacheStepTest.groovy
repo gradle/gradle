@@ -30,7 +30,7 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.file.TreeType
@@ -263,7 +263,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         !result.reused
 
         1 * context.cachingState >> cachingState
-        1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCatwgory.UNKNOWN, "Unknown"))
+        1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(_) >> delegateResult
         0 * _
     }

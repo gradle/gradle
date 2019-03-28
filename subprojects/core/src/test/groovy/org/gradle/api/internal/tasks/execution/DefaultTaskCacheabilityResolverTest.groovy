@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec
 import org.gradle.api.specs.Spec
 import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.file.RelativeFilePathResolver
 import spock.lang.Specification
 
@@ -52,7 +52,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.NO_OUTPUTS_DECLARED
+        reason.category == CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
         reason.message == "No outputs declared"
     }
 
@@ -63,7 +63,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.NOT_CACHEABLE
+        reason.category == CachingDisabledReasonCategory.NOT_CACHEABLE
         reason.message == "Caching has not been enabled for the task"
     }
 
@@ -75,7 +75,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.ENABLE_CONDITION_NOT_SATISFIED
+        reason.category == CachingDisabledReasonCategory.ENABLE_CONDITION_NOT_SATISFIED
         reason.message == "'Cacheable test' not satisfied"
     }
 
@@ -100,7 +100,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.DISABLE_CONDITION_SATISFIED
+        reason.category == CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED
         reason.message == "'Uncacheable test' satisfied"
     }
 
@@ -127,7 +127,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.NON_CACHEABLE_OUTPUT
+        reason.category == CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT
         reason.message == "Output property 'non-cacheable property' contains a file tree"
     }
 
@@ -143,7 +143,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         )
 
         then:
-        reason.category == CachingDisabledReasonCatwgory.OVERLAPPING_OUTPUTS
+        reason.category == CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
         reason.message == "Gradle does not know how file 'relative/path' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
 
         1 * relativeFilePathResolver.resolveAsRelativePath(overlappingOutputs.overlappedFilePath) >> "relative/path"

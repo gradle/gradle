@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCatwgory;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
@@ -30,8 +30,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver {
-    private static final CachingDisabledReason CACHING_NOT_ENABLED = new CachingDisabledReason(CachingDisabledReasonCatwgory.NOT_CACHEABLE, "Caching has not been enabled for the task");
-    private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCatwgory.NO_OUTPUTS_DECLARED, "No outputs declared");
+    private static final CachingDisabledReason CACHING_NOT_ENABLED = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching has not been enabled for the task");
+    private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final RelativeFilePathResolver relativeFilePathResolver;
 
@@ -58,14 +58,14 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
 
         if (overlappingOutputs != null) {
             String relativePath = relativeFilePathResolver.resolveAsRelativePath(overlappingOutputs.getOverlappedFilePath());
-            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCatwgory.OVERLAPPING_OUTPUTS,
+            return Optional.of(new CachingDisabledReason(CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS,
                 "Gradle does not know how file '" + relativePath + "' was created (output property '" + overlappingOutputs.getPropertyName() + "'). Task output caching requires exclusive access to output paths to guarantee correctness."));
         }
 
         for (OutputFilePropertySpec spec : outputFileProperties) {
             if (!(spec instanceof CacheableOutputFilePropertySpec)) {
                 return Optional.of(new CachingDisabledReason(
-                    CachingDisabledReasonCatwgory.NON_CACHEABLE_OUTPUT,
+                    CachingDisabledReasonCategory.NON_CACHEABLE_OUTPUT,
                     "Output property '" + spec.getPropertyName() + "' contains a file tree"
                 ));
             }
@@ -74,7 +74,7 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
         for (SelfDescribingSpec<TaskInternal> cacheIfSpec : cacheIfSpecs) {
             if (!cacheIfSpec.isSatisfiedBy(task)) {
                 return Optional.of(new CachingDisabledReason(
-                    CachingDisabledReasonCatwgory.ENABLE_CONDITION_NOT_SATISFIED,
+                    CachingDisabledReasonCategory.ENABLE_CONDITION_NOT_SATISFIED,
                     "'" + cacheIfSpec.getDisplayName() + "' not satisfied"
                 ));
             }
@@ -83,7 +83,7 @@ public class DefaultTaskCacheabilityResolver implements TaskCacheabilityResolver
         for (SelfDescribingSpec<TaskInternal> doNotCacheIfSpec : doNotCacheIfSpecs) {
             if (doNotCacheIfSpec.isSatisfiedBy(task)) {
                 return Optional.of(new CachingDisabledReason(
-                    CachingDisabledReasonCatwgory.DISABLE_CONDITION_SATISFIED,
+                    CachingDisabledReasonCategory.DISABLE_CONDITION_SATISFIED,
                     "'" + doNotCacheIfSpec.getDisplayName() + "' satisfied"
                 ));
             }
