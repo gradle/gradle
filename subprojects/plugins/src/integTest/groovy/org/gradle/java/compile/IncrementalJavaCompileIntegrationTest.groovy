@@ -159,6 +159,34 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationSpec impl
         false | true
     }
 
+    def "removes stale class file when file moves in hierarchy"() {
+        given:
+        file('src/main/java/IPerson.java') << basicInterface
+        buildFile << "apply plugin: 'java'\n"
+
+        when:
+        succeeds 'classes'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        file('build/classes/java/main/IPerson.class').exists()
+        !file('build/classes/java/main/some/package/IPerson.class').exists()
+
+        when:
+        file('src/main/java/some/loc/IPerson.java') << """
+            package some.loc;
+        """ << basicInterface
+        assert file('src/main/java/IPerson.java').delete()
+
+        and:
+        succeeds 'assemble'
+
+        then:
+        executedAndNotSkipped ':compileJava'
+        !file('build/classes/java/main/IPerson.class').exists()
+        file('build/classes/java/main/some/loc/IPerson.class').exists()
+    }
+
     private static String getBasicInterface() {
         '''
             interface IPerson {
