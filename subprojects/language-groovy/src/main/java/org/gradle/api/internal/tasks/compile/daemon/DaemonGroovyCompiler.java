@@ -59,7 +59,10 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
-        Iterable<File> groovyFiles = Iterables.concat(spec.getGroovyClasspath(), antFiles);
+        // TODO We should infer a minimal classpath from delegate instead
+        Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("LANGUAGE-GROOVY").getAsFiles();
+        Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles, languageGroovyFiles);
+
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         if (jvmVersionDetector.getJavaVersion(javaForkOptions.getExecutable()).isJava9Compatible()) {
@@ -68,9 +71,10 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
-            .classpath(groovyFiles)
+            .classpath(classpath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
+            .withoutGradleApi()
             .build();
     }
 }

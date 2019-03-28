@@ -29,13 +29,16 @@ public class DaemonForkOptions {
     private final Iterable<File> classpath;
     private final Iterable<String> sharedPackages;
     private final KeepAliveMode keepAliveMode;
+    private final boolean withoutGradleApi;
 
     DaemonForkOptions(JavaForkOptionsInternal forkOptions, Iterable<File> classpath,
-                      Iterable<String> sharedPackages, KeepAliveMode keepAliveMode) {
+                      Iterable<String> sharedPackages, KeepAliveMode keepAliveMode,
+                      boolean withoutGradleApi) {
         this.forkOptions = forkOptions;
         this.classpath = classpath;
         this.sharedPackages = sharedPackages;
         this.keepAliveMode = keepAliveMode;
+        this.withoutGradleApi = withoutGradleApi;
     }
 
     public Iterable<File> getClasspath() {
@@ -54,11 +57,16 @@ public class DaemonForkOptions {
         return forkOptions;
     }
 
+    public boolean isWithoutGradleApi() {
+        return withoutGradleApi;
+    }
+
     public boolean isCompatibleWith(DaemonForkOptions other) {
         return forkOptions.isCompatibleWith(other.forkOptions)
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
                 && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
-                && keepAliveMode == other.getKeepAliveMode();
+                && keepAliveMode == other.getKeepAliveMode()
+                && withoutGradleApi == other.isWithoutGradleApi();
     }
 
     // one way to merge fork options, good for current use case
@@ -67,12 +75,16 @@ public class DaemonForkOptions {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
         }
 
+        if (withoutGradleApi != other.withoutGradleApi) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different value for gradle api visibility (this: " + withoutGradleApi + ", other: " + other.isWithoutGradleApi() + ").");
+        }
+
         Set<File> mergedClasspath = getNormalizedClasspath(classpath);
         mergedClasspath.addAll(getNormalizedClasspath(other.classpath));
         Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
         mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
 
-        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode);
+        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode, withoutGradleApi);
     }
 
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {

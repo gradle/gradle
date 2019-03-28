@@ -18,6 +18,8 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.initialization.GradleApiUtil;
 import org.gradle.internal.UncheckedException;
@@ -76,8 +78,15 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
-        ClassLoader workerClassLoader = createWorkerClassLoader(spec.getClass().getClassLoader(), forkOptions.getClasspath());
-        GroovySystemLoader actionClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
+        ClassLoader workerClassLoader;
+        if (forkOptions.isWithoutGradleApi()) {
+            // This is used by groovy compiler daemons
+            workerClassLoader = createWorkerClassLoaderWithoutGradleApi(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+        } else {
+            // Everything else
+            workerClassLoader = createWorkerClassLoader(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+        }
+        GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
         try {
@@ -88,7 +97,7 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
-            actionClasspathGroovy.shutdown();
+            workerClasspathGroovy.shutdown();
             CompositeStoppable.stoppable(workerClassLoader).stop();
             Thread.currentThread().setContextClassLoader(previousContextLoader);
         }
@@ -98,6 +107,23 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         ClassLoader gradleApiLoader = new FilteringClassLoader(workerInfrastructureClassloader, GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE));
 
         return new VisitableURLClassLoader("worker-loader", gradleApiLoader, DefaultClassPath.of(userClasspath));
+    }
+
+    private ClassLoader createWorkerClassLoaderWithoutGradleApi(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
+        // Allow just the basics instead of the entire Gradle API
+        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
+        // Logging
+        gradleFilterSpec.allowPackage("org.slf4j");
+        gradleFilterSpec.allowClass(Logger.class);
+        gradleFilterSpec.allowClass(LogLevel.class);
+        // Native
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
+        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+
+        ClassLoader gradleLoader = new FilteringClassLoader(workerInfrastructureClassloader, gradleFilterSpec);
+
+        return new VisitableURLClassLoader("worker-loader", gradleLoader, DefaultClassPath.of(userClasspath));
     }
 
     private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {

@@ -29,6 +29,7 @@ public class DaemonForkOptionsBuilder {
     private Iterable<File> classpath = Collections.emptyList();
     private Iterable<String> sharedPackages = Collections.emptyList();
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
+    private boolean withoutGradleApi;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
@@ -55,8 +56,13 @@ public class DaemonForkOptionsBuilder {
         return this;
     }
 
+    public DaemonForkOptionsBuilder withoutGradleApi() {
+        this.withoutGradleApi = true;
+        return this;
+    }
+
     public DaemonForkOptions build() {
-        return new DaemonForkOptions(buildJavaForkOptions(), classpath, sharedPackages, keepAliveMode);
+        return new DaemonForkOptions(buildJavaForkOptions(), classpath, sharedPackages, keepAliveMode, withoutGradleApi);
     }
 
     private JavaForkOptionsInternal buildJavaForkOptions() {
