@@ -158,19 +158,11 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
             builder.markNotCacheable(noCacheReason);
         });
 
-        builder.appendImplementation(executionState.getImplementation());
-        executionState.getAdditionalImplementations().forEach(additionalImplementation -> {
-            builder.appendAdditionalImplementation(additionalImplementation);
-        });
-        executionState.getInputProperties().forEach((propertyName, fingerprint) -> {
-            builder.appendInputValueFingerprint(propertyName, fingerprint);
-        });
-        executionState.getInputFileProperties().forEach((propertyName, fingerprint) -> {
-            builder.appendInputFilesPropertyFingerprints(propertyName, fingerprint);
-        });
-        executionState.getOutputFileProperties().keySet().forEach(propertyName -> {
-            builder.appendOutputPropertyName(propertyName);
-        });
+        builder.withImplementation(executionState.getImplementation());
+        builder.withAdditionalImplementations(executionState.getAdditionalImplementations());
+        builder.withInputValueFingerprints(executionState.getInputProperties());
+        builder.withInputFilePropertyFingerprints(executionState.getInputFileProperties());
+        builder.withOutputPropertyNames(executionState.getOutputFileProperties().keySet());
 
         return builder.build();
     }

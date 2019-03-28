@@ -47,7 +47,7 @@ class DefaultCachingStateBuilderTest extends Specification {
     }
 
     def "caching is disabled when cache key is invalid because of invalid implementation"() {
-        builder.appendImplementation(ImplementationSnapshot.of("org.gradle.WorkType", null))
+        builder.withImplementation(ImplementationSnapshot.of("org.gradle.WorkType", null))
 
         when:
         def cachingState = builder.build()
@@ -60,7 +60,7 @@ class DefaultCachingStateBuilderTest extends Specification {
 
     def "caching is disabled when cache key is invalid because of invalid additional implementation"() {
         withValidInputs()
-        builder.appendAdditionalImplementation(ImplementationSnapshot.of("org.gradle.AdditionalWorkType", null))
+        builder.withAdditionalImplementations([ImplementationSnapshot.of("org.gradle.AdditionalWorkType", null)])
 
         when:
         def cachingState = builder.build()
@@ -73,7 +73,9 @@ class DefaultCachingStateBuilderTest extends Specification {
 
     def "caching is disabled when cache key is invalid because of invalid input"() {
         withValidInputs()
-        builder.appendInputValueFingerprint("input.invalid", ImplementationSnapshot.of("org.gradle.WorkType", null))
+        builder.withInputValueFingerprints(
+            "input.invalid": ImplementationSnapshot.of("org.gradle.WorkType", null)
+        )
 
         when:
         def cachingState = builder.build()
@@ -85,14 +87,21 @@ class DefaultCachingStateBuilderTest extends Specification {
     }
 
     def withValidInputs() {
-        builder.appendImplementation(implementation)
-        builder.appendAdditionalImplementation(additionalImplementation)
-
-        builder.appendInputValueFingerprint("input.string", new StringValueSnapshot("input"))
-        builder.appendInputValueFingerprint("input.number", new IntegerValueSnapshot(123))
-
-        builder.appendInputFilesPropertyFingerprints("input.files", new EmptyCurrentFileCollectionFingerprint("test"))
-
-        builder.appendOutputPropertyName("output")
+        builder.withImplementation(
+            implementation
+        )
+        builder.withAdditionalImplementations([
+            additionalImplementation
+        ])
+        builder.withInputValueFingerprints(
+            "input.string": new StringValueSnapshot("input"),
+            "input.number": new IntegerValueSnapshot(123)
+        )
+        builder.withInputFilePropertyFingerprints(
+            "input.files": new EmptyCurrentFileCollectionFingerprint("test")
+        )
+        builder.withOutputPropertyNames([
+            "output"
+        ])
     }
 }

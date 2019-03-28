@@ -36,47 +36,62 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.gradle.internal.execution.caching.CachingDisabledReasonCategory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION;
+import static org.gradle.internal.execution.caching.CachingDisabledReasonCategory.NON_CACHEABLE_IMPLEMENTATION;
+
 public class DefaultCachingStateBuilder implements CachingStateBuilder {
     private ImplementationSnapshot implementation;
-    private final ImmutableList.Builder<ImplementationSnapshot> additionalImplementationsBuilder = ImmutableList.builder();
+    private ImmutableList<ImplementationSnapshot> additionalImplementations = ImmutableList.of();
     private final ImmutableSortedMap.Builder<String, HashCode> inputValueFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-    private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = ImmutableSortedMap.of();
     private final ImmutableSortedMap.Builder<String, String> nonCacheableInputPropertiesBuilder = ImmutableSortedMap.naturalOrder();
-    private final ImmutableSortedSet.Builder<String> outputPropertiesBuilder = ImmutableSortedSet.naturalOrder();
+    private ImmutableSortedSet<String> outputProperties = ImmutableSortedSet.of();
     private final ImmutableList.Builder<CachingDisabledReason> noCachingReasonsBuilder = ImmutableList.builder();
 
     @Override
-    public void appendImplementation(ImplementationSnapshot implementation) {
+    public final void withImplementation(ImplementationSnapshot implementation) {
         this.implementation = implementation;
+        processImplementation(implementation);
+    }
+
+    protected void processImplementation(ImplementationSnapshot implementation) {
         if (implementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
-                CachingDisabledReasonCategory.NON_CACHEABLE_IMPLEMENTATION,
+                NON_CACHEABLE_IMPLEMENTATION,
                 "Implementation type " + implementation.getUnknownReason()
             ));
         }
     }
 
     @Override
-    public void appendAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
-        this.additionalImplementationsBuilder.add(additionalImplementation);
+    public final void withAdditionalImplementations(Iterable<ImplementationSnapshot> additionalImplementations) {
+        this.additionalImplementations = ImmutableList.copyOf(additionalImplementations);
+        for (ImplementationSnapshot additionalImplementation : additionalImplementations) {
+            processAdditionalImplementation(additionalImplementation);
+        }
+    }
+
+    protected void processAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
         if (additionalImplementation.isUnknown()) {
             noCachingReasonsBuilder.add(new CachingDisabledReason(
-                CachingDisabledReasonCategory.NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
+                NON_CACHEABLE_ADDITIONAL_IMPLEMENTATION,
                 "Additional implementation type " + additionalImplementation.getUnknownReason()
             ));
         }
     }
 
     @Override
-    public void appendInputValueFingerprint(String propertyName, ValueSnapshot fingerprint) {
-        Hasher hasher = Hashing.newHasher();
-        fingerprint.appendToHasher(hasher);
-        if (hasher.isValid()) {
-            HashCode hash = hasher.hash();
-            recordInputValueFingerprint(propertyName, hash);
-        } else {
-            markInputValuePropertyNotCacheable(propertyName, hasher.getInvalidReason());
-        }
+    public final void withInputValueFingerprints(Map<String, ValueSnapshot> fingerprints) {
+        fingerprints.forEach((propertyName, fingerprint) -> {
+            Hasher hasher = Hashing.newHasher();
+            fingerprint.appendToHasher(hasher);
+            if (hasher.isValid()) {
+                HashCode hash = hasher.hash();
+                recordInputValueFingerprint(propertyName, hash);
+            } else {
+                markInputValuePropertyNotCacheable(propertyName, hasher.getInvalidReason());
+            }
+        });
     }
 
     protected void recordInputValueFingerprint(String propertyName, HashCode fingerprint) {
@@ -88,13 +103,21 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
     }
 
     @Override
-    public void appendInputFilesPropertyFingerprints(String propertyName, CurrentFileCollectionFingerprint fingerprints) {
-        inputFileFingerprintsBuilder.put(propertyName, fingerprints);
+    public final void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
+        this.inputFileFingerprints = ImmutableSortedMap.copyOf(fingerprints);
+        fingerprints.forEach((propertyName, fingerprint) -> processInputFileFingerprint(propertyName, fingerprint));
+    }
+
+    protected void processInputFileFingerprint(String propertyName, CurrentFileCollectionFingerprint fingerprint) {
     }
 
     @Override
-    public void appendOutputPropertyName(String propertyName) {
-        outputPropertiesBuilder.add(propertyName);
+    public final void withOutputPropertyNames(Iterable<String> propertyNames) {
+        this.outputProperties = ImmutableSortedSet.copyOf(propertyNames);
+        propertyNames.forEach(propertyName -> processOutputPropertyName(propertyName));
+    }
+
+    protected void processOutputPropertyName(String propertyName) {
     }
 
     @Override
@@ -103,17 +126,14 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
     }
 
     @Override
-    public CachingState build() {
-        ImmutableList<ImplementationSnapshot> additionalImplementations = additionalImplementationsBuilder.build();
+    public final CachingState build() {
         ImmutableSortedMap<String, HashCode> inputValueFingerprints = inputValueFingerprintsBuilder.build();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = inputFileFingerprintsBuilder.build();
-        ImmutableSortedSet<String> outputProperties = outputPropertiesBuilder.build();
 
         Hasher hasher = Hashing.newHasher();
         implementation.appendToHasher(hasher);
-        for (ImplementationSnapshot additionalImplementation : additionalImplementations) {
+        additionalImplementations.forEach(additionalImplementation -> {
             additionalImplementation.appendToHasher(hasher);
-        }
+        });
 
         inputValueFingerprints.forEach((propertyName, fingerprint) -> {
             hasher.putString(propertyName);

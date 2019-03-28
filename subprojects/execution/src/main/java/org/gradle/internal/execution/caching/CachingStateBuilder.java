@@ -20,16 +20,18 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import java.util.Map;
+
 public interface CachingStateBuilder {
-    void appendImplementation(ImplementationSnapshot implementation);
+    void withImplementation(ImplementationSnapshot implementation);
 
-    void appendAdditionalImplementation(ImplementationSnapshot additionalImplementation);
+    void withAdditionalImplementations(Iterable<ImplementationSnapshot> additionalImplementations);
 
-    void appendInputValueFingerprint(String propertyName, ValueSnapshot fingerprint);
+    void withInputValueFingerprints(Map<String, ValueSnapshot> fingerprints);
 
-    void appendInputFilesPropertyFingerprints(String propertyName, CurrentFileCollectionFingerprint fingerprints);
+    void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints);
 
-    void appendOutputPropertyName(String propertyName);
+    void withOutputPropertyNames(Iterable<String> propertyNames);
 
     void markNotCacheable(CachingDisabledReason reason);
 

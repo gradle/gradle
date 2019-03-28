@@ -27,39 +27,39 @@ public class LoggingCachingStateBuilder extends DefaultCachingStateBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingCachingStateBuilder.class);
 
     @Override
-    public void appendImplementation(ImplementationSnapshot implementation) {
+    protected void processImplementation(ImplementationSnapshot implementation) {
         LOGGER.warn("Appending implementation to build cache key: {}", implementation);
-        super.appendImplementation(implementation);
+        super.processImplementation(implementation);
     }
 
     @Override
-    public void appendAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
+    protected void processAdditionalImplementation(ImplementationSnapshot additionalImplementation) {
         LOGGER.warn("Appending additional implementation to build cache key: {}", additionalImplementation);
-        super.appendAdditionalImplementation(additionalImplementation);
+        super.processAdditionalImplementation(additionalImplementation);
     }
 
     @Override
-    public void recordInputValueFingerprint(String propertyName, HashCode fingerprint) {
+    protected void recordInputValueFingerprint(String propertyName, HashCode fingerprint) {
         LOGGER.warn("Appending input value fingerprint for '{}' to build cache key: {}", propertyName, fingerprint);
         super.recordInputValueFingerprint(propertyName, fingerprint);
     }
 
     @Override
-    public void markInputValuePropertyNotCacheable(String propertyName, String nonCacheableReason) {
+    protected void markInputValuePropertyNotCacheable(String propertyName, String nonCacheableReason) {
         LOGGER.warn("Non-cacheable input value property '{}' {}.", propertyName, nonCacheableReason);
         super.markInputValuePropertyNotCacheable(propertyName, nonCacheableReason);
     }
 
     @Override
-    public void appendInputFilesPropertyFingerprints(String propertyName, CurrentFileCollectionFingerprint fingerprints) {
-        LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {}", propertyName, fingerprints.getHash());
-        super.appendInputFilesPropertyFingerprints(propertyName, fingerprints);
+    protected void processInputFileFingerprint(String propertyName, CurrentFileCollectionFingerprint fingerprint) {
+        LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {}", propertyName, fingerprint.getHash());
+        super.processInputFileFingerprint(propertyName, fingerprint);
     }
 
     @Override
-    public void appendOutputPropertyName(String propertyName) {
+    protected void processOutputPropertyName(String propertyName) {
         LOGGER.warn("Appending output property name to build cache key: {}", propertyName);
-        super.appendOutputPropertyName(propertyName);
+        super.processOutputPropertyName(propertyName);
     }
 
     @Override
