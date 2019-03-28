@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" parent-id="Gradle_Util" uuid="fdc4f15a-e253-4744-a1b3-bcac37b18189" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/2018.1/project-config.xsd">
-  <name>Performance</name>
-  <parameters />
-  <cleanup />
-</project>
-

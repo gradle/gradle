@@ -1,6 +1,11 @@
 package model
 
+import common.BuildCache
 import common.JvmCategory
+import common.JvmVendor
+import common.JvmVersion
+import common.Os
+import common.builtInRemoteBuildCacheNode
 import configurations.BuildDistributions
 import configurations.CompileAll
 import configurations.DependenciesCheck
@@ -22,23 +27,23 @@ enum class StageNames(override val stageName: String, override val description: 
 
 
 data class CIBuildModel (
-        val projectPrefix: String = "Gradle_Check_",
-        val rootProjectName: String = "Check",
-        val tagBuilds: Boolean = true,
-        val publishStatusToGitHub: Boolean = true,
-        val masterAndReleaseBranches: List<String> = listOf("master", "release"),
-        val parentBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
-        val childBuildCache: BuildCache = RemoteBuildCache("%gradle.cache.remote.url%"),
-        val buildScanTags: List<String> = emptyList(),
-        val stages: List<Stage> = listOf(
+    val projectPrefix: String = "Gradle_Check_",
+    val rootProjectName: String = "Check",
+    val tagBuilds: Boolean = true,
+    val publishStatusToGitHub: Boolean = true,
+    val masterAndReleaseBranches: List<String> = listOf("master", "release"),
+    val parentBuildCache: BuildCache = builtInRemoteBuildCacheNode,
+    val childBuildCache: BuildCache = builtInRemoteBuildCacheNode,
+    val buildScanTags: List<String> = emptyList(),
+    val stages: List<Stage> = listOf(
             Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
                     specificBuilds = listOf(
                             SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
                     functionalTests = listOf(
-                            TestCoverage(1, TestType.quick, OS.linux,  common.JvmCategory.MAX_VERSION.version, vendor = common.JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
+                            TestCoverage(1, TestType.quick, Os.linux,  common.JvmCategory.MAX_VERSION.version, vendor = common.JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
             Stage(StageNames.QUICK_FEEDBACK,
                     functionalTests = listOf(
-                            TestCoverage(2, TestType.quick, OS.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
+                            TestCoverage(2, TestType.quick, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
                     functionalTestsDependOnSpecificBuilds = true,
                     omitsSlowProjects = true,
                     dependsOnSanityCheck = true),
@@ -48,28 +53,28 @@ data class CIBuildModel (
                             SpecificBuild.Gradleception,
                             SpecificBuild.SmokeTests),
                     functionalTests = listOf(
-                            TestCoverage(3, TestType.platform, OS.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(4, TestType.platform, OS.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)),
+                            TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)),
                     performanceTests = listOf(PerformanceTestType.test),
                     omitsSlowProjects = true),
             Stage(StageNames.READY_FOR_NIGHTLY,
                     trigger = Trigger.eachCommit,
                     functionalTests = listOf(
-                            TestCoverage(5, TestType.quickFeedbackCrossVersion, OS.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(6, TestType.quickFeedbackCrossVersion, OS.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(7, TestType.parallel, OS.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
+                            TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(7, TestType.parallel, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
             ),
             Stage(StageNames.READY_FOR_RELEASE,
                     trigger = Trigger.daily,
                     functionalTests = listOf(
-                            TestCoverage(8, TestType.soak, OS.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
-                            TestCoverage(9, TestType.soak, OS.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(10,TestType.allVersionsCrossVersion, OS.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(11,TestType.allVersionsCrossVersion, OS.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(12, TestType.noDaemon, OS.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(13, TestType.noDaemon, OS.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
-                            TestCoverage(14, TestType.platform, OS.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                            TestCoverage(15, TestType.forceRealizeDependencyManagement, OS.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
+                            TestCoverage(8, TestType.soak, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                            TestCoverage(9, TestType.soak, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(10,TestType.allVersionsCrossVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(11,TestType.allVersionsCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(12, TestType.noDaemon, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(13, TestType.noDaemon, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                            TestCoverage(14, TestType.platform, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
+                            TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
                     performanceTests = listOf(
                             PerformanceTestType.experiment)),
             Stage(StageNames.HISTORICAL_PERFORMANCE,
@@ -80,13 +85,13 @@ data class CIBuildModel (
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
-                        TestCoverage(16, TestType.quick, OS.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                        TestCoverage(17, TestType.quick, OS.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                        TestCoverage(18, TestType.platform, OS.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                        TestCoverage(19, TestType.platform, OS.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))
+                        TestCoverage(16, TestType.quick, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                        TestCoverage(17, TestType.quick, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                        TestCoverage(18, TestType.platform, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                        TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))
             )
         ),
-        val subProjects : List<GradleSubproject> = listOf(
+    val subProjects : List<GradleSubproject> = listOf(
             GradleSubproject("announce"),
             GradleSubproject("antlr"),
             GradleSubproject("baseServices"),
@@ -195,29 +200,6 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
     fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
 }
 
-interface BuildCache {
-    fun gradleParameters(os: OS): List<String>
-}
-
-data class RemoteBuildCache(val url: String, val username: String = "%gradle.cache.remote.username%", val password: String = "%gradle.cache.remote.password%") : BuildCache {
-    override fun gradleParameters(os: OS): List<String> {
-        return listOf("--build-cache",
-                os.escapeKeyValuePair("-Dgradle.cache.remote.url", url),
-                os.escapeKeyValuePair("-Dgradle.cache.remote.username", username),
-                os.escapeKeyValuePair("-Dgradle.cache.remote.password", password)
-        )
-    }
-}
-
-private
-fun OS.escapeKeyValuePair(key: String, value: String) = if (this == OS.windows) """$key="$value"""" else """"$key=$value""""
-
-object NoBuildCache : BuildCache {
-    override fun gradleParameters(os: OS): List<String> {
-        return emptyList()
-    }
-}
-
 interface StageName {
     val stageName: String
     val description: String
@@ -231,7 +213,7 @@ data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuil
     val id = stageName.id
 }
 
-data class TestCoverage(val uuid: Int, val testType: TestType, val os: OS, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
+data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
     fun asId(model : CIBuildModel): String {
         return "${model.projectPrefix}$testCoveragePrefix"
     }
@@ -260,14 +242,6 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: OS, val t
     }
 }
 
-enum class OS(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper", "platformPlay"))
-}
-
-enum class JvmVersion {
-    java8, java9, java10, java11, java12
-}
-
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     quick(true, true, true, 60),
@@ -281,10 +255,6 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     noDaemon(false, true, false, 240),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
-}
-
-enum class JvmVendor {
-    oracle, ibm, openjdk
 }
 
 enum class PerformanceTestType(val taskId: String, val timeout : Int, val defaultBaselines: String = "", val extraParameters : String = "") {

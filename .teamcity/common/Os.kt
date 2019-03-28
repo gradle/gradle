@@ -16,8 +16,6 @@
 
 package common
 
-enum class JvmCategory(val vendor: JvmVendor, val version: JvmVersion) {
-    MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
-    MAX_VERSION(JvmVendor.openjdk, JvmVersion.java11),
-    EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java12)
+enum class Os(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper", "platformPlay"))
 }

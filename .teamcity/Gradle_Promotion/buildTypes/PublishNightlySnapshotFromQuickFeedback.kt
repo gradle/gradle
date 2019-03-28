@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package common
+package Gradle_Promotion.buildTypes
 
-enum class JvmCategory(val vendor: JvmVendor, val version: JvmVersion) {
-    MIN_VERSION(JvmVendor.oracle, JvmVersion.java8),
-    MAX_VERSION(JvmVendor.openjdk, JvmVersion.java11),
-    EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java12)
+class PublishNightlySnapshotFromQuickFeedback(uuid: String, branch: String) : PublishGradleDistribution(
+    branch = branch,
+    task = branch.promoteNightlyTaskName(),
+    triggerName = "QuickFeedback"
+) {
+    init {
+        this.uuid = uuid
+        id("Gradle_Promotion_${branch.capitalize()}SnapshotFromQuickFeedback")
+        name = "${branch.capitalize()} - Nightly Snapshot (from QuickFeedback)"
+        description = "Promotes the latest successful changes on '$branch' from Quick Feedback as a new nightly snapshot"
+    }
 }

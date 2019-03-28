@@ -1,3 +1,4 @@
+import common.Os
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
 import configurations.applyTestDefaults
@@ -8,9 +9,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_2.FailureConditions
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
-import model.OS
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -63,8 +62,7 @@ class ApplyDefaultConfigurationTest {
         assertEquals(listOf(
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP",
-            "TAG_BUILD"
+            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
     }
@@ -83,8 +81,7 @@ class ApplyDefaultConfigurationTest {
             "GRADLE_RUNNER",
             "GRADLE_RERUNNER",
             "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP",
-            "TAG_BUILD"
+            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
@@ -97,7 +94,7 @@ class ApplyDefaultConfigurationTest {
         "''     , false, '--no-daemon'"
     ])
     fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyTestDefaults(buildModel, buildType, "myTask", os = OS.windows, extraParameters = extraParameters, daemon = daemon)
+        applyTestDefaults(buildModel, buildType, "myTask", os = Os.windows, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
@@ -105,8 +102,7 @@ class ApplyDefaultConfigurationTest {
             "GRADLE_RERUNNER",
             "KILL_PROCESSES_STARTED_BY_GRADLE_RERUN",
             "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP",
-            "TAG_BUILD"
+            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
@@ -117,9 +113,9 @@ class ApplyDefaultConfigurationTest {
         assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, getGradleStep("GRADLE_RERUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true", getGradleStep("GRADLE_RERUNNER").gradleParams)
+        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true -PgithubToken=%github.ci.oauth.token%", getGradleStep("GRADLE_RERUNNER").gradleParams)
         assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
-        assertEquals("myTask", getGradleStep("GRADLE_RERUNNER").tasks)
+        assertEquals("myTask tagBuild", getGradleStep("GRADLE_RERUNNER").tasks)
     }
 
     private
@@ -127,5 +123,5 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "") =
-        "-PmaxParallelForks=%maxParallelForks% -s $daemon --continue -I \"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\" -Dorg.gradle.internal.tasks.createops $extraParameters -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
+        "-PmaxParallelForks=%maxParallelForks% -s $daemon --continue -I \"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\" -Dorg.gradle.internal.tasks.createops -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% $extraParameters -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
 }

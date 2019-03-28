@@ -1,20 +1,3 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<settings>
-  <webhooks enabled="true">
-    <webhook url="https://api.hipchat.com/v1/webhooks/teamcity/?auth_token=4422efda69d1e2193b770719a78e4f&amp;room_id=72960" enabled="true" format="nvpairs">
-      <states>
-        <state type="responsibilityChanged" enabled="true" />
-        <state type="beforeBuildFinish" enabled="false" />
-        <state type="buildFailed" enabled="false" />
-        <state type="buildBroken" enabled="false" />
-        <state type="buildInterrupted" enabled="true" />
-        <state type="buildFinished" enabled="false" />
-        <state type="buildFixed" enabled="false" />
-        <state type="buildSuccessful" enabled="false" />
-        <state type="buildStarted" enabled="false" />
-      </states>
-      <build-types enabled-for-all="true" enabled-for-subprojects="true" />
-    </webhook>
-  </webhooks>
-</settings>
+<settings />
 

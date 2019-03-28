@@ -1,17 +1,19 @@
 package configurations
 
+import common.Os
+import common.applyDefaultSettings
+import common.buildToolGradleParameters
+import common.checkCleanM2
+import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import model.CIBuildModel
-import model.OS
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, init = {
     uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkersLinux"
     id = AbsoluteId(uuid)
     name = "Individual Performance Scenario Workers - Linux"
 
-    applyDefaultSettings(this, timeout = 420)
+    applyDefaultSettings(timeout = 420)
     artifactRules = """
         subprojects/*/build/test-results-*.zip => results
         subprojects/*/build/tmp/**/log.txt => failure-logs
@@ -41,17 +43,13 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
             name = "GRADLE_RUNNER"
             tasks = ""
             gradleParams = (
-                    gradleParameters(isContinue = false)
+                    buildToolGradleParameters(isContinue = false)
                     + listOf("""clean %templates% fullPerformanceTests --scenarios "%scenario%" --baselines %baselines% --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% -x prepareSamples -Porg.gradle.performance.branchName=%teamcity.build.branch% -Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent% -PtimestampedVersion""",
                             buildScanTag("IndividualPerformanceScenarioWorkers"), "-PtestJavaHome=${individualPerformanceTestJavaHome}")
-                            + model.parentBuildCache.gradleParameters(OS.linux)
+                            + model.parentBuildCache.gradleParameters(Os.linux)
                     ).joinToString(separator = " ")
         }
-        script {
-            name = "CHECK_CLEAN_M2"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = m2CleanScriptUnixLike
-        }
+        checkCleanM2()
     }
 
     applyDefaultDependencies(model, this)
