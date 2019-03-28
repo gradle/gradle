@@ -41,6 +41,71 @@ include::javaProjectTestLayout.adoc[]
 
 include::javaProjectGenericLayout.adoc[]
 
+[[sec:java_convention_properties]]
+== Convention properties
+
+The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
+
+=== Directory properties
+
+`String reporting.baseDir`::
+The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
+
+`(read-only) File reportsDir`::
+The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
+
+`String testResultsDirName`::
+The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
+
+`(read-only) File testResultsDir`::
+The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
+
+`String testReportDirName`::
+The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
+
+`(read-only) File testReportDir`::
+The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
+
+`String libsDirName`::
+The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
+
+`(read-only) File libsDir`::
+The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
+
+`String distsDirName`::
+The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
+
+`(read-only) File distsDir`::
+The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
+
+`String docsDirName`::
+The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
+
+`(read-only) File docsDir`::
+The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
+
+`String dependencyCacheDirName`::
+The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
+
+=== Other convention properties
+
+`(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
+Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
+Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
+Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
+
+`String archivesBaseName`::
+The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
+
+`link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
+The manifest to include in all JAR files. Default value: an empty manifest.
+
+These properties are provided by convention objects of type link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
+
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
@@ -282,6 +347,57 @@ The following diagram shows the relationships between these tasks.
 image::javaPluginTasks.png[]
 
 
+[[sec:java_test]]
+=== Test
+
+The `test` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for the complete API.
+
+See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapter for more details.
+
+
+[[sec:jar]]
+=== Jar
+
+The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files.adoc#sec:archives,Archive creation in depth>> and artifact configurations in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
+
+
+[[sub:manifest]]
+==== Manifest
+
+Each jar or war object has a `manifest` property with a separate instance of link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
+
+.Customization of MANIFEST.MF
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
+====
+
+You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
+
+.Creating a manifest object.
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
+====
+
+You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
+
+.Separate MANIFEST.MF for a particular archive
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
+====
+
+Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
+
+You can easily write a manifest to disk.
+
+.Saving a MANIFEST.MF to disk
+====
+include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
+include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
+====
+
 
 [[sec:java_plugin_and_dependency_management]]
 == Dependency management
@@ -397,133 +513,8 @@ Runtime classpath contains elements of the implementation, as well as runtime on
 `components.java`::
 A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_overview.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
 
-[[sec:java_convention_properties]]
-== Convention properties
-
-The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
-
-=== Directory properties
-
-`String reporting.baseDir`::
-The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
-
-`(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
-
-`String testResultsDirName`::
-The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
-
-`(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
-
-`String testReportDirName`::
-The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
-
-`(read-only) File testReportDir`::
-The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
-
-`String libsDirName`::
-The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
-
-`(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
-
-`String distsDirName`::
-The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
-
-`(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
-
-`String docsDirName`::
-The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
-
-`(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
-
-`String dependencyCacheDirName`::
-The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
-
-=== Other convention properties
-
-`(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
-Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
-
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
-
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
-Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
-
-`String archivesBaseName`::
-The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
-
-`link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
-The manifest to include in all JAR files. Default value: an empty manifest.
-
-These properties are provided by convention objects of type link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
-
-[[sec:javadoc]]
-== Javadoc
-
-The `javadoc` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]. It supports the core Javadoc options and the options of the standard doclet described in the link:{javadocReferenceUrl}[reference documentation] of the Javadoc executable. For a complete list of supported Javadoc options consult the API documentation of the following classes: link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions].
-
-=== Javadoc properties
-
-`link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
-Default value: `sourceSets.main.output` + `sourceSets.main.compileClasspath`
-
-`link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] source`::
-Default value: `sourceSets.main.allJava`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__docsDir__/javadoc`
-
-`String title`::
-Default value: The name and version of the project
-
-[[sec:clean]]
-== Clean
-
-The `clean` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]. It simply removes the directory denoted by its `dir` property.
-
-=== Clean properties
-
-`File dir`::
-Default value: `__buildDir__`
-
-
-== Resources
-
-The Java plugin uses the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for resource handling. It adds an instance for each source set in the project. You can find out more about the copy task in <<working_with_files.adoc#sec:copying_files,File copying in depth>>.
-
-=== ProcessResources properties
-
-`Object srcDirs`::
-Default value: `__sourceSet__.resources`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__sourceSet__.output.resourcesDir`. Can set using anything described in <<working_with_files.adoc#sec:locating_files,file paths in depth>>.
-
-
-== CompileJava
-
-The Java plugin adds a link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] instance for each source set in the project. Some of the most common configuration options are shown below.
-
-=== Compile properties
-
-`link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] classpath`::
-Default value: `__sourceSet__.compileClasspath`
-
-`link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] source`::
-Default value: `__sourceSet__.java`. Can set using anything described in <<working_with_files.adoc#sec:specifying_multiple_files,Understanding implicit conversion to file collections>>.
-
-`File destinationDir`::
-Default value: `__sourceSet__.java.outputDir`
-
-By default, the Java compiler runs in the Gradle process. Setting `options.fork` to `true` causes compilation to occur in a separate process. In the case of the Ant javac task, this means that a new process will be forked for each compile task, which can slow down compilation. Conversely, Gradle's direct compiler integration (see above) will reuse the same compiler process as much as possible. In both cases, all fork options specified with `options.forkOptions` will be honored.
-
 [[sec:incremental_compile]]
-=== Incremental Java compilation
+== Incremental Java compilation
 
 Gradle comes with a sophisticated incremental Java compiler that is active by default.
 
@@ -548,14 +539,14 @@ To help you understand how incremental compilation works, the following provides
 * The class analysis is cached in the project directory, so the first build after a clean checkout can be slower. Consider turning off the incremental compiler on your build server.
 
 [[sec:incremental_compilation_known_issues]]
-==== Known issues
+=== Known issues
 
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
 * If a resource file is changed, Gradle will trigger a full recompilation.
 
 [[sec:incremental_annotation_processing]]
-=== Incremental annotation processing
+== Incremental annotation processing
 
 Starting with Gradle 4.7, the incremental compiler also supports incremental annotation processing.
 All annotation processors need to opt in to this feature, otherwise they will trigger a full recompilation.
@@ -563,7 +554,7 @@ All annotation processors need to opt in to this feature, otherwise they will tr
 As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
 Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.
 
-==== Making an annotation processor incremental
+=== Making an annotation processor incremental
 
 Please first have a look at <<#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
 
@@ -605,7 +596,7 @@ Both categories have the following limitations:
     the `location` argument must be one of these values from link:{javaApi}/javax/tools/StandardLocation.html[StandardLocation]: `CLASS_OUTPUT`, `SOURCE_OUTPUT`, or `NATIVE_HEADER_OUTPUT`.
     Any other argument will disable incremental processing.
 
-==== "Isolating" annotation processors
+=== "Isolating" annotation processors
 
 The fastest category, these look at each annotated element in isolation, creating generated files or validation messages for it.
 For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
@@ -632,7 +623,7 @@ include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/j
 When a source file is recompiled, Gradle will recompile all files generated from it.
 When a source file is deleted, the files generated from it are deleted.
 
-==== "Aggregating" annotation processors
+=== "Aggregating" annotation processors
 
 These can aggregate several source files into one ore more output files or validation messages.
 For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
@@ -785,7 +776,7 @@ Many popular annotation processors support incremental annotation processing (se
 |===
 
 [[sec:java_compile_avoidance]]
-=== Compile avoidance
+== Compilation avoidance
 
 If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
 
@@ -807,55 +798,3 @@ Gradle ignores annotation processors on the compile classpath.
 include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
 ====
-
-[[sec:java_test]]
-== Test
-
-The `test` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for the complete API.
-
-See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapter for more details.
-
-
-[[sec:jar]]
-== Jar
-
-The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files.adoc#sec:archives,Archive creation in depth>> and artifact configurations in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
-
-
-[[sub:manifest]]
-=== Manifest
-
-Each jar or war object has a `manifest` property with a separate instance of link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
-
-.Customization of MANIFEST.MF
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
-====
-
-You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
-
-.Creating a manifest object.
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
-====
-
-You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
-
-.Separate MANIFEST.MF for a particular archive
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
-====
-
-Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
-
-You can easily write a manifest to disk.
-
-.Saving a MANIFEST.MF to disk
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
-====
-
