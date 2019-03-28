@@ -19,6 +19,7 @@ package org.gradle.internal.logging.slf4j;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Cast;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.slf4j.Marker;
@@ -31,7 +32,7 @@ public class DefaultContextAwareTaskLogger implements ContextAwareTaskLogger {
     private OperationIdentifier fallbackOperationIdentifier = null;
 
     public DefaultContextAwareTaskLogger(Logger delegate) {
-        this.delegate = (BuildOperationAwareLogger) delegate;
+        this.delegate = Cast.cast(BuildOperationAwareLogger.class, delegate);
     }
 
     public void setFallbackBuildOperationId(OperationIdentifier operationIdentifier) {
