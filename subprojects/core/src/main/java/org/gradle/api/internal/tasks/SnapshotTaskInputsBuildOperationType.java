@@ -189,7 +189,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
          * Never empty.
          */
         @Nullable
-        Set<String> getOutputPropertyNames();
+        List<String> getOutputPropertyNames();
 
     }
 

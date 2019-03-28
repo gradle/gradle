@@ -288,17 +288,17 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
 
     @Nullable
     @Override
-    public Set<String> getOutputPropertyNames() {
+    public List<String> getOutputPropertyNames() {
         return cachingState.getInputs()
-            .map(new java.util.function.Function<CachingInputs, Set<String>>() {
+            .map(new java.util.function.Function<CachingInputs, List<String>>() {
                 @Nullable
                 @Override
-                public Set<String> apply(CachingInputs inputs) {
+                public List<String> apply(CachingInputs inputs) {
                     ImmutableSortedSet<String> outputPropertyNames = inputs.getOutputProperties();
                     if (outputPropertyNames.isEmpty()) {
                         return null;
                     }
-                    return outputPropertyNames;
+                    return outputPropertyNames.asList();
                 }
             })
             .orElse(null);
