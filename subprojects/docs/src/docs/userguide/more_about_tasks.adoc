@@ -1232,9 +1232,9 @@ Lifecycle tasks are tasks that do not do work themselves. They typically do not 
 * a buildable thing (e.g., create a debug 32-bit executable for native components with `debug32MainExecutable`)
 * a convenience task to execute many of the same logical tasks (e.g., run all compilation tasks with `compileAll`)
 
-Many Gradle plug-ins define their own lifecycle tasks to make it convenient to do specific things. When developing your own plugins, you should consider using your own lifecycle tasks or hooking into some of the tasks already provided by Gradle. See the Java plugin <<java_plugin.adoc#sec:java_tasks,tasks>> for an example.
+The Base Plugin defines several <<base_plugin#sec:base_tasks,standard lifecycle tasks>>, such as `build`, `assemble`, and `check`. All the core language plugins, like the <<java_plugin#java_plugin,Java Plugin>>, apply the Base Plugin and hence have the same base set of lifecycle tasks.
 
-Unless a lifecycle task has actions, its outcome is determined by its dependencies. If any of the task's dependencies are executed, the lifecycle task will be considered executed. If all of the task's dependencies are up-to-date, skipped or from cache, the lifecycle task will be considered up-to-date.
+Unless a lifecycle task has actions, its <<sec:task_outcomes,outcome>> is determined by its task dependencies. If any of those dependencies are executed, the lifecycle task will be considered `EXECUTED`. If all of the task dependencies are up to date, skipped or from cache, the lifecycle task will be considered `UP-TO-DATE`.
 
 [[sec:the_idea_behind_gradle_tasks]]
 == Summary
