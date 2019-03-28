@@ -30,7 +30,7 @@ import java.util.Arrays;
 /**
  * An immutable snapshot of the state of some value.
  */
-class SerializedValueSnapshot implements ValueSnapshot {
+public class SerializedValueSnapshot implements ValueSnapshot {
     private final HashCode implementationHash;
     private final byte[] serializedValue;
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableSortedMap
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.internal.command.BuildCacheCommandFactory
@@ -25,27 +25,24 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.CacheHandler
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.caching.CachingDisabledReason
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import org.gradle.internal.file.TreeType
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import java.util.function.Consumer
-import java.util.function.Function
-
-import static org.gradle.internal.fingerprint.FileCollectionFingerprint.EMPTY
-
 class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
-    def cacheHandler = Mock(CacheHandler)
 
     def cacheKey = Stub(BuildCacheKey)
+    def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     @Shared def rebuildChanges = Mock(ExecutionStateChanges)
     def localStateFile = file("local-state.txt") << "local state"
@@ -54,10 +51,11 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     def delegateResult = Mock(CurrentSnapshotResult)
     def context = Mock(IncrementalChangesContext)
 
+    def loadCommand = Mock(BuildCacheLoadCommand)
+
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
         def outputsFromCache = fingerprintsOf("test": [])
-        def loadCommand = Mock(BuildCacheLoadCommand)
 
         when:
         def result = step.execute(context)
@@ -68,14 +66,10 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result.originMetadata == cachedOriginMetadata
         result.finalOutputs == outputsFromCache
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<?>> loader ->
-            loader.apply(cacheKey)
-        }
+        interaction { withValidCacheKey() }
 
         then:
+        1 * work.allowedToLoadFromCache >> true
         1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
@@ -87,35 +81,26 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
     }
 
     def "executes work and stores in cache on cache miss"() {
-        def storeCommand = Mock(BuildCacheStoreCommand)
-        def finalOutputs = ImmutableSortedMap.of("test", EMPTY)
-        def originMetadata = Mock(OriginMetadata)
-
         when:
         def result = step.execute(context)
 
         then:
         result == delegateResult
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> true
+        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * cacheHandler.store(_) >> { Consumer<BuildCacheKey> storer -> storer.accept(cacheKey) }
-
-        then:
         1 * context.work >> work
-        1 * delegateResult.finalOutputs >> finalOutputs
-        1 * delegateResult.originMetadata >> originMetadata
-        1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, work, finalOutputs, 123L) >> storeCommand
-        1 * buildCacheController.store(storeCommand)
+        interaction { outputStored {} }
         0 * _
     }
 
@@ -130,10 +115,12 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         result == delegateResult
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { Function<BuildCacheKey, Optional<?>> loader ->
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> true
+        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> { BuildCacheLoadCommand command ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
             loadedOutputDir.file("output.txt") << "output"
@@ -162,7 +149,7 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * cacheHandler.store(_)
+        interaction { outputStored {} }
         0 * _
 
         where:
@@ -181,10 +168,12 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         def ex = thrown Exception
         ex.message == "cleanup failure"
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> { throw new RuntimeException("unpack failure") }
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> true
+        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> { throw new RuntimeException("unpack failure") }
 
         then:
         1 * work.displayName >> "work"
@@ -203,10 +192,12 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result == delegateResult
         !result.reused
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> true
+        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
         1 * delegate.execute(context) >> delegateResult
@@ -215,40 +206,51 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         then:
         1 * context.work >> work
         1 * work.displayName >> "Display name"
-        0 * cacheHandler.store(_)
+        0 * buildCacheController.store(_)
         0 * _
     }
 
-    def "does not fail when cache backend throws exception while storing cached result"() {
-        def storeCommand = Mock(BuildCacheStoreCommand)
-        def finalOutputs = ImmutableSortedMap.of("test", EMPTY)
-        def originMetadata = Mock(OriginMetadata)
-
+    def "does not load but stores when loading is disabled"() {
         when:
         def result = step.execute(context)
 
         then:
         result == delegateResult
 
-        1 * buildCacheController.enabled >> true
-        1 * context.work >> work
-        1 * work.createCacheHandler() >> cacheHandler
-        1 * cacheHandler.load(_) >> Optional.empty()
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> false
 
         then:
         1 * delegate.execute(context) >> delegateResult
         1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
-        1 * cacheHandler.store(_) >> { Consumer<BuildCacheKey> storer -> storer.accept(cacheKey) }
+        1 * context.work >> work
+        interaction { outputStored {} }
+        0 * _
+    }
+
+    def "does not fail when cache backend throws exception while storing cached result"() {
+        when:
+        def result = step.execute(context)
+
+        then:
+        result == delegateResult
+
+        interaction { withValidCacheKey() }
+
+        then:
+        1 * work.allowedToLoadFromCache >> false
+
+        then:
+        1 * delegate.execute(context) >> delegateResult
+        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
 
         then:
         1 * context.work >> work
-        1 * delegateResult.finalOutputs >> finalOutputs
-        1 * delegateResult.originMetadata >> originMetadata
-        1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, work, finalOutputs, 123L) >> storeCommand
-        1 * buildCacheController.store(storeCommand) >> { throw new RuntimeException("store failure") }
+        interaction { outputStored { throw new RuntimeException("store failure") } }
         0 * _
     }
 
@@ -260,9 +262,29 @@ class CacheStepTest extends StepSpec implements FingerprinterFixture {
         result == delegateResult
         !result.reused
 
-        1 * buildCacheController.enabled >> false
+        1 * context.cachingState >> cachingState
+        1 * cachingState.disabledReasons >> ImmutableList.of(new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Unknown"))
         1 * delegate.execute(_) >> delegateResult
         0 * _
+    }
+
+    private void withValidCacheKey() {
+        1 * context.work >> work
+        1 * context.cachingState >> cachingState
+        1 * cachingState.disabledReasons >> ImmutableList.of()
+        1 * cachingState.key >> Optional.of(cacheKey)
+    }
+
+    private void outputStored(Closure storeResult) {
+        def originMetadata = Mock(OriginMetadata)
+        def finalOutputs = fingerprintsOf("test": [])
+        def storeCommand = Mock(BuildCacheStoreCommand)
+
+        1 * delegateResult.finalOutputs >> finalOutputs
+        1 * delegateResult.originMetadata >> originMetadata
+        1 * originMetadata.executionTime >> 123L
+        1 * buildCacheCommandFactory.createStore(cacheKey, work, finalOutputs, 123L) >> storeCommand
+        1 * buildCacheController.store(storeCommand) >> { storeResult() }
     }
 
     private void localStateIsRemoved() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks;
+package org.gradle.internal.execution.caching;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.internal.execution.history.BeforeExecutionState;
+public class CachingDisabledReason {
+    private final CachingDisabledReasonCategory category;
+    private final String message;
 
-public interface TaskCacheKeyCalculator {
-    TaskOutputCachingBuildCacheKey calculate(TaskInternal task, BeforeExecutionState execution, TaskProperties properties, boolean buildCacheDebugLogging);
+    public CachingDisabledReason(CachingDisabledReasonCategory category, String message) {
+        this.category = category;
+        this.message = message;
+    }
+
+    public CachingDisabledReasonCategory getCategory() {
+        return category;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 }

@@ -64,6 +64,7 @@ public class EventFiringTaskExecuter implements TaskExecuter {
 
                 operationContext.setResult(new ExecuteTaskBuildOperationResult(
                     state,
+                    result.getCachingState(),
                     result.getReusedOutputOriginMetadata().orElse(null),
                     result.executedIncrementally(),
                     result.getExecutionReasons()

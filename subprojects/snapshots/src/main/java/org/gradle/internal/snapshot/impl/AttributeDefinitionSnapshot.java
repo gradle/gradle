@@ -20,7 +20,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.Hasher;
 
-class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<Attribute<?>> {
+public class AttributeDefinitionSnapshot extends AbstractIsolatableScalarValue<Attribute<?>> {
 
     private final ClassLoaderHierarchyHasher classLoaderHasher;
 

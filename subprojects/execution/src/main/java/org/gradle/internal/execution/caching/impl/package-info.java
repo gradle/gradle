@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.caching.impl;
 
-package org.gradle.caching.internal.tasks;
-
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
-
-public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
-    Path getTaskPath();
-
-    BuildCacheKeyInputs getInputs();
-
-    @Nullable
-    byte[] getHashCodeBytes();
-
-    /**
-     * Whether this key can be used to retrieve or store task output entries.
-     */
-    boolean isValid();
-}
+import org.gradle.api.NonNullApi;

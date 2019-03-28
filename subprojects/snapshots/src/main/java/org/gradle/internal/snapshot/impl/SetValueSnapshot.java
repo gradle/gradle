@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-class SetValueSnapshot extends AbstractSetSnapshot<ValueSnapshot> implements ValueSnapshot {
+public class SetValueSnapshot extends AbstractSetSnapshot<ValueSnapshot> implements ValueSnapshot {
     public SetValueSnapshot(ImmutableSet<ValueSnapshot> elements) {
         super(elements);
     }

@@ -28,15 +28,15 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
-import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -66,14 +66,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class DefaultTransformerInvoker implements TransformerInvoker {
+    private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final String INPUT_ARTIFACT_PROPERTY_NAME = "inputArtifact";
     private static final String DEPENDENCIES_PROPERTY_NAME = "inputArtifactDependencies";
     private static final String SECONDARY_INPUTS_HASH_PROPERTY_NAME = "inputPropertiesHash";
@@ -83,14 +81,14 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemSnapshotter fileSystemSnapshotter;
-    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ProjectFinder projectFinder;
 
-    public DefaultTransformerInvoker(WorkExecutor<IncrementalContext, UpToDateResult> workExecutor,
+    public DefaultTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
                                      FileSystemSnapshotter fileSystemSnapshotter,
                                      ArtifactTransformListener artifactTransformListener,
                                      CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -139,7 +137,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
                 TransformerExecution execution = new TransformerExecution(
                     transformer,
-                    beforeExecutionState,
                     workspace,
                     transformIdentity,
                     executionHistoryStore,
@@ -149,7 +146,7 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
                     outputFingerprinter
                 );
 
-                UpToDateResult outcome = workExecutor.execute(new IncrementalContext() {
+                CachingResult outcome = workExecutor.execute(new IncrementalContext() {
                     @Override
                     public UnitOfWork getWork() {
                         return execution;
@@ -228,7 +225,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
     private static class TransformerExecution implements UnitOfWork {
         private final Transformer transformer;
-        private final BeforeExecutionState beforeExecutionState;
         private final TransformationWorkspace workspace;
         private final File inputArtifact;
         private final String identityString;
@@ -241,7 +237,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
 
         public TransformerExecution(
             Transformer transformer,
-            BeforeExecutionState beforeExecutionState,
             TransformationWorkspace workspace,
             String identityString,
             ExecutionHistoryStore executionHistoryStore,
@@ -250,7 +245,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             ArtifactTransformDependencies dependencies,
             FileCollectionFingerprinter outputFingerprinter
         ) {
-            this.beforeExecutionState = beforeExecutionState;
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
@@ -366,33 +360,15 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public CacheHandler createCacheHandler() {
-            Hasher hasher = Hashing.newHasher();
-            for (Map.Entry<String, ValueSnapshot> entry : beforeExecutionState.getInputProperties().entrySet()) {
-                hasher.putString(entry.getKey());
-                entry.getValue().appendToHasher(hasher);
-            }
-            for (Map.Entry<String, CurrentFileCollectionFingerprint> entry : beforeExecutionState.getInputFileProperties().entrySet()) {
-                hasher.putString(entry.getKey());
-                hasher.putHash(entry.getValue().getHash());
-            }
-            TransformerExecutionBuildCacheKey cacheKey = new TransformerExecutionBuildCacheKey(hasher.hash());
-            return new CacheHandler() {
-                @Override
-                public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
-                    if (!transformer.isCacheable()) {
-                        return Optional.empty();
-                    }
-                    return loader.apply(cacheKey);
-                }
+        public Optional<CachingDisabledReason> shouldDisableCaching() {
+            return transformer.isCacheable()
+                ? Optional.empty()
+                : Optional.of(NOT_CACHEABLE);
+        }
 
-                @Override
-                public void store(Consumer<BuildCacheKey> storer) {
-                    if (transformer.isCacheable()) {
-                        storer.accept(cacheKey);
-                    }
-                }
-            };
+        @Override
+        public boolean isAllowedToLoadFromCache() {
+            return true;
         }
 
         @Override
@@ -430,24 +406,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
-        }
-
-        private class TransformerExecutionBuildCacheKey implements BuildCacheKey {
-            private final HashCode hashCode;
-
-            public TransformerExecutionBuildCacheKey(HashCode hashCode) {
-                this.hashCode = hashCode;
-            }
-
-            @Override
-            public String getHashCode() {
-                return hashCode.toString();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return getHashCode() + " for transformer " + TransformerExecution.this.getDisplayName();
-            }
         }
     }
 

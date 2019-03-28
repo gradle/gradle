@@ -52,13 +52,12 @@ import java.util.function.BiFunction
 
 class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
-
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
-    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror, executionHistoryStore)
+    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror)
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)

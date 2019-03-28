@@ -22,15 +22,15 @@ import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.id.UniqueId;
+import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -69,10 +69,9 @@ public class WorkExecutorTestFixture {
     };
     private BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
     private BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
-    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
+    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
 
-    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror,
-                            ExecutionHistoryStore executionHistoryStore) {
+    WorkExecutorTestFixture(DefaultFileSystemMirror fileSystemMirror) {
         BuildCacheCommandFactory buildCacheCommandFactory = null;
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
@@ -95,9 +94,16 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
+        BuildScanPluginApplied buildScanPluginApplied = new BuildScanPluginApplied() {
+            @Override
+            public boolean isBuildScanPluginApplied() {
+                return false;
+            }
+        };
         workExecutor = new ExecutionGradleServices().createWorkExecutor(
             buildCacheCommandFactory,
             buildCacheController,
+            buildScanPluginApplied,
             cancellationToken,
             buildInvocationScopeId,
             new DefaultExecutionStateChangeDetector(),
@@ -107,7 +113,7 @@ public class WorkExecutorTestFixture {
         );
     }
 
-    public WorkExecutor<IncrementalContext, UpToDateResult> getWorkExecutor() {
+    public WorkExecutor<IncrementalContext, CachingResult> getWorkExecutor() {
         return workExecutor;
     }
 }
