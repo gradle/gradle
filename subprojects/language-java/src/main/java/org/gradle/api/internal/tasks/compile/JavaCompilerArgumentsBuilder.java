@@ -20,10 +20,10 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.util.GUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class JavaCompilerArgumentsBuilder {
-    public static final Logger LOGGER = Logging.getLogger(JavaCompilerArgumentsBuilder.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(JavaCompilerArgumentsBuilder.class);
     public static final String USE_UNSHARED_COMPILER_TABLE_OPTION = "-XDuseUnsharedTable=true";
     public static final String EMPTY_SOURCE_PATH_REF_DIR = "emptySourcePathRef";
 
