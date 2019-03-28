@@ -15,9 +15,9 @@
  */
 package org.gradle.cache.internal.btree;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
-import org.apache.commons.collections.map.LRUMap;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class CachingBlockStore implements BlockStore {
     private final BlockStore store;
     private final Map<BlockPointer, BlockPayload> dirty = new LinkedHashMap<BlockPointer, BlockPayload>();
-    private final Map<BlockPointer, BlockPayload> indexBlockCache = Cast.uncheckedCast(new LRUMap(100));
+    private final Cache<BlockPointer, BlockPayload> indexBlockCache = CacheBuilder.newBuilder().maximumSize(100).concurrencyLevel(1).build();
     private final ImmutableSet<Class<? extends BlockPayload>> cacheableBlockTypes;
 
     public CachingBlockStore(BlockStore store, Collection<Class<? extends BlockPayload>> cacheableBlockTypes) {
@@ -42,13 +42,13 @@ public class CachingBlockStore implements BlockStore {
 
     public void close() {
         flush();
-        indexBlockCache.clear();
+        indexBlockCache.invalidateAll();
         store.close();
     }
 
     public void clear() {
         dirty.clear();
-        indexBlockCache.clear();
+        indexBlockCache.invalidateAll();
         store.clear();
     }
 
@@ -69,7 +69,7 @@ public class CachingBlockStore implements BlockStore {
     public void remove(BlockPayload block) {
         dirty.remove(block.getPos());
         if (isCacheable(block)) {
-            indexBlockCache.remove(block.getPos());
+            indexBlockCache.invalidate(block.getPos());
         }
         store.remove(block);
     }
@@ -97,7 +97,7 @@ public class CachingBlockStore implements BlockStore {
     @Nullable
     private <T extends BlockPayload> T maybeGetFromCache(BlockPointer pos, Class<T> payloadType) {
         if (cacheableBlockTypes.contains(payloadType)) {
-            return payloadType.cast(indexBlockCache.get(pos));
+            return payloadType.cast(indexBlockCache.getIfPresent(pos));
         }
         return null;
     }

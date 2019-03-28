@@ -46,7 +46,6 @@ libraries.bndlib =              [coordinates: 'biz.aQute.bnd:biz.aQute.bndlib', 
 libraries.bsh =                 [coordinates: 'org.apache-extras.beanshell:bsh', version: '2.0b6']
 libraries.commons_cli =         [coordinates: 'commons-cli:commons-cli', version: '1.4']
 libraries.commons_codec =       [coordinates: 'commons-codec:commons-codec', version: '1.11']
-libraries.commons_collections = [coordinates: 'commons-collections:commons-collections', version: '3.2.2']
 libraries.commons_compress =    [coordinates: 'org.apache.commons:commons-compress', version: '1.18']
 libraries.commons_httpclient =  [coordinates: 'org.apache.httpcomponents:httpclient', version: '4.5.6']
 libraries.commons_io =          [coordinates: 'commons-io:commons-io', version: '2.6']

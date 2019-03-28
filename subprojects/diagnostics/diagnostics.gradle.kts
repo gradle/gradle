@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
     implementation(library("guava"))
     implementation(library("jatl"))
-    implementation(library("commons_collections"))
     implementation(library("commons_lang"))
 
     integTestRuntimeOnly(project(":plugins"))
