@@ -413,15 +413,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         skippedTasks.empty
-        [
-            "implementation",
-            "additional implementation",
-            "input value fingerprint for 'options.fork'",
-            "input file fingerprints for 'classpath'",
-            "output property name",
-        ].each {
-            assert output.contains("Appending ${it} to build cache key:")
-        }
+        output.contains("Appending implementation to build cache key:")
+        output.contains("Appending additional implementation to build cache key:")
+        output.contains("Appending input value fingerprint for 'options.fork'")
+        output.contains("Appending input file fingerprints for 'classpath'")
+        output.contains("Appending output property name to build cache key: destinationDir")
         output.contains("Build cache key for task ':compileJava' is ")
     }
 
@@ -438,22 +434,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         !output.contains("Appending implementation to build cache key:")
         !output.contains("Appending input value fingerprint for")
         !output.contains("Appending input file fingerprints for 'classpath'")
-    }
-
-    def "inputs to the build cache key are only reported when build cache logging is enabled"() {
-        when:
-        buildFile << """
-            compileJava.doFirst { }
-        """.stripIndent()
-        file("gradle.properties") << "${BuildCacheDebugLoggingOption.GRADLE_PROPERTY}=true"
-        withBuildCache().run "compileJava"
-
-        then:
-        skippedTasks.empty
-        output.contains("Build cache key for task ':compileJava' is ")
-        output.contains("Appending implementation to build cache key:")
-        output.contains("Appending input value fingerprint for")
-        output.contains("Appending input file fingerprints for 'classpath'")
     }
 
     def "compileJava is not cached if forked executable is used"() {
