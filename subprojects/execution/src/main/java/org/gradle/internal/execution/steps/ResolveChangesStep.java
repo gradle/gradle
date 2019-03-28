@@ -102,22 +102,26 @@ public class ResolveChangesStep<R extends Result> implements Step<IncrementalCon
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
-        if (!work.isRequiresInputChanges()) {
-            return IncrementalInputProperties.NONE;
+        UnitOfWork.Incrementality incrementality = work.getIncrementality();
+        switch (incrementality) {
+            case NOT_INCREMENTAL:
+                return IncrementalInputProperties.NONE;
+            case LEGACY_INCREMENTAL:
+                // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
+                return IncrementalInputProperties.ALL;
+            case INCREMENTAL:
+                ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
+                work.visitInputFileProperties((name, value, incremental) -> {
+                    if (incremental) {
+                        if (value == null) {
+                            throw new InvalidUserDataException("Must specify a value for incremental input property '" + name + "'.");
+                        }
+                        builder.put(name, value);
+                    }
+                });
+                return new DefaultIncrementalInputProperties(builder.build());
+            default:
+                throw new AssertionError("Unknown incrementality: " + incrementality);
         }
-        if (work.isRequiresLegacyInputChanges()) {
-            // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
-            return IncrementalInputProperties.ALL;
-        }
-        ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-        work.visitInputFileProperties((name, value, incremental) -> {
-            if (incremental) {
-                if (value == null) {
-                    throw new InvalidUserDataException("Must specify a value for incremental input property '" + name + "'.");
-                }
-                builder.put(name, value);
-            }
-        });
-        return new DefaultIncrementalInputProperties(builder.build());
     }
 }

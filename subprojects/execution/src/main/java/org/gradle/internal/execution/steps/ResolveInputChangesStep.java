@@ -23,6 +23,7 @@ import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,10 +42,20 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
     @Override
     public Result execute(C context) {
         final UnitOfWork work = context.getWork();
-        Optional<InputChangesInternal> inputChanges = work.isRequiresInputChanges()
-            ? Optional.of(determineInputChanges(work, context))
-            : Optional.empty();
+        Optional<InputChangesInternal> inputChanges = work.getIncrementality() == UnitOfWork.Incrementality.NOT_INCREMENTAL
+            ? Optional.empty()
+            : Optional.of(determineInputChanges(work, context));
         return delegate.execute(new InputChangesContext() {
+            @Override
+            public Optional<InputChangesInternal> getInputChanges() {
+                return inputChanges;
+            }
+
+            @Override
+            public boolean isIncrementalExecution() {
+                return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
+            }
+
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
@@ -61,16 +72,6 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             }
 
             @Override
-            public Optional<InputChangesInternal> getInputChanges() {
-                return inputChanges;
-            }
-
-            @Override
-            public boolean isIncrementalExecution() {
-                return inputChanges.map(changes -> changes.isIncremental()).orElse(false);
-            }
-
-            @Override
             public UnitOfWork getWork() {
                 return work;
             }
@@ -78,14 +79,12 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
     }
 
     private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
-        return context.getChanges()
-            .map(changes -> {
-                InputChangesInternal inputChanges = changes.createInputChanges();
-                if (!inputChanges.isIncremental()) {
-                    LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
-                }
-                return inputChanges;
-            })
-            .orElseThrow(() -> new UnsupportedOperationException("Cannot use input changes when input tracking is disabled."));
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        ExecutionStateChanges changes = context.getChanges().get();
+        InputChangesInternal inputChanges = changes.createInputChanges();
+        if (!inputChanges.isIncremental()) {
+            LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
+        }
+        return inputChanges;
     }
 }

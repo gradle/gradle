@@ -82,8 +82,7 @@ public class OutputsCleaner {
     }
 
     private void cleanupDirectories() {
-        while (!directoriesToDelete.isEmpty()) {
-            File directory = directoriesToDelete.poll();
+        for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
             if (isEmpty(directory)) {
                 didWork |= directory.delete();
                 markParentDirForDeletion(directory);

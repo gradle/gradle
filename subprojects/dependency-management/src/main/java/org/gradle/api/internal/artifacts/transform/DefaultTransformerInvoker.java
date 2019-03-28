@@ -335,6 +335,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public Incrementality getIncrementality() {
+            return transformer.requiresInputChanges() ? Incrementality.INCREMENTAL : Incrementality.NOT_INCREMENTAL;
+        }
+
+        @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, true);
         }
@@ -351,12 +356,12 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public boolean isOverlappingOutputsDetected() {
+        public boolean hasOverlappingOutputs() {
             return false;
         }
 
         @Override
-        public boolean isCleanupOutputsOnNonIncrementalExecution() {
+        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
             return true;
         }
 
@@ -408,16 +413,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             return snapshotOutputs(outputFingerprinter, fileCollectionFactory, workspace);
-        }
-
-        @Override
-        public boolean isRequiresInputChanges() {
-            return transformer.requiresInputChanges();
-        }
-
-        @Override
-        public boolean isRequiresLegacyInputChanges() {
-            return false;
         }
 
         @Override

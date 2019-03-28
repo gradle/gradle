@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecuter;
@@ -242,13 +242,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean isOverlappingOutputsDetected() {
+        public boolean hasOverlappingOutputs() {
             return context.getOverlappingOutputs().isPresent();
         }
 
         @Override
-        public boolean isCleanupOutputsOnNonIncrementalExecution() {
-            return isRequiresInputChanges() && !isRequiresLegacyInputChanges();
+        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+            return getIncrementality() == Incrementality.INCREMENTAL;
         }
 
         @Override
@@ -293,6 +293,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public Incrementality getIncrementality() {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof IncrementalInputsTaskAction) {
+                    return Incrementality.INCREMENTAL;
+                }
+                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
+                    return Incrementality.LEGACY_INCREMENTAL;
+                }
+            }
+            return Incrementality.NOT_INCREMENTAL;
+        }
+
+        @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
@@ -321,26 +334,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         );
                     }
                 }).orElse(outputsAfterExecution);
-        }
-
-        @Override
-        public boolean isRequiresInputChanges() {
-            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-                if (taskAction instanceof AbstractIncrementalTaskAction) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public boolean isRequiresLegacyInputChanges() {
-            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         @Override

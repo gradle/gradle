@@ -38,9 +38,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     Optional<Duration> getTimeout();
 
-    boolean isRequiresInputChanges();
-
-    boolean isRequiresLegacyInputChanges();
+    Incrementality getIncrementality();
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
@@ -77,9 +75,9 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Whether the current execution detected that there are overlapping outputs.
      */
-    boolean isOverlappingOutputsDetected();
+    boolean hasOverlappingOutputs();
 
-    boolean isCleanupOutputsOnNonIncrementalExecution();
+    boolean shouldCleanupOutputsOnNonIncrementalExecution();
 
     @FunctionalInterface
     interface InputFilePropertyVisitor {
@@ -94,6 +92,12 @@ public interface UnitOfWork extends CacheableEntity {
     enum WorkResult {
         DID_WORK,
         DID_NO_WORK
+    }
+
+    enum Incrementality {
+        NOT_INCREMENTAL,
+        INCREMENTAL,
+        LEGACY_INCREMENTAL
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();

@@ -238,7 +238,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                         new CatchExceptionStep<>(
                                             new TimeoutStep<>(timeoutHandler,
                                                 new ResolveInputChangesStep<>(
-                                                    new CleanupOutputsStep(
+                                                    new CleanupOutputsStep<>(
                                                         new ExecuteStep<InputChangesContext>()
                                                     )
                                                 )

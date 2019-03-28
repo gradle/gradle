@@ -42,7 +42,7 @@ class ResolveInputChangesStepTest extends Specification {
         def returnedResult = step.execute(context)
         then:
         1 * context.work >> work
-        1 * work.requiresInputChanges >> true
+        1 * work.incrementality >> UnitOfWork.Incrementality.INCREMENTAL
         1 * context.changes >> optionalChanges
         1 * changes.createInputChanges() >> inputChanges
         1 * inputChanges.incremental >> true
@@ -60,7 +60,7 @@ class ResolveInputChangesStepTest extends Specification {
         def returnedResult = step.execute(context)
         then:
         1 * context.work >> work
-        1 * work.requiresInputChanges >> false
+        1 * work.incrementality >> UnitOfWork.Incrementality.NOT_INCREMENTAL
         1 * delegateStep.execute(_) >> { InputChangesContext context ->
             assert context.inputChanges == Optional.empty()
             return result

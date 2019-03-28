@@ -138,7 +138,7 @@ public class ExecutionGradleServices {
                                                 new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
                                                     new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
                                                         new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                            new CleanupOutputsStep(
+                                                            new CleanupOutputsStep<InputChangesContext, Result>(
                                                                 new ExecuteStep<InputChangesContext>()
                                                             )
                                                         )

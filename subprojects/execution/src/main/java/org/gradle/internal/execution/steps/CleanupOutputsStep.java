@@ -16,33 +16,37 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.impl.OutputsCleaner;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
-public class CleanupOutputsStep implements Step<InputChangesContext, Result> {
+public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
-    private final Step<? super InputChangesContext, ? extends Result> delegate;
+    private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(Step<? super InputChangesContext, ? extends Result> delegate) {
+    public CleanupOutputsStep(Step<? super C, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public Result execute(InputChangesContext context) {
-        if (!context.isIncrementalExecution()) {
+    public R execute(C context) {
+        boolean incremental = context.getInputChanges()
+            .map(inputChanges -> inputChanges.isIncremental())
+            .orElse(false);
+        if (!incremental) {
             UnitOfWork work = context.getWork();
-            if (work.isCleanupOutputsOnNonIncrementalExecution()) {
-                if (work.isOverlappingOutputsDetected()) {
+            if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
+                if (work.hasOverlappingOutputs()) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
                     cleanupExclusiveOutputs(work);
@@ -54,22 +58,25 @@ public class CleanupOutputsStep implements Step<InputChangesContext, Result> {
 
     private void cleanupOverlappingOutputs(IncrementalContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
-            ImmutableSet.Builder<File> builder = ImmutableSet.builder();
+            Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputProperties((name, type, roots) -> {
-                if (type == TreeType.DIRECTORY) {
-                    builder.addAll(roots);
-                }
-                if (type == TreeType.FILE) {
-                    for (File root : roots) {
-                        File parentFile = root.getParentFile();
-                        if (parentFile != null) {
-                            builder.add(parentFile);
+                switch (type) {
+                    case FILE:
+                        for (File root : roots) {
+                            File parentFile = root.getParentFile();
+                            if (parentFile != null) {
+                                outputDirectoriesToPreserve.add(parentFile);
+                            }
                         }
-                    }
+                        break;
+                    case DIRECTORY:
+                        Iterables.addAll(outputDirectoriesToPreserve, roots);
+                        break;
+                    default:
+                        throw new AssertionError();
                 }
             });
-            ImmutableSet<File> preparedOutputDirectories = builder.build();
-            OutputsCleaner cleaner = new OutputsCleaner(file -> true, file -> !preparedOutputDirectories.contains(file));
+            OutputsCleaner cleaner = new OutputsCleaner(file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
                 cleaner.cleanupOutputs(fileCollectionFingerprint);
             }
@@ -80,10 +87,15 @@ public class CleanupOutputsStep implements Step<InputChangesContext, Result> {
         work.visitOutputProperties((name, type, roots) -> {
             for (File root : roots) {
                 if (root.exists()) {
-                    if (type == TreeType.DIRECTORY) {
-                        GFileUtils.cleanDirectory(root);
-                    } else {
-                        GFileUtils.deleteFileQuietly(root);
+                    switch (type) {
+                        case FILE:
+                            GFileUtils.forceDelete(root);
+                            break;
+                        case DIRECTORY:
+                            GFileUtils.cleanDirectory(root);
+                            break;
+                        default:
+                            throw new AssertionError();
                     }
                 }
             }

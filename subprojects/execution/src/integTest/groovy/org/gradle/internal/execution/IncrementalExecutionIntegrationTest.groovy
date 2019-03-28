@@ -135,7 +135,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
                                             new ResolveInputChangesStep<>(
-                                                new CleanupOutputsStep(
+                                                new CleanupOutputsStep<>(
                                                     new ExecuteStep<InputChangesContext>()
                                                 )
                                             )
@@ -805,6 +805,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
+                UnitOfWork.Incrementality getIncrementality() {
+                    return UnitOfWork.Incrementality.NOT_INCREMENTAL
+                }
+
+                @Override
                 void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(entry.key, entry.value, false)
@@ -824,12 +829,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                boolean isOverlappingOutputsDetected() {
+                boolean hasOverlappingOutputs() {
                     return false
                 }
 
                 @Override
-                boolean isCleanupOutputsOnNonIncrementalExecution() {
+                boolean shouldCleanupOutputsOnNonIncrementalExecution() {
                     return false
                 }
 
@@ -891,16 +896,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
                     snapshotOutputs()
-                }
-
-                @Override
-                boolean isRequiresInputChanges() {
-                    return false
-                }
-
-                @Override
-                boolean isRequiresLegacyInputChanges() {
-                    return false
                 }
 
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {
