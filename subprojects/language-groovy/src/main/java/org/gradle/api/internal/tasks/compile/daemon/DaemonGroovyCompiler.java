@@ -20,13 +20,19 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.GroovyForkOptions;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.GroovyJpmsWorkarounds;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.gradle.workers.internal.ClassLoaderHierarchyNode;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
@@ -59,9 +65,23 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         // that's why we add it here. The following assumes that any Groovy compiler version supported by Gradle
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
+        Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles);
+        VisitableURLClassLoader.Spec userClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
+
         // TODO We should infer a minimal classpath from delegate instead
         Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("LANGUAGE-GROOVY").getAsFiles();
-        Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles, languageGroovyFiles);
+        VisitableURLClassLoader.Spec compilerClasspath = new VisitableURLClassLoader.Spec("compiler-loader", DefaultClassPath.of(languageGroovyFiles).getAsURLs());
+
+        FilteringClassLoader.Spec gradleAndUserFilter = getMinimalGradleFilter();
+        for (String sharedPackage : SHARED_PACKAGES) {
+            gradleAndUserFilter.allowPackage(sharedPackage);
+        }
+
+        ClassLoaderHierarchyNode classLoaderHierarchy =
+                new ClassLoaderHierarchyNode(getMinimalGradleFilter())
+                        .withChild(userClasspath)
+                        .withChild(gradleAndUserFilter)
+                        .withChild(compilerClasspath);
 
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
@@ -74,7 +94,22 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             .classpath(classpath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
-            .withoutGradleApi()
+            .withClassLoaderHierarchy(classLoaderHierarchy)
             .build();
+    }
+
+    private static FilteringClassLoader.Spec getMinimalGradleFilter() {
+        // Allow just the basics instead of the entire Gradle API
+        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
+        // Logging
+        gradleFilterSpec.allowPackage("org.slf4j");
+        gradleFilterSpec.allowClass(Logger.class);
+        gradleFilterSpec.allowClass(LogLevel.class);
+        // Native
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
+        gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
+        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+
+        return gradleFilterSpec;
     }
 }

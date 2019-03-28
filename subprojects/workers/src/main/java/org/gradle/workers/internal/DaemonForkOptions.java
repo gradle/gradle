@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsInternal;
@@ -26,19 +27,20 @@ import java.util.Set;
 
 public class DaemonForkOptions {
     private final JavaForkOptionsInternal forkOptions;
+    // TODO classpath will be replaced by classLoaderHierarchy once we make worker daemons match isolated workers
     private final Iterable<File> classpath;
     private final Iterable<String> sharedPackages;
     private final KeepAliveMode keepAliveMode;
-    private final boolean withoutGradleApi;
+    private final ClassLoaderHierarchyNode classLoaderHierarchy;
 
     DaemonForkOptions(JavaForkOptionsInternal forkOptions, Iterable<File> classpath,
                       Iterable<String> sharedPackages, KeepAliveMode keepAliveMode,
-                      boolean withoutGradleApi) {
+                      ClassLoaderHierarchyNode classLoaderHierarchyNode) {
         this.forkOptions = forkOptions;
         this.classpath = classpath;
         this.sharedPackages = sharedPackages;
         this.keepAliveMode = keepAliveMode;
-        this.withoutGradleApi = withoutGradleApi;
+        this.classLoaderHierarchy = classLoaderHierarchyNode;
     }
 
     public Iterable<File> getClasspath() {
@@ -57,8 +59,8 @@ public class DaemonForkOptions {
         return forkOptions;
     }
 
-    public boolean isWithoutGradleApi() {
-        return withoutGradleApi;
+    public ClassLoaderHierarchyNode getClassLoaderHierarchy() {
+        return classLoaderHierarchy;
     }
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
@@ -66,7 +68,7 @@ public class DaemonForkOptions {
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
                 && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
                 && keepAliveMode == other.getKeepAliveMode()
-                && withoutGradleApi == other.isWithoutGradleApi();
+                && Objects.equal(classLoaderHierarchy, other.getClassLoaderHierarchy());
     }
 
     // one way to merge fork options, good for current use case
@@ -75,8 +77,8 @@ public class DaemonForkOptions {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
         }
 
-        if (withoutGradleApi != other.withoutGradleApi) {
-            throw new IllegalArgumentException("Cannot merge a fork options object with a different value for gradle api visibility (this: " + withoutGradleApi + ", other: " + other.isWithoutGradleApi() + ").");
+        if (!Objects.equal(classLoaderHierarchy, other.getClassLoaderHierarchy())) {
+            throw new IllegalArgumentException("Cannot merge a fork options object with a different value for classloader hierarchy.");
         }
 
         Set<File> mergedClasspath = getNormalizedClasspath(classpath);
@@ -84,7 +86,7 @@ public class DaemonForkOptions {
         Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
         mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
 
-        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode, withoutGradleApi);
+        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode, classLoaderHierarchy);
     }
 
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {

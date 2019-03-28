@@ -18,11 +18,10 @@ package org.gradle.workers.internal;
 
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.initialization.GradleApiUtil;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -78,14 +77,17 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
-        ClassLoader workerClassLoader;
-        if (forkOptions.isWithoutGradleApi()) {
+        ClassLoaderHierarchyNode classLoaderHierarchy;
+        if (forkOptions.getClassLoaderHierarchy() != null) {
             // This is used by groovy compiler daemons
-            workerClassLoader = createWorkerClassLoaderWithoutGradleApi(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+            classLoaderHierarchy = forkOptions.getClassLoaderHierarchy();
         } else {
-            // Everything else
-            workerClassLoader = createWorkerClassLoader(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+            // Everything else uses the default
+            classLoaderHierarchy = getDefaultClassLoaderHierarchy(spec.getClass().getClassLoader(), forkOptions.getClasspath());
         }
+
+        ClassLoader workerClassLoader = createWorkerClassLoaderWithHierarchy(spec.getClass().getClassLoader(), classLoaderHierarchy);
+
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
         ClassLoader previousContextLoader = Thread.currentThread().getContextClassLoader();
@@ -103,27 +105,32 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         }
     }
 
-    private ClassLoader createWorkerClassLoader(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
-        ClassLoader gradleApiLoader = new FilteringClassLoader(workerInfrastructureClassloader, GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE));
+    private ClassLoaderHierarchyNode getDefaultClassLoaderHierarchy(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
+        FilteringClassLoader.Spec gradleApiFilter = GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE);
+        VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspath).getAsURLs());
 
-        return new VisitableURLClassLoader("worker-loader", gradleApiLoader, DefaultClassPath.of(userClasspath));
+        return new ClassLoaderHierarchyNode(gradleApiFilter).withChild(userSpec);
     }
 
-    private ClassLoader createWorkerClassLoaderWithoutGradleApi(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
-        // Allow just the basics instead of the entire Gradle API
-        FilteringClassLoader.Spec gradleFilterSpec = new FilteringClassLoader.Spec();
-        // Logging
-        gradleFilterSpec.allowPackage("org.slf4j");
-        gradleFilterSpec.allowClass(Logger.class);
-        gradleFilterSpec.allowClass(LogLevel.class);
-        // Native
-        gradleFilterSpec.allowPackage("org.gradle.internal.nativeintegration");
-        gradleFilterSpec.allowPackage("org.gradle.internal.nativeplatform");
-        gradleFilterSpec.allowPackage("net.rubygrapefruit.platform");
+    private ClassLoader createWorkerClassLoaderWithHierarchy(ClassLoader workerInfrastructureClassloader, ClassLoaderHierarchyNode classLoaderHierarchyNode) {
+        if (classLoaderHierarchyNode.getParent() == null) {
+            return createClassLoaderFromSpec(workerInfrastructureClassloader, classLoaderHierarchyNode.getSpec());
+        } else {
+            ClassLoader parent = createWorkerClassLoaderWithHierarchy(workerInfrastructureClassloader, classLoaderHierarchyNode.getParent());
+            return createClassLoaderFromSpec(parent, classLoaderHierarchyNode.getSpec());
+        }
+    }
 
-        ClassLoader gradleLoader = new FilteringClassLoader(workerInfrastructureClassloader, gradleFilterSpec);
-
-        return new VisitableURLClassLoader("worker-loader", gradleLoader, DefaultClassPath.of(userClasspath));
+    private ClassLoader createClassLoaderFromSpec(ClassLoader parent, ClassLoaderSpec spec) {
+        if (spec instanceof VisitableURLClassLoader.Spec) {
+            VisitableURLClassLoader.Spec visitableSpec = (VisitableURLClassLoader.Spec)spec;
+            return new VisitableURLClassLoader(visitableSpec.getName(), parent, visitableSpec.getClasspath());
+        } else if (spec instanceof FilteringClassLoader.Spec) {
+            FilteringClassLoader.Spec filteringSpec = (FilteringClassLoader.Spec)spec;
+            return new FilteringClassLoader(parent, filteringSpec);
+        } else {
+            throw new IllegalArgumentException("Can't handle spec of type " + spec.getClass().getName());
+        }
     }
 
     private Callable<?> transferWorkerIntoWorkerClassloader(ActionExecutionSpec spec, ClassLoader workerClassLoader) throws IOException, ClassNotFoundException {
