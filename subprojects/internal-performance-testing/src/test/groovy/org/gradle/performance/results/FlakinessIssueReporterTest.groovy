@@ -36,6 +36,7 @@ class FlakinessIssueReporterTest extends Specification {
 
     ScenarioBuildResultData scenario = new ScenarioBuildResultData(
         scenarioName: 'myScenario',
+        scenarioClass: 'my.AwesomeClass',
         webUrl: 'myUrl',
         agentName: 'myAgent',
         agentUrl: 'myAgentUrl',
@@ -48,7 +49,7 @@ class FlakinessIssueReporterTest extends Specification {
     def 'known flaky issue gets commented, reopened and labeled as fix-it'() {
         given:
         GHIssue issue = Mock(GHIssue)
-        1 * flakyTestProvider.knownInvalidFailures >> [new FlakyTest(name: 'otherScenario'), new FlakyTest(name: 'myScenario', issue: issue)]
+        1 * flakyTestProvider.knownInvalidFailures >> [new FlakyTest(name: 'AwesomeClass.otherScenario'), new FlakyTest(name: 'AwesomeClass.myScenario', issue: issue)]
         1 * issue.state >> GHIssueState.CLOSED
         1 * issue.labels >> []
 
@@ -82,11 +83,11 @@ Details:
         reporter.report(scenario)
 
         then:
-        1 * issuesClient.createBuildToolInvalidFailureIssue('Flaky performance test: myScenario',
+        1 * issuesClient.createBuildToolInvalidFailureIssue('Flaky performance test: AwesomeClass.myScenario',
             """
 FROM-BOT
 
-TEST_NAME: myScenario
+TEST_NAME: AwesomeClass.myScenario
 
 MESSAGE: Flaky performance test scenario
 """

@@ -140,6 +140,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
+                scenarioClass: scenarioResult.testSuite.name,
                 webUrl: scenarioResult.buildResult.webUrl,
                 status: scenarioResult.buildResult.status,
                 agentName: scenarioResult.buildResult.agent.name,

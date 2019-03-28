@@ -77,6 +77,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     static class ScenarioBuildResultData {
         String teamCityBuildId
         String scenarioName
+        String scenarioClass
         String webUrl
         String testFailure
         // SUCCESS/FAILURE/UNKNOWN
