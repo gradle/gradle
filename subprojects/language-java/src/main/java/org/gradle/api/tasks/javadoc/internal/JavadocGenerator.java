@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.javadoc.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
@@ -27,10 +25,12 @@ import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JavadocGenerator implements Compiler<JavadocSpec> {
 
-    private final static Logger LOG = Logging.getLogger(JavadocGenerator.class);
+    private final static Logger LOG = LoggerFactory.getLogger(JavadocGenerator.class);
 
     private final ExecActionFactory execActionFactory;
 

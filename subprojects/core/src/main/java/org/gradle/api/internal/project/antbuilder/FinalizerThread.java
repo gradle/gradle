@@ -16,9 +16,9 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Maps;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.Map;
@@ -29,7 +29,7 @@ import static org.gradle.api.internal.project.antbuilder.Cleanup.Mode.CLOSE_CLAS
 import static org.gradle.api.internal.project.antbuilder.Cleanup.Mode.DONT_CLOSE_CLASSLOADER;
 
 class FinalizerThread extends Thread {
-    private final static Logger LOG = Logging.getLogger(FinalizerThread.class);
+    private final static Logger LOG = LoggerFactory.getLogger(FinalizerThread.class);
 
     private final ReferenceQueue<CachedClassLoader> referenceQueue;
     private final AtomicBoolean stopped = new AtomicBoolean();

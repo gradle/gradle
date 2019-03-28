@@ -26,8 +26,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.Cast;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -35,6 +33,8 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -42,7 +42,7 @@ import java.io.File;
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
  */
 public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final OutputChangeListener outputChangeListener;
@@ -63,7 +63,6 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
         FileCollection sourceFiles = properties.getSourceFiles();
         if (properties.hasSourceFiles() && sourceFiles.isEmpty()) {
             AfterPreviousExecutionState previousExecution = context.getAfterPreviousExecution();
-            @SuppressWarnings("RedundantTypeArguments")
             ImmutableSortedMap<String, FileCollectionFingerprint> outputFiles = previousExecution == null
                 ? ImmutableSortedMap.<String, FileCollectionFingerprint>of()
                 : previousExecution.getOutputFileProperties();

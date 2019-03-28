@@ -18,8 +18,6 @@ package org.gradle.caching.internal.command;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -37,6 +35,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,7 +47,7 @@ import java.util.Map;
 
 public class BuildCacheCommandFactory {
 
-    private static final Logger LOGGER = Logging.getLogger(BuildCacheCommandFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheCommandFactory.class);
 
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;

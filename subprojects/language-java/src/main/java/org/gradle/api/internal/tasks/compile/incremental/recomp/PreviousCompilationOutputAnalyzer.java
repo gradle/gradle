@@ -21,19 +21,19 @@ import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenc
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.DefaultClasspathEntrySnapshotter;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
 //TODO reuse cached result from downstream users of our classes directory
 public class PreviousCompilationOutputAnalyzer {
-    private static final Logger LOG = Logging.getLogger(PreviousCompilationOutputAnalyzer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(PreviousCompilationOutputAnalyzer.class);
 
     private final DefaultClasspathEntrySnapshotter snapshotter;
 
