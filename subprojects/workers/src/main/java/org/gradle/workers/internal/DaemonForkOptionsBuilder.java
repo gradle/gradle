@@ -26,11 +26,11 @@ import java.util.Collections;
 public class DaemonForkOptionsBuilder {
     private final JavaForkOptionsInternal javaForkOptions;
     private final JavaForkOptionsFactory forkOptionsFactory;
-    // TODO classpath will be replaced by classLoaderHierarchy once we make worker daemons match isolated workers
+    // TODO classpath will be replaced by classLoaderStructure once we make worker daemons match isolated workers
     private Iterable<File> classpath = Collections.emptyList();
     private Iterable<String> sharedPackages = Collections.emptyList();
     private KeepAliveMode keepAliveMode = KeepAliveMode.DAEMON;
-    private ClassLoaderHierarchyNode classLoaderHierarchy = null;
+    private ClassLoaderStructure classLoaderStructure = null;
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
@@ -57,13 +57,13 @@ public class DaemonForkOptionsBuilder {
         return this;
     }
 
-    public DaemonForkOptionsBuilder withClassLoaderHierarchy(ClassLoaderHierarchyNode classLoaderHierarchyNode) {
-        this.classLoaderHierarchy = classLoaderHierarchyNode;
+    public DaemonForkOptionsBuilder withClassLoaderStrucuture(ClassLoaderStructure classLoaderStructure) {
+        this.classLoaderStructure = classLoaderStructure;
         return this;
     }
 
     public DaemonForkOptions build() {
-        return new DaemonForkOptions(buildJavaForkOptions(), classpath, sharedPackages, keepAliveMode, classLoaderHierarchy);
+        return new DaemonForkOptions(buildJavaForkOptions(), classpath, sharedPackages, keepAliveMode, classLoaderStructure);
     }
 
     private JavaForkOptionsInternal buildJavaForkOptions() {

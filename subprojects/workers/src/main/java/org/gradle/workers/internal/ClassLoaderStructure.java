@@ -19,22 +19,22 @@ package org.gradle.workers.internal;
 import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 
-public class ClassLoaderHierarchyNode {
+public class ClassLoaderStructure {
     private final ClassLoaderSpec self;
-    private final ClassLoaderHierarchyNode parent;
+    private final ClassLoaderStructure parent;
 
-    public ClassLoaderHierarchyNode(ClassLoaderSpec self) {
+    public ClassLoaderStructure(ClassLoaderSpec self) {
         this.self = self;
         this.parent = null;
     }
 
-    public ClassLoaderHierarchyNode(ClassLoaderSpec self, ClassLoaderHierarchyNode parent) {
+    public ClassLoaderStructure(ClassLoaderSpec self, ClassLoaderStructure parent) {
         this.self = self;
         this.parent = parent;
     }
 
-    public ClassLoaderHierarchyNode withChild(ClassLoaderSpec spec) {
-        ClassLoaderHierarchyNode childNode = new ClassLoaderHierarchyNode(spec, this);
+    public ClassLoaderStructure withChild(ClassLoaderSpec spec) {
+        ClassLoaderStructure childNode = new ClassLoaderStructure(spec, this);
         return childNode;
     }
 
@@ -42,7 +42,7 @@ public class ClassLoaderHierarchyNode {
         return self;
     }
 
-    public ClassLoaderHierarchyNode getParent() {
+    public ClassLoaderStructure getParent() {
         return parent;
     }
 
@@ -54,7 +54,7 @@ public class ClassLoaderHierarchyNode {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ClassLoaderHierarchyNode that = (ClassLoaderHierarchyNode) o;
+        ClassLoaderStructure that = (ClassLoaderStructure) o;
         return Objects.equal(self, that.self) &&
                 Objects.equal(parent, that.parent);
     }

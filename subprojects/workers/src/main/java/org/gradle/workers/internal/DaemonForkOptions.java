@@ -27,20 +27,20 @@ import java.util.Set;
 
 public class DaemonForkOptions {
     private final JavaForkOptionsInternal forkOptions;
-    // TODO classpath will be replaced by classLoaderHierarchy once we make worker daemons match isolated workers
+    // TODO classpath will be replaced by classLoaderStructure once we make worker daemons match isolated workers
     private final Iterable<File> classpath;
     private final Iterable<String> sharedPackages;
     private final KeepAliveMode keepAliveMode;
-    private final ClassLoaderHierarchyNode classLoaderHierarchy;
+    private final ClassLoaderStructure classLoaderStructure;
 
     DaemonForkOptions(JavaForkOptionsInternal forkOptions, Iterable<File> classpath,
                       Iterable<String> sharedPackages, KeepAliveMode keepAliveMode,
-                      ClassLoaderHierarchyNode classLoaderHierarchyNode) {
+                      ClassLoaderStructure classLoaderStructure) {
         this.forkOptions = forkOptions;
         this.classpath = classpath;
         this.sharedPackages = sharedPackages;
         this.keepAliveMode = keepAliveMode;
-        this.classLoaderHierarchy = classLoaderHierarchyNode;
+        this.classLoaderStructure = classLoaderStructure;
     }
 
     public Iterable<File> getClasspath() {
@@ -59,8 +59,8 @@ public class DaemonForkOptions {
         return forkOptions;
     }
 
-    public ClassLoaderHierarchyNode getClassLoaderHierarchy() {
-        return classLoaderHierarchy;
+    public ClassLoaderStructure getClassLoaderStructure() {
+        return classLoaderStructure;
     }
 
     public boolean isCompatibleWith(DaemonForkOptions other) {
@@ -68,7 +68,7 @@ public class DaemonForkOptions {
                 && getNormalizedClasspath(classpath).containsAll(getNormalizedClasspath(other.getClasspath()))
                 && getNormalizedSharedPackages(sharedPackages).containsAll(getNormalizedSharedPackages(other.sharedPackages))
                 && keepAliveMode == other.getKeepAliveMode()
-                && Objects.equal(classLoaderHierarchy, other.getClassLoaderHierarchy());
+                && Objects.equal(classLoaderStructure, other.getClassLoaderStructure());
     }
 
     // one way to merge fork options, good for current use case
@@ -77,7 +77,7 @@ public class DaemonForkOptions {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different keep alive mode (this: " + keepAliveMode + ", other: " + other.getKeepAliveMode() + ").");
         }
 
-        if (!Objects.equal(classLoaderHierarchy, other.getClassLoaderHierarchy())) {
+        if (!Objects.equal(classLoaderStructure, other.getClassLoaderStructure())) {
             throw new IllegalArgumentException("Cannot merge a fork options object with a different value for classloader hierarchy.");
         }
 
@@ -86,7 +86,7 @@ public class DaemonForkOptions {
         Set<String> mergedAllowedPackages = getNormalizedSharedPackages(sharedPackages);
         mergedAllowedPackages.addAll(getNormalizedSharedPackages(other.sharedPackages));
 
-        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode, classLoaderHierarchy);
+        return new DaemonForkOptions(forkOptions.mergeWith(other.forkOptions), mergedClasspath, mergedAllowedPackages, keepAliveMode, classLoaderStructure);
     }
 
     private Set<File> getNormalizedClasspath(Iterable<File> classpath) {

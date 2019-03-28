@@ -32,7 +32,7 @@ import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ClassLoaderHierarchyNode;
+import org.gradle.workers.internal.ClassLoaderStructure;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.KeepAliveMode;
@@ -66,7 +66,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         // is compatible with Gradle's current Ant version.
         Collection<File> antFiles = classPathRegistry.getClassPath("ANT").getAsFiles();
         Iterable<File> classpath = Iterables.concat(spec.getGroovyClasspath(), antFiles);
-        VisitableURLClassLoader.Spec userClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
+        VisitableURLClassLoader.Spec targetGroovyClasspath = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(classpath).getAsURLs());
 
         // TODO We should infer a minimal classpath from delegate instead
         Collection<File> languageGroovyFiles = classPathRegistry.getClassPath("LANGUAGE-GROOVY").getAsFiles();
@@ -77,9 +77,9 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        ClassLoaderHierarchyNode classLoaderHierarchy =
-                new ClassLoaderHierarchyNode(getMinimalGradleFilter())
-                        .withChild(userClasspath)
+        ClassLoaderStructure classLoaderStructure =
+                new ClassLoaderStructure(getMinimalGradleFilter())
+                        .withChild(targetGroovyClasspath)
                         .withChild(gradleAndUserFilter)
                         .withChild(compilerClasspath);
 
@@ -94,7 +94,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             .classpath(classpath)
             .sharedPackages(SHARED_PACKAGES)
             .keepAliveMode(KeepAliveMode.SESSION)
-            .withClassLoaderHierarchy(classLoaderHierarchy)
+            .withClassLoaderStrucuture(classLoaderStructure)
             .build();
     }
 

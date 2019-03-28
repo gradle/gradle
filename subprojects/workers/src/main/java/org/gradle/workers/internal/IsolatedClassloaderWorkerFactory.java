@@ -77,16 +77,18 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     private DefaultWorkResult executeInWorkerClassLoader(ActionExecutionSpec spec, DaemonForkOptions forkOptions) {
-        ClassLoaderHierarchyNode classLoaderHierarchy;
-        if (forkOptions.getClassLoaderHierarchy() != null) {
-            // This is used by groovy compiler daemons
-            classLoaderHierarchy = forkOptions.getClassLoaderHierarchy();
+        ClassLoader workerInfrastructureClassloader = spec.getClass().getClassLoader();
+
+        ClassLoaderStructure classLoaderStructure;
+        if (forkOptions.getClassLoaderStructure() != null) {
+            // This is used by groovy compilers
+            classLoaderStructure = forkOptions.getClassLoaderStructure();
         } else {
             // Everything else uses the default
-            classLoaderHierarchy = getDefaultClassLoaderHierarchy(spec.getClass().getClassLoader(), forkOptions.getClasspath());
+            classLoaderStructure = getDefaultClassLoaderStructure(workerInfrastructureClassloader, forkOptions.getClasspath());
         }
 
-        ClassLoader workerClassLoader = createWorkerClassLoaderWithHierarchy(spec.getClass().getClassLoader(), classLoaderHierarchy);
+        ClassLoader workerClassLoader = createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure);
 
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
@@ -105,19 +107,22 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
         }
     }
 
-    private ClassLoaderHierarchyNode getDefaultClassLoaderHierarchy(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
+    private ClassLoaderStructure getDefaultClassLoaderStructure(ClassLoader workerInfrastructureClassloader, Iterable<File> userClasspath) {
         FilteringClassLoader.Spec gradleApiFilter = GradleApiUtil.apiSpecFor(workerInfrastructureClassloader, DirectInstantiator.INSTANCE);
         VisitableURLClassLoader.Spec userSpec = new VisitableURLClassLoader.Spec("worker-loader", DefaultClassPath.of(userClasspath).getAsURLs());
 
-        return new ClassLoaderHierarchyNode(gradleApiFilter).withChild(userSpec);
+        // Add the Gradle API filter between the user classloader and the worker infrastructure classloader
+        return new ClassLoaderStructure(gradleApiFilter).withChild(userSpec);
     }
 
-    private ClassLoader createWorkerClassLoaderWithHierarchy(ClassLoader workerInfrastructureClassloader, ClassLoaderHierarchyNode classLoaderHierarchyNode) {
-        if (classLoaderHierarchyNode.getParent() == null) {
-            return createClassLoaderFromSpec(workerInfrastructureClassloader, classLoaderHierarchyNode.getSpec());
+    private ClassLoader createWorkerClassLoaderWithStructure(ClassLoader workerInfrastructureClassloader, ClassLoaderStructure classLoaderStructure) {
+        if (classLoaderStructure.getParent() == null) {
+            // This is the highest parent in the hierarchy
+            return createClassLoaderFromSpec(workerInfrastructureClassloader, classLoaderStructure.getSpec());
         } else {
-            ClassLoader parent = createWorkerClassLoaderWithHierarchy(workerInfrastructureClassloader, classLoaderHierarchyNode.getParent());
-            return createClassLoaderFromSpec(parent, classLoaderHierarchyNode.getSpec());
+            // Climb up the hierarchy looking for the highest parent
+            ClassLoader parent = createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure.getParent());
+            return createClassLoaderFromSpec(parent, classLoaderStructure.getSpec());
         }
     }
 
