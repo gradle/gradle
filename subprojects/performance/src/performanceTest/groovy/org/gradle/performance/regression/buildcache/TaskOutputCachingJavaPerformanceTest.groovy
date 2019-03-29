@@ -27,7 +27,6 @@ import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -36,7 +35,6 @@ import java.util.zip.GZIPOutputStream
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Ignore("Rebase test as soon as merged to master")
 @Unroll
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
