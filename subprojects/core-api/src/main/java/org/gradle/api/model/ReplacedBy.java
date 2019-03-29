@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api;
+package org.gradle.api.model;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
 
 import java.lang.annotation.Documented;
@@ -31,7 +32,7 @@ import java.lang.annotation.Target;
  *
  * <p>This will cause the task <em>not</em> to be considered out-of-date when the property has changed.</p>
  *
- * @since 5.3
+ * @since 5.4
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
