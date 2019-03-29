@@ -78,20 +78,20 @@ class BinaryCompatibilityRepository internal constructor(
         }
 
     fun isKotlinFileFacadeClass(member: JApiCompatibility): Boolean =
-        member.takeIf { it is JApiClass && it.jApiClass.isKotlin }?.let {
-            KotlinMetadataQueries.queryKotlinMetadata(
-                member.jApiClass.newClass.get(),
-                defaultResult = false,
-                query = KotlinMetadataQueries.isKotlinFileFacadeClass()
-            )
-        } == true
-
+        if (member !is JApiClass || !member.isKotlin) false
+        else KotlinMetadataQueries.queryKotlinMetadata(
+            member.newClass.get(),
+            defaultResult = false,
+            query = KotlinMetadataQueries.isKotlinFileFacadeClass()
+        )
 
     private
     fun apiSourceFileFor(member: JApiCompatibility): ApiSourceFile =
-        sources.sourceFileAndSourceRootFor(member.jApiClass.sourceFilePath).let { (sourceFile, sourceRoot) ->
-            if (member.jApiClass.isKotlin) ApiSourceFile.Kotlin(sourceFile, sourceRoot)
-            else ApiSourceFile.Java(sourceFile, sourceRoot)
+        member.jApiClass.let { declaringClass ->
+            sources.sourceFileAndSourceRootFor(declaringClass.sourceFilePath).let { (sourceFile, sourceRoot) ->
+                if (declaringClass.isKotlin) ApiSourceFile.Kotlin(sourceFile, sourceRoot)
+                else ApiSourceFile.Java(sourceFile, sourceRoot)
+            }
         }
 
     private
