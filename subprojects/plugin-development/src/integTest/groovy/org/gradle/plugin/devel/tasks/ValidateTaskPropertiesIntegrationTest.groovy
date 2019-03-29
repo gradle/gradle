@@ -16,12 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
-
-import org.gradle.api.ReplacedBy
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.model.ReplacedBy
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -153,6 +152,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "task can have property with annotation @#annotation.simpleName"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
@@ -768,6 +768,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "reports conflicting types when property is replaced but keeps old annotations"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.*;
             
