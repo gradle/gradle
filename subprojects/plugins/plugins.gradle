@@ -38,8 +38,6 @@ dependencies {
     compile libraries.commons_lang.coordinates
     compile libraries.slf4j_api.coordinates
 
-    runtime libraries.commons_cli.coordinates
-
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects
     runtime project(":compositeBuilds")
