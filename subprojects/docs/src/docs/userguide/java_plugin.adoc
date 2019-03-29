@@ -28,6 +28,125 @@ include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugi
 include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
 ====
 
+[[sec:java_tasks]]
+== Tasks
+
+The Java plugin adds a number of tasks to your project, as shown below.
+
+`compileJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: All tasks which contribute to the compilation classpath, including `jar` tasks from projects that are on the classpath via project dependencies
++
+Compiles production Java source files using the JDK compiler.
+
+`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+Copies production resources into the production resources directory.
+
+`classes`::
+_Depends on_: `compileJava`, `processResources`
++
+This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
+
+`compileTestJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
++
+Compiles test Java source files using the JDK compiler.
+
+`processTestResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+Copies test resources into the test resources directory.
+
+`testClasses`::
+_Depends on_: `compileTestJava`, `processTestResources`
++
+This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
+
+`jar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
+_Depends on_: `classes`
++
+Assembles the production JAR file, based on the classes and resources attached to the `main` source set.
+
+`javadoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
+_Depends on_: `classes`
++
+Generates API documentation for the production Java source using Javadoc.
+
+`test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
+_Depends on_: `testClasses`, and all tasks which produce the test runtime classpath
++
+Runs the unit tests using JUnit or TestNG.
+
+`uploadArchives` — link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
+_Depends on_: `jar`, and any other task that produces an artifact attached to the `archives` configuration
++
+Uploads artifacts in the `archives` configuration — including the production JAR file — to the configured repositories.
+
+`clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+Deletes the project build directory.
+
+`clean__TaskName__` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
+Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
+
+[[java_source_set_tasks]]
+=== SourceSet Tasks
+
+For each source set you add to the project, the Java plugin adds the following tasks:
+
+
+`compile__SourceSet__Java` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
+_Depends on_: All tasks which contribute to the source set's compilation classpath
++
+Compiles the given source set's Java source files using the JDK compiler.
+
+`process__SourceSet__Resources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+Copies the given source set's resources into the resources directory.
+
+`__sourceSet__Classes` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
+_Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
++
+Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
+
+=== Lifecycle Tasks
+
+The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
+
+`assemble`::
+_Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
++
+Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
+
+`check`::
+_Depends on_: `test`
++
+Aggregate task that performs verification tasks, such as running the tests. Some plugins add their own verification tasks to `check`. You should also attach any custom `Test` tasks to this lifecycle task if you want them to execute for a full build. This task is added by the Base Plugin.
+
+`build`::
+_Depends on_: `check`, `assemble`
++
+Aggregate tasks that performs a full build of the project. This task is added by the Base Plugin.
+
+`buildNeeded`::
+_Depends on_: `build`, and `buildNeeded` tasks in all projects that are dependencies in the `testRuntimeClasspath` configuration.
++
+Performs a full build of the project and all projects it depends on.
+
+`buildDependents`::
+_Depends on_: `build`, and `buildDependents` tasks in all projects that have this project as a dependency in theeir `testRuntimeClasspath` configurations
++
+Performs a full build of the project and all projects which depend upon it.
+
+`build__ConfigName__` — _task rule_::
+_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
++
+Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
+
+`upload__ConfigName__` — _task rule_, type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
+_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
++
+Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
+
+The following diagram shows the relationships between these tasks.
+
+.Java plugin - tasks
+image::javaPluginTasks.png[]
 
 [[sec:java_project_layout]]
 == Project layout
@@ -42,69 +161,6 @@ include::javaProjectTestLayout.adoc[]
 include::javaProjectGenericLayout.adoc[]
 
 [[sec:java_convention_properties]]
-== Convention properties
-
-The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
-
-=== Directory properties
-
-`String reporting.baseDir`::
-The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
-
-`(read-only) File reportsDir`::
-The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
-
-`String testResultsDirName`::
-The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
-
-`(read-only) File testResultsDir`::
-The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
-
-`String testReportDirName`::
-The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
-
-`(read-only) File testReportDir`::
-The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
-
-`String libsDirName`::
-The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
-
-`(read-only) File libsDir`::
-The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
-
-`String distsDirName`::
-The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
-
-`(read-only) File distsDir`::
-The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
-
-`String docsDirName`::
-The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
-
-`(read-only) File docsDir`::
-The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
-
-`String dependencyCacheDirName`::
-The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
-
-=== Other convention properties
-
-`(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
-Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
-
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
-
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
-Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
-
-`String archivesBaseName`::
-The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
-
-`link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
-The manifest to include in all JAR files. Default value: an empty manifest.
-
-These properties are provided by convention objects of type link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
 
 [[sec:changing_java_project_layout]]
 === Changing the project layout
@@ -226,179 +282,6 @@ include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags
 include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 ====
 
-[[sec:java_tasks]]
-== Tasks
-
-The Java plugin adds a number of tasks to your project, as shown below.
-
-`compileJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
-_Depends on_: All tasks which contribute to the compilation classpath, including `jar` tasks from projects that are on the classpath via project dependencies
-+
-Compiles production Java source files using the JDK compiler.
-
-`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
-Copies production resources into the production resources directory.
-
-`classes`::
-_Depends on_: `compileJava`, `processResources`
-+
-This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
-
-`compileTestJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
-_Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
-+
-Compiles test Java source files using the JDK compiler.
-
-`processTestResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
-Copies test resources into the test resources directory.
-
-`testClasses`::
-_Depends on_: `compileTestJava`, `processTestResources`
-+
-This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
-
-`jar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
-_Depends on_: `classes`
-+
-Assembles the production JAR file, based on the classes and resources attached to the `main` source set.
-
-`javadoc` — link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc]::
-_Depends on_: `classes`
-+
-Generates API documentation for the production Java source using Javadoc.
-
-`test` — link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]::
-_Depends on_: `testClasses`, and all tasks which produce the test runtime classpath
-+
-Runs the unit tests using JUnit or TestNG.
-
-`uploadArchives` — link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
-_Depends on_: `jar`, and any other task that produces an artifact attached to the `archives` configuration
-+
-Uploads artifacts in the `archives` configuration — including the production JAR file — to the configured repositories.
-
-`clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Deletes the project build directory.
-
-`clean__TaskName__` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
-
-[[java_source_set_tasks]]
-=== SourceSet Tasks
-
-For each source set you add to the project, the Java plugin adds the following tasks:
-
-
-`compile__SourceSet__Java` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
-_Depends on_: All tasks which contribute to the source set's compilation classpath
-+
-Compiles the given source set's Java source files using the JDK compiler.
-
-`process__SourceSet__Resources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
-Copies the given source set's resources into the resources directory.
-
-`__sourceSet__Classes` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
-_Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
-+
-Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
-
-=== Lifecycle Tasks
-
-The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
-
-`assemble`::
-_Depends on_: `jar`, and all other tasks that create artifacts attached to the `archives` configuration
-+
-Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
-
-`check`::
-_Depends on_: `test`
-+
-Aggregate task that performs verification tasks, such as running the tests. Some plugins add their own verification tasks to `check`. You should also attach any custom `Test` tasks to this lifecycle task if you want them to execute for a full build. This task is added by the Base Plugin.
-
-`build`::
-_Depends on_: `check`, `assemble`
-+
-Aggregate tasks that performs a full build of the project. This task is added by the Base Plugin.
-
-`buildNeeded`::
-_Depends on_: `build`, and `buildNeeded` tasks in all projects that are dependencies in the `testRuntimeClasspath` configuration.
-+
-Performs a full build of the project and all projects it depends on.
-
-`buildDependents`::
-_Depends on_: `build`, and `buildDependents` tasks in all projects that have this project as a dependency in theeir `testRuntimeClasspath` configurations
-+
-Performs a full build of the project and all projects which depend upon it.
-
-`build__ConfigName__` — _task rule_::
-_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
-+
-Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
-
-`upload__ConfigName__` — _task rule_, type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
-_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
-+
-Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
-
-The following diagram shows the relationships between these tasks.
-
-.Java plugin - tasks
-image::javaPluginTasks.png[]
-
-
-[[sec:java_test]]
-=== Test
-
-The `test` task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]. It automatically detects and executes all unit tests in the `test` source set. It also generates a report once test execution is complete. JUnit and TestNG are both supported. Have a look at link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for the complete API.
-
-See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapter for more details.
-
-
-[[sec:jar]]
-=== Jar
-
-The `jar` task creates a JAR file containing the class files and resources of the project. The JAR file is declared as an artifact in the `archives` dependency configuration. This means that the JAR is available in the classpath of a dependent project. If you upload your project into a repository, this JAR is declared as part of the dependency descriptor. You can learn more about how to work with archives in <<working_with_files.adoc#sec:archives,Archive creation in depth>> and artifact configurations in <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
-
-
-[[sub:manifest]]
-==== Manifest
-
-Each jar or war object has a `manifest` property with a separate instance of link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest]. When the archive is generated, a corresponding `MANIFEST.MF` file is written into the archive.
-
-.Customization of MANIFEST.MF
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=add-to-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=add-to-manifest]"]
-====
-
-You can create stand-alone instances of a `Manifest`. You can use that for example, to share manifest information between jars.
-
-.Creating a manifest object.
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=custom-manifest]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=custom-manifest]"]
-====
-
-You can merge other manifests into any `Manifest` object. The other manifests might be either described by a file path or, like in the example above, by a reference to another `Manifest` object.
-
-.Separate MANIFEST.MF for a particular archive
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=merge]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=merge]"]
-====
-
-Manifests are merged in the order they are declared by the `from` statement. If the base manifest and the merged manifest both define values for the same key, the merged manifest wins by default. You can fully customize the merge behavior by adding `eachEntry` actions in which you have access to a link:{javadocPath}/org/gradle/api/java/archives/ManifestMergeDetails.html[ManifestMergeDetails] instance for each entry of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily, either when generating the jar, or by calling `writeTo` or `effectiveManifest`
-
-You can easily write a manifest to disk.
-
-.Saving a MANIFEST.MF to disk
-====
-include::sample[dir="userguide/tutorial/manifest/groovy",files="build.gradle[tags=write]"]
-include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts[tags=write]"]
-====
-
-
 [[sec:java_plugin_and_dependency_management]]
 == Dependency management
 
@@ -506,6 +389,75 @@ Runtime only dependencies for the given source set.
 
 `__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Runtime, __sourceSet__Implementation`::
 Runtime classpath contains elements of the implementation, as well as runtime only elements.
+
+== Convention properties
+
+The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
+
+=== Directory properties
+
+`String reporting.baseDir`::
+The name of the directory to generate reports into, relative to the build directory. Default value: `reports`
+
+`(read-only) File reportsDir`::
+The directory to generate reports into. Default value: `__buildDir__/__reporting.baseDir__`
+
+`String testResultsDirName`::
+The name of the directory to generate test result .xml files into, relative to the build directory. Default value: `test-results`
+
+`(read-only) File testResultsDir`::
+The directory to generate test result .xml files into. Default value: `__buildDir__/__testResultsDirName__`
+
+`String testReportDirName`::
+The name of the directory to generate the test report into, relative to the reports directory. Default value: `tests`
+
+`(read-only) File testReportDir`::
+The directory to generate the test report into. Default value: `__reportsDir__/testReportDirName`
+
+`String libsDirName`::
+The name of the directory to generate libraries into, relative to the build directory. Default value: `libs`
+
+`(read-only) File libsDir`::
+The directory to generate libraries into. Default value: `__buildDir__/__libsDirName__`
+
+`String distsDirName`::
+The name of the directory to generate distributions into, relative to the build directory. Default value: `distributions`
+
+`(read-only) File distsDir`::
+The directory to generate distributions into. Default value: `__buildDir__/__distsDirName__`
+
+`String docsDirName`::
+The name of the directory to generate documentation into, relative to the build directory. Default value: `docs`
+
+`(read-only) File docsDir`::
+The directory to generate documentation into. Default value: `__buildDir__/__docsDirName__`
+
+`String dependencyCacheDirName`::
+The name of the directory to use to cache source dependency information, relative to the build directory. Default value: `dependency-cache`
+
+=== Other convention properties
+
+`(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
+Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
+Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
+Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
+
+`String archivesBaseName`::
+The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
+
+`link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
+The manifest to include in all JAR files. Default value: an empty manifest.
+
+These properties are provided by convention objects of type link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], and link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention].
+
+[[sec:java_test]]
+== Testing
+
+See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapter for more details.
 
 [[sec:java_plugin_publishing]]
 == Publishing
