@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.caching.CachingState;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,11 @@ public interface TaskExecuterResult {
      */
     Optional<OriginMetadata> getReusedOutputOriginMetadata();
 
+    /**
+     * The caching state of the task, including all its captured inputs and the cache key if calculated.
+     */
+    CachingState getCachingState();
+
     TaskExecuterResult WITHOUT_OUTPUTS = new TaskExecuterResult() {
         @Override
         public List<String> getExecutionReasons() {
@@ -52,6 +58,11 @@ public interface TaskExecuterResult {
         @Override
         public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
             return Optional.empty();
+        }
+
+        @Override
+        public CachingState getCachingState() {
+            return CachingState.NOT_DETERMINED;
         }
     };
 }

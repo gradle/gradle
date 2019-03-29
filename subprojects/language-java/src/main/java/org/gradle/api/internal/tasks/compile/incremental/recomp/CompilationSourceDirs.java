@@ -21,8 +21,9 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 @NonNullApi
 public class CompilationSourceDirs {
-    private static final org.gradle.api.logging.Logger LOG = Logging.getLogger(CompilationSourceDirs.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
 
     private final FileTreeInternal sources;
     private SourceRoots sourceRoots;

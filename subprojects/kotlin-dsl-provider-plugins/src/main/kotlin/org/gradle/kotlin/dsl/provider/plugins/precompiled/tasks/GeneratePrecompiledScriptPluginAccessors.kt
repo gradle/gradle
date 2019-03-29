@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.Project
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -72,17 +73,17 @@ import java.nio.file.Files
 
 
 @CacheableTask
-open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGenerationTask() {
+abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGenerationTask() {
 
     @get:Classpath
     lateinit var runtimeClassPathFiles: FileCollection
 
     @get:OutputDirectory
-    var metadataOutputDir = directoryProperty()
+    abstract val metadataOutputDir: DirectoryProperty
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    var compiledPluginsBlocksDir = directoryProperty()
+    abstract val compiledPluginsBlocksDir: DirectoryProperty
 
     @get:Internal
     internal
@@ -301,7 +302,7 @@ open class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCodeGene
             hashedSchema.schema,
             classPath,
             sourceCodeOutputDir.get().asFile,
-            temporaryDir.resolve("accessors"),
+            null,
             hashedSchema.packageName,
             AccessorFormats.internal
         )

@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -28,7 +27,7 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
-public class OutputEventListenerBackedLogger implements Logger {
+public class OutputEventListenerBackedLogger extends BuildOperationAwareLogger {
 
     private final String name;
     private final OutputEventListenerBackedLoggerContext context;
@@ -129,8 +128,11 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String message) {
-        OperationIdentifier buildOperationId = CurrentBuildOperationRef.instance().getId();
-        LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, buildOperationId);
+        log(logLevel, throwable, message, CurrentBuildOperationRef.instance().getId());
+    }
+
+    void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier) {
+        LogEvent logEvent = new LogEvent(clock.getCurrentTime(), name, logLevel, message, throwable, operationIdentifier);
         OutputEventListener outputEventListener = context.getOutputEventListener();
         try {
             outputEventListener.onOutput(logEvent);
@@ -151,7 +153,6 @@ public class OutputEventListenerBackedLogger implements Logger {
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
         FormattingTuple tuple = MessageFormatter.arrayFormat(format, args);
         Throwable loggedThrowable = throwable == null ? tuple.getThrowable() : throwable;
-
         log(logLevel, loggedThrowable, tuple.getMessage());
     }
 
@@ -476,4 +477,6 @@ public class OutputEventListenerBackedLogger implements Logger {
             log(LogLevel.ERROR, t, msg);
         }
     }
+
+
 }

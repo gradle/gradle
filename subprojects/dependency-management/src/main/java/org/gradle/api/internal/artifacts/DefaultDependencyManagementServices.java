@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -101,8 +103,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
@@ -112,11 +116,19 @@ import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivati
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentAttributeMatcher;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.CachingContext;
+import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
@@ -132,6 +144,7 @@ import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
 import org.gradle.internal.id.UniqueId;
@@ -220,7 +233,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
+        WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
             ExecutionStateChangeDetector changeDetector,
             ListenerManager listenerManager,
             TimeoutHandler timeoutHandler
@@ -229,17 +242,19 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             return new DefaultWorkExecutor<>(
-                new ResolveChangesStep<>(changeDetector,
-                    new SkipUpToDateStep<>(
-                        new BroadcastChangingOutputsStep<>(outputChangeListener,
-                            new StoreSnapshotsStep<>(
-                                new SnapshotOutputsStep<>(fixedUniqueId,
-                                    new CreateOutputsStep<>(
-                                        new CatchExceptionStep<>(
-                                            new TimeoutStep<>(timeoutHandler,
-                                                new ResolveInputChangesStep<>(
-                                                    new CleanupOutputsStep<>(
-                                                        new ExecuteStep<InputChangesContext>()
+                new NoOpCachingStateStep(
+                    new ResolveChangesStep<>(changeDetector,
+                        new SkipUpToDateStep<>(
+                            new BroadcastChangingOutputsStep<>(outputChangeListener,
+                                new StoreSnapshotsStep<>(
+                                    new SnapshotOutputsStep<>(fixedUniqueId,
+                                        new CreateOutputsStep<>(
+                                            new CatchExceptionStep<>(
+                                                new TimeoutStep<>(timeoutHandler,
+                                                    new ResolveInputChangesStep<>(
+                                                        new CleanupOutputsStep<>(
+                                                            new ExecuteStep<InputChangesContext>()
+                                                        )
                                                     )
                                                 )
                                             )
@@ -251,6 +266,75 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     )
                 )
             );
+        }
+    }
+
+    private static class NoOpCachingStateStep implements Step<IncrementalContext, CachingResult> {
+        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
+
+        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public CachingResult execute(IncrementalContext context) {
+            UpToDateResult result = delegate.execute(new CachingContext() {
+                @Override
+                public CachingState getCachingState() {
+                    return CachingState.NOT_DETERMINED;
+                }
+
+                @Override
+                public Optional<String> getRebuildReason() {
+                    return context.getRebuildReason();
+                }
+
+                @Override
+                public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
+                    return context.getAfterPreviousExecutionState();
+                }
+
+                @Override
+                public Optional<BeforeExecutionState> getBeforeExecutionState() {
+                    return context.getBeforeExecutionState();
+                }
+
+                @Override
+                public UnitOfWork getWork() {
+                    return context.getWork();
+                }
+            });
+            return new CachingResult() {
+                @Override
+                public CachingState getCachingState() {
+                    return CachingState.NOT_DETERMINED;
+                }
+
+                @Override
+                public ImmutableList<String> getExecutionReasons() {
+                    return result.getExecutionReasons();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, ? extends FileCollectionFingerprint> getFinalOutputs() {
+                    return result.getFinalOutputs();
+                }
+
+                @Override
+                public OriginMetadata getOriginMetadata() {
+                    return result.getOriginMetadata();
+                }
+
+                @Override
+                public boolean isReused() {
+                    return result.isReused();
+                }
+
+                @Override
+                public Try<ExecutionOutcome> getOutcome() {
+                    return result.getOutcome();
+                }
+            };
         }
     }
 
@@ -274,7 +358,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
         }
 
-        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, UpToDateResult> workExecutor,
+        TransformerInvoker createTransformerInvoker(WorkExecutor<IncrementalContext, CachingResult> workExecutor,
                                                     FileSystemSnapshotter fileSystemSnapshotter,
                                                     ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                                                     ArtifactTransformListener artifactTransformListener,

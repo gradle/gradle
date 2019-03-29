@@ -17,14 +17,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.io.ByteStreams;
 import org.gradle.api.internal.tasks.compile.ApiClassExtractor;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.objectweb.asm.ClassReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.zip.ZipEntry;
 
 public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
-    private static final Logger LOGGER = Logging.getLogger(AbiExtractingClasspathResourceHasher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbiExtractingClasspathResourceHasher.class);
 
     private HashCode hashClassBytes(InputStream inputStream) throws IOException {
         // Use the ABI as the hash

@@ -21,7 +21,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-class MapValueSnapshot extends AbstractMapSnapshot<ValueSnapshot> implements ValueSnapshot {
+public class MapValueSnapshot extends AbstractMapSnapshot<ValueSnapshot> implements ValueSnapshot {
     public MapValueSnapshot(ImmutableList<Pair<ValueSnapshot, ValueSnapshot>> entries) {
         super(entries);
     }

@@ -41,6 +41,8 @@ class ScriptBuildCacheKey(
 
     override fun getHashCode(): String = cacheKey
 
+    override fun toByteArray(): ByteArray = throw UnsupportedOperationException()
+
     override fun toString(): String = cacheKey
 }
 

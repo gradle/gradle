@@ -243,7 +243,7 @@ This will lead to some types annotated according to JSR-305 being treated as nul
 
 [[deprecations_4.8]]
 === Deprecations
-Prior to this release, builds were allowed to replace built-in tasks. This feature has been deprecated(https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle's-built-in-tasks).
+Prior to this release, builds were allowed to replace built-in tasks. link:https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle\'s-built-in-tasks[This feature has been deprecated].
 
 The full list of built-in tasks that should not be replaced is:
 `wrapper`, `init`, `help`, `tasks`, `projects`, `buildEnvironment`, `components`, `dependencies`, `dependencyInsight`, `dependentComponents`, `model`, `properties`.

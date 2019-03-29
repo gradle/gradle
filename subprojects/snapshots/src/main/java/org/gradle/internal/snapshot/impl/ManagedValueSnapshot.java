@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnapshot> implements ValueSnapshot {
+public class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnapshot> implements ValueSnapshot {
     private final String className;
 
     public ManagedValueSnapshot(String className, ValueSnapshot state) {

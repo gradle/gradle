@@ -22,12 +22,12 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassDependentsAccumulator;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -36,7 +36,7 @@ import java.util.Map;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultClasspathEntrySnapshotter {
-    private static final Logger LOGGER = Logging.getLogger(DefaultClasspathEntrySnapshotter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClasspathEntrySnapshotter.class);
 
     private final FileHasher fileHasher;
     private final StreamHasher hasher;

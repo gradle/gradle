@@ -22,10 +22,9 @@ import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
-import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.startsWith
-import static org.junit.Assert.assertThat
-
+import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
 class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -119,7 +118,10 @@ class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptM
         expect:
         assertThat(
             kotlinBuildScriptModelFor(projectDir, pluginFile).implicitImports,
-            hasItem(startsWith("gradle.kotlin.dsl.accessors._"))
+            hasItems(
+                startsWith("gradle.kotlin.dsl.accessors._"),
+                startsWith("gradle.kotlin.dsl.plugins._")
+            )
         )
     }
 

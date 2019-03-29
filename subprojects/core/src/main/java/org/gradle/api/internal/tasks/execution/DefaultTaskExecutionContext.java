@@ -20,7 +20,6 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -40,7 +39,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
-    private TaskOutputCachingBuildCacheKey buildCacheKey;
     private TaskProperties properties;
     private boolean taskCachingEnabled;
     private Long executionTime;
@@ -106,16 +104,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
         this.taskExecutionMode = taskExecutionMode;
-    }
-
-    @Override
-    public TaskOutputCachingBuildCacheKey getBuildCacheKey() {
-        return buildCacheKey;
-    }
-
-    @Override
-    public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
-        this.buildCacheKey = buildCacheKey;
     }
 
     public long markExecutionTime() {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.TaskOutputCachingState;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.util.CollectionUtils;
@@ -30,7 +29,6 @@ public class TaskStateInternal implements TaskState {
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
-    private TaskOutputCachingState taskOutputCaching = DefaultTaskOutputCachingState.disabled(TaskOutputCachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
     private TaskExecutionOutcome outcome;
 
     public boolean getDidWork() {
@@ -91,14 +89,6 @@ public class TaskStateInternal implements TaskState {
 
     public void setExecuting(boolean executing) {
         this.executing = executing;
-    }
-
-    public void setTaskOutputCaching(TaskOutputCachingState taskOutputCaching) {
-        this.taskOutputCaching = taskOutputCaching;
-    }
-
-    public TaskOutputCachingState getTaskOutputCaching() {
-        return taskOutputCaching;
     }
 
     public Throwable getFailure() {

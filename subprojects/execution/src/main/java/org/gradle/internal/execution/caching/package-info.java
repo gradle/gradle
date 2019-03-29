@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.caching;
 
-package org.gradle.internal.execution;
-
-import org.gradle.caching.BuildCacheKey;
-
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-public interface CacheHandler {
-    <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader);
-    void store(Consumer<BuildCacheKey> storer);
-}
+import org.gradle.api.NonNullApi;

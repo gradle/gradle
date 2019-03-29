@@ -9,7 +9,6 @@ dependencies {
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':workers')
-    compile libraries.commons_collections.coordinates
     compile libraries.commons_lang.coordinates
 }
 

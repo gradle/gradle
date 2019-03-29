@@ -31,6 +31,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.IncrementalContext;
@@ -54,14 +55,17 @@ import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
+import org.gradle.internal.execution.steps.ResolveCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
+import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
+import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
@@ -115,9 +119,10 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<IncrementalContext, UpToDateResult> createWorkExecutor(
+    public WorkExecutor<IncrementalContext, CachingResult> createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
+        BuildScanPluginApplied buildScanPlugin,
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         ExecutionStateChangeDetector changeDetector,
@@ -125,21 +130,25 @@ public class ExecutionGradleServices {
         OutputFilesRepository outputFilesRepository,
         TimeoutHandler timeoutHandler
     ) {
-        return new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-            new ResolveChangesStep<UpToDateResult>(changeDetector,
-                new SkipUpToDateStep<IncrementalChangesContext>(
-                    new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
-                        new StoreSnapshotsStep<IncrementalChangesContext>(
-                            new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
-                                new CacheStep(buildCacheController, buildCacheCommandFactory,
-                                    new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
-                                        new CreateOutputsStep<IncrementalChangesContext, Result>(
-                                            new CatchExceptionStep<IncrementalChangesContext>(
-                                                new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
-                                                    new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
-                                                        new ResolveInputChangesStep<IncrementalChangesContext>(
-                                                            new CleanupOutputsStep<InputChangesContext, Result>(
-                                                                new ExecuteStep<InputChangesContext>()
+        return new DefaultWorkExecutor<IncrementalContext, CachingResult>(
+            new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
+                new MarkSnapshottingInputsFinishedStep<UpToDateResult>(
+                    new ResolveChangesStep<UpToDateResult>(changeDetector,
+                        new SkipUpToDateStep<IncrementalChangesContext>(
+                            new RecordOutputsStep<IncrementalChangesContext>(outputFilesRepository,
+                                new StoreSnapshotsStep<IncrementalChangesContext>(
+                                    new BroadcastChangingOutputsStep<IncrementalChangesContext, CurrentSnapshotResult>(outputChangeListener,
+                                        new CacheStep(buildCacheController, buildCacheCommandFactory,
+                                            new SnapshotOutputsStep<IncrementalChangesContext>(buildInvocationScopeId.getId(),
+                                                new CreateOutputsStep<IncrementalChangesContext, Result>(
+                                                    new CatchExceptionStep<IncrementalChangesContext>(
+                                                        new TimeoutStep<IncrementalChangesContext>(timeoutHandler,
+                                                            new CancelExecutionStep<IncrementalChangesContext>(cancellationToken,
+                                                                new ResolveInputChangesStep<IncrementalChangesContext>(
+                                                                    new CleanupOutputsStep<InputChangesContext, Result>(
+                                                                        new ExecuteStep<InputChangesContext>()
+                                                                    )
+                                                                )
                                                             )
                                                         )
                                                     )

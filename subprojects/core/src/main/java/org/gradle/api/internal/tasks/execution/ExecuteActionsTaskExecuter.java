@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
+import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -32,23 +33,22 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
-import org.gradle.internal.execution.CacheHandler;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalContext;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UpToDateResult;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
+import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -59,8 +59,11 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -75,38 +78,46 @@ import java.util.function.Function;
  * A {@link TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteActionsTaskExecuter.class);
+
+    private static final CachingDisabledReason NO_OUTPUTS_DECLARED = new CachingDisabledReason(CachingDisabledReasonCategory.NO_OUTPUTS_DECLARED, "No outputs declared");
 
     private final boolean buildCacheEnabled;
+    private final boolean scanPluginApplied;
     private final TaskFingerprinter taskFingerprinter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
     private final AsyncWorkTracker asyncWorkTracker;
     private final TaskActionListener actionListener;
-    private final WorkExecutor<IncrementalContext, UpToDateResult> workExecutor;
+    private final TaskCacheabilityResolver taskCacheabilityResolver;
+    private final WorkExecutor<IncrementalContext, CachingResult> workExecutor;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
+        boolean scanPluginApplied,
         TaskFingerprinter taskFingerprinter,
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker,
         TaskActionListener actionListener,
-        WorkExecutor<IncrementalContext, UpToDateResult> workExecutor
+        TaskCacheabilityResolver taskCacheabilityResolver,
+        WorkExecutor<IncrementalContext, CachingResult> workExecutor
     ) {
         this.buildCacheEnabled = buildCacheEnabled;
+        this.scanPluginApplied = scanPluginApplied;
         this.taskFingerprinter = taskFingerprinter;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
         this.asyncWorkTracker = asyncWorkTracker;
         this.actionListener = actionListener;
+        this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.workExecutor = workExecutor;
     }
 
     @Override
     public TaskExecuterResult execute(final TaskInternal task, final TaskStateInternal state, final TaskExecutionContext context) {
         final TaskExecution work = new TaskExecution(task, context, executionHistoryStore);
-        final UpToDateResult result = workExecutor.execute(new IncrementalContext() {
+        final CachingResult result = workExecutor.execute(new IncrementalContext() {
             @Override
             public UnitOfWork getWork() {
                 return work;
@@ -168,6 +179,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             @Override
             public List<String> getExecutionReasons() {
                 return result.getExecutionReasons();
+            }
+
+            @Override
+            public CachingState getCachingState() {
+                return result.getCachingState();
             }
         };
     }
@@ -257,34 +273,28 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public CacheHandler createCacheHandler() {
-            return new CacheHandler() {
-                @Override
-                public <T> Optional<T> load(Function<BuildCacheKey, Optional<T>> loader) {
-                    // TODO Log this when creating the build cache key perhaps?
-                    if (task.isHasCustomActions()) {
-                        LOGGER.info("Custom actions are attached to {}.", task);
-                    }
-                    if (context.isTaskCachingEnabled()
-                            && context.getTaskExecutionMode().isAllowedToUseCachedResults()
-                            && context.getBuildCacheKey().isValid()
-                    ) {
-                        return loader.apply(context.getBuildCacheKey());
-                    } else {
-                        return Optional.empty();
-                    }
-                }
+        public Optional<CachingDisabledReason> shouldDisableCaching() {
+            if (task.isHasCustomActions()) {
+                LOGGER.info("Custom actions are attached to {}.", task);
+            }
 
-                @Override
-                public void store(Consumer<BuildCacheKey> storer) {
-                    if (buildCacheEnabled
-                            && context.isTaskCachingEnabled()
-                            && context.getBuildCacheKey().isValid()
-                    ) {
-                        storer.accept(context.getBuildCacheKey());
-                    }
-                }
-            };
+            if (!context.getTaskProperties().hasDeclaredOutputs()) {
+                return Optional.of(NO_OUTPUTS_DECLARED);
+            }
+
+            return taskCacheabilityResolver.shouldDisableCaching(
+                context.getTaskProperties().hasDeclaredOutputs(),
+                context.getTaskProperties().getOutputFileProperties(),
+                task,
+                task.getOutputs().getCacheIfSpecs(),
+                task.getOutputs().getDoNotCacheIfSpecs(),
+                context.getOverlappingOutputs().orElse(null)
+            );
+        }
+
+        @Override
+        public boolean isAllowedToLoadFromCache() {
+            return context.getTaskExecutionMode().isAllowedToUseCachedResults();
         }
 
         @Override
@@ -339,6 +349,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public long markExecutionTime() {
             return context.markExecutionTime();
+        }
+
+        @Override
+        public void markSnapshottingInputsFinished(final CachingState cachingState) {
+            // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
+            //   expects it to be added also when the build cache is enabled (but not the scan plugin)
+            if (buildCacheEnabled || scanPluginApplied) {
+                context.removeSnapshotTaskInputsBuildOperation()
+                    .ifPresent(new Consumer<ExecutingBuildOperation>() {
+                        @Override
+                        public void accept(ExecutingBuildOperation operation) {
+                            operation.setResult(new SnapshotTaskInputsBuildOperationResult(cachingState));
+                        }
+                    });
+            }
         }
 
         @Override

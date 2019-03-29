@@ -16,17 +16,17 @@
 
 package org.gradle.caching.internal.controller.service;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 
 public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
 
-    private static final Logger LOGGER = Logging.getLogger(OpFiringBuildCacheServiceHandle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpFiringBuildCacheServiceHandle.class);
 
     protected final BuildCacheService service;
 

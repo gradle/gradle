@@ -28,7 +28,6 @@ dependencies {
     api project(":resources")
     api project(":logging")
 
-    implementation libraries.commons_collections.coordinates
     implementation libraries.commons_io.coordinates
     implementation libraries.commons_lang.coordinates
 }

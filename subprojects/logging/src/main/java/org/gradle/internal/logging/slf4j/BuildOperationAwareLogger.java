@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.internal.tasks;
+package org.gradle.internal.logging.slf4j;
 
-import org.gradle.caching.BuildCacheKey;
-import org.gradle.util.Path;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.internal.operations.OperationIdentifier;
 
-import javax.annotation.Nullable;
+abstract class BuildOperationAwareLogger implements Logger {
 
-public interface TaskOutputCachingBuildCacheKey extends BuildCacheKey {
-    Path getTaskPath();
+    abstract void log(LogLevel logLevel, Throwable throwable, String message, OperationIdentifier operationIdentifier);
 
-    BuildCacheKeyInputs getInputs();
-
-    @Nullable
-    byte[] getHashCodeBytes();
-
-    /**
-     * Whether this key can be used to retrieve or store task output entries.
-     */
-    boolean isValid();
 }

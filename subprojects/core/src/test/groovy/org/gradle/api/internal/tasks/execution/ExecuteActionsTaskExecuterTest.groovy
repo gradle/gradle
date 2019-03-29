@@ -29,14 +29,15 @@ import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.IncrementalContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.UpToDateResult
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
@@ -45,6 +46,7 @@ import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
@@ -80,16 +82,20 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def outputChangeListener = Mock(OutputChangeListener)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
-    def workExecutor = new DefaultWorkExecutor<IncrementalContext, UpToDateResult>(
-        new ResolveChangesStep<>(changeDetector,
-            new SkipUpToDateStep<>(
-                new BroadcastChangingOutputsStep<>(outputChangeListener,
-                    new SnapshotOutputsStep<>(buildId,
-                        new CatchExceptionStep<>(
-                            new CancelExecutionStep<>(cancellationToken,
-                                new ResolveInputChangesStep<>(
-                                    new CleanupOutputsStep<>(
-                                        new ExecuteStep<InputChangesContext>()
+    def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
+    def buildCacheController = Mock(BuildCacheController)
+    def workExecutor = new DefaultWorkExecutor<IncrementalContext, CachingResult>(
+        new ResolveCachingStateStep(buildCacheController, false,
+            new ResolveChangesStep<>(changeDetector,
+                new SkipUpToDateStep<>(
+                    new BroadcastChangingOutputsStep<>(outputChangeListener,
+                        new SnapshotOutputsStep<>(buildId,
+                            new CatchExceptionStep<>(
+                                new CancelExecutionStep<>(cancellationToken,
+                                    new ResolveInputChangesStep<>(
+                                        new CleanupOutputsStep<>(
+                                            new ExecuteStep<InputChangesContext>()
+                                        )
                                     )
                                 )
                             )
@@ -99,7 +105,17 @@ class ExecuteActionsTaskExecuterTest extends Specification {
             )
         )
     )
-    def executer = new ExecuteActionsTaskExecuter(false, taskFingerprinter, executionHistoryStore, buildOperationExecutor, asyncWorkTracker, actionListener, workExecutor)
+    def executer = new ExecuteActionsTaskExecuter(
+        false,
+        false,
+        taskFingerprinter,
+        executionHistoryStore,
+        buildOperationExecutor,
+        asyncWorkTracker,
+        actionListener,
+        taskCacheabilityResolver,
+        workExecutor
+    )
 
     def setup() {
         ProjectInternal project = Mock(ProjectInternal)

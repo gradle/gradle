@@ -26,11 +26,11 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.IoActions;
 import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,7 +56,7 @@ import static org.gradle.util.CollectionUtils.single;
 public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
-    private static final Logger LOGGER = Logging.getLogger(WrapperDistributionCleanupAction.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;
     private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(GradleVersion.RESOURCE_NAME, "/");

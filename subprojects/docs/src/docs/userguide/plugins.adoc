@@ -78,7 +78,7 @@ You apply plugins by their _plugin id_, which is a globally unique identifier, o
 A plugin is simply any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface. Gradle provides the core plugins (e.g. `JavaPlugin`) as part of its distribution which means they are automatically resolved. However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
 
 * Including the plugin from the plugin portal or a <<#sec:custom_plugin_repositories,custom repository>> using the plugins DSL (see <<#sec:plugins_block,Applying plugins using the plugins DSL>>).
-* Including the plugin from an external jar defined as a buildscript dependency (see see <<#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>).
+* Including the plugin from an external jar defined as a buildscript dependency (see <<#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>).
 * Defining the plugin as a source file under the buildSrc directory in the project (see <<organizing_gradle_projects.adoc#sec:build_sources,Using buildSrc to extract functional logic>>).
 * Defining the plugin as an inline class declaration inside a build script.
 

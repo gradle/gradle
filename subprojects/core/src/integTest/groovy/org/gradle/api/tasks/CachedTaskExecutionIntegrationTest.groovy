@@ -413,15 +413,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
 
         then:
         skippedTasks.empty
-        [
-            "taskImplementation",
-            "actionImplementation",
-            "inputValuePropertyHash for 'options.fork'",
-            "inputFilePropertyHash for 'classpath'",
-            "outputPropertyName",
-        ].each {
-            assert output.contains("Appending ${it} to build cache key:")
-        }
+        output.contains("Appending implementation to build cache key:")
+        output.contains("Appending additional implementation to build cache key:")
+        output.contains("Appending input value fingerprint for 'options.fork'")
+        output.contains("Appending input file fingerprints for 'classpath'")
+        output.contains("Appending output property name to build cache key: destinationDir")
         output.contains("Build cache key for task ':compileJava' is ")
     }
 
@@ -435,8 +431,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         then:
         skippedTasks.empty
         output.contains("Build cache key for task ':compileJava' is ")
-        !output.contains("Appending taskClass to build cache key:")
-        !output.contains("Appending inputPropertyHash for")
+        !output.contains("Appending implementation to build cache key:")
+        !output.contains("Appending input value fingerprint for")
+        !output.contains("Appending input file fingerprints for 'classpath'")
     }
 
     def "compileJava is not cached if forked executable is used"() {
@@ -449,7 +446,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().run "compileJava", "--info"
         then:
         skippedTasks.empty
-        output.contains "Caching disabled for task ':compileJava': 'Forking compiler via ForkOptions.executable' satisfied"
+        output.contains "Caching disabled for task ':compileJava' because:\n" +
+            "  'Forking compiler via ForkOptions.executable' satisfied"
 
         expect:
         succeeds "clean"

@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
+package org.gradle.tooling.model.eclipse;
 
-import org.gradle.api.internal.AbstractTask
+import org.gradle.api.Incubating;
 
-
-internal
-fun AbstractTask.directoryProperty() = project.objects.directoryProperty()
-
-
-internal
-fun AbstractTask.sourceDirectorySet(name: String, displayName: String) = project.objects.sourceDirectorySet(name, displayName)
+/**
+ * A tooling model that instructs Gradle to run tasks from the Eclipse plugin configuration.
+ *
+ * Similarly to {@link RunEclipseSynchronizationTasks}, this is a special tooling model as it does
+ * not provide any information. However, when requested, Gradle will override the client-provided
+ * tasks with the ones stored in the {@code eclipse.autoBuildTasks} property.
+ *
+ * @since 5.4
+ */
+@Incubating
+public interface RunEclipseAutoBuildTasks {
+}
