@@ -37,16 +37,18 @@ object JavaSourceQueries {
         )
 
     fun isSince(version: String, member: JApiCompatibility): JavaSourceQuery<Boolean> =
-        JavaSourceQuery(
-            false,
-            when (member) {
-                is JApiClass -> isSinceJavaClassVisitorFor(member.jApiClass.simpleName, version)
-                is JApiField -> isSinceJavaFieldVisitorFor(member, member.jApiClass.simpleName, version)
-                is JApiConstructor -> isSinceJavaConstructorVisitorFor(member, member.jApiClass.simpleName, version)
-                is JApiMethod -> isSinceJavaMethodVisitorFor(member, member.jApiClass.simpleName, version)
-                else -> throw IllegalStateException("Unsupported japicmp member type ${member::class}")
-            }
-        )
+        member.jApiClass.simpleName.let { declaringClassSimpleName ->
+            JavaSourceQuery(
+                false,
+                when (member) {
+                    is JApiClass -> isSinceJavaClassVisitorFor(declaringClassSimpleName, version)
+                    is JApiField -> isSinceJavaFieldVisitorFor(member, declaringClassSimpleName, version)
+                    is JApiConstructor -> isSinceJavaConstructorVisitorFor(member, declaringClassSimpleName, version)
+                    is JApiMethod -> isSinceJavaMethodVisitorFor(member, declaringClassSimpleName, version)
+                    else -> throw IllegalStateException("Unsupported japicmp member type ${member::class}")
+                }
+            )
+        }
 }
 
 
