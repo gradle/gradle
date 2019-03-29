@@ -5,6 +5,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
@@ -22,6 +23,27 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Before
     fun setupPluginTest() =
         requireGradleDistributionOnEmbeddedExecuter()
+
+    @Test
+    fun `warns on unexpected kotlin-dsl plugin version`() {
+
+        // The test applies the in-development version of the kotlin-dsl
+        // which, by convention, it is always ahead of the version expected by
+        // the in-development version of Gradle
+        // (see publishedKotlinDslPluginsVersion in kotlin-dsl.gradle.kts)
+        withKotlinDslPlugin()
+
+        withDefaultSettings().appendText("""
+            rootProject.name = "forty-two"
+        """)
+
+        val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
+        build("help").apply {
+            assertOutputContains(
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$appliedKotlinDslPluginsVersion' has been applied to root project 'forty-two'."
+            )
+        }
+    }
 
     @Test
     fun `gradle kotlin dsl api dependency is added`() {
