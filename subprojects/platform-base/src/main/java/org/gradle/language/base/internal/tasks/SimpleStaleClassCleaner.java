@@ -71,7 +71,7 @@ public class SimpleStaleClassCleaner extends StaleClassCleaner {
             });
             for (File f : filesToDelete) {
                 if (f.isFile()) {
-                    outputsCleaner.cleanupOutput(f.getAbsolutePath(), FileType.RegularFile);
+                    outputsCleaner.cleanupOutput(f, FileType.RegularFile);
                 }
             }
             outputsCleaner.cleanupDirectories();

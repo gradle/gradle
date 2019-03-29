@@ -37,7 +37,6 @@ public class OutputsCleaner {
     private final PriorityQueue<File> directoriesToDelete;
     private final Predicate<File> fileSafeToDelete;
     private final Predicate<File> dirSafeToDelete;
-    private final boolean debugEnabled;
 
     private boolean didWork;
 
@@ -45,28 +44,24 @@ public class OutputsCleaner {
         this.fileSafeToDelete = fileSafeToDelete;
         this.dirSafeToDelete = dirSafeToDelete;
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
-        this.debugEnabled = LOGGER.isDebugEnabled();
     }
 
     public void cleanupOutputs(FileCollectionFingerprint fileCollectionFingerprint) throws IOException {
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : fileCollectionFingerprint.getFingerprints().entrySet()) {
-            cleanupOutput(entry.getKey(), entry.getValue().getType());
+            cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
         }
         cleanupDirectories();
     }
 
-    public void cleanupOutput(String absolutePath, FileType fileType) throws IOException {
+    public void cleanupOutput(File file, FileType fileType) throws IOException {
         switch (fileType) {
             case Directory:
-                markDirForDeletion(new File(absolutePath));
+                markDirForDeletion(file);
                 break;
             case RegularFile:
-                File file = new File(absolutePath);
                 if (fileSafeToDelete.test(file)) {
                     if (file.exists()) {
-                        if (debugEnabled) {
-                            LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
-                        }
+                        LOGGER.debug("Deleting stale output file '{}'.", file);
                         Files.delete(file.toPath());
                         didWork = true;
                     }
@@ -98,9 +93,7 @@ public class OutputsCleaner {
     public void cleanupDirectories() throws IOException {
         for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
             if (isEmpty(directory)) {
-                if (debugEnabled) {
-                    LOGGER.debug("Deleting stale empty output directory '{}'.", directory.getAbsolutePath());
-                }
+                LOGGER.debug("Deleting stale empty output directory '{}'.", directory);
                 Files.delete(directory.toPath());
                 didWork = true;
                 markParentDirForDeletion(directory);
