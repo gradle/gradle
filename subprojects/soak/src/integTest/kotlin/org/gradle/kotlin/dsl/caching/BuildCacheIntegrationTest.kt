@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,18 @@ package org.gradle.kotlin.dsl.caching
 
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
+import org.gradle.soak.categories.SoakTest
+
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 import java.io.File
 
 
+@Category(SoakTest::class)
 class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test

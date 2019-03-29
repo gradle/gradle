@@ -2,10 +2,12 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     gradlebuild.classycle
+    `kotlin-library`
 }
 
 dependencies {
     testFixturesApi(project(":internalIntegTesting"))
+    testImplementation(project(":kotlinDslTestFixtures"))
 }
 
 gradlebuildJava {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,16 @@ import org.gradle.kotlin.dsl.execution.ProgramTarget
 
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 
+import org.gradle.soak.categories.SoakTest
+
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 import java.io.File
 import java.util.UUID
 
 
+@Category(SoakTest::class)
 class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
