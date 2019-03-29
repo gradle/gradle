@@ -268,10 +268,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 LOGGER.info("Custom actions are attached to {}.", task);
             }
 
-            if (!context.getTaskProperties().hasDeclaredOutputs()) {
-                return Optional.of(NO_OUTPUTS_DECLARED);
-            }
-
             return taskCacheabilityResolver.shouldDisableCaching(
                 context.getTaskProperties().hasDeclaredOutputs(),
                 context.getTaskProperties().getOutputFileProperties(),
