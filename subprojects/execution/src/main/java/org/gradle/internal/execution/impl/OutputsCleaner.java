@@ -20,6 +20,8 @@ import com.google.common.collect.Ordering;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -30,9 +32,12 @@ import java.util.PriorityQueue;
 import java.util.function.Predicate;
 
 public class OutputsCleaner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OutputsCleaner.class);
+
     private final PriorityQueue<File> directoriesToDelete;
     private final Predicate<File> fileSafeToDelete;
     private final Predicate<File> dirSafeToDelete;
+    private final boolean debugEnabled;
 
     private boolean didWork;
 
@@ -40,6 +45,7 @@ public class OutputsCleaner {
         this.fileSafeToDelete = fileSafeToDelete;
         this.dirSafeToDelete = dirSafeToDelete;
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
+        this.debugEnabled = LOGGER.isDebugEnabled();
     }
 
     public void cleanupOutputs(FileCollectionFingerprint fileCollectionFingerprint) throws IOException {
@@ -49,7 +55,7 @@ public class OutputsCleaner {
         cleanupDirectories();
     }
 
-    private void cleanupOutput(String absolutePath, FileType fileType) throws IOException {
+    public void cleanupOutput(String absolutePath, FileType fileType) throws IOException {
         switch (fileType) {
             case Directory:
                 markDirForDeletion(new File(absolutePath));
@@ -58,6 +64,9 @@ public class OutputsCleaner {
                 File file = new File(absolutePath);
                 if (fileSafeToDelete.test(file)) {
                     if (file.exists()) {
+                        if (debugEnabled) {
+                            LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
+                        }
                         Files.delete(file.toPath());
                         didWork = true;
                     }
@@ -86,9 +95,12 @@ public class OutputsCleaner {
         }
     }
 
-    private void cleanupDirectories() throws IOException {
+    public void cleanupDirectories() throws IOException {
         for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
             if (isEmpty(directory)) {
+                if (debugEnabled) {
+                    LOGGER.debug("Deleting stale empty output directory '{}'.", directory.getAbsolutePath());
+                }
                 Files.delete(directory.toPath());
                 didWork = true;
                 markParentDirForDeletion(directory);
