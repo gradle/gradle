@@ -18,8 +18,7 @@ testFixtures {
     from(":core")
 }
 
-tasks.matching { it.name in listOf("integTest", "java9IntegTest") }.configureEach {
-    require(this is Test)
+tasks.integTest {
     options {
         require(this is JUnitOptions)
         excludeCategories("org.gradle.soak.categories.SoakTest")
