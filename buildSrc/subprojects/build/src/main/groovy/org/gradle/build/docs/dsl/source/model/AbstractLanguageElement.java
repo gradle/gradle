@@ -60,7 +60,7 @@ public abstract class AbstractLanguageElement implements LanguageElement, Serial
     }
 
     public boolean isReplaced() {
-        return annotationNames.contains("org.gradle.api.ReplacedBy");
+        return annotationNames.contains("org.gradle.api.model.ReplacedBy");
     }
 
     public String getReplacement() {
