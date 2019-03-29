@@ -95,7 +95,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor null, null
     }
 
-    def "cacheability for a task with no outputs is NO_OUTPUTS_DECLARED"() {
+    def "cacheability for a cacheable task with no outputs is NO_OUTPUTS_DECLARED"() {
         buildFile << """
             @CacheableTask
             class NoOutputs extends DefaultTask {
@@ -109,6 +109,21 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         withBuildCache().run "noOutputs"
         then:
         assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
+    }
+
+    def "cacheability for a non-cacheable task with no outputs is NOT_ENABLED_FOR_TASK"() {
+        buildFile << """
+            class NoOutputs extends DefaultTask {
+                @TaskAction
+                void generate() {}
+            }
+            
+            task noOutputs(type: NoOutputs) {}
+        """
+        when:
+        withBuildCache().run "noOutputs"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
     @Unroll
