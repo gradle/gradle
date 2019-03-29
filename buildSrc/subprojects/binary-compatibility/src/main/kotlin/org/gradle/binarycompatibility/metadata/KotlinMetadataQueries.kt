@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.binarycompatibility.rules
+package org.gradle.binarycompatibility.metadata
 
 import javassist.CtClass
+import javassist.CtConstructor
 import javassist.CtField
 import javassist.CtMember
 import javassist.CtMethod
@@ -44,6 +45,10 @@ import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
+import org.gradle.binarycompatibility.intArrayValue
+import org.gradle.binarycompatibility.intValue
+import org.gradle.binarycompatibility.stringArrayValue
+import org.gradle.binarycompatibility.stringValue
 
 import java.lang.reflect.Proxy
 
@@ -62,28 +67,6 @@ object KotlinMetadataQueries {
             else -> false
         }
     }
-
-    private
-    val CtClass.kotlinClassHeader: KotlinClassHeader?
-        get() = ctAnnotation<Metadata>()?.let { annotation ->
-            KotlinClassHeader(
-                kind = annotation.getMemberValue("k")?.intValue,
-                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
-                bytecodeVersion = annotation.getMemberValue("bv")?.intArrayValue,
-                data1 = annotation.getMemberValue("d1")?.stringArrayValue,
-                data2 = annotation.getMemberValue("d2")?.stringArrayValue,
-                extraString = annotation.getMemberValue("xs")?.stringValue,
-                packageName = annotation.getMemberValue("pn")?.stringValue,
-                extraInt = annotation.getMemberValue("xi")?.intValue
-            )
-        }
-
-    private
-    inline fun <reified T : Any> CtClass.ctAnnotation(): Annotation? =
-        getAnnotation(T::class.java)
-            ?.takeIf { Proxy.isProxyClass(it::class.java) }
-            ?.let { Proxy.getInvocationHandler(it) as? AnnotationImpl }
-            ?.annotation
 
     fun isKotlinInternal(ctClass: CtClass): (KotlinClassMetadata) -> Boolean = { metadata ->
         if (Modifier.isPrivate(ctClass.modifiers)) false
@@ -193,4 +176,35 @@ object KotlinMetadataQueries {
 
         return isInternal
     }
+
+    private
+    val CtClass.kotlinClassHeader: KotlinClassHeader?
+        get() = ctAnnotation<Metadata>()?.let { annotation ->
+            KotlinClassHeader(
+                kind = annotation.getMemberValue("k")?.intValue,
+                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
+                bytecodeVersion = annotation.getMemberValue("bv")?.intArrayValue,
+                data1 = annotation.getMemberValue("d1")?.stringArrayValue,
+                data2 = annotation.getMemberValue("d2")?.stringArrayValue,
+                extraString = annotation.getMemberValue("xs")?.stringValue,
+                packageName = annotation.getMemberValue("pn")?.stringValue,
+                extraInt = annotation.getMemberValue("xi")?.intValue
+            )
+        }
+
+    private
+    inline fun <reified T : Any> CtClass.ctAnnotation(): Annotation? =
+        getAnnotation(T::class.java)
+            ?.takeIf { Proxy.isProxyClass(it::class.java) }
+            ?.let { Proxy.getInvocationHandler(it) as? AnnotationImpl }
+            ?.annotation
+
+    private
+    val CtMember.jvmSignature: String
+        get() = when (this) {
+            is CtField -> "$name:$signature"
+            is CtConstructor -> "$name$signature"
+            is CtMethod -> "$name$signature"
+            else -> throw IllegalArgumentException("Unsupported javassist member type '${this::class}'")
+        }
 }

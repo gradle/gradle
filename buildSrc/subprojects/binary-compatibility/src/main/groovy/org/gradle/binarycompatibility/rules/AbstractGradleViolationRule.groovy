@@ -32,6 +32,8 @@ import org.gradle.api.Incubating
 import org.gradle.binarycompatibility.AcceptedApiChange
 import org.gradle.binarycompatibility.AcceptedApiChanges
 import org.gradle.binarycompatibility.ApiChange
+import org.gradle.binarycompatibility.BinaryCompatibilityRepository
+import org.gradle.binarycompatibility.BinaryCompatibilityRepositorySetupRule
 
 import javax.inject.Inject
 

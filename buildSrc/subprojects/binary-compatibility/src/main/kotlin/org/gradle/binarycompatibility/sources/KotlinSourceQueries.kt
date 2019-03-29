@@ -1,10 +1,28 @@
-package org.gradle.binarycompatibility.rules
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.binarycompatibility.sources
 
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiClass
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
+import japicmp.model.JApiHasSyntheticModifier
 import japicmp.model.JApiMethod
+import japicmp.model.SyntheticModifier
 
 import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -19,42 +37,46 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
+import org.gradle.binarycompatibility.jApiClass
+import org.gradle.binarycompatibility.packageName
+import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
+
 
 internal
 object KotlinSourceQueries {
 
     fun isOverrideMethod(method: JApiMethod): (KtFile) -> Boolean = { ktFile ->
-        ktFile.kotlinDeclarationSatisfies(method) { ktMember ->
+        ktFile.kotlinDeclarationSatisfies(method.jApiClass, method) { ktMember ->
             ktMember.hasModifier(KtTokens.OVERRIDE_KEYWORD)
         }
     }
 
     fun isSince(version: String, member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
-        val jApiClass = member.jApiClass
+        val declaringClass = member.jApiClass
         when {
             member.isSynthetic -> true
             member is JApiClass -> ktFile.ktClassOf(member)?.isDocumentedAsSince(version) == true
-            ktFile.ktClassOf(jApiClass)?.isDocumentedAsSince(version) == true -> true
+            ktFile.ktClassOf(declaringClass)?.isDocumentedAsSince(version) == true -> true
             else -> when (member) {
-                is JApiField -> ktFile.isDocumentedAsSince(version, member)
-                is JApiConstructor -> ktFile.isDocumentedAsSince(version, member)
-                is JApiMethod -> ktFile.isDocumentedAsSince(version, member)
+                is JApiField -> ktFile.isDocumentedAsSince(version, declaringClass, member)
+                is JApiConstructor -> ktFile.isDocumentedAsSince(version, declaringClass, member)
+                is JApiMethod -> ktFile.isDocumentedAsSince(version, declaringClass, member)
                 else -> throw IllegalStateException("Unsupported japicmp member type '${member::class}'")
             }
         }
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, field: JApiField): Boolean =
-        "${field.jApiClass.baseQualifiedKotlinName}.${field.name}".let { fqn ->
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, field: JApiField): Boolean =
+        "${declaringClass.baseQualifiedKotlinName}.${field.name}".let { fqn ->
             collectDescendantsOfType<KtProperty> { it.fqName?.asString() == fqn }
                 .singleOrNull()
                 ?.isDocumentedAsSince(version) == true
         }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, constructor: JApiConstructor): Boolean {
-        val classFqName = constructor.jApiClass.fullyQualifiedName
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, constructor: JApiConstructor): Boolean {
+        val classFqName = declaringClass.fullyQualifiedName
         val ctorParamTypes = constructor.parameters.map { it.type }
         return collectDescendantsOfType<KtConstructor<*>> { ktCtor ->
             val sameName = ktCtor.containingClassOrObject?.fqName?.asString() == classFqName
@@ -65,16 +87,16 @@ object KotlinSourceQueries {
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, method: JApiMethod): Boolean =
-        kotlinDeclarationSatisfies(method) { declaration ->
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, method: JApiMethod): Boolean =
+        kotlinDeclarationSatisfies(declaringClass, method) { declaration ->
             declaration.isDocumentedAsSince(version)
         }
 }
 
 
 private
-fun KtFile.kotlinDeclarationSatisfies(method: JApiMethod, predicate: (KtDeclaration) -> Boolean): Boolean {
-    val qualifiedBaseName = method.jApiClass.baseQualifiedKotlinName
+fun KtFile.kotlinDeclarationSatisfies(declaringClass: JApiClass, method: JApiMethod, predicate: (KtDeclaration) -> Boolean): Boolean {
+    val qualifiedBaseName = declaringClass.baseQualifiedKotlinName
     val properties = collectKtPropertiesFor(qualifiedBaseName, method)
     val functions = collectKtFunctionsFor(qualifiedBaseName, method)
     if (properties.isEmpty() && functions.isEmpty()) {
@@ -139,6 +161,12 @@ val propertySetterNameRegex = "^set[A-Z].*$".toRegex()
 internal
 val JApiClass.isKotlin: Boolean
     get() = annotations.any { it.fullyQualifiedName == Metadata::class.qualifiedName }
+
+
+private
+val JApiCompatibility.isSynthetic
+    get() = this is JApiHasSyntheticModifier
+        && syntheticModifier.newModifier.or(SyntheticModifier.NON_SYNTHETIC) == SyntheticModifier.SYNTHETIC
 
 
 private

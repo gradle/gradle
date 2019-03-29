@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.binarycompatibility.rules
+package org.gradle.binarycompatibility
 
-import javassist.CtConstructor
-import javassist.CtField
-import javassist.CtMember
-import javassist.CtMethod
 import javassist.bytecode.annotation.MemberValue
 import javassist.bytecode.annotation.AnnotationMemberValue
 import javassist.bytecode.annotation.ArrayMemberValue
@@ -39,16 +35,6 @@ import javassist.bytecode.annotation.StringMemberValue
 import org.gradle.api.reflect.TypeOf
 
 import org.gradle.kotlin.dsl.typeOf
-
-
-internal
-val CtMember.jvmSignature: String
-    get() = when (this) {
-        is CtField -> "$name:$signature"
-        is CtConstructor -> "$name$signature"
-        is CtMethod -> "$name$signature"
-        else -> throw IllegalArgumentException("Unsupported javassist member type '${this::class}'")
-    }
 
 
 internal

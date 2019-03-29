@@ -11,8 +11,6 @@ import me.champeau.gradle.japicmp.report.Severity
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import org.gradle.api.Incubating
 import org.gradle.binarycompatibility.rules.BinaryBreakingChangesRule
-import org.gradle.binarycompatibility.rules.BinaryCompatibilityRepository
-import org.gradle.binarycompatibility.rules.BinaryCompatibilityRepositorySetupRule
 import org.gradle.binarycompatibility.rules.IncubatingMissingRule
 import org.gradle.binarycompatibility.rules.NewIncubatingAPIRule
 import org.gradle.binarycompatibility.rules.SinceAnnotationMissingRule

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.binarycompatibility.rules
+package org.gradle.binarycompatibility
 
 import me.champeau.gradle.japicmp.report.PostProcessViolationsRule
 import me.champeau.gradle.japicmp.report.SetupRule

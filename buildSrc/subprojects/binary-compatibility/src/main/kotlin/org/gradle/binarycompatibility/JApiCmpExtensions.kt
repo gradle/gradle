@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.binarycompatibility.rules
+package org.gradle.binarycompatibility
 
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiClass
 import japicmp.model.JApiField
 import japicmp.model.JApiBehavior
-import japicmp.model.JApiHasSyntheticModifier
-import japicmp.model.SyntheticModifier
 
 import java.lang.IllegalStateException
 
@@ -34,12 +32,6 @@ val JApiCompatibility.jApiClass: JApiClass
         is JApiBehavior -> this.getjApiClass()
         else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
     }
-
-
-internal
-val JApiCompatibility.isSynthetic
-    get() = this is JApiHasSyntheticModifier
-        && syntheticModifier.newModifier.or(SyntheticModifier.NON_SYNTHETIC) == SyntheticModifier.SYNTHETIC
 
 
 internal

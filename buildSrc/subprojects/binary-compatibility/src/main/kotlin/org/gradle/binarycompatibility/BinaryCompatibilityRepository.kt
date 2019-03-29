@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.binarycompatibility.rules
+package org.gradle.binarycompatibility
 
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiClass
@@ -22,13 +22,12 @@ import japicmp.model.JApiMethod
 
 import javassist.bytecode.SourceFileAttribute
 
-import com.github.javaparser.JavaParser
-import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.visitor.GenericVisitor
-
-import org.jetbrains.kotlin.psi.KtFile
-
-import parser.KotlinSourceParser
+import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
+import org.gradle.binarycompatibility.sources.ApiSourceFile
+import org.gradle.binarycompatibility.sources.JavaSourceQueries
+import org.gradle.binarycompatibility.sources.KotlinSourceQueries
+import org.gradle.binarycompatibility.sources.SourcesRepository
+import org.gradle.binarycompatibility.sources.isKotlin
 
 import com.google.common.annotations.VisibleForTesting
 
@@ -117,103 +116,4 @@ class BinaryCompatibilityRepository internal constructor(
     val JApiClass.bytecodeSourceFilename: String
         get() = newClass.orNull()?.classFile?.getAttribute("SourceFile")?.let { it as? SourceFileAttribute }?.fileName
             ?: throw java.lang.IllegalStateException("Bytecode for $fullyQualifiedName is missing the 'SourceFile' attribute")
-}
-
-
-internal
-sealed class ApiSourceFile {
-
-    internal
-    abstract val currentFile: File
-
-    internal
-    abstract val currentSourceRoot: File
-
-    data class Java internal constructor(
-
-        override val currentFile: File,
-
-        override val currentSourceRoot: File
-
-    ) : ApiSourceFile()
-
-    data class Kotlin internal constructor(
-
-        override val currentFile: File,
-
-        override val currentSourceRoot: File
-
-    ) : ApiSourceFile()
-}
-
-
-internal
-data class JavaSourceQuery<T : Any?>(
-    val defaultValue: T,
-    val visitor: GenericVisitor<T, Unit?>
-)
-
-
-internal
-class SourcesRepository(
-
-    private
-    val sourceRoots: List<File>,
-
-    private
-    val compilationClasspath: List<File>
-
-) : AutoCloseable {
-
-    private
-    val openJavaCompilationUnitsByFile = mutableMapOf<File, CompilationUnit>()
-
-    private
-    val openKotlinCompilationUnitsByRoot = mutableMapOf<File, KotlinSourceParser.ParsedKotlinFiles>()
-
-    fun <T : Any?> executeQuery(apiSourceFile: ApiSourceFile.Java, query: JavaSourceQuery<T>): T =
-        openJavaCompilationUnitsByFile
-            .computeIfAbsent(apiSourceFile.currentFile) { JavaParser.parse(it) }
-            .accept(query.visitor, null)
-            ?: query.defaultValue
-
-
-    fun <T : Any?> executeQuery(apiSourceFile: ApiSourceFile.Kotlin, transform: (KtFile) -> T): T =
-        openKotlinCompilationUnitsByRoot
-            .computeIfAbsent(apiSourceFile.currentSourceRoot) {
-                KotlinSourceParser().parseSourceRoots(
-                    listOf(apiSourceFile.currentSourceRoot),
-                    compilationClasspath
-                )
-            }
-            .ktFiles
-            .single { it.virtualFile.canonicalPath == apiSourceFile.currentFile.canonicalPath }
-            .let(transform)
-
-    override fun close() {
-        val errors = mutableListOf<Exception>()
-        openKotlinCompilationUnitsByRoot.values.forEach { unit ->
-            try {
-                unit.close()
-            } catch (ex: Exception) {
-                errors.add(ex)
-            }
-        }
-        openJavaCompilationUnitsByFile.clear()
-        openKotlinCompilationUnitsByRoot.clear()
-        if (errors.isNotEmpty()) {
-            throw Exception("Sources repository did not close cleanly").apply {
-                errors.forEach(this::addSuppressed)
-            }
-        }
-    }
-
-    /**
-     * @return the source file and it's source root
-     */
-    fun sourceFileAndSourceRootFor(sourceFilePath: String): Pair<File, File> =
-        sourceRoots.asSequence()
-            .map { it.resolve(sourceFilePath) to it }
-            .firstOrNull { it.first.isFile }
-            ?: throw IllegalStateException("Source file '$sourceFilePath' not found, searched in source roots:\n${sourceRoots.joinToString("\n  - ")}")
 }

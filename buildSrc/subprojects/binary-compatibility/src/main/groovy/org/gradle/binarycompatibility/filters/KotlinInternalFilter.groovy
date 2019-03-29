@@ -24,7 +24,7 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
 
-import org.gradle.binarycompatibility.rules.KotlinMetadataQueries
+import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 
 
 class KotlinInternalFilter implements ClassFilter, FieldFilter, BehaviorFilter {

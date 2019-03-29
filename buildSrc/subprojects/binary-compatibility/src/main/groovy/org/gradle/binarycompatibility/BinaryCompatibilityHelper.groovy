@@ -22,8 +22,6 @@ import org.gradle.binarycompatibility.filters.KotlinInternalFilter
 import org.gradle.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import org.gradle.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import org.gradle.binarycompatibility.rules.BinaryBreakingChangesRule
-import org.gradle.binarycompatibility.rules.BinaryCompatibilityRepositoryPostProcessRule
-import org.gradle.binarycompatibility.rules.BinaryCompatibilityRepositorySetupRule
 import org.gradle.binarycompatibility.rules.IncubatingInternalInterfaceAddedRule
 import org.gradle.binarycompatibility.rules.IncubatingMissingRule
 import org.gradle.binarycompatibility.rules.MethodsRemovedInInternalSuperClassRule
