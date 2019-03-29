@@ -42,7 +42,6 @@ import org.gradle.kotlin.dsl.*
 class KotlinDslBasePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-
         apply<EmbeddedKotlinPlugin>()
         createOptionsExtension()
         apply<KotlinDslCompilerPlugins>()
