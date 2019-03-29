@@ -496,7 +496,7 @@ To help you understand how incremental compilation works, the following provides
 * If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
 * If a resource file is changed, Gradle will trigger a full recompilation.
-* If there is a mismatch in the package declaration and the directory structure of source files (e.g. `package foo` vs location `bar/MyClass.java`), then incremental compilation will break. Wrong classes will be recompiled and there will be leftover class files in the output.
+* If there is a mismatch in the package declaration and the directory structure of source files (e.g. `package foo` vs location `bar/MyClass.java`), then incremental compilation can produce broken output. Wrong classes might be recompiled and there might be leftover class files in the output.
 
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing
