@@ -36,3 +36,7 @@ tasks.register("soakTest", org.gradle.gradlebuild.test.integrationtests.SoakTest
         includeCategories("org.gradle.soak.categories.SoakTest")
     }
 }
+
+classycle {
+    excludePatterns.set(listOf("META-INF/*.kotlin_module"))
+}
