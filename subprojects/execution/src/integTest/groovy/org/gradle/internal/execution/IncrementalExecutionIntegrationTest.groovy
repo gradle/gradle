@@ -812,8 +812,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                UnitOfWork.Incrementality getIncrementality() {
-                    return UnitOfWork.Incrementality.NOT_INCREMENTAL
+                UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+                    return UnitOfWork.InputChangeTrackingStrategy.NONE
                 }
 
                 @Override

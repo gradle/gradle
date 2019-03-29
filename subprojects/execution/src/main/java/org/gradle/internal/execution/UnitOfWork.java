@@ -40,7 +40,7 @@ public interface UnitOfWork extends CacheableEntity {
 
     Optional<Duration> getTimeout();
 
-    Incrementality getIncrementality();
+    InputChangeTrackingStrategy getInputChangeTrackingStrategy();
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
@@ -94,6 +94,9 @@ public interface UnitOfWork extends CacheableEntity {
      */
     boolean hasOverlappingOutputs();
 
+    /**
+     * Whether the outputs should be cleanup up when the work is executed non-incrementally.
+     */
     boolean shouldCleanupOutputsOnNonIncrementalExecution();
 
     @FunctionalInterface
@@ -111,10 +114,32 @@ public interface UnitOfWork extends CacheableEntity {
         DID_NO_WORK
     }
 
-    enum Incrementality {
-        NOT_INCREMENTAL,
-        INCREMENTAL,
-        LEGACY_INCREMENTAL
+    enum InputChangeTrackingStrategy {
+        /**
+         * No incremental parameters, nothing to track.
+         */
+        NONE(false),
+        /**
+         * Only the incremental parameters should be tracked for input changes.
+         */
+        INCREMENTAL_PARAMETERS(true),
+        /**
+         * All parameters are considered incremental.
+         *
+         * @deprecated Only used for {@code IncrementalTaskInputs}. Should be removed once {@code IncrementalTaskInputs} is gone.
+         */
+        @Deprecated
+        ALL_PARAMETERS(true);
+
+        private final boolean requiresInputChanges;
+
+        InputChangeTrackingStrategy(boolean requiresInputChanges) {
+            this.requiresInputChanges = requiresInputChanges;
+        }
+
+        public boolean requiresInputChanges() {
+            return requiresInputChanges;
+        }
     }
 
     ExecutionHistoryStore getExecutionHistoryStore();

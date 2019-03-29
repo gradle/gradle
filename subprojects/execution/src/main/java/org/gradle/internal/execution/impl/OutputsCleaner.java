@@ -23,6 +23,8 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Predicate;
@@ -40,14 +42,14 @@ public class OutputsCleaner {
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
     }
 
-    public void cleanupOutputs(FileCollectionFingerprint fileCollectionFingerprint) {
+    public void cleanupOutputs(FileCollectionFingerprint fileCollectionFingerprint) throws IOException {
         for (Map.Entry<String, FileSystemLocationFingerprint> entry : fileCollectionFingerprint.getFingerprints().entrySet()) {
             cleanupOutput(entry.getKey(), entry.getValue().getType());
         }
         cleanupDirectories();
     }
 
-    private void cleanupOutput(String absolutePath, FileType fileType) {
+    private void cleanupOutput(String absolutePath, FileType fileType) throws IOException {
         switch (fileType) {
             case Directory:
                 markDirForDeletion(new File(absolutePath));
@@ -55,7 +57,10 @@ public class OutputsCleaner {
             case RegularFile:
                 File file = new File(absolutePath);
                 if (fileSafeToDelete.test(file)) {
-                    didWork |= file.delete();
+                    if (file.exists()) {
+                        Files.delete(file.toPath());
+                        didWork = true;
+                    }
                     markParentDirForDeletion(file);
                 }
                 break;
@@ -81,10 +86,11 @@ public class OutputsCleaner {
         }
     }
 
-    private void cleanupDirectories() {
+    private void cleanupDirectories() throws IOException {
         for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
             if (isEmpty(directory)) {
-                didWork |= directory.delete();
+                Files.delete(directory.toPath());
+                didWork = true;
                 markParentDirForDeletion(directory);
             }
         }

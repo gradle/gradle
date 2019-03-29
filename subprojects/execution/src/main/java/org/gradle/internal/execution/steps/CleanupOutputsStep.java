@@ -27,6 +27,8 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -78,7 +80,11 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
             });
             OutputsCleaner cleaner = new OutputsCleaner(file -> true, dir -> !outputDirectoriesToPreserve.contains(dir));
             for (FileCollectionFingerprint fileCollectionFingerprint : previousOutputs.getOutputFileProperties().values()) {
-                cleaner.cleanupOutputs(fileCollectionFingerprint);
+                try {
+                    cleaner.cleanupOutputs(fileCollectionFingerprint);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
+                }
             }
         });
     }

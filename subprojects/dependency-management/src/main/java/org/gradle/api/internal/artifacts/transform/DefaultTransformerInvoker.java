@@ -329,8 +329,8 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
-        public Incrementality getIncrementality() {
-            return transformer.requiresInputChanges() ? Incrementality.INCREMENTAL : Incrementality.NOT_INCREMENTAL;
+        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
         }
 
         @Override

@@ -264,7 +264,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-            return getIncrementality() == Incrementality.INCREMENTAL;
+            return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
         }
 
         @Override
@@ -303,16 +303,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public Incrementality getIncrementality() {
+        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
             for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
                 if (taskAction instanceof IncrementalInputsTaskAction) {
-                    return Incrementality.INCREMENTAL;
+                    return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
                 }
                 if (taskAction instanceof IncrementalTaskInputsTaskAction) {
-                    return Incrementality.LEGACY_INCREMENTAL;
+                    return InputChangeTrackingStrategy.ALL_PARAMETERS;
                 }
             }
-            return Incrementality.NOT_INCREMENTAL;
+            return InputChangeTrackingStrategy.NONE;
         }
 
         @Override

@@ -108,14 +108,14 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
-        UnitOfWork.Incrementality incrementality = work.getIncrementality();
-        switch (incrementality) {
-            case NOT_INCREMENTAL:
+        UnitOfWork.InputChangeTrackingStrategy inputChangeTrackingStrategy = work.getInputChangeTrackingStrategy();
+        switch (inputChangeTrackingStrategy) {
+            case NONE:
                 return IncrementalInputProperties.NONE;
-            case LEGACY_INCREMENTAL:
+            case ALL_PARAMETERS:
                 // When using IncrementalTaskInputs, keep the old behaviour of all file inputs being incremental
                 return IncrementalInputProperties.ALL;
-            case INCREMENTAL:
+            case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 work.visitInputFileProperties((name, value, incremental) -> {
                     if (incremental) {
@@ -127,7 +127,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 });
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
-                throw new AssertionError("Unknown incrementality: " + incrementality);
+                throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);
         }
     }
 }

@@ -42,7 +42,7 @@ class ResolveChangesStepTest extends StepSpec {
         result == delegateResult
 
         1 * context.work >> work
-        1 * work.incrementality >> UnitOfWork.Incrementality.NOT_INCREMENTAL
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
@@ -84,7 +84,7 @@ class ResolveChangesStepTest extends StepSpec {
         result == delegateResult
 
         1 * context.work >> work
-        1 * work.incrementality >> UnitOfWork.Incrementality.NOT_INCREMENTAL
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -117,7 +117,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.rebuildReason >> Optional.empty()
         1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * work.incrementality >> UnitOfWork.Incrementality.NOT_INCREMENTAL
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * work.allowOverlappingOutputs >> true
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, false, _) >> changes
         0 * _
