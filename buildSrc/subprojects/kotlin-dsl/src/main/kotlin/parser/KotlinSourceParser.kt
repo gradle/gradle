@@ -28,9 +28,15 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import org.jetbrains.kotlin.config.AnalysisFlags
+import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.PathUtil
 
@@ -38,6 +44,20 @@ import java.io.File
 
 
 class KotlinSourceParser {
+
+    data class ParsedKotlinFiles(
+
+        val ktFiles: List<KtFile>,
+
+        private
+        val disposable: Disposable
+
+    ) : AutoCloseable {
+
+        override fun close() {
+            Disposer.dispose(disposable)
+        }
+    }
 
     private
     val messageCollector: MessageCollector
@@ -48,30 +68,54 @@ class KotlinSourceParser {
             ktFiles.map(block)
         }
 
-    private
-    fun <T : Any> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) = withRootDisposable {
+    fun parseSourceRoots(sourceRoots: List<File>, compilationClasspath: List<File>): ParsedKotlinFiles =
+        Disposer.newDisposable().let { disposable ->
+            ParsedKotlinFiles(disposable.parseKotlinFiles(sourceRoots, compilationClasspath), disposable)
+        }
 
+    private
+    fun <T : Any?> withParsedKotlinSource(sourceRoots: List<File>, block: (List<KtFile>) -> T) =
+        Disposer.newDisposable().use {
+            parseKotlinFiles(sourceRoots, emptyList()).let(block)
+        }
+
+    private
+    fun Disposable.parseKotlinFiles(sourceRoots: List<File>, compilationClasspath: List<File>): List<KtFile> {
         val configuration = CompilerConfiguration().apply {
 
             put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
             put(JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY, false)
+            put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
             put(CommonConfigurationKeys.MODULE_NAME, "parser")
 
+            // TODO:kotlin-dsl dedupe
+            put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8)
+            put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl(
+                languageVersion = LanguageVersion.KOTLIN_1_3,
+                apiVersion = ApiVersion.KOTLIN_1_3,
+                specificFeatures = mapOf(
+                    LanguageFeature.NewInference to LanguageFeature.State.ENABLED,
+                    LanguageFeature.SamConversionForKotlinFunctions to LanguageFeature.State.ENABLED
+                ),
+                analysisFlags = mapOf(
+                    AnalysisFlags.skipMetadataVersionCheck to true
+                )
+            ))
+
             addJvmClasspathRoots(PathUtil.getJdkClassesRoots(Jvm.current().javaHome))
+            addJvmClasspathRoots(compilationClasspath)
             addKotlinSourceRoots(sourceRoots.map { it.canonicalPath })
         }
         val environment = KotlinCoreEnvironment.createForProduction(this, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
-        environment.getSourceFiles().let(block)
+        return environment.getSourceFiles()
     }
 }
 
 
-internal
-inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
-    val rootDisposable = Disposer.newDisposable()
+private
+inline fun <T : Any?> Disposable.use(action: Disposable.() -> T) =
     try {
-        return action(rootDisposable)
+        action(this)
     } finally {
-        Disposer.dispose(rootDisposable)
+        Disposer.dispose(this)
     }
-}

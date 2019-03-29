@@ -83,6 +83,10 @@ allprojects {
             url = uri("https://repo.gradle.org/gradle/libs-snapshots")
         }
         maven {
+            name = "kotlinx"
+            url = uri("https://dl.bintray.com/kotlin/kotlinx")
+        }
+        maven {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
@@ -235,3 +239,4 @@ fun Project.applyKotlinProjectConventions() {
         }
     }
 }
+

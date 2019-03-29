@@ -1,0 +1,196 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.binarycompatibility.rules
+
+import javassist.CtClass
+import javassist.CtField
+import javassist.CtMember
+import javassist.CtMethod
+import javassist.Modifier
+import javassist.bytecode.annotation.Annotation
+import javassist.bytecode.annotation.AnnotationImpl
+
+import kotlinx.metadata.ClassName
+import kotlinx.metadata.Flag
+import kotlinx.metadata.Flags
+import kotlinx.metadata.KmClassExtensionVisitor
+import kotlinx.metadata.KmClassVisitor
+import kotlinx.metadata.KmExtensionType
+import kotlinx.metadata.KmFunctionExtensionVisitor
+import kotlinx.metadata.KmFunctionVisitor
+import kotlinx.metadata.KmPackageExtensionVisitor
+import kotlinx.metadata.KmPackageVisitor
+import kotlinx.metadata.KmPropertyExtensionVisitor
+import kotlinx.metadata.KmPropertyVisitor
+import kotlinx.metadata.jvm.KotlinClassHeader
+import kotlinx.metadata.jvm.KotlinClassMetadata
+import kotlinx.metadata.jvm.JvmClassExtensionVisitor
+import kotlinx.metadata.jvm.JvmFieldSignature
+import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
+import kotlinx.metadata.jvm.JvmMethodSignature
+import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
+import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
+
+import java.lang.reflect.Proxy
+
+
+object KotlinMetadataQueries {
+
+    fun <T : Any?> queryKotlinMetadata(ctClass: CtClass, defaultResult: T, query: (KotlinClassMetadata) -> T): T =
+        ctClass.kotlinClassHeader
+            ?.let { KotlinClassMetadata.read(it) }
+            ?.let { query(it) }
+            ?: defaultResult
+
+    fun isKotlinFileFacadeClass(): (KotlinClassMetadata) -> Boolean = { metadata ->
+        when (metadata) {
+            is KotlinClassMetadata.FileFacade -> true
+            else -> false
+        }
+    }
+
+    private
+    val CtClass.kotlinClassHeader: KotlinClassHeader?
+        get() = ctAnnotation<Metadata>()?.let { annotation ->
+            KotlinClassHeader(
+                kind = annotation.getMemberValue("k")?.intValue,
+                metadataVersion = annotation.getMemberValue("mv")?.intArrayValue,
+                bytecodeVersion = annotation.getMemberValue("bv")?.intArrayValue,
+                data1 = annotation.getMemberValue("d1")?.stringArrayValue,
+                data2 = annotation.getMemberValue("d2")?.stringArrayValue,
+                extraString = annotation.getMemberValue("xs")?.stringValue,
+                packageName = annotation.getMemberValue("pn")?.stringValue,
+                extraInt = annotation.getMemberValue("xi")?.intValue
+            )
+        }
+
+    private
+    inline fun <reified T : Any> CtClass.ctAnnotation(): Annotation? =
+        getAnnotation(T::class.java)
+            ?.takeIf { Proxy.isProxyClass(it::class.java) }
+            ?.let { Proxy.getInvocationHandler(it) as? AnnotationImpl }
+            ?.annotation
+
+    fun isKotlinInternal(ctClass: CtClass): (KotlinClassMetadata) -> Boolean = { metadata ->
+        if (Modifier.isPrivate(ctClass.modifiers)) false
+        else metadata.isKotlinInternal(ctClass.name, isField = false, isMethod = false)
+    }
+
+    fun isKotlinInternal(ctMember: CtMember): (KotlinClassMetadata) -> Boolean = { metadata ->
+        println("  isKotlinInternal ? ${ctMember.jvmSignature}")
+        if (Modifier.isPrivate(ctMember.modifiers)) false
+        else metadata.isKotlinInternal(ctMember.jvmSignature, ctMember is CtField, ctMember is CtMethod)
+    }
+
+    private
+    fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isField: Boolean, isMethod: Boolean): Boolean {
+        var isInternal = false
+
+        val internalFunctionVisitor = object : KmFunctionVisitor() {
+            override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? {
+                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) return null
+                return object : JvmFunctionExtensionVisitor() {
+                    override fun visit(desc: JvmMethodSignature?) {
+                        if (jvmSignature == desc?.asString()) {
+                            isInternal = true
+                        }
+                    }
+                }
+            }
+        }
+
+        val internalPropertyVisitorFactory: (Flags, Flags, Flags) -> KmPropertyVisitor? = { flags, getterFlags, setterFlags ->
+            if (isInternal || (!isField && !isMethod)) null
+            else {
+                val internalField = Flag.IS_INTERNAL(flags)
+                val internalGetter = Flag.IS_INTERNAL(getterFlags)
+                val internalSetter = Flag.IS_INTERNAL(setterFlags)
+                if (!internalField && !internalGetter && !internalSetter) null
+                else object : KmPropertyVisitor() {
+                    override fun visitExtensions(type: KmExtensionType): KmPropertyExtensionVisitor? {
+                        if (type != JvmPropertyExtensionVisitor.TYPE) return null
+                        return object : JvmPropertyExtensionVisitor() {
+                            override fun visit(fieldDesc: JvmFieldSignature?, getterDesc: JvmMethodSignature?, setterDesc: JvmMethodSignature?) {
+                                if (
+                                    (internalField && jvmSignature == fieldDesc?.asString())
+                                    || (internalGetter && jvmSignature == getterDesc?.asString())
+                                    || (internalSetter && jvmSignature == setterDesc?.asString())
+                                ) {
+                                    isInternal = true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        when (this) {
+            is KotlinClassMetadata.Class -> {
+                accept(object : KmClassVisitor() {
+
+                    override fun visit(flags: Flags, name: ClassName) {
+                        if (Flag.IS_INTERNAL(flags)) {
+                            isInternal = true
+                        }
+                    }
+
+                    override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? {
+                        if (isInternal || !isMethod) return null
+                        if (!Flag.IS_INTERNAL(flags)) return null
+                        return internalFunctionVisitor
+                    }
+
+                    override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                        internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+
+                    override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? {
+                        if (isInternal || type != JvmClassExtensionVisitor.TYPE) return null
+                        return object : JvmClassExtensionVisitor() {
+                            override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                                internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+                        }
+                    }
+                })
+            }
+            is KotlinClassMetadata.FileFacade -> {
+                accept(object : KmPackageVisitor() {
+
+                    override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? {
+                        if (isInternal || !isMethod) return null
+                        if (!Flag.IS_INTERNAL(flags)) return null
+                        return internalFunctionVisitor
+                    }
+
+                    override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                        internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+
+                    override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? {
+                        if (isInternal || type != JvmPackageExtensionVisitor.TYPE) return null
+                        return object : JvmPackageExtensionVisitor() {
+                            override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                                internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+                        }
+                    }
+                })
+            }
+            else -> throw IllegalStateException("Unsupported Kotlin metadata type '${this::class}'")
+        }
+
+        return isInternal
+    }
+}
