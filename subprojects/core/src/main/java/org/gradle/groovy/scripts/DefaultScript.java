@@ -97,11 +97,13 @@ public abstract class DefaultScript extends BasicScript {
             File sourceFile = getScriptSource().getResource().getLocation().getFile();
             if (sourceFile != null) {
                 FileResolver resolver = fileLookup.getFileResolver(sourceFile.getParentFile());
-                fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, new DefaultFileCollectionFactory(resolver, null), fileSystem, clock);
+                DefaultFileCollectionFactory fileCollectionFactoryWithBase = new DefaultFileCollectionFactory(resolver, null);
+                fileOperations = new DefaultFileOperations(resolver, null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactoryWithBase, fileSystem, clock);
+                processOperations = services.get(ExecFactory.class).forContext(resolver, fileCollectionFactoryWithBase, instantiator);
             } else {
                 fileOperations = new DefaultFileOperations(fileLookup.getFileResolver(), null, null, instantiator, fileLookup, directoryFileTreeFactory, streamHasher, fileHasher, textResourceLoader, fileCollectionFactory, fileSystem, clock);
+                processOperations = services.get(ExecFactory.class);
             }
-            processOperations = services.get(ExecFactory.class);
         }
 
         providerFactory = services.get(ProviderFactory.class);
