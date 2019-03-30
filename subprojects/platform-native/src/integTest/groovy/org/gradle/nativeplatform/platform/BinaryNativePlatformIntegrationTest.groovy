@@ -19,6 +19,7 @@ import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
+import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.PlatformDetectingTestApp
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
@@ -30,6 +31,9 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -74,6 +78,7 @@ model {
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/mainCpp")).arch.name == arch.name
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "configure component for a single target platform"() {
         when:
         buildFile << """
@@ -131,6 +136,7 @@ model {
         executable("build/exe/main/main").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "library with matching platform is enforced by dependency resolution"() {
         given:
         testApp.executable.writeSources(file("src/exe"))
@@ -202,6 +208,7 @@ model {
         executable("build/exe/exe/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
@@ -249,6 +256,7 @@ model {
         }
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "can configure binary for multiple target operating systems"() {
         String currentOs
         if (os.windows) {
@@ -410,7 +418,7 @@ model {
         // Only the arch functionality is needed for this test, so fall back to the file utility if nothing else works.
         file.assertIsFile()
         if (os.macOsX) {
-            return new OtoolBinaryInfo(file)
+            return new OtoolBinaryInfo(file, toolchainUnderTest.runtimeEnv)
         }
         if (os.windows) {
             return DumpbinBinaryInfo.findVisualStudio() ? new DumpbinBinaryInfo(file) : new FileArchOnlyBinaryInfo(file)

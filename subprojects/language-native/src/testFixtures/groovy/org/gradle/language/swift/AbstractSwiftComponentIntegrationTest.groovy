@@ -95,6 +95,34 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    def "can build Swift 4 source code on Swift 5 compiler"() {
+        given:
+        makeSingleProject()
+        swift4Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT4
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT4
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift4Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
         given:
@@ -122,6 +150,93 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         then:
         failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
+    def "throws exception with meaningful message when building Swift 5 source code on Swift 3 compiler"() {
+        given:
+        makeSingleProject()
+        swift5Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT5
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift5Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        fails taskNameToAssembleDevelopmentBinary
+
+        then:
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    def "throws exception with meaningful message when building Swift 5 source code on Swift 4 compiler"() {
+        given:
+        makeSingleProject()
+        swift5Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT5
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift5Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        fails taskNameToAssembleDevelopmentBinary
+
+        then:
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    def "throws exception with meaningful message when building Swift 3 source code on Swift 5 compiler"() {
+        given:
+        makeSingleProject()
+        swift3Component.writeToProject(testDirectory)
+        buildFile << """
+            ${componentUnderTestDsl} {
+                sourceCompatibility = SwiftVersion.SWIFT3
+            }
+
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT3
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift3Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        fails taskNameToAssembleDevelopmentBinary
+
+        then:
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT3.version}'")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
@@ -172,10 +287,34 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    def "can compile Swift 5 component on Swift 5 compiler"() {
+        given:
+        makeSingleProject()
+        swift5Component.writeToProject(testDirectory)
+        buildFile << """
+            task verifyBinariesSwiftVersion {
+                doLast {
+                    ${componentUnderTestDsl}.binaries.get().each {
+                        assert it.targetPlatform.sourceCompatibility == SwiftVersion.SWIFT5
+                    }
+                }
+            }
+        """
+        settingsFile << "rootProject.name = '${swift5Component.projectName}'"
+
+        when:
+        succeeds "verifyBinariesSwiftVersion"
+        succeeds taskNameToAssembleDevelopmentBinary
+
+        then:
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+    }
+
     def "assemble task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()
-        swift4Component.writeToProject(testDirectory)
+        componentUnderTest.writeToProject(testDirectory)
 
         and:
         buildFile << configureTargetMachines("machines.os('some-other-family')")
@@ -190,7 +329,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     def "build task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()
-        swift4Component.writeToProject(testDirectory)
+        componentUnderTest.writeToProject(testDirectory)
 
         and:
         buildFile << configureTargetMachines("machines.os('some-other-family')")
@@ -205,7 +344,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     def "does not fail when current operating system family is excluded but assemble is not invoked"() {
         given:
         makeSingleProject()
-        swift4Component.writeToProject(testDirectory)
+        componentUnderTest.writeToProject(testDirectory)
 
         and:
         buildFile << configureTargetMachines("machines.os('some-other-family')")
@@ -217,7 +356,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     def "fails configuration when no target machine is configured"() {
         given:
         makeSingleProject()
-        swift4Component.writeToProject(testDirectory)
+        componentUnderTest.writeToProject(testDirectory)
 
         and:
         buildFile << configureTargetMachines('')
@@ -242,6 +381,8 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     abstract SourceElement getSwift3Component()
 
     abstract SourceElement getSwift4Component()
+
+    abstract SourceElement getSwift5Component()
 
     abstract List<String> getTasksToAssembleDevelopmentBinaryOfComponentUnderTest()
 

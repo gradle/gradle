@@ -228,7 +228,7 @@ class GccPlatformToolProvider extends AbstractPlatformToolProvider {
         CommandLineToolSearchResult searchResult = toolSearchPath.locate(compiler.getToolType(), compiler.getExecutable());
         String language = LANGUAGE_FOR_COMPILER.get(compilerType);
         List<String> languageArgs = language == null ? Collections.<String>emptyList() : ImmutableList.of("-x", language);
-        return metadataProvider.getCompilerMetaData(searchResult.getTool(), languageArgs, toolSearchPath.getPath());
+        return metadataProvider.getCompilerMetaData(toolSearchPath.getPath(), spec -> spec.executable(searchResult.getTool()).args(languageArgs));
     }
 
     @Override

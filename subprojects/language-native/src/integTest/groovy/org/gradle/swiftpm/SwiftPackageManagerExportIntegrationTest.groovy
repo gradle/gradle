@@ -16,8 +16,14 @@
 
 package org.gradle.swiftpm
 
+
+import spock.lang.Ignore
+
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
+    // Swift Package Manager returns an error code when no target are available:
+    // See https://github.com/gradle/gradle-native/issues/1006
+    @Ignore
     def "produces manifest for build with no native components"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"

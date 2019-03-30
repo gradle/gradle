@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.metadata;
 
+import org.gradle.api.Action;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadata;
 import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.GccMetadataProvider;
 import org.gradle.nativeplatform.toolchain.internal.swift.metadata.SwiftcMetadata;
@@ -60,11 +61,14 @@ public class CompilerMetaDataProviderFactory {
         }
 
         @Override
-        public SearchResult<T> getCompilerMetaData(File binary, List<String> additionalArgs, List<File> path) {
-            Key key = new Key(binary, additionalArgs, path);
+        public SearchResult<T> getCompilerMetaData(List<File> path, Action<? super CompilerExecSpec> configureAction) {
+            AbstractMetadataProvider.DefaultCompilerExecSpec execSpec = new AbstractMetadataProvider.DefaultCompilerExecSpec();
+            configureAction.execute(execSpec);
+
+            Key key = new Key(execSpec.executable, execSpec.args, path, execSpec.environments);
             SearchResult<T> result = resultMap.get(key);
             if (result == null) {
-                result = delegate.getCompilerMetaData(binary, additionalArgs, path);
+                result = delegate.getCompilerMetaData(path, configureAction);
                 resultMap.put(key, result);
             }
             return result;
@@ -80,22 +84,24 @@ public class CompilerMetaDataProviderFactory {
         final File gccBinary;
         final List<String> args;
         final List<File> path;
+        private final Map<String, ?> environmentVariables;
 
-        private Key(File gccBinary, List<String> args, List<File> path) {
+        private Key(File gccBinary, List<String> args, List<File> path, Map<String, ?> environmentVariables) {
             this.gccBinary = gccBinary;
             this.args = args;
             this.path = path;
+            this.environmentVariables = environmentVariables;
         }
 
         @Override
         public boolean equals(Object obj) {
             Key other = (Key) obj;
-            return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path);
+            return other.gccBinary.equals(gccBinary) && other.args.equals(args) && other.path.equals(path) && other.environmentVariables.equals(environmentVariables);
         }
 
         @Override
         public int hashCode() {
-            return gccBinary.hashCode() ^ args.hashCode() ^ path.hashCode();
+            return gccBinary.hashCode() ^ args.hashCode() ^ path.hashCode() ^ environmentVariables.hashCode();
         }
     }
 }
