@@ -44,7 +44,6 @@ libraries.bouncycastle_provider = [coordinates: 'org.bouncycastle:bcprov-jdk15on
 libraries.bouncycastle_pgp =    [coordinates: 'org.bouncycastle:bcpg-jdk15on',   version: libraries.bouncycastle_provider.version]
 libraries.bndlib =              [coordinates: 'biz.aQute.bnd:biz.aQute.bndlib',  version: '4.0.0']
 libraries.bsh =                 [coordinates: 'org.apache-extras.beanshell:bsh', version: '2.0b6']
-libraries.commons_cli =         [coordinates: 'commons-cli:commons-cli', version: '1.4']
 libraries.commons_codec =       [coordinates: 'commons-codec:commons-codec', version: '1.11']
 libraries.commons_compress =    [coordinates: 'org.apache.commons:commons-compress', version: '1.18']
 libraries.commons_httpclient =  [coordinates: 'org.apache.httpcomponents:httpclient', version: '4.5.6']
