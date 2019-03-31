@@ -22,7 +22,25 @@ import org.junit.Test
 class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest() {
 
     private
-    val kotlinMembers = """
+    val internalKotlinMembers = """
+
+        internal fun foo() {}
+
+        internal val bar: String = "bar"
+
+        internal var bazar = "bazar"
+
+        internal fun String.fooExt() {}
+
+        internal fun Int.fooExt() {}
+
+        internal val String.barExt
+            get() = "bar"
+
+    """
+
+    private
+    val publicKotlinMembers = """
 
         fun foo() {}
 
@@ -87,7 +105,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         checkNotBinaryCompatible(v2 = """
 
-           $kotlinMembers
+           $publicKotlinMembers
 
             const val cathedral = "cathedral"
 
@@ -144,6 +162,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
     @Test
     fun `new top-level kotlin types`() {
+
+        // Singleton INSTANCE fields of `object`s are public
 
         checkNotBinaryCompatible(v2 = """
 
@@ -255,7 +275,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
                 constructor(bar: String) : this()
 
-                $kotlinMembers
+                $publicKotlinMembers
             }
 
         """).apply {

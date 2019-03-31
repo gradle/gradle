@@ -78,13 +78,13 @@ object KotlinMetadataQueries {
     }
 
     fun isKotlinInternal(ctMember: CtMember): (KotlinClassMetadata) -> Boolean = { metadata ->
-        println("  isKotlinInternal ? ${ctMember.jvmSignature}")
         if (Modifier.isPrivate(ctMember.modifiers)) false
         else metadata.isKotlinInternal(ctMember.jvmSignature, ctMember is CtField, ctMember is CtMethod)
     }
 
     private
     fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isField: Boolean, isMethod: Boolean): Boolean {
+
         var isInternal = false
 
         val internalFunctionVisitor = object : KmFunctionVisitor() {
@@ -222,7 +222,9 @@ object KotlinMetadataQueries {
     val CtMember.jvmSignature: String
         get() = when (this) {
             is CtField -> "$name:$signature"
-            is CtConstructor -> "$name$signature"
+            is CtConstructor ->
+                if (parameterTypes.isEmpty()) "$name$signature"
+                else "<init>$signature"
             is CtMethod -> "$name$signature"
             else -> throw IllegalArgumentException("Unsupported javassist member type '${this::class}'")
         }

@@ -194,9 +194,12 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
             assertThat("Has information", richReport.information.map { it.message }, equalTo(information.toList()))
         }
 
-        fun assertHasError(message: String, vararg details: String) {
-            assertHasErrors(message)
-            assertThat(richReport.errors.single { it.message == message }.details, equalTo(details.toList()))
+        fun assertHasErrors(vararg errors: List<String>) {
+            assertHasErrors(*errors.toList().flatten().toTypedArray())
+        }
+
+        fun assertHasErrors(vararg errorWithDetail: Pair<String, List<String>>) {
+            assertThat("Has errors", richReport.errors, equalTo(errorWithDetail.map { ReportMessage(it.first, it.second) }))
         }
     }
 
