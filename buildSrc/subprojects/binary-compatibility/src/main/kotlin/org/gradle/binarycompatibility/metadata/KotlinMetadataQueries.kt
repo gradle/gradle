@@ -30,6 +30,8 @@ import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
 import kotlinx.metadata.KmClassExtensionVisitor
 import kotlinx.metadata.KmClassVisitor
+import kotlinx.metadata.KmConstructorExtensionVisitor
+import kotlinx.metadata.KmConstructorVisitor
 import kotlinx.metadata.KmExtensionType
 import kotlinx.metadata.KmFunctionExtensionVisitor
 import kotlinx.metadata.KmFunctionVisitor
@@ -40,11 +42,13 @@ import kotlinx.metadata.KmPropertyVisitor
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.JvmClassExtensionVisitor
+import kotlinx.metadata.jvm.JvmConstructorExtensionVisitor
 import kotlinx.metadata.jvm.JvmFieldSignature
 import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
+
 import org.gradle.binarycompatibility.intArrayValue
 import org.gradle.binarycompatibility.intValue
 import org.gradle.binarycompatibility.stringArrayValue
@@ -84,16 +88,15 @@ object KotlinMetadataQueries {
         var isInternal = false
 
         val internalFunctionVisitor = object : KmFunctionVisitor() {
-            override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? {
-                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) return null
-                return object : JvmFunctionExtensionVisitor() {
+            override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? =
+                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) null
+                else object : JvmFunctionExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
                             isInternal = true
                         }
                     }
                 }
-            }
         }
 
         val internalPropertyVisitorFactory: (Flags, Flags, Flags) -> KmPropertyVisitor? = { flags, getterFlags, setterFlags ->
@@ -122,6 +125,23 @@ object KotlinMetadataQueries {
             }
         }
 
+        val packageVisitor = object : KmPackageVisitor() {
+
+            override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
+                if (isInternal || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                else internalFunctionVisitor
+
+            override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+
+            override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? =
+                if (isInternal || type != JvmPackageExtensionVisitor.TYPE) null
+                else object : JvmPackageExtensionVisitor() {
+                    override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
+                        internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
+                }
+        }
+
         when (this) {
             is KotlinClassMetadata.Class -> {
                 accept(object : KmClassVisitor() {
@@ -132,45 +152,44 @@ object KotlinMetadataQueries {
                         }
                     }
 
-                    override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? {
-                        if (isInternal || !isMethod) return null
-                        if (!Flag.IS_INTERNAL(flags)) return null
-                        return internalFunctionVisitor
-                    }
+                    override fun visitConstructor(flags: Flags): KmConstructorVisitor? =
+                        if (isInternal || !Flag.IS_INTERNAL(flags)) null
+                        else object : KmConstructorVisitor() {
+                            override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor? =
+                                if (isInternal || type != JvmConstructorExtensionVisitor.TYPE) null
+                                else object : JvmConstructorExtensionVisitor() {
+                                    override fun visit(desc: JvmMethodSignature?) {
+                                        if (jvmSignature == desc?.asString()) {
+                                            isInternal = true
+                                        }
+                                    }
+                                }
+                        }
+
+                    override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
+                        if (isInternal || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                        else internalFunctionVisitor
 
                     override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                         internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
 
-                    override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? {
-                        if (isInternal || type != JvmClassExtensionVisitor.TYPE) return null
-                        return object : JvmClassExtensionVisitor() {
+                    override fun visitExtensions(type: KmExtensionType): KmClassExtensionVisitor? =
+                        if (isInternal || type != JvmClassExtensionVisitor.TYPE) null
+                        else object : JvmClassExtensionVisitor() {
                             override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
                                 internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
                         }
-                    }
                 })
             }
             is KotlinClassMetadata.FileFacade -> {
-                accept(object : KmPackageVisitor() {
-
-                    override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? {
-                        if (isInternal || !isMethod) return null
-                        if (!Flag.IS_INTERNAL(flags)) return null
-                        return internalFunctionVisitor
-                    }
-
-                    override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
-                        internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
-
-                    override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? {
-                        if (isInternal || type != JvmPackageExtensionVisitor.TYPE) return null
-                        return object : JvmPackageExtensionVisitor() {
-                            override fun visitLocalDelegatedProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
-                                internalPropertyVisitorFactory(flags, getterFlags, setterFlags)
-                        }
-                    }
-                })
+                accept(packageVisitor)
             }
+            is KotlinClassMetadata.MultiFileClassPart -> {
+                accept(packageVisitor)
+            }
+            is KotlinClassMetadata.MultiFileClassFacade -> Unit
+            is KotlinClassMetadata.SyntheticClass -> Unit
+            is KotlinClassMetadata.Unknown -> Unit
             else -> throw IllegalStateException("Unsupported Kotlin metadata type '${this::class}'")
         }
 
