@@ -54,7 +54,7 @@ object KotlinSourceQueries {
     fun isSince(version: String, member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
         val declaringClass = member.jApiClass
         when {
-            member.isSynthetic -> true
+            member.isSynthetic -> true // skip
             member is JApiClass -> ktFile.ktClassOf(member)?.isDocumentedAsSince(version) == true
             ktFile.ktClassOf(declaringClass)?.isDocumentedAsSince(version) == true -> true
             else -> when (member) {
@@ -180,8 +180,8 @@ private
 val JApiClass.isKotlinFileFacadeClass: Boolean
     get() = isKotlin && KotlinMetadataQueries.queryKotlinMetadata(
         newClass.get(),
-        false,
-        KotlinMetadataQueries.isKotlinFileFacadeClass()
+        defaultResult = false,
+        query = KotlinMetadataQueries.isKotlinFileFacadeClass()
     )
 
 
