@@ -27,12 +27,7 @@ class PublicAPIRulesTest extends Specification {
     private final static String TEST_INTERFACE_SIMPLE_NAME = 'ApiTest'
 
     @Rule
-    TemporaryFolder tmp = new TemporaryFolder() {
-        @Override
-        void delete() {
-            // super.delete()
-        }
-    }
+    TemporaryFolder tmp = new TemporaryFolder()
     File sourceFile
 
     @Rule
