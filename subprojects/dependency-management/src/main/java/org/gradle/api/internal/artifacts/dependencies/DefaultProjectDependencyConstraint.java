@@ -32,9 +32,10 @@ import java.util.Collections;
  * A limited use, project dependency constraint mostly aimed at publishing
  * platforms.
  */
-public class DefaultProjectDependencyConstraint implements DependencyConstraint {
+public class DefaultProjectDependencyConstraint implements DependencyConstraintInternal {
     private final ProjectDependency projectDependency;
     private String reason;
+    private boolean force;
 
     public DefaultProjectDependencyConstraint(ProjectDependency projectDependency) {
         this.projectDependency = projectDependency;
@@ -103,5 +104,15 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraint 
     public ModuleIdentifier getModule() {
         String group = projectDependency.getGroup();
         return DefaultModuleIdentifier.newId(group != null ? group : "", projectDependency.getName());
+    }
+
+    @Override
+    public void setForce(boolean force) {
+        this.force = force;
+    }
+
+    @Override
+    public boolean isForce() {
+        return force;
     }
 }
