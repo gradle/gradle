@@ -118,4 +118,14 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
      */
     EclipseOutputLocation getOutputLocation() throws UnsupportedMethodException;
+
+    /**
+     * If this method returns true then Eclipse should execute the tasks configured at {@code eclipse.autoBuildTasks}
+     * every time the auto-build is triggered for the target project.
+     *
+     * @return whether the project has auto-build tasks configured
+     * @since 5.4
+     * @see RunEclipseAutoBuildTasks
+     */
+    boolean hasAutoBuildTasks();
 }
