@@ -35,7 +35,7 @@ allprojects {
 
 gradle.buildFinished {
     if (!insecureRepos.isEmpty()) {
-        throw GradleException("This build used insecure repositories:\n" + insecureRepos.joinToString("\n") + "Make sure to use HTTPS")
+        throw GradleException("This build used insecure repositories:\n" + insecureRepos.joinToString("\n") + "\nMake sure to use HTTPS")
     }
 }
 
