@@ -62,6 +62,7 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
                     }
                     subprojects {
                         apply(plugin = "kotlin")
+                        base.archivesBaseName = "api-module"
                         repositories {
                             jcenter()
                         }
@@ -69,6 +70,12 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
                             "implementation"(gradleApi())
                             "implementation"(kotlin("stdlib"))
                         }
+                    }
+                    project(":v1") {
+                        version = "1.0"
+                    }
+                    project(":v2") {
+                        version = "2.0"
                     }
                 """)
             withFile("v1/src/main/kotlin/com/example/Source.kt", """
