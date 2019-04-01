@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
+import org.gradle.nativeplatform.fixtures.app.Swift5
 import org.gradle.util.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
@@ -119,6 +120,11 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     @Override
     SourceElement getSwift4Component() {
         return new Swift4('project')
+    }
+
+    @Override
+    SourceElement getSwift5Component() {
+        return new Swift5('project')
     }
 
     @Override

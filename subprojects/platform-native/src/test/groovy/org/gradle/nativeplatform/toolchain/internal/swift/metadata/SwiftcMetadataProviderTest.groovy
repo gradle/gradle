@@ -75,7 +75,7 @@ Target: x86_64-unknown-linux-gnu
         def binary = new File("swiftc")
 
         when:
-        def result = metadataProvider.getCompilerMetaData(binary, [], [])
+        def result = metadataProvider.getCompilerMetaData([]) { it.executable(binary) }
 
         then:
         1 * execActionFactory.newExecAction() >> action
@@ -99,7 +99,7 @@ Target: x86_64-unknown-linux-gnu
         1 * action.setStandardOutput(_) >> { OutputStream outstr -> outstr << output; action }
         1 * action.execute() >> result
         def provider = new SwiftcMetadataProvider(execActionFactory)
-        provider.getCompilerMetaData(new File("swiftc"), [], [])
+        provider.getCompilerMetaData([]) { it.executable(new File("swiftc")) }
     }
 
 }

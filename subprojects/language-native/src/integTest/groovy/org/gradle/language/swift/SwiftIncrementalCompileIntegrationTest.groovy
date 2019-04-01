@@ -109,6 +109,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         failure.assertHasErrorOutput("error: invalid redeclaration of 'sum(a:b:)'")
     }
 
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
     def 'removing a file rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -125,6 +126,26 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         expect:
         succeeds("compileDebugSwift")
         outputs.recompiledClasses('main', 'sum', 'greeter')
+        outputs.deletedClasses("multiply")
+    }
+
+    @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    def 'removing an isolated file does not rebuild anything'() {
+        given:
+        def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
+        def app = new SwiftApp()
+        settingsFile << "rootProject.name = 'app'"
+        app.writeToProject(testDirectory)
+        buildFile << """
+            apply plugin: 'swift-application'
+         """
+
+        outputs.snapshot { succeeds("compileDebugSwift") }
+        file("src/main/swift/multiply.swift").delete()
+
+        expect:
+        succeeds("compileDebugSwift")
+        outputs.recompiledClasses()
         outputs.deletedClasses("multiply")
     }
 

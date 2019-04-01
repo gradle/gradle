@@ -44,7 +44,6 @@ import org.gradle.platform.base.internal.toolchain.ToolChainAvailability;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -101,7 +100,7 @@ public class SwiftcToolChain extends ExtendableToolChain<SwiftcPlatformToolChain
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);
         }
-        SearchResult<SwiftcMetadata> swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(compiler.getTool(), Collections.<String>emptyList(), toolSearchPath.getPath());
+        SearchResult<SwiftcMetadata> swiftcMetaData = compilerMetaDataProvider.getCompilerMetaData(toolSearchPath.getPath(), spec -> spec.executable(compiler.getTool()));
         result.mustBeAvailable(swiftcMetaData);
         if (!result.isAvailable()) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), result);

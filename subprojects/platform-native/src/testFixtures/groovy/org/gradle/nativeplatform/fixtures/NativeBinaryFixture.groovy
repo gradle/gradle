@@ -154,14 +154,14 @@ class NativeBinaryFixture {
     BinaryInfo getBinaryInfo() {
         file.assertExists()
         if (OperatingSystem.current().isMacOsX()) {
-            return new OtoolBinaryInfo(file);
+            return new OtoolBinaryInfo(file, toolChain.runtimeEnv)
         }
         if (OperatingSystem.current().isWindows()) {
             if (toolChain.meets(ToolChainRequirement.GCC)) {
-                return new DumpbinGccProducedBinaryInfo(file);
+                return new DumpbinGccProducedBinaryInfo(file)
             }
-            return new DumpbinBinaryInfo(file);
+            return new DumpbinBinaryInfo(file)
         }
-        return new ReadelfBinaryInfo(file);
+        return new ReadelfBinaryInfo(file)
     }
 }

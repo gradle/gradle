@@ -141,7 +141,14 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksNotSkipped(assembleAppTasks)
 
         outputs.deletedClasses("multiply", "sum")
-        outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
+
+        // See https://github.com/gradle/gradle-native/issues/1004
+        if (toolchainUnderTest.version.major < 5) {
+            outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
+        } else {
+            outputs.recompiledClasses('renamed-sum')
+        }
+
         outputDirectory.assertContainsDescendants(expectedIntermediateDescendants(app.alternate))
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
@@ -169,7 +176,14 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksExecuted(assembleLibTasks)
         result.assertTasksNotSkipped(assembleLibTasks)
         outputs.deletedClasses("multiply", "sum")
-        outputs.recompiledClasses('greeter', 'renamed-sum')
+
+        // See https://github.com/gradle/gradle-native/issues/1004
+        if (toolchainUnderTest.version.major < 5) {
+            outputs.recompiledClasses('greeter', 'renamed-sum')
+        } else {
+            outputs.recompiledClasses('renamed-sum')
+        }
+
         outputDirectory.assertContainsDescendants(expectedIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }

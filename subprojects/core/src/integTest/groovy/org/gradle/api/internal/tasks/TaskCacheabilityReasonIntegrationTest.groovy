@@ -56,6 +56,12 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
             @CacheableTask
             class Cacheable extends NotCacheable {}
+            
+            class NoOutputs extends DefaultTask {
+                @TaskAction
+                void generate() {}
+            }
+
         """
     }
 
@@ -63,6 +69,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         buildFile << """
             task cacheable(type: Cacheable) {}
             task notcacheable(type: NotCacheable) {}
+            task noOutputs(type: NoOutputs) {}
         """
         when:
         run "cacheable"
@@ -71,6 +78,11 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
         when:
         run "notcacheable"
+        then:
+        assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
+
+        when:
+        run "noOutputs"
         then:
         assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
     }
@@ -98,12 +110,12 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     def "cacheability for a cacheable task with no outputs is NO_OUTPUTS_DECLARED"() {
         buildFile << """
             @CacheableTask
-            class NoOutputs extends DefaultTask {
+            class CacheableNoOutputs extends DefaultTask {
                 @TaskAction
                 void generate() {}
             }
             
-            task noOutputs(type: NoOutputs) {}
+            task noOutputs(type: CacheableNoOutputs) {}
         """
         when:
         withBuildCache().run "noOutputs"
@@ -113,11 +125,6 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
     def "cacheability for a non-cacheable task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile << """
-            class NoOutputs extends DefaultTask {
-                @TaskAction
-                void generate() {}
-            }
-            
             task noOutputs(type: NoOutputs) {}
         """
         when:
