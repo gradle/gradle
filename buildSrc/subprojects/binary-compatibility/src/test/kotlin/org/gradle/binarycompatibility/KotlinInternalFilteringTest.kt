@@ -45,7 +45,10 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         $existingMembers
 
         class ExistingClass {
+
             $existingMembers
+
+            class ExistingNestedClass
         }
     """
 
@@ -59,6 +62,12 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
             internal constructor(bar: String) : this()
 
             $internalMembers
+
+            class ExistingNestedClass {
+
+                $internalMembers
+
+            }
         }
 
         internal class AddedClass() {
@@ -89,6 +98,12 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
             constructor(bar: String) : this()
 
             $publicMembers
+
+            class ExistingNestedClass {
+
+                $publicMembers
+
+            }
         }
 
         class AddedClass() {
@@ -140,6 +155,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
                 added("Method", "AddedObject.getFoo()"),
                 added("Method", "ExistingClass.getFoo()"),
                 added("Constructor", "ExistingClass(java.lang.String)"),
+                added("Method", "ExistingClass${'$'}ExistingNestedClass.getFoo()"),
                 added("Method", "SourceKt.getFoo()")
             )
             assertHasNoWarning()
@@ -169,6 +185,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
                 removed("Method", "AddedObject.getFoo()"),
                 removed("Method", "ExistingClass.getFoo()"),
                 removed("Constructor", "ExistingClass(java.lang.String)"),
+                removed("Method", "ExistingClass${'$'}ExistingNestedClass.getFoo()"),
                 removed("Method", "SourceKt.getFoo()")
             )
             assertHasNoWarning()
