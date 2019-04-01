@@ -24,6 +24,7 @@ import javassist.CtBehavior
 import javassist.CtClass
 import javassist.CtField
 
+import org.gradle.binarycompatibility.JavassistExtensions
 import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 
 
@@ -33,16 +34,19 @@ class KotlinInternalFilter implements ClassFilter, FieldFilter, BehaviorFilter {
 
     @Override
     boolean matches(CtClass ctClass) {
-        return metadata.queryKotlinMetadata(ctClass, false, metadata.isKotlinInternal(ctClass))
+        return JavassistExtensions.isKotlin(ctClass) &&
+            metadata.queryKotlinMetadata(ctClass, false, metadata.isKotlinInternal(ctClass))
     }
 
     @Override
     boolean matches(CtField ctField) {
-        return metadata.queryKotlinMetadata(ctField.declaringClass, false, metadata.isKotlinInternal(ctField))
+        return JavassistExtensions.isKotlin(ctField.declaringClass) &&
+            metadata.queryKotlinMetadata(ctField.declaringClass, false, metadata.isKotlinInternal(ctField))
     }
 
     @Override
     boolean matches(CtBehavior ctBehavior) {
-        return metadata.queryKotlinMetadata(ctBehavior.declaringClass, false, metadata.isKotlinInternal(ctBehavior))
+        return JavassistExtensions.isKotlin(ctBehavior.declaringClass) &&
+            metadata.queryKotlinMetadata(ctBehavior.declaringClass, false, metadata.isKotlinInternal(ctBehavior))
     }
 }

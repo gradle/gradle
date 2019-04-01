@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
+import org.gradle.binarycompatibility.isKotlin
 import org.gradle.binarycompatibility.jApiClass
 import org.gradle.binarycompatibility.packageName
 import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
@@ -160,7 +161,7 @@ val propertySetterNameRegex = "^set[A-Z].*$".toRegex()
 
 internal
 val JApiClass.isKotlin: Boolean
-    get() = annotations.any { it.fullyQualifiedName == Metadata::class.qualifiedName }
+    get() = newClass.orNull()?.isKotlin ?: false
 
 
 private
@@ -186,6 +187,11 @@ val JApiClass.isKotlinFileFacadeClass: Boolean
 
 
 private
+fun JApiMethod.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
+    parameters.isNotEmpty() && (primitiveTypeStrings[parameters[0].type] ?: parameters[0].type).endsWith(ktTypeReference.text)
+
+
+private
 fun KtFile.ktClassOf(member: JApiClass) =
     collectDescendantsOfType<KtClassOrObject> { it.fqName?.asString() == member.fullyQualifiedName }.singleOrNull()
 
@@ -203,11 +209,6 @@ fun KtDeclaration.isDocumentedAsSince(version: String) =
 private
 fun KDoc.isSince(version: String) =
     text.contains("@since $version")
-
-
-private
-fun JApiMethod.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
-    parameters.isNotEmpty() && (primitiveTypeStrings[parameters[0].type] ?: parameters[0].type).endsWith(ktTypeReference.text)
 
 
 // TODO:kotlin-dsl dedupe with KotlinTypeStrings.primitiveTypeStrings

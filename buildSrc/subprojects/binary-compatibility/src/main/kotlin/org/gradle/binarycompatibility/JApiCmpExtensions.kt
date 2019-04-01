@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+
+@file:JvmName("JapicmpExtensions")
+
 package org.gradle.binarycompatibility
 
 import japicmp.model.JApiCompatibility

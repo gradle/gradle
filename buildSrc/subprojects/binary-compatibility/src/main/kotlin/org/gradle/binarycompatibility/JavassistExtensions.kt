@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
+@file:JvmName("JavassistExtensions")
+
 package org.gradle.binarycompatibility
 
+import javassist.CtClass
 import javassist.bytecode.annotation.MemberValue
 import javassist.bytecode.annotation.AnnotationMemberValue
 import javassist.bytecode.annotation.ArrayMemberValue
@@ -35,6 +38,11 @@ import javassist.bytecode.annotation.StringMemberValue
 import org.gradle.api.reflect.TypeOf
 
 import org.gradle.kotlin.dsl.typeOf
+
+
+internal
+val CtClass.isKotlin: Boolean
+    get() = hasAnnotation(Metadata::class.qualifiedName)
 
 
 internal
