@@ -29,20 +29,18 @@ import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 
 class KotlinInternalFilter implements ClassFilter, FieldFilter, BehaviorFilter {
 
-    private KotlinMetadataQueries metadata = KotlinMetadataQueries.INSTANCE
-
     @Override
     boolean matches(CtClass ctClass) {
-        return metadata.queryKotlinMetadata(ctClass, false, metadata.isKotlinInternal(ctClass))
+        return KotlinMetadataQueries.INSTANCE.isKotlinInternal(ctClass)
     }
 
     @Override
     boolean matches(CtField ctField) {
-        return metadata.queryKotlinMetadata(ctField.declaringClass, false, metadata.isKotlinInternal(ctField))
+        return KotlinMetadataQueries.INSTANCE.isKotlinInternal(ctField)
     }
 
     @Override
     boolean matches(CtBehavior ctBehavior) {
-        return metadata.queryKotlinMetadata(ctBehavior.declaringClass, false, metadata.isKotlinInternal(ctBehavior))
+        return KotlinMetadataQueries.INSTANCE.isKotlinInternal(ctBehavior)
     }
 }

@@ -179,11 +179,7 @@ val JApiClass.baseQualifiedKotlinName: String
 
 private
 val JApiClass.isKotlinFileFacadeClass: Boolean
-    get() = isKotlin && KotlinMetadataQueries.queryKotlinMetadata(
-        newClass.get(),
-        defaultResult = false,
-        query = KotlinMetadataQueries.isKotlinFileFacadeClass()
-    )
+    get() = KotlinMetadataQueries.isKotlinFileFacadeClass(newClass.get())
 
 
 private
