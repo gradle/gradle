@@ -22,7 +22,6 @@ import japicmp.model.JApiMethod
 
 import javassist.bytecode.SourceFileAttribute
 
-import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 import org.gradle.binarycompatibility.sources.ApiSourceFile
 import org.gradle.binarycompatibility.sources.JavaSourceQueries
 import org.gradle.binarycompatibility.sources.KotlinSourceQueries
@@ -35,7 +34,7 @@ import java.io.File
 
 
 /**
- * Repository of class bytes and sources for binary compatibility.
+ * Repository of sources for binary compatibility checks.
  *
  * `WARN` Holds resources open for performance, must be closed after use.
  */
@@ -75,14 +74,6 @@ class BinaryCompatibilityRepository internal constructor(
                 is ApiSourceFile.Kotlin -> sources.executeQuery(apiSourceFile, KotlinSourceQueries.isSince(version, member))
             }
         }
-
-    fun isKotlinFileFacadeClass(member: JApiCompatibility): Boolean =
-        if (member !is JApiClass || !member.isKotlin) false
-        else KotlinMetadataQueries.queryKotlinMetadata(
-            member.newClass.get(),
-            defaultResult = false,
-            query = KotlinMetadataQueries.isKotlinFileFacadeClass()
-        )
 
     private
     fun apiSourceFileFor(member: JApiCompatibility): ApiSourceFile =

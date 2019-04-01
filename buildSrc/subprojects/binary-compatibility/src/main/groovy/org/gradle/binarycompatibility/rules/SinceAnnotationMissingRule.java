@@ -25,6 +25,8 @@ import japicmp.model.JApiMethod;
 
 import me.champeau.gradle.japicmp.report.Violation;
 
+import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries;
+
 import java.util.Map;
 
 
@@ -54,7 +56,7 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
             isDeprecated(member) ||
             isInjectConstructor(member) ||
             isOverrideMethod(member) ||
-            getRepository().isKotlinFileFacadeClass(member);
+            isKotlinFileFacadeClass(member);
     }
 
     private boolean isInjectConstructor(JApiCompatibility member) {
@@ -63,5 +65,16 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
     private boolean isOverrideMethod(JApiCompatibility member) {
         return member instanceof JApiMethod && isOverride((JApiMethod) member);
+    }
+
+    /**
+     * Kotlin file-facade classes can't have kdoc comments.
+     */
+    private boolean isKotlinFileFacadeClass(JApiCompatibility member) {
+        return member instanceof JApiClass && KotlinMetadataQueries.INSTANCE.queryKotlinMetadata(
+            ((JApiClass) member).getNewClass().get(),
+            false,
+            KotlinMetadataQueries.INSTANCE.isKotlinFileFacadeClass()
+        );
     }
 }
