@@ -23,14 +23,12 @@ val insecureRepos = mutableSetOf<String>()
 allprojects {
     configurations.all {
         incoming.beforeResolve {
-            repositories.forEach {
-                if (it is MavenArtifactRepository) {
-                    checkURLs(it, setOf(it.url))
-                    checkURLs(it, it.artifactUrls)
-                } else if (it is IvyArtifactRepository) {
-                    checkURLs(it, setOf(it.url))
-                }
-            }
+            repositories.checkRepositories()
+        }
+    }
+    afterEvaluate {
+        extensions.findByType(PublishingExtension::class.java)?.run {
+            repositories.checkRepositories()
         }
     }
 }
@@ -38,6 +36,15 @@ allprojects {
 gradle.buildFinished {
     if (!insecureRepos.isEmpty()) {
         throw GradleException("This build used insecure repositories:\n" + insecureRepos.joinToString("\n") + "Make sure to use HTTPS")
+    }
+}
+
+fun RepositoryHandler.checkRepositories() = forEach {
+    if (it is MavenArtifactRepository) {
+        checkURLs(it, setOf(it.url))
+        checkURLs(it, it.artifactUrls)
+    } else if (it is IvyArtifactRepository) {
+        checkURLs(it, setOf(it.url))
     }
 }
 
