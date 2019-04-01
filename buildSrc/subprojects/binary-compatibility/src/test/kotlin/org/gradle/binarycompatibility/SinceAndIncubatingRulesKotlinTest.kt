@@ -34,8 +34,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         internal fun Int.fooExt() {}
 
-        internal val String.barExt
+        internal val String.barExt: String
             get() = "bar"
+
+        internal var Int.bazarExt: String
+            get() = "bar"
+            set(value) = Unit
 
     """
 
@@ -52,8 +56,12 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         fun Int.fooExt() {}
 
-        val String.barExt
+        val String.barExt: String
             get() = "bar"
+
+        var Int.bazarExt: String
+            get() = "bar"
+            set(value) = Unit
 
     """
 
@@ -95,8 +103,17 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
          * @since 2.0
          */
         @get:Incubating
-        val String.barExt
+        val String.barExt: String
             get() = "bar"
+
+        /**
+         * @since 2.0
+         */
+        @get:Incubating
+        @set:Incubating
+        var Int.bazarExt: String
+            get() = "bar"
+            set(value) = Unit
 
     """
 
@@ -114,22 +131,16 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
-                "Field cathedral: Is not annotated with @Incubating.",
-                "Field cathedral: Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.foo(): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.foo(): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.fooExt(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.fooExt(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.fooExt(int): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.fooExt(int): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.getBar(): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.getBar(): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.getBarExt(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.getBarExt(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.getBazar(): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.getBazar(): Is not annotated with @since 2.0.",
-                "Method com.example.SourceKt.setBazar(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.SourceKt.setBazar(java.lang.String): Is not annotated with @since 2.0."
+                added("Field", "cathedral"),
+                added("Method", "SourceKt.foo()"),
+                added("Method", "SourceKt.fooExt(java.lang.String)"),
+                added("Method", "SourceKt.fooExt(int)"),
+                added("Method", "SourceKt.getBar()"),
+                added("Method", "SourceKt.getBarExt(java.lang.String)"),
+                added("Method", "SourceKt.getBazar()"),
+                added("Method", "SourceKt.getBazarExt(int)"),
+                added("Method", "SourceKt.setBazar(java.lang.String)"),
+                added("Method", "SourceKt.setBazarExt(int,java.lang.String)")
             )
         }
 
@@ -148,14 +159,16 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoError()
             assertHasNoWarning()
             assertHasInformation(
-                "Field cathedral: New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.foo(): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.fooExt(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.fooExt(int): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.getBar(): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.getBarExt(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.getBazar(): New public API in 2.0 (@Incubating)",
-                "Method com.example.SourceKt.setBazar(java.lang.String): New public API in 2.0 (@Incubating)"
+                newApi("Field", "cathedral"),
+                newApi("Method", "SourceKt.foo()"),
+                newApi("Method", "SourceKt.fooExt(java.lang.String)"),
+                newApi("Method", "SourceKt.fooExt(int)"),
+                newApi("Method", "SourceKt.getBar()"),
+                newApi("Method", "SourceKt.getBarExt(java.lang.String)"),
+                newApi("Method", "SourceKt.getBazar()"),
+                newApi("Method", "SourceKt.getBazarExt(int)"),
+                newApi("Method", "SourceKt.setBazar(java.lang.String)"),
+                newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)")
             )
         }
     }
@@ -180,22 +193,14 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
-                "Class com.example.Bar: Is not annotated with @Incubating.",
-                "Class com.example.Bar: Is not annotated with @since 2.0.",
-                "Constructor com.example.Bar(): Is not annotated with @Incubating.",
-                "Constructor com.example.Bar(): Is not annotated with @since 2.0.",
-                "Class com.example.Bazar: Is not annotated with @Incubating.",
-                "Class com.example.Bazar: Is not annotated with @since 2.0.",
-                "Method com.example.Bazar.valueOf(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.Bazar.valueOf(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.Bazar.values(): Is not annotated with @Incubating.",
-                "Method com.example.Bazar.values(): Is not annotated with @since 2.0.",
-                "Class com.example.Cathedral: Is not annotated with @Incubating.",
-                "Class com.example.Cathedral: Is not annotated with @since 2.0.",
-                "Field INSTANCE: Is not annotated with @Incubating.",
-                "Field INSTANCE: Is not annotated with @since 2.0.",
-                "Class com.example.Foo: Is not annotated with @Incubating.",
-                "Class com.example.Foo: Is not annotated with @since 2.0."
+                added("Class", "Bar"),
+                added("Constructor", "Bar()"),
+                added("Class", "Bazar"),
+                added("Method", "Bazar.valueOf(java.lang.String)"),
+                added("Method", "Bazar.values()"),
+                added("Class", "Cathedral"),
+                added("Field", "INSTANCE"),
+                added("Class", "Foo")
             )
         }
 
@@ -230,13 +235,13 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoError()
             assertHasNoWarning()
             assertHasInformation(
-                "Class com.example.Bar: New public API in 2.0 (@Incubating)",
-                "Class com.example.Bazar: New public API in 2.0 (@Incubating)",
-                "Method com.example.Bazar.valueOf(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bazar.values(): New public API in 2.0 (@Incubating)",
-                "Class com.example.Cathedral: New public API in 2.0 (@Incubating)",
-                "Field INSTANCE: New public API in 2.0 (@Incubating)",
-                "Class com.example.Foo: New public API in 2.0 (@Incubating)"
+                newApi("Class", "Bar"),
+                newApi("Class", "Bazar"),
+                newApi("Method", "Bazar.valueOf(java.lang.String)"),
+                newApi("Method", "Bazar.values()"),
+                newApi("Class", "Cathedral"),
+                newApi("Field", "INSTANCE"),
+                newApi("Class", "Foo")
             )
         }
     }
@@ -283,24 +288,17 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
-                "Method com.example.Bar.foo(): Is not annotated with @Incubating.",
-                "Method com.example.Bar.foo(): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.fooExt(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.Bar.fooExt(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.fooExt(int): Is not annotated with @Incubating.",
-                "Method com.example.Bar.fooExt(int): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.getBar(): Is not annotated with @Incubating.",
-                "Method com.example.Bar.getBar(): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.getBarExt(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.Bar.getBarExt(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.getBazar(): Is not annotated with @Incubating.",
-                "Method com.example.Bar.getBazar(): Is not annotated with @since 2.0.",
-                "Method com.example.Bar.setBazar(java.lang.String): Is not annotated with @Incubating.",
-                "Method com.example.Bar.setBazar(java.lang.String): Is not annotated with @since 2.0.",
-                "Constructor com.example.Bar(java.lang.String): Is not annotated with @Incubating.",
-                "Constructor com.example.Bar(java.lang.String): Is not annotated with @since 2.0.",
-                "Method com.example.Foo.foo(): Is not annotated with @Incubating.",
-                "Method com.example.Foo.foo(): Is not annotated with @since 2.0."
+                added("Method", "Bar.foo()"),
+                added("Method", "Bar.fooExt(java.lang.String)"),
+                added("Method", "Bar.fooExt(int)"),
+                added("Method", "Bar.getBar()"),
+                added("Method", "Bar.getBarExt(java.lang.String)"),
+                added("Method", "Bar.getBazar()"),
+                added("Method", "Bar.getBazarExt(int)"),
+                added("Method", "Bar.setBazar(java.lang.String)"),
+                added("Method", "Bar.setBazarExt(int,java.lang.String)"),
+                added("Constructor", "Bar(java.lang.String)"),
+                added("Method", "Foo.foo()")
             )
         }
 
@@ -337,14 +335,16 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoError()
             assertHasNoWarning()
             assertHasInformation(
-                "Method com.example.Bar.foo(): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.fooExt(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.fooExt(int): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.getBar(): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.getBarExt(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.getBazar(): New public API in 2.0 (@Incubating)",
-                "Method com.example.Bar.setBazar(java.lang.String): New public API in 2.0 (@Incubating)",
-                "Method com.example.Foo.foo(): New public API in 2.0 (@Incubating)"
+                newApi("Method", "Bar.foo()"),
+                newApi("Method", "Bar.fooExt(java.lang.String)"),
+                newApi("Method", "Bar.fooExt(int)"),
+                newApi("Method", "Bar.getBar()"),
+                newApi("Method", "Bar.getBarExt(java.lang.String)"),
+                newApi("Method", "Bar.getBazar()"),
+                newApi("Method", "Bar.getBazarExt(int)"),
+                newApi("Method", "Bar.setBazar(java.lang.String)"),
+                newApi("Method", "Bar.setBazarExt(int,java.lang.String)"),
+                newApi("Method", "Foo.foo()")
             )
         }
     }

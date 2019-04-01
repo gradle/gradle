@@ -201,6 +201,22 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
         fun assertHasErrors(vararg errorWithDetail: Pair<String, List<String>>) {
             assertThat("Has errors", richReport.errors, equalTo(errorWithDetail.map { ReportMessage(it.first, it.second) }))
         }
+
+        fun newApi(thing: String, desc: String): String =
+            "$thing ${describe(thing, desc)}: New public API in 2.0 (@Incubating)"
+
+        fun added(thing: String, desc: String): List<String> =
+            listOf(
+                "$thing ${describe(thing, desc)}: Is not annotated with @Incubating.",
+                "$thing ${describe(thing, desc)}: Is not annotated with @since 2.0."
+            )
+
+        fun removed(thing: String, desc: String): Pair<String, List<String>> =
+            "$thing ${describe(thing, desc)}: Is not binary compatible." to listOf("$thing has been removed")
+
+        private
+        fun describe(thing: String, desc: String) =
+            if (thing == "Field") desc else "com.example.$desc"
     }
 
     private

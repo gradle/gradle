@@ -74,22 +74,22 @@ object KotlinMetadataQueries {
 
     fun isKotlinInternal(ctClass: CtClass): (KotlinClassMetadata) -> Boolean = { metadata ->
         if (Modifier.isPrivate(ctClass.modifiers)) false
-        else metadata.isKotlinInternal(ctClass.name, isField = false, isMethod = false)
+        else metadata.isKotlinInternal(ctClass.name, isConstructor = false, isField = false, isMethod = false)
     }
 
     fun isKotlinInternal(ctMember: CtMember): (KotlinClassMetadata) -> Boolean = { metadata ->
         if (Modifier.isPrivate(ctMember.modifiers)) false
-        else metadata.isKotlinInternal(ctMember.jvmSignature, ctMember is CtField, ctMember is CtMethod)
+        else metadata.isKotlinInternal(ctMember.jvmSignature, ctMember is CtConstructor, ctMember is CtField, ctMember is CtMethod)
     }
 
     private
-    fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isField: Boolean, isMethod: Boolean): Boolean {
+    fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isConstructor: Boolean, isField: Boolean, isMethod: Boolean): Boolean {
 
         var isInternal = false
 
         val internalFunctionVisitor = object : KmFunctionVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? =
-                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) null
+                if (isInternal || !isConstructor || type != JvmFunctionExtensionVisitor.TYPE) null
                 else object : JvmFunctionExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
