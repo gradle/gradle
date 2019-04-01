@@ -109,6 +109,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
+                added("Class", "SourceKt"),
                 added("Field", "cathedral"),
                 added("Method", "SourceKt.foo()"),
                 added("Method", "SourceKt.fooExt(java.lang.String)"),
@@ -122,7 +123,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             )
         }
 
-        checkBinaryCompatible(v2 = """
+        checkNotBinaryCompatible(v2 = """
 
            $annotatedKotlinMembers
 
@@ -134,7 +135,9 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         """).apply {
 
-            assertHasNoError()
+            assertHasErrors(
+                added("Class", "SourceKt") // TODO:kotlin-dsl fix and adapt coverage once new wrapper with @Incubating & @Target.TYPE
+            )
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Field", "cathedral"),
