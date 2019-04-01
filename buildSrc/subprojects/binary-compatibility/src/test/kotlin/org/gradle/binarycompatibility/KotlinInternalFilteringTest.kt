@@ -25,11 +25,6 @@ import org.junit.Test
 class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
     private
-    val existingMembers = """
-
-    """
-
-    private
     val internalMembers = """
 
         internal fun foo() {}
@@ -76,18 +71,13 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
     private
     val existingSource = """
 
-        $existingMembers
-
         class ExistingClass {
 
-            $existingMembers
-
-            class ExistingNestedClass {
-
-                $existingMembers
-
-            }
+            class ExistingNestedClass
         }
+
+        val valTurnedIntoVar: String
+            get() = ""
 
         typealias ExistingTypeAlias = String
     """
@@ -111,6 +101,10 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         }
 
         typealias ExistingTypeAlias = String
+
+        var valTurnedIntoVar: String
+            get() = ""
+            internal set(value) = Unit
 
         internal const val cathedral = "cathedral"
 
@@ -154,6 +148,10 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         }
 
         typealias ExistingTypeAlias = String
+
+        var valTurnedIntoVar: String
+            get() = ""
+            set(value) = Unit
 
         const val cathedral = "cathedral"
 
@@ -235,7 +233,9 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         "Constructor" to "ExistingClass(java.lang.String)"
     ) + reportedMembersFor("ExistingClass${'$'}ExistingNestedClass") + listOf(
         "Field" to "cathedral"
-    ) + reportedMembersFor("SourceKt")
+    ) + reportedMembersFor("SourceKt") + listOf(
+        "Method" to "SourceKt.setValTurnedIntoVar(java.lang.String)"
+    )
 
     private
     fun reportedMembersFor(containingType: String) =

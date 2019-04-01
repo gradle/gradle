@@ -22,28 +22,6 @@ import org.junit.Test
 class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest() {
 
     private
-    val internalKotlinMembers = """
-
-        internal fun foo() {}
-
-        internal val bar: String = "bar"
-
-        internal var bazar = "bazar"
-
-        internal fun String.fooExt() {}
-
-        internal fun Int.fooExt() {}
-
-        internal val String.barExt: String
-            get() = "bar"
-
-        internal var Int.bazarExt: String
-            get() = "bar"
-            set(value) = Unit
-
-    """
-
-    private
     val publicKotlinMembers = """
 
         fun foo() {}
