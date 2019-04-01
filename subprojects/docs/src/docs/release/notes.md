@@ -30,6 +30,16 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 `./gradlew wrapper --gradle-version=@version@`
 
+## Building native software with Gradle
+
+See more information about the [Gradle native project](https://github.com/gradle/gradle-native/blob/master/docs/RELEASE-NOTES.md#changes-included-in-gradle-54).
+
+### Swift 5 Support
+
+Gradle now supports [Swift 5](https://swift.org/blog/swift-5-released/) officially [release with the Xcode 10.2](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes).
+Specifying the source compatibility to Swift 5 instruct the compiler to expect Swift 5 compatible source file.
+Have a look at the [Swift samples](https://github.com/gradle/native-samples) to learn more about common use cases.
+
 ## Support for JDK12
 
 Gradle now supports running on [JDK12](https://jdk.java.net/12/). 
