@@ -133,7 +133,7 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
-                            setOf(rootProject.file("v2/src/main/kotlin").absolutePath),
+                            setOf(rootProject.file("v2/src/main/kotlin")),
                             "2.0"
                         )
                     }

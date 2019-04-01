@@ -35,16 +35,14 @@ class BinaryCompatibilityHelper {
     static setupJApiCmpRichReportRules(
         JapicmpTask japicmpTask,
         AcceptedApiChanges acceptedViolations,
-        Set<String> currentSourceRoots,
+        Set<File> currentSourceRoots,
         String currentVersion
     ) {
         japicmpTask.tap {
 
-            def currentClasspath = newClasspath.collect { it.absolutePath } as Set
-
             addExcludeFilter(KotlinInternalFilter)
 
-            richReport {
+            richReport.tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [
                     acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(),
                     publicApiPatterns: richReport.includedClasses
@@ -59,14 +57,19 @@ class BinaryCompatibilityHelper {
                 addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
-                addSetupRule(BinaryCompatibilityRepositorySetupRule, [
-                    (BinaryCompatibilityRepositorySetupRule.Params.currentSourceRoots): currentSourceRoots,
-                    (BinaryCompatibilityRepositorySetupRule.Params.currentClasspath): currentClasspath
-                ])
                 addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
 
-                addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
                 addPostProcessRule(AcceptedRegressionsRulePostProcess)
+            }
+
+            doFirst {
+                richReport.tap {
+                    addSetupRule(BinaryCompatibilityRepositorySetupRule, [
+                        (BinaryCompatibilityRepositorySetupRule.Params.currentSourceRoots): currentSourceRoots.collect { it.absolutePath } as Set,
+                        (BinaryCompatibilityRepositorySetupRule.Params.currentClasspath): newClasspath.collect { it.absolutePath } as Set
+                    ])
+                    addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
+                }
             }
         }
     }
