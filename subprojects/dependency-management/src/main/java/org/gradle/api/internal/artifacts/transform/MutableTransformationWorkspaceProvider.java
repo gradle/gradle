@@ -33,7 +33,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     private final ExecutionHistoryStore executionHistoryStore;
 
     public MutableTransformationWorkspaceProvider(ProjectLayout layout, ExecutionHistoryStore executionHistoryStore) {
-        baseDirectory = layout.getBuildDirectory().dir("transforms");
+        baseDirectory = layout.getBuildDirectory().dir(".transforms");
         this.executionHistoryStore = executionHistoryStore;
     }
 
