@@ -44,7 +44,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
         $existingMembers
 
-        class ExistingClass() {
+        class ExistingClass {
             $existingMembers
         }
     """
@@ -71,6 +71,12 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         internal object AddedObject {
             $publicMembers
         }
+
+        internal enum class AddedEnum {
+            FOO;
+
+            $publicMembers
+        }
     """
 
     private
@@ -93,6 +99,12 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         }
 
         object AddedObject {
+            $publicMembers
+        }
+
+        enum class AddedEnum {
+            FOO;
+
             $publicMembers
         }
     """
@@ -118,6 +130,11 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
                 added("Method", "AddedClass.getFoo()"),
                 added("Constructor", "AddedClass(java.lang.String)"),
                 added("Constructor", "AddedClass()"),
+                added("Class", "AddedEnum"),
+                added("Field", "FOO"),
+                added("Method", "AddedEnum.getFoo()"),
+                added("Method", "AddedEnum.valueOf(java.lang.String)"),
+                added("Method", "AddedEnum.values()"),
                 added("Class", "AddedObject"),
                 added("Field", "INSTANCE"),
                 added("Method", "AddedObject.getFoo()"),
@@ -142,6 +159,11 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
                 removed("Method", "AddedClass.getFoo()"),
                 removed("Constructor", "AddedClass(java.lang.String)"),
                 removed("Constructor", "AddedClass()"),
+                removed("Class", "AddedEnum"),
+                removed("Field", "FOO"),
+                removed("Method", "AddedEnum.getFoo()"),
+                removed("Method", "AddedEnum.valueOf(java.lang.String)"),
+                removed("Method", "AddedEnum.values()"),
                 removed("Class", "AddedObject"),
                 removed("Field", "INSTANCE"),
                 removed("Method", "AddedObject.getFoo()"),
