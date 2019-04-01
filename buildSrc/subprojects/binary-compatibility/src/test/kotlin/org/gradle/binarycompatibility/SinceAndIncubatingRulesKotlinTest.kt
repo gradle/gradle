@@ -109,7 +109,10 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             assertHasNoInformation()
             assertHasNoWarning()
             assertHasErrors(
-                added("Class", "SourceKt"),
+
+                // Kotlin file-facade classes are ignored by the @since rule
+                listOf("Class com.example.SourceKt: Is not annotated with @Incubating."),
+
                 added("Field", "cathedral"),
                 added("Method", "SourceKt.foo()"),
                 added("Method", "SourceKt.fooExt(java.lang.String)"),
@@ -135,9 +138,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         """).apply {
 
-            assertHasErrors(
-                added("Class", "SourceKt") // TODO:kotlin-dsl fix and adapt coverage once new wrapper with @Incubating & @Target.TYPE
-            )
+            // TODO:kotlin-dsl add @file:Incubating once new wrapper with @Incubating & @Target.TYPE
+            assertHasErrors("Class com.example.SourceKt: Is not annotated with @Incubating.")
             assertHasNoWarning()
             assertHasInformation(
                 newApi("Field", "cathedral"),
