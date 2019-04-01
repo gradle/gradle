@@ -36,8 +36,7 @@ class ScenarioBuildResultData {
     List<ExecutionData> recentExecutions = []
 
     String getFlakyIssueTestName() {
-        String testClassSimpleName = scenarioClass.split(/\./)[-1]
-        return "${testClassSimpleName}.${scenarioName}"
+        return "${scenarioClass}.${scenarioName}"
     }
 
     boolean isCrossVersion() {

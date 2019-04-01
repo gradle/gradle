@@ -82,7 +82,7 @@ ${assembleTable(scenario)}
 
     private FlakyTest openNewFlakyTestIssue(ScenarioBuildResultData flakyScenario) {
         String title = "Flaky performance test: ${flakyScenario.flakyIssueTestName}"
-        String message = "Flaky performance test scenario"
+        String message = "we're slower than"
         String body = """
 ${FROM_BOT_PREFIX}
 
@@ -96,7 +96,7 @@ ${MESSAGE_PREFIX}$message
     }
 
     private FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName == it.name }
+        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
     }
 
     private static boolean issueClosed(FlakyTest flakyTest) {
