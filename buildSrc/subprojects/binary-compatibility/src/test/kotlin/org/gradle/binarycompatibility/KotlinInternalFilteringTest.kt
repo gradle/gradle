@@ -48,8 +48,14 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
             $existingMembers
 
-            class ExistingNestedClass
+            class ExistingNestedClass {
+
+                $existingMembers
+
+            }
         }
+
+        typealias ExistingTypeAlias = String
     """
 
     private
@@ -70,9 +76,11 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
             }
         }
 
+        typealias ExistingTypeAlias = String
+
         internal class AddedClass() {
 
-            constructor(bar: String) : this()
+            constructor(bar: ExistingTypeAlias) : this()
 
             $publicMembers
         }
@@ -106,9 +114,11 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
             }
         }
 
+        typealias ExistingTypeAlias = String
+
         class AddedClass() {
 
-            constructor(bar: String) : this()
+            constructor(bar: ExistingTypeAlias) : this()
 
             $publicMembers
         }
