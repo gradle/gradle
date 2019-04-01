@@ -34,7 +34,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.swift.tasks.internal.SymbolHider;
 import org.gradle.process.ExecSpec;
-import org.gradle.util.GFileUtils;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
@@ -87,9 +86,6 @@ public class UnexportMainSymbol extends DefaultTask {
 
     @TaskAction
     public void unexport(InputChanges inputChanges) {
-        if (!inputChanges.isIncremental()) {
-            GFileUtils.cleanDirectory(outputDirectory.get().getAsFile());
-        }
         for (FileChange change : inputChanges.getFileChanges(getObjects())) {
             if (change.getChangeType() == ChangeType.REMOVED) {
                 File relocatedFileLocation = relocatedObject(change.getFile());
