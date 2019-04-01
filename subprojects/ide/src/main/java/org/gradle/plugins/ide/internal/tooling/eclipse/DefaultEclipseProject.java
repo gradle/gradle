@@ -46,7 +46,6 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private DefaultEclipseJavaSourceSettings javaSourceSettings;
     private List<DefaultEclipseClasspathContainer> classpathContainers;
     private DefaultEclipseOutputLocation outputLocation;
-    private boolean hasAutoBuildTasks;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.name = name;
@@ -197,13 +196,5 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     @Override
     public File getRootDir() {
         return getProjectIdentifier().getBuildIdentifier().getRootDir();
-    }
-
-    public boolean hasAutoBuildTasks() {
-        return hasAutoBuildTasks;
-    }
-
-    public void setAutoBuildTasks(boolean hasAutoBuildTasks) {
-        this.hasAutoBuildTasks = hasAutoBuildTasks;
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
-import org.gradle.tooling.internal.consumer.converters.EclipseProjectHasAutoBuildMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.IdeaModuleDependencyTargetNameMixin;
@@ -27,7 +26,6 @@ import org.gradle.tooling.internal.consumer.converters.IncludedBuildsMixin;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.GradleProject;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.idea.IdeaDependency;
@@ -48,7 +46,6 @@ public class HasCompatibilityMapping {
         viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetNameMixin.class);
         viewBuilder.mixInTo(GradleBuild.class, IncludedBuildsMixin.class);
-        viewBuilder.mixInTo(EclipseProject.class, EclipseProjectHasAutoBuildMixin.class);
         return viewBuilder;
     }
 }
