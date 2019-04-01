@@ -16,9 +16,11 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import org.apache.tools.ant.util.ReaderInputStream;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
@@ -124,6 +126,8 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
                     return new StringReader(writer.toString());
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
+                } catch (MissingPropertyException e) {
+                    throw new GradleException(String.format("Missing property '%s'.", e.getProperty()), e);
                 }
             }
         });

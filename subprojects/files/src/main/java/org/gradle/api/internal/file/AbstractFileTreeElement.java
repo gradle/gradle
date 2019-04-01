@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import groovy.lang.MissingPropertyException;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
@@ -79,6 +80,8 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
             }
             chmod.chmod(target, getMode());
             return true;
+        } catch (GradleException e) {
+            throw new GradleException(String.format("Could not copy %s to '%s'. Reason: %s", getDisplayName(), target, e.getMessage()), e);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not copy %s to '%s'.", getDisplayName(), target), e);
         }
