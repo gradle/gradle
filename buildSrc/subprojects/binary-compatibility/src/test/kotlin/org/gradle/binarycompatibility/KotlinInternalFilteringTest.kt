@@ -31,12 +31,46 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
     private
     val internalMembers = """
-        internal val foo = "foo"
+
+        internal fun foo() {}
+
+        internal val bar = "bar"
+
+        internal var bazar = "bazar"
+
+        internal fun String.fooExt() {}
+
+        internal fun Int.fooExt() {}
+
+        internal val String.barExt: String
+            get() = "bar"
+
+        internal var Int.bazarExt: String
+            get() = "bar"
+            set(value) = Unit
+
     """
 
     private
     val publicMembers = """
-        val foo = "foo"
+
+        fun foo() {}
+
+        val bar = "bar"
+
+        var bazar = "bazar"
+
+        fun String.fooExt() {}
+
+        fun Int.fooExt() {}
+
+        val String.barExt: String
+            get() = "bar"
+
+        var Int.bazarExt: String
+            get() = "bar"
+            set(value) = Unit
+
     """
 
     private
@@ -78,6 +112,8 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
         typealias ExistingTypeAlias = String
 
+        internal const val cathedral = "cathedral"
+
         internal class AddedClass() {
 
             constructor(bar: ExistingTypeAlias) : this()
@@ -86,7 +122,10 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         }
 
         internal object AddedObject {
+
             $publicMembers
+
+            const val cathedral = "cathedral"
         }
 
         internal enum class AddedEnum {
@@ -116,6 +155,8 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
 
         typealias ExistingTypeAlias = String
 
+        const val cathedral = "cathedral"
+
         class AddedClass() {
 
             constructor(bar: ExistingTypeAlias) : this()
@@ -124,7 +165,10 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         }
 
         object AddedObject {
+
             $publicMembers
+
+            const val cathedral = "cathedral"
         }
 
         enum class AddedEnum {
@@ -185,14 +229,25 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
         "Method" to "AddedEnum.valueOf(java.lang.String)",
         "Method" to "AddedEnum.values()",
         "Class" to "AddedObject",
-        "Field" to "INSTANCE"
+        "Field" to "INSTANCE",
+        "Field" to "cathedral"
     ) + reportedMembersFor("AddedObject") + reportedMembersFor("ExistingClass") + listOf(
         "Constructor" to "ExistingClass(java.lang.String)"
-    ) + reportedMembersFor("ExistingClass${'$'}ExistingNestedClass") + reportedMembersFor("SourceKt")
+    ) + reportedMembersFor("ExistingClass${'$'}ExistingNestedClass") + listOf(
+        "Field" to "cathedral"
+    ) + reportedMembersFor("SourceKt")
 
     private
     fun reportedMembersFor(containingType: String) =
         listOf(
-            "Method" to "$containingType.getFoo()"
+            "Method" to "$containingType.foo()",
+            "Method" to "$containingType.fooExt(java.lang.String)",
+            "Method" to "$containingType.fooExt(int)",
+            "Method" to "$containingType.getBar()",
+            "Method" to "$containingType.getBarExt(java.lang.String)",
+            "Method" to "$containingType.getBazar()",
+            "Method" to "$containingType.getBazarExt(int)",
+            "Method" to "$containingType.setBazar(java.lang.String)",
+            "Method" to "$containingType.setBazarExt(int,java.lang.String)"
         )
 }
