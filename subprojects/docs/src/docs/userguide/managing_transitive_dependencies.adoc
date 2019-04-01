@@ -234,10 +234,6 @@ A virtual platform is considered specially by the engine and participates in dep
 On the other hand, we can find "real" platforms published on public repositories. Typical examples include BOMs, like the Spring BOM. They differ in the sense that a published platform may refer to modules which are effectively different things.
 For example the Spring BOM declares dependencies on Spring as well as Apache Groovy. Obviously those things are versioned differently, so it doesn't make sense to align in this case. In other words, if a platform is _published_, Gradle trusts its metadata, and will not try to align dependency versions of this platform.
 
-[NOTE]
-====
-Gradle doesn't yet support publishing platforms. It can <<bom_import, consume BOMs>>, or declare participation to a virtual platform, but it's not yet possible to declare and publish an adhoc platform module.
-====
 
 [[sec:capabilities]]
 == Component capabilities
