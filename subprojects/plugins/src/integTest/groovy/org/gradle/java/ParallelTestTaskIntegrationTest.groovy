@@ -30,7 +30,7 @@ import java.util.concurrent.CountDownLatch
 @IgnoreIf({ !GradleContextualExecuter.isParallel() })
 class ParallelTestTaskIntegrationTest extends AbstractIntegrationSpec {
     String getVersion() {
-        return "1.6"
+        return "1.7"
     }
 
     JavaVersion getJavaVersion() {
