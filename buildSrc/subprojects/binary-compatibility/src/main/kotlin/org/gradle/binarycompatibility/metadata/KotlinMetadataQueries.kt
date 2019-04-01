@@ -89,7 +89,7 @@ object KotlinMetadataQueries {
 
         val internalFunctionVisitor = object : KmFunctionVisitor() {
             override fun visitExtensions(type: KmExtensionType): KmFunctionExtensionVisitor? =
-                if (isInternal || !isConstructor || type != JvmFunctionExtensionVisitor.TYPE) null
+                if (isInternal || type != JvmFunctionExtensionVisitor.TYPE) null
                 else object : JvmFunctionExtensionVisitor() {
                     override fun visit(desc: JvmMethodSignature?) {
                         if (jvmSignature == desc?.asString()) {
@@ -153,7 +153,7 @@ object KotlinMetadataQueries {
                     }
 
                     override fun visitConstructor(flags: Flags): KmConstructorVisitor? =
-                        if (isInternal || !Flag.IS_INTERNAL(flags)) null
+                        if (isInternal || !isConstructor || !Flag.IS_INTERNAL(flags)) null
                         else object : KmConstructorVisitor() {
                             override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor? =
                                 if (isInternal || type != JvmConstructorExtensionVisitor.TYPE) null
