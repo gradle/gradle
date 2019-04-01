@@ -203,6 +203,7 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
         eclipseProject.setSourceDirectories(sourceDirectories);
         eclipseProject.setClasspathContainers(classpathContainers);
         eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
+        eclipseProject.setAutoBuildTasks(!eclipseModel.getAutoBuildTasks().getDependencies(null).isEmpty());
 
         org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 
