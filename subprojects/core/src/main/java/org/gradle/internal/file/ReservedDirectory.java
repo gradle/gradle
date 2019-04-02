@@ -19,14 +19,6 @@ package org.gradle.internal.file;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 
-public class ReservedFileLocation {
-    private final Provider<? extends FileSystemLocation> reservedLocation;
-
-    public ReservedFileLocation(Provider<? extends FileSystemLocation> reservedLocation) {
-        this.reservedLocation = reservedLocation;
-    }
-
-    Provider<? extends FileSystemLocation> getReservedLocation() {
-        return reservedLocation;
-    }
+public interface ReservedDirectory {
+    Provider<? extends FileSystemLocation> getReservedLocation();
 }

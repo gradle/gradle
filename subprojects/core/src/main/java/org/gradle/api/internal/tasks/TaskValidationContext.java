@@ -24,5 +24,5 @@ import java.io.File;
 public interface TaskValidationContext extends ParameterValidationContext {
     FileResolver getResolver();
 
-    boolean isInReservedFileLocation(File file);
+    boolean isInReservedDirectory(File location);
 }

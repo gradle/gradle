@@ -59,7 +59,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.file.ReservedFileLocation;
+import org.gradle.internal.file.ReservedDirectory;
 import org.gradle.internal.file.ReservedFileLocationRegistry;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -89,8 +89,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
     }
 
-    ReservedFileLocationRegistry createReservedFileLocationRegistry(List<ReservedFileLocation> reservedFileLocations) {
-        return new DefaultReservedFileLocationRegistry(reservedFileLocations);
+    ReservedFileLocationRegistry createReservedFileLocationRegistry(List<ReservedDirectory> reservedDirectories) {
+        return new DefaultReservedFileLocationRegistry(reservedDirectories);
     }
 
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,

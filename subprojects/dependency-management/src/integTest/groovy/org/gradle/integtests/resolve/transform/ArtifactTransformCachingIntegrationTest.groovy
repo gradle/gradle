@@ -80,9 +80,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             subprojects {
                 task badTask {
                     outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") }
-                    doLast {
-                        project.layout.buildDirectory.file("${forbiddenPath}").get().asFile.text = "notAllowed"                        
-                    }
+                    doLast { }
                 }
             }
         """

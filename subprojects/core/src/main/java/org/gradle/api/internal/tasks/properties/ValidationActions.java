@@ -109,7 +109,7 @@ public enum ValidationActions implements ValidationAction {
     };
 
     private static void validateNotInReservedDirectory(TaskValidationContext context, File directory) {
-        if (context.isInReservedFileLocation(directory)) {
+        if (context.isInReservedDirectory(directory)) {
             context.visitError(String.format("The output %s must not be in a reserved directory.", directory));
         }
     }

@@ -25,17 +25,17 @@ import java.util.List;
 public class DefaultReservedFileLocationRegistry implements ReservedFileLocationRegistry {
     private final FileHierarchySet reservedLocations;
 
-    public DefaultReservedFileLocationRegistry(List<ReservedFileLocation> registeredReservedLocations) {
-        this.reservedLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedLocations, new Function<ReservedFileLocation, File>() {
+    public DefaultReservedFileLocationRegistry(List<ReservedDirectory> registeredReservedLocations) {
+        this.reservedLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedLocations, new Function<ReservedDirectory, File>() {
             @Override
-            public File apply(ReservedFileLocation input) {
+            public File apply(ReservedDirectory input) {
                 return input.getReservedLocation().get().getAsFile();
             }
         }));
     }
 
     @Override
-    public boolean isInReservedFileLocation(File location) {
+    public boolean isInReservedDirectory(File location) {
         return reservedLocations.contains(location);
     }
 }
