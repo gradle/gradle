@@ -262,13 +262,13 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         succeeds("myTask")
     }
 
-    def "values are required for incremental inputs"() {
-        buildFile << """
-
+    def "empty providers can be queried for incremental changes"() {
+        file("buildSrc").deleteDir()
+        buildFile.text = """
             abstract class MyTask extends DefaultTask {
                 @Incremental
                 @Optional
-                @InputDirectory
+                @InputFiles
                 ${propertyDefinition}
 
                 @OutputDirectory
@@ -277,23 +277,36 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @TaskAction
                 void run(InputChanges changes) {
                     new File(outputDirectory, "output.txt").text = "Success"
+                    changes.getFileChanges(input).each {
+                        println "Changes > \$it"
+                    }                    
                 }
             }
 
             task myTask(type: MyTask) {
                 outputDirectory = file("build/output")
+                if (project.findProperty("inputFile")) {
+                    input = file(project.property("inputFile"))
+                }
             }
         """
 
         file("input").createDir()
 
         expect:
-        fails("myTask")
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
-        failure.assertHasCause("Must specify a value for incremental input property 'input'.")
+        succeeds("myTask")
+
+        when:
+        file("inputFile").createDir()
+        file("inputFile/someContents.txt").text = "input"
+        run("myTask", "-PinputFile=inputFile")
+
+        then:
+        output.contains("Changes > Input file ${file("inputFile").absolutePath} has been added.")
+        output.contains("Changes > Input file ${file("inputFile/someContents.txt").absolutePath} has been added.")
 
         where:
-        propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()", "File input"]
+        propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()"]
     }
 
     @Unroll
