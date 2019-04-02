@@ -20,5 +20,5 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 
 public interface ReservedFileSystemLocation {
-    Provider<? extends FileSystemLocation> getReservedLocation();
+    Provider<? extends FileSystemLocation> getReservedFileSystemLocation();
 }

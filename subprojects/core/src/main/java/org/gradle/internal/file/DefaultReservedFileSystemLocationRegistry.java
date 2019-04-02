@@ -23,19 +23,19 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultReservedFileSystemLocationRegistry implements ReservedFileSystemLocationRegistry {
-    private final FileHierarchySet reservedLocations;
+    private final FileHierarchySet reservedFileSystemLocations;
 
-    public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedLocations) {
-        this.reservedLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedLocations, new Function<ReservedFileSystemLocation, File>() {
+    public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedFileSystemLocations) {
+        this.reservedFileSystemLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedFileSystemLocations, new Function<ReservedFileSystemLocation, File>() {
             @Override
             public File apply(ReservedFileSystemLocation input) {
-                return input.getReservedLocation().get().getAsFile();
+                return input.getReservedFileSystemLocation().get().getAsFile();
             }
         }));
     }
 
     @Override
-    public boolean isInReservedDirectory(File location) {
-        return reservedLocations.contains(location);
+    public boolean isInReservedFileSystemLocation(File location) {
+        return reservedFileSystemLocations.contains(location);
     }
 }

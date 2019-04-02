@@ -89,8 +89,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
     }
 
-    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedDirectories) {
-        return new DefaultReservedFileSystemLocationRegistry(reservedDirectories);
+    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
+        return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
