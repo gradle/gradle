@@ -125,5 +125,11 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
             return value;
         }
+
+        @Nullable
+        @Override
+        public Object getValue() {
+            return valueSupplier.get();
+        }
     }
 }

@@ -19,10 +19,10 @@ package org.gradle.api.internal.tasks.properties.bean;
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.Task;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
@@ -82,6 +82,11 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
         @Override
         public Object call() {
+            return getValue();
+        }
+
+        @Override
+        public Object getValue() {
             return beanClass;
         }
 
