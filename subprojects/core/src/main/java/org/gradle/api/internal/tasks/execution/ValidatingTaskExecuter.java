@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.TaskValidationException;
+import org.gradle.internal.file.ReservedFileLocationRegistry;
 
 import java.util.List;
 
@@ -36,16 +37,18 @@ import java.util.List;
  */
 public class ValidatingTaskExecuter implements TaskExecuter {
     private final TaskExecuter executer;
+    private final ReservedFileLocationRegistry reservedFileLocationRegistry;
 
-    public ValidatingTaskExecuter(TaskExecuter executer) {
+    public ValidatingTaskExecuter(TaskExecuter executer, ReservedFileLocationRegistry reservedFileLocationRegistry) {
         this.executer = executer;
+        this.reservedFileLocationRegistry = reservedFileLocationRegistry;
     }
 
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         List<String> messages = Lists.newArrayList();
         FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-        final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, messages);
+        final TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, reservedFileLocationRegistry, messages);
 
         context.getTaskProperties().validate(validationContext);
 
