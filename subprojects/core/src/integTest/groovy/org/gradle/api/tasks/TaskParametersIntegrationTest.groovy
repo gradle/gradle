@@ -28,7 +28,7 @@ import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def "reports which properties are not serializable"() {
         buildFile << """
