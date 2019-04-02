@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -32,8 +31,8 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     private final Provider<Directory> baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
 
-    public MutableTransformationWorkspaceProvider(ProjectLayout layout, ExecutionHistoryStore executionHistoryStore) {
-        baseDirectory = layout.getBuildDirectory().dir(".transforms");
+    public MutableTransformationWorkspaceProvider(Provider<Directory> baseDirectory, ExecutionHistoryStore executionHistoryStore) {
+        this.baseDirectory = baseDirectory;
         this.executionHistoryStore = executionHistoryStore;
     }
 

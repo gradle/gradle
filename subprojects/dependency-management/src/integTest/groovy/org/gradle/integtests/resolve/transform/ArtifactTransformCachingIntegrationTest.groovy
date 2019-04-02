@@ -73,6 +73,29 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    def "task cannot write into transform directory"() {
+        def forbiddenPath = ".transforms/not-allowed.txt"
+
+        buildFile << """
+            subprojects {
+                task badTask {
+                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") }
+                    doLast {
+                        project.layout.buildDirectory.file("${forbiddenPath}").get().asFile.text = "notAllowed"                        
+                    }
+                }
+            }
+        """
+
+        when:
+        fails "badTask", "--continue"
+        then:
+        ['lib', 'app', 'util'].each {
+            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask'.")
+            failure.assertHasCause("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved directory.")
+        }
+    }
+
     def "scheduled transformation is invoked before consuming task is executed"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()

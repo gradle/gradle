@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.TaskValidationContext
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.tasks.TaskValidationException
+import org.gradle.internal.file.ReservedFileLocationRegistry
 import spock.lang.Specification
 
 class ValidatingTaskExecuterTest extends Specification {
@@ -37,8 +38,9 @@ class ValidatingTaskExecuterTest extends Specification {
     def state = Mock(TaskStateInternal)
     def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
+    def reservedFileLocationRegistry = Mock(ReservedFileLocationRegistry)
     def executionContext = Mock(TaskExecutionContext)
-    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target)
+    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target, reservedFileLocationRegistry)
 
     def "executes task when there are no violations"() {
         when:

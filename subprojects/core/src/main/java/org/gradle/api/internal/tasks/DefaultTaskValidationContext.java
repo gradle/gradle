@@ -18,19 +18,28 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.internal.file.ReservedFileLocationRegistry;
 
+import java.io.File;
 import java.util.Collection;
 
 public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
     private final FileResolver resolver;
+    private final ReservedFileLocationRegistry reservedFileLocationRegistry;
 
-    public DefaultTaskValidationContext(FileResolver resolver, Collection<String> messages) {
+    public DefaultTaskValidationContext(FileResolver resolver, ReservedFileLocationRegistry reservedFileLocationRegistry, Collection<String> messages) {
         super(messages);
         this.resolver = resolver;
+        this.reservedFileLocationRegistry = reservedFileLocationRegistry;
     }
 
     @Override
     public FileResolver getResolver() {
         return resolver;
+    }
+
+    @Override
+    public boolean isInReservedFileLocation(File file) {
+        return reservedFileLocationRegistry.isInReservedFileLocation(file);
     }
 }

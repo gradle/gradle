@@ -56,6 +56,7 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toFile(context, value);
+            validateNotInReservedDirectory(context, directory);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
                     context.visitError(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
@@ -82,6 +83,7 @@ public enum ValidationActions implements ValidationAction {
         @Override
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
+            validateNotInReservedDirectory(context, file);
             if (file.exists()) {
                 if (file.isDirectory()) {
                     context.visitError(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
@@ -105,6 +107,12 @@ public enum ValidationActions implements ValidationAction {
             }
         }
     };
+
+    private static void validateNotInReservedDirectory(TaskValidationContext context, File directory) {
+        if (context.isInReservedFileLocation(directory)) {
+            context.visitError(String.format("The output %s must not be in a reserved directory.", directory));
+        }
+    }
 
     private final String targetType;
 

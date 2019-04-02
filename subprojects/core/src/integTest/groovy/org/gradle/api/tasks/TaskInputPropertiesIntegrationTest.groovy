@@ -589,8 +589,8 @@ task someTask(type: SomeTask) {
 
     @Unroll
     def "wrong output file type registered via TaskOutputs.#method is not allowed"() {
-        file("input-file.txt").touch()
-        file("input-dir").createDir()
+        file("output-file.txt").touch()
+        file("output-dir").createDir()
         buildFile << """
             task test {
                 outputs.${method}({ "$path" }) withPropertyName "output"
@@ -604,10 +604,10 @@ task someTask(type: SomeTask) {
 
         where:
         method  | path             | message
-        "file"  | "input-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "files" | "input-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
-        "dir"   | "input-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
-        "dirs"  | "input-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
+        "file"  | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "files" | "output-dir"      | "Cannot write to file '<PATH>' specified for property 'output' as it is a directory."
+        "dir"   | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
+        "dirs"  | "output-file.txt" | "Directory '<PATH>' specified for property 'output' is not a directory."
     }
 
     def "can specify null as an input property in ad-hoc task"() {
