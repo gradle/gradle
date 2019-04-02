@@ -267,6 +267,11 @@ public class DefaultCachingStateBuilder implements CachingStateBuilder {
         public String getDisplayName() {
             return getHashCode();
         }
+
+        @Override
+        public String toString() {
+            return getHashCode();
+        }
     }
 
     private static class DefaultCachingInputs implements CachingInputs {
