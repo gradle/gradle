@@ -39,7 +39,7 @@ public class DefaultTaskValidationContext extends DefaultParameterValidationCont
     }
 
     @Override
-    public boolean isInReservedDirectory(File location) {
-        return reservedFileSystemLocationRegistry.isInReservedDirectory(location);
+    public boolean isInReservedFileSystemLocation(File location) {
+        return reservedFileSystemLocationRegistry.isInReservedFileSystemLocation(location);
     }
 }

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -36,11 +35,10 @@ class ValidatingTaskExecuterTest extends Specification {
     def taskProperties = Mock(TaskProperties)
     def project = Stub(ProjectInternal)
     def state = Mock(TaskStateInternal)
-    def inputs = Mock(TaskInputsInternal)
     def outputs = Mock(TaskOutputsInternal)
-    def reservedFileLocationRegistry = Mock(ReservedFileSystemLocationRegistry)
+    def reservedFileSystemLocationRegistry = Mock(ReservedFileSystemLocationRegistry)
     def executionContext = Mock(TaskExecutionContext)
-    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target, reservedFileLocationRegistry)
+    final ValidatingTaskExecuter executer = new ValidatingTaskExecuter(target, reservedFileSystemLocationRegistry)
 
     def "executes task when there are no violations"() {
         when:

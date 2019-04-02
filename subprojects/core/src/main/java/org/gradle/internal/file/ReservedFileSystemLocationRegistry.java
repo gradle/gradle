@@ -19,5 +19,5 @@ package org.gradle.internal.file;
 import java.io.File;
 
 public interface ReservedFileSystemLocationRegistry {
-    boolean isInReservedDirectory(File location);
+    boolean isInReservedFileSystemLocation(File location);
 }

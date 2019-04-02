@@ -51,7 +51,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public Provider<? extends FileSystemLocation> getReservedLocation() {
+    public Provider<? extends FileSystemLocation> getReservedFileSystemLocation() {
         return baseDirectory;
     }
 }
