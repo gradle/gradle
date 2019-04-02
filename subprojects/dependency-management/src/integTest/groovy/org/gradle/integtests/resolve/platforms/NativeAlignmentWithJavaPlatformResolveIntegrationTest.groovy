@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
+import static org.gradle.util.TextUtil.escapeString
+
 @RequiredFeatures(
     [
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true"),
@@ -100,7 +102,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                 apply plugin: 'maven-publish'
                 publishing {
                    repositories {
-                       maven { url = "${mavenRepo.rootDir}" }
+                       maven { url = "${escapeString(mavenRepo.rootDir)}" }
                    }
                 }
             }
