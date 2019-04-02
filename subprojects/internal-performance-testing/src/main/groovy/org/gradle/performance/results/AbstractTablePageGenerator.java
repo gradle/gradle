@@ -197,8 +197,6 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 scenarios.forEach(scenario -> renderScenario(counter.incrementAndGet(), scenario));
             }
 
-
-
             private String getTextColorCss(ScenarioBuildResultData scenario, ScenarioBuildResultData.ExecutionData executionData) {
                 if(scenario.isCrossBuild()) {
                     return "text-dark";

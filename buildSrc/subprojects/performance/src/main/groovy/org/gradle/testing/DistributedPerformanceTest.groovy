@@ -84,7 +84,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     private RESTClient client
 
-    private Map<String, Scenario> scheduledBuilds = [:]
+    protected Map<String, Scenario> scheduledBuilds = [:]
 
     private Map<String, ScenarioResult> finishedBuilds = [:]
 
@@ -134,13 +134,17 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
-                webUrl: scenarioResult.buildResult.webUrl.toString(),
-                status: scenarioResult.buildResult.status.toString(),
+                scenarioClass: scenarioResult.testSuite.name,
+                webUrl: scenarioResult.buildResult.webUrl,
+                status: scenarioResult.buildResult.status,
+                agentName: scenarioResult.buildResult.agent.name,
+                agentUrl: scenarioResult.buildResult.agent.webUrl,
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }

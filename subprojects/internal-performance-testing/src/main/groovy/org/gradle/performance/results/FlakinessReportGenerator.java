@@ -16,6 +16,9 @@
 
 package org.gradle.performance.results;
 
+import org.gradle.ci.github.DefaultGitHubIssuesClient;
+import org.gradle.ci.github.GitHubIssuesClient;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -26,7 +29,11 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
 
     @Override
     protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        new FileRenderer().render(store, new FlakinessIndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));
+        GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"));
+        FlakinessIndexPageGenerator reporter = new FlakinessIndexPageGenerator(store, resultJson, gitHubIssuesClient);
+        new FileRenderer().render(store, reporter, new File(outputDirectory, "index.html"));
+
+        reporter.reportToIssueTracker();
     }
 
     @Override

@@ -25,12 +25,19 @@ class ScenarioBuildResultData {
     private static final int FLAKINESS_DETECTION_THRESHOLD = 99
     String teamCityBuildId
     String scenarioName
+    String scenarioClass
     String webUrl
+    String agentName
+    String agentUrl
     String testFailure
     String status
     boolean crossBuild
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
+
+    String getFlakyIssueTestName() {
+        return "${scenarioClass}.${scenarioName}"
+    }
 
     boolean isCrossVersion() {
         return !crossBuild
