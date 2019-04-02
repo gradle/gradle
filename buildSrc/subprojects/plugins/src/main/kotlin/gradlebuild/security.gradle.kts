@@ -18,38 +18,70 @@ package gradlebuild
 import java.net.URI
 
 val allowedSchemes = setOf("https")
-val insecureRepos = mutableSetOf<String>()
+val insecureRepos = mutableSetOf<InsecureRepository>()
+val repoToSource = mutableMapOf<ArtifactRepository, String>()
 
 allprojects {
+    repositories.whenObjectAdded {
+        Exception().stackTrace.forEachIndexed { idx, it ->
+            if (idx > 1 && !repoToSource.containsKey(this) && it.isBuildScript()) {
+                repoToSource.put(this, "${it.fileName}:${it.lineNumber} in ${it.className}")
+            }
+        }
+    }
+    val project = this
     configurations.all {
         incoming.beforeResolve {
-            repositories.checkRepositories()
+            repositories.checkRepositories(project)
         }
     }
     afterEvaluate {
         extensions.findByType(PublishingExtension::class.java)?.run {
-            repositories.checkRepositories()
+            repositories.checkRepositories(project)
         }
     }
 }
 
 gradle.buildFinished {
     if (!insecureRepos.isEmpty()) {
-        throw GradleException("This build used insecure repositories:\n" + insecureRepos.joinToString("\n") + "\nMake sure to use HTTPS")
+        val byProject = insecureRepos
+            .groupBy(InsecureRepository::projectPath)
+            .mapKeys {
+                "In project '${it.key}' :"
+            }.mapValues {
+                it.value.map { repo ->
+                    val location = if (repo.location != null) {
+                        "declared at ${repo.location}"
+                    } else {
+                        "(unknown location)"
+                    }
+                    "      - Repository ${repo.repositoryName} : ${repo.url} $location"
+                }.joinToString("\n")
+            }
+        val detail = byProject.map {
+            val (key, value) = it
+            "   * $key\n$value"
+        }.joinToString("\n")
+
+        throw GradleException("This build used insecure repositories:\n${detail}\n\nMake sure to use HTTPS")
     }
 }
 
-fun RepositoryHandler.checkRepositories() = forEach {
+fun RepositoryHandler.checkRepositories(project: Project) = forEach {
     if (it is MavenArtifactRepository) {
-        checkURLs(it, setOf(it.url))
-        checkURLs(it, it.artifactUrls)
+        checkURLs(project, it, setOf(it.url))
+        checkURLs(project, it, it.artifactUrls)
     } else if (it is IvyArtifactRepository) {
-        checkURLs(it, setOf(it.url))
+        checkURLs(project, it, setOf(it.url))
     }
 }
 
-fun checkURLs(repository: ArtifactRepository, uris: Collection<URI>) = uris.forEach {
+fun checkURLs(project: Project, repository: ArtifactRepository, uris: Collection<URI>) = uris.forEach {
     if (it.scheme.toLowerCase() !in allowedSchemes) {
-        insecureRepos.add("   Insecure repository '${repository.name}': $it")
+        insecureRepos.add(InsecureRepository(project.path, repository.name, it, repoToSource.get(repository)))
     }
 }
+
+data class InsecureRepository(val projectPath: String, val repositoryName: String, val url: URI, val location: String?)
+
+fun StackTraceElement.isBuildScript() = fileName != null && (fileName.endsWith(".gradle") || fileName.endsWith(".gradle.kts"))
