@@ -59,7 +59,7 @@ public class StaticValue implements PropertyValue {
 
     @Nullable
     @Override
-    public Object getValue() {
+    public Object getUnprocessedValue() {
         return value;
     }
 }

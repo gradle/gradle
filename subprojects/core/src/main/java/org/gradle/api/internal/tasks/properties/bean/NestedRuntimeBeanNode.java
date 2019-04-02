@@ -82,11 +82,11 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
         @Override
         public Object call() {
-            return getValue();
+            return getUnprocessedValue();
         }
 
         @Override
-        public Object getValue() {
+        public Object getUnprocessedValue() {
             return beanClass;
         }
 

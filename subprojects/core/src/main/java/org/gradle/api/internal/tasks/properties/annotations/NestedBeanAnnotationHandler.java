@@ -91,7 +91,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
-        public Object getValue() {
+        public Object getUnprocessedValue() {
             return call();
         }
 
@@ -115,7 +115,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
-        public Object getValue() {
+        public Object getUnprocessedValue() {
             return null;
         }
 

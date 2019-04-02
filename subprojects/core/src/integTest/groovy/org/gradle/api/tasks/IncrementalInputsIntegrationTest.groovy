@@ -278,7 +278,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 void run(InputChanges changes) {
                     new File(outputDirectory, "output.txt").text = "Success"
                     changes.getFileChanges(input).each {
-                        println it
+                        println "Changes > \$it"
                     }                    
                 }
             }
@@ -302,8 +302,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         run("myTask", "-PinputFile=inputFile")
 
         then:
-        output.contains("Input file ${file("inputFile").absolutePath} has been added.")
-        output.contains("Input file ${file("inputFile/someContents.txt").absolutePath} has been added.")
+        output.contains("Changes > Input file ${file("inputFile").absolutePath} has been added.")
+        output.contains("Changes > Input file ${file("inputFile/someContents.txt").absolutePath} has been added.")
 
         where:
         propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()"]

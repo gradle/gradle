@@ -37,7 +37,7 @@ public interface PropertyValue extends Callable<Object> {
      * The unprocessed value of the underlying property.
      */
     @Nullable
-    Object getValue();
+    Object getUnprocessedValue();
 
     void attachProducer(Task producer);
 
