@@ -22,13 +22,13 @@ import com.google.common.collect.Iterables;
 import java.io.File;
 import java.util.List;
 
-public class DefaultReservedFileLocationRegistry implements ReservedFileLocationRegistry {
+public class DefaultReservedFileSystemLocationRegistry implements ReservedFileSystemLocationRegistry {
     private final FileHierarchySet reservedLocations;
 
-    public DefaultReservedFileLocationRegistry(List<ReservedDirectory> registeredReservedLocations) {
-        this.reservedLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedLocations, new Function<ReservedDirectory, File>() {
+    public DefaultReservedFileSystemLocationRegistry(List<ReservedFileSystemLocation> registeredReservedLocations) {
+        this.reservedLocations = DefaultFileHierarchySet.of(Iterables.transform(registeredReservedLocations, new Function<ReservedFileSystemLocation, File>() {
             @Override
-            public File apply(ReservedDirectory input) {
+            public File apply(ReservedFileSystemLocation input) {
                 return input.getReservedLocation().get().getAsFile();
             }
         }));

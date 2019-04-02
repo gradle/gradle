@@ -22,13 +22,13 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.file.ReservedDirectory;
+import org.gradle.internal.file.ReservedFileSystemLocation;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 
 @NotThreadSafe
-public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedDirectory {
+public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedFileSystemLocation {
 
     private final Provider<Directory> baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
