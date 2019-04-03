@@ -18,7 +18,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 plugins {
     `java-library`
     gradlebuild.`strict-compile`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
