@@ -19,7 +19,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 plugins {
     `java-library`
     gradlebuild.`strict-compile`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
