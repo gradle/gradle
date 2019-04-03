@@ -69,6 +69,7 @@ public class Types {
         }
     }
 
+    @FunctionalInterface
     public interface TypeVisitor<T> {
         void visitType(Class<? super T> type);
     }

@@ -17,9 +17,6 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.base.Equivalence;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -27,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,23 +37,23 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 
 public class PropertyExtractor {
 
     private final String displayName;
-    private final Set<Class<? extends Annotation>> primaryAnnotationTypes;
+    private final Set<Class<? extends Annotation>> propertyTypeAnnotations;
     private final Set<Class<? extends Annotation>> relevantAnnotationTypes;
     private final Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides;
     private final Set<Class<? extends Annotation>> otherKnownAnnotations;
     private final Set<Class<?>> ignoredSuperclasses;
     private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
 
-    public PropertyExtractor(String displayName, Set<Class<? extends Annotation>> primaryAnnotationTypes, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, Set<Class<? extends Annotation>> otherKnownAnnotations, Set<Class<?>> ignoredSuperclasses, Set<Class<?>> ignoreMethodsFromClasses) {
+    public PropertyExtractor(String displayName, Set<Class<? extends Annotation>> propertyTypeAnnotations, Set<Class<? extends Annotation>> relevantAnnotationTypes, Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides, Set<Class<? extends Annotation>> otherKnownAnnotations, Set<Class<?>> ignoredSuperclasses, Set<Class<?>> ignoreMethodsFromClasses) {
         this.displayName = displayName;
-        this.primaryAnnotationTypes = primaryAnnotationTypes;
+        this.propertyTypeAnnotations = propertyTypeAnnotations;
         this.relevantAnnotationTypes = relevantAnnotationTypes;
         this.annotationOverrides = annotationOverrides;
         this.otherKnownAnnotations = otherKnownAnnotations;
@@ -75,41 +71,33 @@ public class PropertyExtractor {
         return ImmutableSet.copyOf(methods);
     }
 
-    public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> type, ParameterValidationContext validationContext) {
-        final Set<Class<? extends Annotation>> propertyTypeAnnotations = primaryAnnotationTypes;
+    public <T> ImmutableSet<PropertyMetadata> extractPropertyMetadata(Class<T> baseType, ParameterValidationContext validationContext) {
         final Map<String, PropertyMetadataBuilder> properties = Maps.newLinkedHashMap();
-        Types.walkTypeHierarchy(type, ignoredSuperclasses, new Types.TypeVisitor<T>() {
-            @Override
-            public void visitType(Class<? super T> type) {
-                if (type.isSynthetic()) {
-                    return;
+        Types.walkTypeHierarchy(baseType, ignoredSuperclasses, type -> {
+            if (type.isSynthetic()) {
+                return;
+            }
+            Map<String, Field> fields = getFields(type);
+            List<Getter> getters = getGetters(type);
+            for (Getter getter : getters) {
+                Method method = getter.getMethod();
+                if (method.isSynthetic()) {
+                    continue;
                 }
-                Map<String, Field> fields = getFields(type);
-                List<Getter> getters = getGetters(type);
-                for (Getter getter : getters) {
-                    Method method = getter.getMethod();
-                    if (method.isSynthetic()) {
-                        continue;
-                    }
-                    String fieldName = getter.getName();
-                    Field field = fields.get(fieldName);
-                    if (field != null && field.isSynthetic()) {
-                        continue;
-                    }
-
-                    PropertyMetadataBuilder propertyMetadata = properties.get(fieldName);
-                    if (propertyMetadata == null) {
-                        propertyMetadata = new PropertyMetadataBuilder(propertyTypeAnnotations, fieldName, method);
-                        properties.put(fieldName, propertyMetadata);
-                    }
-
-                    Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata, validationContext);
-
-                    // Discard overridden property type annotations when an overriding annotation is also present
-                    Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations, propertyTypeAnnotations);
-
-                    recordAnnotations(propertyMetadata, overriddenAnnotations, declaredAnnotations, propertyTypeAnnotations, validationContext);
+                String fieldName = getter.getName();
+                Field field = fields.get(fieldName);
+                if (field != null && field.isSynthetic()) {
+                    continue;
                 }
+
+                PropertyMetadataBuilder propertyMetadata = properties.computeIfAbsent(fieldName, key -> new PropertyMetadataBuilder(propertyTypeAnnotations, key, method));
+
+                Iterable<Annotation> declaredAnnotations = mergeDeclaredAnnotations(method, field, propertyMetadata, validationContext);
+
+                // Discard overridden property type annotations when an overriding annotation is also present
+                Iterable<Annotation> overriddenAnnotations = filterOverridingAnnotations(declaredAnnotations);
+
+                recordAnnotations(propertyMetadata, overriddenAnnotations, declaredAnnotations, validationContext);
             }
         });
 
@@ -162,27 +150,24 @@ public class PropertyExtractor {
         return Iterables.concat(methodAnnotations, fieldAnnotations);
     }
 
-    private Iterable<Annotation> filterOverridingAnnotations(final Iterable<Annotation> declaredAnnotations, final Set<Class<? extends Annotation>> propertyTypeAnnotations) {
-        return Iterables.filter(declaredAnnotations, new Predicate<Annotation>() {
-            @Override
-            public boolean apply(Annotation input) {
-                Class<? extends Annotation> annotationType = input.annotationType();
-                if (!propertyTypeAnnotations.contains(annotationType)) {
-                    return true;
-                }
-                for (Class<? extends Annotation> overridingAnnotation : annotationOverrides.get(annotationType)) {
-                    for (Annotation declaredAnnotation : declaredAnnotations) {
-                        if (declaredAnnotation.annotationType().equals(overridingAnnotation)) {
-                            return false;
-                        }
-                    }
-                }
+    private Iterable<Annotation> filterOverridingAnnotations(final Iterable<Annotation> declaredAnnotations) {
+        return Iterables.filter(declaredAnnotations, input -> {
+            Class<? extends Annotation> annotationType = input.annotationType();
+            if (!propertyTypeAnnotations.contains(annotationType)) {
                 return true;
             }
+            for (Class<? extends Annotation> overridingAnnotation : annotationOverrides.get(annotationType)) {
+                for (Annotation declaredAnnotation : declaredAnnotations) {
+                    if (declaredAnnotation.annotationType().equals(overridingAnnotation)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         });
     }
 
-    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> overriddenAnnotations, Iterable<Annotation> annotations, Set<Class<? extends Annotation>> propertyTypeAnnotations, ParameterValidationContext validationContext) {
+    private void recordAnnotations(PropertyMetadataBuilder property, Iterable<Annotation> overriddenAnnotations, Iterable<Annotation> annotations, ParameterValidationContext validationContext) {
         Set<Class<? extends Annotation>> declaredPropertyTypes = Sets.newLinkedHashSet();
         for (Annotation annotation : overriddenAnnotations) {
             if (propertyTypeAnnotations.contains(annotation.annotationType())) {
@@ -196,14 +181,11 @@ public class PropertyExtractor {
         }
 
         if (declaredPropertyTypes.size() > 1) {
-            Iterable<String> names = Iterables.transform(declaredPropertyTypes, new Function<Class<? extends Annotation>, String>() {
-                @Override
-                public String apply(Class<? extends Annotation> annotationType) {
-                    return "@" + annotationType.getSimpleName();
-                }
-            });
-            Set<String> sortedNames = CollectionUtils.addAll(new TreeSet<String>(), names);
-            validationContext.visitError(null, property.fieldName, "has conflicting property types declared: " + Joiner.on(", ").join(sortedNames));
+            validationContext.visitError(null, property.fieldName, "has conflicting property types declared: "
+                + declaredPropertyTypes.stream()
+                    .map(annotation -> "@" + annotation.getSimpleName())
+                    .sorted()
+                    .collect(Collectors.joining(", ")));
         }
     }
 
