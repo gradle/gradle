@@ -4,7 +4,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     `java-library`
-    id("gradlebuild.strict-compile")
+    gradlebuild.`strict-compile`
     id("gradlebuild.classycle")
 }
 
