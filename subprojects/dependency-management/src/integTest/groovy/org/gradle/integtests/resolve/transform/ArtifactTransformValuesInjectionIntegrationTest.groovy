@@ -102,7 +102,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         where:
         inputArtifactType              | convertToFile   | expectedDeprecation
-        'File'                         | ''              | 'Injecting the input artifact as a File has been deprecated. This is scheduled to be removed in Gradle 6.0. Declare the input artifact as Provider<FileSystemLocation> instead.'
+        'File'                         | ''              | 'Injecting the input artifact of a transform as a File has been deprecated. This is scheduled to be removed in Gradle 6.0. Declare the input artifact as Provider<FileSystemLocation> instead.'
         'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 

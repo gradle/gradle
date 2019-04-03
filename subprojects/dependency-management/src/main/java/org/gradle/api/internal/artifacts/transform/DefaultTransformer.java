@@ -301,7 +301,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
+                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact of a transform as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
                 return inputFileProvider.get().getAsFile();
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
