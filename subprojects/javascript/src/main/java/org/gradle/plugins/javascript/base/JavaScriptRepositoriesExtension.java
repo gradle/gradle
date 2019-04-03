@@ -29,7 +29,7 @@ public class JavaScriptRepositoriesExtension {
     public static final String NAME = "javaScript";
 
     public static final String GRADLE_PUBLIC_JAVASCRIPT_REPO_URL = "https://repo.gradle.org/gradle/javascript-public";
-    public static final String GOOGLE_APIS_REPO_URL = "http://ajax.googleapis.com/ajax/libs";
+    public static final String GOOGLE_APIS_REPO_URL = "https://ajax.googleapis.com/ajax/libs";
 
     private final RepositoryHandler repositories;
 
