@@ -36,7 +36,7 @@ testFixtures {
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val reportResources by tasks.registering(Copy::class) {
-    from(configurations.getByName("reports"))
+    from(configurations["reports"])
     into("$generatedResourcesDir/org/gradle/reporting")
 }
 sourceSets.main {
