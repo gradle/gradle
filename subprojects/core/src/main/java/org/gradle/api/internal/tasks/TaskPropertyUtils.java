@@ -113,5 +113,10 @@ public class TaskPropertyUtils {
             }
             problems.add(message);
         }
+
+        @Override
+        public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+            visitErrorStrict(message);
+        }
     }
 }

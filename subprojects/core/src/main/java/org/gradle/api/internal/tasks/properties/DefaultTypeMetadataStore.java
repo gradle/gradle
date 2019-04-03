@@ -179,6 +179,16 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
+        public void visitErrorStrict(@Nullable final String ownerPath, final String propertyName, final String message) {
+            builder.add(new ValidationProblem() {
+                @Override
+                public void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+                    validationContext.visitErrorStrict(ownerPath, propertyName, message);
+                }
+            });
+        }
+
+        @Override
         public void visitErrorStrict(final String message) {
             builder.add(new ValidationProblem() {
                 @Override
