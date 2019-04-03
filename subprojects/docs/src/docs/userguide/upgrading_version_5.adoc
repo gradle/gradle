@@ -44,6 +44,13 @@ Using a custom build cache implementation for the local build cache is now depre
 The only allowed type will be `DirectoryBuildCache` going forward.
 There is no change in the support for using custom build cache implementations as the remote build cache.
 
+=== Potential breaking changes
+
+==== Use HTTPS when configuring Google Hosted Libraries via `googleApis()`
+
+The Google Hosted Libraries URL accessible via `JavaScriptRepositoriesExtension#GOOGLE_APIS_REPO_URL` was changed to use the HTTPS protocol.
+The change also affect the Ivy repository configured via `googleApis()`.
+
 [[changes_5.3]]
 == Upgrading from 5.2 and earlier
 
