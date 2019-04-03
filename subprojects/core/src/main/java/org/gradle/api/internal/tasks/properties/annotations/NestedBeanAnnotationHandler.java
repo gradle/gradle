@@ -89,6 +89,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             throw UncheckedException.throwAsUncheckedException(exception);
         }
 
+        @Nullable
+        @Override
+        public Object getUnprocessedValue() {
+            return call();
+        }
+
         @Override
         public void attachProducer(Task producer) {
             // Ignore
@@ -104,6 +110,12 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Nullable
         @Override
         public Object call() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public Object getUnprocessedValue() {
             return null;
         }
 

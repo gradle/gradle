@@ -73,6 +73,27 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    def "task cannot write into transform directory"() {
+        def forbiddenPath = ".transforms/not-allowed.txt"
+
+        buildFile << """
+            subprojects {
+                task badTask {
+                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") }
+                    doLast { }
+                }
+            }
+        """
+
+        when:
+        fails "badTask", "--continue"
+        then:
+        ['lib', 'app', 'util'].each {
+            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask'.")
+            failure.assertHasCause("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved location.")
+        }
+    }
+
     def "scheduled transformation is invoked before consuming task is executed"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
@@ -1645,7 +1666,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", "transforms", "\\w+"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "\\w+"]
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 

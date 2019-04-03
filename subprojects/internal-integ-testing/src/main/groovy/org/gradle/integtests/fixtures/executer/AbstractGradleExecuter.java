@@ -1198,7 +1198,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
-                    } else if (line.matches("w: .* is deprecated\\..*")) {
+                    } else if (line.matches(".*w: .* is deprecated\\..*")) {
                         // A kotlinc warning, ignore
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {

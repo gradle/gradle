@@ -37,10 +37,12 @@ import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CatchExceptionStep
+import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
+import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreSnapshotsStep
@@ -134,7 +136,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                                 new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
                                     new CreateOutputsStep<>(
                                         new CatchExceptionStep<>(
-                                                new ExecuteStep<>()
+                                            new ResolveInputChangesStep<>(
+                                                new CleanupOutputsStep<>(
+                                                    new ExecuteStep<InputChangesContext>()
+                                                )
+                                            )
                                         )
                                     )
                                 )
@@ -806,6 +812,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
+                UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+                    return UnitOfWork.InputChangeTrackingStrategy.NONE
+                }
+
+                @Override
                 void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(entry.key, entry.value, false)
@@ -822,6 +833,16 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 boolean isAllowOverlappingOutputs() {
                     return true
+                }
+
+                @Override
+                boolean hasOverlappingOutputs() {
+                    return false
+                }
+
+                @Override
+                boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+                    return false
                 }
 
                 @Override
@@ -886,16 +907,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
                     snapshotOutputs()
-                }
-
-                @Override
-                boolean isRequiresInputChanges() {
-                    return false
-                }
-
-                @Override
-                boolean isRequiresLegacyInputChanges() {
-                    return false
                 }
 
                 private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotOutputs() {

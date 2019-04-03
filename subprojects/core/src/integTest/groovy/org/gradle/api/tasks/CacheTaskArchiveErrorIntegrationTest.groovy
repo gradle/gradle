@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import java.util.function.Consumer
+import java.util.function.Predicate
+
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
 
 class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -224,6 +227,100 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("cacheable")
     }
 
+    def "failed unpack does not disable caching for later tasks"() {
+        buildFile << """
+            @CacheableTask
+            class CustomTask extends DefaultTask {
+                @Input String title
+                @OutputDirectory File outputDir
+                @TaskAction
+                void generate() {
+                    new File(outputDir, "output").text = "OK"
+                }
+            }
+
+            task firstTask(type: CustomTask) {
+                title = "first"
+                outputDir = new File(temporaryDir, 'first')
+            }
+            task secondTask(type: CustomTask) {
+                mustRunAfter firstTask
+                title = "second"
+                outputDir = new File(temporaryDir, 'second')
+            }
+        """
+
+        when:
+        succeeds "firstTask", "secondTask"
+        executedAndNotSkipped ":firstTask", ":secondTask"
+
+        then:
+        localCache.listCacheFiles().size() == 2
+
+        when:
+        cleanBuildDir()
+        executer.withStackTraceChecksDisabled()
+        corruptMetadata({ metadata -> metadata.text = "corrupt" }, { metadata -> metadata.text.contains ":firstTask" })
+        succeeds "firstTask", "secondTask"
+
+        then:
+        output =~ /Cached result format error, corrupted origin metadata\./
+        localCache.listCacheFiles().size() == 2
+        localCache.listCacheFailedFiles().size() == 1
+        executedAndNotSkipped ":firstTask"
+        skipped ":secondTask"
+
+        when:
+        file("build").deleteDir()
+
+        then:
+        succeeds "firstTask", "secondTask"
+        skipped ":firstTask", ":secondTask"
+    }
+
+
+    def "failed pack does not disable caching for later tasks"() {
+        buildFile << """
+            // Just a way to induce a packing error, i.e. corrupt/partial archive
+            task firstTask {
+                inputs.property "title", "first"
+                outputs.file "build/first" withPropertyName "output"
+                outputs.cacheIf { true }
+                doLast {
+                  mkdir('build/first')
+                  file('build/first/output.txt').text = "OK"
+                }
+            }
+            task secondTask {
+                mustRunAfter firstTask
+                inputs.property "title", "second"
+                outputs.file "build/second" withPropertyName "output"
+                outputs.cacheIf { true }
+                doLast {
+                  file('build/second').text = "OK"
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        succeeds "firstTask", "secondTask"
+
+        then:
+        executedAndNotSkipped ":firstTask", ":secondTask"
+        output =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
+        localCache.listCacheFiles().size() == 1
+
+        when:
+        cleanBuildDir()
+        executer.withStackTraceChecksDisabled()
+        succeeds "firstTask", "secondTask"
+
+        then:
+        executedAndNotSkipped ":firstTask"
+        skipped ":secondTask"
+    }
+
     def "corrupted cache disables incremental execution"() {
         when:
         buildFile << """
@@ -276,6 +373,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds "customTask", "-PassertNoLocalState"
         then:
         executedAndNotSkipped ":customTask"
+        localCache.listCacheFailedFiles().size() == 1
 
         where:
         useRuntimeApi << [true, false]
@@ -286,17 +384,25 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         file("build").deleteDir()
     }
 
-    def corruptMetadata(Closure corrupter) {
-        def cacheFiles = localCache.listCacheFiles()
-        assert cacheFiles.size() == 1
-        def cacheEntry = cacheFiles[0]
-        def tgzCacheEntry = temporaryFolder.file("cache.tgz")
-        cacheEntry.copyTo(tgzCacheEntry)
-        cacheEntry.delete()
-        def extractDir = temporaryFolder.file("extract")
-        tgzCacheEntry.untarTo(extractDir)
-        corrupter(extractDir.file("METADATA"))
-        extractDir.tgzTo(cacheEntry)
-    }
+    def corruptMetadata(Consumer<File> corrupter, Predicate<File> matcher = { true }) {
+        localCache.listCacheFiles().each { cacheEntry ->
+            println "> Considering corrupting $cacheEntry.name..."
 
+            // Must rename to "*.tgz" for unpacking to work
+            def tgzCacheEntry = temporaryFolder.file("cache.tgz")
+            cacheEntry.copyTo(tgzCacheEntry)
+            def extractDir = temporaryFolder.file("extract")
+            tgzCacheEntry.untarTo(extractDir)
+            tgzCacheEntry.delete()
+
+            def metadataFile = extractDir.file("METADATA")
+            if (matcher.test(metadataFile)) {
+                println "> Corrupting $cacheEntry..."
+                corrupter.accept(metadataFile)
+                cacheEntry.delete()
+                extractDir.tgzTo(cacheEntry)
+            }
+            extractDir.deleteDir()
+        }
+    }
 }

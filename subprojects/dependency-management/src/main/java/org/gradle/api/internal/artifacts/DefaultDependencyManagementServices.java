@@ -120,6 +120,7 @@ import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.IncrementalContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -133,9 +134,11 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CatchExceptionStep;
+import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
+import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.SnapshotOutputsStep;
 import org.gradle.internal.execution.steps.StoreSnapshotsStep;
@@ -248,7 +251,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                         new CreateOutputsStep<>(
                                             new CatchExceptionStep<>(
                                                 new TimeoutStep<>(timeoutHandler,
-                                                    new ExecuteStep<>()
+                                                    new ResolveInputChangesStep<>(
+                                                        new CleanupOutputsStep<>(
+                                                            new ExecuteStep<InputChangesContext>()
+                                                        )
+                                                    )
                                                 )
                                             )
                                         )
@@ -344,7 +351,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         MutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
-            return new MutableTransformationWorkspaceProvider(projectLayout, executionHistoryStore);
+            return new MutableTransformationWorkspaceProvider(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
         MutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(MutableTransformationWorkspaceProvider workspaceProvider) {
