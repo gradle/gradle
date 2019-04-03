@@ -1508,7 +1508,11 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
                 }
 
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                private File getInput() {
+                    inputArtifact.get().asFile
+                }
                 
                 void transform(TransformOutputs outputs) {
 ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}

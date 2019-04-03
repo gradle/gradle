@@ -87,17 +87,23 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 """
 
         when:
+        if (expectedDeprecation) {
+            executer.expectDeprecationWarning()
+        }
         run(":a:resolve")
 
         then:
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+        if (expectedDeprecation) {
+            outputContains(expectedDeprecation)
+        }
 
         where:
-        inputArtifactType | convertToFile
-        'File'                         | ''
-        'Provider<FileSystemLocation>' | '.get().asFile'
+        inputArtifactType              | convertToFile   | expectedDeprecation
+        'File'                         | ''              | 'Injecting the input artifact as a File has been deprecated. This is scheduled to be removed in Gradle 6.0. Declare the input artifact as Provider<FileSystemLocation> instead.'
+        'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
     @Unroll
@@ -414,15 +420,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 File notAnnotated 
 
                 @InputArtifact
-                abstract File getNoPathSensitivity() 
+                abstract Provider<FileSystemLocation> getNoPathSensitivity() 
 
                 @PathSensitive(PathSensitivity.ABSOLUTE)
                 @InputArtifactDependencies
-                abstract File getAbsolutePathSensitivityDependencies() 
+                abstract FileCollection getAbsolutePathSensitivityDependencies() 
 
                 @PathSensitive(PathSensitivity.NAME_ONLY)
                 @InputFile @InputArtifact @InputArtifactDependencies
-                File getConflictingAnnotations() { } 
+                Provider<FileSystemLocation> getConflictingAnnotations() { } 
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -547,9 +553,10 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
-    abstract File getInput()
+    abstract Provider<FileSystemLocation> getInputArtifact()
     
     void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
         println "received dependencies files \${dependencies*.name} for processing \${input.name}"
         def output = outputs.file(input.name + ".green")
         output.text = "ok"

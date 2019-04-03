@@ -62,6 +62,7 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -299,7 +300,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> inputFileProvider.get().getAsFile()));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
+                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
+                return inputFileProvider.get().getAsFile();
+            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (parameters != null) {
                 builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));

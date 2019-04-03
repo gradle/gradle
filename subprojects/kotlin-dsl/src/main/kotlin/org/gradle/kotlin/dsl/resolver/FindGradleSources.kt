@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.kotlin.dsl.support.unzipTo
@@ -33,7 +35,7 @@ import java.io.File
  */
 abstract class FindGradleSources : TransformAction<TransformParameters.None> {
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
         registerSourceDirectories(outputs)
@@ -56,16 +58,16 @@ abstract class FindGradleSources : TransformAction<TransformParameters.None> {
 
     private
     fun unzippedDistroDir(): File? =
-        input.listFiles().singleOrNull()
+        input.get().asFile.listFiles().singleOrNull()
 }
 
 
 abstract class UnzipDistribution : TransformAction<TransformParameters.None> {
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputArtifact
-    abstract val input: File
+    abstract val input: Provider<FileSystemLocation>
 
     override fun transform(outputs: TransformOutputs) {
-        unzipTo(outputs.dir("unzipped-distribution"), input)
+        unzipTo(outputs.dir("unzipped-distribution"), input.get().asFile)
     }
 }
