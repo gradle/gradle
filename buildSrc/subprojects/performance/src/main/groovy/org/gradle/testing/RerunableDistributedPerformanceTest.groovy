@@ -35,7 +35,7 @@ class RerunableDistributedPerformanceTest extends DistributedPerformanceTest {
     @Inject
     RerunableDistributedPerformanceTest(BuildCancellationToken cancellationToken) {
         super(cancellationToken)
-        getOutputs().cacheIf("current build is first run", { !isRerun() })
+        getOutputs().doNotCacheIf("rerun build depends on first run's output", { isRerun() })
     }
 
     @TaskAction
