@@ -298,9 +298,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             }
         """
 
-        expect:
-        fails(":app:toBeFinalized", "withDependency")
-        failure.assertHasCause("Transformation MakeGreen has been scheduled and is now required, but did not execute, yet.")
+        when:
+        run(":app:toBeFinalized", "withDependency", "--info")
+        then:
+        output.count("Transforming artifact lib1.jar (project :lib) with MakeGreen") == 2
+        output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
     }
 
     def "each file is transformed once per set of configuration parameters"() {
