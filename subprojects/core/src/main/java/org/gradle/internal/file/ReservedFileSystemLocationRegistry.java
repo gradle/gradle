@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
-
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.reflect.ParameterValidationContext;
+package org.gradle.internal.file;
 
 import java.io.File;
 
-public interface TaskValidationContext extends ParameterValidationContext {
-    FileResolver getResolver();
-
+public interface ReservedFileSystemLocationRegistry {
     boolean isInReservedFileSystemLocation(File location);
 }

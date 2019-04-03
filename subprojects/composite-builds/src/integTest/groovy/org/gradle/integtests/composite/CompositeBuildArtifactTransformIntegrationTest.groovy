@@ -78,6 +78,6 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
     }
 
     private String expectedWorkspaceLocation(TestFile includedBuild) {
-        includedBuild.file("build/transforms")
+        includedBuild.file("build/.transforms")
     }
 }
