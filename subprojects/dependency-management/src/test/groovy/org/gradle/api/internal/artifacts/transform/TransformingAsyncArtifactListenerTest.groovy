@@ -52,7 +52,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Optional.empty()
+        1 * transformationNodeRegistry.getExecuted(artifactId, transformation) >> Optional.empty()
         1 * transformation.transform({ it.files == [artifactFile] }, _ as ExecutionGraphDependenciesResolver, _)
     }
 
@@ -61,7 +61,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
         listener.artifactAvailable(artifact)
 
         then:
-        1 * transformationNodeRegistry.getCompleted(artifactId, transformation) >> Optional.of(node)
+        1 * transformationNodeRegistry.getExecuted(artifactId, transformation) >> Optional.of(node)
         1 * node.getTransformedSubject() >> Try.successful(TransformationSubject.initial(artifact.id, artifact.file).createSubjectFromResult(ImmutableList.of()))
         0 * transformation.transform(_, _ as ExecutionGraphDependenciesResolver, _)
     }

@@ -25,5 +25,5 @@ import java.util.Optional;
 public interface TransformationNodeRegistry {
     Collection<TransformationNode> getOrCreate(ResolvedArtifactSet artifactSet, Transformation transformation, ExecutionGraphDependenciesResolver dependenciesResolver);
 
-    Optional<TransformationNode> getCompleted(ComponentArtifactIdentifier artifactId, Transformation transformation);
+    Optional<TransformationNode> getExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation);
 }
