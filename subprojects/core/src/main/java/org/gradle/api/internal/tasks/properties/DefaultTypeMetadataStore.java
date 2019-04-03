@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -53,7 +54,6 @@ import org.gradle.work.Incremental;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
@@ -84,12 +84,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         });
         this.typeAnnotationHandlers = typeAnnotationHandlers;
         Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides = collectAnnotationOverrides(annotationHandlers);
-        Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(((Map<Class<? extends Annotation>, PropertyAnnotationHandler>) Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+        Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(Collections2.transform(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
-        })).keySet());
+        }));
         String displayName = calculateDisplayName(annotationHandlers);
         this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, otherKnownAnnotations, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
         this.cache = cacheFactory.newClassCache();
@@ -116,7 +116,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return builder.build();
     }
 
-    private static Set<Class<? extends Annotation>> collectRelevantAnnotationTypes(Set<Class<? extends Annotation>> propertyTypeAnnotations) {
+    private static Set<Class<? extends Annotation>> collectRelevantAnnotationTypes(Collection<Class<? extends Annotation>> propertyTypeAnnotations) {
         return ImmutableSet.<Class<? extends Annotation>>builder()
                 .addAll(propertyTypeAnnotations)
                 .add(Optional.class)
