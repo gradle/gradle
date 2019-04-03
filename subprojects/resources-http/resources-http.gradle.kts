@@ -20,7 +20,7 @@ plugins {
     // Cannot use strict compile because JDK 7 doesn't recognize
     // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
     // in the context of a delegation pattern
-    // id("gradlebuild.strict-compile")
+    // gradlebuild.`strict-compile`
     id("gradlebuild.classycle")
 }
 
