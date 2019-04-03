@@ -29,7 +29,13 @@ import org.gradle.plugin.use.PluginDependencySpec
  * @see [PluginDependenciesSpec]
  */
 @GradleDsl
-class PluginDependenciesSpecScope internal constructor(plugins: PluginDependenciesSpec) : PluginDependenciesSpec by plugins
+class PluginDependenciesSpecScope internal constructor(
+    private val plugins: PluginDependenciesSpec
+) : PluginDependenciesSpec {
+
+    override fun id(id: String): PluginDependencySpec =
+        plugins.id(id)
+}
 
 
 /**

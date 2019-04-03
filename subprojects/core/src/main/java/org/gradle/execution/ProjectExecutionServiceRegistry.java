@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nonnull;
 
@@ -36,7 +37,11 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
         });
 
     public <T> T getProjectService(ProjectInternal project, Class<T> serviceType) {
-        return projectRegistries.getUnchecked(project).get(serviceType);
+        return forProject(project).get(serviceType);
+    }
+
+    public ServiceRegistry forProject(ProjectInternal project) {
+        return projectRegistries.getUnchecked(project);
     }
 
     @Override

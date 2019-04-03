@@ -19,11 +19,10 @@ package org.gradle.kotlin.dsl.accessors
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 
-import org.gradle.kotlin.dsl.support.bytecode.InternalName
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
-import org.jetbrains.org.objectweb.asm.Opcodes
 
 
 internal
@@ -43,7 +42,7 @@ internal
 class BytecodeFragmentScope(
     val signature: JvmMethodSignature,
     writer: ClassWriter
-) : ClassVisitor(Opcodes.ASM6, writer)
+) : ClassVisitor(ASM_LEVEL, writer)
 
 
 internal
@@ -58,4 +57,4 @@ data class MetadataFragmentScope(
 
 
 internal
-typealias Fragments = Pair<InternalName, Sequence<AccessorFragment>>
+typealias Fragments = Pair<String, Sequence<AccessorFragment>>

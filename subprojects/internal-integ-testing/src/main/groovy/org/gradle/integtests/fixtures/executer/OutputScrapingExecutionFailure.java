@@ -63,13 +63,13 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     protected OutputScrapingExecutionFailure(String output, String error) {
         super(LogContent.of(output), LogContent.of(error));
 
-        LogContent withoutDebug = LogContent.of(output).removeAnsiChars().removeDebugPrefix();
+        LogContent withoutDebug = LogContent.of(output).ansiCharsToPlainText().removeDebugPrefix();
 
         // Find failure section
         Pair<LogContent, LogContent> match = withoutDebug.splitOnFirstMatchingLine(FAILURE_PATTERN);
         if (match == null) {
             // Not present in output, check error output.
-            match = LogContent.of(error).removeAnsiChars().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
+            match = LogContent.of(error).ansiCharsToPlainText().removeDebugPrefix().splitOnFirstMatchingLine(FAILURE_PATTERN);
             if (match != null) {
                 match = Pair.of(withoutDebug, match.getRight());
             } else {

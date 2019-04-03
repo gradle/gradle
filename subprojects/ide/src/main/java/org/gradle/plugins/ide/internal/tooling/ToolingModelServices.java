@@ -51,6 +51,7 @@ public class ToolingModelServices extends AbstractPluginServiceRegistry {
                 public void execute(ToolingModelBuilderRegistry registry) {
                     GradleProjectBuilder gradleProjectBuilder = new GradleProjectBuilder();
                     IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder, services);
+                    registry.register(new RunEclipseTasksBuilder());
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, services));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);

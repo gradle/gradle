@@ -41,11 +41,10 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int LIST_SNAPSHOT = 12;
     private static final int SET_SNAPSHOT = 13;
     private static final int MAP_SNAPSHOT = 14;
-    private static final int PROVIDER_SNAPSHOT = 15;
-    private static final int MANAGED_SNAPSHOT = 16;
-    private static final int IMMUTABLE_MANAGED_SNAPSHOT = 17;
-    private static final int IMPLEMENTATION_SNAPSHOT = 18;
-    private static final int DEFAULT_SNAPSHOT = 19;
+    private static final int MANAGED_SNAPSHOT = 15;
+    private static final int IMMUTABLE_MANAGED_SNAPSHOT = 16;
+    private static final int IMPLEMENTATION_SNAPSHOT = 17;
+    private static final int DEFAULT_SNAPSHOT = 18;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
     private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
@@ -100,12 +99,10 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                     mapBuilder.add(Pair.of(read(decoder), read(decoder)));
                 }
                 return new MapValueSnapshot(mapBuilder.build());
-            case PROVIDER_SNAPSHOT:
-                return new ProviderSnapshot(read(decoder));
             case MANAGED_SNAPSHOT:
                 className = decoder.readString();
                 ValueSnapshot state = read(decoder);
-                return new ManagedTypeSnapshot(className, state);
+                return new ManagedValueSnapshot(className, state);
             case IMMUTABLE_MANAGED_SNAPSHOT:
                 className = decoder.readString();
                 String value = decoder.readString();
@@ -211,18 +208,14 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
                     write(encoder, valueSnapshot);
                 }
             }
-        } else if (snapshot instanceof ProviderSnapshot) {
-            encoder.writeSmallInt(PROVIDER_SNAPSHOT);
-            ProviderSnapshot providerSnapshot = (ProviderSnapshot) snapshot;
-            write(encoder, providerSnapshot.getValue());
         } else if (snapshot instanceof ImmutableManagedValueSnapshot) {
             encoder.writeSmallInt(IMMUTABLE_MANAGED_SNAPSHOT);
             ImmutableManagedValueSnapshot valueSnapshot = (ImmutableManagedValueSnapshot) snapshot;
             encoder.writeString(valueSnapshot.getClassName());
             encoder.writeString(valueSnapshot.getValue());
-        } else if (snapshot instanceof ManagedTypeSnapshot) {
+        } else if (snapshot instanceof ManagedValueSnapshot) {
             encoder.writeSmallInt(MANAGED_SNAPSHOT);
-            ManagedTypeSnapshot managedTypeSnapshot = (ManagedTypeSnapshot) snapshot;
+            ManagedValueSnapshot managedTypeSnapshot = (ManagedValueSnapshot) snapshot;
             encoder.writeString(managedTypeSnapshot.getClassName());
             write(encoder, managedTypeSnapshot.getState());
         } else {

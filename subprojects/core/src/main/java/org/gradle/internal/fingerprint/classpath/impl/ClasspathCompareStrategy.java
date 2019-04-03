@@ -18,7 +18,7 @@ package org.gradle.internal.fingerprint.classpath.impl;
 
 import org.gradle.internal.change.Change;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
@@ -137,18 +137,21 @@ public class ClasspathCompareStrategy extends AbstractFingerprintCompareStrategy
 
         void added() {
             if (includeAdded) {
-                changeConsumer.visitChange(FileChange.added(current.getKey(), propertyTitle, current.getValue().getType()));
+                DefaultFileChange added = DefaultFileChange.added(current.getKey(), propertyTitle, current.getValue().getType(), current.getValue().getNormalizedPath());
+                changeConsumer.visitChange(added);
             }
             current = nextEntry(currentEntries);
         }
 
         void removed() {
-            changeConsumer.visitChange(FileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType()));
+            DefaultFileChange removed = DefaultFileChange.removed(previous.getKey(), propertyTitle, previous.getValue().getType(), previous.getValue().getNormalizedPath());
+            changeConsumer.visitChange(removed);
             previous = nextEntry(previousEntries);
         }
 
         void modified() {
-            changeConsumer.visitChange(FileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType()));
+            DefaultFileChange modified = DefaultFileChange.modified(current.getKey(), propertyTitle, previous.getValue().getType(), current.getValue().getType(), current.getValue().getNormalizedPath());
+            changeConsumer.visitChange(modified);
             previous = nextEntry(previousEntries);
             current = nextEntry(currentEntries);
         }

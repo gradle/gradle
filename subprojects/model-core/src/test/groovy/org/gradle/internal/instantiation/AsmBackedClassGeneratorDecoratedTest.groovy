@@ -27,8 +27,21 @@ import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.*
+
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [])
+
+    def "can attach nested extensions to object"() {
+        given:
+        def bean = create(Bean)
+        def e1 = bean.extensions.create('one', Bean)
+        def e2 = e1.extensions.create('two', Bean)
+
+        expect:
+        bean.one.is(e1)
+        bean.one.two.is(e2)
+    }
 
     @Issue("GRADLE-2417")
     def "can use dynamic object as closure delegate"() {

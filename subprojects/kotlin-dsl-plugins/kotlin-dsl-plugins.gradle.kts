@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+import build.futureKotlin
+import build.kotlin
+import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import build.futureKotlin
-import build.withCompileOnlyGradleApiModulesWithParameterNames
 import plugins.bundledGradlePlugin
 
 plugins {
@@ -27,7 +28,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.2.3"
+version = "1.2.7"
 
 base.archivesBaseName = "plugins"
 
@@ -35,10 +36,20 @@ gradlebuildJava {
     moduleType = ModuleType.INTERNAL
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(":pluginDevelopment")
+val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
+
+val generateSources by tasks.registering(GenerateKotlinDslPluginsExtensions::class) {
+    outputDir.set(generatedSourcesDir)
+    kotlinDslPluginsVersion.set(project.version)
+}
+
+sourceSets.main {
+    kotlin.srcDir(files(generatedSourcesDir).builtBy(generateSources))
+}
 
 dependencies {
     compileOnly(project(":kotlinDsl"))
+    compileOnly(project(":pluginDevelopment"))
 
     implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("gradle-plugin"))
@@ -97,5 +108,10 @@ integTestTasks.configureEach {
 // TODO:kotlin-dsl investigate
 // See https://builds.gradle.org/viewLog.html?buildId=19024848&problemId=23230
 tasks.noDaemonIntegTest {
+    enabled = false
+}
+
+// TODO:kotlin-dsl
+tasks.verifyTestFilesCleanup {
     enabled = false
 }

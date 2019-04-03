@@ -205,7 +205,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 // the format attribute is added by the rule
                                 expectedAttributes = [format: 'custom', 'org.gradle.status': GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release']
                                 expectedAttributes['org.gradle.usage'] = 'java-api'
-                                expectedAttributes['org.gradle.component.category'] = 'library'
+                                expectedAttributes['org.gradle.category'] = 'library'
                             }
                         }
                         variant(expectedTargetVariant, expectedAttributes)

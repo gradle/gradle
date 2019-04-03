@@ -100,6 +100,8 @@ Install: `./gradlew install -Pgradle_installPath=/any/path`. Use: `/any/path/bin
 
 You can debug Gradle by adding `-Dorg.gradle.debug=true` when executing. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
+If you made changes to build logic in `buildSrc`, you can test them by executing `./gradlew help -PbuildSrcCheck=true`.
+
 ### Creating Commits And Writing Commit Messages
 
 The commit messages that accompany your code changes are an important piece of documentation, please follow these guidelines when writing commit messages:

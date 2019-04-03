@@ -2,11 +2,12 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -24,9 +25,29 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         requireGradleDistributionOnEmbeddedExecuter()
 
     @Test
+    fun `warns on unexpected kotlin-dsl plugin version`() {
+
+        // The test applies the in-development version of the kotlin-dsl
+        // which, by convention, it is always ahead of the version expected by
+        // the in-development version of Gradle
+        // (see publishedKotlinDslPluginsVersion in kotlin-dsl.gradle.kts)
+        withKotlinDslPlugin()
+
+        withDefaultSettings().appendText("""
+            rootProject.name = "forty-two"
+        """)
+
+        val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
+        build("help").apply {
+            assertOutputContains(
+                "This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$appliedKotlinDslPluginsVersion' has been applied to root project 'forty-two'."
+            )
+        }
+    }
+
+    @Test
     fun `gradle kotlin dsl api dependency is added`() {
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
@@ -39,7 +60,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("classes")
+        val result = build("classes")
 
         result.assertTaskExecuted(":compileKotlin")
     }
@@ -47,7 +68,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available for test implementation`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -102,7 +122,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -195,7 +214,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @Test
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
-        withDefaultSettings()
         withKotlinDslPlugin()
 
         withFile("src/main/kotlin/code.kt", """
@@ -216,7 +234,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         """)
 
-        val result = buildWithPlugin("classes")
+        val result = build("classes")
 
         result.assertTaskExecuted(":compileKotlin")
     }
@@ -290,7 +308,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     private
     fun withBuildExercisingSamConversionForKotlinFunctions(buildSrcScript: String = "") {
 
-        withSettingsIn("buildSrc", pluginManagementBlock)
+        withDefaultSettingsIn("buildSrc")
 
         withBuildScriptIn("buildSrc", """
 
@@ -327,7 +345,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
 
             task("test") {
@@ -338,19 +355,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     private
-    fun withKotlinDslPlugin() {
-        withBuildScript("""
-
-            plugins {
-                `kotlin-dsl`
-            }
-
-            $repositoriesBlock
-
-        """)
-    }
-
-    private
     fun outputOf(vararg arguments: String) =
-        buildWithPlugin(*arguments).output
+        build(*arguments).output
 }

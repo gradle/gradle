@@ -1,5 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2017 the original author or authors.
@@ -32,7 +32,7 @@ dependencies {
     implementation(library("ant"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
-    implementation(library("jcip"))
+    implementation(library("inject"))
 
     testFixturesImplementation(project(":internalTesting"))
 }

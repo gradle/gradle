@@ -15,9 +15,12 @@
  */
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.DefaultFileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.Jvm
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -29,7 +32,9 @@ import static java.util.Arrays.asList
 class JavaExecHandleBuilderTest extends Specification {
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken())
 
-    public void cannotSetAllJvmArgs() {
+    FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory()
+
+    def cannotSetAllJvmArgs() {
         when:
         builder.setAllJvmArgs(asList("arg"))
 
@@ -38,7 +43,7 @@ class JavaExecHandleBuilderTest extends Specification {
     }
 
     @Unroll("buildsCommandLineForJavaProcess - input encoding #inputEncoding")
-    public void buildsCommandLineForJavaProcess() {
+    def buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile
 
@@ -68,6 +73,52 @@ class JavaExecHandleBuilderTest extends Specification {
         inputEncoding | expectedEncoding
         null          | Charset.defaultCharset().name()
         "UTF-16"      | "UTF-16"
+    }
+
+    def "can append to classpath"() {
+        given:
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
+
+        builder.classpath(jar1)
+
+        when:
+        builder.classpath(jar2)
+
+        then:
+        builder.classpath.contains(jar1)
+        builder.classpath.contains(jar2)
+    }
+
+    def "can replace classpath"() {
+        given:
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
+
+        builder.classpath(jar1)
+
+        when:
+        builder.setClasspath(fileCollectionFactory.resolving(jar2))
+
+        then:
+        !builder.classpath.contains(jar1)
+        builder.classpath.contains(jar2)
+    }
+
+    @Issue("gradle/gradle#8748")
+    def "can prepend to classpath"() {
+        given:
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
+
+        builder.classpath(jar1)
+
+        when:
+        builder.setClasspath(fileCollectionFactory.resolving(jar2, builder.getClasspath()))
+
+        then:
+        builder.commandLine.contains("$jar2$File.pathSeparator$jar1".toString())
+
     }
 
     def "detects null entries early"() {

@@ -21,7 +21,10 @@ import java.util.regex.Pattern
 
 object LeakingProcessKillPattern {
 
+    private
+    val kotlinCompilerPattern = "(?:${Pattern.quote("-Dkotlin.environment.keepalive org.jetbrains.kotlin.daemon.KotlinCompileDaemon")})"
+
     @JvmStatic
     fun generate(rootProjectDir: String): String =
-        "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))).+)"
+        "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))|$kotlinCompilerPattern).+)"
 }

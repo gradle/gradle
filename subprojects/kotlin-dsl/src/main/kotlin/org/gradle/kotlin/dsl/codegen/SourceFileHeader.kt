@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.codegen
 
 internal
 val fileHeader: String
-    get() = fileHeaderFor(packageName)
+    get() = fileHeaderFor(kotlinDslPackageName)
 
 
 internal
@@ -27,16 +27,28 @@ fun fileHeaderFor(packageName: String) =
     """$licenseHeader
 
 @file:Suppress(
+    "unused",
+    "nothing_to_inline",
+    "useless_cast",
+    "unchecked_cast",
+    "extension_shadowed_by_member",
     "redundant_projection",
-    "nothing_to_inline"
+    "RemoveRedundantBackticks",
+    "ObjectPropertyName"
 )
+
+/* ktlint-disable */
 
 package $packageName
 """
 
 
 internal
-const val packageName = "org.gradle.kotlin.dsl"
+const val kotlinDslPackageName = "org.gradle.kotlin.dsl"
+
+
+internal
+const val kotlinDslPackagePath = "org/gradle/kotlin/dsl"
 
 
 internal

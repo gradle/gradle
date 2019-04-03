@@ -19,11 +19,16 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -42,11 +47,16 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     boolean requiresDependencies();
 
     /**
+     * Whether the transformer requires {@link InputChanges} to be injected.
+     */
+    boolean requiresInputChanges();
+
+    /**
      * Whether the transformer is cacheable.
      */
     boolean isCacheable();
 
-    ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies);
+    ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges);
 
     /**
      * The hash of the secondary inputs of the transformer.
@@ -55,9 +65,11 @@ public interface Transformer extends Describable, TaskDependencyContainer {
      */
     HashCode getSecondaryInputHash();
 
-    void isolateParameters();
+    void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry);
 
     Class<? extends FileNormalizer> getInputArtifactNormalizer();
 
     Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer();
+
+    boolean isIsolated();
 }

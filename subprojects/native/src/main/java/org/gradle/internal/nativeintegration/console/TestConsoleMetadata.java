@@ -18,7 +18,6 @@ package org.gradle.internal.nativeintegration.console;
 
 public enum TestConsoleMetadata implements ConsoleMetaData {
     BOTH(true, true),
-    NEITHER(false, false),
     STDOUT_ONLY(true, false),
     STDERR_ONLY(false, true);
 
@@ -50,6 +49,11 @@ public enum TestConsoleMetadata implements ConsoleMetaData {
     @Override
     public int getRows() {
         return 40;
+    }
+
+    @Override
+    public boolean isWrapStreams() {
+        return false;
     }
 
     public String getCommandLineArgument() {

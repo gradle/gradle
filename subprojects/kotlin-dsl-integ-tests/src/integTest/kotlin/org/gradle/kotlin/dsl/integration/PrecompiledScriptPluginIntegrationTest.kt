@@ -2,8 +2,9 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
+import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -14,19 +15,26 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0"
             }
 
-            repositories { jcenter() }
+            $repositoriesBlock
         """)
 
-        withFile("src/main/kotlin/plugin-without-package.gradle.kts", "\n")
-        withFile("src/main/kotlin/plugins/plugin-with-package.gradle.kts", """
-            package plugins
+        withPrecompiledKotlinScript("plugin-without-package.gradle.kts", """
+            plugins {
+                org.gradle.base
+            }
+        """)
+        withPrecompiledKotlinScript("org/gradle/plugins/plugin-with-package.gradle.kts", """
+            package org.gradle.plugins
+
+            plugins {
+                org.gradle.base
+            }
         """)
 
         build("generateScriptPluginAdapters")
@@ -36,7 +44,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `precompiled script plugins adapters generation is cached and relocatable`() {
+    fun `precompiled script plugins tasks are cached and relocatable`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
@@ -44,9 +52,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val secondLocation = "second-location"
         val cacheDir = newDir("cache-dir")
 
-        withSettingsIn(firstLocation, """
+        withDefaultSettingsIn(firstLocation).appendText("""
             rootProject.name = "test"
-            $pluginManagementBlock
             buildCache {
                 local<DirectoryBuildCache> {
                     directory = file("${cacheDir.normalisedPath}")
@@ -68,25 +75,38 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val secondDir = newDir(secondLocation)
         firstDir.copyRecursively(secondDir)
 
-        val generationTask = ":generateScriptPluginAdapters"
+        val cachedTasks = listOf(
+            ":extractPrecompiledScriptPluginPlugins",
+            ":generateExternalPluginSpecBuilders",
+            ":compilePluginsBlocks",
+            ":generatePrecompiledScriptPluginAccessors",
+            ":generateScriptPluginAdapters"
+        )
+        val configurationTask = ":configurePrecompiledScriptDependenciesResolver"
+        val downstreamKotlinCompileTask = ":compileKotlin"
 
         build(firstDir, "classes", "--build-cache").apply {
-            assertTaskExecuted(generationTask)
+            cachedTasks.forEach { assertTaskExecuted(it) }
+            assertTaskExecuted(configurationTask)
+            assertTaskExecuted(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
-            assertOutputContains("$generationTask UP-TO-DATE")
+            cachedTasks.forEach { assertOutputContains("$it UP-TO-DATE") }
+            assertTaskExecuted(configurationTask)
+            assertOutputContains("$downstreamKotlinCompileTask UP-TO-DATE")
         }
 
         build(secondDir, "classes", "--build-cache").apply {
-            assertOutputContains("$generationTask FROM-CACHE")
+            cachedTasks.forEach { assertOutputContains("$it FROM-CACHE") }
+            assertTaskExecuted(configurationTask)
+            assertOutputContains("$downstreamKotlinCompileTask FROM-CACHE")
         }
     }
 
     @Test
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins { `kotlin-dsl` }
             repositories { jcenter() }
@@ -102,5 +122,85 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         build("generateScriptPluginAdapters")
         assertFalse(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/FooPlugin.kt").exists())
         assertTrue(existing("build/generated-sources/kotlin-dsl-plugins/kotlin/BarPlugin.kt").isFile)
+    }
+
+    @Test
+    fun `can apply precompiled script plugin from groovy script`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            tasks.register("myTask") {}
+        """)
+
+        withDefaultSettings()
+        withFile("build.gradle", """
+            plugins {
+                id 'my-plugin'
+            }
+        """)
+
+        build("myTask")
+    }
+
+    @Test
+    fun `accessors are available after script body change`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        val myPluginScript = withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { base }
+
+            base.archivesBaseName = "my"
+
+            println("base")
+        """)
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `my-plugin`
+            }
+        """)
+
+        build("help").apply {
+            assertThat(output, containsString("base"))
+        }
+
+        myPluginScript.appendText("""
+
+            println("modified")
+        """.trimIndent())
+
+        build("help").apply {
+            assertThat(output, containsString("base"))
+            assertThat(output, containsString("modified"))
+        }
+    }
+
+    @Test
+    fun `accessors are available after re-running tasks`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            plugins { base }
+
+            base.archivesBaseName = "my"
+        """)
+
+        withDefaultSettings()
+        withBuildScript("""
+            plugins {
+                `my-plugin`
+            }
+        """)
+
+        build("clean")
+
+        build("clean", "--rerun-tasks")
     }
 }

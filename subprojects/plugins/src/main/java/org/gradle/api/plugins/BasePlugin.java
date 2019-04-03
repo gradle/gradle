@@ -103,14 +103,14 @@ public class BasePlugin implements Plugin<Project> {
                 }
                 task.getDestinationDirectory().convention(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
 
-                task.getArchiveVersion().set(project.provider(new Callable<String>() {
+                task.getArchiveVersion().convention(project.provider(new Callable<String>() {
                     @Nullable
                     public String call() {
                         return project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString();
                     }
                 }));
 
-                task.getArchiveBaseName().set(project.provider(new Callable<String>() {
+                task.getArchiveBaseName().convention(project.provider(new Callable<String>() {
                     public String call() {
                         return pluginConvention.getArchivesBaseName();
                     }

@@ -20,17 +20,13 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 public interface TaskExecutionContext {
@@ -54,10 +50,6 @@ public interface TaskExecutionContext {
 
     void setOutputFilesBeforeExecution(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution);
 
-    TaskOutputCachingBuildCacheKey getBuildCacheKey();
-
-    void setBuildCacheKey(TaskOutputCachingBuildCacheKey cacheKey);
-
     /**
      * Sets the execution time of the task to be the elapsed time since start to now.
      *
@@ -71,11 +63,6 @@ public interface TaskExecutionContext {
      */
     long markExecutionTime();
 
-    @Nullable
-    List<String> getUpToDateMessages();
-
-    void setUpToDateMessages(List<String> upToDateMessages);
-
     void setTaskProperties(TaskProperties properties);
 
     TaskProperties getTaskProperties();
@@ -86,23 +73,6 @@ public interface TaskExecutionContext {
     boolean isTaskCachingEnabled();
 
     void setTaskCachingEnabled(boolean enabled);
-
-    /**
-     * Returns if this task was executed incrementally.
-     *
-     * @see IncrementalTaskInputs#isIncremental()
-     */
-    boolean isTaskExecutedIncrementally();
-
-    void setTaskExecutedIncrementally(boolean taskExecutedIncrementally);
-
-    boolean isOutputRemovedBeforeExecution();
-
-    void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution);
-
-    Optional<ExecutionStateChanges> getExecutionStateChanges();
-
-    void setExecutionStateChanges(ExecutionStateChanges executionStateChanges);
 
     Optional<OverlappingOutputs> getOverlappingOutputs();
 

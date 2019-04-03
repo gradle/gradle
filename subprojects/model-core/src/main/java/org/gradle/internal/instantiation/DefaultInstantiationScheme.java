@@ -20,13 +20,23 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
+import java.lang.annotation.Annotation;
+import java.util.Set;
+
 class DefaultInstantiationScheme implements InstantiationScheme {
     private final DependencyInjectingInstantiator instantiator;
     private final ConstructorSelector constructorSelector;
+    private final Set<Class<? extends Annotation>> injectionAnnotations;
 
-    public DefaultInstantiationScheme(ConstructorSelector constructorSelector, ServiceRegistry defaultServices) {
+    public DefaultInstantiationScheme(ConstructorSelector constructorSelector, ServiceRegistry defaultServices, Set<Class<? extends Annotation>> injectionAnnotations) {
         this.constructorSelector = constructorSelector;
+        this.injectionAnnotations = injectionAnnotations;
         this.instantiator = new DependencyInjectingInstantiator(constructorSelector, defaultServices);
+    }
+
+    @Override
+    public Set<Class<? extends Annotation>> getInjectionAnnotations() {
+        return injectionAnnotations;
     }
 
     @Override

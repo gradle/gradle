@@ -247,7 +247,7 @@ End of search list.
         def binary = new File("g++")
 
         when:
-        def result = metadataProvider.getCompilerMetaData(binary, [], [])
+        def result = metadataProvider.getCompilerMetaData([]) { it.executable(binary) }
 
         then:
         1 * execActionFactory.newExecAction() >> action
@@ -354,7 +354,7 @@ End of search list.
         mapsPath(cygpath, '/usr/include', 'C:\\cygwin\\usr\\include')
         mapsPath(cygpath, '/usr/local/include', 'C:\\cygwin\\usr\\local\\include')
         def provider = new GccMetadataProvider(execActionFactory, GCC)
-        def result = provider.getCompilerMetaData(new File("gcc"), [], [binDir])
+        def result = provider.getCompilerMetaData([binDir]) { it.executable(new File("gcc")) }
         result.component.systemIncludes*.path == mapped
     }
 
@@ -369,7 +369,7 @@ End of search list.
     SearchResult<GccMetadata> output(String output, String error, GccCompilerType compilerType = GCC, List<File> path = []) {
         runsCompiler(output, error)
         def provider = new GccMetadataProvider(execActionFactory, compilerType)
-        provider.getCompilerMetaData(new File("g++"), [], path)
+        provider.getCompilerMetaData(path) { it.executable(new File("g++")) }
     }
 
     void runsCompiler(String output, String error) {

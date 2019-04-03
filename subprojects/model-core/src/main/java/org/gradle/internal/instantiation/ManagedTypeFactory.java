@@ -17,6 +17,7 @@
 package org.gradle.internal.instantiation;
 
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.state.Managed;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +32,9 @@ public class ManagedTypeFactory implements Managed.Factory {
 
     @Override
     public <T> T fromState(Class<T> type, Object state) {
+        if (!type.isAssignableFrom(constructor.getDeclaringClass())) {
+            return null;
+        }
         try {
             return type.cast(constructor.newInstance(state));
         } catch (InvocationTargetException e) {

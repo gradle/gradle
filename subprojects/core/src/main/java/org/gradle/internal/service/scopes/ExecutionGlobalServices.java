@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputFilePropertyAnnotationHandler;
@@ -35,6 +36,8 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPrope
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -55,17 +58,16 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 
-import javax.inject.Inject;
 import java.util.List;
 
 public class ExecutionGlobalServices {
-    InspectionSchemeFactory createInspectionSchemeFactory(List<PropertyAnnotationHandler> handlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new InspectionSchemeFactory(handlers, cacheFactory);
+    InspectionSchemeFactory createInspectionSchemeFactory(List<PropertyAnnotationHandler> propertyHandlers, List<TypeAnnotationHandler> typeHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new InspectionSchemeFactory(propertyHandlers, typeHandlers, cacheFactory);
     }
 
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Inject.class, Console.class, Internal.class, OptionValues.class));
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(Input.class, InputFile.class, InputFiles.class, InputDirectory.class, OutputFile.class, OutputFiles.class, OutputDirectory.class, OutputDirectories.class, Classpath.class, CompileClasspath.class, Destroys.class, LocalState.class, Nested.class, Console.class, ReplacedBy.class, Internal.class, OptionValues.class), instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 
@@ -77,8 +79,8 @@ public class ExecutionGlobalServices {
         return new DefaultTaskClassInfoStore(cacheFactory);
     }
 
-    PropertyAnnotationHandler createInjectAnnotationHandler() {
-        return new NoOpPropertyAnnotationHandler(Inject.class);
+    TypeAnnotationHandler createCacheableTaskAnnotationHandler() {
+        return new CacheableTaskTypeAnnotationHandler();
     }
 
     PropertyAnnotationHandler createConsoleAnnotationHandler() {
@@ -87,6 +89,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
+    }
+
+    PropertyAnnotationHandler createReplacedByAnnotationHandler() {
+        return new NoOpPropertyAnnotationHandler(ReplacedBy.class);
     }
 
     PropertyAnnotationHandler createOptionValuesAnnotationHandler() {

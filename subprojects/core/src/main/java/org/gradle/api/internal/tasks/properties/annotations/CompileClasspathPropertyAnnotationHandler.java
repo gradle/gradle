@@ -28,7 +28,9 @@ import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
@@ -36,6 +38,11 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return CompileClasspath.class;
+    }
+
+    @Override
+    public boolean isPropertyRelevant() {
+        return true;
     }
 
     @Override
@@ -54,9 +61,14 @@ public class CompileClasspathPropertyAnnotationHandler implements OverridingProp
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
             propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            propertyMetadata.isAnnotationPresent(Incremental.class),
             CompileClasspathNormalizer.class,
             value,
             InputFilePropertyType.FILES
         );
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 }

@@ -158,8 +158,8 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
 
         then:
         ConcurrentTestUtil.poll {
-            assert gradleHandle.standardOutput.contains(workInProgressLine('> :test > Executing test pkg.FailedTest'))
-            assert gradleHandle.standardOutput.contains(workInProgressLine('> :test > Executing test pkg.OtherTest'))
+            assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.FailedTest')
+            assertHasWorkInProgress(gradleHandle, '> :test > Executing test pkg.OtherTest')
         }
 
         testExecution.release(FAILED_RESOURCE)

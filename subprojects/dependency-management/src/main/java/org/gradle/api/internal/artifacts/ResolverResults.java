@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult;
 
+import javax.annotation.Nullable;
+
 public interface ResolverResults {
     boolean hasError();
 
@@ -71,6 +73,7 @@ public interface ResolverResults {
      * removes the exception from the underlying resolver results, meaning that subsequent calls to consume
      * will return null.
      */
+    @Nullable
     ResolveException consumeNonFatalFailure();
 
     /**
@@ -79,6 +82,7 @@ public interface ResolverResults {
      * this doesn't consume the error, so subsequent calls will return the same instance, unless the error was
      * consumed in between.
      */
+    @Nullable
     Throwable getFailure();
 
     boolean hasResolutionResult();

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import build.withCompileOnlyGradleApiModulesWithParameterNames
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -27,7 +26,6 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(":plugins")
 
 dependencies {
 
@@ -35,9 +33,21 @@ dependencies {
 
     compile(project(":kotlinDsl"))
 
+    compileOnly(project(":plugins"))
+
     testImplementation(project(":kotlinDslTestFixtures"))
 
     integTestImplementation(project(":kotlinDslTestFixtures"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
+
+    crossVersionTestRuntimeOnly(project(":pluginDevelopment"))
+}
+
+tasks {
+
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        enabled = false
+    }
 }

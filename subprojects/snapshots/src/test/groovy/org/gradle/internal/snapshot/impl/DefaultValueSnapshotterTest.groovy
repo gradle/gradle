@@ -19,7 +19,11 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.Named
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.provider.Provider
+import org.gradle.api.internal.provider.DefaultListProperty
+import org.gradle.api.internal.provider.DefaultMapProperty
+import org.gradle.api.internal.provider.DefaultPropertyState
+import org.gradle.api.internal.provider.DefaultSetProperty
+import org.gradle.api.internal.provider.Providers
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -33,7 +37,7 @@ class DefaultValueSnapshotterTest extends Specification {
     def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(123)
     }
-    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher, NamedObjectInstantiator.INSTANCE)
+    def snapshotter = new DefaultValueSnapshotter(classLoaderHasher)
 
     def "creates snapshot for string"() {
         expect:
@@ -215,6 +219,7 @@ class DefaultValueSnapshotterTest extends Specification {
     def "creates isolated null value"() {
         expect:
         snapshotter.isolate(null).isolate() == null
+        snapshotter.isolate(null).is(snapshotter.isolate(null))
     }
 
     def "can coerce null value"() {
@@ -251,15 +256,19 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated array"() {
         expect:
-        def isolated1 = snapshotter.isolate([] as String[])
+        def original1 = [] as String[]
+        def isolated1 = snapshotter.isolate(original1)
         isolated1 instanceof IsolatedArray
-        isolated1.isolate() == [] as String[]
+        def copy1 = isolated1.isolate()
+        copy1 == [] as String[]
+        !copy1.is(original1)
 
-        def original = ["123"] as String[]
-        def isolated2 = snapshotter.isolate(original)
+        def original2 = ["123"] as String[]
+        def isolated2 = snapshotter.isolate(original2)
         isolated2 instanceof IsolatedArray
-        isolated2.isolate() == ["123"] as String[]
-        !isolated2.isolate().is(original)
+        def copy2 = isolated2.isolate()
+        copy2 == ["123"] as String[]
+        !copy2.is(original2)
     }
 
     def "creates snapshot for isolated array"() {
@@ -287,15 +296,19 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated list"() {
         expect:
-        def isolated1 = snapshotter.isolate([])
+        def original1 = []
+        def isolated1 = snapshotter.isolate(original1)
         isolated1 instanceof IsolatedList
-        isolated1.isolate() == []
+        def copy1 = isolated1.isolate()
+        copy1 == []
+        !copy1.is(original1)
 
-        def original = ["123"]
-        def isolated2 = snapshotter.isolate(original)
+        def original2 = ["123"]
+        def isolated2 = snapshotter.isolate(original2)
         isolated2 instanceof IsolatedList
-        isolated2.isolate() == ["123"]
-        !isolated2.isolate().is(original)
+        def copy2 = isolated2.isolate()
+        copy2 == ["123"]
+        !copy2.is(original2)
     }
 
     def "creates snapshot for isolated list"() {
@@ -335,15 +348,19 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated set"() {
         expect:
-        def isolated1 = snapshotter.isolate([] as Set)
+        def original1 = [] as Set
+        def isolated1 = snapshotter.isolate(original1)
         isolated1 instanceof IsolatedSet
-        isolated1.isolate() == [] as Set
+        def copy1 = isolated1.isolate()
+        copy1 == [] as Set
+        !copy1.is(original1)
 
-        def original = ["123"] as Set
-        def isolated2 = snapshotter.isolate(original)
+        def original2 = ["123"] as Set
+        def isolated2 = snapshotter.isolate(original2)
         isolated2 instanceof IsolatedSet
-        isolated2.isolate() == ["123"] as Set
-        !isolated2.isolate().is(original)
+        def copy2 = isolated2.isolate()
+        copy2 == ["123"] as Set
+        !copy2.is(original2)
     }
 
     def "creates snapshot for isolated set"() {
@@ -375,15 +392,19 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated map"() {
         expect:
-        def isolated1 = snapshotter.isolate([:])
+        def original1 = [:]
+        def isolated1 = snapshotter.isolate(original1)
         isolated1 instanceof IsolatedMap
-        isolated1.isolate() == [:]
+        def copy1 = isolated1.isolate()
+        copy1 == [:]
+        !copy1.is(original1)
 
-        def original = [a: "123"]
-        def isolated2 = snapshotter.isolate(original)
+        def original2 = [a: "123"]
+        def isolated2 = snapshotter.isolate(original2)
         isolated2 instanceof IsolatedMap
-        isolated2.isolate() == [a: "123"]
-        !isolated2.isolate().is(isolated2)
+        def copy2 = isolated2.isolate()
+        copy2 == [a: "123"]
+        !copy2.is(isolated2)
     }
 
     def "creates snapshot for isolated map"() {
@@ -479,19 +500,83 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for provider type"() {
-        def value = Stub(Provider)
-        value.get() >> "123"
-        def value2 = Stub(Provider)
-        value2.get() >> "123"
-        def value3 = Stub(Provider)
-        value3.get() >> "12"
+        def value = Providers.of("123")
+        def value2 = Providers.of("123")
+        def value3 = Providers.of("12")
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ProviderSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value2)
         snapshot != snapshotter.snapshot(value3)
+        snapshot != snapshotter.snapshot("123")
+    }
+
+    def "creates isolated provider"() {
+        def originalValue = "123"
+        def original = Providers.of(originalValue)
+
+        expect:
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.get().is(originalValue)
+    }
+
+    def "creates isolated property"() {
+        def originalValue = "123"
+        def original = new DefaultPropertyState(String)
+        original.set(originalValue)
+
+        expect:
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.get().is(originalValue)
+    }
+
+    def "creates isolated list property"() {
+        def originalValue = ["123"]
+        def original = new DefaultListProperty(String)
+        original.set(originalValue)
+
+        expect:
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.get() == ["123"]
+        !copy.get().is(originalValue)
+    }
+
+    def "creates isolated set property"() {
+        def originalValue = ["123"]
+        def original = new DefaultSetProperty(String)
+        original.set(originalValue)
+
+        expect:
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.get() == ["123"] as Set
+        !copy.get().is(originalValue)
+    }
+
+    def "creates isolated map property"() {
+        def originalMap = [a: 1, b: 2]
+        def original = new DefaultMapProperty(String, Number)
+        original.set(originalMap)
+
+        expect:
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
+        def copy = isolated.isolate()
+        !copy.is(original)
+        copy.get() == [a: 1, b: 2]
+        !copy.get().is(originalMap)
     }
 
     def "creates snapshot for named managed type"() {
@@ -527,7 +612,7 @@ class DefaultValueSnapshotterTest extends Specification {
         def spec = new FilteringClassLoader.Spec()
         spec.allowClass(Named)
         spec.allowPackage("org.gradle.api.internal.model") // mixed into the implementation
-        spec.allowPackage("org.gradle.internal.instantiation") // mixed into the implementation
+        spec.allowPackage("org.gradle.internal.state") // mixed into the implementation
         def filter = new FilteringClassLoader(getClass().classLoader, spec)
         def loader = new GroovyClassLoader(filter)
         loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
@@ -560,6 +645,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     interface BeanInterface {
         String getProp1()
+
         void setProp1(String value)
     }
 
@@ -576,7 +662,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedTypeSnapshot
+        snapshot instanceof ManagedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -585,14 +671,14 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated managed interface"() {
         def instantiator = TestUtil.instantiatorFactory().inject()
-        def value = instantiator.newInstance(BeanInterface)
-        value.prop1 = "a"
+        def original = instantiator.newInstance(BeanInterface)
+        original.prop1 = "a"
 
         expect:
-        def isolated = snapshotter.isolate(value)
-        isolated instanceof IsolatedManagedTypeSnapshot
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
-        !copy.is(value)
+        !copy.is(original)
         copy.prop1 == "a"
     }
 
@@ -609,7 +695,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def snapshot = snapshotter.snapshot(value)
-        snapshot instanceof ManagedTypeSnapshot
+        snapshot instanceof ManagedValueSnapshot
         snapshot == snapshotter.snapshot(value)
         snapshot == snapshotter.snapshot(value1)
         snapshot != snapshotter.snapshot(value2)
@@ -618,14 +704,14 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated managed abstract class"() {
         def instantiator = TestUtil.instantiatorFactory().inject()
-        def value = instantiator.newInstance(AbstractBean)
-        value.prop1 = "a"
+        def original = instantiator.newInstance(AbstractBean)
+        original.prop1 = "a"
 
         expect:
-        def isolated = snapshotter.isolate(value)
-        isolated instanceof IsolatedManagedTypeSnapshot
+        def isolated = snapshotter.isolate(original)
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
-        !copy.is(value)
+        !copy.is(original)
         copy.prop1 == "a"
     }
 
@@ -636,13 +722,13 @@ class DefaultValueSnapshotterTest extends Specification {
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)
-        isolatedEmpty instanceof IsolatedFileCollection
+        isolatedEmpty instanceof IsolatedManagedValue
         def copyEmpty = isolatedEmpty.isolate()
         !copyEmpty.is(empty)
         copyEmpty.files as List == []
 
         def isolated = snapshotter.isolate(files1)
-        isolated instanceof IsolatedFileCollection
+        isolated instanceof IsolatedManagedValue
         def copy = isolated.isolate()
         !copy.is(files1)
         copy.files == files1.files
@@ -660,7 +746,7 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates isolated serializable type"() {
-        def value = new Bean(prop: "123")
+        def original = new Bean(prop: "123")
 
         def loader = new GroovyClassLoader(getClass().classLoader)
         loader.addURL(ClasspathUtil.getClasspathForClass(GroovyObject).toURI().toURL())
@@ -669,11 +755,11 @@ class DefaultValueSnapshotterTest extends Specification {
         assert cl.name == Bean.name
 
         expect:
-        def isolated = snapshotter.isolate(value)
+        def isolated = snapshotter.isolate(original)
         isolated instanceof SerializedValueSnapshot
         def other = isolated.isolate()
         other.prop == "123"
-        !other.is(value)
+        !other.is(original)
 
         def v = isolated.coerce(cl)
         v.prop == "123"
@@ -917,12 +1003,9 @@ class DefaultValueSnapshotterTest extends Specification {
     }
 
     def "creates snapshot for provider type from candidate"() {
-        def value = Stub(Provider)
-        value.get() >> "123"
-        def value2 = Stub(Provider)
-        value2.get() >> "123"
-        def value3 = Stub(Provider)
-        value3.get() >> "12"
+        def value = Providers.of("123")
+        def value2 = Providers.of("123")
+        def value3 = Providers.of("12")
 
         expect:
         def snapshot = snapshotter.snapshot(value)

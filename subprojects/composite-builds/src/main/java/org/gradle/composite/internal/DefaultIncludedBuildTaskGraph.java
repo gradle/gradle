@@ -73,7 +73,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
             if (sourceBuild.equals(nextTarget)) {
                 candidateCycle.add(nextTarget);
                 ProjectComponentSelector selector = new DefaultProjectComponentSelector(candidateCycle.get(0), Path.ROOT, Path.ROOT, ":", ImmutableAttributes.EMPTY, Collections.emptyList());
-                throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
+                throw new ModuleVersionResolveException(selector, () -> "Included build dependency cycle: " + reportCycle(candidateCycle));
             }
 
             checkNoCycles(sourceBuild, nextTarget, candidateCycle);

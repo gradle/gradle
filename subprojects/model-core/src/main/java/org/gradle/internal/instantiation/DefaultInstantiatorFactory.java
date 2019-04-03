@@ -16,25 +16,20 @@
 
 package org.gradle.internal.instantiation;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
-    private final ServiceRegistry noServices = new DefaultServiceRegistry();
+    private final ServiceRegistry defaultServices;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
     private final DefaultInstantiationScheme injectOnlyScheme;
@@ -42,33 +37,22 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final DefaultInstantiationScheme decoratingScheme;
     private final DefaultInstantiationScheme decoratingLenientScheme;
 
-    // Assume for now that the annotations are all part of Gradle core and are never unloaded, so use strong references to the annotation types
-    private final LoadingCache<Set<Class<? extends Annotation>>, InstantiationScheme> schemes = CacheBuilder.newBuilder().build(new CacheLoader<Set<Class<? extends Annotation>>, InstantiationScheme>() {
-        @Override
-        public InstantiationScheme load(Set<Class<? extends Annotation>> annotations) {
-            for (Class<? extends Annotation> annotation : annotations) {
-                assertKnownAnnotation(annotation);
-            }
-            ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, annotations);
-            Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
-            return new DefaultInstantiationScheme(constructorSelector, noServices);
-        }
-    });
-
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = annotationHandlers;
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        services.add(InstantiatorFactory.class, this);
+        this.defaultServices = services;
         ClassGenerator injectOnly = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of());
         ClassGenerator decorated = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of());
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decorated, cacheFactory.newClassCache());
         ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnly, cacheFactory.newClassCache());
         ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decorated, cacheFactory.newClassCache());
-        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, noServices);
-        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, noServices);
-        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, noServices);
-        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, noServices);
-        schemes.put(ImmutableSet.of(), injectOnlyScheme);
+        injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
+        injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
+        decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, defaultServices, ImmutableSet.of(Inject.class));
+        decoratingLenientScheme = new DefaultInstantiationScheme(decoratedLenientSelector, defaultServices, ImmutableSet.of(Inject.class));
     }
 
     @Override
@@ -88,11 +72,19 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     @Override
     public InstantiationScheme injectScheme(Collection<Class<? extends Annotation>> injectAnnotations) {
-        try {
-            return schemes.getUnchecked(ImmutableSet.copyOf(injectAnnotations));
-        } catch (UncheckedExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        if (injectAnnotations.isEmpty()) {
+            return injectOnlyScheme;
         }
+
+        for (Class<? extends Annotation> annotation : injectAnnotations) {
+            assertKnownAnnotation(annotation);
+        }
+        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations));
+        Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
+        ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(injectAnnotations.size() + 1);
+        builder.addAll(injectAnnotations);
+        builder.add(Inject.class);
+        return new DefaultInstantiationScheme(constructorSelector, defaultServices, builder.build());
     }
 
     @Override
@@ -127,7 +119,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
 
     private void assertKnownAnnotation(Class<? extends Annotation> annotation) {
         for (InjectAnnotationHandler annotationHandler : annotationHandlers) {
-            if (annotationHandler.getAnnotation().equals(annotation)) {
+            if (annotationHandler.getAnnotationType().equals(annotation)) {
                 return;
             }
         }

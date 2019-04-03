@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 
 /**
  * Configures the dependency constraints.
+ *
+ * @since 5.0
  */
 @Incubating
 operator fun DependencyConstraintHandler.invoke(configuration: DependencyConstraintHandlerScope.() -> Unit) =

@@ -470,7 +470,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
     def goodCode() {
         buildFile << """
             apply plugin: 'java'
-            sourceCompatibility = 1.6
+            sourceCompatibility = 1.7
             ${mavenCentralRepository()}
             dependencies { testCompile 'junit:junit:4.12' }
             compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'

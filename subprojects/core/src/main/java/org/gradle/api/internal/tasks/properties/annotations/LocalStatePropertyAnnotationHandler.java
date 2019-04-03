@@ -19,6 +19,7 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.LocalState;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
@@ -29,6 +30,11 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return !visitor.visitOutputFilePropertiesOnly();
     }
@@ -36,5 +42,9 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         visitor.visitLocalStateProperty(value);
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 }

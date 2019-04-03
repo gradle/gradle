@@ -1,5 +1,7 @@
 package configurations
 
+import common.applyDefaultSettings
+import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
@@ -19,7 +21,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
     id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
 
-    applyDefaultSettings(this)
+    applyDefaultSettings()
     artifactRules = "build/build-receipt.properties"
 
     val triggerExcludes = """
@@ -29,7 +31,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         -:.teamcityTest
         -:subprojects/docs/src/docs/release
     """.trimIndent()
-    val masterReleaseFiler = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
+    val masterReleaseFilter = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
 
     if (model.publishStatusToGitHub) {
         features {
@@ -42,7 +44,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
             quietPeriod = 90
             triggerRules = triggerExcludes
-            branchFilter = masterReleaseFiler
+            branchFilter = masterReleaseFilter
         }
     } else if (stage.trigger != Trigger.never) {
         triggers.schedule {
@@ -60,7 +62,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             triggerBuild = always()
             withPendingChangesOnly = true
             param("revisionRule", "lastFinished")
-            param("branchFilter", masterReleaseFiler)
+            param("branchFilter", masterReleaseFilter)
         }
 
     }
@@ -85,7 +87,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
+                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")} --daemon"
             }
         }
     }

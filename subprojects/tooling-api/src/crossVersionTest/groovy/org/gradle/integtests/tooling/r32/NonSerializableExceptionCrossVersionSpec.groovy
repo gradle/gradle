@@ -159,8 +159,7 @@ task run {
     }
 
 
-    private String getStackTraceAsString(GradleConnectionException throwable) {
-        caughtGradleConnectionException = throwable
+    private static String getStackTraceAsString(GradleConnectionException throwable) {
         StringWriter stringWriter = new StringWriter()
         throwable.printStackTrace(new PrintWriter(stringWriter))
         return stringWriter.toString()

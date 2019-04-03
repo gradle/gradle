@@ -48,10 +48,13 @@ public class DefaultSslContextFactory implements SslContextFactory {
         "javax.net.ssl.keyStoreType",
         "javax.net.ssl.keyStore",
         "javax.net.ssl.keyStoreProvider",
-        "javax.net.ssl.keyStorePassword"
+        "javax.net.ssl.keyStorePassword",
+        "java.home"
     );
 
-    private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(new SslContextCacheLoader());
+    private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(
+            new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
+    );
 
     @Override
     public SSLContext createSslContext() {
@@ -66,15 +69,46 @@ public class DefaultSslContextFactory implements SslContextFactory {
                 for (String prop : SSL_SYSTEM_PROPERTIES) {
                     currentProperties.put(prop, System.getProperty(prop));
                 }
-                currentProperties.put("java.home", SystemProperties.getInstance().getJavaHomeDir().getPath());
                 return currentProperties;
             }
         });
     }
 
+    private static class SynchronizedSystemPropertiesCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
+        private final SslContextCacheLoader delegate;
+
+        private SynchronizedSystemPropertiesCacheLoader(SslContextCacheLoader delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SSLContext load(Map<String, String> props) {
+            /*
+             * NOTE! The JDK code to create SSLContexts relies on the values of the given system properties.
+             *
+             * To prevent concurrent changes to system properties from interfering with this, we need to synchronize access/modifications
+             * to system properties.  This is best effort since we can't prevent user code from modifying system properties willy-nilly.
+             *
+             * The most critical system property is java.home. Changing this property while trying to create a SSLContext can cause many strange
+             * problems:
+             * https://github.com/gradle/gradle/issues/8830
+             * https://github.com/gradle/gradle/issues/8039
+             * https://github.com/gradle/gradle/issues/7842
+             * https://github.com/gradle/gradle/issues/2588
+             */
+            return SystemProperties.getInstance().withSystemProperties(props, new Factory<SSLContext>() {
+                @Override
+                public SSLContext create() {
+                    return delegate.load(props);
+                }
+            });
+        }
+    }
+
     private static class SslContextCacheLoader extends CacheLoader<Map<String, String>, SSLContext> {
         @Override
         public SSLContext load(Map<String, String> props) {
+            // TODO: We should see if we can go back to using HttpClient again.
             // This implementation is borrowed from the Apache HttpClient project
             // https://github.com/apache/httpclient/blob/4.2.2/httpclient/src/main/java/org/apache/http/conn/ssl/SSLSocketFactory.java#L246-L354
             try {

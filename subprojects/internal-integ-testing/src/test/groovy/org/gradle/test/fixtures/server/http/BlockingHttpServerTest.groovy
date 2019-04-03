@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.server.http
 
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -261,6 +262,54 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         then:
         instant.aDone > instant.aBlocked
+    }
+
+    def "can call from client code"() {
+        server.start()
+        def script = TestUtil.createScript """
+            def prefix = "a"
+            ${server.callFromBuild("a1")}
+            ${server.callFromBuildUsingExpression("prefix + '2'")}
+        """
+
+        given:
+        server.expect("a1")
+        server.expect("a2")
+
+        when:
+        script.run()
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "client code fails when making unexpected request"() {
+        server.start()
+        def script = TestUtil.createScript """
+            def prefix = "a"
+            ${server.callFromBuild("a1")}
+            ${server.callFromBuildUsingExpression("prefix + '2'")}
+        """
+
+        given:
+        server.expect("a1")
+        server.expect("other")
+
+        when:
+        script.run()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Received error response from ${server.uri}/a2"
+
+        when:
+        server.stop()
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2.message == 'Failed to handle all HTTP requests.'
+        e2.causes.message == ['Unexpected request GET /a2 received. Waiting for [GET /other], already received []']
     }
 
     def "succeeds when expected concurrent requests are made"() {
@@ -555,7 +604,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
-        e.causes.message.sort() == ['Did not receive expected requests. Waiting for [GET /b], received []']
+        e.causes.message.sort() == ['Did not receive expected requests. Waiting for [GET /b], already received []']
     }
 
     def "fails when request is received after serial expectations met"() {
@@ -576,7 +625,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
-        e.causes.message.sort() == ['Received unexpected request GET /a']
+        e.causes.message.sort() == ['Unexpected request GET /a received']
     }
 
     def "fails when request path does not match expected serial request"() {
@@ -585,7 +634,14 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("b").toURL().text
+        def connection = server.uri("b").toURL().openConnection()
+
+        then:
+        connection.responseCode == 400
+        connection.responseMessage == "Bad Request"
+
+        when:
+        connection.inputStream
 
         then:
         thrown(IOException)
@@ -597,9 +653,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /b'
+            'Unexpected request GET /b received. Waiting for [GET /a], already received []'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /b received. Waiting for [GET /a], already received [].'
     }
 
     def "fails when request method does not match expected serial GET request"() {
@@ -610,7 +665,13 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         def connection = server.uri("a").toURL().openConnection()
         connection.requestMethod = 'HEAD'
-        connection.inputStream.text
+
+        then:
+        connection.responseCode == 400
+        connection.responseMessage == "Bad Request"
+
+        when:
+        connection.inputStream
 
         then:
         thrown(IOException)
@@ -622,9 +683,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle HEAD /a'
+            'Unexpected request HEAD /a received. Waiting for [GET /a], already received []'
         ]
-        e.causes[0].cause.message == 'Unexpected request HEAD /a received. Waiting for [GET /a], already received [].'
     }
 
     def "fails when request method does not match expected serial PUT request"() {
@@ -645,9 +705,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a'
+            'Unexpected request GET /a received. Waiting for [PUT /a], already received []'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /a received. Waiting for [PUT /a], already received [].'
     }
 
     def "fails when request method does not match expected serial POST request"() {
@@ -668,9 +727,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Failed to handle GET /a'
+            'Unexpected request GET /a received. Waiting for [POST /a], already received []'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /a received. Waiting for [POST /a], already received [].'
     }
 
     def "fails when some but not all expected parallel requests received"() {
@@ -691,9 +749,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Failed to handle GET /a'
+            'Failed to handle GET /a due to a timeout waiting for other requests. Waiting for [GET /b], already received [GET /a]'
         ]
-        e.causes[0].cause.message == 'Timeout waiting for expected requests to be received. Still waiting for [GET /b], received [GET /a].'
     }
 
     def "fails when expected parallel request received after other request has failed"() {
@@ -720,12 +777,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /b',
+            'Failed to handle GET /a due to a timeout waiting for other requests. Waiting for [GET /b], already received [GET /a]',
+            'Failed to handle GET /b due to a previous timeout. Waiting for [], already received [GET /a, GET /b]'
         ]
-        e.causes[0].cause.message == 'Timeout waiting for expected requests to be received. Still waiting for [GET /b], received [GET /a].'
-        // TODO - message should say that expected request was received too late
-        e.causes[1].cause.message == 'Timeout waiting for expected requests to be received. Still waiting for [GET /b], received [GET /a].'
     }
 
     def "fails when some but not all expected parallel requests received when stop called"() {
@@ -747,7 +801,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Did not receive expected requests. Waiting for [GET /b], received [GET /a]'
+            'Did not receive expected requests. Waiting for [GET /b], already received [GET /a]'
         ]
     }
 
@@ -769,21 +823,34 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Failed to handle GET /c'
+            'Unexpected request GET /c received. Waiting for [GET /a, GET /b], already received []'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /c received. Waiting for [GET /a, GET /b], already received [].'
     }
 
     def "fails when request path does not match expected blocking parallel request"() {
+        def requestFailure = null
+
         given:
-        server.expectConcurrentAndBlock("a", "b")
+        def handle = server.expectConcurrentAndBlock("a", "b")
         server.start()
 
         when:
-        server.uri("c").toURL().text
+        async {
+            start {
+                try {
+                    server.uri("c").toURL().text
+                } catch (IOException e) {
+                    requestFailure = e
+                }
+            }
+            handle.waitForAllPendingCalls()
+        }
 
         then:
-        thrown(IOException)
+        def waitException = thrown(RuntimeException)
+        waitException.message == 'Unexpected request GET /c received. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b]'
+
+        requestFailure instanceof IOException
 
         when:
         server.stop()
@@ -792,9 +859,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message.sort() == [
-            'Failed to handle GET /c'
+            'Unexpected request GET /c received. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b]'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /c received. Waiting for 2 further requests, already received [], released [], still expecting [GET /a, GET /b].'
     }
 
     def "fails when request method does not match expected parallel request"() {
@@ -847,14 +913,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle HEAD /a',
-            'Failed to handle GET /b',
-            'Failed to handle GET /c'
+            'Unexpected request HEAD /a received. Waiting for [GET /a, GET /b, PUT /c], already received []',
+            'Failed to handle GET /b due to unexpected request HEAD /a. Waiting for [GET /a, PUT /c], already received [GET /b]',
+            'Unexpected request GET /c received. Waiting for [GET /a, PUT /c], already received [GET /b]'
         ]
-        e.causes[0].cause.message == 'Unexpected request HEAD /a received. Waiting for [GET /a, GET /b, PUT /c], already received [].'
-        // TODO - message should indicate GET /b was received at the time the failure happened
-        e.causes[1].cause.message == 'Unexpected request HEAD /a received. Waiting for [GET /a, GET /b, PUT /c], already received [].'
-        e.causes[2].cause.message == 'Unexpected request GET /c received. Waiting for [GET /a, PUT /c], already received [GET /b].'
     }
 
     def "fails when request method does not match expected blocking parallel request"() {
@@ -863,7 +925,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def failure3 = null
 
         given:
-        server.expectConcurrentAndBlock(server.get("a"), server.get("b"), server.put("c"))
+        def handle = server.expectConcurrentAndBlock(server.get("a"), server.get("b"), server.put("c"))
         server.start()
 
         when:
@@ -893,9 +955,14 @@ class BlockingHttpServerTest extends ConcurrentSpec {
                     failure3 = t
                 }
             }
+            server.waitForRequests(3)
+            handle.waitForAllPendingCalls()
         }
 
         then:
+        def waitException = thrown(RuntimeException)
+        waitException.message == 'Unexpected request HEAD /a received. Waiting for 2 further requests, received [GET /b], released [], not yet received [GET /a, PUT /c]'
+
         failure1 instanceof IOException
         failure2 instanceof IOException
         failure3 instanceof IOException
@@ -907,15 +974,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle HEAD /a',
-            'Failed to handle GET /b',
-            'Failed to handle GET /c',
+            'Unexpected request HEAD /a received. Waiting for 3 further requests, received [], released [], not yet received [GET /a, GET /b, PUT /c]',
+            'Failed to handle GET /b due to unexpected request HEAD /a. Waiting for 2 further requests, received [GET /b], released [], not yet received [GET /a, PUT /c]',
+            'Unexpected request GET /c received. Waiting for 2 further requests, received [GET /b], released [], not yet received [GET /a, PUT /c]',
         ]
-        e.causes[0].cause.message == 'Unexpected request HEAD /a received. Waiting for 3 further requests, already received [], released [], still expecting [GET /a, GET /b, PUT /c].'
-        // TODO - message should indicate GET /b was received at the time the failure happened
-        e.causes[1].cause.message == 'Unexpected request HEAD /a received. Waiting for 3 further requests, already received [], released [], still expecting [GET /a, GET /b, PUT /c].'
-        // TODO - message should indicate GET /b was received at the time the failure happened
-        e.causes[2].cause.message == 'Unexpected request GET /c received. Waiting for 2 further requests, already received [GET /b], released [], still expecting [GET /a, PUT /c].'
     }
 
     def "fails when additional requests are made after parallel expectations are met"() {
@@ -939,8 +1001,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
-        e.cause.message == 'Received unexpected request GET /c'
-        e.causes.message.sort() == ['Received unexpected request GET /c']
+        e.cause.message == 'Unexpected request GET /c received'
+        e.causes.message.sort() == ['Unexpected request GET /c received']
     }
 
     def "fails when some but not all expected parallel requests received while waiting"() {
@@ -963,8 +1025,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         }
 
         then:
-        def waitError = thrown(AssertionError)
-        waitError.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c].'
+        def waitError = thrown(RuntimeException)
+        waitError.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]'
 
         requestFailure instanceof IOException
 
@@ -975,9 +1037,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a'
+            'Failed to handle GET /a due to a timeout waiting for other requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]'
         ]
-        e.causes[0].cause.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c].'
     }
 
     def "fails when expected parallel request received after waiting has failed"() {
@@ -1000,8 +1061,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         }
 
         then:
-        def waitError = thrown(AssertionError)
-        waitError.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c].'
+        def waitError = thrown(RuntimeException)
+        waitError.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]'
 
         requestFailure instanceof IOException
 
@@ -1018,12 +1079,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /b'
+            'Failed to handle GET /a due to a timeout waiting for other requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]',
+            'Failed to handle GET /b due to a previous timeout. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]'
         ]
-        e.causes[0].cause.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c].'
-        // TODO - message should indicate that request received after timeout
-        e.causes[1].cause.message == 'Timeout waiting for expected requests. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c].'
     }
 
     def "fails when unexpected request received while other request is waiting "() {
@@ -1058,11 +1116,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /c'
+            'Failed to handle GET /a due to unexpected request GET /c. Waiting for [GET /b], already received [GET /a]',
+            'Unexpected request GET /c received. Waiting for [GET /b], already received [GET /a]'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /c received. Waiting for [GET /b], already received [GET /a].'
-        e.causes[1].cause.message == 'Unexpected request GET /c received. Waiting for [GET /b], already received [GET /a].'
 
         failure1 instanceof IOException
         failure2 instanceof IOException
@@ -1097,8 +1153,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         }
 
         then:
-        def waitError = thrown(AssertionError)
-        waitError.message == "Unexpected request GET /d received. Waiting for 1 further requests, already received [GET /a], released [], still expecting [GET /b, GET /c]."
+        def waitError = thrown(RuntimeException)
+        waitError.message == "Unexpected request GET /d received. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]"
 
         failure1 instanceof IOException
         failure2 instanceof IOException
@@ -1110,11 +1166,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /d'
+            'Failed to handle GET /a due to unexpected request GET /d. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]',
+            'Unexpected request GET /d received. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b, GET /c]'
         ]
-        e.causes[0].cause.message == 'Unexpected request GET /d received. Waiting for 1 further requests, already received [GET /a], released [], still expecting [GET /b, GET /c].'
-        e.causes[1].cause.message == 'Unexpected request GET /d received. Waiting for 1 further requests, already received [GET /a], released [], still expecting [GET /b, GET /c].'
     }
 
     def "fails when too many concurrent requests received while waiting"() {
@@ -1156,8 +1210,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         }
 
         then:
-        def waitError = thrown(AssertionError)
-        waitError.message == "Unexpected request GET /c received. Waiting for 0 further requests, already received [GET /a, GET /b], released [], still expecting [GET /c]."
+        def waitError = thrown(RuntimeException)
+        waitError.message == "Unexpected request GET /c received. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]"
 
         failure1 instanceof IOException
         failure2 instanceof IOException
@@ -1169,15 +1223,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         then:
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
+        // TODO - message should indicate that /c was expected but there were too many concurrent requests
         e.causes.message.sort() == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /b',
-            'Failed to handle GET /c',
-        ]
-        e.causes.cause.message.sort() == [
-            "Unexpected request GET /c received. Waiting for 0 further requests, already received [GET /a, GET /b], released [], still expecting [GET /c].",
-            "Unexpected request GET /c received. Waiting for 0 further requests, already received [GET /a, GET /b], released [], still expecting [GET /c].",
-            "Unexpected request GET /c received. Waiting for 0 further requests, already received [GET /a, GET /b], released [], still expecting [GET /c]."
+            'Failed to handle GET /a due to unexpected request GET /c. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]',
+            'Failed to handle GET /b due to unexpected request GET /c. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]',
+            'Unexpected request GET /c received. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]',
         ]
     }
 
@@ -1216,9 +1266,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e4 = thrown(RuntimeException)
         e4.message == 'Failed to handle all HTTP requests.'
         e4.causes.message == [
-            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b].',
-            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d].',
-            'Did not receive expected requests. Waiting for [GET /e], received []'
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b]',
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d]',
+            'Did not receive expected requests. Waiting for [GET /e], already received []'
         ]
     }
 
@@ -1242,8 +1292,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e2 = thrown(RuntimeException)
         e2.message == 'Failed to handle all HTTP requests.'
         e2.causes.message == [
-            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b].',
-            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d].',
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /a, GET /b]',
+            'Did not handle all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d]',
         ]
     }
 
@@ -1287,11 +1337,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e = thrown(RuntimeException)
         e.message == 'Failed to handle all HTTP requests.'
         e.causes.message == [
-            'Failed to handle GET /a',
-            'Failed to handle GET /b'
+            'Failed to handle GET /a due to a timeout waiting to be released. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]',
+            'Failed to handle GET /b due to a timeout waiting to be released. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c]'
         ]
-        e.causes[0].cause.message == 'Timeout waiting to be released. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c].'
-        e.causes[1].cause.message == 'Timeout waiting to be released. Waiting for 0 further requests, received [GET /a, GET /b], released [], not yet received [GET /c].'
     }
 
     def "fails when request is not released after sending partial response"() {
@@ -1356,9 +1404,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         def e3 = thrown(RuntimeException)
         e3.message == 'Failed to handle all HTTP requests.'
         e3.causes.message == [
-            'Did not receive expected requests. Waiting for [GET /a], received []',
-            'Did not handle all expected requests. Waiting for 1 further requests, received [], released [], not yet received [GET /b].',
-            'Did not receive expected requests. Waiting for [GET /c], received []'
+            'Did not receive expected requests. Waiting for [GET /a], already received []',
+            'Did not handle all expected requests. Waiting for 1 further requests, received [], released [], not yet received [GET /b]',
+            'Did not receive expected requests. Waiting for [GET /c], already received []'
         ]
     }
 

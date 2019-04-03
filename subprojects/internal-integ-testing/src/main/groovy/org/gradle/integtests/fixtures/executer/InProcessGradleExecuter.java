@@ -77,7 +77,6 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.SetSystemProperties;
 import org.hamcrest.Matcher;
 
 import java.io.ByteArrayOutputStream;
@@ -295,7 +294,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         } finally {
             // Restore the environment
             System.setProperties(originalSysProperties);
-            resetTempDirLocation();
             processEnvironment.maybeSetProcessDir(originalUserDir);
             for (String envVar : changedEnvVars) {
                 String oldValue = originalEnv.get(envVar);
@@ -310,20 +308,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private void resetTempDirLocation() {
-        SetSystemProperties.resetTempDirLocation();
-    }
-
     private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.getFactory(LoggingManagerInternal.class).create();
         loggingManager.captureSystemSources();
 
         ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
-        if (consoleOutput == ConsoleOutput.Auto) {
-            // IDEA runs tests attached to a console, use plain so test can assume never attached to a console
-            // Should really run all tests against a plain and a rich console to make these assumptions explicit
-            consoleOutput = ConsoleOutput.Plain;
-        }
         loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
@@ -338,7 +327,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
         Map<String, String> implicitJvmSystemProperties = getImplicitJvmSystemProperties();
         System.getProperties().putAll(implicitJvmSystemProperties);
-        resetTempDirLocation();
 
         // TODO: Fix tests that rely on this being set before we process arguments like this...
         StartParameterInternal startParameter = new StartParameterInternal();
@@ -513,6 +501,16 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public String getFormattedOutput() {
+            return outputResult.getFormattedOutput();
+        }
+
+        @Override
+        public String getPlainTextOutput() {
+            return outputResult.getPlainTextOutput();
+        }
+
+        @Override
         public GroupedOutputFixture getGroupedOutput() {
             return outputResult.getGroupedOutput();
         }
@@ -554,18 +552,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertHasErrorOutput(String expectedOutput) {
             outputResult.assertHasErrorOutput(expectedOutput);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-            outputResult.assertHasRawErrorOutput(expectedOutput);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertRawOutputContains(String expectedOutput) {
-            outputResult.assertRawOutputContains(expectedOutput);
             return this;
         }
 

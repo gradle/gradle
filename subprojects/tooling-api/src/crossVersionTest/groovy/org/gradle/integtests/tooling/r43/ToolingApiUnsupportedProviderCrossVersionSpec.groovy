@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.GradleConnectionException
 
 @ToolingApiVersion("current")
 class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpecification {
@@ -27,8 +28,8 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
         build()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
     }
 
     @TargetGradleVersion("<2.6")
@@ -37,8 +38,8 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
         getModel()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
     }
 
     @TargetGradleVersion("<2.6")
@@ -47,8 +48,8 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
         buildAction()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
     }
 
     @TargetGradleVersion("<2.6")
@@ -57,7 +58,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
         testExecution()
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
+        GradleConnectionException connectionException = thrown()
+        connectionException.message.contains("Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 2.6 or later.")
     }
 }

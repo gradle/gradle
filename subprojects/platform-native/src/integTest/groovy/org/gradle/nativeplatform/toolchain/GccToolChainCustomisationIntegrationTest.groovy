@@ -25,6 +25,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
 class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -53,6 +54,7 @@ model {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
+    @RequiresInstalledToolChain(SUPPORTS_32)
     def "can configure platform specific args"() {
         when:
         buildFile << """

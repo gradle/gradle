@@ -17,9 +17,14 @@
 // tag::sample[]
 // The following types can appear anywhere in the code
 // but say nothing about API or implementation usage
-import org.apache.commons.httpclient.*;
-import org.apache.commons.httpclient.methods.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
@@ -35,26 +40,27 @@ public class HttpClientWrapper {
 
     // public methods belongs to your API
     public byte[] doRawGet(String url) {
-        GetMethod method = new GetMethod(url);
+        HttpGet request = new HttpGet(url);
         try {
-            int statusCode = doGet(method);
-            return method.getResponseBody();
-
+            HttpEntity entity = doGet(request);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            entity.writeTo(baos);
+            return baos.toByteArray();
         } catch (Exception e) {
             ExceptionUtils.rethrow(e); // this dependency is internal only
         } finally {
-            method.releaseConnection();
+            request.releaseConnection();
         }
         return null;
     }
 
-    // GetMethod is used in a private method, so doesn't belong to the API
-    private int doGet(GetMethod method) throws Exception {
-        int statusCode = client.executeMethod(method);
-        if (statusCode != HttpStatus.SC_OK) {
-            System.err.println("Method failed: " + method.getStatusLine());
+    // HttpGet and HttpEntity are used in a private method, so they don't belong to the API
+    private HttpEntity doGet(HttpGet get) throws Exception {
+        HttpResponse response = client.execute(get);
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            System.err.println("Method failed: " + response.getStatusLine());
         }
-        return statusCode;
+        return response.getEntity();
     }
 }
 // end::sample[]

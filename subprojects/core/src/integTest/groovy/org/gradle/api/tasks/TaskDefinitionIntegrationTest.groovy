@@ -522,7 +522,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            assert schema.size() == 16
+            assert schema.size() == 17
             
             assert schema["help"] == "Help"
             
@@ -540,6 +540,8 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             
             assert schema["init"] == "InitBuild"
             assert schema["wrapper"] == "Wrapper"
+
+            assert schema["prepareKotlinBuildScriptModel"] == "DefaultTask"
             
             assert schema["foo"] == "Foo"
             assert schema["bar"] == "Foo"
@@ -566,7 +568,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Adding a task provider directly to the task container is not supported.")
     }
 
-    def "can define task using abstract FileCollection getter"() {
+    def "can define task with abstract ConfigurableFileCollection getter"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {

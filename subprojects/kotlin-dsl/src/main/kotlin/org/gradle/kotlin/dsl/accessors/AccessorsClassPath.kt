@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
+import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
+
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -29,7 +31,8 @@ import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
-import org.gradle.kotlin.dsl.codegen.fileHeader
+import org.gradle.kotlin.dsl.codegen.fileHeaderFor
+import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
@@ -49,7 +52,6 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
-import org.jetbrains.org.objectweb.asm.Opcodes.ASM6
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
@@ -93,7 +95,12 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
 
 
 internal
-fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, builder: (File, File) -> Unit): AccessorsClassPath {
+fun cachedAccessorsClassPathFor(
+    project: Project,
+    cacheKeySpec: CacheKeySpec,
+    builder: (File, File) -> Unit
+): AccessorsClassPath {
+
     val cacheDir =
         scriptCacheOf(project)
             .cacheDirFor(cacheKeySpec) { baseDir ->
@@ -102,6 +109,7 @@ fun cachedAccessorsClassPathFor(project: Project, cacheKeySpec: CacheKeySpec, bu
                     accessorsClassesDir(baseDir)
                 )
             }
+
     return AccessorsClassPath(
         DefaultClassPath.of(accessorsClassesDir(cacheDir)),
         DefaultClassPath.of(accessorsSourceDir(cacheDir))
@@ -127,7 +135,6 @@ fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
     } else null
 
 
-internal
 fun schemaFor(project: Project): TypedProjectSchema =
     projectSchemaProviderOf(project).schemaFor(project)
 
@@ -141,19 +148,45 @@ private
 fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
-internal
 fun IO.buildAccessorsFor(
     projectSchema: TypedProjectSchema,
     classPath: ClassPath,
     srcDir: File,
-    binDir: File
+    binDir: File?,
+    packageName: String = kotlinDslPackageName,
+    format: AccessorFormat = AccessorFormats.default
 ) {
     val availableSchema = availableProjectSchemaFor(projectSchema, classPath)
     emitAccessorsFor(
         availableSchema,
         srcDir,
-        binDir
+        binDir,
+        OutputPackage(packageName),
+        format
     )
+}
+
+
+typealias AccessorFormat = (String) -> String
+
+
+object AccessorFormats {
+
+    val default: AccessorFormat = { accessor ->
+        accessor.replaceIndent()
+    }
+
+    val `internal`: AccessorFormat = { accessor ->
+        accessor
+            .replaceIndent()
+            .let { valFunOrClass.matcher(it) }
+            .replaceAll("internal\n$1 ")
+    }
+
+    private
+    val valFunOrClass by lazy {
+        "^(val|fun|class) ".toRegex(RegexOption.MULTILINE).toPattern()
+    }
 }
 
 
@@ -341,13 +374,13 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
 
 private
-class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
+class HasTypeParameterClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var hasTypeParameters = false
 
     override fun visit(version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?) {
         if (signature != null) {
-            SignatureReader(signature).accept(object : SignatureVisitor(ASM6) {
+            SignatureReader(signature).accept(object : SignatureVisitor(ASM_LEVEL) {
                 override fun visitFormalTypeParameter(name: String) {
                     hasTypeParameters = true
                 }
@@ -358,7 +391,7 @@ class HasTypeParameterClassVisitor : ClassVisitor(ASM6) {
 
 
 private
-class KotlinVisibilityClassVisitor : ClassVisitor(ASM6) {
+class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var visibility: Visibility? = null
 
@@ -378,7 +411,7 @@ class KotlinVisibilityClassVisitor : ClassVisitor(ASM6) {
 private
 class ClassDataFromKotlinMetadataAnnotationVisitor(
     private val onClassData: (ProtoBuf.Class) -> Unit
-) : AnnotationVisitor(ASM6) {
+) : AnnotationVisitor(ASM_LEVEL) {
 
     /**
      * @see kotlin.Metadata.data1
@@ -408,7 +441,7 @@ class ClassDataFromKotlinMetadataAnnotationVisitor(
 
 
 private
-class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM6) {
+class AnnotationValueCollector<T>(val output: MutableList<T>) : AnnotationVisitor(ASM_LEVEL) {
     override fun visit(name: String?, value: Any?) {
         @Suppress("unchecked_cast")
         output.add(value as T)
@@ -472,7 +505,6 @@ fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheK
         + classPath)
 
 
-internal
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
     putAll(schema.conventions)
@@ -509,9 +541,14 @@ fun enabledJitAccessors(project: Project) =
 
 
 internal
-fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List<String> = emptyList()) = io {
+fun IO.writeAccessorsTo(
+    outputFile: File,
+    accessors: Iterable<String>,
+    imports: List<String> = emptyList(),
+    packageName: String = kotlinDslPackageName
+) = io {
     outputFile.bufferedWriter().useToRun {
-        appendReproducibleNewLine(fileHeaderWithImports)
+        appendReproducibleNewLine(fileHeaderWithImportsFor(packageName))
         if (imports.isNotEmpty()) {
             imports.forEach {
                 appendReproducibleNewLine("import $it")
@@ -519,7 +556,7 @@ fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List
             appendReproducibleNewLine()
         }
         accessors.forEach {
-            appendReproducibleNewLine(it.replaceIndent())
+            appendReproducibleNewLine(it)
             appendReproducibleNewLine()
         }
     }
@@ -527,8 +564,8 @@ fun IO.writeAccessorsTo(outputFile: File, accessors: List<String>, imports: List
 
 
 internal
-val fileHeaderWithImports = """
-$fileHeader
+fun fileHeaderWithImportsFor(accessorsPackage: String = kotlinDslPackageName) = """
+${fileHeaderFor(accessorsPackage)}
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating

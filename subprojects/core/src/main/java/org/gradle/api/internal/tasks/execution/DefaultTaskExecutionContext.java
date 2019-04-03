@@ -20,18 +20,15 @@ import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.caching.internal.tasks.TaskOutputCachingBuildCacheKey;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
@@ -39,20 +36,15 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private AfterPreviousExecutionState afterPreviousExecution;
     private OverlappingOutputs overlappingOutputs;
-    private ExecutionStateChanges executionStateChanges;
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFilesBeforeExecution;
     private BeforeExecutionState beforeExecutionState;
     private TaskExecutionMode taskExecutionMode;
-    private boolean outputRemovedBeforeExecution;
-    private TaskOutputCachingBuildCacheKey buildCacheKey;
-    private List<String> upToDateMessages;
     private TaskProperties properties;
     private boolean taskCachingEnabled;
     private Long executionTime;
     private ExecutingBuildOperation snapshotTaskInputsBuildOperation;
 
     private final Timer executionTimer;
-    private boolean taskExecutedIncrementally;
 
     public DefaultTaskExecutionContext(LocalTaskNode localTaskNode) {
         this.localTaskNode = localTaskNode;
@@ -114,53 +106,12 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
         this.taskExecutionMode = taskExecutionMode;
     }
 
-    @Override
-    public boolean isOutputRemovedBeforeExecution() {
-        return outputRemovedBeforeExecution;
-    }
-
-    @Override
-    public void setOutputRemovedBeforeExecution(boolean outputRemovedBeforeExecution) {
-        this.outputRemovedBeforeExecution = outputRemovedBeforeExecution;
-    }
-
-    @Override
-    public Optional<ExecutionStateChanges> getExecutionStateChanges() {
-        return Optional.ofNullable(executionStateChanges);
-    }
-
-    @Override
-    public void setExecutionStateChanges(ExecutionStateChanges executionStateChanges) {
-        this.executionStateChanges = executionStateChanges;
-    }
-
-    @Override
-    public TaskOutputCachingBuildCacheKey getBuildCacheKey() {
-        return buildCacheKey;
-    }
-
-    @Override
-    public void setBuildCacheKey(TaskOutputCachingBuildCacheKey buildCacheKey) {
-        this.buildCacheKey = buildCacheKey;
-    }
-
     public long markExecutionTime() {
         if (this.executionTime != null) {
             throw new IllegalStateException("execution time already set");
         }
 
         return this.executionTime = executionTimer.getElapsedMillis();
-    }
-
-    @Override
-    @Nullable
-    public List<String> getUpToDateMessages() {
-        return upToDateMessages;
-    }
-
-    @Override
-    public void setUpToDateMessages(List<String> upToDateMessages) {
-        this.upToDateMessages = upToDateMessages;
     }
 
     @Override
@@ -181,16 +132,6 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskCachingEnabled(boolean taskCachingEnabled) {
         this.taskCachingEnabled = taskCachingEnabled;
-    }
-
-    @Override
-    public boolean isTaskExecutedIncrementally() {
-        return taskExecutedIncrementally;
-    }
-
-    @Override
-    public void setTaskExecutedIncrementally(boolean taskExecutedIncrementally) {
-        this.taskExecutedIncrementally = taskExecutedIncrementally;
     }
 
     @Override

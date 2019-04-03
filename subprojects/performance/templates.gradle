@@ -27,7 +27,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = 'df9851e45acebbba9fa1e3fe2194b0e5346c20dd'
+    ref = 'c9913554c6032894bb4433789db2ee87a801123e'
 }
 
 // === Java ===
@@ -352,6 +352,88 @@ tasks.register("k9AndroidBuild", RemoteProject) {
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     branch = 'android-34'
+}
+
+tasks.register("santaTrackerAndroidBuild", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
+    branch = 'agp-3.5.0'
+    doLast {
+        new File(outputDirectory, 'santa-tracker/google-services.json').text = """
+{
+  "project_info": {
+    "project_number": "012345678912",
+    "firebase_url": "https://example.com",
+    "project_id": "example",
+    "storage_bucket": "example.example.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
+        "android_client_info": {
+          "package_name": "com.google.android.apps.santatracker.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "foo.example.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "012345678901234567890123456789012345678"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:012345678912:android:0123456789abcdef",
+        "android_client_info": {
+          "package_name": "com.google.android.apps.santatracker.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "foo.example.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "012345678901234567890123456789012345678"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+"""
+    }
 }
 
 tasks.register("excludeRuleMergingBuild", RemoteProject) {

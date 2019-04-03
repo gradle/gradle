@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.transform.ArtifactTransformException;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -35,10 +34,10 @@ import java.util.Map;
 class TransformingArtifactVisitor implements ArtifactVisitor {
     private final ArtifactVisitor visitor;
     private final AttributeContainerInternal target;
-    private final Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults;
-    private final Map<File, TransformationOperation> fileResults;
+    private final Map<ComponentArtifactIdentifier, TransformationResult> artifactResults;
+    private final Map<File, TransformationResult> fileResults;
 
-    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationOperation> artifactResults, Map<File, TransformationOperation> fileResults) {
+    TransformingArtifactVisitor(ArtifactVisitor visitor, AttributeContainerInternal target, Map<ComponentArtifactIdentifier, TransformationResult> artifactResults, Map<File, TransformationResult> fileResults) {
         this.visitor = visitor;
         this.target = target;
         this.artifactResults = artifactResults;
@@ -47,8 +46,8 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, ResolvableArtifact artifact) {
-        TransformationOperation operation = artifactResults.get(artifact.getId());
-        operation.getResult().ifSuccessfulOrElse(
+        TransformationResult result = artifactResults.get(artifact.getId());
+        result.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
                 ResolvedArtifact sourceArtifact = artifact.toPublicView();
                 for (File output : transformedSubject.getFiles()) {
@@ -58,7 +57,9 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
                     visitor.visitArtifact(variantName, target, resolvedArtifact);
                 }
             },
-            failure -> visitor.visitFailure(new ArtifactTransformException(artifact.getId(), target, failure))
+            failure -> visitor.visitFailure(
+                new TransformException(String.format("Failed to transform artifact '%s' to match attributes %s.",
+                    artifact.getId(), target), failure))
         );
     }
 
@@ -79,14 +80,15 @@ class TransformingArtifactVisitor implements ArtifactVisitor {
 
     @Override
     public void visitFile(ComponentArtifactIdentifier artifactIdentifier, DisplayName variantName, AttributeContainer variantAttributes, File file) {
-        TransformationOperation operation = fileResults.get(file);
-        operation.getResult().ifSuccessfulOrElse(
+        TransformationResult result = fileResults.get(file);
+        result.getTransformedSubject().ifSuccessfulOrElse(
             transformedSubject -> {
                 for (File outputFile : transformedSubject.getFiles()) {
                     visitor.visitFile(new ComponentFileArtifactIdentifier(artifactIdentifier.getComponentIdentifier(), outputFile.getName()), variantName, target, outputFile);
                 }
             },
-            failure -> visitor.visitFailure(new ArtifactTransformException(file, target, failure))
+            failure -> visitor.visitFailure(new TransformException(String.format("Failed to transform file '%s' to match attributes %s",
+                file.getName(), target), failure))
         );
     }
 }

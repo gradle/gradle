@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl
 import com.google.common.collect.ImmutableMultimap
 import org.gradle.internal.change.Change
 import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.FileChange
+import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -42,8 +42,8 @@ class EmptyCurrentFileCollectionFingerprintTest extends Specification {
         }
         expect:
         getChanges(fingerprint, empty, includeAdded).toList() == [
-            FileChange.removed("file1.txt", "test", FileType.RegularFile),
-            FileChange.removed("file2.txt", "test", FileType.RegularFile)
+            DefaultFileChange.removed("file1.txt", "test", FileType.RegularFile, "file1.txt"),
+            DefaultFileChange.removed("file2.txt", "test", FileType.RegularFile, "file2.txt")
         ]
 
         where:

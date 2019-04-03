@@ -36,11 +36,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
+    private final TransformationNodeRegistry transformationNodeRegistry;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
@@ -49,6 +51,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
+        TransformationNodeRegistry transformationNodeRegistry,
         AttributeContainerInternal requested,
         boolean ignoreWhenNoMatches,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
@@ -56,6 +59,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
+        this.transformationNodeRegistry = transformationNodeRegistry;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.dependenciesResolver = dependenciesResolver;
@@ -98,14 +102,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         if (candidates.size() > 1) {
-            candidates = tryDisambiguate(matcher, candidates);
+            candidates = tryDisambiguate(matcher, candidates, componentRequested);
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
             ResolvedArtifactSet artifacts = result.getLeft().getArtifacts();
             AttributeContainerInternal attributes = result.getRight().attributes;
             Transformation transformation = result.getRight().transformation;
-            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver);
+            return new ConsumerProvidedResolvedVariant(producer.getComponentId(), artifacts, attributes, transformation, dependenciesResolver, transformationNodeRegistry);
         }
 
         if (!candidates.isEmpty()) {
@@ -118,7 +122,13 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates) {
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
+        candidates = disambiguateWithSchema(matcher, candidates, componentRequested);
+
+        if (candidates.size() == 1) {
+            return candidates;
+        }
+
         if (candidates.size() == 2) {
             // Short circuit logic when only 2 candidates
             return compareCandidates(matcher, candidates.get(0), candidates.get(1))
@@ -159,6 +169,19 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         return shortestTransforms;
+    }
+
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
+        List<AttributeContainerInternal> candidateAttributes = candidates.stream().map(pair -> pair.getRight().attributes).collect(Collectors.toList());
+        List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested);
+        if (matches.size() == 1) {
+            AttributeContainerInternal singleMatch = matches.get(0);
+            return candidates.stream().filter(pair -> pair.getRight().attributes.equals(singleMatch)).collect(Collectors.toList());
+        } else if (matches.size() > 0 && matches.size() < candidates.size()) {
+            // We know all are compatibles, so this is only possible if some disambiguation happens but not getting us to 1 candidate
+            return candidates.stream().filter(pair -> matches.contains(pair.getRight().attributes)).collect(Collectors.toList());
+        }
+        return candidates;
     }
 
     private Optional<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> compareCandidates(AttributeMatcher matcher,

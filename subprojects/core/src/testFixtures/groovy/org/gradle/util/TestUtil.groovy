@@ -72,9 +72,9 @@ class TestUtil {
     private static ObjectFactory objFactory(FileResolver fileResolver) {
         DefaultServiceRegistry services = new DefaultServiceRegistry()
         services.add(ProviderFactory, new DefaultProviderFactory())
+        services.add(InstantiatorFactory, instantiatorFactory())
         return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), NamedObjectInstantiator.INSTANCE, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver), TestFiles.fileCollectionFactory())
     }
-
 
     static NamedObjectInstantiator objectInstantiator() {
         return NamedObjectInstantiator.INSTANCE

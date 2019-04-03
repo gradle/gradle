@@ -31,7 +31,7 @@ import org.hamcrest.Matcher
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
-
+import org.junit.Before
 import org.junit.Test
 
 import java.io.File
@@ -46,17 +46,33 @@ import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
+    @Before
+    fun setUpSettings() {
+
+        withDefaultSettings()
+    }
+
     @Test
     fun `succeeds with no script`() {
 
-        withDefaultSettings()
         assertSucceeds()
     }
 
     @Test
+    fun `returns given Java home`() {
+
+        val javaHome = System.getProperty("java.home")
+        val env = arrayOf("gradleJavaHome" to javaHome)
+        assertThat(
+            resolvedScriptDependencies(env = *env)?.javaHome,
+            equalTo(javaHome)
+        )
+    }
+
+
+    @Test
     fun `succeeds on init script`() {
 
-        withDefaultSettings()
         assertSucceeds(withFile("my.init.gradle.kts", """
             require(this is Gradle)
         """))
@@ -79,7 +95,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `succeeds on project script`() {
 
-        withDefaultSettings()
         assertSucceeds(withFile("build.gradle.kts", """
             require(this is Project)
         """))
@@ -96,8 +111,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
 
-        withDefaultSettings()
-
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.init.gradle.kts", """
             require(this is Gradle)
         """))
@@ -108,7 +121,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             apply(plugin = "my-plugin")
         """)
 
@@ -122,7 +135,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -138,7 +150,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun `report file fatality on TAPI failure`() {
         // thus disabling syntax highlighting
 
-        withDefaultSettings()
         val editedScript = withBuildScript("")
 
         val wrongEnv = arrayOf("gradleHome" to existing("absent"))
@@ -155,7 +166,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `report file error on TAPI failure when reusing previous dependencies`() {
 
-        withDefaultSettings()
         val editedScript = withBuildScript("")
 
         val previous = resolvedScriptDependencies(editedScript).apply {
@@ -182,7 +192,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             BOOM
         """)
 
-        withDefaultSettings()
         val editedScript = withBuildScript("")
 
         resolvedScriptDependencies(editedScript).apply {
@@ -201,7 +210,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         withKotlinBuildSrc()
         val buildSrcKotlinSource = withFile("buildSrc/src/main/kotlin/Foo.kt", "")
 
-        withDefaultSettings()
         val editedScript = withBuildScript("")
 
         val previous = resolvedScriptDependencies(editedScript).apply {
@@ -224,7 +232,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun `do not report file warning on script compilation failure in currently edited script`() {
         // because the IDE already provides user feedback for those
 
-        withDefaultSettings()
         val editedScript = withBuildScript("""
             doNotExists()
         """)
@@ -242,7 +249,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `report file warning on script compilation failure in another script`() {
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             include("a", "b")
         """)
         withBuildScript("")
@@ -263,7 +270,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `report file warning on runtime failure in currently edited script`() {
-        withDefaultSettings()
+
         val editedScript = withBuildScript("""
             configurations.getByName("doNotExists")
         """)
@@ -281,7 +288,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
 
-        withDefaultSettings()
         withFile("gradle.properties", """
             ${EditorReports.locationAwareEditorHintsPropertyName}=true
         """)
@@ -302,7 +308,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `report file warning on runtime failure in another script`() {
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             include("a", "b")
         """)
         withBuildScript("")

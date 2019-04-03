@@ -51,6 +51,7 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
                     spec.args(reportDir.path, resultJson.path, getProject().getName())
                     spec.systemProperties(databaseParameters)
                     spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                    spec.systemProperty("githubToken", project.findProperty("githubToken"))
                     spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
                 }
             })
@@ -76,9 +77,12 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
     static class ScenarioBuildResultData {
         String teamCityBuildId
         String scenarioName
+        String scenarioClass
         String webUrl
         String testFailure
         // SUCCESS/FAILURE/UNKNOWN
         String status
+        String agentName
+        String agentUrl
     }
 }

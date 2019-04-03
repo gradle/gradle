@@ -91,6 +91,7 @@ public abstract class Actions {
      * @param <T> The type of the object that action is for
      * @return The composite action.
      */
+    @SafeVarargs
     public static <T> Action<T> composite(Action<? super T>... actions) {
         List<Action<? super T>> filtered = Lists.newArrayListWithCapacity(actions.length);
         for (Action<? super T> action : actions) {

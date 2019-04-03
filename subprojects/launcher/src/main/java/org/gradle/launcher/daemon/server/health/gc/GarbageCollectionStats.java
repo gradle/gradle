@@ -16,118 +16,100 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.util.NumberUtil;
 
-import java.lang.management.MemoryUsage;
-import java.util.Set;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 public class GarbageCollectionStats {
-    final private double rate;
-    final private long used;
-    final private long max;
-    final private long eventCount;
+    private final double gcRate;
+    private final int usedPercent;
+    private final long maxSizeInBytes;
+    private final long eventCount;
 
-    public GarbageCollectionStats(Set<GarbageCollectionEvent> events) {
-        this.rate = calculateRate(events);
-        this.used = calculateAverageUsage(events);
-        this.max = calculateMaxSize(events);
-        this.eventCount = events.size();
+    private GarbageCollectionStats(double gcRate, long usedSizeInBytes, long maxSizeInBytes, long eventCount) {
+        this.gcRate = gcRate;
+        if (maxSizeInBytes > 0) {
+            this.usedPercent = NumberUtil.percentOf(usedSizeInBytes, maxSizeInBytes);
+        } else {
+            this.usedPercent = 0;
+        }
+        this.maxSizeInBytes = maxSizeInBytes;
+        this.eventCount = eventCount;
     }
 
-    static double calculateRate(Set<GarbageCollectionEvent> events) {
-        long firstGC = 0;
-        long lastGC = 0;
-        long firstCount = 0;
-        long lastCount = 0;
-        for (GarbageCollectionEvent event : events) {
-            // Skip if this was a polling event and the garbage collector did not fire in between events
-            if (event.getCount() == lastCount || event.getCount() == 0) {
-                continue;
-            }
-
-            lastCount = event.getCount();
-
-            if (firstGC == 0) {
-                firstGC = event.getTimestamp();
-                firstCount = event.getCount();
-            } else {
-                lastGC = event.getTimestamp();
-            }
+    static GarbageCollectionStats forHeap(Collection<GarbageCollectionEvent> events) {
+        if (events.isEmpty()) {
+            return noData();
+        } else {
+            return new GarbageCollectionStats(
+                    calculateRate(events),
+                    calculateAverageUsage(events),
+                    findMaxSize(events),
+                    events.size()
+            );
         }
+    }
 
-        if (events.size() < 2 || lastCount == 0) {
+    static GarbageCollectionStats forNonHeap(Collection<GarbageCollectionEvent> events) {
+        if (events.isEmpty()) {
+            return noData();
+        } else {
+            return new GarbageCollectionStats(
+                    0, // non-heap spaces are not garbage collected
+                    calculateAverageUsage(events),
+                    findMaxSize(events),
+                    events.size()
+            );
+        }
+    }
+
+    private static GarbageCollectionStats noData() {
+        return new GarbageCollectionStats(0, 0, -1, 0);
+    }
+
+    private static double calculateRate(Collection<GarbageCollectionEvent> events) {
+        if (events.size() < 2) {
+            // not enough data points
             return 0;
-        } else {
-            long elapsed = lastGC - firstGC;
-            long totalCount = lastCount - firstCount;
-            return ((double) totalCount) / elapsed * 1000;
         }
+        GarbageCollectionEvent first = events.iterator().next();
+        GarbageCollectionEvent last = Iterables.getLast(events);
+        // Total number of garbage collection events observed in the window
+        long gcCountDelta = last.getCount() - first.getCount();
+        // Time interval between the first event in the window and the last
+        long timeDelta = TimeUnit.MILLISECONDS.toSeconds(last.getTimestamp() - first.getTimestamp());
+        return (double)gcCountDelta / timeDelta;
     }
 
-    static long calculateAverageUsage(Set<GarbageCollectionEvent> events) {
-        if (events.size() < 1) {
-            return -1;
-        }
-
-        long total = 0;
-        long firstCount = 0;
-        long lastCount = 0;
+    private static long calculateAverageUsage(Collection<GarbageCollectionEvent> events) {
+        long sum = 0;
         for (GarbageCollectionEvent event : events) {
-            // Skip if the garbage collector did not fire in between events
-            if (event.getCount() == lastCount || event.getCount() == 0) {
-                continue;
-            }
-
-            MemoryUsage usage = event.getUsage();
-            if (firstCount == 0) {
-                firstCount = event.getCount();
-                total += usage.getUsed();
-            } else {
-                total += usage.getUsed() * (event.getCount() - lastCount);
-            }
-
-            lastCount = event.getCount();
+            sum += event.getUsage().getUsed();
         }
-
-        if (lastCount == 0 || lastCount == firstCount) {
-            return -1;
-        } else {
-            long totalCount = lastCount - firstCount + 1;
-            return total / totalCount;
-        }
+        return sum / events.size();
     }
 
-    static long calculateMaxSize(Set<GarbageCollectionEvent> events) {
-        if (events.size() < 1) {
-            return -1;
-        }
-
+    private static long findMaxSize(Collection<GarbageCollectionEvent> events) {
         // Maximum pool size is fixed, so we should only need to get it from the first event
-        MemoryUsage usage = events.iterator().next().getUsage();
-        return usage.getMax();
+        GarbageCollectionEvent first = events.iterator().next();
+        return first.getUsage().getMax();
     }
 
-    public double getRate() {
-        return rate;
+    public double getGcRate() {
+        return gcRate;
     }
 
-    public int getUsage() {
-        if (used > 0 && max > 0) {
-            return NumberUtil.percentOf(used, max);
-        } else {
-            return -1;
-        }
+    public int getUsedPercent() {
+        return usedPercent;
     }
 
-    public double getUsed() {
-        return used;
+    public long getMaxSizeInBytes() {
+        return maxSizeInBytes;
     }
 
-    public long getMax() {
-        return max;
-    }
-
-    public long getEventCount() {
-        return eventCount;
+    public boolean isValid() {
+        return eventCount >= 5 && maxSizeInBytes > 0;
     }
 }

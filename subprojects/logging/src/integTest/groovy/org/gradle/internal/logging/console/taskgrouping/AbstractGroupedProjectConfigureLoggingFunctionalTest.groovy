@@ -47,7 +47,7 @@ abstract class AbstractGroupedProjectConfigureLoggingFunctionalTest extends Abst
         run()
 
         then:
-        def normalizedOutput = LogContent.of(result.output).removeAnsiChars().withNormalizedEol()
+        def normalizedOutput = LogContent.of(result.output).ansiCharsToPlainText().withNormalizedEol()
         normalizedOutput.contains("""
 > Configure project :
 root project

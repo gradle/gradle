@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     compile(project(":core"))
-    compile(library("jcip"))
 
     integTestCompile(project(":internalIntegTesting"))
     testFixturesApi(project(":internalTesting"))

@@ -16,131 +16,146 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Unroll
 
+import javax.annotation.Nullable
+
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
+import static org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory.UNKNOWN
+
 class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+    def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
+
     def setup() {
         buildFile << """
             import org.gradle.api.internal.tasks.TaskOutputCachingDisabledReasonCategory
-            
-            gradle.addListener(new TaskExecutionAdapter() {
-                void afterExecute(Task task, TaskState state) {
-                    def taskOutputCaching = state.taskOutputCaching
-                    assert taskOutputCaching.enabled == task.cachingEnabled
-                    assert taskOutputCaching.disabledReason == task.disabledReason
-                    assert taskOutputCaching.disabledReasonCategory == task.disabledReasonCategory
-                }
-            })
 
-            class BaseTask extends DefaultTask {
-                // these are not inputs, they're used for verification
-                boolean cachingEnabled
-                String disabledReason
-                TaskOutputCachingDisabledReasonCategory disabledReasonCategory
-            }
-            
-            class NotCacheable extends BaseTask {
+            class NotCacheable extends DefaultTask {
                 @Input
                 String message = "Hello World"
                 @OutputFile
                 File outputFile = new File(temporaryDir, "output.txt")
-                
+
                 @TaskAction
                 public void generate() {
                     outputFile.text = message
                 }
             }
-            
+
             @CacheableTask
-            class Cacheable extends NotCacheable {
+            class Cacheable extends NotCacheable {}
+            
+            class NoOutputs extends DefaultTask {
+                @TaskAction
+                void generate() {}
             }
+
         """
     }
 
     def "default cacheability is BUILD_CACHE_DISABLED"() {
         buildFile << """
-            task cacheable(type: Cacheable) {
-                cachingEnabled = false
-                disabledReason = "Task output caching is disabled"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
-            }
-            task notcacheable(type: NotCacheable) {
-                cachingEnabled = false
-                disabledReason = "Task output caching is disabled"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.BUILD_CACHE_DISABLED
-            }
+            task cacheable(type: Cacheable) {}
+            task notcacheable(type: NotCacheable) {}
+            task noOutputs(type: NoOutputs) {}
         """
-        expect:
-        succeeds "cacheable", "notcacheable"
+        when:
+        run "cacheable"
+        then:
+        assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
+
+        when:
+        run "notcacheable"
+        then:
+        assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
+
+        when:
+        run "noOutputs"
+        then:
+        assertCachingDisabledFor BUILD_CACHE_DISABLED, "Build cache is disabled"
     }
 
     def "cacheability for non-cacheable task is NOT_ENABLED_FOR_TASK"() {
         buildFile << """
-            task cacheable(type: NotCacheable) {
-                cachingEnabled = false
-                disabledReason = "Caching has not been enabled for the task"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
-            }
+            task notcacheable(type: NotCacheable) {}
         """
-        expect:
-        withBuildCache().run "cacheable"
+        when:
+        withBuildCache().run "notcacheable"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
     def "cacheability for a cacheable task is null"() {
         buildFile << """
-            task cacheable(type: Cacheable) {
-                cachingEnabled = true
-                disabledReason = null
-                disabledReasonCategory = null
-            }
+            task cacheable(type: Cacheable) {}
         """
-        expect:
+        when:
         withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor null, null
     }
 
-    def "cacheability for a task with no outputs is NO_OUTPUTS_DECLARED"() {
+    def "cacheability for a cacheable task with no outputs is NO_OUTPUTS_DECLARED"() {
         buildFile << """
             @CacheableTask
-            class NoOutputs extends BaseTask {
+            class CacheableNoOutputs extends DefaultTask {
                 @TaskAction
                 void generate() {}
             }
             
-            task cacheable(type: NoOutputs) {
-                cachingEnabled = false
-                disabledReason = "No outputs declared"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NO_OUTPUTS_DECLARED
-            }
+            task noOutputs(type: CacheableNoOutputs) {}
         """
-        expect:
-        withBuildCache().run "cacheable"
+        when:
+        withBuildCache().run "noOutputs"
+        then:
+        assertCachingDisabledFor NO_OUTPUTS_DECLARED, "No outputs declared"
     }
 
-    def "cacheability for a task with no actions is UNKNOWN"() {
+    def "cacheability for a non-cacheable task with no outputs is NOT_ENABLED_FOR_TASK"() {
         buildFile << """
-            @CacheableTask
-            class NoActions extends BaseTask {
-            }
-            
-            task cacheable(type: NoActions) {
-                cachingEnabled = false
-                disabledReason = "Cacheability was not determined"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
+            task noOutputs(type: NoOutputs) {}
+        """
+        when:
+        withBuildCache().run "noOutputs"
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
+    }
+
+    @Unroll
+    def "cacheability for a task with no actions is UNKNOWN (cacheable: #cacheable)"() {
+        buildFile << """
+            class NoActions extends DefaultTask {}
+
+            task noActions {
+                outputs.cacheIf { $cacheable }
             }
         """
-        expect:
-        withBuildCache().run "cacheable"
+        when:
+        withBuildCache().run "noActions"
+        then:
+        assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
+
+        where:
+        cacheable << [true, false]
     }
 
     @Unroll
     def "cacheability for a task with @#annotation file tree outputs is NON_CACHEABLE_TREE_OUTPUT"() {
         buildFile << """
             @CacheableTask
-            class PluralOutputs extends BaseTask {
+            class PluralOutputs extends DefaultTask {
                 @$annotation
                 def outputFiles = [project.fileTree('build/some-dir')]
                 
@@ -151,14 +166,12 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 }
             }
             
-            task cacheable(type: PluralOutputs) {
-                cachingEnabled = false
-                disabledReason = "Output property 'outputFiles' contains a file tree"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NON_CACHEABLE_TREE_OUTPUT
-            }
+            task pluralOutputs(type: PluralOutputs)
         """
-        expect:
-        withBuildCache().run "cacheable"
+        when:
+        withBuildCache().run "pluralOutputs"
+        then:
+        assertCachingDisabledFor NON_CACHEABLE_TREE_OUTPUT, "Output property 'outputFiles' contains a file tree"
 
         where:
         annotation << [OutputFiles.simpleName, OutputDirectories.simpleName]
@@ -166,60 +179,52 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
     def "cacheability for a task with overlapping outputs is OVERLAPPING_OUTPUTS"() {
         buildFile << """
-            task cacheable(type: Cacheable) {
-                cachingEnabled = true
-                disabledReason = null
-                disabledReasonCategory = null
-            }
-            
+            task cacheable(type: Cacheable)
             task cacheableWithOverlap(type: Cacheable) {
                 outputFile = cacheable.outputFile
-                cachingEnabled = false
-                disabledReason = "Gradle does not know how file '" + project.relativePath(outputFile) + "' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness."
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
             }
         """
-        expect:
+        when:
         withBuildCache().run "cacheable", "cacheableWithOverlap"
+        then:
+        assertCachingDisabledFor null, null, ":cacheable"
+        assertCachingDisabledFor OVERLAPPING_OUTPUTS, "Gradle does not know how file 'build${File.separator}tmp${File.separator}cacheable${File.separator}output.txt' was created (output property 'outputFile'). Task output caching requires exclusive access to output paths to guarantee correctness.", ":cacheableWithOverlap"
     }
 
     def "cacheability for a task with a cacheIf is CACHE_IF_SPEC_NOT_SATISFIED"() {
         buildFile << """
             task cacheable(type: Cacheable) {
                 outputs.cacheIf("always false") { false }
-                cachingEnabled = false
-                disabledReason = "'always false' not satisfied"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.CACHE_IF_SPEC_NOT_SATISFIED
             }
         """
-        expect:
+        when:
         withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor CACHE_IF_SPEC_NOT_SATISFIED, "'always false' not satisfied"
     }
 
     def "cacheability for a task with a doNotCacheIf is DO_NOT_CACHE_IF_SPEC_SATISFIED"() {
         buildFile << """
             task cacheable(type: Cacheable) {
                 outputs.doNotCacheIf("always true") { true }
-                cachingEnabled = false
-                disabledReason = "'always true' satisfied"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.DO_NOT_CACHE_IF_SPEC_SATISFIED
             }
         """
-        expect:
+        when:
         withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor DO_NOT_CACHE_IF_SPEC_SATISFIED, "'always true' satisfied"
     }
 
     def "cacheability for a task with onlyIf is UNKNOWN"() {
         buildFile << """
             task cacheable(type: Cacheable) {
                 onlyIf { false }
-                cachingEnabled = false
-                disabledReason = "Cacheability was not determined"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
             }
         """
-        expect:
+        when:
         withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
     }
 
     def "cacheability for a task with no sources is UNKNOWN"() {
@@ -231,71 +236,86 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
                 FileCollection empty = project.layout.files()
             }
             
-            task cacheable(type: NoSources) {
-                cachingEnabled = false
-                disabledReason = "Cacheability was not determined"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.UNKNOWN
-            }
+            task cacheable(type: NoSources)
         """
-        expect:
+        when:
         withBuildCache().run "cacheable"
+        then:
+        assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
     }
 
     def "cacheability for a cacheable task that's up-to-date"() {
         buildFile << """
-            task cacheable(type: Cacheable) {
-                cachingEnabled = true
-                disabledReason = null
-                disabledReasonCategory = null
-            }
+            task cacheable(type: Cacheable)
         """
+        when:
         withBuildCache().run "cacheable"
-        expect:
+        then:
+        executedAndNotSkipped(":cacheable")
+        assertCachingDisabledFor null, null
+
+        when:
         withBuildCache().run "cacheable"
+        then:
+        skipped(":cacheable")
+        assertCachingDisabledFor null, null
     }
 
     def "cacheability for a non-cacheable task that's up-to-date"() {
         buildFile << """
-            task cacheable(type: NotCacheable) {
-                cachingEnabled = false
-                disabledReason = "Caching has not been enabled for the task"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
-            }
+            task notcacheable(type: NotCacheable)
         """
-        withBuildCache().run "cacheable"
-        expect:
-        withBuildCache().run "cacheable"
+        when:
+        withBuildCache().run "notcacheable"
+        then:
+        executedAndNotSkipped(":notcacheable")
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
+
+        when:
+        withBuildCache().run "notcacheable"
+        then:
+        skipped(":notcacheable")
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
     def "cacheability for a failing cacheable task is null"() {
         buildFile << """
             task cacheable(type: Cacheable) {
-                cachingEnabled = true
-                disabledReason = null
-                disabledReasonCategory = null
                 doLast {
                     throw new GradleException("boom")
                 }
             }
         """
-        expect:
+        when:
         withBuildCache().fails "cacheable"
         failure.assertHasCause("boom")
+        then:
+        assertCachingDisabledFor null, null
     }
 
     def "cacheability for a failing non-cacheable task is NOT_ENABLED_FOR_TASK"() {
         buildFile << """
             task cacheable(type: NotCacheable) {
-                cachingEnabled = false
-                disabledReason = "Caching has not been enabled for the task"
-                disabledReasonCategory = TaskOutputCachingDisabledReasonCategory.NOT_ENABLED_FOR_TASK
                 doLast {
                     throw new GradleException("boom")
                 }
             }
         """
-        expect:
+        when:
         withBuildCache().fails "cacheable"
         failure.assertHasCause("boom")
+        then:
+        assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
+    }
+
+    private void assertCachingDisabledFor(@Nullable TaskOutputCachingDisabledReasonCategory category, @Nullable String message, @Nullable String taskPath = null) {
+        operations.only(ExecuteTaskBuildOperationType, {
+            if (taskPath && taskPath != it.details.taskPath) {
+                return false
+            }
+            assert it.result.cachingDisabledReasonCategory == category?.name()
+            assert it.result.cachingDisabledReasonMessage == message
+            return true
+        })
     }
 }

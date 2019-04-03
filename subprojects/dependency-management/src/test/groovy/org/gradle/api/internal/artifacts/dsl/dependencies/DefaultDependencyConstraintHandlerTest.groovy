@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.VersionConstraint
-import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -35,9 +34,8 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
     private def dependencyFactory = Mock(DependencyFactory)
     private def configuration = Mock(Configuration)
     private def dependencyConstraintSet = Mock(DependencyConstraintSet)
-    private def componentMetadataHandler = Mock(ComponentMetadataHandler)
 
-    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory, componentMetadataHandler)
+    private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyFactory, TestUtil.objectInstantiator())
 
     void setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration

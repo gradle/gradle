@@ -28,11 +28,11 @@ import com.google.common.io.LineProcessor;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType;
-import org.gradle.api.logging.Logger;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.serialize.ListSerializer;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;

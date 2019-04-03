@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures.server.http;
 
-public class UnexpectedRequestException extends AssertionError {
+public class UnexpectedRequestException extends RuntimeException {
     public UnexpectedRequestException(String message) {
         super(message, null);
     }

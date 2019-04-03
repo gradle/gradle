@@ -52,7 +52,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
     }
 
     def setup() {
-        def targetVersion = "5.3-20190201000727+0000"
+        def targetVersion = "5.4-20190322154513+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumVersion = targetVersion
     }
@@ -82,7 +82,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.testProject = testProject
         runner.tasksToRun = ['help']
         runner.runs = runs
-        runner.args = extraGradleBuildArguments() + ["-Pgradlebuild.skipBuildSrcChecks=true"]
+        runner.args = extraGradleBuildArguments() + ["-PbuildSrcCheck=false"]
 
         and:
         def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"

@@ -40,6 +40,11 @@ class ProvidersTest extends ProviderSpec<Integer> {
         return 123
     }
 
+    @Override
+    boolean isNoValueProviderImmutable() {
+        return true
+    }
+
     def "mapped fixed value provider calculates transformed value lazily and caches the result"() {
         given:
         def transform = Mock(Transformer)

@@ -19,7 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;

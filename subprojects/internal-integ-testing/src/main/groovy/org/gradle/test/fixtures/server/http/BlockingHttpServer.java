@@ -27,6 +27,8 @@ import org.junit.rules.ExternalResource;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -54,6 +56,7 @@ public class BlockingHttpServer extends ExternalResource {
     private final int timeoutMs;
     private final int serverId;
     private boolean running;
+    private int clientVarCounter;
 
     public BlockingHttpServer() throws IOException {
         this(120000);
@@ -95,20 +98,42 @@ public class BlockingHttpServer extends ExternalResource {
      * Returns Java statements to get the given resource.
      */
     public String callFromBuild(String resource) {
-        URI uri = uri(resource);
-        return "System.out.println(\"calling " + uri + "\"); try { new java.net.URL(\"" + uri + "\").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
-    }
-
-    public String callFromTaskAction(String resource) {
-        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
-    }
+        return callFromBuildUsingExpression("\"" + resource + "\"");
+     }
 
     /**
      * Returns Java statements to get the given resource, using the given expression to calculate the resource to get.
      */
     public String callFromBuildUsingExpression(String expression) {
         String uriExpression = "\"" + getUri() + "/\" + " + expression;
-        return "System.out.println(\"calling \" + " + uriExpression + "); try { new java.net.URL(" + uriExpression + ").openConnection().getContentLength(); } catch(Exception e) { throw new RuntimeException(e); }; System.out.println(\"[G] response received\");";
+        int count = clientVarCounter++;
+        String connectionVar = "connection" + count;
+        String urlVar = "url" + count;
+        String streamVar = "inputStream" + count;
+        StringWriter result = new StringWriter();
+        PrintWriter writer = new PrintWriter(result);
+        writer.print("String " + urlVar + " = " + uriExpression + ";");
+        writer.print("System.out.println(\"[G] calling \" + " + urlVar + ");");
+        writer.print("try {");
+        writer.print("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
+        writer.print("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
+        writer.print("  " + connectionVar + ".connect();");
+        writer.print("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
+        writer.print("  try {");
+        writer.print("    while (" + streamVar + ".read() >= 0) {}"); // read entire response
+        writer.print("  } finally {");
+        writer.print("    " + streamVar + ".close();");
+        writer.print("  }");
+        writer.print("} catch(Exception e) {");
+        writer.print("  System.out.println(\"[G] error response received for \" + " + urlVar + ");");
+        writer.print("  throw new RuntimeException(\"Received error response from \" + " + urlVar + ", e);");
+        writer.print("};");
+        writer.println("System.out.println(\"[G] response received for \" + " + urlVar + ");");
+        return result.toString();
+    }
+
+    public String callFromTaskAction(String resource) {
+        return "getServices().get(" + WorkerLeaseService.class.getCanonicalName() + ".class).withoutProjectLock(new Runnable() { void run() { " + callFromBuild(resource) + " } });";
     }
 
     /**

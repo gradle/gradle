@@ -53,11 +53,11 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty('myProperty', { it.call() == 'myValue' }, false)
-        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, InputFilePropertyType.FILE)
-        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, InputFilePropertyType.FILES)
+        1 * visitor.visitInputFileProperty('inputFile', _, _, _, _, _, InputFilePropertyType.FILE)
+        1 * visitor.visitInputFileProperty('inputFiles', _, _, _, _, _, InputFilePropertyType.FILES)
         1 * visitor.visitInputProperty('bean', { it.call() == NestedBean }, false)
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
-        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, InputFilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _, InputFilePropertyType.DIRECTORY)
 
         1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
         1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
@@ -195,7 +195,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         _ * visitor.visitOutputFilePropertiesOnly() >> false
         1 * visitor.visitInputProperty("nested" , _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
-        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, InputFilePropertyType.DIRECTORY)
+        1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _, InputFilePropertyType.DIRECTORY)
         1 * visitor.visitOutputFileProperty("nested.outputDir", false, _, OutputFilePropertyType.DIRECTORY)
 
         0 * _
@@ -228,6 +228,6 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, validationContext, visitor)
+        new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, validationContext, visitor)
     }
 }

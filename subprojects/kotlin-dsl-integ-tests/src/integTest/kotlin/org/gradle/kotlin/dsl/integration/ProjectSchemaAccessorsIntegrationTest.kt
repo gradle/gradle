@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.allOf
@@ -40,8 +41,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
-        withSettings("""
-            $pluginManagementBlock
+        withDefaultSettings().appendText("""
             include(":sub")
         """)
 
@@ -114,7 +114,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -173,7 +172,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -211,7 +209,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("plugin") }
@@ -258,7 +255,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -326,7 +322,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins { id("my.plugin") }
@@ -421,8 +416,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 plugins { id("app-or-lib") }
                 my { name = "kotlin-dsl" }
             """)
-
-            withDefaultSettings()
         }
 
         build("tasks", "-Pmy=lib")
@@ -445,8 +438,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `can configure publishing extension`() {
-
-        withDefaultSettings()
 
         withBuildScript("""
 
@@ -513,7 +504,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """)
         }
 
-        withDefaultSettings()
         withBuildScript("""
 
             plugins {
@@ -544,7 +534,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins { application }
 
@@ -564,7 +553,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access configurations registered by declared plugins via jit accessor`() {
 
-        withSettings("""
+        withDefaultSettings().appendText("""
             include("a", "b", "c")
         """)
 
@@ -656,7 +645,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -706,7 +694,9 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
-        withSettings("include(\"a\")")
+        withDefaultSettings().appendText("""
+            include("a")
+        """)
         withBuildScriptIn("a", "")
 
         val aTasks = build(":a:tasks").output
@@ -741,7 +731,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
 
             inline fun <reified T> typeOf(t: T) = T::class.simpleName
@@ -794,7 +783,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("mine")
@@ -890,7 +878,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -960,7 +947,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             class MyPrivateConventionImpl : MyConvention
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 id("my-plugin")
@@ -999,7 +985,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing configurations`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1024,7 +1009,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing tasks`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1053,7 +1037,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing source sets`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 java
@@ -1093,7 +1076,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to existing elements of extensions that are containers`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 distribution
@@ -1125,7 +1107,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             (dependencies as ExtensionAware).extensions.create<Mine>("mine")
         """)
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `my-plugin`
@@ -1139,6 +1120,65 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         build("help").apply {
             assertThat(output, containsString("42"))
         }
+    }
+
+    @Test
+    fun `can access project extension of nested type compiled to Java 11`() {
+
+        assumeJava11()
+
+        withFolders {
+            "buildSrc" {
+                "src/main/java/build" {
+                    withFile("Java11Plugin.java", """
+                        package build;
+
+                        import org.gradle.api.*;
+
+                        public class Java11Plugin implements Plugin<Project> {
+
+                            public static class Java11Extension {}
+
+                            @Override public void apply(Project project) {
+                                project.getExtensions().create("java11", Java11Extension.class);
+                            }
+                        }
+                    """)
+                }
+                withFile("settings.gradle.kts")
+                withFile("build.gradle.kts", """
+                    plugins {
+                        `java-library`
+                        `java-gradle-plugin`
+                    }
+
+                    java {
+                        sourceCompatibility = JavaVersion.VERSION_11
+                        targetCompatibility = JavaVersion.VERSION_11
+                    }
+
+                    gradlePlugin {
+                        plugins {
+                            register("java11") {
+                                id = "java11"
+                                implementationClass = "build.Java11Plugin"
+                            }
+                        }
+                    }
+                """)
+            }
+        }
+
+        withBuildScript("""
+            plugins { id("java11") }
+
+            java11 { println(this.javaClass.name) }
+        """)
+
+        assertThat(
+            build("-q").output,
+            containsString("build.Java11Plugin${'$'}Java11Extension")
+        )
     }
 
     private

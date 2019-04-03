@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.CompatibilityCheckDetails
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.reporting.ReportingExtension
@@ -37,7 +38,9 @@ import org.gradle.platform.base.BinarySpec
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
@@ -499,5 +502,44 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_CLASSES   | false
         Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_RESOURCES | false
         Usage.JAVA_RUNTIME_JARS      | Usage.JAVA_RUNTIME_JARS      | true
+    }
+
+    @Issue("gradle/gradle#8700")
+    @Unroll
+    def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
+        given:
+        JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
+                usage(Usage.JAVA_API),
+                usage(Usage.JAVA_API_JARS),
+                usage(Usage.JAVA_API_CLASSES),
+                usage(Usage.JAVA_RUNTIME),
+                usage(Usage.JAVA_RUNTIME_JARS),
+                usage(Usage.JAVA_RUNTIME_CLASSES),
+                usage(Usage.JAVA_RUNTIME_RESOURCES)
+        )
+        MultipleCandidatesDetails details = Mock()
+
+        when:
+        rules.execute(details)
+
+        then:
+        1 * details.getConsumerValue() >> usage(consumer)
+        1 * details.getCandidateValues() >> candidates.collect { usage(it) }
+        1 * details.closestMatch(usage(preferred))
+
+        where: // not exhaustive, tests pathological cases
+        consumer                | candidates                                            | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API_CLASSES]         | Usage.JAVA_API_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_API_CLASSES]  | Usage.JAVA_API_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_RUNTIME_CLASSES, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_RUNTIME_CLASSES
+        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]        | Usage.JAVA_API_JARS
+
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME
+        Usage.JAVA_RUNTIME_JARS | [Usage.JAVA_RUNTIME, Usage.JAVA_RUNTIME_JARS]         | Usage.JAVA_RUNTIME_JARS
+
+    }
+
+    private Usage usage(String value) {
+        TestUtil.objectFactory().named(Usage, value)
     }
 }

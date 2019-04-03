@@ -18,6 +18,7 @@ package org.gradle.jvm.tasks.api.internal
 
 import org.gradle.internal.classanalysis.AsmConstants
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.junit.Assume
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -26,6 +27,8 @@ import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
+
+import static org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6
 
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
@@ -284,6 +287,8 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
     }
 
     void "target binary compatibility is maintained"() {
+        Assume.assumeFalse(target == "1.6" && !SUPPORTS_TARGETING_JAVA6.fulfilled)
+
         given:
         def api = toApi(target, [A: 'public class A {}'])
 
@@ -304,6 +309,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         target | expectedVersion
         '1.6'  | 50
         '1.7'  | 51
+        '1.8'  | 52
     }
 
     def "should not remove public field"() {

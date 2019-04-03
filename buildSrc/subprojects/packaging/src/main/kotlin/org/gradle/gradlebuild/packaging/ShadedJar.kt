@@ -72,7 +72,7 @@ open class ShadedJar : DefaultTask() {
 
         val classesToInclude = mutableSetOf<String>()
 
-        val queue: Queue<String> = ArrayDeque<String>()
+        val queue: Queue<String> = ArrayDeque()
         queue.addAll(entryPoints)
         while (!queue.isEmpty()) {
             val className = queue.remove()
@@ -120,7 +120,7 @@ internal
 fun buildClassTrees(individualClassTrees: List<Map<String, List<String>>>): Map<String, Set<String>> =
     individualClassTrees.flatMap { it.entries }
         .groupingBy { it.key }
-        .aggregate<Map.Entry<String, List<String>>, String, Set<String>> { _, accumulator: Set<String>?, element: Map.Entry<String, List<String>>, first ->
+        .aggregate { _, accumulator: Set<String>?, element: Map.Entry<String, List<String>>, first ->
             if (first) {
                 element.value.toSet()
             } else {

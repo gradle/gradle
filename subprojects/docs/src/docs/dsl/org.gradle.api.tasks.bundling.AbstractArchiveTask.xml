@@ -26,11 +26,11 @@
             </tr>
             <tr>
                 <td>archiveAppendix</td>
-                <td><literal>null</literal></td>
+                <td><literal>""</literal></td>
             </tr>
             <tr>
                 <td>appendix</td>
-                <td><literal>null</literal></td>
+                <td><literal>""</literal></td>
             </tr>
             <tr>
                 <td>baseName</td>
@@ -58,11 +58,11 @@
             </tr>
             <tr>
                 <td>archiveClassifier</td>
-                <td><literal>null</literal></td>
+                <td><literal>""</literal></td>
             </tr>
             <tr>
                 <td>classifier</td>
-                <td><literal>null</literal></td>
+                <td><literal>""</literal></td>
             </tr>
             <tr>
                 <td>destinationDir</td>

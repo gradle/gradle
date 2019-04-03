@@ -20,6 +20,8 @@ import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 
+import org.gradle.kotlin.dsl.support.delegates.TaskContainerDelegate
+
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -145,12 +147,15 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
 class TaskContainerScope
 private constructor(
     val container: TaskContainer
-) : TaskContainer by container {
+) : TaskContainerDelegate() {
 
     companion object {
         fun of(container: TaskContainer) =
             TaskContainerScope(container)
     }
+
+    override val delegate: TaskContainer
+        get() = container
 
     /**
      * Configures a task by name, without triggering its creation or configuration, failing if there is no such task.

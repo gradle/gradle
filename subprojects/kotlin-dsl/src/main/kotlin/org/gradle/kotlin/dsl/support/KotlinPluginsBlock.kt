@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -41,7 +42,10 @@ abstract class KotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec
 abstract class KotlinBuildscriptAndPluginsBlock(
     private val host: KotlinScriptHost<Project>,
     val pluginDependencies: PluginDependenciesSpec
-) : Project by host.target {
+) : ProjectDelegate() {
+
+    override val delegate: Project
+        get() = host.target
 
     /**
      * The [ScriptHandler] for this script.

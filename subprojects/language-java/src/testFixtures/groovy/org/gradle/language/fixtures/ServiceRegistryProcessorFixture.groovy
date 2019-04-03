@@ -19,6 +19,8 @@ package org.gradle.language.fixtures
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 
+import javax.tools.StandardLocation
+
 /**
  * A processor that collects all types annotated with the @Service annotation
  * and generates a single ServiceRegistry class from them. The registry has
@@ -27,6 +29,8 @@ import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalA
  */
 @CompileStatic
 class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
+    boolean writeResources
+    String resourceLocation = StandardLocation.CLASS_OUTPUT.toString()
 
     ServiceRegistryProcessorFixture() {
         super("Service")
@@ -34,7 +38,7 @@ class ServiceRegistryProcessorFixture extends AnnotationProcessorFixture {
     }
 
     String getGeneratorCode() {
-        """
+        def baseCode = """
 String className = "ServiceRegistry";
 try {
     JavaFileObject sourceFile = filer.createSourceFile(className, elements.toArray(new Element[0]));
@@ -56,5 +60,25 @@ try {
     messager.printMessage(Diagnostic.Kind.ERROR, "Failed to generate source file " + className);
 }
 """
+        def resourceCode = writeResources ? """
+    try {
+        FileObject resourceFile = filer.createResource($resourceLocation, \"\", className + \"Resource.txt\", elements.toArray(new Element[0]));
+        Writer writer = resourceFile.openWriter();
+        try {
+            for (Element element : elements) {
+                TypeElement typeElement = (TypeElement) element;
+                String name = typeElement.getQualifiedName().toString();
+                writer.write(name);
+                writer.write('\\n');
+            }
+        } finally {
+            writer.close();
+        }
+    } catch (Exception e) {
+        messager.printMessage(Diagnostic.Kind.ERROR, "Failed to write resource file .txt");
+    }
+""" : ""
+
+        return baseCode + resourceCode
     }
 }

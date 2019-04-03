@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r18.BrokenAction
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.Requires
@@ -42,9 +43,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         }
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.startsWith("Could not execute build using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        GradleConnectionException e = thrown()
+        e.message.startsWith("Could not execute build using Gradle ")
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
@@ -60,9 +61,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         }
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        GradleConnectionException e = thrown()
+        e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
@@ -78,9 +79,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         }
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.startsWith("Could not run build action using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        GradleConnectionException e = thrown()
+        e.message.startsWith("Could not run build action using Gradle ")
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")
@@ -96,9 +97,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         }
 
         then:
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.message.startsWith("Could not execute tests using Gradle ")
-        caughtGradleConnectionException.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+        GradleConnectionException e = thrown()
+        e.message.startsWith("Could not execute tests using Gradle ")
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6", "1.7")

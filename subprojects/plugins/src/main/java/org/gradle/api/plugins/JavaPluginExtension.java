@@ -59,4 +59,17 @@ public interface JavaPluginExtension {
      * @since 5.3
      */
     void registerFeature(String name, Action<? super FeatureSpec> configureAction);
+
+    /**
+     * If this method is called, Gradle will not automatically try to fetch
+     * dependencies which have a JVM version compatible with the target compatibility
+     * of this module. This should be used whenever the default behavior is not
+     * applicable, in particular when for some reason it's not possible to split
+     * a module and that this module only has some classes which require dependencies
+     * on higher versions.
+     *
+     * @since 5.3
+     */
+    @Incubating
+    void disableAutoTargetJvm();
 }

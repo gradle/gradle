@@ -17,7 +17,7 @@ package org.gradle.cache.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;

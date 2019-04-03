@@ -52,7 +52,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
         if (!messages.isEmpty()) {
             List<String> firstMessages = messages.subList(0, Math.min(5, messages.size()));
             report(task, firstMessages, state);
-            return TaskExecuterResult.NO_REUSED_OUTPUT;
+            return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
 
         return executer.execute(task, state, context);

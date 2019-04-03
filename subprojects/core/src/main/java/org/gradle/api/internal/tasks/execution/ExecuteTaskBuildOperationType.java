@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -124,7 +123,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * Returns if this task was executed incrementally.
          *
-         * @see IncrementalTaskInputs#isIncremental()
+         * @see org.gradle.work.InputChanges#isIncremental()
          */
         @NotUsedByScanPlugin("used to report incrementality to TAPI progress listeners")
         boolean isIncremental();

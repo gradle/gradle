@@ -95,7 +95,7 @@ public class EclipsePlugin extends IdePlugin {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
         getCleanTask().configure(withDescription("Cleans all Eclipse files."));
 
-        EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class);
+        EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class, project);
 
         configureEclipseProject((ProjectInternal) project, model);
         configureEclipseJdt(project, model);

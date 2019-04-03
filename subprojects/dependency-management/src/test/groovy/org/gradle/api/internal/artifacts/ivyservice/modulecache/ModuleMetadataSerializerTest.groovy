@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomM
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
@@ -59,7 +59,7 @@ class ModuleMetadataSerializerTest extends Specification {
     private final ModuleMetadataSerializer serializer = moduleMetadataSerializer()
     private GradlePomModuleDescriptorParser pomModuleDescriptorParser = pomParser()
     private MetaDataParser<MutableIvyModuleResolveMetadata> ivyDescriptorParser = ivyParser()
-    private ModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
+    private GradleModuleMetadataParser gradleMetadataParser = gradleMetadataParser()
 
     def "all samples are different"() {
         given:
@@ -175,8 +175,8 @@ class ModuleMetadataSerializerTest extends Specification {
         )
     }
 
-    private ModuleMetadataParser gradleMetadataParser() {
-        new ModuleMetadataParser(
+    private GradleModuleMetadataParser gradleMetadataParser() {
+        new GradleModuleMetadataParser(
             AttributeTestUtil.attributesFactory(),
             moduleIdentifierFactory,
             NamedObjectInstantiator.INSTANCE

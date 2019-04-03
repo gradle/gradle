@@ -18,9 +18,10 @@ package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedScheduledExecutor;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.util.NumberUtil;
+import org.gradle.launcher.daemon.server.health.gc.DefaultGarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
@@ -34,13 +35,13 @@ public class DaemonHealthStats implements Stoppable {
     private final DaemonRunningStats runningStats;
     private final ManagedScheduledExecutor scheduler;
     private final GarbageCollectionInfo gcInfo;
-    private final GarbageCollectionMonitor gcMonitor;
+    private GarbageCollectionMonitor gcMonitor;
 
-    public DaemonHealthStats(DaemonRunningStats runningStats, ExecutorFactory executorFactory) {
+    public DaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
         this.runningStats = runningStats;
         this.scheduler = executorFactory.createScheduled("Daemon health stats", 1);
         this.gcInfo = new GarbageCollectionInfo();
-        this.gcMonitor = new GarbageCollectionMonitor(scheduler);
+        this.gcMonitor = new DefaultGarbageCollectionMonitor(strategy, scheduler);
     }
 
     @VisibleForTesting
@@ -51,6 +52,11 @@ public class DaemonHealthStats implements Stoppable {
         this.gcMonitor = gcMonitor;
     }
 
+    @VisibleForTesting
+    public GarbageCollectionMonitor getGcMonitor() {
+        return gcMonitor;
+    }
+
     @Override
     public void stop() {
         if (scheduler != null) {
@@ -58,8 +64,12 @@ public class DaemonHealthStats implements Stoppable {
         }
     }
 
-    GarbageCollectionMonitor getGcMonitor() {
-        return gcMonitor;
+    public GarbageCollectionStats getHeapStats() {
+        return gcMonitor.getHeapStats();
+    }
+
+    public GarbageCollectionStats getNonHeapStats() {
+        return gcMonitor.getNonHeapStats();
     }
 
     /**
@@ -79,26 +89,23 @@ public class DaemonHealthStats implements Stoppable {
     }
 
     private String getBuildHealthInfo(int nextBuildNum) {
-        if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
-            GarbageCollectionStats permgenStats = gcMonitor.getPermGenStats();
-            String message = format("Starting %s build in daemon [uptime: %s, performance: %s%%",
-                NumberUtil.ordinal(nextBuildNum), runningStats.getPrettyUpTime(), getCurrentPerformance());
-            if (tenuredStats.getUsage() > 0) {
-                message += format(", GC rate: %.2f/s, tenured heap usage: %s%% of %s", tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
-                if (permgenStats.getUsage() > 0) {
-                    message += format(", perm gen usage: %s%% of %s",
-                        permgenStats.getUsage(), NumberUtil.formatBytes(permgenStats.getMax()));
-                }
-            } else {
-                message += ", no major garbage collections";
-            }
-            message += "]";
-            return message;
-        } else {
-            return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
-                NumberUtil.ordinal(nextBuildNum), runningStats.getPrettyUpTime(), getCurrentPerformance());
+
+        StringBuilder message = new StringBuilder(format("Starting %s build in daemon ", NumberUtil.ordinal(nextBuildNum)));
+        message.append(format("[uptime: %s, performance: %s%%", runningStats.getPrettyUpTime(), getCurrentPerformance()));
+
+        GarbageCollectionStats heapStats = gcMonitor.getHeapStats();
+        if (heapStats.isValid()) {
+            message.append(format(", GC rate: %.2f/s", heapStats.getGcRate()));
+            message.append(format(", heap usage: %s%% of %s", heapStats.getUsedPercent(), NumberUtil.formatBytes(heapStats.getMaxSizeInBytes())));
         }
+
+        GarbageCollectionStats nonHeapStats = gcMonitor.getNonHeapStats();
+        if (nonHeapStats.isValid()) {
+            message.append(format(", non-heap usage: %s%% of %s", nonHeapStats.getUsedPercent(), NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes())));
+        }
+        message.append("]");
+
+        return message.toString();
     }
 
     /**

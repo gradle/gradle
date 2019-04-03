@@ -356,6 +356,13 @@ Some.Failure
         failure.assertOutputContains("Some sort of output")
         failure.assertOutputContains "Some more output"
 
+        and:
+        !failure.mainContent.withNormalizedEol().contains("INITIALIZING")
+        !failure.mainContent.withNormalizedEol().contains("IDLE")
+
+        and:
+        !failure.mainContent.withNormalizedEol().contains("DEBUG")
+
         where:
         output << [rawOutput, debugOutput]
     }
@@ -393,11 +400,11 @@ WARNING: All illegal access operations will be denied in a future release
 
     def static getRawOutput() {
         return """
-\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001BSome sort of output\u001B[0K
-Some sort of FAILURE: without status bar or work in progress
+\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% INITIALIZING [0s]\u001B[m\u001B[36D\u001B[1B\u001B[1m> Evaluating settings\u001B[m\u001B[21D\u001B[1B\u001B[2ASome sort of output\u001B[0K
+Some sort of FAILURE: without status bar or work in progress\u001B[0K
 Some more output
-\u001B[2A\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B> IDLE\u001B[6D\u001B[1B\u001B[2AFAILURE: \u001B[39m\u001B[31mBuild failed with an exception. \u001B[39m\u001B[0K
-
+\u001B[1m<\u001B[0;32;1;0;39;1m-------------> 0% EXECUTING [2s]\u001B[m\u001B[33D\u001B[1B> IDLE\u001B[6D\u001B[1B\u001B[2AFAILURE: \u001B[39m\u001B[31mBuild failed with an exception. \u001B[39m\u001B[0K
+\u001B[0K
 * Where:
 Build file 'build.gradle' line: 4
 

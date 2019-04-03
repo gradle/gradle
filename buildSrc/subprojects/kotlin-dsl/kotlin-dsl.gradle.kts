@@ -3,11 +3,12 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":build"))
 
-    implementation(kotlin("gradle-plugin"))
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    api(kotlin("gradle-plugin"))
+    api(kotlin("stdlib-jdk8"))
+    api(kotlin("reflect"))
+    api(kotlin("compiler-embeddable"))
 
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.2.3")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.3.0")
     implementation("com.gradle.publish:plugin-publish-plugin:0.10.0")
 
     implementation("com.thoughtworks.qdox:qdox:2.0-M9")

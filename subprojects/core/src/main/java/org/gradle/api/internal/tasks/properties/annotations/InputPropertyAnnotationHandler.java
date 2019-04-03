@@ -15,18 +15,26 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return Input.class;
+    }
+
+    @Override
+    public boolean isPropertyRelevant() {
+        return true;
     }
 
     @Override
@@ -37,5 +45,15 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
+        Class<?> valueType = propertyMetadata.getDeclaredType();
+        if (File.class.isAssignableFrom(valueType)
+            || java.nio.file.Path.class.isAssignableFrom(valueType)
+            || FileCollection.class.isAssignableFrom(valueType)) {
+            visitor.visitError(null, propertyMetadata.getPropertyName(), "has @Input annotation used on property of type " + valueType.getName());
+        }
     }
 }

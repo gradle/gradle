@@ -19,8 +19,8 @@ package org.gradle.internal.instantiation
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.TestUtil
 
 import javax.inject.Inject
 import java.lang.annotation.Annotation
@@ -29,8 +29,10 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassRealizingTwoTypeParameters
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithConcreteTypeParameter
+import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.AbstractClassWithParameterizedTypeParameter
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.FinalInjectBean
-import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.InjectPropertyBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.NonGetterInjectBean
 import static org.gradle.internal.instantiation.AsmBackedClassGeneratorTest.PrivateInjectBean
 
@@ -39,7 +41,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "can inject service using @Inject on a getter method with dummy method body"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(Number) >> 12
 
         when:
@@ -53,7 +55,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "can inject service using @Inject on an abstract service getter method"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(Number) >> 12
 
         when:
@@ -65,9 +67,87 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.getProperty("thing") == 12
     }
 
+    def "can inject service using @Inject on a super interface with class type parameter"() {
+        given:
+        def services = defaultServices()
+        _ * services.get(Number) >> 12
+
+        when:
+        def obj = create(AbstractClassWithConcreteTypeParameter, services)
+
+        then:
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+        obj.doSomething()
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType == Number
+    }
+
+    def "can inject services using @Inject on a super interface with type parameter remapping"() {
+        given:
+        def services = defaultServices()
+        _ * services.get(_) >> { Type type ->
+            if (type instanceof ParameterizedType) {
+                assert type.rawType == List.class
+                assert type.actualTypeArguments.length == 1
+                assert type.actualTypeArguments[0] == String
+                return ["Hello", "Number"]
+            }
+            assert type == Number
+            return 12
+        }
+
+        when:
+        def obj = create(AbstractClassRealizingTwoTypeParameters, services)
+
+        then:
+        obj.thing == 12
+        obj.getThing() == 12
+        obj.getProperty("thing") == 12
+        obj.getOtherThing() == ["Hello", "Number"]
+        obj.doSomething() == "Hello Number 12"
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType == Number.class
+        def otherReturnType = obj.getClass().getDeclaredMethod("getOtherThing").genericReturnType
+        otherReturnType instanceof ParameterizedType
+        otherReturnType.rawType == List
+        otherReturnType.actualTypeArguments.length == 1
+        otherReturnType.actualTypeArguments[0] == String
+    }
+
+    def "can inject service using @Inject on a super interface with parameterized type parameters"() {
+        given:
+        def services = defaultServices()
+        _ * services.get(_) >> { Type type ->
+            assert type instanceof ParameterizedType
+            assert type.rawType == List.class
+            assert type.actualTypeArguments.length == 1
+            assert type.actualTypeArguments[0] == Number
+            return [12]
+        }
+
+        when:
+        def obj = create(AbstractClassWithParameterizedTypeParameter, services)
+
+        then:
+        obj.thing == [12]
+        obj.getThing() == [12]
+        obj.getProperty("thing") == [12]
+        obj.doSomething() == "[12]"
+
+        def returnType = obj.getClass().getDeclaredMethod("getThing").genericReturnType
+        returnType instanceof ParameterizedType
+        returnType.rawType == List
+        returnType.actualTypeArguments.length == 1
+        returnType.actualTypeArguments[0] == Number
+    }
+
     def "can inject service using @Inject on an interface getter method"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(Number) >> 12
 
         when:
@@ -81,7 +161,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "can optionally set injected service using a service setter method"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
 
         when:
         def obj = create(BeanWithMutableServices, services)
@@ -91,15 +171,11 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         obj.thing == 12
         obj.getThing() == 12
         obj.getProperty("thing") == 12
-
-        and:
-        1 * services.find(InstantiatorFactory) >> null
-        0 * services._
     }
 
     def "retains declared generic type of service getter"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(_) >> { Type type ->
             assert type instanceof ParameterizedType
             assert type.rawType == List.class
@@ -125,13 +201,12 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "service lookup is lazy and the result is cached"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
 
         when:
         def obj = create(BeanWithServices, services)
 
         then:
-        1 * services.find(InstantiatorFactory) >> null
         0 * services._
 
         when:
@@ -139,7 +214,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
         then:
         1 * services.get(Number) >> 12
-        0 * services._
+        0 * services.get(Number)
 
         when:
         obj.thing
@@ -150,7 +225,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "can inject service using a custom annotation on getter method with dummy method body"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(Number, CustomInject) >> 12
 
         def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject])
@@ -166,7 +241,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "can inject service using a custom annotation on abstract getter method"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
         _ * services.get(Number, CustomInject) >> 12
 
         def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], [CustomInject])
@@ -193,7 +268,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
     def "object can provide its own service registry to provide services for injection"() {
         given:
-        def services = Mock(ServiceLookup)
+        def services = defaultServices()
 
         when:
         def obj = create(BeanWithServicesAndServiceRegistry, services)
@@ -211,15 +286,6 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         then:
         def e = thrown(ClassGenerationException)
         e.cause.message == "Cannot use @Inject annotation on method ExtensibleBeanWithInject.getExtensions()."
-    }
-
-    def "cannot attach @Inject annotation to property whose type is Property"() {
-        when:
-        generator.generate(InjectPropertyBean)
-
-        then:
-        def e = thrown(ClassGenerationException)
-        e.cause.message == "Cannot use @Inject annotation on method InjectPropertyBean.getProp()."
     }
 
     def "cannot attach @Inject annotation to final method"() {
@@ -306,7 +372,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
 
 class CustomAnnotationHandler implements InjectAnnotationHandler {
     @Override
-    Class<? extends Annotation> getAnnotation() {
+    Class<? extends Annotation> getAnnotationType() {
         return CustomInject
     }
 }
@@ -336,9 +402,10 @@ class BeanWithMutableServices extends BeanWithServices {
 
 class BeanWithServicesAndServiceRegistry extends BeanWithServices {
     ServiceRegistry getServices() {
-        def services = new DefaultServiceRegistry()
-        services.add(Number, 12)
-        return services
+        def registry = new DefaultServiceRegistry()
+        registry.add(InstantiatorFactory.class, TestUtil.instantiatorFactory())
+        registry.add(Number, 12)
+        return registry
     }
 }
 

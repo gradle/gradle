@@ -23,7 +23,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
-import org.gradle.launcher.daemon.server.health.LowTenuredSpaceDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
 import org.gradle.util.GUtil;
 import org.junit.ComparisonFailure;
 
@@ -83,7 +83,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         this.error = error;
 
         // Split out up the output into main content and post build content
-        LogContent filteredOutput = this.output.removeAnsiChars().removeDebugPrefix();
+        LogContent filteredOutput = this.output.ansiCharsToPlainText().removeDebugPrefix();
         Pair<LogContent, LogContent> match = filteredOutput.splitOnFirstMatchingLine(BUILD_RESULT_PATTERN);
         if (match == null) {
             this.mainContent = filteredOutput;
@@ -92,7 +92,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             this.mainContent = match.getLeft();
             this.postBuild = match.getRight().drop(1);
         }
-        this.errorContent = error.removeAnsiChars();
+        this.errorContent = error.ansiCharsToPlainText();
     }
 
     public String getOutput() {
@@ -112,9 +112,19 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getFormattedOutput() {
+        return output.ansiCharsToColorText().withNormalizedEol();
+    }
+
+    @Override
+    public String getPlainTextOutput() {
+        return output.ansiCharsToPlainText().withNormalizedEol();
+    }
+
+    @Override
     public GroupedOutputFixture getGroupedOutput() {
         if (groupedOutputFixture == null) {
-            groupedOutputFixture = new GroupedOutputFixture(getMainContent().getRawContent().withNormalizedEol());
+            groupedOutputFixture = new GroupedOutputFixture(getMainContent());
         }
         return groupedOutputFixture;
     }
@@ -131,7 +141,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
-            } else if (line.contains(LowTenuredSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+            } else if (line.contains(LowHeapSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "Expiring Daemon" message
                 i++;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
@@ -185,7 +195,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public boolean hasErrorOutput(String expectedOutput) {
-        return getError().contains(expectedOutput) || getRawError().contains(expectedOutput);
+        return getError().contains(expectedOutput);
     }
 
     @Override
@@ -193,22 +203,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return assertContentContains(errorContent.withNormalizedEol(), expectedOutput, "Error output");
     }
 
-    @Override
-    public ExecutionResult assertHasRawErrorOutput(String expectedOutput) {
-        return assertContentContains(getError(), expectedOutput, "Error output");
-    }
-
-    @Override
-    public ExecutionResult assertRawOutputContains(String expectedOutput) {
-        return assertContentContains(getOutput(), expectedOutput, "Build output");
-    }
-
     public String getError() {
         return error.withNormalizedEol();
-    }
-
-    public String getRawError() {
-        return errorContent.getRawContent().withNormalizedEol();
     }
 
     public List<String> getExecutedTasks() {

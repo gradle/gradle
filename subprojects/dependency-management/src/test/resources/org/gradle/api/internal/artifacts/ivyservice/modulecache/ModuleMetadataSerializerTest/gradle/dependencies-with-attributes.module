@@ -1,5 +1,5 @@
 {
-    "formatVersion": "0.4",
+    "formatVersion": "1.0",
     "variants": [
         {
             "name": "api",

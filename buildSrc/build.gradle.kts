@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import org.gradle.plugins.ide.idea.model.IdeaModel
-
 import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin
-
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import java.io.File
 import java.util.Properties
 
 plugins {
-    `kotlin-dsl`
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.2.3" apply false
+    `java`
+    `kotlin-dsl` apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
 }
 
 subprojects {
@@ -41,7 +38,7 @@ subprojects {
             applyKotlinProjectConventions()
         }
 
-        configure<JavaPluginExtension> {
+        java {
             sourceCompatibility = JavaVersion.VERSION_1_8
             targetCompatibility = JavaVersion.VERSION_1_8
         }
@@ -98,8 +95,25 @@ dependencies {
     }
 }
 
-// Set gradlebuild.skipBuildSrcChecks Gradle property to "true" to disable all buildSrc verification tasks
-if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
+
+// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
+val isCiServer: Boolean by extra { "CI" in System.getenv() }
+
+
+/**
+ * Controls whether verification tasks are skipped.
+ *
+ * Set the `buildSrcCheck` Gradle property to `true` to run the verification tasks.
+ * Set it to `false` to skip the verification tasks.
+ *
+ * When that property is unset, defaults to `false` on CI, to `true` otherwise.
+ */
+val isSkipBuildSrcVerification: Boolean =
+    (findProperty("buildSrcCheck") as String?)
+        ?.let { it == "false" }
+        ?: !isCiServer
+
+if (isSkipBuildSrcVerification) {
     allprojects {
         tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
             enabled = false
@@ -107,8 +121,6 @@ if (findProperty("gradlebuild.skipBuildSrcChecks") == "true") {
     }
 }
 
-// TODO Avoid duplication of what defines a CI Server with BuildEnvironment
-val isCiServer: Boolean by extra { "CI" in System.getenv() }
 if (isCiServer) {
     gradle.buildFinished {
         allprojects.forEach { project ->
@@ -185,7 +197,7 @@ fun Project.applyGroovyProjectConventions() {
     }
 
     tasks.withType<Test>().configureEach {
-        if (JavaVersion.current().isJava9Compatible()) {
+        if (JavaVersion.current().isJava9Compatible) {
             //allow ProjectBuilder to inject legacy types into the system classloader
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
             jvmArgs("--illegal-access=deny")
@@ -211,8 +223,15 @@ fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
     plugins.withType<KotlinDslPlugin> {
-        kotlinDslPluginOptions {
+        configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)
+        }
+    }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        // TODO:kotlin-dsl remove precompiled script plugins accessors exclusion from ktlint checks
+        filter {
+            exclude("gradle/kotlin/dsl/accessors/_*/**")
         }
     }
 }

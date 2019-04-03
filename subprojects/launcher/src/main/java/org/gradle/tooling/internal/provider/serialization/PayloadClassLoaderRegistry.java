@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * <p>Implementations must allow concurrent sessions.

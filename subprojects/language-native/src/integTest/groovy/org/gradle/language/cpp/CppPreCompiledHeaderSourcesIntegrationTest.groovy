@@ -40,8 +40,10 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
         then:
         libAndPCHTasksExecuted()
         pchCompiledOnceForEach([ PCHHeaderDirName ])
-        output.contains "Caching disabled for task ':compileHelloSharedLibraryCppPreCompiledHeader': Caching has not been enabled for the task"
-        output.contains "Caching disabled for task ':compileHelloSharedLibraryHelloCpp': 'Pre-compiled headers are used' satisfied"
+        output.contains "Caching disabled for task ':compileHelloSharedLibraryCppPreCompiledHeader' because:\n" +
+            "  Caching has not been enabled for the task"
+        output.contains "Caching disabled for task ':compileHelloSharedLibraryHelloCpp' because:\n" +
+            "  'Pre-compiled headers are used' satisfied"
     }
 
     @Requires(TestPrecondition.MAC_OS_X)

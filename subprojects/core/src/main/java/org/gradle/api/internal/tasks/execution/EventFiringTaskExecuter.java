@@ -22,11 +22,14 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CallableBuildOperation;
 
 public class EventFiringTaskExecuter implements TaskExecuter {
@@ -53,15 +56,32 @@ public class EventFiringTaskExecuter implements TaskExecuter {
             }
 
             private TaskExecuterResult executeTask(BuildOperationContext operationContext) {
+                Logger logger = task.getLogger();
+                ContextAwareTaskLogger contextAwareTaskLogger = null;
                 try {
                     taskExecutionListener.beforeExecute(task);
+                    BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
+                    if (logger instanceof ContextAwareTaskLogger) {
+                        contextAwareTaskLogger = (ContextAwareTaskLogger) logger;
+                        contextAwareTaskLogger.setFallbackBuildOperationId(currentOperation.getId());
+                    }
                 } catch (Throwable t) {
                     state.setOutcome(new TaskExecutionException(task, t));
-                    return TaskExecuterResult.NO_REUSED_OUTPUT;
+                    return TaskExecuterResult.WITHOUT_OUTPUTS;
                 }
 
                 TaskExecuterResult result = delegate.execute(task, state, context);
-                operationContext.setResult(new ExecuteTaskBuildOperationResult(state, context, result.getReusedOutputOriginMetadata().orElse(null)));
+
+                if (contextAwareTaskLogger != null) {
+                    contextAwareTaskLogger.setFallbackBuildOperationId(null);
+                }
+                operationContext.setResult(new ExecuteTaskBuildOperationResult(
+                    state,
+                    result.getCachingState(),
+                    result.getReusedOutputOriginMetadata().orElse(null),
+                    result.executedIncrementally(),
+                    result.getExecutionReasons()
+                ));
 
                 try {
                     taskExecutionListener.afterExecute(task, state);

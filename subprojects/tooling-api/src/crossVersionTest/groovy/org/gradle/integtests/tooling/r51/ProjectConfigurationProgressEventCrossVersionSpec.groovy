@@ -217,6 +217,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "reports plugin configuration results for remote script plugins"() {
         given:
+        toolingApi.requireIsolatedUserHome() // So that the script is not cached
         server.start()
         def scriptUri = server.uri("script.gradle")
         server.expect(server.get("script.gradle").send("""

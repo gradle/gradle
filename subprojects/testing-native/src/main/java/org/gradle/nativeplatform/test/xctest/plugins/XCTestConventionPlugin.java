@@ -261,11 +261,10 @@ public class XCTestConventionPlugin implements Plugin<Project> {
             ConfigurableFileCollection testableObjects = project.files();
             if (testedComponent instanceof SwiftApplication) {
                 TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register("relocateMainForTest", UnexportMainSymbol.class, task -> {
-                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                    String dirName = ((DefaultSwiftBinary) testedBinary).getNames().getDirName();
+                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/for-test/" + dirName));
                     task.getObjects().from(testedBinary.getObjects());
                 });
-                // TODO: builtBy unnecessary?
-                testableObjects.builtBy(unexportMainSymbol);
                 testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
             } else {
                 testableObjects.from(testedBinary.getObjects());

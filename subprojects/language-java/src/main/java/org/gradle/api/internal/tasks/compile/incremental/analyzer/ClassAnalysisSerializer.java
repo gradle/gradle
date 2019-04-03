@@ -44,8 +44,7 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         boolean relatedToAll = decoder.readBoolean();
         Set<String> classes = stringSetSerializer.read(decoder);
         IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
-        Set<String> superTypes = stringSetSerializer.read(decoder);
-        return new ClassAnalysis(className, classes, relatedToAll, constants, superTypes);
+        return new ClassAnalysis(className, classes, relatedToAll, constants);
     }
 
     @Override
@@ -54,7 +53,6 @@ public class ClassAnalysisSerializer extends AbstractSerializer<ClassAnalysis> {
         encoder.writeBoolean(value.isDependencyToAll());
         stringSetSerializer.write(encoder, value.getClassDependencies());
         IntSetSerializer.INSTANCE.write(encoder, value.getConstants());
-        stringSetSerializer.write(encoder, value.getSuperTypes());
     }
 
 }

@@ -18,8 +18,8 @@ package org.gradle.caching.internal.controller;
 
 import org.gradle.caching.BuildCacheService;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.util.Optional;
 
 /**
  * Internal coordinator of build cache operations.
@@ -32,8 +32,7 @@ public interface BuildCacheController extends Closeable {
 
     boolean isEmitDebugLogging();
 
-    @Nullable
-    <T> T load(BuildCacheLoadCommand<T> command);
+    <T> Optional<T> load(BuildCacheLoadCommand<T> command);
 
     void store(BuildCacheStoreCommand command);
 

@@ -46,10 +46,13 @@ public class PropertyDetailRenderer {
         Element literal = document.createElement("literal");
         title.appendChild(literal);
         literal.appendChild(document.createTextNode(propertyDoc.getName()));
-        if (!propertyDoc.getMetaData().isWriteable()) {
-            title.appendChild(document.createTextNode(" (read-only)"));
-        } else if (!propertyDoc.getMetaData().isReadable()) {
-            title.appendChild(document.createTextNode(" (write-only)"));
+
+        if (!propertyDoc.getMetaData().isProviderApi()) {
+            if (!propertyDoc.getMetaData().isWriteable()) {
+                title.appendChild(document.createTextNode(" (read-only)"));
+            } else if (!propertyDoc.getMetaData().isReadable()) {
+                title.appendChild(document.createTextNode(" (write-only)"));
+            }
         }
 
         warningsRenderer.renderTo(propertyDoc, "property", section);

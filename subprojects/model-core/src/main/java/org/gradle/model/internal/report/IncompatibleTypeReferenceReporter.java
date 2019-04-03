@@ -16,7 +16,7 @@
 
 package org.gradle.model.internal.report;
 
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;

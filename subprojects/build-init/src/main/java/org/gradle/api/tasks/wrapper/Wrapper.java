@@ -131,7 +131,7 @@ public class Wrapper extends DefaultTask {
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE");
         generator.setAppNameSystemProperty("org.gradle.appname");
         generator.setScriptRelPath(unixScript.getName());
-        generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m"));
+        generator.setDefaultJvmOpts(ImmutableList.of("-Xmx64m", "-Xms64m"));
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(getBatchScript());
     }

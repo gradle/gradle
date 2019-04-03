@@ -17,6 +17,8 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -360,6 +362,34 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             'file2.txt',
         )
         !file('dest/extra.txt').exists()
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    def "sync fails when unable to clean-up files"() {
+        given:
+        file('source').create {
+            file 'file1.txt'
+            file 'file2.txt'
+        }
+        file('dest').create {
+            file 'extra.txt'
+        }
+        // Intentionally hold open a file
+        def ins = new FileInputStream(file("dest/extra.txt"))
+        buildScript '''
+            task syncIt {
+                doLast {
+                    project.sync {
+                        from 'source'
+                        into 'dest'
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        fails 'syncIt'
+        ins.close()
     }
 
     def "sync from file tree"() {

@@ -55,9 +55,8 @@ tasks {
         dependenciesIncludes.set(mapOf(
             "jansi-" to listOf("META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
         ))
-        additionalFiles = fileTree(classpathManifest.get().manifestFile.parentFile) {
-            include(classpathManifest.get().manifestFile.name)
-        }
+        additionalRootFiles.from(classpathManifest)
+
         outputFile.set(jar.get().archiveFile)
     }
 

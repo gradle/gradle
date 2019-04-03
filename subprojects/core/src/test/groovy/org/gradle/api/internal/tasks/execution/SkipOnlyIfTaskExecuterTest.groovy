@@ -64,7 +64,7 @@ class SkipOnlyIfTaskExecuterTest extends Specification {
 
         then:
         1 * spec.isSatisfiedBy(task) >> true
-        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.NO_REUSED_OUTPUT
+        1 * delegate.execute(task, state, executionContext) >> TaskExecuterResult.WITHOUT_OUTPUTS
         noMoreInteractions()
     }
 

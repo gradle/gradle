@@ -33,16 +33,22 @@ public class AnnotationProcessingData {
     private final Map<String, Set<String>> generatedTypesByOrigin;
     private final Set<String> aggregatedTypes;
     private final Set<String> generatedTypesDependingOnAllOthers;
+    private final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin;
+    private final Set<GeneratedResource> generatedResourcesDependingOnAllOthers;
     private final String fullRebuildCause;
 
     public AnnotationProcessingData() {
-        this(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), null);
+        this(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), ImmutableMap.<String, Set<GeneratedResource>>of(), ImmutableSet.<GeneratedResource>of(), null);
     }
 
-    public AnnotationProcessingData(Map<String, Set<String>> generatedTypesByOrigin, Set<String> aggregatedTypes, Set<String> generatedTypesDependingOnAllOthers, String fullRebuildCause) {
+    public AnnotationProcessingData(Map<String, Set<String>> generatedTypesByOrigin, Set<String> aggregatedTypes, Set<String> generatedTypesDependingOnAllOthers, Map<String,
+        Set<GeneratedResource>> generatedResourcesByOrigin, Set<GeneratedResource> generatedResourcesDependingOnAllOthers, String fullRebuildCause) {
+
         this.generatedTypesByOrigin = ImmutableMap.copyOf(generatedTypesByOrigin);
         this.aggregatedTypes = ImmutableSet.copyOf(aggregatedTypes);
         this.generatedTypesDependingOnAllOthers = ImmutableSet.copyOf(generatedTypesDependingOnAllOthers);
+        this.generatedResourcesByOrigin = ImmutableMap.copyOf(generatedResourcesByOrigin);
+        this.generatedResourcesDependingOnAllOthers = ImmutableSet.copyOf(generatedResourcesDependingOnAllOthers);
         this.fullRebuildCause = fullRebuildCause;
     }
 
@@ -58,6 +64,14 @@ public class AnnotationProcessingData {
         return generatedTypesDependingOnAllOthers;
     }
 
+    public Map<String, Set<GeneratedResource>> getGeneratedResourcesByOrigin() {
+        return generatedResourcesByOrigin;
+    }
+
+    public Set<GeneratedResource> getGeneratedResourcesDependingOnAllOthers() {
+        return generatedResourcesDependingOnAllOthers;
+    }
+
     public String getFullRebuildCause() {
         return fullRebuildCause;
     }
@@ -65,11 +79,17 @@ public class AnnotationProcessingData {
     public static final class Serializer extends AbstractSerializer<AnnotationProcessingData> {
         private final SetSerializer<String> typesSerializer;
         private final MapSerializer<String, Set<String>> generatedTypesSerializer;
+        private final SetSerializer<GeneratedResource> resourcesSerializer;
+        private final MapSerializer<String, Set<GeneratedResource>> generatedResourcesSerializer;
 
         public Serializer(StringInterner interner) {
             InterningStringSerializer stringSerializer = new InterningStringSerializer(interner);
             typesSerializer = new SetSerializer<String>(stringSerializer);
             generatedTypesSerializer = new MapSerializer<String, Set<String>>(stringSerializer, typesSerializer);
+
+            GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(stringSerializer);
+            this.resourcesSerializer = new SetSerializer<GeneratedResource>(resourceSerializer);
+            this.generatedResourcesSerializer = new MapSerializer<String, Set<GeneratedResource>>(stringSerializer, resourcesSerializer);
         }
 
         @Override
@@ -78,7 +98,10 @@ public class AnnotationProcessingData {
             Set<String> aggregatedTypes = typesSerializer.read(decoder);
             Set<String> generatedTypesDependingOnAllOthers = typesSerializer.read(decoder);
             String fullRebuildCause = decoder.readNullableString();
-            return new AnnotationProcessingData(generatedTypes, aggregatedTypes, generatedTypesDependingOnAllOthers, fullRebuildCause);
+            Map<String, Set<GeneratedResource>> generatedResources = generatedResourcesSerializer.read(decoder);
+            Set<GeneratedResource> generatedResourcesDependingOnAllOthers = resourcesSerializer.read(decoder);
+
+            return new AnnotationProcessingData(generatedTypes, aggregatedTypes, generatedTypesDependingOnAllOthers, generatedResources, generatedResourcesDependingOnAllOthers, fullRebuildCause);
         }
 
         @Override
@@ -87,6 +110,8 @@ public class AnnotationProcessingData {
             typesSerializer.write(encoder, value.aggregatedTypes);
             typesSerializer.write(encoder, value.generatedTypesDependingOnAllOthers);
             encoder.writeNullableString(value.fullRebuildCause);
+            generatedResourcesSerializer.write(encoder, value.generatedResourcesByOrigin);
+            resourcesSerializer.write(encoder, value.generatedResourcesDependingOnAllOthers);
         }
     }
 }

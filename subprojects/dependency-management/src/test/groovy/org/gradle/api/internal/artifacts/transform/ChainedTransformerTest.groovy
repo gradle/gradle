@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
+import org.gradle.execution.ProjectExecutionServiceRegistry
 import org.gradle.internal.Try
 import spock.lang.Specification
 
@@ -29,13 +30,13 @@ class ChainedTransformerTest extends Specification {
         def chain = new TransformationChain(new CachingTransformation(), new NonCachingTransformation())
 
         expect:
-        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver)).get().files == [new File("foo/cached/non-cached")]
+        chain.transform(initialSubject, Mock(ExecutionGraphDependenciesResolver), null).get().files == [new File("foo/cached/non-cached")]
     }
 
     class CachingTransformation implements Transformation {
 
         @Override
-        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, ProjectExecutionServiceRegistry services) {
             return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "cached"))))
         }
 
@@ -68,7 +69,7 @@ class ChainedTransformerTest extends Specification {
     class NonCachingTransformation implements Transformation {
 
         @Override
-        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver) {
+        Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, ProjectExecutionServiceRegistry services) {
             return Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of(new File(subjectToTransform.files.first(), "non-cached"))))
         }
 

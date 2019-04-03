@@ -16,18 +16,25 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.internal.hash.Hashing
+
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
 
 import java.util.concurrent.Future
 
-import kotlin.script.dependencies.ScriptDependenciesResolver
+import kotlin.script.dependencies.Environment
+import kotlin.script.dependencies.KotlinScriptExternalDependencies
 import kotlin.script.dependencies.PseudoFuture
 import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.KotlinScriptExternalDependencies
-import kotlin.script.dependencies.Environment
+import kotlin.script.dependencies.ScriptDependenciesResolver
 
 
 class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
+
+    companion object {
+
+        fun hashOf(charSequence: CharSequence?) = Hashing.hashString(charSequence).toString()
+    }
 
     object EnvironmentProperties {
         const val kotlinDslImplicitImports = "kotlinDslImplicitImports"
@@ -42,12 +49,26 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         PseudoFuture(
             KotlinBuildScriptDependencies(
-                imports = implicitImportsFrom(environment),
+                imports = implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, script),
                 classpath = emptyList(),
-                sources = emptyList()))
+                sources = emptyList()
+            )
+        )
 
     private
     fun implicitImportsFrom(environment: Environment?) =
-        (environment?.get(EnvironmentProperties.kotlinDslImplicitImports) as? String)?.split(':')
+        environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
+
+    private
+    fun precompiledScriptPluginImportsFrom(environment: Environment?, script: ScriptContents): List<String> =
+        environment.stringList(hashOf(script.text))
+
+    private
+    fun Environment?.stringList(key: String) =
+        string(key)?.split(':')
             ?: emptyList()
+
+    private
+    fun Environment?.string(key: String) =
+        this?.get(key) as? String
 }

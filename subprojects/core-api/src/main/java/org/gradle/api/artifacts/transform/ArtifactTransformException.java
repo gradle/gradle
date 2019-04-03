@@ -29,6 +29,7 @@ import java.io.File;
  *
  * @since 3.4
  */
+@Deprecated
 @Contextual
 public class ArtifactTransformException extends GradleException {
 

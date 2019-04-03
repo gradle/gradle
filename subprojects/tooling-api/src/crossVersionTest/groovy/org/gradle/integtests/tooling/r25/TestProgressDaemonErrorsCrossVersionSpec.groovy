@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
@@ -51,8 +52,8 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then: "build fails with a DaemonDisappearedException"
-        caughtGradleConnectionException = thrown()
-        caughtGradleConnectionException.cause.message.contains('Gradle build daemon disappeared unexpectedly')
+        GradleConnectionException ex = thrown()
+        ex.cause.message.contains('Gradle build daemon disappeared unexpectedly')
 
         and:
         !result.empty

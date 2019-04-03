@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
+import spock.lang.Timeout
 import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -366,6 +367,7 @@ public class StaticInnerTest {
         'excludeEngines' | '"junit-jupiter"'
     }
 
+    @Timeout(60)
     @Issue('https://github.com/gradle/gradle/issues/6453')
     def "can handle parallel test execution"() {
         given:
@@ -383,8 +385,11 @@ public class StaticInnerTest {
 
             import java.util.concurrent.*;
             import org.junit.jupiter.api.*;
+            import org.junit.jupiter.api.parallel.*;
             import static org.junit.jupiter.api.Assertions.*;
+            import static org.junit.jupiter.api.parallel.ExecutionMode.CONCURRENT;
 
+            @Execution(CONCURRENT)
             class Sync {
                 static CountDownLatch LATCH = new CountDownLatch($numTestClasses);
             }

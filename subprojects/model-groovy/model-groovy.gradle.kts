@@ -31,7 +31,6 @@ dependencies {
     api(library("groovy"))
 
     implementation(project(":baseServicesGroovy"))
-    implementation(library("jcip"))
     implementation(library("guava"))
 }
 

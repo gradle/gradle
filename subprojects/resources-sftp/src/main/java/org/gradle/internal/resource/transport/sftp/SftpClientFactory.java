@@ -20,7 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.*;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.concurrent.CompositeStoppable;

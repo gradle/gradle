@@ -29,6 +29,7 @@ import org.gradle.tooling.ProjectConnection
 import com.google.common.annotations.VisibleForTesting
 
 import java.io.File
+import java.util.function.Function
 
 
 @VisibleForTesting
@@ -69,20 +70,83 @@ typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() ->
 fun fetchKotlinBuildScriptModelFor(
     request: KotlinBuildScriptModelRequest,
     modelBuilderCustomization: ModelBuilderCustomization = {}
-): KotlinBuildScriptModel {
+): KotlinBuildScriptModel =
 
-    val importedProjectDir = request.projectDir
-    val scriptFile = request.scriptFile
-        ?: return fetchKotlinBuildScriptModelFrom(importedProjectDir, request, modelBuilderCustomization)
+    fetchKotlinBuildScriptModelFor(request.toFetchParametersWith {
+        setJavaHome(request.javaHome)
+        modelBuilderCustomization()
+    })
 
-    val effectiveProjectDir = buildSrcProjectDirOf(scriptFile, importedProjectDir)
-        ?: importedProjectDir
 
-    val scriptModel = fetchKotlinBuildScriptModelFrom(effectiveProjectDir, request, modelBuilderCustomization)
-    if (scriptModel.enclosingScriptProjectDir == null && hasProjectDependentClassPath(scriptFile)) {
-        val externalProjectRoot = projectRootOf(scriptFile, importedProjectDir)
-        if (externalProjectRoot != importedProjectDir) {
-            return fetchKotlinBuildScriptModelFrom(externalProjectRoot, request, modelBuilderCustomization)
+@VisibleForTesting
+fun fetchKotlinBuildScriptModelFor(
+    importedProjectDir: File,
+    scriptFile: File?,
+    connectorForProject: Function<File, GradleConnector>
+): KotlinBuildScriptModel =
+
+    fetchKotlinBuildScriptModelFor(FetchParameters(importedProjectDir, scriptFile, connectorForProject))
+
+
+private
+data class FetchParameters(
+    val importedProjectDir: File,
+    val scriptFile: File?,
+    val connectorForProject: Function<File, GradleConnector>,
+    val options: List<String> = emptyList(),
+    val jvmOptions: List<String> = emptyList(),
+    val correlationId: String = newCorrelationId(),
+    val modelBuilderCustomization: ModelBuilderCustomization = {}
+)
+
+
+private
+fun KotlinBuildScriptModelRequest.toFetchParametersWith(modelBuilderCustomization: ModelBuilderCustomization) =
+    FetchParameters(
+        projectDir,
+        scriptFile,
+        Function { projectDir -> connectorFor(this).forProjectDirectory(projectDir) },
+        options,
+        jvmOptions,
+        correlationId,
+        modelBuilderCustomization
+    )
+
+
+private
+fun connectorFor(request: KotlinBuildScriptModelRequest): GradleConnector =
+    GradleConnector.newConnector()
+        .useGradleFrom(request.gradleInstallation)
+        .useGradleUserHomeDir(request.gradleUserHome)
+
+
+private
+fun GradleConnector.useGradleFrom(gradleInstallation: GradleInstallation): GradleConnector =
+    gradleInstallation.run {
+        when (this) {
+            is GradleInstallation.Local -> useInstallation(dir)
+            is GradleInstallation.Remote -> useDistribution(uri)
+            is GradleInstallation.Version -> useGradleVersion(number)
+            GradleInstallation.Wrapper -> useBuildDistribution()
+        }
+    }
+
+
+private
+fun fetchKotlinBuildScriptModelFor(parameters: FetchParameters): KotlinBuildScriptModel {
+
+    if (parameters.scriptFile == null) {
+        return fetchKotlinBuildScriptModelFrom(parameters.importedProjectDir, parameters)
+    }
+
+    val effectiveProjectDir = buildSrcProjectDirOf(parameters.scriptFile, parameters.importedProjectDir)
+        ?: parameters.importedProjectDir
+
+    val scriptModel = fetchKotlinBuildScriptModelFrom(effectiveProjectDir, parameters)
+    if (scriptModel.enclosingScriptProjectDir == null && hasProjectDependentClassPath(parameters.scriptFile)) {
+        val externalProjectRoot = projectRootOf(parameters.scriptFile, parameters.importedProjectDir)
+        if (externalProjectRoot != parameters.importedProjectDir) {
+            return fetchKotlinBuildScriptModelFrom(externalProjectRoot, parameters)
         }
     }
     return scriptModel
@@ -90,24 +154,15 @@ fun fetchKotlinBuildScriptModelFor(
 
 
 private
-fun hasProjectDependentClassPath(scriptFile: File): Boolean =
-    when (kotlinScriptTypeFor(scriptFile)) {
-        KotlinScriptType.INIT -> false
-        else -> true
-    }
-
-
-private
 fun fetchKotlinBuildScriptModelFrom(
     projectDir: File,
-    request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilderCustomization
+    parameters: FetchParameters
 ): KotlinBuildScriptModel =
 
-    projectConnectionFor(request, projectDir).let { connection ->
+    connectionForProjectDir(projectDir, parameters).let { connection ->
         @Suppress("ConvertTryFinallyToUseCall")
         try {
-            connection.modelBuilderFor(request).apply(modelBuilderCustomization).get()
+            connection.modelBuilderFor(parameters).apply(parameters.modelBuilderCustomization).get()
         } finally {
             connection.close()
         }
@@ -115,20 +170,20 @@ fun fetchKotlinBuildScriptModelFrom(
 
 
 private
-fun projectConnectionFor(request: KotlinBuildScriptModelRequest, projectDir: File): ProjectConnection =
-    connectorFor(request, projectDir).connect()
+fun connectionForProjectDir(projectDir: File, parameters: FetchParameters): ProjectConnection =
+    parameters.connectorForProject.apply(projectDir).connect()
 
 
 private
-fun ProjectConnection.modelBuilderFor(request: KotlinBuildScriptModelRequest) =
+fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     model(KotlinBuildScriptModel::class.java).apply {
-        setJavaHome(request.javaHome)
-        setJvmArguments(request.jvmOptions + modelSpecificJvmOptions)
+        setJvmArguments(parameters.jvmOptions + modelSpecificJvmOptions)
+        forTasks(kotlinBuildScriptModelTask)
 
-        val arguments = request.options.toMutableList()
-        arguments += "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}"
+        val arguments = parameters.options.toMutableList()
+        arguments += "-P$kotlinBuildScriptModelCorrelationId=${parameters.correlationId}"
 
-        request.scriptFile?.let {
+        parameters.scriptFile?.let {
             arguments += "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}"
         }
 
@@ -147,16 +202,21 @@ const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
 const val kotlinBuildScriptModelCorrelationId = "org.gradle.kotlin.dsl.provider.cid"
 
 
-private
-fun connectorFor(request: KotlinBuildScriptModelRequest, projectDir: File): GradleConnector =
-    connectorFor(projectDir, request.gradleInstallation)
-        .useGradleUserHomeDir(request.gradleUserHome)
+const val kotlinBuildScriptModelTask = "prepareKotlinBuildScriptModel"
 
 
 private
 fun buildSrcProjectDirOf(scriptFile: File, importedProjectDir: File): File? =
     importedProjectDir.resolve("buildSrc").takeIf { buildSrc ->
         buildSrc.isDirectory && buildSrc.isParentOf(scriptFile)
+    }
+
+
+private
+fun hasProjectDependentClassPath(scriptFile: File): Boolean =
+    when (kotlinScriptTypeFor(scriptFile)) {
+        KotlinScriptType.INIT -> false
+        else -> true
     }
 
 
@@ -184,25 +244,3 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File, stopAt: File? = n
 
     return test(scriptFile.parentFile)
 }
-
-
-private
-fun connectorFor(projectDir: File, gradleInstallation: GradleInstallation): GradleConnector =
-    GradleConnector
-        .newConnector()
-        .forProjectDirectory(projectDir)
-        .let { connector ->
-            applyGradleInstallationTo(connector, gradleInstallation)
-        }
-
-
-private
-fun applyGradleInstallationTo(connector: GradleConnector, gradleInstallation: GradleInstallation): GradleConnector =
-    gradleInstallation.run {
-        when (this) {
-            is GradleInstallation.Local -> connector.useInstallation(dir)
-            is GradleInstallation.Remote -> connector.useDistribution(uri)
-            is GradleInstallation.Version -> connector.useGradleVersion(number)
-            GradleInstallation.Wrapper -> connector.useBuildDistribution()
-        }
-    }

@@ -207,12 +207,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
-        doGetClasspath().setFrom(classpath);
+        ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
+        newClasspath.setFrom(classpath);
+        this.classpath = newClasspath;
         return this;
     }
 
     public JavaExecHandleBuilder classpath(Object... paths) {
-        doGetClasspath().setFrom(paths);
+        doGetClasspath().from(paths);
         return this;
     }
 

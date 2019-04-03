@@ -41,11 +41,17 @@ This may make migrating between the two seem intimidating, but migrations can be
 
 Here we lay out a series of steps for you to follow that will help facilitate the migration of any Maven build to Gradle:
 
- 1. Keep the old Maven build and new Gradle build side by side
-+
+TIP: Keep the old Maven build and new Gradle build side by side.
 You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts and otherwise does what you need.
 This also means that users can try the Gradle build without getting a new copy of the source tree.
- 2. Develop a mechanism to verify that the two builds produce the same artifacts
+
+ . link:https://scans.gradle.com#maven[Create a build scan for the Maven build].
++
+A build scan will make it easier to visualize what's happening in your existing Maven build.
+For Maven builds, you'll be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
+Keep this handy so you can compare it to the Gradle build scans you get while converting the project.
++
+. Develop a mechanism to verify that the two builds produce the same artifacts
 +
 This is a vitally important step to ensure that your deployments and tests don't break.
 Even small changes, such as the contents of a manifest file in a JAR, can cause problems.
@@ -58,23 +64,25 @@ You will need to factor in some inherent differences in the build output that Gr
 Generated POMs will contain only the information needed for consumption and they will use `<compile>` and `<runtime>` scopes correctly for that scenario.
 You might also see differences in the order of files in archives and of files on classpaths.
 Most differences will be benign, but it's worth identifying them and verifying that they are OK.
- 3. <<migmvn:automatic_conversion,Run an automatic conversion>>
+ . <<migmvn:automatic_conversion,Run an automatic conversion>>
 +
 This will create all the Gradle build files you need, even for <<migmvn:multimodule_builds,multi-module builds>>.
 For simpler Maven projects, the Gradle build will be ready to run!
- 4. link:{guidesUrl}/creating-build-scans/[Create a build scan]
+ . link:{guidesUrl}/creating-build-scans[Create a build scan for the Gradle build].
 +
 A build scan will make it easier to visualize what's happening in the build.
-In particular, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
+For Gradle builds, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
++
+Your build may fail at this point, but that's ok; the scan will still run. Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
 We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can then use them to identify opportunities to improve the performance of the build, and performance is a big reason for switching to Gradle in the first place.
- 5. <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>
- 6. <<migmvn:integration_tests,Configure integration and functional tests>>
+If you want, you can also use a Gradle build scan to identify opportunities to link:{guidesUrl}/performance/[improve the performance of the build], after all performance is a big reason for switching to Gradle in the first place.
+ . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>
+ . <<migmvn:integration_tests,Configure integration and functional tests>>
 +
 Many tests can simply be migrated by configuring an extra source set.
 If you are using a third-party library, such as http://docs.fitnesse.org/FrontPage[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
- 7. Replace Maven plugins with Gradle equivalents
+ . Replace Maven plugins with Gradle equivalents
 +
 In the case of <<migmvn:common_plugins,popular plugins>>, Gradle often has an equivalent plugin that you can use.
 You might also find that you can <<migmvn:unnecessary_plugins,replace a plugin with built-in Gradle functionality>>.
@@ -325,10 +333,10 @@ If you're more interested in controlling which version of a dependency is actual
 [[migmvn:optional_deps]]
 === Handling optional dependencies
 
-There are two sides to optional dependencies: 
+You are likely to encounter two situations regarding optional dependencies: 
 
- * How the build treats them as transitive dependencies
- * How declared dependencies are published as optional
+ * Some of your transitive dependencies are declared as optional
+ * You want to declare some of your direct dependencies as optional in your project's published POM
 
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.

@@ -23,12 +23,14 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 
 import javax.inject.Inject;
@@ -93,17 +95,24 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        if (project.getPluginManager().hasPlugin("java")) {
+            // This already throws when creating `apiElements` so be eager to have a clear error message
+            throw new IllegalStateException("The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin. " +
+                "A project is either a platform or a library but cannot be both at the same time.");
+        }
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
         configureExtension(project);
         addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
+
+
     }
 
     private void addPlatformDisambiguationRule(Project project) {
         project.getDependencies()
                 .getAttributesSchema()
-                .getMatchingStrategy(PlatformSupport.COMPONENT_CATEGORY)
+                .getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
                 .getDisambiguationRules()
                 .add(PlatformSupport.PreferRegularPlatform.class);
     }
@@ -118,18 +127,18 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
-        Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.REGULAR_PLATFORM);
-        Configuration enforcedApiElements = createConsumableApi(project, configurations, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.ENFORCED_PLATFORM);
+        Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
+        Configuration enforcedApiElements = createConsumableApi(project, configurations, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
 
         Configuration runtime = project.getConfigurations().create(RUNTIME_CONFIGURATION_NAME, AS_BUCKET);
         runtime.extendsFrom(api);
 
-        Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.REGULAR_PLATFORM);
-        Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, PlatformSupport.ENFORCED_PLATFORM);
+        Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
+        Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
 
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtimeElements);
-        declareConfigurationUsage(project, classpath, Usage.JAVA_RUNTIME);
+        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME);
 
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
@@ -137,25 +146,25 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private Configuration createConsumableRuntime(Project project, Configuration apiElements, String name, String platformKind) {
         Configuration runtimeElements = project.getConfigurations().create(name, AS_CONSUMABLE_CONFIGURATION);
         runtimeElements.extendsFrom(apiElements);
-        declareConfigurationUsage(project, runtimeElements, Usage.JAVA_RUNTIME);
-        declareConfigurationCategory(runtimeElements, platformKind);
+        declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
+        declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
         return runtimeElements;
     }
 
     private Configuration createConsumableApi(Project project, ConfigurationContainer configurations, Configuration api, String name, String platformKind) {
         Configuration apiElements = configurations.create(name, AS_CONSUMABLE_CONFIGURATION);
         apiElements.extendsFrom(api);
-        declareConfigurationUsage(project, apiElements, Usage.JAVA_API);
-        declareConfigurationCategory(apiElements, platformKind);
+        declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
+        declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
         return apiElements;
     }
 
-    private void declareConfigurationCategory(Configuration configuration, String value) {
-        configuration.getAttributes().attribute(PlatformSupport.COMPONENT_CATEGORY, value);
+    private void declareConfigurationCategory(ObjectFactory objectFactory, Configuration configuration, String value) {
+        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
     }
 
-    private void declareConfigurationUsage(Project project, Configuration configuration, String usage) {
-        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, project.getObjects().named(Usage.class, usage));
+    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage) {
+        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
     }
 
     private void configureExtension(Project project) {

@@ -31,7 +31,7 @@ import java.util.Collection;
  *
  * task resolveCompileSources {
  *     doLast {
- *         def componentIds = configurations.compile.incoming.resolutionResult.allDependencies.collect { it.selected.id }
+ *         def componentIds = configurations.compileClasspath.incoming.resolutionResult.allDependencies.collect { it.selected.id }
  *
  *         def result = dependencies.createArtifactResolutionQuery()
  *                                  .forComponents(componentIds)

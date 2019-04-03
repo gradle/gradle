@@ -16,18 +16,19 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.change.ChangeContainer;
 import org.gradle.internal.change.ChangeVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
+import java.util.SortedMap;
+
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
-    protected final ImmutableSortedMap<String, FileCollectionFingerprint> previous;
-    protected final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current;
+    protected final SortedMap<String, FileCollectionFingerprint> previous;
+    protected final SortedMap<String, CurrentFileCollectionFingerprint> current;
     private final String title;
 
-    protected AbstractFingerprintChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
+    protected AbstractFingerprintChanges(SortedMap<String, FileCollectionFingerprint> previous, SortedMap<String, CurrentFileCollectionFingerprint> current, String title) {
         this.previous = previous;
         this.current = current;
         this.title = title;

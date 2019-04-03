@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.internal.Try;
+
+import javax.annotation.Nullable;
 
 /**
  * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
@@ -34,7 +37,7 @@ public interface Transformation extends Describable {
     /**
      * Transforms the given input subject. May call the underlying transformer(s) or retrieve a cached value.
      */
-    Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver);
+    Try<TransformationSubject> transform(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable ProjectExecutionServiceRegistry services);
 
     /**
      * Whether the transformation requires dependencies of the transformed artifact to be injected.

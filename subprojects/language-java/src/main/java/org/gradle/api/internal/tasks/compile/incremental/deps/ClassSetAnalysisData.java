@@ -29,7 +29,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.IntSetSerializer;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -40,14 +39,12 @@ public class ClassSetAnalysisData {
     private final Set<String> classes;
     private final Map<String, DependentsSet> dependents;
     private final Map<String, IntSet> classesToConstants;
-    private final Map<String, Set<String>> classesToChildren;
     private final String fullRebuildCause;
 
-    public ClassSetAnalysisData(Set<String> classes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, Map<String, Set<String>> classesToChildren, String fullRebuildCause) {
+    public ClassSetAnalysisData(Set<String> classes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
         this.classes = classes;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
-        this.classesToChildren = classesToChildren;
         this.fullRebuildCause = fullRebuildCause;
     }
 
@@ -71,7 +68,7 @@ public class ClassSetAnalysisData {
                 typesInPackage.add(type);
             }
         }
-        return DependentsSet.dependents(typesInPackage);
+        return DependentsSet.dependentClasses(typesInPackage);
     }
 
     public IntSet getConstants(String className) {
@@ -80,11 +77,6 @@ public class ClassSetAnalysisData {
             return IntSets.EMPTY_SET;
         }
         return integers;
-    }
-
-    public Set<String> getChildren(String className) {
-        Set<String> children = classesToChildren.get(className);
-        return children == null ? Collections.<String>emptySet() : children;
     }
 
     public static class Serializer extends AbstractSerializer<ClassSetAnalysisData> {
@@ -121,21 +113,9 @@ public class ClassSetAnalysisData {
                 classesToConstantsBuilder.put(className, constants);
             }
 
-            count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, Set<String>> classNameToChildren = ImmutableMap.builder();
-            for (int i = 0; i < count; i++) {
-                String parent = readClassName(decoder, classNameMap);
-                int nameCount = decoder.readSmallInt();
-                ImmutableSet.Builder<String> namesBuilder = ImmutableSet.builder();
-                for (int j = 0; j < nameCount; j++) {
-                    namesBuilder.add(readClassName(decoder, classNameMap));
-                }
-                classNameToChildren.put(parent, namesBuilder.build());
-            }
-
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(classes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), classNameToChildren.build(), fullRebuildCause);
+            return new ClassSetAnalysisData(classes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), fullRebuildCause);
         }
 
         @Override
@@ -157,16 +137,6 @@ public class ClassSetAnalysisData {
                 writeClassName(entry.getKey(), classNameMap, encoder);
                 IntSetSerializer.INSTANCE.write(encoder, entry.getValue());
             }
-
-            encoder.writeSmallInt(value.classesToChildren.size());
-            for (Map.Entry<String, Set<String>> entry : value.classesToChildren.entrySet()) {
-                writeClassName(entry.getKey(), classNameMap, encoder);
-                encoder.writeSmallInt(entry.getValue().size());
-                for (String className : entry.getValue()) {
-                    writeClassName(className, classNameMap, encoder);
-                }
-            }
-
             encoder.writeNullableString(value.fullRebuildCause);
         }
 
@@ -180,7 +150,7 @@ public class ClassSetAnalysisData {
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }
-            return DependentsSet.dependents(builder.build());
+            return DependentsSet.dependentClasses(builder.build());
         }
 
         private void writeDependentSet(DependentsSet dependentsSet, Map<String, Integer> classNameMap, Encoder encoder) throws IOException {

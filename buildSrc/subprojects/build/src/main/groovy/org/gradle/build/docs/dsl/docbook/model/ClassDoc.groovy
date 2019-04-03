@@ -73,6 +73,15 @@ class ClassDoc implements DslElementDoc {
         return classMetaData.incubating
     }
 
+    boolean isReplaced() {
+        return classMetaData.replaced
+    }
+
+    @Override
+    String getReplacement() {
+        return classMetaData.replacement
+    }
+
     Collection<PropertyDoc> getClassProperties() { return classProperties }
 
     void addClassProperty(PropertyDoc propertyDoc) {

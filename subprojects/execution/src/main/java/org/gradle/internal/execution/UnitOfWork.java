@@ -19,11 +19,15 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.CacheableEntity;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -32,24 +36,43 @@ public interface UnitOfWork extends CacheableEntity {
     /**
      * Executes the work synchronously.
      */
-    ExecutionOutcome execute();
+    WorkResult execute(@Nullable InputChangesInternal inputChanges);
 
     Optional<Duration> getTimeout();
 
+    boolean isRequiresInputChanges();
+
+    boolean isRequiresLegacyInputChanges();
+
+    void visitInputFileProperties(InputFilePropertyVisitor visitor);
+
     void visitOutputProperties(OutputPropertyVisitor visitor);
+
+    void visitLocalState(LocalStateVisitor visitor);
+
+    @FunctionalInterface
+    interface LocalStateVisitor {
+        void visitLocalStateRoot(File localStateRoot);
+    }
 
     long markExecutionTime();
 
     /**
-     * Loading from cache failed and all outputs were removed.
+     * Return a reason to disable caching for this work.
+     * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
-    void outputsRemovedAfterFailureToLoadFromCache();
+    Optional<CachingDisabledReason> shouldDisableCaching();
 
-    CacheHandler createCacheHandler();
+    /**
+     * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
+     */
+    default void markSnapshottingInputsFinished(CachingState cachingState) {}
 
-    void persistResult(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs, boolean successful, OriginMetadata originMetadata);
-
-    Optional<ExecutionStateChanges> getChangesSincePreviousExecution();
+    /**
+     * Is this work item allowed to load from the cache, or if we only allow it to be stored.
+     */
+    // TODO Make this part of CachingState instead
+    boolean isAllowedToLoadFromCache();
 
     /**
      * Paths to locations changed by the unit of work.
@@ -63,10 +86,27 @@ public interface UnitOfWork extends CacheableEntity {
      */
     Optional<? extends Iterable<String>> getChangingOutputs();
 
+    /**
+     * When overlapping outputs are allowed, output files added between executions are ignored during change detection.
+     */
+    boolean isAllowOverlappingOutputs();
+
+    @FunctionalInterface
+    interface InputFilePropertyVisitor {
+        void visitInputFileProperty(String name, @Nullable Object value, boolean incremental);
+    }
+
     @FunctionalInterface
     interface OutputPropertyVisitor {
         void visitOutputProperty(String name, TreeType type, FileCollection roots);
     }
+
+    enum WorkResult {
+        DID_WORK,
+        DID_NO_WORK
+    }
+
+    ExecutionHistoryStore getExecutionHistoryStore();
 
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated();
 }

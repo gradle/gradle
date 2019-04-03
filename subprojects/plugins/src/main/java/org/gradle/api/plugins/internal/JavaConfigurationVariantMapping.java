@@ -37,7 +37,10 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
     public void execute(ConfigurationVariantDetails details) {
         ConfigurationVariant variant = details.getConfigurationVariant();
         if (ArtifactTypeSpec.INSTANCE.isSatisfiedBy(variant)) {
-            details.mapToMavenScope(scope, optional);
+            details.mapToMavenScope(scope);
+            if (optional) {
+                details.mapToOptional();
+            }
         } else {
             details.skip();
         }

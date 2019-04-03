@@ -65,9 +65,11 @@ public abstract class Try<T> {
 
     public abstract void ifSuccessful(Consumer<T> consumer);
 
-    public abstract void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer);
+    public abstract void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer);
 
-    private static class Success<T> extends Try<T> {
+    public abstract <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction);
+
+    private static final class Success<T> extends Try<T> {
         private final T value;
 
         public Success(T value) {
@@ -114,8 +116,13 @@ public abstract class Try<T> {
         }
 
         @Override
-        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+        public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             successConsumer.accept(value);
+        }
+
+        @Override
+        public <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction) {
+            return successFunction.apply(value);
         }
 
         @Override
@@ -138,7 +145,7 @@ public abstract class Try<T> {
         }
     }
 
-    private static class Failure<T> extends Try<T> {
+    private static final class Failure<T> extends Try<T> {
         private final Throwable failure;
 
         public Failure(Throwable failure) {
@@ -180,8 +187,13 @@ public abstract class Try<T> {
         }
 
         @Override
-        public void ifSuccessfulOrElse(Consumer<T> successConsumer, Consumer<Throwable> failureConsumer) {
+        public void ifSuccessfulOrElse(Consumer<? super T> successConsumer, Consumer<? super Throwable> failureConsumer) {
             failureConsumer.accept(failure);
+        }
+
+        @Override
+        public <R> R getSuccessfulOrElse(Function<? super T, ? extends R> successFunction, Function<? super Throwable, ? extends R> failureFunction) {
+            return failureFunction.apply(failure);
         }
 
         @Override

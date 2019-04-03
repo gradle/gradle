@@ -286,9 +286,7 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> true
-        metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, true)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -299,14 +297,14 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info', '{error}error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
     }
 
-    def rendersLogEventsWhenOnlyStdOutIsConsole() {
+    def rendersLogEventsWhenStdOutAndStdErrAreSeparateConsoles() {
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> true
-        metaData.stdErr >> false
-        renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, metaData)
+        def stderrConsole = new ConsoleStub()
+        renderer.addRichConsole(console, stderrConsole, metaData, true)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -317,17 +315,36 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info']
+        stderrConsole.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
+    }
+
+    def rendersLogEventsWhenOnlyStdOutIsConsole() {
+        def snapshot = renderer.snapshot()
+        renderer.attachSystemOutAndErr()
+        renderer.addRichConsole(console, outputs.stdErrPrintStream, metaData, true)
+
+        when:
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
+        renderer.onOutput(event('info', LogLevel.INFO, 1L))
+        renderer.onOutput(event('error', LogLevel.ERROR, 1L))
+        renderer.onOutput(complete('status'))
+        renderer.restore(snapshot) // close console to flush
+
+        then:
+        console.buildOutputArea.toString().readLines() == ['', '{header}> description{info} status{normal}', 'info']
+        outputs.stdOut == ''
+        outputs.stdErr.readLines() == ['error']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> false
-        metaData.stdErr >> true
         renderer.attachSystemOutAndErr()
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(outputs.stdOutPrintStream, console, true)
 
         when:
-        renderer.onOutput(start('description'))
+        renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
@@ -335,14 +352,14 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['{error}error', '{normal}']
+        outputs.stdOut.readLines() == ['info', '> description status']
+        outputs.stdErr == ''
     }
 
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
         renderer.configure(LogLevel.DEBUG)
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> true
-        metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, false)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -351,15 +368,15 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         console.buildOutputArea.toString().readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
+        outputs.stdOut == ''
+        outputs.stdErr == ''
     }
 
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> true
-        metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsoleWithErrorOutputOnStdout(console, metaData, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -374,9 +391,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> true
-        metaData.stdErr >> false
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(console, outputs.stdErrPrintStream, metaData, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
@@ -391,9 +406,7 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        metaData.stdOut >> false
-        metaData.stdErr >> true
-        renderer.addRichConsole(console, metaData)
+        renderer.addRichConsole(outputs.stdOutPrintStream, console, false)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush

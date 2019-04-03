@@ -72,9 +72,19 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     public ArtifactRepository gradlePluginPortal() {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
+    
+    @Override
+    public ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action) {
+        return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME, action);
+    }
 
     public MavenArtifactRepository mavenCentral() {
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME);
+    }
+
+    @Override
+    public MavenArtifactRepository mavenCentral(Action<? super MavenArtifactRepository> action) {
+        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, action);
     }
 
     public MavenArtifactRepository jcenter() {
@@ -94,8 +104,18 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME);
     }
 
+    @Override
+    public MavenArtifactRepository mavenLocal(Action<? super MavenArtifactRepository> action) {
+        return addRepository(repositoryFactory.createMavenLocalRepository(), DEFAULT_MAVEN_LOCAL_REPO_NAME, action);
+    }
+
     public MavenArtifactRepository google() {
         return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_REPO_NAME);
+    }
+
+    @Override
+    public MavenArtifactRepository google(Action<? super MavenArtifactRepository> action) {
+        return addRepository(repositoryFactory.createGoogleRepository(), GOOGLE_REPO_NAME, action);
     }
 
     public MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action) {

@@ -96,6 +96,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -111,6 +112,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -218,6 +220,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private CollectionCallbackActionDecorator callbackActionDecorator;
     private UserCodeApplicationContext userCodeApplicationContext;
 
+    private Action<? super ConfigurationInternal> beforeLocking;
+
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
                                 ConfigurationsProvider configurationsProvider,
@@ -259,7 +263,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.attributesFactory = attributesFactory;
         this.configurationAttributes = attributesFactory.mutable();
         this.domainObjectContext = domainObjectContext;
-        this.intrinsicFiles = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+        this.intrinsicFiles = new ConfigurationFileCollection(Specs.satisfyAll());
         this.documentationRegistry = documentationRegistry;
         this.resolutionLock = domainObjectProjectStateHandler.newExclusiveOperationLock();
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
@@ -387,20 +391,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return this;
     }
 
+    @Nullable
     public String getDescription() {
         return description;
     }
 
-    public Configuration setDescription(String description) {
+    public Configuration setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }
 
     public Set<Configuration> getHierarchy() {
         if (extendsFrom.isEmpty()) {
-            return Collections.<Configuration>singleton(this);
+            return Collections.singleton(this);
         }
-        Set<Configuration> result = WrapUtil.<Configuration>toLinkedSet(this);
+        Set<Configuration> result = WrapUtil.toLinkedSet(this);
         collectSuperConfigs(this, result);
         return result;
     }
@@ -450,7 +455,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Configuration> getAll() {
-        return ImmutableSet.<Configuration>copyOf(configurationsProvider.getAll());
+        return ImmutableSet.copyOf(configurationsProvider.getAll());
     }
 
     public Set<File> resolve() {
@@ -668,7 +673,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
-            public void run() {
+            public void run(ServiceRegistry registry) {
                 resolveExclusively(GRAPH_RESOLVED);
             }
         }, fileCollectionFactory);
@@ -870,9 +875,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public void beforeLocking(Action<? super ConfigurationInternal> action) {
+        if (canBeMutated) {
+            if (beforeLocking != null) {
+                beforeLocking = Actions.composite(beforeLocking, action);
+            } else {
+                beforeLocking = action;
+            }
+        }
+    }
+
+    @Override
     public void preventFromFurtherMutation() {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
+            if (beforeLocking != null) {
+                beforeLocking.execute(this);
+                beforeLocking = null;
+            }
             AttributeContainerInternal delegatee = configurationAttributes.asImmutable();
             configurationAttributes = new ImmutableAttributeContainerWithErrorMessage(delegatee, this.displayName);
             outgoing.preventFromFurtherMutation();
@@ -929,7 +949,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (!configurationAttributes.isEmpty()) {
             for (Attribute<?> attribute : configurationAttributes.keySet()) {
                 Object value = configurationAttributes.getAttribute(attribute);
-                copiedConfiguration.getAttributes().attribute(Cast.<Attribute<Object>>uncheckedCast(attribute), value);
+                copiedConfiguration.getAttributes().attribute(Cast.uncheckedNonnullCast(attribute), value);
             }
         }
 
@@ -952,11 +972,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration copy(Closure dependencySpec) {
-        return copy(Specs.<Dependency>convertClosureToSpec(dependencySpec));
+        return copy(Specs.convertClosureToSpec(dependencySpec));
     }
 
     public Configuration copyRecursive(Closure dependencySpec) {
-        return copyRecursive(Specs.<Dependency>convertClosureToSpec(dependencySpec));
+        return copyRecursive(Specs.convertClosureToSpec(dependencySpec));
     }
 
     public ResolutionStrategyInternal getResolutionStrategy() {
@@ -1297,7 +1317,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public FileCollection getFiles() {
-            return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll());
+            return new ConfigurationFileCollection(Specs.satisfyAll());
         }
 
         public DependencySet getDependencies() {
@@ -1388,7 +1408,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public FileCollection getFiles() {
-                return new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+                return new ConfigurationFileCollection(Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             }
         }
 
@@ -1561,21 +1581,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private class ConfigurationArtifactCollection implements ArtifactCollection {
         private final ConfigurationFileCollection fileCollection;
-        private final AttributeContainerInternal viewAttributes;
-        private final Spec<? super ComponentIdentifier> componentFilter;
         private final boolean lenient;
         private Set<ResolvedArtifactResult> artifactResults;
         private Set<Throwable> failures;
 
         ConfigurationArtifactCollection() {
-            this(configurationAttributes, Specs.<ComponentIdentifier>satisfyAll(), false, false);
+            this(configurationAttributes, Specs.satisfyAll(), false, false);
         }
 
         ConfigurationArtifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
             assertIsResolvable();
-            this.viewAttributes = attributes.asImmutable();
-            this.componentFilter = componentFilter;
-            this.fileCollection = new ConfigurationFileCollection(Specs.<Dependency>satisfyAll(), viewAttributes, this.componentFilter, lenient, allowNoMatchingVariants);
+            AttributeContainerInternal viewAttributes = attributes.asImmutable();
+            this.fileCollection = new ConfigurationFileCollection(Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
             this.lenient = lenient;
         }
 

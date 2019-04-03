@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import net.jcip.annotations.ThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
 import org.gradle.api.tasks.util.PatternSet;

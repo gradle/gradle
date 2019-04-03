@@ -18,6 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -25,78 +26,85 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.TestConsoleMetadata;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
-import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 public class ConsoleConfigureAction {
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
+        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+    }
+
+    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
         if (consoleOutput == ConsoleOutput.Auto) {
-            configureAutoConsole(renderer);
+            configureAutoConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Rich) {
-            configureRichConsole(renderer, false);
+            configureRichConsole(renderer, consoleMetadata, stdout, stderr, false);
         } else if (consoleOutput == ConsoleOutput.Verbose) {
-            configureRichConsole(renderer, true);
+            configureRichConsole(renderer, consoleMetadata, stdout, stderr, true);
         } else if (consoleOutput == ConsoleOutput.Plain) {
-            configurePlainConsole(renderer);
+            configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
         }
     }
 
-    private static void configureRichConsole(OutputEventRenderer renderer, boolean verbose) {
-        ConsoleMetaData consoleMetaData = getConsoleMetaData();
-        configureRichConsole(renderer, consoleMetaData, shouldForce(consoleMetaData), verbose);
-    }
-
-    private static boolean shouldForce(ConsoleMetaData consoleMetaData) {
-        return consoleMetaData == null || consoleMetaData instanceof TestConsoleMetadata;
-    }
-
-    private static void configureAutoConsole(OutputEventRenderer renderer) {
-        ConsoleMetaData consoleMetaData = getConsoleMetaData();
-        if (consoleMetaData != null) {
-            configureRichConsole(renderer, consoleMetaData, false, false);
-        } else {
-            configurePlainConsole(renderer, null);
-        }
-    }
-
-    private static void configurePlainConsole(OutputEventRenderer renderer) {
-        ConsoleMetaData consoleMetaData = getConsoleMetaData();
-        configurePlainConsole(renderer, consoleMetaData);
-    }
-
-    @Nullable
     private static ConsoleMetaData getConsoleMetaData() {
         String testConsole = System.getProperty(TestConsoleMetadata.TEST_CONSOLE_PROPERTY);
         if (testConsole != null) {
             return TestConsoleMetadata.valueOf(testConsole);
         }
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        return consoleDetector.getConsole();
-    }
-
-    private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData) {
-        // Redirect stderr to stdout if a console is attached to both stdout and stderr
-        renderer.addPlainConsole(consoleMetaData != null && consoleMetaData.isStdOut() && consoleMetaData.isStdErr());
-    }
-
-    private static void configureRichConsole(OutputEventRenderer renderer, @Nullable ConsoleMetaData consoleMetaData, boolean force, boolean verbose) {
-        if (consoleMetaData == null) {
-            consoleMetaData = FallbackConsoleMetaData.ATTACHED;
+        ConsoleMetaData metaData = consoleDetector.getConsole();
+        if (metaData != null) {
+            return metaData;
         }
-        if (consoleMetaData.isStdOut()) {
-            OutputStream originalStdOut = renderer.getOriginalStdOut();
-            OutputStreamWriter outStr = new OutputStreamWriter(force ? originalStdOut : AnsiConsoleUtil.wrapOutputStream(originalStdOut));
-            Console console = new AnsiConsole(outStr, outStr, renderer.getColourMap(), consoleMetaData, force);
-            renderer.addRichConsole(console, consoleMetaData, verbose);
+        return FallbackConsoleMetaData.NOT_ATTACHED;
+    }
+
+    private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
+        } else if (consoleMetaData.isStdOut()) {
+            // Write rich content to stdout and plain content to stderr
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(console, stderr, consoleMetaData, false);
         } else if (consoleMetaData.isStdErr()) {
-            // Only stderr is connected to a terminal
-            OutputStream originalStdErr = renderer.getOriginalStdErr();
-            OutputStreamWriter errStr = new OutputStreamWriter(force ? originalStdErr : AnsiConsoleUtil.wrapOutputStream(originalStdErr));
-            Console console = new AnsiConsole(errStr, errStr, renderer.getColourMap(), consoleMetaData, force);
-            renderer.addRichConsole(console, consoleMetaData, verbose);
+            // Write plain content to stdout and rich content to stderr
+            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(stdout, stderrConsole, true);
         } else {
-            renderer.addRichConsole(null, consoleMetaData, verbose);
+            renderer.addPlainConsole(stdout, stderr);
         }
+    }
+
+    private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
+        } else {
+            renderer.addPlainConsole(stdout, stderr);
+        }
+    }
+
+    private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
+        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+            // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
+            // This avoids interleaving problems when stdout and stderr end up at the same location
+            Console console = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose);
+        } else {
+            // Write rich content to both stdout and stderr
+            Console stdoutConsole = consoleFor(stdout, consoleMetaData, renderer.getColourMap());
+            Console stderrConsole = consoleFor(stderr, consoleMetaData, renderer.getColourMap());
+            renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose);
+        }
+    }
+
+    private static Console consoleFor(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        boolean force = !consoleMetaData.isWrapStreams();
+        OutputStreamWriter outStr = new OutputStreamWriter(force ? stdout : AnsiConsoleUtil.wrapOutputStream(stdout));
+        return new AnsiConsole(outStr, outStr, colourMap, consoleMetaData, force);
     }
 }

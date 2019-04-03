@@ -18,12 +18,15 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
+import org.gradle.kotlin.dsl.*
 
+import org.gradle.kotlin.dsl.plugins.appliedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin
 import org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins
 
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+
+import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 
 
 /**
@@ -41,8 +44,21 @@ class KotlinDslPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
+        warnOnUnexpectedKotlinDslPluginVersion()
+
         apply<JavaGradlePluginPlugin>()
         apply<KotlinDslBasePlugin>()
         apply<PrecompiledScriptPlugins>()
+    }
+
+    private
+    fun Project.warnOnUnexpectedKotlinDslPluginVersion() {
+        if (expectedKotlinDslPluginsVersion != appliedKotlinDslPluginsVersion) {
+            logger.warn(
+                "This version of Gradle expects version '{}' of the `kotlin-dsl` plugin but version '{}' has been applied to {}. " +
+                    "Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.",
+                expectedKotlinDslPluginsVersion, appliedKotlinDslPluginsVersion, project
+            )
+        }
     }
 }

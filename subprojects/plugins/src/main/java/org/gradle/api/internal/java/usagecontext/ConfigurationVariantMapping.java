@@ -23,22 +23,22 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 
 import java.util.Collection;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
-    private final Configuration outgoingConfiguration;
+    private final ConfigurationInternal outgoingConfiguration;
     private final Action<? super ConfigurationVariantDetails> action;
 
-    public ConfigurationVariantMapping(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
         this.outgoingConfiguration = outgoingConfiguration;
         this.action = action;
     }
@@ -109,6 +109,7 @@ public class ConfigurationVariantMapping {
 
         @Override
         public AttributeContainer getAttributes() {
+            outgoingConfiguration.preventFromFurtherMutation();
             return outgoingConfiguration.getAttributes();
         }
     }
@@ -134,9 +135,13 @@ public class ConfigurationVariantMapping {
         }
 
         @Override
-        public void mapToMavenScope(String scope, boolean optional) {
+        public void mapToOptional() {
+            this.optional = true;
+        }
+
+        @Override
+        public void mapToMavenScope(String scope) {
             this.mavenScope = assertValidScope(scope);
-            this.optional = optional;
         }
 
         private static String assertValidScope(String scope) {

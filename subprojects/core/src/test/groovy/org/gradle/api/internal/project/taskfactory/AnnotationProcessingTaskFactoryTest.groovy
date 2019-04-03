@@ -38,6 +38,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.work.InputChanges
 import spock.lang.Unroll
 
 import java.util.concurrent.Callable
@@ -48,6 +49,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskUsingInputChanges
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithDestroyable
@@ -59,8 +61,10 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithJavaBeanCornerCaseProperties
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithLocalState
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMixedMultipleIncrementalActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultiParamAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleIncrementalActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleMethods
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleProperties
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithNestedBean
@@ -79,7 +83,10 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedIncrementalAndInputChangesActions
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
+import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenInputChangesAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithProtectedMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithSingleParamAction
@@ -91,7 +98,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private ITaskFactory delegate
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
-    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, new TestCrossBuildInMemoryCacheFactory()))
+    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory()))
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -158,6 +165,19 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
+    def createsContextualActionForInputChangesTaskAction() {
+        given:
+        def action = Mock(Action)
+        def task = expectTaskCreated(TaskUsingInputChanges, action)
+
+        when:
+        execute(task)
+
+        then:
+        1 * action.execute(_ as InputChanges)
+        0 * _
+    }
+
     def createsContextualActionForOverriddenIncrementalTaskAction() {
         given:
         def action = Mock(Action)
@@ -169,6 +189,20 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * action.execute(_ as IncrementalTaskInputs)
+        0 * _
+    }
+
+    def createsContextualActionForOverriddenInputChangesTaskAction() {
+        given:
+        def action = Mock(Action)
+        def superAction = Mock(Action)
+        def task = expectTaskCreated(TaskWithOverriddenInputChangesAction, action, superAction)
+
+        when:
+        execute(task)
+
+        then:
+        1 * action.execute(_ as InputChanges)
         0 * _
     }
 
@@ -191,12 +225,16 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         e.message == failureMessage
 
         where:
-        type                               | failureMessage
-        TaskWithMultipleIncrementalActions | "Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter."
-        TaskWithStaticMethod               | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
-        TaskWithMultiParamAction           | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
-        TaskWithSingleParamAction          | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
-        TaskWithOverloadedActions          | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
+        type                                                | failureMessage
+        TaskWithMultipleIncrementalActions                  | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
+        TaskWithStaticMethod                                | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
+        TaskWithMultiParamAction                            | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
+        TaskWithSingleParamAction                           | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
+        TaskWithOverloadedActions                           | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
+        TaskWithOverloadedInputChangesActions               | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedInputChangesActions.doStuff()"
+        TaskWithOverloadedIncrementalAndInputChangesActions | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedIncrementalAndInputChangesActions.doStuff()"
+        TaskWithMultipleInputChangesActions                 | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
+        TaskWithMixedMultipleIncrementalActions             | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
     }
 
     @Unroll

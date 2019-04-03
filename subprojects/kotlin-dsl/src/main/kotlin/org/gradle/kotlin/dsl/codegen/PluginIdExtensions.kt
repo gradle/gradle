@@ -22,6 +22,7 @@ import org.gradle.plugin.use.PluginDependencySpec
 import java.io.File
 
 import java.util.Properties
+import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
 
@@ -248,7 +249,7 @@ internal
 fun pluginEntriesFrom(jar: File): List<PluginEntry> =
     JarFile(jar).use { jarFile ->
         jarFile.entries().asSequence().filter {
-            it.isFile && it.name.startsWith("META-INF/gradle-plugins/")
+            isGradlePluginPropertiesFile(it)
         }.map { pluginEntry ->
             val pluginProperties = jarFile.getInputStream(pluginEntry).use { Properties().apply { load(it) } }
             val id = pluginEntry.name.substringAfterLast("/").substringBeforeLast(".properties")
@@ -256,3 +257,9 @@ fun pluginEntriesFrom(jar: File): List<PluginEntry> =
             PluginEntry(id, implementationClass)
         }.toList()
     }
+
+
+private
+fun isGradlePluginPropertiesFile(entry: JarEntry) = entry.run {
+    isFile && name.run { startsWith("META-INF/gradle-plugins/") && endsWith(".properties") }
+}

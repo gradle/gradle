@@ -16,8 +16,9 @@
 
 package org.gradle.internal.fingerprint.impl
 
+import com.google.common.collect.Iterables
 import org.gradle.internal.change.CollectingChangeVisitor
-import org.gradle.internal.change.FileChange
+import org.gradle.internal.change.DefaultFileChange
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy
@@ -61,11 +62,11 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy     | includeAdded | results
-        NORMALIZED   | true         | [added("one-new")]
+        NORMALIZED   | true         | [added("one-new": "one")]
         NORMALIZED   | false        | []
-        IGNORED_PATH | true         | [added("one-new")]
+        IGNORED_PATH | true         | [added("one-new": "one")]
         IGNORED_PATH | false        | []
-        ABSOLUTE     | true         | [added("one-new")]
+        ABSOLUTE     | true         | [added("one-new": "one")]
         ABSOLUTE     | false        | []
     }
 
@@ -79,14 +80,14 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [added("two-new")]
+        NORMALIZED | true         | [added("two-new": "two")]
         NORMALIZED | false        | []
     }
 
     @Unroll
     def "non-trivial addition with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
+        changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two")],
             ["one": fingerprint("one")]
         ) == results
@@ -103,7 +104,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             [:],
             ["one-old": fingerprint("one")]
-        ) as List == [removed("one-old")]
+        ) as List == [removed("one-old": "one")]
 
         where:
         strategy   | includeAdded
@@ -119,7 +120,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one")],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two")]
-        ) == [removed("two-old")]
+        ) == [removed("two-old": "two")]
 
         where:
         strategy   | includeAdded
@@ -130,7 +131,7 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "non-trivial removal with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
+        changes(strategy, includeAdded,
             ["one": fingerprint("one")],
             ["one": fingerprint("one"), "two": fingerprint("two")]
         ) == [removed("two")]
@@ -147,7 +148,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(strategy, includeAdded,
             ["one-new": fingerprint("one"), "two-new": fingerprint("two", 0x9876cafe)],
             ["one-old": fingerprint("one"), "two-old": fingerprint("two", 0xface1234)]
-        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
+        ) == [modified("two-new": "two", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         strategy   | includeAdded
@@ -161,7 +162,7 @@ class FingerprintCompareStrategyTest extends Specification {
         changes(NORMALIZED, includeAdded,
             ["two-new": fingerprint("", 0x9876cafe), "one-new": fingerprint("")],
             ["one-old": fingerprint(""), "two-old": fingerprint("", 0xface1234)]
-        ) == [modified("two-new", FileType.RegularFile, FileType.RegularFile)]
+        ) == [modified("two-new": "", FileType.RegularFile, FileType.RegularFile)]
 
         where:
         includeAdded << [true, false]
@@ -170,7 +171,7 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "non-trivial modification with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
+        changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two", 0x9876cafe)],
             ["one": fingerprint("one"), "two": fingerprint("two", 0xface1234)]
         ) == [modified("two", FileType.RegularFile, FileType.RegularFile)]
@@ -191,8 +192,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("one-old"), added("two-new")]
-        NORMALIZED | false        | [removed("one-old")]
+        NORMALIZED | true         | [removed("one-old": "one"), added("two-new": "two")]
+        NORMALIZED | false        | [removed("one-old": "one")]
     }
 
     @Unroll
@@ -205,14 +206,14 @@ class FingerprintCompareStrategyTest extends Specification {
 
         where:
         strategy   | includeAdded | results
-        NORMALIZED | true         | [removed("three-old"), added("two-new")]
-        NORMALIZED | false        | [removed("three-old")]
+        NORMALIZED | true         | [removed("three-old": "three"), added("two-new": "two")]
+        NORMALIZED | false        | [removed("three-old": "three")]
     }
 
     @Unroll
     def "non-trivial replacement with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
+        changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two"), "four": fingerprint("four")],
             ["one": fingerprint("one"), "three": fingerprint("three"), "four": fingerprint("four")]
         ) == results
@@ -240,7 +241,7 @@ class FingerprintCompareStrategyTest extends Specification {
     @Unroll
     def "reordering with absolute paths (#strategy, include added: #includeAdded)"() {
         expect:
-        changesUsingAbsolutePaths(strategy, includeAdded,
+        changes(strategy, includeAdded,
             ["one": fingerprint("one"), "two": fingerprint("two"), "three": fingerprint("three")],
             ["one": fingerprint("one"), "three": fingerprint("three"), "two": fingerprint("two")]
         ) == results
@@ -283,25 +284,34 @@ class FingerprintCompareStrategyTest extends Specification {
         visitor.getChanges().toList()
     }
 
-    def changesUsingAbsolutePaths(FingerprintCompareStrategy strategy, boolean includeAdded, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def visitor = new CollectingChangeVisitor()
-        strategy.visitChangesSince(visitor, current, previous, "test", includeAdded)
-        visitor.getChanges().toList()
-    }
-
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
         return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
     }
 
     def added(String path) {
-        FileChange.added(path, "test", FileType.RegularFile)
+        added((path): path)
+    }
+
+    def added(Map<String, String> entry) {
+        def singleEntry = Iterables.getOnlyElement(entry.entrySet())
+        DefaultFileChange.added(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
     }
 
     def removed(String path) {
-        FileChange.removed(path, "test", FileType.RegularFile)
+        removed((path): path)
     }
 
-    def modified(String path, FileType previous, FileType current) {
-        FileChange.modified(path, "test", previous, current)
+    def removed(Map<String, String> entry) {
+        def singleEntry = Iterables.getOnlyElement(entry.entrySet())
+        DefaultFileChange.removed(singleEntry.key, "test", FileType.RegularFile, singleEntry.value)
+    }
+
+    def modified(String path, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+        modified((path): path, previous, current)
+    }
+
+    def modified(Map<String, String> paths, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
+        def singleEntry = Iterables.getOnlyElement(paths.entrySet())
+        DefaultFileChange.modified(singleEntry.key, "test", previous, current, singleEntry.value)
     }
 }

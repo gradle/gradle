@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -27,12 +28,14 @@ import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocatio
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
@@ -42,28 +45,28 @@ import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
+import org.gradle.work.InputChanges
 import spock.lang.Unroll
 
 import java.util.function.BiFunction
 
 class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
-    def workExecutorTestFixture = new WorkExecutorTestFixture()
-
     def immutableTransformsStoreDirectory = temporaryFolder.file("output")
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
+    def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemMirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([]))
+    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemMirror)
     def fileSystemSnapshotter = new DefaultFileSystemSnapshotter(TestFiles.fileHasher(), new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
-    def executionHistoryStore = new TestExecutionHistoryStore()
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileSystemSnapshotter)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileSystemSnapshotter)
-    def registry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter, outputFilesFingerprinter])
+    def fingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([dependencyFingerprinter, outputFilesFingerprinter])
 
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(_) >> HashCode.fromInt(1234)
@@ -91,11 +94,9 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         fileSystemSnapshotter,
         artifactTransformListener,
         transformationWorkspaceProvider,
-        registry,
         fileCollectionFactory,
         classloaderHasher,
-        projectFinder,
-        true
+        projectFinder
     )
 
     private static class TestTransformer implements Transformer {
@@ -127,13 +128,18 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
+        boolean requiresInputChanges() {
+            return false
+        }
+
+        @Override
         boolean isCacheable() {
             return false
         }
 
         @Override
-        ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
-            return ImmutableList.copyOf(transformationAction.apply(inputArtifact, outputDir))
+        ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            return ImmutableList.copyOf(transformationAction.apply(inputArtifactProvider.get().asFile, outputDir))
         }
 
         @Override
@@ -152,7 +158,12 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        void isolateParameters() {
+        boolean isIsolated() {
+            return true
+        }
+
+        @Override
+        void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         }
 
         @Override
@@ -176,7 +187,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, inputArtifact, dependencies, dependency(transformationType, inputArtifact))
+        def result = invoker.invoke(transformer, inputArtifact, dependencies, dependency(transformationType, inputArtifact), fingerprinterRegistry)
 
         then:
         result.get().size() == 1
@@ -199,7 +210,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -207,7 +218,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -231,7 +242,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        def result = invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        def result = invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
 
         then:
         transformerInvocations == 1
@@ -241,7 +252,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         wrappedFailure.cause == failure
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
@@ -262,7 +273,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 1
         outputFile?.isFile()
@@ -271,7 +282,7 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         outputFile.text = "changed"
         fileSystemMirror.beforeBuildFinished()
 
-        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact))
+        invoker.invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
         transformerInvocations == 2
     }
@@ -292,8 +303,8 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
 
         def subject = dependency(transformationType, inputArtifact)
         when:
-        invoker.invoke(transformer1, inputArtifact, dependencies, subject)
-        invoker.invoke(transformer2, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer1, inputArtifact, dependencies, subject, fingerprinterRegistry)
+        invoker.invoke(transformer2, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
         workspaces.size() == 2
@@ -317,14 +328,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         }
         def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
         when:
-        invoker.invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1))
+        invoker.invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1), fingerprinterRegistry)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         inputArtifact1.text = "changed"
-        invoker.invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2))
+        invoker.invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2), fingerprinterRegistry)
 
         then:
         workspaces.size() == 2
@@ -347,14 +358,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         def subject = immutableDependency(inputArtifact)
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         inputArtifact.text = "changed"
-        invoker.invoke(transformer, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
         workspaces.size() == 2
@@ -374,14 +385,14 @@ class DefaultTransformerInvokerTest extends AbstractProjectBuilderSpec {
         def subject = mutableDependency(inputArtifact)
 
         when:
-        invoker.invoke(transformer, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
         then:
         workspaces.size() == 1
 
         when:
         fileSystemMirror.beforeBuildFinished()
         inputArtifact.text = "changed"
-        invoker.invoke(transformer, inputArtifact, dependencies, subject)
+        invoker.invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
         workspaces.size() == 1

@@ -16,12 +16,15 @@
 package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -112,8 +115,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
         if (classpathConfiguration == null) {
             classpathConfiguration = configContainer.create(CLASSPATH_CONFIGURATION);
-            classpathConfiguration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
-            classpathConfiguration.getAttributes().attribute(Bundling.BUNDLING_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Bundling.class, Bundling.EXTERNAL));
+            AttributeContainer attributes = classpathConfiguration.getAttributes();
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, NamedObjectInstantiator.INSTANCE.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(JavaVersion.current().getMajorVersion()));
         }
     }
 

@@ -9,7 +9,6 @@ dependencies {
     compile(project(":core"))
     compile(project(":dependencyManagement"))
     compile(project(":workers"))
-    compile(library("commons_collections"))
     compile(library("commons_lang"))
 }
 

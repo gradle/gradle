@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -38,7 +37,6 @@ dependencies {
     implementation(library("ivy"))
     implementation(library("slf4j_api"))
     implementation(library("gson"))
-    implementation(library("jcip"))
     implementation(library("maven3"))
 
     runtimeOnly(library("bouncycastle_provider"))
@@ -56,6 +54,8 @@ dependencies {
 
     testFixturesApi(project(":resourcesHttp", "testFixturesApiElements"))
     testFixturesImplementation(project(":internalIntegTesting"))
+
+    crossVersionTestRuntimeOnly(project(":maven"))
 }
 
 gradlebuildJava {

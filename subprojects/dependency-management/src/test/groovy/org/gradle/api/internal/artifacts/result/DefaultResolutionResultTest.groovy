@@ -132,11 +132,12 @@ class DefaultResolutionResultTest extends Specification {
             'test project'
         )
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
+        org.gradle.internal.Factory<String> broken = { "too bad" }
         def dep = new DefaultUnresolvedDependencyResult(
             Stub(ComponentSelector), false,
             Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, [Stub(ResolvedVariantResult)], null),
-            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), "too bad")
+            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken)
         )
         def edge = new UnresolvedDependencyEdge(dep)
 

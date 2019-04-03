@@ -18,7 +18,6 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
-import build.withCompileOnlyGradleApiModulesWithParameterNames
 import codegen.GenerateKotlinDependencyExtensions
 
 plugins {
@@ -31,11 +30,11 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-withCompileOnlyGradleApiModulesWithParameterNames(":toolingApi")
-
 dependencies {
 
     api(project(":distributionsDependencies"))
+
+    compileOnly(project(":toolingApi"))
 
     compile(project(":kotlinDslToolingModels"))
 
@@ -44,7 +43,7 @@ dependencies {
     compile(futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.4") {
+    compile("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.0.5") {
         isTransitive = false
     }
 
@@ -70,16 +69,21 @@ dependencies {
 }
 
 // --- Enable automatic generation of API extensions -------------------
-val apiExtensionsOutputDir = file("src/generated/kotlin")
+val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.2" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.2.6" // TODO:kotlin-dsl
 
 tasks {
 
+    // TODO:kotlin-dsl
+    verifyTestFilesCleanup {
+        enabled = false
+    }
+
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputFile = apiExtensionsOutputDir.resolve("org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt")
-        embeddedKotlinVersion = kotlinVersion
-        kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
+        outputDir.set(apiExtensionsOutputDir)
+        embeddedKotlinVersion.set(kotlinVersion)
+        kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
     val generateExtensions by registering {
@@ -88,10 +92,6 @@ tasks {
 
     sourceSets.main {
         kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
-    }
-
-    clean {
-        delete(apiExtensionsOutputDir)
     }
 
 // -- Version manifest properties --------------------------------------

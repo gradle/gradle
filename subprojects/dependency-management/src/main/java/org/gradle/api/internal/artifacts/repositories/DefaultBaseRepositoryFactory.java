@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.ModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
@@ -64,7 +64,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final FileStore<String> externalResourcesFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
-    private final ModuleMetadataParser metadataParser;
+    private final GradleModuleMetadataParser metadataParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final IvyContextManager ivyContextManager;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -84,7 +84,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
                                         FileStore<String> externalResourcesFileStore,
                                         MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                        ModuleMetadataParser metadataParser,
+                                        GradleModuleMetadataParser metadataParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                         IvyContextManager ivyContextManager,
                                         ImmutableModuleIdentifierFactory moduleIdentifierFactory,

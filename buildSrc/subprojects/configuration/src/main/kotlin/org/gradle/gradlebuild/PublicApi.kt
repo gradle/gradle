@@ -33,6 +33,7 @@ object PublicApi {
         "org/gradle/testkit/**",
         "org/gradle/testing/**",
         "org/gradle/vcs/**",
+        "org/gradle/work/**",
         "org/gradle/workers/**")
 
     val excludes = listOf("**/internal/**")

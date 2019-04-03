@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-
 package org.gradle.binarycompatibility.transforms
 
-import org.gradle.api.artifacts.transform.ArtifactTransform
-import javax.inject.Inject
 import groovy.transform.CompileStatic
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-class FindGradleClasspath extends ArtifactTransform {
+abstract class FindGradleClasspath implements TransformAction<TransformParameters.None> {
 
-    @Inject
-    FindGradleClasspath() {
-    }
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputArtifact
+    abstract File getArtifact()
 
     @Override
-    List<File> transform(final File file) {
-        if (file.name == 'gradle-dependencies') {
-            (file.listFiles() as List<File>).sort { it.name }
-        } else {
-            []
+    void transform(TransformOutputs outputs) {
+        if (artifact.name == 'gradle-dependencies') {
+            (artifact.listFiles() as List<File>).sort { it.name }.each {
+                outputs.file(it)
+            }
         }
     }
 }

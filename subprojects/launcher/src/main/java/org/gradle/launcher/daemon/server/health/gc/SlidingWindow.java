@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health.gc;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface SlidingWindow<T> {
     /**
@@ -24,12 +24,17 @@ public interface SlidingWindow<T> {
      *
      * @param element The element to add
      */
-    public void slideAndInsert(T element);
+    void slideAndInsert(T element);
 
     /**
-     * Returns a snapshot of the elements in the window as a Set view.
+     * Returns a snapshot of the elements in the window.
      *
-     * @return Set view of the elements
+     * @return collection view of the elements
      */
-    public Set<T> snapshot();
+    Collection<T> snapshot();
+
+    /**
+     * @return the latest event in the window.
+     */
+    T latest();
 }

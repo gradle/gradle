@@ -19,11 +19,14 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.transform.ArtifactTransform;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -31,7 +34,9 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -53,12 +58,18 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public boolean requiresInputChanges() {
+        return false;
+    }
+
+    @Override
     public boolean isCacheable() {
         return false;
     }
 
     @Override
-    public ImmutableList<File> transform(File inputArtifact, File outputDir, ArtifactTransformDependencies dependencies) {
+    public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+        File inputArtifact = inputArtifactProvider.get().getAsFile();
         ArtifactTransform transformer = newTransformer();
         transformer.setOutputDirectory(outputDir);
         List<File> outputs = transformer.transform(inputArtifact);
@@ -94,11 +105,16 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     }
 
     @Override
+    public boolean isIsolated() {
+        return true;
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
     }
 
     @Override
-    public void isolateParameters() {
+    public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
     }
 
     private ArtifactTransform newTransformer() {

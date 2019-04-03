@@ -20,13 +20,12 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
-import org.gradle.api.artifacts.transform.VariantTransform
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
-
-import org.gradle.kotlin.dsl.create
-
+import org.gradle.kotlin.dsl.*
 import java.io.File
-
 import java.lang.Integer.max
 
 
@@ -40,6 +39,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     companion object {
         val artifactType = Attribute.of("artifactType", String::class.java)
         val zipType = "zip"
+        val unzippedDistributionType = "unzipped-distribution"
         val sourceDirectory = "src-directory"
     }
 
@@ -69,12 +69,16 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         }
 
     private
-    fun registerTransforms() =
-        registerTransform {
+    fun registerTransforms() {
+        registerTransform<UnzipDistribution> {
             from.attribute(artifactType, zipType)
-            to.attribute(artifactType, sourceDirectory)
-            artifactTransform(ExtractGradleSourcesTransform::class.java)
+            to.attribute(artifactType, unzippedDistributionType)
         }
+        registerTransform<FindGradleSources> {
+            from.attribute(artifactType, unzippedDistributionType)
+            to.attribute(artifactType, sourceDirectory)
+        }
+    }
 
     private
     fun transientConfigurationForSourcesDownload() =
@@ -147,8 +151,8 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     }
 
     private
-    fun registerTransform(configure: VariantTransform.() -> Unit) =
-        dependencies.registerTransform { configure(it) }
+    inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(crossinline configure: TransformSpec<TransformParameters.None>.() -> Unit) =
+        dependencies.registerTransform(T::class.java) { configure(it) }
 
     private
     fun ivy(configure: IvyArtifactRepository.() -> Unit) =

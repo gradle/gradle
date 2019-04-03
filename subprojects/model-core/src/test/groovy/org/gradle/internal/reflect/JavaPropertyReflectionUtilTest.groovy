@@ -18,10 +18,12 @@ package org.gradle.internal.reflect
 
 
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.lang.annotation.Inherited
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
+import java.lang.reflect.Type
 
 import static JavaPropertyReflectionUtil.getAnnotation
 import static JavaPropertyReflectionUtil.hasDefaultToString
@@ -261,6 +263,46 @@ class JavaPropertyReflectionUtilTest extends Specification {
     def "should not have a default toString"() {
         expect:
         !hasDefaultToString(new ClassWithToString())
+    }
+
+    @Unroll
+    def "#type has type variable: #hasTypeVariable"() {
+        expect:
+        JavaPropertyReflectionUtil.hasTypeVariable(type) == hasTypeVariable
+
+        where:
+        testType << testedTypes
+        type = testType.first
+        hasTypeVariable = testType.second
+    }
+
+    @Unroll
+    def "#method.genericReturnType resolves to #expectedResolvedReturnType"() {
+        def resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(JavaPropertyReflectionUtilTestMethods.InterfaceRealizingTypeParameter, method)
+        expect:
+        resolvedReturnType.toString() == expectedResolvedReturnType
+
+        where:
+        method << (JavaPropertyReflectionUtilTestMethods.getDeclaredMethods() as List)
+        expectedResolvedReturnType = method.genericReturnType.toString().replace("T", "java.util.List<java.lang.Integer>")
+    }
+
+    @Unroll
+    def "#method.genericReturnType is not resolved if declared on same class"() {
+        def resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(JavaPropertyReflectionUtilTestMethods, method)
+        expect:
+        resolvedReturnType == method.genericReturnType
+
+        where:
+        method << (JavaPropertyReflectionUtilTestMethods.getDeclaredMethods() as List)
+    }
+
+    private static List<Tuple2<Type, Boolean>> getTestedTypes() {
+        def testedTypes = JavaPropertyReflectionUtilTestMethods.getDeclaredMethods().collect {
+            new Tuple2(it.genericReturnType, it.name.contains('TypeVariable'))
+        }
+        assert testedTypes.size() == 16
+        return testedTypes
     }
 }
 

@@ -51,17 +51,22 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, String reason) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
+        this.alwaysUseAttributeMatching = alwaysUseAttributeMatching;
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
         this.isConstraint = dependencyDescriptor.isConstraint();
     }
 
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching) {
+        this(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, null);
+    }
+
     public ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor) {
-        this(configuration, componentId, dependencyDescriptor, null);
+        this(configuration, componentId, dependencyDescriptor, false, null);
     }
 
     public ConfigurationBoundExternalDependencyMetadata alwaysUseAttributeMatching() {
@@ -84,7 +89,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         // This is a slight different condition than that used for a dependency declared in a Gradle project,
         // which is (targetHasVariants || consumerHasAttributes), relying on the fallback to 'default' for consumer attributes without any variants.
         if (alwaysUseAttributeMatching || hasVariants(targetComponent)) {
-            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema));
+            return ImmutableList.of(AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, getArtifacts()));
         }
         return dependencyDescriptor.selectLegacyConfigurations(componentId, configuration, targetComponent);
     }
@@ -134,16 +139,16 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         if (Objects.equal(reason, this.getReason())) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, reason);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason);
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, descriptor, alwaysUseAttributeMatching);
     }
 
     private ModuleDependencyMetadata withRequested(ModuleComponentSelector newSelector) {
         ExternalDependencyDescriptor newDelegate = dependencyDescriptor.withRequested(newSelector);
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, newDelegate, alwaysUseAttributeMatching);
     }
 
     @Override

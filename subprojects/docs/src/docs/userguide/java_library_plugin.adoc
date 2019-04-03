@@ -97,11 +97,11 @@ The following class makes use of a couple of third-party libraries, one of which
 include::{samplesPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
-The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `GetMethod` is used in the signature of a _private_ method, and so it doesn't count towards making HttpClient an API dependency.
+The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
 
 On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` library, is only used in a method body (not in its signature), so it's an implementation dependency.
 
-Therefore, we can deduce that `commons-httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
+Therefore, we can deduce that `httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
 .Declaring API and implementation dependencies
 ====
@@ -237,14 +237,13 @@ The role of each configuration is described in the following tables:
 [[sec:java_library_known_issues_compat]]
 === Compatibility with other plugins
 
-At the moment the Java Library plugin is only wired to behave correctly with the `java` plugin. Other plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
+At the moment, the Java Library plugin is wired to behave correctly with the `java`, `groovy` and `kotlin` plugins. In Gradle 5.3 or earlier, some plugins, such as the Groovy plugin, may not behave correctly. In particular, if the Groovy plugin is used in addition to the `java-library` plugin, then consumers may not get the Groovy classes when they consume the library. To workaround this, you need to explicitly wire the Groovy compile dependency, like this:
 
-.Configuring the Groovy plugin to work with Java Library
+.Configuring the Groovy plugin to work with Java Library in Gradle 5.3 or earlier
 ====
 include::sample[dir="java-library/with-groovy/groovy",files="a/build.gradle[tags=configure-groovy]"]
 include::sample[dir="java-library/with-groovy/kotlin",files="a/build.gradle.kts[tags=configure-groovy]"]
 ====
-
 
 [[sec:java_library_known_issues_memory]]
 === Increased memory usage for consumers

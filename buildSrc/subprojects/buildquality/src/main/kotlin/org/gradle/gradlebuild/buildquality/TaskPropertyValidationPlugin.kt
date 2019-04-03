@@ -17,10 +17,13 @@ package org.gradle.gradlebuild.buildquality
 
 import accessors.java
 import accessors.reporting
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.testing.Test
+
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 
@@ -36,28 +39,29 @@ const val reportFileName = "task-properties/report.txt"
 open class TaskPropertyValidationPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        project.afterEvaluate {
+        afterEvaluate {
             // This is in an after evaluate block to defer the decision until after the `java-gradle-plugin` may have been applied, so as to not collide with it
             // It would be better to use some convention plugins instead, that apply a fixes set of plugins (including this one)
-            if (plugins.hasPlugin("java-base") && !plugins.hasPlugin("java-gradle-plugin")) {
-                configurations.create("validationRuntime") {
+            if (plugins.hasPlugin("java-base")) {
+                val validationRuntime by configurations.creating {
                     isCanBeConsumed = false
-                    attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
                 }
-                dependencies.add("validationRuntime", dependencies.project(":distributions"))
-                val validateTask = tasks.register(validateTaskName, ValidateTaskProperties::class) {
-                    val main by java.sourceSets
-                    dependsOn(main.output)
-                    classes.setFrom(main.output.classesDirs)
-                    classpath.from(main.output) // to pick up resources too
-                    classpath.from(main.runtimeClasspath)
-                    classpath.from(configurations["validationRuntime"])
-                    // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
-                    outputFile.set(reporting.baseDirectory.file(reportFileName))
-                    failOnWarning = true
-                    enableStricterValidation = true
+                dependencies.add(
+                    validationRuntime.name,
+                    dependencies.project(":distributions")
+                )
+
+                val validateTask = if (plugins.hasPlugin("java-gradle-plugin")) {
+                    tasks.named(validateTaskName, ValidateTaskProperties::class)
+                } else {
+                    tasks.register(validateTaskName, ValidateTaskProperties::class)
                 }
-                tasks.named("codeQuality").configure {
+
+                validateTask {
+                    configureValidateTask(validationRuntime)
+                }
+                tasks.named("codeQuality") {
                     dependsOn(validateTask)
                 }
                 tasks.withType(Test::class).configureEach {
@@ -65,5 +69,19 @@ open class TaskPropertyValidationPlugin : Plugin<Project> {
                 }
             }
         }
+    }
+
+    private
+    fun ValidateTaskProperties.configureValidateTask(validationRuntime: Configuration) {
+        val main by project.java.sourceSets
+        dependsOn(main.output)
+        classes.setFrom(main.output.classesDirs)
+        classpath.from(main.output) // to pick up resources too
+        classpath.from(main.runtimeClasspath)
+        classpath.from(validationRuntime)
+        // TODO Should we provide a more intuitive way in the task definition to configure this property from Kotlin?
+        outputFile.set(project.reporting.baseDirectory.file(reportFileName))
+        failOnWarning = true
+        enableStricterValidation = true
     }
 }

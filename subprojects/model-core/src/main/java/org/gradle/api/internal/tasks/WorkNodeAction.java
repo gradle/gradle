@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
+import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 
@@ -33,5 +34,5 @@ public interface WorkNodeAction {
     /**
      * Run the action, throwing any failure.
      */
-    void run();
+    void run(ServiceRegistry registry);
 }

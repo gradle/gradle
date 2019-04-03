@@ -23,12 +23,15 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
+import org.gradle.kotlin.dsl.resolver.GradleInstallation
+
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.Matcher
+
 import org.junit.Assert.assertThat
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
@@ -130,6 +133,43 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
+    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
+        withKotlinDslPlugin()
+        withPrecompiledKotlinScript(fileName, code)
+        compileKotlin()
+    }
+
+    protected
+    fun withPrecompiledKotlinScript(fileName: String, code: String) =
+        withFile("src/main/kotlin/$fileName", code)
+
+    protected
+    fun withKotlinDslPlugin() =
+        withKotlinDslPluginIn(".")
+
+    protected
+    fun withKotlinDslPluginIn(baseDir: String) =
+        withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
+
+    protected
+    fun scriptWithKotlinDslPlugin(): String =
+        """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+        """
+
+    private
+    fun testGradleInstallation() =
+        GradleInstallation.Local(distribution.gradleHomeDir)
+
+    protected
+    fun compileKotlin(taskName: String = "classes"): ExecutionResult =
+        build(taskName).assertTaskExecuted(":compileKotlin")
+
+    protected
     fun withClassJar(fileName: String, vararg classes: Class<*>) =
         withZip(fileName, classEntriesFor(*classes))
 
@@ -195,6 +235,11 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     protected
     fun assumeJavaLessThan11() {
         assumeTrue("Test disabled under JDK 11 and higher", JavaVersion.current() < JavaVersion.VERSION_11)
+    }
+
+    protected
+    fun assumeJava11() {
+        assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
     }
 
     protected

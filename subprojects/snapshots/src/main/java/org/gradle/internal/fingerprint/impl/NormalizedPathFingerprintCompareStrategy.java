@@ -20,7 +20,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.internal.change.ChangeVisitor;
-import org.gradle.internal.change.FileChange;
+import org.gradle.internal.change.DefaultFileChange;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintCompareStrategy;
 import org.gradle.internal.hash.Hasher;
@@ -88,20 +88,24 @@ public class NormalizedPathFingerprintCompareStrategy extends AbstractFingerprin
             if (!addedFilesForNormalizedPath.isEmpty()) {
                 // There might be multiple files with the same normalized path, here we choose one of them
                 FilePathWithType addedFile = addedFilesForNormalizedPath.remove(0);
-                if (!visitor.visitChange(FileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType()))) {
+                DefaultFileChange modified = DefaultFileChange.modified(addedFile.getAbsolutePath(), propertyTitle, previousFingerprint.getType(), addedFile.getFileType(), normalizedPath);
+                if (!visitor.visitChange(modified)) {
                     return false;
                 }
             } else {
                 FilePathWithType removedFile = unaccountedForPreviousFingerprintEntry.getValue();
-                if (!visitor.visitChange(FileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType()))) {
+                DefaultFileChange removed = DefaultFileChange.removed(removedFile.getAbsolutePath(), propertyTitle, removedFile.getFileType(), normalizedPath);
+                if (!visitor.visitChange(removed)) {
                     return false;
                 }
             }
         }
 
         if (includeAdded) {
-            for (FilePathWithType addedFile : addedFilesByNormalizedPath.values()) {
-                if (!visitor.visitChange(FileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType()))) {
+            for (Map.Entry<String, FilePathWithType> entry : addedFilesByNormalizedPath.entries()) {
+                FilePathWithType addedFile = entry.getValue();
+                DefaultFileChange added = DefaultFileChange.added(addedFile.getAbsolutePath(), propertyTitle, addedFile.getFileType(), entry.getKey());
+                if (!visitor.visitChange(added)) {
                     return false;
                 }
             }

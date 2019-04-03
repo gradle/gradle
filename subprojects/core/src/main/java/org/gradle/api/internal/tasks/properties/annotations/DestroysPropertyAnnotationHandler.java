@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Destroys;
+import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
@@ -31,6 +32,11 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
+    public boolean isPropertyRelevant() {
+        return true;
+    }
+
+    @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
         return !visitor.visitOutputFilePropertiesOnly();
     }
@@ -38,5 +44,9 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         visitor.visitDestroyableProperty(value);
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
     }
 }

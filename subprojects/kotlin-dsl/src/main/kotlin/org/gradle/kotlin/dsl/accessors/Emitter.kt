@@ -37,56 +37,121 @@ internal
 fun IO.emitAccessorsFor(
     projectSchema: ProjectSchema<TypeAccessibility>,
     srcDir: File,
-    binDir: File
+    binDir: File?,
+    outputPackage: OutputPackage,
+    format: AccessorFormat
 ): List<InternalName> {
 
-    makeAccessorOutputDirs(srcDir, binDir)
+    makeAccessorOutputDirs(srcDir, binDir, outputPackage.path)
 
     val emittedClassNames =
         accessorsFor(projectSchema).map { accessor ->
-            emitClassFor(accessor, srcDir, binDir)
+            emitClassFor(
+                accessor,
+                srcDir,
+                binDir,
+                outputPackage,
+                format
+            )
         }.toList()
 
-    writeFile(
-        moduleFileFor(binDir),
-        moduleMetadataBytesFor(emittedClassNames)
-    )
+    if (binDir != null) {
+        writeFile(
+            moduleFileFor(binDir),
+            moduleMetadataBytesFor(emittedClassNames)
+        )
+    }
 
     return emittedClassNames
 }
 
 
 internal
-fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File) = io {
+fun IO.makeAccessorOutputDirs(srcDir: File, binDir: File?, packagePath: String) = io {
     srcDir.resolve(packagePath).mkdirs()
-    binDir.resolve(packagePath).mkdirs()
-    binDir.resolve("META-INF").mkdir()
+    binDir?.apply {
+        resolve(packagePath).mkdirs()
+        resolve("META-INF").mkdir()
+    }
+}
+
+
+internal
+data class OutputPackage(val name: String) {
+
+    val path by lazy {
+        name.replace('.', '/')
+    }
 }
 
 
 private
-fun IO.emitClassFor(accessor: Accessor, srcDir: File, binDir: File): InternalName {
+fun IO.emitClassFor(
+    accessor: Accessor,
+    srcDir: File,
+    binDir: File?,
+    outputPackage: OutputPackage,
+    format: AccessorFormat
+): InternalName {
 
-    val (className, fragments) = fragmentsFor(accessor)
+    val (simpleClassName, fragments) = fragmentsFor(accessor)
+    val className = InternalName("${outputPackage.path}/$simpleClassName")
     val sourceCode = mutableListOf<String>()
+
+    fun collectSourceFragment(source: String) {
+        sourceCode.add(format(source))
+    }
+
+    if (binDir != null) {
+        writeAccessorsBytecodeTo(
+            binDir,
+            className,
+            fragments,
+            ::collectSourceFragment
+        )
+    } else {
+        for ((source, _, _, _) in fragments) {
+            collectSourceFragment(source)
+        }
+    }
+
+    writeAccessorsTo(
+        sourceFileFor(className, srcDir),
+        sourceCode,
+        importsRequiredBy(accessor),
+        outputPackage.name
+    )
+
+    return className
+}
+
+
+private
+fun sourceFileFor(className: InternalName, srcDir: File) =
+    srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
+
+
+private
+fun IO.writeAccessorsBytecodeTo(
+    binDir: File,
+    className: InternalName,
+    fragments: Sequence<AccessorFragment>,
+    collectSourceFragment: (String) -> Unit
+) {
+
     val metadataWriter = beginFileFacadeClassHeader()
     val classWriter = beginPublicClass(className)
 
     for ((source, bytecode, metadata, signature) in fragments) {
-        sourceCode.add(source)
+        collectSourceFragment(source)
         MetadataFragmentScope(signature, metadataWriter).run(metadata)
         BytecodeFragmentScope(signature, classWriter).run(bytecode)
     }
-
-    val sourceFile = srcDir.resolve("${className.value.removeSuffix("Kt")}.kt")
-    writeAccessorsTo(sourceFile, sourceCode, importsRequiredBy(accessor))
 
     val classHeader = metadataWriter.closeHeader()
     val classBytes = classWriter.endKotlinClass(classHeader)
     val classFile = binDir.resolve("$className.class")
     writeFile(classFile, classBytes)
-
-    return className
 }
 
 

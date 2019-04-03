@@ -192,12 +192,12 @@ public class CppUnitTestPlugin implements Plugin<Project> {
             // Configure test binary to link against tested component compiled objects
             ConfigurableFileCollection testableObjects = project.files();
             if (target instanceof CppApplication) {
+                // TODO - this should be an outgoing variant of the component under test
                 TaskProvider<UnexportMainSymbol> unexportMainSymbol = tasks.register(testExecutable.getNames().getTaskName("relocateMainFor"), UnexportMainSymbol.class, task -> {
-                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/main/for-test"));
+                    String dirName = ((DefaultCppBinary) testedBinary).getNames().getDirName();
+                    task.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir("obj/for-test/" + dirName));
                     task.getObjects().from(testedBinary.getObjects());
                 });
-                // TODO: builtBy unnecessary?
-                testableObjects.builtBy(unexportMainSymbol);
                 testableObjects.from(unexportMainSymbol.map(task -> task.getRelocatedObjects()));
             } else {
                 testableObjects.from(testedBinary.getObjects());

@@ -27,9 +27,7 @@ dependencies {
     api(project(":native"))
     api(project(":resources"))
     api(project(":logging"))
-    api(library("jcip"))
 
-    implementation(library("commons_collections"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
 }

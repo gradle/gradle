@@ -23,13 +23,14 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
-import org.gradle.api.internal.tasks.ContextAwareTaskAction
+import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.AbstractTaskTest
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import spock.lang.Issue
 
 import java.util.concurrent.Callable
@@ -495,7 +496,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "describable actions are not renamed"() {
         setup:
-        def namedAction = Mock(ContextAwareTaskAction)
+        def namedAction = Mock(InputChangesAwareTaskAction)
         namedAction.displayName >> "I have a name"
 
         when:
@@ -526,7 +527,8 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     def "can replace task logger"() {
         expect:
-        task.logger == AbstractTask.BUILD_LOGGER
+        task.logger instanceof ContextAwareTaskLogger
+        task.logger.delegate == AbstractTask.BUILD_LOGGER
 
         when:
         def logger = Mock(Logger)

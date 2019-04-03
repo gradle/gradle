@@ -17,6 +17,9 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
+import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource
+
+import javax.tools.StandardLocation
 
 class IsolatingFilerTest extends IncrementalFilerTest {
 
@@ -25,7 +28,7 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         new IsolatingProcessingStrategy(result)
     }
 
-    def "does a full rebuild when no originating elements are given"() {
+    def "does a full rebuild when no originating elements are given for a type"() {
         when:
         filer.createSourceFile("Foo")
 
@@ -33,7 +36,15 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         result.fullRebuildCause == "the generated type 'Foo' must have exactly one originating element, but had 0"
     }
 
-    def "does a full rebuild when too many originating elements are given"() {
+    def "does a full rebuild when no originating elements are given for a resource"() {
+        when:
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt")
+
+        then:
+        result.fullRebuildCause == "the generated resource 'foo.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 0"
+    }
+
+    def "does a full rebuild when too many originating elements are given for a type"() {
         when:
         filer.createSourceFile("Foo", type("Bar"), type("Baz"))
 
@@ -41,9 +52,18 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         result.fullRebuildCause == "the generated type 'Foo' must have exactly one originating element, but had 2"
     }
 
-    def "can have multiple originating elements coming from the same tpye"() {
+    def "does a full rebuild when too many originating elements are given for a resource"() {
+        when:
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt", type("Bar"), type("Baz"))
+
+        then:
+        result.fullRebuildCause == "the generated resource 'foo.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 2"
+    }
+
+    def "can have multiple originating elements coming from the same type"() {
         when:
         filer.createSourceFile("Foo", methodInside("Bar"), methodInside("Bar"))
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt", methodInside("Bar"), methodInside("Bar"))
 
         then:
         !result.fullRebuildCause
@@ -52,10 +72,13 @@ class IsolatingFilerTest extends IncrementalFilerTest {
     def "packages are valid originating elements"() {
         when:
         filer.createSourceFile("Foo", pkg("fizz"))
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt", pkg("fizz"))
 
         then:
         result.generatedTypesWithIsolatedOrigin.size() == 1
         result.generatedTypesWithIsolatedOrigin["fizz.package-info"] == ["Foo"] as Set
+        result.generatedResourcesWithIsolatedOrigin.size() == 1
+        result.generatedResourcesWithIsolatedOrigin["fizz.package-info"] == [sourceResource("foo.txt")] as Set
     }
 
     def "adds originating types to the processing result"() {
@@ -63,10 +86,34 @@ class IsolatingFilerTest extends IncrementalFilerTest {
         filer.createSourceFile("Foo", pkg("pkg"), type("A"), methodInside("B"))
         filer.createSourceFile("Bar", type("B"))
 
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "foo.txt", pkg("pkg"), type("A"), methodInside("B"))
+        filer.createResource(StandardLocation.SOURCE_OUTPUT, "", "bar.txt", type("B"))
+
         then:
         result.generatedTypesWithIsolatedOrigin.size() == 3
         result.generatedTypesWithIsolatedOrigin["A"] == ["Foo"] as Set
         result.generatedTypesWithIsolatedOrigin["pkg.package-info"] == ["Foo"] as Set
         result.generatedTypesWithIsolatedOrigin["B"] == ["Foo", "Bar"] as Set
+
+        def foo = sourceResource("foo.txt")
+        def bar = sourceResource("bar.txt")
+        result.generatedResourcesWithIsolatedOrigin.size() == 3
+        result.generatedResourcesWithIsolatedOrigin["A"] == [foo] as Set
+        result.generatedResourcesWithIsolatedOrigin["pkg.package-info"] == [foo] as Set
+        result.generatedResourcesWithIsolatedOrigin["B"] == [foo, bar] as Set
+    }
+
+    def "handles resources in the three StandardLocation output locations"() {
+        when:
+        filer.createResource(inputLocation, "", "foo.txt", type("A"))
+
+        then:
+        result.generatedResourcesWithIsolatedOrigin["A"] == [new GeneratedResource(resultLocation, "foo.txt")] as Set
+
+        where:
+        inputLocation                         | resultLocation
+        StandardLocation.SOURCE_OUTPUT        | GeneratedResource.Location.SOURCE_OUTPUT
+        StandardLocation.CLASS_OUTPUT         | GeneratedResource.Location.CLASS_OUTPUT
+        StandardLocation.NATIVE_HEADER_OUTPUT | GeneratedResource.Location.NATIVE_HEADER_OUTPUT
     }
 }

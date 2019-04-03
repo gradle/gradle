@@ -21,8 +21,19 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 
 interface ResponseProducer {
+    default boolean isFailure() {
+        return false;
+    }
+
     /**
      * Called to handle a request. Is *not* called under lock.
      */
     void writeTo(int requestId, HttpExchange exchange) throws IOException;
+
+    /**
+     * Returns the failure, if any.
+     */
+    default RuntimeException getFailure() {
+        throw new IllegalStateException();
+    }
 }

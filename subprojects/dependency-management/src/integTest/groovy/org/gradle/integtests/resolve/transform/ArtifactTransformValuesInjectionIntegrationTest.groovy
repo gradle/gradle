@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.resolve.transform
 
+import com.google.common.reflect.TypeToken
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -27,6 +28,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -39,7 +41,8 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
-    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
+    @Unroll
+    def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -64,22 +67,20 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
-            
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
+
                 @InputArtifact
-                abstract File getInput()
+                abstract ${inputArtifactType} getInput()
                 
                 void transform(TransformOutputs outputs) {
-                    println "processing \${input.name}"
-                    def output = outputs.file(input.name + "." + parameters.extension)
+                    File inputFile = input${convertToFile}
+                    println "processing \${inputFile.name}"
+                    def output = outputs.file(inputFile.name + "." + parameters.extension)
                     output.text = "ok"
                 }
             }
@@ -92,9 +93,165 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
+
+        where:
+        inputArtifactType | convertToFile
+        'File'                         | ''
+        'Provider<FileSystemLocation>' | '.get().asFile'
+    }
+
+    @Unroll
+    def "transform can receive parameter of type #type"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform {
+            params("""
+                prop.set(${value})
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    ${type} getProp()
+                    @Input @Optional
+                    ${type} getOtherProp()
+                }
+            
+                void transform(TransformOutputs outputs) {
+                    println "processing using " + parameters.prop.get()
+                    assert parameters.otherProp.getOrNull() == ${expectedNullValue}
+                }
+            }
+"""
+        when:
+        run("a:resolve")
+
+        then:
+        outputContains("processing using ${expected}")
+
+        where:
+        type                          | value          | expected     | expectedNullValue
+        "Property<String>"            | "'value'"      | 'value'      | null
+        "ListProperty<String>"        | "['a', 'b']"   | "[a, b]"     | "[]"
+        "SetProperty<String>"         | "['a', 'b']"   | "[a, b]"     | "[] as Set"
+        "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
     def "transform parameters are validated for input output annotations"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransform {
+            params("""
+                extension = 'green'
+            """)
+        }
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                }
+            }
+            
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    String getExtension()
+                    void setExtension(String value)
+    
+                    @OutputDirectory
+                    File getOutputDir()
+                    void setOutputDir(File outputDir)
+    
+                    @Input
+                    String getMissingInput()
+                    void setMissingInput(String missing)
+    
+                    @Input
+                    File getFileInput()
+                    void setFileInput(File file)
+    
+                    @InputFiles
+                    ConfigurableFileCollection getNoPathSensitivity()
+    
+                    @InputFile
+                    File getNoPathSensitivityFile()
+                    void setNoPathSensitivityFile(File file)
+    
+                    @InputDirectory
+                    File getNoPathSensitivityDir()
+                    void setNoPathSensitivityDir(File file)
+    
+                    @PathSensitive(PathSensitivity.ABSOLUTE)
+                    @InputFiles
+                    ConfigurableFileCollection getAbsolutePathSensitivity()
+                }
+            
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
+        assertPropertyValidationErrors(
+            extension: 'is not annotated with an input annotation',
+            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
+            missingInput: 'does not have a value specified',
+            fileInput: [
+                'has @Input annotation used on property of type java.io.File',
+                'does not have a value specified'
+            ],
+            absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            noPathSensitivityDir: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity'
+        )
+    }
+
+    def "cannot query parameters for transform without parameters"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
+                    println getParameters()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertResolutionFailure(':a:implementation')
+        failure.assertHasCause("Cannot query parameters for artifact transform without parameters.")
+    }
+
+    def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -111,27 +268,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                String getExtension()
-                void setExtension(String value)
-                @OutputDirectory
-                File getOutputDir()
-                void setOutputDir(File outputDir)
-                @Input
-                String getMissingInput()
-                void setMissingInput(String missing)
-                @InputFiles
-                ConfigurableFileCollection getNoPathSensitivity()
-                @PathSensitive(PathSensitivity.ABSOLUTE)
-                @InputFiles
-                ConfigurableFileCollection getAbsolutePathSensitivity()
-            }
-            
-            @CacheableTransformAction
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                @CacheableTask @CacheableTransform
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
                 
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
@@ -143,19 +286,16 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
-        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.')
-        failure.assertHasCause("Property 'extension' is not annotated with an input annotation.")
-        failure.assertHasCause("Property 'outputDir' is annotated with unsupported annotation @OutputDirectory.")
-        failure.assertHasCause("Property 'missingInput' does not have a value specified.")
-        failure.assertHasCause("Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
-        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen.Parameters. This annotation can only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen.Parameters. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransform {
             params("""
@@ -166,24 +306,19 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             project(':a') {
                 dependencies {
                     implementation project(':b')
-                    implementation project(':c')
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-                @${annotation.simpleName}
-                String getBad()
-                void setBad(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                    @${annotation.simpleName}
+                    String getBad()
+                    void setBad(String value)
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -194,12 +329,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Inject@.* of artifact transform MakeGreenAction'))
-        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.')
-        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
+        failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
+        failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
+        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
-        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
+        annotation << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Nested]
     }
 
     @Unroll
@@ -220,19 +355,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                String getExtension()
-                void setExtension(String value)
-                @${annotation.simpleName}
-                String getBad()
-                void setBad(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    String getExtension()
+                    void setExtension(String value)
+                    @${annotation.simpleName}
+                    String getBad()
+                    void setBad(String value)
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
-                
                 void transform(TransformOutputs outputs) {
                     throw new RuntimeException()
                 }
@@ -244,12 +375,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('Could not create an instance of type MakeGreen.')
-        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen.')
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getBad().")
+        failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
+        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen$Parameters.')
+        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
     }
 
     def "transform action is validated for input output annotations"() {
@@ -269,18 +400,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
+            @CacheableTransform
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
             
-            @CacheableTransformAction
-            abstract class MakeGreenAction implements TransformAction {
-                @TransformParameters
-                abstract MakeGreen getParameters()
-                
                 @InputFile
                 File inputFile 
                 
@@ -308,13 +435,47 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('Some problems were found with the configuration of MakeGreenAction.')
-        failure.assertHasCause("Property 'conflictingAnnotations' is annotated with unsupported annotation @InputFile.")
-        failure.assertHasCause("Property 'conflictingAnnotations' has conflicting property types declared: @InputArtifact, @InputArtifactDependencies.")
-        failure.assertHasCause("Property 'inputFile' is annotated with unsupported annotation @InputFile.")
-        failure.assertHasCause("Property 'notAnnotated' is not annotated with an input annotation.")
-        failure.assertHasCause("Property 'noPathSensitivity' is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity.")
-        failure.assertHasCause("Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms.")
+        failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
+        assertPropertyValidationErrors(
+            'conflictingAnnotations': [
+                'is annotated with unsupported annotation @InputFile',
+                'has conflicting property types declared: @InputArtifact, @InputArtifactDependencies'
+            ],
+            inputFile: 'is annotated with unsupported annotation @InputFile',
+            notAnnotated: 'is not annotated with an input annotation',
+            noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
+        )
+    }
+
+    def "transform action type cannot use cacheable task annotation"() {
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        setupBuildWithColorTransform()
+        buildFile << """
+            project(':a') {
+                dependencies {
+                    implementation project(':b')
+                    implementation project(':c')
+                }
+            }
+            
+            @CacheableTask
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
+                    throw new RuntimeException()
+                }
+            }
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
+        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen. This annotation can only be used with Task types.")
     }
 
     @Unroll
@@ -335,14 +496,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
             
-            abstract class MakeGreenAction implements TransformAction {
                 @${annotation.simpleName}
                 String getBad() { }
                 
@@ -357,11 +517,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertHasCause('A problem was found with the configuration of MakeGreenAction.')
-        failure.assertHasCause("Property 'bad' is annotated with unsupported annotation @${annotation.simpleName}.")
+        failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
+        assertPropertyValidationErrors(bad: "is annotated with unsupported annotation @${annotation.simpleName}")
 
         where:
-        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
+        annotation << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal, Nested]
     }
 
     @Unroll
@@ -383,7 +543,7 @@ project(':b') {
     }
 }
 
-abstract class MakeGreen implements TransformAction {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifactDependencies
     abstract ${targetType} getDependencies()
     @InputArtifact
@@ -455,10 +615,10 @@ abstract class MakeGreen extends ArtifactTransform {
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    def "transform cannot receive parameter object via constructor parameter"() {
+    def "transform can receive parameter object via constructor parameter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -475,18 +635,17 @@ abstract class MakeGreen extends ArtifactTransform {
                 }
             }
             
-            @AssociatedTransformAction(MakeGreenAction)
-            interface MakeGreen {
-                @Input
-                String getExtension()
-                void setExtension(String value)
-            }
+            abstract class MakeGreen implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters {
+                    @Input
+                    String getExtension()
+                    void setExtension(String value)
+                }
             
-            class MakeGreenAction implements TransformAction {
-                private MakeGreen conf
+                private Parameters conf
                 
                 @Inject
-                MakeGreenAction(MakeGreen conf) {
+                MakeGreen(Parameters conf) {
                     this.conf = conf
                 }
                 
@@ -495,18 +654,12 @@ abstract class MakeGreen extends ArtifactTransform {
             }
 """
 
-        when:
-        fails(":a:resolve")
-
-        then:
-        // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Execution failed for MakeGreenAction: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface MakeGreen, or no service of type interface MakeGreen")
+        expect:
+        succeeds(":a:resolve")
     }
 
     @Unroll
-    def "transform cannot use @InputArtifact to receive dependencies"() {
+    def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -519,12 +672,12 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
-    abstract FileCollection getDependencies()
+    abstract ${propertyType instanceof Class ? propertyType.name : propertyType} getInput()
     
     void transform(TransformOutputs outputs) {
-        dependencies.files
+        input
         throw new RuntimeException("broken")
     }
 }
@@ -537,7 +690,10 @@ abstract class MakeGreen implements TransformAction {
         // Documents existing behaviour. Should fail eagerly and with a better error message
         failure.assertHasDescription("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type interface ${FileCollection.name} available.")
+        failure.assertHasCause("No service of type ${propertyType} available.")
+
+        where:
+        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
     def "transform cannot use @Inject to receive input file"() {
@@ -553,7 +709,7 @@ project(':a') {
     }
 }
 
-abstract class MakeGreen implements TransformAction {
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @Inject
     abstract File getWorkspace()
     
@@ -574,6 +730,50 @@ abstract class MakeGreen implements TransformAction {
         failure.assertHasCause("No service of type class ${File.name} available.")
     }
 
+    def "task implementation cannot use cacheable transform annotation"() {
+        buildFile << """
+            @CacheableTransform
+            class MyTask extends DefaultTask {
+                File getThing() { null }
+            }
+
+            tasks.create('broken', MyTask)
+        """
+
+        expect:
+        fails('broken')
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Could not create task ':broken'.")
+        failure.assertHasCause("A problem was found with the configuration of task ':broken'.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
+    }
+
+    def "task @Nested bean cannot use cacheable annotations"() {
+        buildFile << """
+            class MyTask extends DefaultTask {
+                @Nested
+                Options getThing() { new Options() }
+                
+                @TaskAction
+                void go() { }
+            }
+            
+            @CacheableTransform @CacheableTask
+            class Options {
+            }
+
+            tasks.create('broken', MyTask)
+        """
+
+        expect:
+        // Probably should be eager
+        fails('broken')
+        failure.assertHasDescription("Could not determine the dependencies of task ':broken'.")
+        failure.assertHasCause("Some problems were found with the configuration of task ':broken'.")
+        failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation can only be used with Task types.")
+        failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation can only be used with TransformAction types.")
+    }
+
     @Unroll
     def "task implementation cannot use injection annotation @#annotation.simpleName"() {
         buildFile << """
@@ -587,11 +787,24 @@ abstract class MakeGreen implements TransformAction {
 
         expect:
         fails('broken')
+        failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
         failure.assertHasCause("Could not generate a decorated class for class MyTask.")
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:
-        annotation << [InputArtifact, InputArtifactDependencies, TransformParameters]
+        annotation << [InputArtifact, InputArtifactDependencies]
+    }
+
+    void assertPropertyValidationErrors(Map<String, Object> validationErrors) {
+        int count = 0
+        validationErrors.each { propertyName, errorMessageOrMessages ->
+            def errorMessages = errorMessageOrMessages instanceof Iterable ? [*errorMessageOrMessages] : [errorMessageOrMessages]
+            errorMessages.each { errorMessage ->
+                count++
+                failure.assertHasCause("Property '${propertyName}' ${errorMessage}.")
+            }
+        }
+        assert errorOutput.count("> Property") == count
     }
 }

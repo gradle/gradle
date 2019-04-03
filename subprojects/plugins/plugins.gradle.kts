@@ -1,5 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
  * Copyright 2010 the original author or authors.
@@ -37,8 +37,6 @@ dependencies {
     compile(library("commons_io"))
     compile(library("commons_lang"))
     compile(library("slf4j_api"))
-
-    runtime(library("commons_cli"))
 
     // This dependency makes the services provided by `:compositeBuilds` available at runtime for all integration tests in all subprojects
     // Making this better would likely involve a separate `:gradleRuntime` module that brings in `:core`, `:dependencyManagement` and other key subprojects

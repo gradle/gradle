@@ -233,6 +233,9 @@
             <tr>
                 <td>normalization</td>
             </tr>
+            <tr>
+                <td>defaultTasks</td>
+            </tr>
         </table>
     </section>
 </section>

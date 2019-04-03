@@ -44,7 +44,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 classpath = files()
             }"""}
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
+            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
         """.stripIndent()
     }
 

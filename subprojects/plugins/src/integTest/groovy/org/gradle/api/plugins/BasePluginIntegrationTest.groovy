@@ -79,4 +79,24 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "tasks"
     }
+
+    def "can override archiveBaseName in custom Jar task"() {
+        buildFile << """
+            apply plugin: 'base'
+            class MyJar extends Jar {
+                MyJar() {
+                    super()
+                    archiveBaseName.set("myjar")
+                }
+            }
+            task myJar(type: MyJar)
+            task assertCheck {
+                doLast {
+                    assert tasks.myJar.archiveBaseName.get() == "myjar"
+                }
+            }
+        """
+        expect:
+        succeeds("assertCheck")
+    }
 }
