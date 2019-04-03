@@ -4,7 +4,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     gradlebuild.`strict-compile`
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
