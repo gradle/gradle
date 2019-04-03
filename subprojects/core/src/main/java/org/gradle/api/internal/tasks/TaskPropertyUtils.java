@@ -28,6 +28,7 @@ import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @NonNullApi
@@ -84,6 +85,7 @@ public class TaskPropertyUtils {
             if (problems.size() == 1) {
                 message = String.format("A problem was found with the configuration of %s.", task);
             } else {
+                Collections.sort(problems);
                 message = String.format("Some problems were found with the configuration of %s.", task);
             }
             throw new TaskValidationException(message, CollectionUtils.collect(problems, new Transformer<InvalidUserDataException, String>() {
