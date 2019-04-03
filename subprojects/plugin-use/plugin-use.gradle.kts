@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  * limitations under the License.
  */
 plugins {
-    id("gradlebuild.classycle")
+    gradlebuild.classycle
 }
 
 dependencies {
