@@ -15,9 +15,15 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
-    implementation(library("awsS3_core"), library("awsS3_s3"), library("awsS3_kms"), library("jaxb"))
-    implementation(library("jackson_core"), library("jackson_annotations"), library("jackson_databind"))
-    implementation(library("commons_httpclient"), library("joda"))
+    implementation(library("awsS3_core"))
+    implementation(library("awsS3_s3"))
+    implementation(library("awsS3_kms"))
+    implementation(library("jaxb"))
+    implementation(library("jackson_core"))
+    implementation(library("jackson_annotations"))
+    implementation(library("jackson_databind"))
+    implementation(library("commons_httpclient"))
+    implementation(library("joda"))
     implementation(library("commons_lang"))
 }
 
