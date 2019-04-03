@@ -69,17 +69,4 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
         List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten()
         return failures.collect { it.value }.join("\n")
     }
-
-    // Modify this class with care, see class org.gradle.performance.results.ScenarioBuildResultData
-    static class ScenarioBuildResultData {
-        String teamCityBuildId
-        String scenarioName
-        String scenarioClass
-        String webUrl
-        String testFailure
-        // SUCCESS/FAILURE/UNKNOWN
-        String status
-        String agentName
-        String agentUrl
-    }
 }

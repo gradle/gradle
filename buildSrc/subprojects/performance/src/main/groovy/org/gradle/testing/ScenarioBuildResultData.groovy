@@ -19,13 +19,17 @@ package org.gradle.testing
 import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
 
+// Modify this class with care, see class org.gradle.performance.results.ScenarioBuildResultData
 @MapConstructor
 @CompileStatic
 class ScenarioBuildResultData {
     String teamCityBuildId
     String scenarioName
+    String scenarioClass
     String webUrl
     String testFailure
     // SUCCESS/FAILURE/UNKNOWN
     String status
+    String agentName
+    String agentUrl
 }
