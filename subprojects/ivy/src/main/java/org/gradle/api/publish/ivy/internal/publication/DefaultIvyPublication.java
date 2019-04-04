@@ -53,6 +53,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
@@ -122,6 +123,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final DefaultIvyDependencySet ivyDependencies;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
     private final FeaturePreviews featurePreviews;
     private IvyArtifact ivyDescriptorArtifact;
     private Task moduleDescriptorGenerator;
@@ -136,12 +138,13 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory, FeaturePreviews featurePreviews,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
         this.configurations = instantiator.newInstance(DefaultIvyConfigurationContainer.class, instantiator, collectionCallbackActionDecorator);
         this.immutableAttributesFactory = immutableAttributesFactory;
+        this.versionMappingStrategy = versionMappingStrategy;
         this.featurePreviews = featurePreviews;
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<IvyArtifact>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -530,9 +533,14 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
+        configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
     @Nullable
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
-        return null;
+        return versionMappingStrategy;
     }
 
     @Override

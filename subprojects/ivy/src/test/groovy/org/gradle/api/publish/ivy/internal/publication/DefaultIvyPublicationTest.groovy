@@ -36,6 +36,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.tasks.TaskOutputs
 import org.gradle.internal.typeconversion.NotationParser
@@ -288,7 +289,8 @@ class DefaultIvyPublicationTest extends Specification {
             TestFiles.fileCollectionFactory(),
             attributesFactory,
             featurePreviews,
-            CollectionCallbackActionDecorator.NOOP
+            CollectionCallbackActionDecorator.NOOP,
+            Mock(VersionMappingStrategyInternal)
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
@@ -373,7 +375,8 @@ class DefaultIvyPublicationTest extends Specification {
             TestFiles.fileCollectionFactory(),
             attributesFactory,
             featurePreviews,
-            CollectionCallbackActionDecorator.NOOP
+            CollectionCallbackActionDecorator.NOOP,
+            Mock(VersionMappingStrategyInternal)
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))
