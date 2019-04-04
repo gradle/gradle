@@ -7,6 +7,8 @@ plugins {
 
 dependencies {
     api(project(":coreApi"))
+    implementation(project(":modelCore"))
+    implementation(project(":files"))
 
     compile(futureKotlin("stdlib-jdk8"))
 }

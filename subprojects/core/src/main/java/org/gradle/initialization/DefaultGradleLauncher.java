@@ -25,25 +25,39 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.project.IProjectFactory;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.instantexecution.InstantExecution;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -112,7 +126,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
-        this.instantExecution = new InstantExecution(gradle);
+        this.instantExecution = new InstantExecution(new InstantExecutionHost(gradle));
     }
 
     @Override
@@ -175,9 +189,63 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doInstantExecution() {
-        instantExecution.prepareTaskGraph();
+        prepareTaskGraph();
         stage = Stage.TaskGraph;
         runTasks();
+    }
+
+    private void prepareTaskGraph() {
+        ClassLoaderScopeRegistry classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
+        ScriptHandlerFactory scriptHandlerFactory = gradle.getServices().get(ScriptHandlerFactory.class);
+        StringScriptSource settingsSource = new StringScriptSource("settings", "");
+        final ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
+        DefaultSettings settings = new DefaultSettings(
+            gradle.getServices().get(BuildScopeServiceRegistryFactory.class),
+            gradle,
+            classLoaderScopeRegistry.getCoreScope(),
+            classLoaderScopeRegistry.getCoreScope(),
+            scriptHandlerFactory.create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
+            new File(".").getAbsoluteFile(),
+            settingsSource,
+            gradle.getStartParameter()
+        ) {
+            @Override
+            public ExtensionContainer getExtensions() {
+                return null;
+            }
+
+            @Override
+            public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
+                return projectDescriptorRegistry;
+            }
+
+            @Override
+            protected FileResolver getFileResolver() {
+                return gradle.getServices().get(FileResolver.class);
+            }
+        };
+        gradle.setSettings(settings);
+
+        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
+            null, ":", new File(".").getAbsoluteFile(),
+            projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
+        );
+
+        IProjectFactory projectFactory = gradle.getServices().get(IProjectFactory.class);
+
+        ProjectInternal rootProject = projectFactory.createProject(
+            projectDescriptor, null, gradle,
+            classLoaderScopeRegistry.getCoreAndPluginsScope(),
+            classLoaderScopeRegistry.getCoreAndPluginsScope()
+        );
+        gradle.setRootProject(rootProject);
+
+        gradle.getServices().get(ProjectStateRegistry.class)
+            .registerProjects(gradle.getServices().get(BuildState.class));
+
+        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+        instantExecution.loadInstantExecutionStateInto(rootProject);
+        taskGraph.populate();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -279,6 +347,39 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
+        }
+    }
+
+    private static class InstantExecutionHost implements InstantExecution.Host {
+        private final GradleInternal gradle;
+
+        InstantExecutionHost(GradleInternal gradle) {
+            this.gradle = gradle;
+        }
+
+        public <T> T getService(Class<T> serviceType) {
+            return gradle.getServices().get(serviceType);
+        }
+
+        public String getSystemProperty(String propertyName) {
+            return gradle.getStartParameter().getSystemPropertiesArgs().get(propertyName);
+        }
+
+        public Class<? extends Task> loadTaskClass(String typeName) {
+            try {
+                return (Class<? extends Task>) getService(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope().getLocalClassLoader()
+                    .loadClass(typeName);
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        public void scheduleTask(Task task) {
+            gradle.getTaskGraph().addEntryTasks(Collections.singleton(task));
+        }
+
+        public List<Task> getScheduledTasks() {
+            return gradle.getTaskGraph().getAllTasks();
         }
     }
 
