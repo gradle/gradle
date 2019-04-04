@@ -143,6 +143,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         }
     }
 
+    @SuppressWarnings("deprecation")
     @NonExtensible
     public static class UntypedRegistration extends RecordingRegistration implements VariantTransform {
         private Action<? super ActionConfiguration> configAction;

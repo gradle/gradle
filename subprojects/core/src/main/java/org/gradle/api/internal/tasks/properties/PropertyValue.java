@@ -17,14 +17,27 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public interface PropertyValue extends Callable<Object> {
+    /**
+     * The value of the underlying property, replacing an empty provider by {@literal null}.
+     *
+     * This is required for allowing optional provider properties - all code which unpacks providers calls {@link Provider#get()} and would fail if an optional provider is passed.
+     * Returning {@literal null} from a {@link Callable} is ignored, and {@link PropertyValue} is a {@link Callable}.
+     */
     @Nullable
     @Override
     Object call();
+
+    /**
+     * The unprocessed value of the underlying property.
+     */
+    @Nullable
+    Object getUnprocessedValue();
 
     void attachProducer(Task producer);
 

@@ -41,9 +41,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     assert input.file
                 }
@@ -77,9 +78,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact ${annotation}
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -190,9 +192,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact ${annotation}
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     if (input.exists()) {
                         println "processing \${input.name}"
                     } else {
@@ -320,9 +323,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     if (input.exists()) {
                         println "processing \${input.name}"
                     } else {
@@ -382,9 +386,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.text + ".green")
                     output.text = input.text + ".green"
@@ -421,9 +426,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.text + ".green")
                     output.text = input.text + ".green"
@@ -502,9 +508,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.list().length + ".green"
@@ -593,9 +600,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -675,9 +683,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.list().length + ".green"
@@ -764,9 +773,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.list().length + ".green"
@@ -866,9 +876,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.NONE)
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.text + ".green")
                     output.text = input.text + ".green"
@@ -952,9 +963,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @PathSensitive(PathSensitivity.${sensitivity})
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -1018,9 +1030,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @${annotation}
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -1118,9 +1131,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             @CacheableTransform
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @${annotation}
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
@@ -1222,9 +1236,10 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
             
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact @Classpath
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"

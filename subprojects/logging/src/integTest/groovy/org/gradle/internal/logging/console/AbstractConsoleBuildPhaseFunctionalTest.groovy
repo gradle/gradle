@@ -314,9 +314,10 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                 @InputArtifactDependencies
                 abstract FileCollection getDependencies()
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     ${server.callFromBuild('size-transform')}
                     File output = outputs.registerOutput(input.name + parameters.suffix)
                     output.text = String.valueOf(input.length())
