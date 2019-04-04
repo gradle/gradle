@@ -55,7 +55,7 @@ import org.gradle.api.provider.Provider;
  *
  * <p>
  * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as {@link ChangeType#ADDED}.
- * In that case, the output files of the work are removed prior to executing the work action.
+ * When such a full rebuild happens, the output files of the work are removed prior to executing the work action.
  * Cases where this occurs include:
  * <ul>
  *     <li>There is no history available from a previous execution.</li>

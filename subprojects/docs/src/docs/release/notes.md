@@ -26,7 +26,7 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 ## New API for Incremental Changes
 
 The new [`org.gradle.work.InputChanges`](dsl/org.gradle.work.InputChanges.html) API allows querying for changes to individual input file properties.
-See the [userguide section](userguide/custom_tasks.html#incremental_tasks) for more information how to implement incremental tasks using the new API.
+See the [userguide section](userguide/custom_tasks.html#incremental_tasks) for more information on how to implement incremental tasks using the new API.
 
 ```kotlin
 inputChanges.getFileChanges(inputDir).forEach { change ->
