@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features a [new API for Incremental Changes](#incremental-changes-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), [running Gradle on JDK12](#jdk12-support) and more.
+This release features a [new API for Incremental Tasks](#incremental-tasks-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), [running Gradle on JDK12](#jdk12-support) and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
@@ -21,11 +21,19 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-<a name="incremental-changes-api"/>
+<a name="incremental-tasks-api"/>
 
-## New API for Incremental Changes
+## New API for Incremental Tasks
 
-The new [`org.gradle.work.InputChanges`](dsl/org.gradle.work.InputChanges.html) API allows querying for changes to individual input file properties.
+With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see [Incremental Builds](userguide/more_about_tasks.html#sec:up_to_date_checks)).
+However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
+Tasks only reprocessing out-of-date input files are called _incremental tasks_.
+Up to Gradle 5.4, for implementing an incremental task you would use [`IncrementalTaskInputs`](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html).
+
+Now you can use the new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks.
+This API addresses some shortcomings of the old API, first and foremost that it is now possible to query for changes of individual input file properties, instead of receiving the changes for all input file properties at once.
+Additionally, the file type and the normalized path can be queried for each change, and the old outputs of the task are automatically removed on non-incremental execution.
+
 See the [userguide section](userguide/custom_tasks.html#incremental_tasks) for more information on how to implement incremental tasks using the new API.
 
 ```
