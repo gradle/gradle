@@ -134,11 +134,11 @@ include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/Gre
 
 With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see <<more_about_tasks.adoc#sec:up_to_date_checks,Incremental Builds>>). However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs. This can be particularly useful for a transformer task, that converts input files to output files on a 1:1 basis.
 
-If you'd like to optimize your build so that only out-of-date inputs are processed, you can do so with an _incremental task_.
+If you'd like to optimize your build so that only out-of-date input files are reprocessed, you can do so with an _incremental task_.
 
 [NOTE]
 ====
-There is the link:{javadocPath}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs] API, which is available in Gradle versions smaller than 5.4.
+There is the link:{javadocPath}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs] API, which is available in Gradle versions before 5.4.
 The usage of this API is discouraged, since it does not allow querying individual input properties for changes.
 If you need to use the old API, have a look at the documentation in the link:https://docs.gradle.org/5.3.1/userguide/custom_tasks.html#incremental_tasks[userguide for Gradle 5.3.1].
 ====
@@ -152,9 +152,9 @@ Moreover, the task needs to declare at least one incremental file input property
 
 [IMPORTANT]
 ====
-For being able to query incremental changes for an input property, the getter of that property always needs to return the same value.
+To query incremental changes for an input file property, the getter of that property always needs to return the same instance.
 The easiest way to accomplish this is to use `link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]`, `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` or `link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]` as type of the property.
-See the chapter on <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>, especially the sections about <<lazy_configuration.adoc#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy file properties>>.
+See also the chapter on <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>, especially the sections about <<lazy_configuration.adoc#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration.adoc#sec:working_with_files_in_lazy_properties,lazy file properties>>.
 ====
 
 The incremental task action can then query for file changes for an input file parameter via `link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges]`.
@@ -196,7 +196,7 @@ However, there are many cases where Gradle is unable to determine which input fi
 * A non-incremental input file property has changed since the previous execution.
 * One or more output files have changed since the previous execution.
 
-In any of these cases, Gradle will consider all of the input files to be `added`.
+In any of these cases, Gradle will report all input files as `ADDED`.
 The link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges] method will return details for all files for the given input property.
 
 You can check if Gradle was able to determine the incremental changes to input files with link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges.html##org.gradle.work.InputChanges:incremental[InputChanges.isIncremental()].
@@ -299,7 +299,7 @@ include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskChangedPro
 [[sec:storing_incremental_task_state]]
 === Storing incremental state for cached tasks
 
-Using Gradle's `InputChanges` is not the only way to create tasks that only works on changes since the last execution.
+Using Gradle's `InputChanges` is not the only way to create tasks that only work on changes since the last execution.
 Tools like the Kotlin compiler provide incrementality as a built-in feature.
 The way this is typically implemented is that the tool stores some analysis data about the state of the previous execution in some file.
 If such state files are <<build_cache.adoc#sec:task_output_caching_inputs,relocatable>>, then they can be declared as outputs of the task.
