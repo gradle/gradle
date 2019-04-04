@@ -22,69 +22,28 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.file.DefaultCompositeFileTree;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.project.IProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.ClassDetails;
-import org.gradle.internal.reflect.ClassInspector;
-import org.gradle.internal.reflect.PropertyDetails;
-import org.gradle.internal.serialize.BaseSerializerFactory;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SetSerializer;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
-import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import javax.annotation.Nullable;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -129,6 +88,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
+    private final InstantExecution instantExecution;
 
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
@@ -152,6 +112,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
+        this.instantExecution = new InstantExecution(gradle);
     }
 
     @Override
@@ -185,7 +146,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         try {
-            if (upTo == Stage.RunTasks && isInstantExecutionEnabled() && instantExecutionStateFile().isFile()) {
+            if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
                 doInstantExecution();
             } else {
                 doClassicBuildStages(upTo);
@@ -194,123 +155,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         } catch (Throwable t) {
             finishBuild(upTo.getDisplayName(), t);
         }
-    }
-
-    private boolean isInstantExecutionEnabled() {
-        return gradle.getStartParameter().getSystemPropertiesArgs().get("instantExecution") != null;
-    }
-
-    private void doInstantExecution() {
-        ClassLoaderScopeRegistry classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
-        ScriptHandlerFactory scriptHandlerFactory = gradle.getServices().get(ScriptHandlerFactory.class);
-        StringScriptSource settingsSource = new StringScriptSource("settings", "");
-        final ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-        DefaultSettings settings = new DefaultSettings(
-            gradle.getServices().get(BuildScopeServiceRegistryFactory.class),
-            gradle,
-            classLoaderScopeRegistry.getCoreScope(),
-            classLoaderScopeRegistry.getCoreScope(),
-            scriptHandlerFactory.create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
-            new File(".").getAbsoluteFile(),
-            settingsSource,
-            gradle.getStartParameter()
-        ) {
-            @Override
-            public ExtensionContainer getExtensions() {
-                return null;
-            }
-
-            @Override
-            public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-                return projectDescriptorRegistry;
-            }
-
-            @Override
-            protected FileResolver getFileResolver() {
-                return gradle.getServices().get(FileResolver.class);
-            }
-        };
-        gradle.setSettings(settings);
-
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
-            null, ":", new File(".").getAbsoluteFile(),
-            projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
-        );
-
-        IProjectFactory projectFactory = gradle.getServices().get(IProjectFactory.class);
-
-        ProjectInternal rootProject = projectFactory.createProject(
-            projectDescriptor, null, gradle,
-            classLoaderScopeRegistry.getCoreAndPluginsScope(),
-            classLoaderScopeRegistry.getCoreAndPluginsScope()
-        );
-        gradle.setRootProject(rootProject);
-
-        gradle.getServices().get(ProjectStateRegistry.class)
-            .registerProjects(gradle.getServices().get(BuildState.class));
-
-        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        loadInstantExecutionStateInto(taskGraph, rootProject, classLoaderScopeRegistry);
-        taskGraph.populate();
-        stage = Stage.TaskGraph;
-        runTasks();
-    }
-
-    private void loadInstantExecutionStateInto(TaskExecutionGraphInternal taskGraph, Project rootProject, ClassLoaderScopeRegistry classLoaderScopeRegistry) {
-        final Serializer<Object> propertyValueSerializer = propertyValueSerializer();
-
-        try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(instantExecutionStateFile()));
-            try {
-                int count = decoder.readSmallInt();
-                for (int i = 0; i < count; i++) {
-                    String taskName = decoder.readString();
-                    String typeName = decoder.readString();
-                    Class<? extends Task> taskClass = loadTaskClass(classLoaderScopeRegistry, typeName);
-                    ClassDetails details = ClassInspector.inspect(taskClass);
-                    Task task = rootProject.getTasks().create(taskName, taskClass);
-                    String propertyName;
-                    while (!(propertyName = decoder.readString()).isEmpty()) {
-                        Object value = propertyValueSerializer.read(decoder);
-                        if (value == null) {
-                            continue;
-                        }
-                        PropertyDetails property = details.getProperty(propertyName);
-                        for (Method setter : property.getSetters()) {
-                            if (setter.getParameterTypes()[0].isAssignableFrom(value.getClass())) {
-                                setter.setAccessible(true);
-                                setter.invoke(task, value);
-                                break;
-                            }
-                        }
-                    }
-                    taskGraph.addEntryTasks(Collections.singleton(
-                        task
-                    ));
-                }
-            } finally {
-                decoder.close();
-            }
-        } catch (Exception e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    private DefaultGradleLauncher.PropertyValueSerializer propertyValueSerializer() {
-        return new PropertyValueSerializer(gradle.getServices().get(DirectoryFileTreeFactory.class), gradle.getServices().get(FileCollectionFactory.class));
-    }
-
-    private Class<? extends Task> loadTaskClass(ClassLoaderScopeRegistry classLoaderScopeRegistry, String typeName) {
-        try {
-            return (Class<? extends Task>) classLoaderScopeRegistry.getCoreAndPluginsScope().getLocalClassLoader()
-                .loadClass(typeName);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private File instantExecutionStateFile() {
-        return new File(".instant-execution-state");
     }
 
     private void doClassicBuildStages(Stage upTo) {
@@ -326,131 +170,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.TaskGraph) {
             return;
         }
-        if (isInstantExecutionEnabled()) {
-            saveInstantExecutionState();
-        }
+        instantExecution.saveInstantExecutionState();
         runTasks();
     }
 
-    private void saveInstantExecutionState() {
-        final PropertyValueSerializer propertyValueSerializer = propertyValueSerializer();
-
-        try {
-            final KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(instantExecutionStateFile()));
-            try {
-                List<Task> allTasks = gradle.getTaskGraph().getAllTasks();
-                encoder.writeSmallInt(allTasks.size());
-                for (Task task : allTasks) {
-                    if (task.getProject().getParent() != null) {
-                        throw new UnsupportedOperationException("Tasks must be in the root project");
-                    }
-                    Class<?> taskType = GeneratedSubclasses.unpack(task.getClass());
-                    encoder.writeString(task.getName());
-                    encoder.writeString(taskType.getName());
-                    for (PropertyDetails property : ClassInspector.inspect(taskType).getProperties()) {
-                        if (property.getSetters().isEmpty() || property.getGetters().isEmpty()) {
-                            continue;
-                        }
-                        Method getter = property.getGetters().get(0);
-                        if (!(propertyValueSerializer.canWrite(getter.getReturnType()))) {
-                            continue;
-                        }
-                        getter.setAccessible(true);
-                        Object finalValue = getter.invoke(task);
-                        encoder.writeString(property.getName());
-                        try {
-                            propertyValueSerializer.write(encoder, finalValue);
-                        } catch (Exception e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                    }
-                    encoder.writeString("");
-                }
-            } finally {
-                encoder.close();
-            }
-        } catch (Exception e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
-    class PropertyValueSerializer implements Serializer<Object> {
-        private final Serializer<Set<File>> fileSetSerializer = new SetSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
-        private final Serializer<String> stringSerializer = BaseSerializerFactory.STRING_SERIALIZER;
-        private final DirectoryFileTreeFactory directoryFileTreeFactory;
-        private final FileCollectionFactory fileCollectionFactory;
-        private final Serializer<FileTreeInternal> fileTreeSerializer = new Serializer<FileTreeInternal>() {
-            @Override
-            public FileTreeInternal read(Decoder decoder) throws Exception {
-                Set<File> roots = fileSetSerializer.read(decoder);
-                List<FileTreeInternal> fileTrees = new ArrayList<FileTreeInternal>(roots.size());
-                for (File root : roots) {
-                    fileTrees.add(new FileTreeAdapter(directoryFileTreeFactory.create(root)));
-                }
-                return new DefaultCompositeFileTree(fileTrees);
-            }
-
-            @Override
-            public void write(Encoder encoder, FileTreeInternal value) throws Exception {
-                FileTreeVisitor visitor = new FileTreeVisitor();
-                value.visitLeafCollections(visitor);
-                fileSetSerializer.write(encoder, visitor.roots);
-            }
-        };
-        private static final byte NULL_VALUE = 0;
-        private static final byte STRING_TYPE = 1;
-        private static final byte FILE_TREE_TYPE = 2;
-        private static final byte FILE_TYPE = 3;
-        private static final byte FILE_COLLECTION_TYPE = 4;
-
-        public PropertyValueSerializer(DirectoryFileTreeFactory directoryFileTreeFactory, FileCollectionFactory fileCollectionFactory) {
-            this.directoryFileTreeFactory = directoryFileTreeFactory;
-            this.fileCollectionFactory = fileCollectionFactory;
-        }
-
-        @Override
-        public Object read(Decoder decoder) throws EOFException, Exception {
-            byte tag = decoder.readByte();
-            switch (tag) {
-                case NULL_VALUE:
-                    return null;
-                case STRING_TYPE:
-                    return stringSerializer.read(decoder);
-                case FILE_TREE_TYPE:
-                    return fileTreeSerializer.read(decoder);
-                case FILE_TYPE:
-                    return BaseSerializerFactory.FILE_SERIALIZER.read(decoder);
-                case FILE_COLLECTION_TYPE:
-                    return fileCollectionFactory.fixed(fileSetSerializer.read(decoder));
-                default:
-                    throw new UnsupportedOperationException();
-            }
-        }
-
-        @Override
-        public void write(Encoder encoder, Object value) throws Exception {
-            if (value == null) {
-                encoder.writeByte(NULL_VALUE);
-            } else if (value instanceof String) {
-                encoder.writeByte(STRING_TYPE);
-                stringSerializer.write(encoder, (String) value);
-            } else if (value instanceof FileTreeInternal) {
-                encoder.writeByte(FILE_TREE_TYPE);
-                fileTreeSerializer.write(encoder, (FileTreeInternal) value);
-            } else if (value instanceof File) {
-                encoder.writeByte(FILE_TYPE);
-                BaseSerializerFactory.FILE_SERIALIZER.write(encoder, (File) value);
-            } else if (value instanceof FileCollection) {
-                encoder.writeByte(FILE_COLLECTION_TYPE);
-                fileSetSerializer.write(encoder, ((FileCollection)value).getFiles());
-            } else {
-                throw new UnsupportedOperationException();
-            }
-        }
-
-        public boolean canWrite(Class<?> type) {
-            return type.equals(String.class) || type.equals(FileTree.class) || type.equals(File.class) || type.equals(FileCollection.class);
-        }
+    private void doInstantExecution() {
+        instantExecution.prepareTaskGraph();
+        stage = Stage.TaskGraph;
+        runTasks();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -552,25 +279,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
-        }
-    }
-
-    private static class FileTreeVisitor implements FileCollectionLeafVisitor {
-        Set<File> roots = new LinkedHashSet<File>();
-
-        @Override
-        public void visitCollection(FileCollectionInternal fileCollection) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void visitFileTree(File root, PatternSet patterns) {
-            roots.add(root);
         }
     }
 
