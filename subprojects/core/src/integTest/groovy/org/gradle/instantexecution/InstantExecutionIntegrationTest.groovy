@@ -25,7 +25,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         run "help"
     }
 
-    def "modern"() {
+    def "instant execution for help on empty project"() {
         given:
         run "help", "-DinstantExecution=true"
         def firstRunOutput = result.normalizedOutput
@@ -35,5 +35,35 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.normalizedOutput == firstRunOutput
+    }
+
+    def "instant execution for compileJava on Java project with no dependencies"() {
+        given:
+        buildFile << """
+            plugins { id 'java' }
+            
+            println "running build script"
+        """
+        file("src/main/java/Thing.java") << """
+            class Thing {
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        run "compileJava", "-DinstantExecution=true"
+        outputContains("running build script")
+        result.assertTasksExecuted(":compileJava")
+        def classFile = file("build/classes/java/main/Thing.class")
+        classFile.isFile()
+
+        when:
+        classFile.delete()
+        run "compileJava", "-DinstantExecution=true"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":compileJava")
+        classFile.isFile()
     }
 }
