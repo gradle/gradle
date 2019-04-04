@@ -38,9 +38,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFiles*.name}"
                     def output = outputs.file(input.name + ".green")
                     def paramContent = parameters.someFiles.collect { it.file ? it.text : it.list().length }.join("")
@@ -153,9 +154,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         buildFile << """
             abstract class MakeRed implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name} wit MakeRedAction"
                     def output = outputs.file(input.name + ".red")
                     output.text = "ok"
@@ -288,9 +290,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someFile.get().asFile.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + parameters.someFile.get().asFile.text + ".green"
@@ -339,9 +342,10 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 }
             
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     println "processing \${input.name} using \${parameters.someDir.get().asFile.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + parameters.someDir.get().asFile.list().length + ".green"
