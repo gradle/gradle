@@ -187,7 +187,7 @@ A task may only contain a single incremental task action.
 [[sec:which_inputs_are_considered_out_of_date]]
 === Which inputs are considered out of date?
 
-When Gradle has history of a previous task execution, and the only changes to the task execution context since that execution are to incremental input file properties, then Gradle is able to determine which input files need to be reprocessed by the task.
+When there is a previous execution of the task, and the only changes since that execution are to incremental input file properties, then Gradle is able to determine which input files need to be reprocessed by the task.
 In this case, the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges] method returns details for all input files for the given property that were _added_, _modified_ or _removed_.
 
 However, there are many cases where Gradle is unable to determine which input files need to be reprocessed. Examples include:
