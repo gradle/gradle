@@ -311,17 +311,17 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         public PropertyAnnotationMetadata build() {
             ImmutableMap.Builder<PropertyAnnotationCategory, Annotation> annotations = ImmutableMap.builder();
             Multimaps.asMap(recordedAnnotations).forEach((category, recordedAnnotations) -> {
+                // Ignore all but the first recorded annotation
+                Annotation recordedAnnotation = recordedAnnotations.get(0);
                 if (recordedAnnotations.size() > 1) {
-                    recordProblem(String.format("has multiple %s annotations: %s",
+                    recordProblem(String.format("has multiple %s annotations: %s; assuming @%s",
                         category.getDisplayName(),
                         recordedAnnotations.stream()
                             .map(annotation -> "@" + annotation.annotationType().getSimpleName())
-                            .sorted()
-                            .collect(Collectors.joining(", "))
+                            .collect(Collectors.joining(", ")),
+                        recordedAnnotation.annotationType().getSimpleName()
                     ));
                 }
-                // Ignore all but the first recorded annotation
-                Annotation recordedAnnotation = recordedAnnotations.get(0);
                 annotations.put(category, recordedAnnotation);
             });
             return new DefaultPropertyAnnotationMetadata(propertyName, getter, annotations.build(), problems.build());

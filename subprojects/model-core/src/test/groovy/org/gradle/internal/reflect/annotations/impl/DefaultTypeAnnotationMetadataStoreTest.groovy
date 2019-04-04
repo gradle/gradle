@@ -253,8 +253,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             largeThenSmall: [(SIZE): Large],
             smallThenLarge: [(SIZE): Small]
         ], [
-            "Property 'largeThenSmall' has multiple size annotations: @Large, @Small",
-            "Property 'smallThenLarge' has multiple size annotations: @Large, @Small"
+            "Property 'largeThenSmall' has multiple size annotations: @Large, @Small; assuming @Large",
+            "Property 'smallThenLarge' has multiple size annotations: @Small, @Large; assuming @Small"
         ]
     }
 
