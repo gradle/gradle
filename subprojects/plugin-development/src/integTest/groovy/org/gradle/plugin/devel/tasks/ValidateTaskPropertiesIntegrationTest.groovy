@@ -640,6 +640,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
             import java.io.*;
@@ -665,7 +667,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
                 // Valid because it is annotated
                 @InputArtifact
-                public abstract File getGoodInput();
+                public abstract Provider<FileSystemLocation> getGoodInput();
 
                 // Invalid because it has no annotation
                 public long getBadTime() {
