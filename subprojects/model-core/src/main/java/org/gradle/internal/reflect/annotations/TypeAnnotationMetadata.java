@@ -16,14 +16,21 @@
 
 package org.gradle.internal.reflect.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.reflect.ParameterValidationContext;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 
 public interface TypeAnnotationMetadata {
     /**
-     * Returns information about each property of the type and the annotations on the property.
+     * The annotations present on the type itself.
+     */
+    ImmutableSet<Annotation> getAnnotations();
+
+    /**
+     * Information about the type and annotations of each property of the type.
      */
     ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata();
 

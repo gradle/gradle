@@ -58,6 +58,11 @@ import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
     private static final TypeAnnotationMetadata EMPTY_TYPE_ANNOTATION_METADATA = new TypeAnnotationMetadata() {
         @Override
+        public ImmutableSet<Annotation> getAnnotations() {
+            return ImmutableSet.of();
+        }
+
+        @Override
         public ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata() {
             return ImmutableSortedSet.of();
         }
@@ -67,17 +72,20 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
     };
 
-    private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationCategory> annotationCategories;
+    private final ImmutableMap<Class<? extends Annotation>, PropertyAnnotationCategory> propertyAnnotationCategories;
+    private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
 
     public DefaultTypeAnnotationMetadataStore(
-        Map<Class<? extends Annotation>, PropertyAnnotationCategory> annotationCategories,
+        Collection<Class<? extends Annotation>> recordedTypeAnnotations,
+        Map<Class<? extends Annotation>, PropertyAnnotationCategory> propertyAnnotationCategories,
         Collection<Class<?>> ignoredSuperClasses,
         Collection<Class<?>> ignoreMethodsFromClasses,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
-        this.annotationCategories = ImmutableMap.copyOf(annotationCategories);
+        this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
+        this.propertyAnnotationCategories = ImmutableMap.copyOf(propertyAnnotationCategories);
         this.cache = cacheFactory.newClassCache();
         for (Class<?> ignoredSuperClass : ignoredSuperClasses) {
             cache.put(ignoredSuperClass, EMPTY_TYPE_ANNOTATION_METADATA);
@@ -101,6 +109,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
+        ImmutableSet.Builder<Annotation> typeAnnotations = ImmutableSet.builder();
+        for (Annotation typeAnnotation : type.getDeclaredAnnotations()) {
+            if (recordedTypeAnnotations.contains(typeAnnotation.annotationType())) {
+                typeAnnotations.add(typeAnnotation);
+            }
+        }
+
         Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders = extractPropertiesFrom(type);
         Map<String, PropertyAnnotationMetadata> propertiesMetadata = new HashMap<>();
         visitSuperTypes(type, superType -> {
@@ -117,7 +132,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         propertyBuilders.forEach((propertyName, builder) -> {
             propertiesMetadata.put(propertyName, builder.build());
         });
-        return new DefaultTypeAnnotationMetadata(propertiesMetadata.values());
+        return new DefaultTypeAnnotationMetadata(typeAnnotations.build(), propertiesMetadata.values());
     }
 
     private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
@@ -202,7 +217,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private Collection<Annotation> collectRelevantAnnotations(Annotation[] annotations) {
         List<Annotation> relevantAnnotations = Lists.newArrayListWithCapacity(annotations.length);
         for (Annotation annotation : annotations) {
-            if (annotationCategories.keySet().contains(annotation.annotationType())) {
+            if (propertyAnnotationCategories.keySet().contains(annotation.annotationType())) {
                 relevantAnnotations.add(annotation);
             }
         }
@@ -273,7 +288,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public void recordAnnotation(Annotation annotation) {
-            PropertyAnnotationCategory category = annotationCategories.get(annotation.annotationType());
+            PropertyAnnotationCategory category = propertyAnnotationCategories.get(annotation.annotationType());
             recordedAnnotations.put(category, annotation);
         }
 

@@ -25,18 +25,30 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.annotation.Nullable
-import java.lang.annotation.Annotation
-import java.lang.annotation.Documented
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
-import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.BIG
-import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.SMALL
+import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.COLOR
+import static org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest.Category.SIZE
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification {
-    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def store = new DefaultTypeAnnotationMetadataStore(
+        [
+            TestType
+        ], [
+            (Large): SIZE,
+            (Small): SIZE,
+            (Color): COLOR,
+        ], [
+            Object,
+            GroovyObject
+        ], [
+            Object,
+            GroovyObject
+        ],
+        new TestCrossBuildInMemoryCacheFactory())
 
     def "finds not-annotated properties"() {
         expect:
@@ -50,56 +62,54 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 
         @SuppressWarnings("unused")
         class TypeWithNotAnnotatedProperty {
-            @IrrelevantAnnotation
             String getPublicProperty() { "public" }
 
-            @IrrelevantAnnotation
+            @Irrelevant
             protected String getProtectedProperty() { "protected" }
 
-            @IrrelevantAnnotation
             @PackageScope String getPackageProperty() { "default" }
 
-            @IrrelevantAnnotation
+            @Irrelevant
             private String getPrivateProperty() { "private" }
         }
 
     def "finds annotated properties"() {
         expect:
         assertProperties TypeWithAnnotatedProperty, [
-            publicProperty: [(SMALL): SmallAnnotation],
-            protectedProperty: [(SMALL): SmallAnnotation],
-            packageProperty: [(SMALL): SmallAnnotation],
-            privateProperty: [(SMALL): SmallAnnotation]
+            publicProperty: [(SIZE): Large],
+            protectedProperty: [(SIZE): Large],
+            packageProperty: [(SIZE): Small],
+            privateProperty: [(SIZE): Small],
         ], [
-            "Property 'privateProperty' is private and annotated with @$SmallAnnotation.simpleName"
+            "Property 'privateProperty' is private and annotated with @$Small.simpleName"
         ]
     }
 
         @SuppressWarnings("unused")
         class TypeWithAnnotatedProperty {
-            @SmallAnnotation
+            @Large
             String getPublicProperty() { "public" }
 
-            @SmallAnnotation
+            @Large
             protected String getProtectedProperty() { "protected" }
 
-            @SmallAnnotation
+            @Small
             @PackageScope String getPackageProperty() { "default" }
 
-            @SmallAnnotation
+            @Small
             private String getPrivateProperty() { "private" }
         }
 
     def "finds annotation on field"() {
         expect:
         assertProperties TypeWithFieldAnnotation, [
-            property: [(SMALL): SmallAnnotation],
+            property: [(SIZE): Large],
         ]
     }
 
         @SuppressWarnings("unused")
         class TypeWithFieldAnnotation {
-            @SmallAnnotation
+            @Large
             private final String property = "test"
 
             String getProperty() { property }
@@ -108,33 +118,33 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "superclass properties are present in subclass"() {
         expect:
         assertProperties TypeWithSuperclassProperties, [
-            baseProperty: [(SMALL): SmallAnnotation],
-            subclassProperty: [(SMALL): SmallAnnotation]
+            baseProperty: [(SIZE): Small],
+            subclassProperty: [(SIZE): Large]
         ]
     }
 
         @SuppressWarnings("unused")
         interface BaseTypeWithSuperClassProperites {
-            @SmallAnnotation
+            @Small
             String getBaseProperty()
         }
 
         @SuppressWarnings("unused")
         interface TypeWithSuperclassProperties extends BaseTypeWithSuperClassProperites {
-            @SmallAnnotation
+            @Large
             String getSubclassProperty()
         }
 
     def "overridden properties inherit super-class annotations"() {
         expect:
         assertProperties TypeWithInheritedProperty, [
-            overriddenProperty: [(SMALL): SmallAnnotation]
+            overriddenProperty: [(COLOR): Color]
         ]
     }
 
         @SuppressWarnings("unused")
         class BaseTypeWithInheritedProperty {
-            @SmallAnnotation("super-class")
+            @Color(declaredBy = "super-class")
             String getOverriddenProperty() { "test" }
         }
 
@@ -147,13 +157,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "overridden properties inherit super-class annotations when same annotation is present in interfaces"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [
-            overriddenProperty: [(SMALL): { it instanceof SmallAnnotation && it.value() == "super-class" }]
+            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "super-class" }]
         ]
     }
 
         @SuppressWarnings("unused")
         interface InterfaceWithInheritedProperty {
-            @SmallAnnotation("interface")
+            @Color(declaredBy = "interface")
             String getOverriddenProperty()
         }
 
@@ -169,19 +179,19 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "implemented properties inherit annotation from first interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
-            overriddenProperty: [(SMALL): { it instanceof SmallAnnotation && it.value() == "first-interface" }]
+            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ]
     }
 
         @SuppressWarnings("unused")
         interface FirstInterfaceWithInheritedProperty {
-            @SmallAnnotation("first-interface")
+            @Color(declaredBy = "first-interface")
             String getOverriddenProperty()
         }
 
         @SuppressWarnings("unused")
         interface SecondInterfaceWithInheritedProperty {
-            @SmallAnnotation("second-interface")
+            @Color(declaredBy = "second-interface")
             String getOverriddenProperty()
         }
 
@@ -196,84 +206,84 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "can override same annotation in subclass"() {
         expect:
         assertProperties TypeWithOverride, [
-            overriddenProperty: [(SMALL): { it instanceof SmallAnnotation && it.value() == "override" }]
+            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "override" }]
         ]
     }
 
         @SuppressWarnings("unused")
         interface BaseTypeWithOverride {
-            @SmallAnnotation("base")
+            @Color(declaredBy = "base")
             String getOverriddenProperty()
         }
 
         @SuppressWarnings("unused")
         interface TypeWithOverride extends BaseTypeWithOverride {
-            @SmallAnnotation("override")
+            @Color(declaredBy = "override")
             String getOverriddenProperty()
         }
 
     def "can override annotation with different annotation in same category in subclass"() {
         expect:
         assertProperties CanOverrideOverrideCategoryClass, [
-            overriddenProperty: [(BIG): BigAnnotation2, (SMALL): SmallAnnotation]
+            overriddenProperty: [(SIZE): Small, (COLOR): Color]
         ]
     }
 
         @SuppressWarnings("unused")
         interface CanOverrideCategoryBaseClass {
-            @BigAnnotation1
+            @Large
             String getOverriddenProperty()
         }
 
         interface CanOverrideCategoryIntermediateClass extends CanOverrideCategoryBaseClass {
             @Override
-            @SmallAnnotation
+            @Color
             String getOverriddenProperty()
         }
 
         interface CanOverrideOverrideCategoryClass extends CanOverrideCategoryIntermediateClass {
             @Override
-            @BigAnnotation2
+            @Small
             String getOverriddenProperty()
         }
 
     def "uses first declared annotation of conflicting category and warns about the conflict"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
-            doubleAnnotatedProperty1then2: [(BIG): BigAnnotation1],
-            doubleAnnotatedProperty2then1: [(BIG): BigAnnotation2]
+            largeThenSmall: [(SIZE): Large],
+            smallThenLarge: [(SIZE): Small]
         ], [
-            "Property 'doubleAnnotatedProperty1then2' has multiple big annotations: @BigAnnotation1, @BigAnnotation2",
-            "Property 'doubleAnnotatedProperty2then1' has multiple big annotations: @BigAnnotation1, @BigAnnotation2"
+            "Property 'largeThenSmall' has multiple size annotations: @Large, @Small",
+            "Property 'smallThenLarge' has multiple size annotations: @Large, @Small"
         ]
     }
 
         @SuppressWarnings("unused")
         interface TypeWithPropertiesWithMultipleAnnotationsOfSameCategory {
-            @BigAnnotation1
-            @BigAnnotation2
-            String getDoubleAnnotatedProperty1then2()
+            @Large
+            @Small
+            String getLargeThenSmall()
 
-            @BigAnnotation2
-            @BigAnnotation1
-            String getDoubleAnnotatedProperty2then1()
+            @Small
+            @Large
+            String getSmallThenLarge()
         }
 
     def "warns about both method and field having the same annotation, prefers method annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotation, [
-            inputFiles: [(SMALL): { it instanceof SmallAnnotation && it.value() == "method" }]
+            inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has both a getter and field declared with annotation @SmallAnnotation"
+            "Property 'inputFiles' has both a getter and field declared with annotation @Color"
         ]
     }
 
         @SuppressWarnings("unused")
         class WithBothFieldAndGetterAnnotation {
-            @SmallAnnotation("field")
+            @Color(declaredBy = "field")
             FileCollection inputFiles
 
-            @SmallAnnotation("method")
+            @Color(declaredBy = "method")
             FileCollection getInputFiles() {
                 return inputFiles
             }
@@ -282,17 +292,17 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "doesn't warn about both method and field having the same irrelevant annotation"() {
         expect:
         assertProperties WithBothFieldAndGetterAnnotationButIrrelevant, [
-            inputFiles: [(SMALL): SmallAnnotation]
+            inputFiles: [(COLOR): Color]
         ]
     }
 
         @SuppressWarnings("unused")
         class WithBothFieldAndGetterAnnotationButIrrelevant {
-            @IrrelevantAnnotation
+            @Irrelevant
             FileCollection inputFiles
 
-            @IrrelevantAnnotation
-            @SmallAnnotation
+            @Irrelevant
+            @Color
             FileCollection getInputFiles() {
                 return inputFiles
             }
@@ -301,15 +311,15 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotations on private properties"() {
         expect:
         assertProperties WithAnnotationsOnPrivateProperty, [
-            privateInput: [(BIG): BigAnnotation1]
+            privateInput: [(SIZE): Large]
         ], [
-            "Property 'privateInput' is private and annotated with @${BigAnnotation1.simpleName}"
+            "Property 'privateInput' is private and annotated with @${Large.simpleName}"
         ]
     }
 
         @SuppressWarnings("unused")
         class WithAnnotationsOnPrivateProperty {
-            @BigAnnotation1
+            @Large
             private String getPrivateInput() {
                 'Input'
             }
@@ -325,14 +335,14 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "annotation on private field is recognized for is-getter"() {
         expect:
         assertProperties IsGetterType, [
-            feature1: [(SMALL): SmallAnnotation],
+            feature1: [(SIZE): Large],
             feature2: [:]
         ]
     }
 
         @SuppressWarnings("GroovyUnusedDeclaration")
         private static class IsGetterType {
-            @SmallAnnotation
+            @Large
             private boolean feature1
             private boolean feature2
 
@@ -350,8 +360,20 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
+    def "only relevant type annotations are captured"() {
+        when:
+        def metadata = store.getTypeMetadata(TypeWithAnnotations)
+
+        then:
+        metadata.annotations*.annotationType() == [TestType]
+    }
+
+        @TestType
+        @Irrelevant
+        interface TypeWithAnnotations {}
+
     void assertProperties(Class<?> type, Map<String, Map<PropertyAnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
-        def metadata = createStore().getTypeMetadata(type)
+        def metadata = store.getTypeMetadata(type)
         def actualPropertyNames = metadata.propertiesAnnotationMetadata*.propertyName.sort()
         def expectedPropertyNames = expectedProperties.keySet().sort()
         assert actualPropertyNames == expectedPropertyNames
@@ -404,16 +426,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assert actualErrors == expectedErrors
     }
 
-    def createStore(Map<Class<? extends Annotation>, PropertyAnnotationCategory> annotationCategories = [
-        (BigAnnotation1): BIG,
-        (BigAnnotation2): BIG,
-        (SmallAnnotation): SMALL,
-    ]) {
-        new DefaultTypeAnnotationMetadataStore(annotationCategories, [Object, GroovyObject] as Set, [Object, GroovyObject] as List, cacheFactory)
-    }
-
     enum Category implements PropertyAnnotationCategory {
-        BIG, SMALL;
+        SIZE, COLOR;
 
         @Override
         String getDisplayName() {
@@ -426,27 +440,28 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     }
 }
 
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.METHOD, ElementType.FIELD])
-@interface BigAnnotation1 {
+@Target([ElementType.TYPE])
+@interface TestType {
 }
 
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface BigAnnotation2 {
+@interface Large {
 }
 
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface SmallAnnotation {
-    String value() default "one"
+@interface Small {
 }
 
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface IrrelevantAnnotation {
+@interface Color {
+    String declaredBy() default ""
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.TYPE, ElementType.METHOD, ElementType.FIELD])
+@interface Irrelevant {
 }

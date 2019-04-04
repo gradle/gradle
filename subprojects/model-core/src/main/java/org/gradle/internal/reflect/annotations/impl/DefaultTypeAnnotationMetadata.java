@@ -16,18 +16,27 @@
 
 package org.gradle.internal.reflect.annotations.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 
 public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
+    private final ImmutableSet<Annotation> annotations;
     private final ImmutableSortedSet<PropertyAnnotationMetadata> properties;
 
-    public DefaultTypeAnnotationMetadata(Iterable<PropertyAnnotationMetadata> properties) {
+    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties) {
+        this.annotations = ImmutableSet.copyOf(annotations);
         this.properties = ImmutableSortedSet.copyOf(properties);
+    }
+
+    @Override
+    public ImmutableSet<Annotation> getAnnotations() {
+        return annotations;
     }
 
     @Override
