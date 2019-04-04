@@ -19,6 +19,7 @@ import org.gradle.api.internal.FeaturePreviews
 apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
+include("instantExecution")
 include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")

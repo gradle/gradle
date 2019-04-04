@@ -55,6 +55,7 @@ dependencies {
     api(library("guava"))
     api(library("inject"))
 
+    implementation(project(":instantExecution"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
