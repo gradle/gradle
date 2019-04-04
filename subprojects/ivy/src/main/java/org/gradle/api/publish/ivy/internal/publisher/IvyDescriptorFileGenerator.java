@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
@@ -39,6 +41,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -46,10 +49,20 @@ import java.util.Map;
 public class IvyDescriptorFileGenerator {
     private static final String IVY_FILE_ENCODING = "UTF-8";
     private static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
+    private static final Action<XmlProvider> ADD_GRADLE_METADATA_MARKER = new Action<XmlProvider>() {
+        @Override
+        public void execute(XmlProvider xmlProvider) {
+            StringBuilder builder = xmlProvider.asString();
+            int idx = builder.indexOf("<info");
+            builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
+                + "  "
+                + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                + "  ");
+        }
+    };
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
-    private final boolean writeGradleRedirectionMarker;
     private String branch;
     private String status;
     private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
@@ -64,7 +77,9 @@ public class IvyDescriptorFileGenerator {
 
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker) {
         this.projectIdentity = projectIdentity;
-        this.writeGradleRedirectionMarker = writeGradleRedirectionMarker;
+        if (writeGradleRedirectionMarker) {
+            xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
+        }
     }
 
     public void setStatus(String status) {
@@ -140,13 +155,6 @@ public class IvyDescriptorFileGenerator {
         xmlWriter.startElement("ivy-module").attribute("version", "2.0");
         if (usesClassifier()) {
             xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
-        }
-
-        if (writeGradleRedirectionMarker) {
-            for (String commentLine : MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES) {
-                xmlWriter.comment(commentLine);
-            }
-            xmlWriter.comment(MetaDataParser.GRADLE_METADATA_MARKER);
         }
 
         xmlWriter.startElement("info")
@@ -317,5 +325,13 @@ public class IvyDescriptorFileGenerator {
             super.comment(comment);
             return this;
         }
+    }
+
+    private static String xmlComments(String[] lines) {
+        return Joiner.on("  ").join(Iterables.transform(Arrays.asList(lines), IvyDescriptorFileGenerator::xmlComment));
+    }
+
+    private static String xmlComment(String content) {
+        return "<!-- " + content + " -->\n";
     }
 }
