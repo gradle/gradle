@@ -140,6 +140,7 @@ If you'd like to optimize your build so that only out-of-date input files are re
 ====
 There is the link:{javadocPath}/org/gradle/api/tasks/incremental/IncrementalTaskInputs.html[IncrementalTaskInputs] API, which is available in Gradle versions before 5.4.
 The usage of this API is discouraged, since it does not allow querying individual input properties for changes.
+The `IncrementalTaskInputs` API will be deprecated an eventually removed.
 If you need to use the old API, have a look at the documentation in the link:https://docs.gradle.org/5.3.1/userguide/custom_tasks.html#incremental_tasks[userguide for Gradle 5.3.1].
 ====
 
