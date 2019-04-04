@@ -28,7 +28,7 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 The new [`org.gradle.work.InputChanges`](dsl/org.gradle.work.InputChanges.html) API allows querying for changes to individual input file properties.
 See the [userguide section](userguide/custom_tasks.html#incremental_tasks) for more information on how to implement incremental tasks using the new API.
 
-```kotlin
+```
 inputChanges.getFileChanges(inputDir).forEach { change ->
     val targetFile = outputDir.file(change.normalizedPath).get().asFile
     if (change.changeType == ChangeType.REMOVED) {
