@@ -66,4 +66,40 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":compileJava")
         classFile.isFile()
     }
+
+    def "instant execution for compileJava on Java project with multiple source directories"() {
+        given:
+        buildFile << """
+            plugins { id 'java' }
+            
+            sourceSets.main.java.srcDir("src/common/java") 
+            
+            println "running build script"
+        """
+        file("src/common/java/OtherThing.java") << """
+            class OtherThing {
+            }
+        """
+        file("src/main/java/Thing.java") << """
+            class Thing extends OtherThing {
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        run "compileJava", "-DinstantExecution=true"
+        outputContains("running build script")
+        result.assertTasksExecuted(":compileJava")
+        def classFile = file("build/classes/java/main/Thing.class")
+        classFile.isFile()
+
+        when:
+        classFile.delete()
+        run "compileJava", "-DinstantExecution=true"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":compileJava")
+        classFile.isFile()
+    }
 }

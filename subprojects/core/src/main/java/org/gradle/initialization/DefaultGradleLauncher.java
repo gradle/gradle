@@ -30,6 +30,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.DefaultCompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
@@ -80,10 +81,10 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -380,16 +381,20 @@ public class DefaultGradleLauncher implements GradleLauncher {
         private final FileCollectionFactory fileCollectionFactory;
         private final Serializer<FileTreeInternal> fileTreeSerializer = new Serializer<FileTreeInternal>() {
             @Override
-            public FileTreeInternal read(Decoder decoder) throws IOException {
-                File rootDir = new File(decoder.readString());
-                return new FileTreeAdapter(directoryFileTreeFactory.create(rootDir));
+            public FileTreeInternal read(Decoder decoder) throws Exception {
+                Set<File> roots = fileSetSerializer.read(decoder);
+                List<FileTreeInternal> fileTrees = new ArrayList<FileTreeInternal>(roots.size());
+                for (File root : roots) {
+                    fileTrees.add(new FileTreeAdapter(directoryFileTreeFactory.create(root)));
+                }
+                return new DefaultCompositeFileTree(fileTrees);
             }
 
             @Override
             public void write(Encoder encoder, FileTreeInternal value) throws Exception {
                 FileTreeVisitor visitor = new FileTreeVisitor();
                 value.visitLeafCollections(visitor);
-                encoder.writeString(visitor.root.getAbsolutePath());
+                fileSetSerializer.write(encoder, visitor.roots);
             }
         };
         private static final byte NULL_VALUE = 0;
@@ -551,7 +556,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private static class FileTreeVisitor implements FileCollectionLeafVisitor {
-        File root;
+        Set<File> roots = new LinkedHashSet<File>();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
@@ -565,10 +570,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public void visitFileTree(File root, PatternSet patterns) {
-            if (this.root != null) {
-                throw new UnsupportedOperationException();
-            }
-            this.root = root;
+            roots.add(root);
         }
     }
 
