@@ -17,6 +17,9 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
+import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -67,7 +70,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         classFile.isFile()
     }
 
-    def "instant execution for compileJava on Java project with multiple source directories"() {
+    def "instant execution for assemble on Java project with multiple source directories"() {
         given:
         buildFile << """
             plugins { id 'java' }
@@ -87,19 +90,63 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDeprecationWarning()
-        run "compileJava", "-DinstantExecution=true"
+        run "assemble", "-DinstantExecution=true"
         outputContains("running build script")
-        result.assertTasksExecuted(":compileJava")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
 
         when:
         classFile.delete()
-        run "compileJava", "-DinstantExecution=true"
+        run "assemble", "-DinstantExecution=true"
 
         then:
         outputDoesNotContain("running build script")
-        result.assertTasksExecuted(":compileJava")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
+    }
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
+    @Ignore
+    def "instant execution for task in multiple projects"() {
+        server.start()
+
+        given:
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+        buildFile << """
+            class SlowTask extends DefaultTask {
+                @TaskAction
+                def go() {
+                    ${server.callFromBuildUsingExpression("project.name")}
+                }
+            }
+
+            allprojects {
+                tasks.create('slow', SlowTask)
+            }
+            project(':a') {
+                tasks.slow.dependsOn(project(':b').tasks.slow, project(':c').tasks.slow)
+            }
+        """
+
+        when:
+        server.expectConcurrent("b", "c")
+        server.expectConcurrent("a")
+        run "slow", "-DinstantExecution"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        server.expectConcurrent("b", "c")
+        server.expectConcurrent("a")
+        run "slow", "-DinstantExecution"
+
+        then:
+        noExceptionThrown()
     }
 }
