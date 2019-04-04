@@ -199,8 +199,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by [org:test:1.0(api), org:test:1.0(runtime)]""")
+        failure.assertHasCause("""Inconsistency between attributes of a constraint and a dependency, on attribute 'custom' : dependency requires 'c1' while constraint required 'c2'""")
     }
 
     @RequiredFeatures(
