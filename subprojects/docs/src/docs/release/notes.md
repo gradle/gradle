@@ -25,145 +25,18 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 ## New API for Incremental Changes
 
-The new `org.gradle.work` package provides behavior that allow access to any input files that need to be processed by an incremental work action.
-The following `Checksum` example task calculates a SHA256 on each given input. Inputs may be updated at any time, for example by adding more inputs
-to the `sources` property or by updating the content of any given input that was previously listed.
+The new [`org.gradle.work.InputChanges`](dsl/org.gradle.work.InputChanges.html) API allows querying for changes to individual input file properties.
+See the [userguide section](userguide/custom_tasks.html#incremental_tasks) for more information how to implement incremental tasks using the new API.
 
-```
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileType
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.SkipWhenEmpty
-import org.gradle.api.tasks.TaskAction
-import org.gradle.work.ChangeType
-import org.gradle.work.FileChange
-import org.gradle.work.InputChanges
-
-class Checksum extends DefaultTask {
-    @SkipWhenEmpty
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFiles
-    ConfigurableFileCollection sources = project.files()
-
-    @OutputDirectory
-    DirectoryProperty outputDirectory = project.objects.directoryProperty()
-
-    @TaskAction
-    void checksum(InputChanges changes) {
-        File outputDir = outputDirectory.get().asFile
-        if (!changes.incremental) {
-            println("Non-incremental changes - cleaning output directory")
-            outputDir.deleteDir()
-            outputDir.mkdirs()
-        }
-        for(FileChange change : changes.getFileChanges(sources)) {
-            File changedFile = change.file
-            if (change.fileType == FileType.FILE) {
-                switch(change.changeType) {
-                    case ChangeType.ADDED: // fall through
-                    case ChangeType.MODIFIED:
-                        outputFileForInput(change).text = hashFileContents(changedFile)
-                        break
-                    case ChangeType.REMOVED:
-                        deleteStaleOutput(outputFileForInput(change))
-                        break
-                }
-            }
-        }
-    }
-
-    private void deleteStaleOutput( File file) {
-        println("Removing old output ${file.name}")
-        file.delete()
-    }
-
-    private File outputFileForInput(FileChange inputFile) {
-        project.file("${outputDirectory.get().asFile}/${inputFile.normalizedPath}.sha256")
-    }
-
-    private String hashFileContents(File file) {
-        println("Hashing ${file.name}")
-        return Files.asByteSource(file).hash(Hashing.sha256()).toString()
+```kotlin
+inputChanges.getFileChanges(inputDir).forEach { change ->
+    val targetFile = outputDir.file(change.normalizedPath).get().asFile
+    if (change.changeType == ChangeType.REMOVED) {
+        targetFile.delete()
+    } else {
+        targetFile.writeText(change.file.readText().reversed())
     }
 }
-```
-
-This `CheckSum` task can be configured to incrementally checksum the files on the runtime classpath and everything under the inputs directory:
-
-```
-plugins {
-    id "java"
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.junit.platform:junit-platform-engine:1.4.1")
-    implementation("org.junit.jupiter:junit-jupiter:5.4.1")
-}
-
-tasks.register("checksum", Checksum) {
-    sources.from(configurations.runtimeClasspath)
-    sources.from({
-        project.fileTree("inputs").files
-    })
-    outputDirectory.set(layout.buildDirectory.dir("checksummed"))
-}
-```
-
-On a first run, everything needs to be checksummed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Non-incremental changes - cleaning output directory
-Hashing junit-jupiter-5.4.1.jar
-Hashing junit-jupiter-engine-5.4.1.jar
-Hashing junit-platform-engine-1.4.1.jar
-Hashing junit-jupiter-params-5.4.1.jar
-Hashing junit-jupiter-api-5.4.1.jar
-Hashing junit-platform-commons-1.4.1.jar
-Hashing apiguardian-api-1.0.0.jar
-Hashing opentest4j-1.1.1.jar
-Hashing something-to-checksum.txt
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-```
-
-If we change `inputs/something-to-checksum.txt` and add a new file - `inputs/new-file.txt`, then only the two new files are processed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Hashing something-to-checksum.txt
-Hashing new-file.txt
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-```
-
-If we now remove the new file again, then the file is removed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Removing old output new-file.txt.sha256
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 execute
 ```
 
 <a name="native-support"/>

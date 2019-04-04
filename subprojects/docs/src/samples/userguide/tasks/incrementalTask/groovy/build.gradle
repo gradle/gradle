@@ -41,44 +41,38 @@ task incrementalReverse(type: IncrementalReverseTask) {
 // end::reverse[]
 
 // tag::incremental-task[]
-class IncrementalReverseTask extends DefaultTask {
+abstract class IncrementalReverseTask extends DefaultTask {
+    @Incremental
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputDirectory
-    def File inputDir
+    abstract DirectoryProperty getInputDir()
 
     @OutputDirectory
-    def File outputDir
+    abstract DirectoryProperty getOutputDir()
 
     @Input
-    def inputProperty
+    abstract Property<String> getInputProperty()
 
     @TaskAction
-    void execute(IncrementalTaskInputs inputs) {
-        println inputs.incremental ? 'CHANGED inputs considered out of date'
-                                   : 'ALL inputs considered out of date'
-        // tag::handle-non-incremental-inputs[]
-        if (!inputs.incremental)
-            project.delete(outputDir.listFiles())
-        // end::handle-non-incremental-inputs[]
+    void execute(InputChanges inputChanges) {
+        println(inputChanges.incremental
+            ? 'Executing incrementally'
+            : 'Executing non-incrementally'
+        )
 
-        // tag::out-of-date-inputs[]
-        inputs.outOfDate { change ->
-            if (change.file.directory) return
+        // tag::process-file-changes[]
+        inputChanges.getFileChanges(inputDir).each { change ->
+            if (change.fileType == FileType.DIRECTORY) return
 
-            println "out of date: ${change.file.name}"
-            def targetFile = new File(outputDir, change.file.name)
-            targetFile.text = change.file.text.reverse()
+            println "${change.changeType}: ${change.normalizedPath}"
+            def targetFile = outputDir.file(change.normalizedPath).get().asFile
+            if (change.changeType == ChangeType.REMOVED) {
+                targetFile.delete()
+            } else {
+                targetFile.text = change.file.text.reverse()
+            }
         }
-        // end::out-of-date-inputs[]
-
-        // tag::removed-inputs[]
-        inputs.removed { change ->
-            if (change.file.directory) return
-
-            println "removed: ${change.file.name}"
-            def targetFile = new File(outputDir, change.file.name)
-            targetFile.delete()
-        }
-        // end::removed-inputs[]
+        // end::process-file-changes[]
     }
 }
 // end::incremental-task[]
