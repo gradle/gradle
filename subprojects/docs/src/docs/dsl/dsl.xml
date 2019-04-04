@@ -160,9 +160,6 @@
                 <td>org.gradle.api.file.SourceDirectorySet</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.incremental.IncrementalTaskInputs</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
@@ -197,6 +194,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.resources.TextResourceFactory</td>
+            </tr>
+            <tr>
+                <td>org.gradle.work.InputChanges</td>
             </tr>
         </table>
     </section>
