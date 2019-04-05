@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
 
     private final Instantiator instantiator;

@@ -124,6 +124,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { configurations.buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
+                    "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
                 ).joinToString(separator = " ")
         }

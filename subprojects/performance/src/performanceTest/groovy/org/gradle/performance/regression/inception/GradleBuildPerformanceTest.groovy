@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleSessionProvider
-import org.gradle.performance.fixture.PerformanceTestConditions
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
@@ -33,12 +32,11 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Retry
 import spock.lang.Shared
 import spock.lang.Specification
 
 import static org.gradle.performance.regression.inception.GradleInceptionPerformanceTest.extraGradleBuildArguments
-import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
+
 /**
  * Test Gradle's build performance against current Gradle.
  *
@@ -54,7 +52,6 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-@Retry(condition = { PerformanceTestConditions.whenSlowerButNotAdhoc(failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule

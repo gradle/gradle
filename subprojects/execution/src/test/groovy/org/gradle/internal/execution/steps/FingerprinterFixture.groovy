@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
@@ -30,13 +31,26 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 abstract trait FingerprinterFixture {
     abstract TestNameTestDirectoryProvider getTemporaryFolder()
+    private fileHasher = new TestFileHasher()
+    private stringInterner = new StringInterner()
+    private fileSystem = TestFiles.fileSystem()
+    private fileSystemMirror = new DefaultFileSystemMirror(new NoWellKnownFileLocations())
 
-    final fingerprinter = new AbsolutePathFileCollectionFingerprinter(
+    final inputFingerprinter = new AbsolutePathFileCollectionFingerprinter(
         new DefaultFileSystemSnapshotter(
-            new TestFileHasher(),
-            new StringInterner(),
-            TestFiles.fileSystem(),
-            new DefaultFileSystemMirror(new NoWellKnownFileLocations())
+            fileHasher,
+            stringInterner,
+            fileSystem,
+            fileSystemMirror
+        )
+    )
+
+    final OutputFileCollectionFingerprinter outputFingerprinter = new OutputFileCollectionFingerprinter(
+        new DefaultFileSystemSnapshotter(
+            fileHasher,
+            stringInterner,
+            fileSystem,
+            fileSystemMirror
         )
     )
 
@@ -50,7 +64,7 @@ abstract trait FingerprinterFixture {
                     ? it
                     : temporaryFolder.file(it)
             }
-            builder.put(propertyName, fingerprinter.fingerprint(ImmutableFileCollection.of(files)))
+            builder.put(propertyName, inputFingerprinter.fingerprint(ImmutableFileCollection.of(files)))
         }
         return builder.build()
     }

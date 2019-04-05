@@ -26,5 +26,6 @@ import javax.annotation.Nullable;
 
 public interface TransformationRegistrationFactory {
     ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject);
+    @SuppressWarnings("deprecation")
     ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params);
 }

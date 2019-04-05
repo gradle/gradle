@@ -228,7 +228,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                             div().classAttr("col-2");
                                 renderScenarioButtons(index, scenario);
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(scenario.getScenarioName()) + ".html")).text("Graph").end();
-                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail ▼").end();
+                                a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
                             end();
                             div().classAttr("col-2 p-0");
                                 if(scenario.isBuildFailed()) {
@@ -248,7 +248,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     div().id("collapse" + index).classAttr("collapse");
                         div().classAttr("card-body");
                             if(scenario.isBuildFailed()) {
-                                pre().text(scenario.getTestFailure()).end();
+                                pre().text(scenario.getRawData().stream().map(ScenarioBuildResultData::getTestFailure).collect(joining("\n"))).end();
                             } else {
                                 renderDetailsTable(scenario);
                             }
