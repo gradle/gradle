@@ -27,7 +27,7 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see [Incremental Builds](userguide/more_about_tasks.html#sec:up_to_date_checks)).
 However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
-When a task has an input that can represent multiple files and the task only processes those files that are out of date, it's called an incremental task.
+When a task has an input that can represent multiple files and the task only processes those files that are out of date, it's called an _incremental task_.
 Prior to Gradle 5.4, you had to use [`IncrementalTaskInputs`](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) to implement an incremental task.
 
 Now you can use the new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks.
