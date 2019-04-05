@@ -222,7 +222,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Optional<TransformationNode> getExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+                public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
                     return Optional.empty();
                 }
             };

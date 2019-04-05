@@ -56,7 +56,7 @@ class TransformingAsyncArtifactListener implements ResolvedArtifactSet.AsyncArti
     @Override
     public void artifactAvailable(ResolvableArtifact artifact) {
         ComponentArtifactIdentifier artifactId = artifact.getId();
-        Optional<TransformationNode> node = transformationNodeRegistry.getExecuted(artifactId, transformation);
+        Optional<TransformationNode> node = transformationNodeRegistry.getIfExecuted(artifactId, transformation);
         if (node.isPresent()) {
             artifactResults.put(artifactId, new PrecomputedTransformationResult(node.get().getTransformedSubject()));
         } else {
