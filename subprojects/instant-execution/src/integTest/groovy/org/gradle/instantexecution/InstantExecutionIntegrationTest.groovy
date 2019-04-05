@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -165,5 +166,36 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.normalizedOutput == firstRunOutput
+    }
+
+    @Ignore
+    def "instant execution for compileGroovy on Groovy project with no dependencies"() {
+        given:
+        buildFile << """
+            plugins { id 'groovy' }
+            
+            println "running build script"
+        """
+        file("src/main/java/Thing.groovy") << """
+            class Thing {
+            }
+        """
+
+        expect:
+        executer.expectDeprecationWarning()
+        run "compileGroovy", "-DinstantExecution"
+        outputContains("running build script")
+        result.assertTasksExecuted(":compileGroovy")
+        def classFile = file("build/classes/java/main/Thing.class")
+        classFile.isFile()
+
+        when:
+        classFile.delete()
+        run "compileGroovy", "-DinstantExecution"
+
+        then:
+        outputDoesNotContain("running build script")
+        result.assertTasksExecuted(":compileGroovy")
+        classFile.isFile()
     }
 }
