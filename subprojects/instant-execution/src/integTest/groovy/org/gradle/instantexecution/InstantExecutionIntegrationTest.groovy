@@ -125,7 +125,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            allprojects {
+            subprojects {
                 tasks.create('slow', SlowTask)
             }
             project(':a') {
@@ -136,7 +136,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        run "slow", "-DinstantExecution"
+        run "slow", "-DinstantExecution", "--parallel"
 
         then:
         noExceptionThrown()
@@ -144,7 +144,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        run "slow", "-DinstantExecution"
+        run "slow", "-DinstantExecution", "--parallel"
 
         then:
         noExceptionThrown()
