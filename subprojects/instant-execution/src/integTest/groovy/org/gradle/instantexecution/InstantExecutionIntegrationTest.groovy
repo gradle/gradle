@@ -29,11 +29,11 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "instant execution for help on empty project"() {
         given:
-        run "help", "-DinstantExecution=true"
+        run "help", "-DinstantExecution"
         def firstRunOutput = result.normalizedOutput
 
         when:
-        run "help", "-DinstantExecution=true"
+        run "help", "-DinstantExecution"
 
         then:
         result.normalizedOutput == firstRunOutput
@@ -53,7 +53,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDeprecationWarning()
-        run "compileJava", "-DinstantExecution=true"
+        run "compileJava", "-DinstantExecution"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -61,7 +61,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         classFile.delete()
-        run "compileJava", "-DinstantExecution=true"
+        run "compileJava", "-DinstantExecution"
 
         then:
         outputDoesNotContain("running build script")
@@ -89,7 +89,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         executer.expectDeprecationWarning()
-        run "assemble", "-DinstantExecution=true"
+        run "assemble", "-DinstantExecution"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -97,7 +97,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         classFile.delete()
-        run "assemble", "-DinstantExecution=true"
+        run "assemble", "-DinstantExecution"
 
         then:
         outputDoesNotContain("running build script")
