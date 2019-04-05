@@ -89,7 +89,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
         ResourceHandlerWrapper handler;
         lock.lock();
         try {
-            if (notReceived.isEmpty()) {
+            if (notReceived.isEmpty() && notReleased.isEmpty()) {
                 // barrier open, let it travel on
                 return null;
             }
