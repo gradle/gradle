@@ -62,14 +62,15 @@ class TimeFormattingTest extends Specification {
         result == output
 
         where:
-        lowerBoundInclusive | upperBoundExclusive | input            | output
-        "None"              | "10 seconds"        | seconds(4.21345) | "4s"
-        "10 seconds"        | "1 minute"          | seconds(42.1234) | "42s"
-        "1 minute"          | "10 minutes"        | minutes(4.21234) | "4m 12s"
-        "10 minutes"        | "1 hour"            | minutes(42.1234) | "42m 7s"
-        "1 hour"            | "10 hours"          | hours(4.2123456) | "4h 12m 44s"
-        "10 hours"          | "100 hours"         | hours(42.123456) | "42h 7m 24s"
-        "100 hours"         | "None"              | hours(421.23456) | "421h 14m 4s"
+        lowerBoundInclusive | upperBoundExclusive | input             | output
+        "None"              | "1 second"          | seconds(0.421345) | "421ms"
+        "1 second"          | "10 seconds"        | seconds(4.21345)  | "4s"
+        "10 seconds"        | "1 minute"          | seconds(42.1234)  | "42s"
+        "1 minute"          | "10 minutes"        | minutes(4.21234)  | "4m 12s"
+        "10 minutes"        | "1 hour"            | minutes(42.1234)  | "42m 7s"
+        "1 hour"            | "10 hours"          | hours(4.2123456)  | "4h 12m 44s"
+        "10 hours"          | "100 hours"         | hours(42.123456)  | "42h 7m 24s"
+        "100 hours"         | "None"              | hours(421.23456)  | "421h 14m 4s"
     }
 
     private static long hours(double value) {

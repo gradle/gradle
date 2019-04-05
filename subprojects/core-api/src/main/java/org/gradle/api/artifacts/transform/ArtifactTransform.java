@@ -28,8 +28,10 @@ import java.util.List;
  * <li>The objects provided to {@link org.gradle.api.ActionConfiguration#setParams(Object...)}.</li>
  * </ul>
  *
+ * @deprecated Use {@link TransformAction} instead.
  * @since 3.4
  */
+@Deprecated
 public abstract class ArtifactTransform {
     private File outputDirectory;
 

@@ -46,7 +46,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
         then:
         result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+m?s
 2 actionable tasks: 2 executed
 .*"""
 
@@ -56,7 +56,7 @@ BUILD SUCCESSFUL in \\d+s
         then:
         result.formattedOutput.contains(buildSuccessful.output)
         result.plainTextOutput.matches """(?s).*
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+m?s
 2 actionable tasks: 1 executed, 1 up-to-date
 .*"""
     }
@@ -91,7 +91,7 @@ BUILD SUCCESSFUL in \\d+s
         then:
         result.plainTextOutput.matches """(?s).*build finished
 
-BUILD SUCCESSFUL in \\d+s
+BUILD SUCCESSFUL in \\d+m?s
 1 actionable task: 1 executed
 .*"""
     }

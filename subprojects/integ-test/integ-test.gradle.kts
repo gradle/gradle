@@ -6,10 +6,6 @@ plugins {
     gradlebuild.classycle
 }
 
-repositories {
-    mavenLocal()
-}
-
 dependencies {
     integTestCompile(library("groovy"))
     integTestCompile(library("ant"))

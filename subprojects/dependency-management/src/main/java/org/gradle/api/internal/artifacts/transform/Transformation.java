@@ -24,7 +24,7 @@ import org.gradle.internal.Try;
 import javax.annotation.Nullable;
 
 /**
- * The internal API equivalent of {@link org.gradle.api.artifacts.transform.ArtifactTransform}, which is also aware of our cache infrastructure.
+ * The internal API equivalent of {@link org.gradle.api.artifacts.transform.TransformAction}, which is also aware of our cache infrastructure.
  *
  * This can encapsulate a single transformation step using a single transformer or a chain of transformation steps.
  */

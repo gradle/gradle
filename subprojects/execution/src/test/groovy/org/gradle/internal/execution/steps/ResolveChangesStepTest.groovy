@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.CachingContext
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.Result
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
@@ -41,7 +42,7 @@ class ResolveChangesStepTest extends StepSpec {
         result == delegateResult
 
         1 * context.work >> work
-        1 * work.requiresInputChanges >> false
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert changes.allChangeMessages == ImmutableList.of("Forced rebuild.")
@@ -83,7 +84,7 @@ class ResolveChangesStepTest extends StepSpec {
         result == delegateResult
 
         1 * context.work >> work
-        1 * work.requiresInputChanges >> false
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * delegate.execute(_) >> { IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -116,7 +117,7 @@ class ResolveChangesStepTest extends StepSpec {
         1 * context.rebuildReason >> Optional.empty()
         1 * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
-        1 * work.requiresInputChanges >> false
+        1 * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
         1 * work.allowOverlappingOutputs >> true
         1 * changeDetector.detectChanges(afterPreviousExecutionState, beforeExecutionState, work, false, _) >> changes
         0 * _

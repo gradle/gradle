@@ -18,27 +18,19 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.IncrementalChangesContext;
+import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C, Result> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteStep.class);
+public class ExecuteStep<C extends InputChangesContext> implements Step<C, Result> {
 
     @Override
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
-        InputChangesInternal inputChanges = work.isRequiresInputChanges()
-            ? determineInputChanges(work, context)
-            : null;
-
-        boolean incremental = inputChanges != null && inputChanges.isIncremental();
-        UnitOfWork.WorkResult result = work.execute(inputChanges);
-        ExecutionOutcome outcome = determineOutcome(result, incremental);
+        ExecutionOutcome outcome = context.getInputChanges()
+            .map(inputChanges -> determineOutcome(work.execute(inputChanges), inputChanges.isIncremental()))
+            .orElseGet(() -> determineOutcome(work.execute(null), false));
         return new Result() {
             @Override
             public Try<ExecutionOutcome> getOutcome() {
@@ -56,17 +48,5 @@ public class ExecuteStep<C extends IncrementalChangesContext> implements Step<C,
             default:
                 throw new IllegalArgumentException("Unknown result: " + result);
         }
-    }
-
-    private InputChangesInternal determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
-        return context.getChanges()
-            .map(changes -> {
-                InputChangesInternal inputChanges = changes.createInputChanges();
-                if (!inputChanges.isIncremental()) {
-                    LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
-                }
-                return inputChanges;
-            })
-        .orElseThrow(() -> new UnsupportedOperationException("Cannot use input changes when input tracking is disabled."));
     }
 }
