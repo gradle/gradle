@@ -151,4 +151,19 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         noExceptionThrown()
     }
+
+    def "instant execution for multi-level subproject"() {
+        given:
+        settingsFile << """
+            include 'a:b', 'a:c'
+        """
+        run ":a:b:help", ":a:c:help", "-DinstantExecution"
+        def firstRunOutput = result.normalizedOutput
+
+        when:
+        run ":a:b:help", ":a:c:help", "-DinstantExecution"
+
+        then:
+        result.normalizedOutput == firstRunOutput
+    }
 }

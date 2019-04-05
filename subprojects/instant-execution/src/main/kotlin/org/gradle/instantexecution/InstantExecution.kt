@@ -35,6 +35,7 @@ import org.gradle.util.Path
 
 import java.io.File
 import java.lang.reflect.Method
+import java.util.SortedSet
 import javax.inject.Inject
 
 
@@ -65,28 +66,52 @@ class InstantExecution(private val host: Host) {
         isInstantExecutionEnabled && instantExecutionStateFile.isFile
 
     fun saveInstantExecutionState() {
-        if (!isInstantExecutionEnabled) {
-            return
+        if (isInstantExecutionEnabled) {
+            saveTasks()
         }
+    }
 
+    fun loadInstantExecutionState() {
+        host.scheduleTasks(loadTasks())
+    }
+
+    private
+    fun saveTasks() {
         KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
             val scheduledTasks = host.scheduledTasks
-            val relevantProjectPaths = scheduledTasks.mapNotNull { task ->
-                task.project.takeIf { it.parent != null }?.path?.let(Path::path)
-            }.toSortedSet()
             val relevantClassPath = classPathFor(scheduledTasks)
             encoder.serializeClassPath(relevantClassPath)
-            encoder.serializeCollection(relevantProjectPaths) {
-                encoder.writeString(it.path)
-            }
+            saveRelevantProjectsFor(scheduledTasks, encoder)
             encoder.serializeCollection(scheduledTasks) { task ->
                 saveStateOf(task, encoder)
             }
         }
     }
 
-    fun loadInstantExecutionState() {
-        host.scheduleTasks(loadTasks())
+    private
+    fun saveRelevantProjectsFor(tasks: List<Task>, encoder: KryoBackedEncoder) {
+
+        val relevantProjectPaths = tasks.mapNotNull { task ->
+            task.project.takeIf { it.parent != null }?.path?.let(Path::path)
+        }.toSortedSet()
+
+        encoder.serializeCollection(fillTheGapsOf(relevantProjectPaths)) {
+            encoder.writeString(it.path)
+        }
+    }
+
+    private
+    fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
+        val pathsWithoutGaps = ArrayList<Path>(paths.size)
+        paths.forEach { path ->
+            var parent = path.parent
+            while (parent !== null && parent !in pathsWithoutGaps) {
+                pathsWithoutGaps.add(parent)
+                parent = parent.parent
+            }
+            pathsWithoutGaps.add(path)
+        }
+        return pathsWithoutGaps
     }
 
     private
