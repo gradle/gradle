@@ -42,6 +42,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
 import org.gradle.work.Incremental;
 
+import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
@@ -49,6 +50,7 @@ public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory
     TYPE(
         Console.class,
         Destroys.class,
+        Inject.class,
         Input.class,
         InputArtifact.class,
         InputArtifactDependencies.class,
