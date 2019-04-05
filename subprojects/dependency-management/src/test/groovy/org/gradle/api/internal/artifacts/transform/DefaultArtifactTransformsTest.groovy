@@ -172,7 +172,7 @@ class DefaultArtifactTransformsTest extends Specification {
         }
         _ * transformation.getDisplayName() >> "transform"
         _ * transformation.requiresDependencies() >> false
-        _ * transformationNodeRegistry.getCompleted(_, _) >> Optional.empty()
+        _ * transformationNodeRegistry.getIfExecuted(_, _) >> Optional.empty()
 
         1 * transformation.transform({ it.files == [sourceArtifactFile]}, _ as ExecutionGraphDependenciesResolver, _) >> Try.successful(TransformationSubject.initial(sourceArtifactId, sourceArtifactFile).createSubjectFromResult(ImmutableList.of(outFile1, outFile2)))
 

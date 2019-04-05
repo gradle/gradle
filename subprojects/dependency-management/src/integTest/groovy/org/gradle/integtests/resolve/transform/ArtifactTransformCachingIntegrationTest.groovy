@@ -236,6 +236,75 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform artifact lib2.jar (project :lib) with MakeGreenToRedThings") == 1
     }
 
+    def "executes transform immediately when required during task graph building"() {
+        buildFile << declareAttributes() << withJarTasks() << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                @Override                
+                void transform(TransformOutputs outputs) {
+                    outputs.file(inputArtifact.get().asFile.name + ".green").text = "very green"
+                }
+            }
+
+            project(':util') {
+                dependencies {
+                    compile project(':lib')
+                }
+            }
+    
+            project(':app') {
+                dependencies {
+                    compile project(':util')
+                    
+                    registerTransform(MakeGreen) {
+                        from.attribute(artifactType, 'jar')
+                        to.attribute(artifactType, 'green')
+                    }                    
+                }
+                configurations {
+                    green {
+                        extendsFrom(compile)
+                        canBeResolved = true
+                        canBeConsumed = false
+                        attributes {
+                            attribute(artifactType, 'green')
+                        }
+                    }
+                }
+            
+                tasks.register("resolveAtConfigurationTime").configure {
+                    inputs.files(configurations.green)
+                    configurations.green.each { println it }
+                    doLast { }                    
+                }
+                tasks.register("declareTransformAsInput").configure {
+                    inputs.files(configurations.green)
+                    doLast {
+                        configurations.green.each { println it }
+                    }
+                }
+                
+                tasks.register("withDependency").configure {
+                    dependsOn("resolveAtConfigurationTime")
+                }
+                tasks.register("toBeFinalized").configure {
+                    // We require the task via a finalizer, so the transform node is in UNKNOWN state.
+                    finalizedBy("declareTransformAsInput")
+                }
+            }
+        """
+
+        when:
+        run(":app:toBeFinalized", "withDependency", "--info")
+        then:
+        output.count("Transforming artifact lib1.jar (project :lib) with MakeGreen") == 2
+        output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
+    }
+
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -1529,7 +1598,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
                         }
                     }
                 }
-                task resolve(type: Resolve) {
+                tasks.register("resolve", Resolve) {
                     artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'size') }
                     }.artifacts
