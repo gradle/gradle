@@ -308,9 +308,9 @@ class EdgeState implements DependencyGraphEdge {
         });
     }
 
-    void maybeDecreaseHardEdgeCount() {
+    void maybeDecreaseHardEdgeCount(NodeState removalSource) {
         if (!isConstraint) {
-            selector.getTargetModule().decreaseHardEdgeCount();
+            selector.getTargetModule().decreaseHardEdgeCount(removalSource);
         }
     }
 }

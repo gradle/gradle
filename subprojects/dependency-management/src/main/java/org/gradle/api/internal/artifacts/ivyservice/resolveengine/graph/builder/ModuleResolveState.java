@@ -339,14 +339,14 @@ class ModuleResolveState implements CandidateModule {
         return platformState != null && !platformState.getParticipatingModules().isEmpty();
     }
 
-    void decreaseHardEdgeCount() {
+    void decreaseHardEdgeCount(NodeState removalSource) {
         pendingDependencies.decreaseHardEdgeCount();
         if (pendingDependencies.isPending()) {
             // Back to being a pending dependency
             // Clear remaining incoming edges, as they must be all from constraints
             if (selected != null) {
                 for (NodeState node : selected.getNodes()) {
-                    node.clearConstraintEdges(pendingDependencies);
+                    node.clearConstraintEdges(pendingDependencies, removalSource);
                 }
             }
         }
