@@ -288,5 +288,10 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         public Method getGetterMethod() {
             return annotationMetadata.getGetter();
         }
+
+        @Override
+        public String toString() {
+            return String.format("@%s %s", propertyType.getSimpleName(), getPropertyName());
+        }
     }
 }

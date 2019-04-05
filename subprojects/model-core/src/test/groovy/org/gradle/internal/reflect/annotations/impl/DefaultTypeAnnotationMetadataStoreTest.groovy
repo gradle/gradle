@@ -152,6 +152,26 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getSubclassProperty()
         }
 
+    def "properties are inherited from implemented interface"() {
+        expect:
+        assertProperties TypeWithInterfaceProperties, [
+            interfaceProperty: [(SIZE): Small],
+            subclassProperty: [(SIZE): Large]
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface InterfaceWithProperties {
+            @Small
+            String getInterfaceProperty()
+        }
+
+        @SuppressWarnings("unused")
+        abstract class TypeWithInterfaceProperties implements InterfaceWithProperties{
+            @Large
+            abstract String getSubclassProperty()
+        }
+
     def "overridden properties inherit super-class annotations"() {
         expect:
         assertProperties TypeWithInheritedProperty, [
