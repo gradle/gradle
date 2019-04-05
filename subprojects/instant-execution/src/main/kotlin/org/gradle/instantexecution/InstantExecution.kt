@@ -23,8 +23,12 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.logging.Logging
+import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.reflect.PropertyDetails
+import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.Path
@@ -40,8 +44,6 @@ class InstantExecution(private val host: Host) {
 
         val scheduledTasks: List<Task>
 
-        fun loadTaskClass(typeName: String): Class<out Task>
-
         fun scheduleTask(task: Task)
 
         fun <T> getService(serviceType: Class<T>): T
@@ -49,6 +51,8 @@ class InstantExecution(private val host: Host) {
         fun getSystemProperty(propertyName: String): String?
 
         fun createProject(path: String): Project
+
+        fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
 
     fun canExecuteInstantaneously() =
@@ -62,10 +66,12 @@ class InstantExecution(private val host: Host) {
         KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
             val scheduledTasks = host.scheduledTasks
             val relevantProjectPaths = scheduledTasks.map { Path.path(it.project.path) }.toSortedSet()
-            serializeCollection(encoder, relevantProjectPaths) {
+            val relevantClassPath = classPathFor(scheduledTasks)
+            encoder.serializeClassPath(relevantClassPath)
+            encoder.serializeCollection(relevantProjectPaths) {
                 encoder.writeString(it.path)
             }
-            serializeCollection(encoder, scheduledTasks) { task ->
+            encoder.serializeCollection(scheduledTasks) { task ->
                 saveStateOf(task, encoder)
             }
         }
@@ -73,24 +79,30 @@ class InstantExecution(private val host: Host) {
 
     fun loadInstantExecutionStateInto() {
         KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
-            val projects = mutableListOf<Project>()
-            deserializeCollection(decoder) {
-                projects.add(host.createProject(decoder.readString()))
+            val classPath = decoder.deserializeClassPath()
+            val taskClassLoader = classLoaderFor(classPath)
+            val relevantProjects = mutableListOf<Project>()
+            decoder.deserializeCollection {
+                relevantProjects.add(host.createProject(decoder.readString()))
             }
-            deserializeCollection(decoder) {
-                val task = loadTask(projects, decoder)
+            decoder.deserializeCollection {
+                val task = loadTask(relevantProjects, decoder, taskClassLoader)
                 host.scheduleTask(task)
             }
         }
     }
 
     private
-    fun deserializeCollection(decoder: KryoBackedDecoder, action: () -> Unit) {
-        val count = decoder.readSmallInt()
-        for (i in 0 until count) {
-            action()
-        }
-    }
+    fun classLoaderFor(classPath: ClassPath): ClassLoader =
+        host.classLoaderFor(classPath)
+
+    private
+    fun classPathFor(tasks: List<Task>): ClassPath =
+        tasks.map(::taskClassPath).fold(ClassPath.EMPTY, ClassPath::plus)
+
+    private
+    fun taskClassPath(task: Task): ClassPath =
+        task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
 
     private
     fun saveStateOf(task: Task, encoder: KryoBackedEncoder) {
@@ -122,11 +134,11 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun loadTask(projects: List<Project>, decoder: KryoBackedDecoder): Task {
+    fun loadTask(projects: List<Project>, decoder: KryoBackedDecoder, taskClassLoader: ClassLoader): Task {
         val projectPath = decoder.readString()
         val taskName = decoder.readString()
         val typeName = decoder.readString()
-        val taskClass = host.loadTaskClass(typeName)
+        val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val details = ClassInspector.inspect(taskClass)
         val task = projects.single { it.path == projectPath }.tasks.create(taskName, taskClass)
         while (true) {
@@ -197,10 +209,48 @@ class InstantExecution(private val host: Host) {
 
 
 private
-fun <T> serializeCollection(encoder: KryoBackedEncoder, list: Collection<T>, serializer: (T) -> Unit) {
-    encoder.writeSmallInt(list.size)
-    for (element in list) {
-        serializer(element)
+fun KryoBackedEncoder.serializeClassPath(classPath: ClassPath) {
+    serializeCollection(classPath.asFiles) {
+        writeFile(it)
+    }
+}
+
+
+private
+fun KryoBackedDecoder.deserializeClassPath(): ClassPath {
+    val classPathFiles = LinkedHashSet<File>()
+    deserializeCollection {
+        classPathFiles.add(readFile())
+    }
+    return DefaultClassPath.of(classPathFiles)
+}
+
+
+private
+fun KryoBackedEncoder.writeFile(file: File?) {
+    BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
+}
+
+
+private
+fun KryoBackedDecoder.readFile(): File =
+    BaseSerializerFactory.FILE_SERIALIZER.read(this)
+
+
+private
+fun <T> KryoBackedEncoder.serializeCollection(elements: Collection<T>, serializeElement: (T) -> Unit) {
+    writeSmallInt(elements.size)
+    for (element in elements) {
+        serializeElement(element)
+    }
+}
+
+
+private
+fun KryoBackedDecoder.deserializeCollection(deserializeElement: () -> Unit) {
+    val count = readSmallInt()
+    for (i in 0 until count) {
+        deserializeElement()
     }
 }
 

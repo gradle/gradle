@@ -26,7 +26,10 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.initialization.ClassLoaderIds;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -40,9 +43,9 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.instantexecution.InstantExecution;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -198,8 +201,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void prepareTaskGraph() {
-        ClassLoaderScopeRegistry classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
-
         SettingsInternal settings = instantExecutionHost.createSettings();
         gradle.setSettings(settings);
 
@@ -360,7 +361,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
                 @Override
                 protected FileResolver getFileResolver() {
-                    return gradle.getServices().get(FileResolver.class);
+                    return getService(FileResolver.class);
                 }
             };
         }
@@ -371,15 +372,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         public String getSystemProperty(String propertyName) {
             return gradle.getStartParameter().getSystemPropertiesArgs().get(propertyName);
-        }
-
-        public Class<? extends Task> loadTaskClass(String typeName) {
-            try {
-                return (Class<? extends Task>) getService(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope().getLocalClassLoader()
-                    .loadClass(typeName);
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
         }
 
         public void scheduleTask(Task task) {
@@ -393,18 +385,24 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public ProjectInternal createProject(String path) {
             Path projectPath = Path.path(path);
+
             @Nullable
             Path parentPath = projectPath.getParent();
 
+            String name = projectPath.getName();
             DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
-                getProjectDescriptor(parentPath), path, new File(".").getAbsoluteFile(),
+                getProjectDescriptor(parentPath), name != null ? name : "root-project", new File(".").getAbsoluteFile(),
                 projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
             );
             return projectFactory.createProject(
                 projectDescriptor, getProject(parentPath), gradle,
-                classLoaderScopeRegistry.getCoreAndPluginsScope(),
-                classLoaderScopeRegistry.getCoreAndPluginsScope()
+                getCoreAndPluginsScope(),
+                getCoreAndPluginsScope()
             );
+        }
+
+        private ClassLoaderScope getCoreAndPluginsScope() {
+            return classLoaderScopeRegistry.getCoreAndPluginsScope();
         }
 
         @Nullable
@@ -415,6 +413,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Nullable
         private DefaultProjectDescriptor getProjectDescriptor(@Nullable Path parentPath) {
             return parentPath == null ? null : projectDescriptorRegistry.getProject(parentPath.getPath());
+        }
+
+        @Override
+        public ClassLoader classLoaderFor(ClassPath classPath) {
+            return getService(ClassLoaderCache.class).get(
+                ClassLoaderIds.buildScript("instant-execution", "run"), classPath, getCoreAndPluginsScope().getExportClassLoader(), null
+            );
         }
     }
 
