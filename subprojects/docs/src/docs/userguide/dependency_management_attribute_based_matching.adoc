@@ -170,3 +170,134 @@ Because multiple values for an attribute can be _compatible_ with the requested 
 This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+
+[[sec:abm_artifact_transforms]]
+== Artifact Transforms
+
+There can be rules how to transform one variant into another variant with different attributes.
+For example, going from the artifact type `jar` to the artifact type `java-classes-directory` can be achieved by unzipping the jar.
+Those rules are called _Artifact Transforms_.
+
+Artifact transforms are registered on the project consuming the dependencies with the transformed attributes.
+The registration includes the from and to attributes of the transform and the transform action to execute.
+
+For example, given an `Unzip` transform as described above, registration would look like this:
+
+.Artifact transform registration
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+====
+
+After that registration, every time a module with artifact type `java-classes-directory` is requested, but the module only has a variant of type `jar`, the `jar` is unpacked and the directory with the classes is provided to the resolved configuration.
+
+Note that artifact transforms are executed in parallel by default.
+
+=== Registering Artifact Transforms
+
+For registering an artifact transform, the method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[dependencies.registerTransform] is used.
+As part of the registration, the `from` and `to` attributes need to be supplied.
+When required, parameters for the transform can be configured.
+
+The artifact transform needs to be registered in the project which consumes the transformed artifacts.
+
+.Artifact transform registration with parameters
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/relocate/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+====
+
+=== Artifact Transform Selection
+
+Depending on the producer attributes and the consumer attributes Gradle decides which transforms need to be executed on a given artifact.
+It starts with the requested attributes and then considers all transforms which modify some of the requested attributes as possible paths leading there.
+Going backwards, Gradle tries to obtain a path to some producer variant using transforms.
+Of all the found transform chains, Gradle tries to select the best one:
+
+- If there is only one transform chain, it is selected.
+- If there are two transform chains, and one is a suffix of the other one, it is selected.
+- If there is a shortest transform chain, then it is selected.
+- In all other cases, the selection fails and an error is reported.
+
+Note that artifact transforms are not considered when there is already a producer variant matching the requested attributes.
+
+[NOTE]
+====
+The `artifactType` attribute is special, since it is only present on artifacts and not on modules.
+As a consequence, any transform which is only mutating `artifactType` will never be selected when transforming between configurations with different consumer and producer attributes.
+It will only be considered when using an link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[ArtifactView].
+====
+
+=== Implementing Artifact Transforms
+
+Similar to tasks, an artifact transform consists of an action and some parameters.
+The major difference to tasks is that the parameters and the action are two separate classes.
+The action implements link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction] and the parameters implement link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
+
+For each artifact produced by the transform, link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformOutputs.html#org.gradle.api.artifacts.transform.TransformOutputs:dir(java.lang.Object)[TransformOutputs.dir] or link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformOutputs.html#org.gradle.api.artifacts.transform.TransformOutputs:file(java.lang.Object)[TransformOutputs.file] need to be called.
+If the provided path is the input artifact or in the input artifact (for an input directory), the selected file is returned.
+If the argument to `dir` or `file` is a relative path, an output location is returned from the method.
+The transform action is then expected to create the transformed artifact in the provided location.
+
+The transformed artifacts replace the input artifact in the transformed variant in the order they were registered.
+
+We start with an artifact transform which does not require parameters.
+The `Unzip` transform described above is a good candidate.
+This is what the implementation looks like:
+
+.Artifact transform without parameters
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
+====
+<1> Use `TransformParameters.None` if the transform does not use parameters
+<2> Inject the input artifact
+<3> Request on output location for the unzipped files
+<4> Do the actual work of the transform
+
+An artifact transform may require parameters, like a `String` determining some filter, or some file collection which is used for supporting the transformation of the input artifact.
+In order to pass those parameters to the transform action, you need to define a new type with the desired parameters.
+The type needs to implement the marker interface link:{javadocPath}/org/gradle/api/artifacts/transform/TransformParameters.html[TransformParameters].
+The properties should be <<lazy_configuration.adoc#sec:lazy_properties,read-only configurable properties>>.
+Use an interface declaring the getters and Gradle will generate the implementation.
+All getters need to have proper input annotations, see the table in the section on <<more_about_tasks.adoc#table:incremental_build_annotations,incremental build>>.
+
+Additionally to user provided parameters, an artifact transform may also be interested in the dependencies of its input artifact.
+By using the `@link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[InputArtifactDependencies]` annotation you can inject the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] which will contain the dependencies of the input artifact when the action executes.
+Note that using input artifact dependencies in a transform has performance implications, they should only be injected when required.
+
+Moreover, artifact transforms can make use of the <<build_cache.adoc#build_cache,build cache>> for caching their outputs.
+To enable the build cache for an artifact transform, add the `@link:{javadocPath}/org/gradle/api/artifacts/transform/CacheableTransform.html[CacheableTransform]` annotation on the action class.
+For a cacheable transform, it is required to annotate the `@link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifact.html[InputArtifact]` and `@link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[InputArtifactDependencies]` (when present) with normalization annotations, like e.g. `@link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[PathSensitive]`.
+
+The following example shows the above features on a transform which relocates classes.
+
+.Artifact transform for class relocation
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
+====
+<1> Declare the transform cacheable
+<2> Interface for the transform parameters
+<3> Declare input type for each parameter
+<4> Declare a normalization for the input artifact
+<5> Inject the input artifact dependencies
+<6> Use the parameters
+
+=== Incremental Artifact Transforms
+
+Similar to <<custom_tasks#incremental_tasks,incremental tasks>>, artifact transforms may only process changed files since the last execution.
+This is done by using link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] interface.
+For artifact transforms, only the input artifact is an incremental input, and therefore the transform can only query for changes there.
+In order to use link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] in the transform action, inject it into the action.
+For more information on how to use link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges], see the corresponding documentation for <<custom_tasks#incremental_tasks,incremental tasks>>.
+
+Here is an example of an incremental transform which counts the lines of code in Java source files:
+
+.Artifact transform for lines of code counting
+====
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
+include::sample[dir="userguide/dependencyManagement/artifactTransforms/incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
+====
+<1> Inject `InputChanges`
+<2> Query for changes in the input artifact

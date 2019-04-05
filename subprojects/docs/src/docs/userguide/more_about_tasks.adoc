@@ -557,6 +557,7 @@ This example is particularly interesting because it works with collections of so
 
 Now that you have seen some of the input and output annotations in practice, let’s take a look at all the annotations available to you and when you should use them. The table below lists the available annotations and the corresponding property type you can use with each one.
 
+[[table:incremental_build_annotations]]
 .Incremental build property type annotations
 [cols="a,a,a", options="header"]
 |===
