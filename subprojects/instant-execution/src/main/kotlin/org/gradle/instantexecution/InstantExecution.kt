@@ -205,8 +205,8 @@ class InstantExecution(private val host: Host) {
                     if (setter.parameterTypes[0].isAssignableFrom(value.javaClass)) {
                         setter.isAccessible = true
                         setter(task, value)
+                        break
                     }
-                    break
                 }
             } catch (e: Exception) {
                 throw GradleException("Could not load value of property `$propertyName` of task ${task.path}.", e)
