@@ -16,16 +16,20 @@
 
 package org.gradle.instantexecution
 
+import groovy.lang.GroovyObject
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.internal.reflect.ClassInspector
+import org.gradle.internal.reflect.PropertyDetails
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 
 import java.io.File
+import java.lang.reflect.Method
+import javax.inject.Inject
 
 
 class InstantExecution(private val host: Host) {
@@ -80,12 +84,18 @@ class InstantExecution(private val host: Host) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         encoder.writeString(task.name)
         encoder.writeString(taskType.name)
-        for (property in ClassInspector.inspect(taskType).properties) {
-            if (property.setters.isEmpty() || property.getters.isEmpty()) {
+        for (property in relevantPropertiesOf(taskType)) {
+            if (property.setters.isEmpty()) {
+                logProperty(taskType, property, "there are no setters")
+                continue
+            }
+            if (property.getters.isEmpty()) {
+                logProperty(taskType, property, "there are no getters")
                 continue
             }
             val getter = property.getters[0]
             if (!propertyValueSerializer.canWrite(getter.returnType)) {
+                logProperty(taskType, property, "there's no serializer for type ${getter.returnType}")
                 continue
             }
             getter.isAccessible = true
@@ -95,6 +105,36 @@ class InstantExecution(private val host: Host) {
             propertyValueSerializer.write(encoder, finalValue)
         }
         encoder.writeString("")
+    }
+
+    private
+    fun relevantPropertiesOf(taskType: Class<*>) =
+        ClassInspector.inspect(taskType).properties.filter { property ->
+            property.run {
+                getters.any { relevant(it) && !injected(it) } || setters.any(::relevant)
+            }
+        }
+
+    private
+    fun injected(it: Method): Boolean =
+        it.isAnnotationPresent(Inject::class.java)
+
+    private
+    fun relevant(it: Method): Boolean =
+        it.declaringClass !in setOf(
+            Object::class.java,
+            GroovyObject::class.java,
+            Task::class.java
+        ) && it.declaringClass.name !in setOf(
+            "org.gradle.api.internal.TaskInternal",
+            "org.gradle.api.DefaultTask",
+            "org.gradle.api.internal.AbstractTask",
+            "org.gradle.api.internal.ConventionTask"
+        )
+
+    private
+    fun logProperty(taskType: Class<*>, property: PropertyDetails, reason: String) {
+        println("Property `${property.name}` from $taskType cannot be serialized because $reason.")
     }
 
     private
