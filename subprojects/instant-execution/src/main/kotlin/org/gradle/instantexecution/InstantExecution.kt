@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import groovy.lang.GroovyObject
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
@@ -186,9 +187,13 @@ class InstantExecution(private val host: Host) {
             }
             getter.isAccessible = true
 
-            val finalValue = getter(task)
             encoder.writeString(property.name)
-            propertyValueSerializer.write(encoder, finalValue)
+            try {
+                val finalValue = getter(task)
+                propertyValueSerializer.write(encoder, finalValue)
+            } catch (e: Exception) {
+                throw GradleException("Could not save the value of property `${property.name}` of task `${task.path}`.", e)
+            }
         }
         encoder.writeString("")
     }
@@ -207,14 +212,18 @@ class InstantExecution(private val host: Host) {
             if (propertyName.isEmpty()) {
                 break
             }
-            val value = propertyValueSerializer.read(decoder) ?: continue
-            val property = details.getProperty(propertyName)
-            for (setter in property.setters) {
-                if (setter.parameterTypes[0].isAssignableFrom(value.javaClass)) {
-                    setter.isAccessible = true
-                    setter(task, value)
+            try {
+                val value = propertyValueSerializer.read(decoder) ?: continue
+                val property = details.getProperty(propertyName)
+                for (setter in property.setters) {
+                    if (setter.parameterTypes[0].isAssignableFrom(value.javaClass)) {
+                        setter.isAccessible = true
+                        setter(task, value)
+                    }
                     break
                 }
+            } catch (e: Exception) {
+                throw GradleException("Could not load value of property `${propertyName}` of task ${task.path}.", e)
             }
         }
         return task to taskDependencies
