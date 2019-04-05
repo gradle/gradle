@@ -52,14 +52,14 @@ class InstantExecution(private val host: Host) {
     }
 
     fun canExecuteInstantaneously() =
-        isInstantExecutionEnabled && instantExecutionStateFile().isFile
+        isInstantExecutionEnabled && instantExecutionStateFile.isFile
 
     fun saveInstantExecutionState() {
         if (!isInstantExecutionEnabled) {
             return
         }
 
-        KryoBackedEncoder(instantExecutionStateFile().outputStream()).use { encoder ->
+        KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
             val scheduledTasks = host.scheduledTasks
             val relevantProjectPaths = scheduledTasks.map { Path.path(it.project.path) }.toSortedSet()
             serializeCollection(encoder, relevantProjectPaths) {
@@ -72,7 +72,7 @@ class InstantExecution(private val host: Host) {
     }
 
     fun loadInstantExecutionStateInto() {
-        KryoBackedDecoder(instantExecutionStateFile().inputStream()).use { decoder ->
+        KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
             val projects = mutableListOf<Project>()
             deserializeCollection(decoder) {
                 projects.add(host.createProject(decoder.readString()))
@@ -191,7 +191,8 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun instantExecutionStateFile() = File(".instant-execution-state")
+    val instantExecutionStateFile
+        get() = File(".instant-execution-state")
 }
 
 
