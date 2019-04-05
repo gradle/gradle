@@ -38,6 +38,8 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyA
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.Input;
@@ -47,15 +49,19 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.work.Incremental;
 
 import java.util.List;
 
@@ -71,23 +77,33 @@ public class ExecutionGlobalServices {
 
     TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
-        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(ImmutableSet.of(
-            Input.class,
-            InputFile.class,
-            InputFiles.class,
-            InputDirectory.class,
-            OutputFile.class,
-            OutputFiles.class,
-            OutputDirectory.class,
-            OutputDirectories.class,
-            Destroys.class,
-            LocalState.class,
-            Nested.class,
-            Console.class,
-            ReplacedBy.class,
-            Internal.class,
-            OptionValues.class
-        ), instantiationScheme);
+        InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
+            ImmutableSet.of(
+                Input.class,
+                InputFile.class,
+                InputFiles.class,
+                InputDirectory.class,
+                OutputFile.class,
+                OutputFiles.class,
+                OutputDirectory.class,
+                OutputDirectories.class,
+                Destroys.class,
+                LocalState.class,
+                Nested.class,
+                Console.class,
+                ReplacedBy.class,
+                Internal.class,
+                OptionValues.class
+            ),
+            ImmutableSet.of(
+                Classpath.class,
+                CompileClasspath.class,
+                Incremental.class,
+                Optional.class,
+                PathSensitive.class,
+                SkipWhenEmpty.class
+            ),
+            instantiationScheme);
         return new TaskScheme(instantiationScheme, inspectionScheme);
     }
 

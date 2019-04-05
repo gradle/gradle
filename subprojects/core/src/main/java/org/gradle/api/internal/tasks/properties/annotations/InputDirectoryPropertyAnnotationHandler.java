@@ -15,14 +15,33 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputDirectory.class;
+    }
+
+    @Override
+    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
+        return ImmutableSet.of(
+            Classpath.class,
+            CompileClasspath.class,
+            Incremental.class,
+            Optional.class,
+            PathSensitive.class,
+            SkipWhenEmpty.class
+        );
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -29,6 +30,11 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Destroys.class;
+    }
+
+    @Override
+    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
+        return ImmutableSet.of();
     }
 
     @Override

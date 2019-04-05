@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -24,9 +25,17 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 
+import java.lang.annotation.Annotation;
+
 import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
+    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
+        return ImmutableSet.<Class<? extends Annotation>>of(
+            Optional.class
+        );
+    }
 
     protected abstract OutputFilePropertyType getFilePropertyType();
 

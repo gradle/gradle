@@ -43,14 +43,16 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
 import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.TYPE;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
-    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
+    private final ImmutableSet<Class<? extends Annotation>> allowedPropertyModifiers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final String displayName;
@@ -64,10 +66,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
         Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
+        Collection<Class<? extends Annotation>> allowedPropertyModifiers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
-        this.typeAnnotationHandlers = typeAnnotationHandlers;
+        this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
         this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
             @SuppressWarnings("NullableProblems")
@@ -75,6 +78,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 return handler.getAnnotationType();
             }
         });
+        this.allowedPropertyModifiers = ImmutableSet.copyOf(allowedPropertyModifiers);
         this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
         this.cache = cacheFactory.newClassCache();
@@ -125,8 +129,24 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 continue;
             }
 
+            ImmutableSet<Class<? extends Annotation>> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
+            for (Map.Entry<PropertyAnnotationCategory, Annotation> entry : propertyAnnotations.getAnnotations().entrySet()) {
+                if (entry.getKey() == TYPE) {
+                    continue;
+                }
+                Class<? extends Annotation> annotationType = entry.getValue().annotationType();
+                if (!allowedModifiersForPropertyType.contains(annotationType)) {
+                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid modifier annotation @%s",
+                        annotationType.getSimpleName()));
+                } else if (!allowedPropertyModifiers.contains(annotationType)) {
+                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid annotation @%s",
+                        annotationType.getSimpleName()));
+                }
+            }
+
             PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotations);
             annotationHandler.validatePropertyMetadata(property, validationContext);
+
             if (annotationHandler.isPropertyRelevant()) {
                 effectiveProperties.add(property);
             }

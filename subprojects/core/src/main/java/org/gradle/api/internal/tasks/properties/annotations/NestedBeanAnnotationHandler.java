@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -37,6 +38,13 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Nested.class;
+    }
+
+    @Override
+    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
+        return ImmutableSet.<Class<? extends Annotation>>of(
+            Optional.class
+        );
     }
 
     @Override
