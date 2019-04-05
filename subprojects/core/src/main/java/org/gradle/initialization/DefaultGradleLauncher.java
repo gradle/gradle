@@ -325,15 +325,15 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         InstantExecutionHost(GradleInternal gradle) {
             this.gradle = gradle;
-            classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
-            scriptHandlerFactory = gradle.getServices().get(ScriptHandlerFactory.class);
-            projectFactory = gradle.getServices().get(IProjectFactory.class);
+            classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry.class);
+            scriptHandlerFactory = getService(ScriptHandlerFactory.class);
+            projectFactory = getService(IProjectFactory.class);
         }
 
         SettingsInternal createSettings() {
             StringScriptSource settingsSource = new StringScriptSource("settings", "");
             return new DefaultSettings(
-                gradle.getServices().get(BuildScopeServiceRegistryFactory.class),
+                getService(BuildScopeServiceRegistryFactory.class),
                 gradle,
                 classLoaderScopeRegistry.getCoreScope(),
                 classLoaderScopeRegistry.getCoreScope(),
@@ -385,7 +385,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
             String name = projectPath.getName();
             DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
                 getProjectDescriptor(parentPath), name != null ? name : "instant-execution", new File(".").getAbsoluteFile(),
-                projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
+                projectDescriptorRegistry, getService(PathToFileResolver.class)
             );
             return projectFactory.createProject(
                 projectDescriptor, getProject(parentPath), gradle,
