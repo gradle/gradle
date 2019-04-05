@@ -30,6 +30,8 @@ import org.gradle.internal.reflect.PropertyMetadata;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
+
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
     @Override
@@ -58,7 +60,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
         if (nested != null) {
             context.addNested(propertyName, nested);
-        } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
+        } else if (!propertyMetadata.isAnnotationPresent(OPTIONAL, Optional.class)) {
             visitor.visitInputProperty(propertyName, new AbsentValue(), false);
         }
     }

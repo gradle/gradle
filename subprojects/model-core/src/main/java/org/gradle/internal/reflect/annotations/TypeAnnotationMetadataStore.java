@@ -17,5 +17,5 @@
 package org.gradle.internal.reflect.annotations;
 
 public interface TypeAnnotationMetadataStore {
-    TypeAnnotationMetadata getTypeMetadata(Class<?> type);
+    TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type);
 }

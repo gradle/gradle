@@ -28,6 +28,9 @@ import org.gradle.work.Incremental;
 import java.io.File;
 import java.lang.annotation.Annotation;
 
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
+
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return Input.class;
@@ -45,19 +48,19 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
+        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(OPTIONAL, Optional.class));
     }
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
-        Class<?> valueType = propertyMetadata.getDeclaredType();
+        Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             visitor.visitError(null, propertyMetadata.getPropertyName(),
                 String.format("has @Input annotation used on property of type %s", valueType.getName()));
         }
-        if (propertyMetadata.isAnnotationPresent(Incremental.class)) {
+        if (propertyMetadata.isAnnotationPresent(INCREMENTAL, Incremental.class)) {
             visitor.visitErrorStrict(null, propertyMetadata.getPropertyName(), "has @Incremental annotation used on an @Input property");
         }
     }

@@ -63,6 +63,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
+        public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+            return false;
+        }
+
+        @Override
         public ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata() {
             return ImmutableSortedSet.of();
         }
@@ -79,7 +84,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
-        Map<Class<? extends Annotation>, PropertyAnnotationCategory> propertyAnnotationCategories,
+        Map<Class<? extends Annotation>, ? extends PropertyAnnotationCategory> propertyAnnotationCategories,
         Collection<Class<?>> ignoredSuperClasses,
         Collection<Class<?>> ignoreMethodsFromClasses,
         CrossBuildInMemoryCacheFactory cacheFactory
@@ -104,7 +109,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     @Override
-    public TypeAnnotationMetadata getTypeMetadata(Class<?> type) {
+    public TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type) {
         return cache.get(type, t -> createTypeAnnotationMetadata(type));
     }
 
@@ -138,10 +143,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
         Class<?> superclass = type.getSuperclass();
         if (superclass != null) {
-            visitor.accept(getTypeMetadata(superclass));
+            visitor.accept(getTypeAnnotationMetadata(superclass));
         }
         Arrays.stream(type.getInterfaces())
-            .map(iface -> getTypeMetadata(iface))
+            .map(iface -> getTypeAnnotationMetadata(iface))
             .forEach(visitor);
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
+
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -23,14 +25,14 @@ import java.lang.reflect.Method;
 public interface PropertyMetadata {
     String getPropertyName();
 
-    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+    boolean isAnnotationPresent(PropertyAnnotationCategory category, Class<? extends Annotation> annotationType);
 
     @Nullable
-    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+    Annotation getAnnotation(PropertyAnnotationCategory category);
+
+    boolean hasAnnotation(PropertyAnnotationCategory category);
 
     Class<? extends Annotation> getPropertyType();
-
-    Class<?> getDeclaredType();
 
     Method getGetterMethod();
 }

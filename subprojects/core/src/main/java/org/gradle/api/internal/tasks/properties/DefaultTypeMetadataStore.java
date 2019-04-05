@@ -17,113 +17,76 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import groovy.lang.GroovyObject;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
-import org.gradle.api.internal.tasks.properties.annotations.OverridingPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyExtractor;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.ValidationProblem;
-import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.work.Incremental;
+import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
 
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.TYPE;
+
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
-    // Avoid reflecting on classes we know we don't need to look at
-    private static final ImmutableSet<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
-            ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class, IConventionAware.class, ExtensionAware.class, HasConvention.class, ScriptOrigin.class, DynamicObjectAware.class
-    );
-
-    private static final ImmutableSet<Class<?>> IGNORED_METHODS = ImmutableSet.of(Object.class, GroovyObject.class, ScriptOrigin.class);
-
-    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
+    private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> propertyAnnotationHandlers;
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
-    private final PropertyExtractor propertyExtractor;
-    private Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
+    private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
+    private final String displayName;
+    private final Transformer<TypeMetadata, Class<?>> typeMetadataFactory = new Transformer<TypeMetadata, Class<?>>() {
         @Override
         public TypeMetadata transform(Class<?> type) {
             return createTypeMetadata(type);
         }
     };
 
-    public DefaultTypeMetadataStore(Collection<? extends PropertyAnnotationHandler> annotationHandlers, Set<Class<? extends Annotation>> otherKnownAnnotations, Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        this.annotationHandlers = Maps.uniqueIndex(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
+    public DefaultTypeMetadataStore(
+        Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
+        Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
+        TypeAnnotationMetadataStore typeAnnotationMetadataStore,
+        CrossBuildInMemoryCacheFactory cacheFactory
+    ) {
+        this.typeAnnotationHandlers = typeAnnotationHandlers;
+        this.propertyAnnotationHandlers = Maps.uniqueIndex(propertyAnnotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
             @Override
+            @SuppressWarnings("NullableProblems")
             public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
                 return handler.getAnnotationType();
             }
         });
-        this.typeAnnotationHandlers = typeAnnotationHandlers;
-        Multimap<Class<? extends Annotation>, Class<? extends Annotation>> annotationOverrides = collectAnnotationOverrides(annotationHandlers);
-        Set<Class<? extends Annotation>> relevantAnnotationTypes = collectRelevantAnnotationTypes(Collections2.transform(annotationHandlers, new Function<PropertyAnnotationHandler, Class<? extends Annotation>>() {
-            @Override
-            public Class<? extends Annotation> apply(PropertyAnnotationHandler handler) {
-                return handler.getAnnotationType();
-            }
-        }));
-        String displayName = calculateDisplayName(annotationHandlers);
-        this.propertyExtractor = new PropertyExtractor(displayName, this.annotationHandlers.keySet(), relevantAnnotationTypes, annotationOverrides, otherKnownAnnotations, IGNORED_SUPER_CLASSES, IGNORED_METHODS);
+        this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
+        this.displayName = calculateDisplayName(propertyAnnotationHandlers);
         this.cache = cacheFactory.newClassCache();
     }
 
-    private String calculateDisplayName(Iterable<? extends PropertyAnnotationHandler> annotationHandlers) {
+    private static String calculateDisplayName(Iterable<? extends PropertyAnnotationHandler> annotationHandlers) {
         for (PropertyAnnotationHandler annotationHandler : annotationHandlers) {
             if (annotationHandler instanceof AbstractOutputPropertyAnnotationHandler) {
                 return "an input or output annotation";
             }
         }
         return "an input annotation";
-    }
-
-    private static Multimap<Class<? extends Annotation>, Class<? extends Annotation>> collectAnnotationOverrides(Iterable<? extends PropertyAnnotationHandler> allAnnotationHandlers) {
-        ImmutableSetMultimap.Builder<Class<? extends Annotation>, Class<? extends Annotation>> builder = ImmutableSetMultimap.builder();
-        for (PropertyAnnotationHandler handler : allAnnotationHandlers) {
-            if (handler instanceof OverridingPropertyAnnotationHandler) {
-                for (Class<? extends Annotation> overriddenAnnotationType : ((OverridingPropertyAnnotationHandler) handler).getOverriddenAnnotationTypes()) {
-                    builder.put(overriddenAnnotationType, handler.getAnnotationType());
-                }
-            }
-        }
-        return builder.build();
-    }
-
-    private static Set<Class<? extends Annotation>> collectRelevantAnnotationTypes(Collection<Class<? extends Annotation>> propertyTypeAnnotations) {
-        return ImmutableSet.<Class<? extends Annotation>>builder()
-                .addAll(propertyTypeAnnotations)
-                .add(Optional.class)
-                .add(SkipWhenEmpty.class)
-                .add(PathSensitive.class)
-                .add(Incremental.class)
-                .build();
     }
 
     @Override
@@ -134,21 +97,54 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
         Class<?> publicType = GeneratedSubclasses.unpack(type);
         RecordingValidationContext validationContext = new RecordingValidationContext();
+        TypeAnnotationMetadata annotationMetadata = typeAnnotationMetadataStore.getTypeAnnotationMetadata(publicType);
+        annotationMetadata.visitValidationFailures(type.getName(), validationContext);
+
         for (TypeAnnotationHandler annotationHandler : typeAnnotationHandlers) {
-            if (publicType.isAnnotationPresent(annotationHandler.getAnnotationType())) {
+            if (annotationMetadata.isAnnotationPresent(annotationHandler.getAnnotationType())) {
                 annotationHandler.validateTypeMetadata(publicType, validationContext);
             }
         }
-        ImmutableSet<PropertyMetadata> properties = propertyExtractor.extractPropertyMetadata(publicType, validationContext);
-        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(properties.size());
-        for (PropertyMetadata property : properties) {
-            PropertyAnnotationHandler annotationHandler = annotationHandlers.get(property.getPropertyType());
+
+        ImmutableSet<PropertyAnnotationMetadata> propertiesAnnotations = annotationMetadata.getPropertiesAnnotationMetadata();
+        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(propertiesAnnotations.size());
+        for (PropertyAnnotationMetadata propertyAnnotations : propertiesAnnotations) {
+            Annotation typeAnnotation = propertyAnnotations.getAnnotation(TYPE);
+            Annotation normalizationAnnotation = propertyAnnotations.getAnnotation(NORMALIZATION);
+            Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
+            if (propertyType == null) {
+                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(),
+                    String.format("is not annotated with %s", displayName));
+                continue;
+            }
+
+            PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
+            if (annotationHandler == null) {
+                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid property type @%s",
+                    propertyType.getSimpleName()));
+                continue;
+            }
+
+            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotations);
             annotationHandler.validatePropertyMetadata(property, validationContext);
             if (annotationHandler.isPropertyRelevant()) {
                 effectiveProperties.add(property);
             }
         }
-        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext.getProblems(), annotationHandlers);
+        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext.getProblems(), propertyAnnotationHandlers);
+    }
+
+    @Nullable
+    private Class<? extends Annotation> determinePropertyType(@Nullable Annotation typeAnnotation, @Nullable Annotation normalizationAnnotation) {
+        if (typeAnnotation != null) {
+            return typeAnnotation.annotationType();
+        } else if (normalizationAnnotation != null) {
+            if (normalizationAnnotation.annotationType().equals(Classpath.class)
+            || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
+                return InputFiles.class;
+            }
+        }
+        return null;
     }
 
     private static class RecordingValidationContext implements ParameterValidationContext {
@@ -230,6 +226,48 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata) {
             return annotationHandlers.get(propertyMetadata.getPropertyType());
+        }
+    }
+
+    private static class DefaultPropertyMetadata implements PropertyMetadata {
+
+        private final Class<? extends Annotation> propertyType;
+        private final PropertyAnnotationMetadata annotationMetadata;
+
+        public DefaultPropertyMetadata(Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata) {
+            this.propertyType = propertyType;
+            this.annotationMetadata = annotationMetadata;
+        }
+
+        @Override
+        public String getPropertyName() {
+            return annotationMetadata.getPropertyName();
+        }
+
+        @Override
+        public boolean isAnnotationPresent(PropertyAnnotationCategory category, Class<? extends Annotation> annotationType) {
+            return annotationMetadata.hasAnnotation(category, annotationType);
+        }
+
+        @Nullable
+        @Override
+        public Annotation getAnnotation(PropertyAnnotationCategory category) {
+            return annotationMetadata.getAnnotation(category);
+        }
+
+        @Override
+        public boolean hasAnnotation(PropertyAnnotationCategory category) {
+            return annotationMetadata.getAnnotation(category) != null;
+        }
+
+        @Override
+        public Class<? extends Annotation> getPropertyType() {
+            return propertyType;
+        }
+
+        @Override
+        public Method getGetterMethod() {
+            return annotationMetadata.getGetter();
         }
     }
 }

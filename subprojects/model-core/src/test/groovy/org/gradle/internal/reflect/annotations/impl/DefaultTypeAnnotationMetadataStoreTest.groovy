@@ -362,7 +362,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 
     def "only relevant type annotations are captured"() {
         when:
-        def metadata = store.getTypeMetadata(TypeWithAnnotations)
+        def metadata = store.getTypeAnnotationMetadata(TypeWithAnnotations)
 
         then:
         metadata.annotations*.annotationType() == [TestType]
@@ -373,7 +373,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         interface TypeWithAnnotations {}
 
     void assertProperties(Class<?> type, Map<String, Map<PropertyAnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
-        def metadata = store.getTypeMetadata(type)
+        def metadata = store.getTypeAnnotationMetadata(type)
         def actualPropertyNames = metadata.propertiesAnnotationMetadata*.propertyName.sort()
         def expectedPropertyNames = expectedProperties.keySet().sort()
         assert actualPropertyNames == expectedPropertyNames

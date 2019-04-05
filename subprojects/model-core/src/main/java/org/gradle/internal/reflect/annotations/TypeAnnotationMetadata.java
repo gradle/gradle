@@ -30,6 +30,11 @@ public interface TypeAnnotationMetadata {
     ImmutableSet<Annotation> getAnnotations();
 
     /**
+     * Whether an annotation of the given type is present on the type itself.
+     */
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
+    /**
      * Information about the type and annotations of each property of the type.
      */
     ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata();

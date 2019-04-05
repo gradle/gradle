@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler
 import org.gradle.api.model.ReplacedBy
@@ -261,7 +260,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     // need to declare their @Classpath properties as @InputFiles as well
     @Issue("https://github.com/gradle/gradle/issues/913")
     def "@Classpath takes precedence over @InputFiles when both are declared on property"() {
-        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [new ClasspathPropertyAnnotationHandler()], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
+        def metadataStore = new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler) + [], [] as Set, [] as Set, new TestCrossBuildInMemoryCacheFactory())
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(ClasspathPropertyTask)
