@@ -106,7 +106,7 @@ public class Path implements Comparable<Path> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -157,6 +157,7 @@ public class Path implements Comparable<Path> {
      *
      * @return The parent of this path.
      */
+    @Nullable
     public Path getParent() {
         if (segments.length == 0) {
             return null;
