@@ -140,6 +140,7 @@ class DependencyManagementGlobalScopeServices {
                 Classpath.class,
                 CompileClasspath.class,
                 Incremental.class,
+                Optional.class,
                 PathSensitive.class
             ),
             instantiationScheme

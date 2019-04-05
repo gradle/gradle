@@ -16,12 +16,22 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.ImmutableSet;
+import groovy.lang.GroovyObject;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.internal.AbstractTask;
+import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.HasConvention;
+import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
@@ -38,6 +48,8 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyA
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -61,11 +73,41 @@ import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
+import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.work.Incremental;
 
 import java.util.List;
 
 public class ExecutionGlobalServices {
+    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
+        return new DefaultTypeAnnotationMetadataStore(
+            ImmutableSet.of(
+                CacheableTask.class,
+                CacheableTransform.class
+            ),
+            WorkPropertyAnnotationCategory.asMap(),
+            ImmutableSet.of(
+                AbstractTask.class,
+                ConventionTask.class,
+                DefaultTask.class,
+                DynamicObjectAware.class,
+                ExtensionAware.class,
+                GroovyObject.class,
+                HasConvention.class,
+                IConventionAware.class,
+                Object.class,
+                ScriptOrigin.class,
+                Task.class
+            ),
+            ImmutableSet.of(
+                GroovyObject.class,
+                Object.class,
+                ScriptOrigin.class
+            ),
+            cacheFactory);
+    }
+
     InspectionSchemeFactory createInspectionSchemeFactory(
         List<TypeAnnotationHandler> typeHandlers,
         List<PropertyAnnotationHandler> propertyHandlers,

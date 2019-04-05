@@ -127,7 +127,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                 parameterValidationContext.visitError(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
             }
             if (normalizer == null) {
-                parameterValidationContext.visitError(null, propertyName, "is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity");
+                parameterValidationContext.visitError(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
             }
         }
     }

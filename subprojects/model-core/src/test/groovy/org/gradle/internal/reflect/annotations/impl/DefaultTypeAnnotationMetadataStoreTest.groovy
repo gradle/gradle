@@ -65,9 +65,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getPublicProperty() { "public" }
 
             @Irrelevant
-            protected String getProtectedProperty() { "protected" }
+            protected boolean getProtectedProperty() { true }
 
-            @PackageScope String getPackageProperty() { "default" }
+            @PackageScope boolean isPackageProperty() { false }
 
             @Irrelevant
             private String getPrivateProperty() { "private" }
@@ -91,10 +91,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getPublicProperty() { "public" }
 
             @Large
-            protected String getProtectedProperty() { "protected" }
+            protected boolean getProtectedProperty() { true }
 
             @Small
-            @PackageScope String getPackageProperty() { "default" }
+            @PackageScope String isPackageProperty() { false }
 
             @Small
             private String getPrivateProperty() { "private" }
@@ -113,6 +113,23 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             private final String property = "test"
 
             String getProperty() { property }
+        }
+
+    def "ignores 'get' getter for 'is'"() {
+        expect:
+        assertProperties TypeWithIsAndGetProperty, [
+            bool: [(SIZE): Large],
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        class TypeWithIsAndGetProperty {
+
+            @Small
+            boolean getBool() { true }
+
+            @Large
+            boolean isBool() { true }
         }
 
     def "superclass properties are present in subclass"() {

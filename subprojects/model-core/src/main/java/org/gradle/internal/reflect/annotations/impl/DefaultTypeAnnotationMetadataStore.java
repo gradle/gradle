@@ -319,7 +319,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 // Ignore all but the first recorded annotation
                 Annotation recordedAnnotation = recordedAnnotations.get(0);
                 if (recordedAnnotations.size() > 1) {
-                    recordProblem(String.format("has multiple %s annotations: %s; assuming @%s",
+                    recordProblem(String.format("has conflicting %s annotations declared: %s; assuming @%s",
                         category.getDisplayName(),
                         recordedAnnotations.stream()
                             .map(annotation -> "@" + annotation.annotationType().getSimpleName())

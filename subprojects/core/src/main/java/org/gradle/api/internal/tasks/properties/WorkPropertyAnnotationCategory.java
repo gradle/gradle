@@ -39,6 +39,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
 import org.gradle.work.Incremental;
 
@@ -60,6 +61,7 @@ public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory
         Internal.class,
         LocalState.class,
         Nested.class,
+        OptionValues.class,
         OutputDirectories.class,
         OutputDirectory.class,
         OutputFile.class,

@@ -16,23 +16,13 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import groovy.lang.GroovyObject;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
-import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.execution.internal.DefaultTaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
-import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DynamicModulesClassPathProvider;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.HasConvention;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
@@ -49,11 +39,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -107,13 +94,10 @@ import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
-import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -376,33 +360,5 @@ public class GlobalScopeServices extends BasicGlobalScopeServices {
 
     ExecutionStateChangeDetector createExecutionStateChangeDetector() {
         return new DefaultExecutionStateChangeDetector();
-    }
-
-    TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory) {
-        return new DefaultTypeAnnotationMetadataStore(
-            ImmutableSet.of(
-                CacheableTask.class,
-                CacheableTransform.class
-            ),
-            WorkPropertyAnnotationCategory.asMap(),
-            ImmutableSet.of(
-                AbstractTask.class,
-                ConventionTask.class,
-                DefaultTask.class,
-                DynamicObjectAware.class,
-                ExtensionAware.class,
-                GroovyObject.class,
-                HasConvention.class,
-                IConventionAware.class,
-                Object.class,
-                ScriptOrigin.class,
-                Task.class
-            ),
-            ImmutableSet.of(
-                GroovyObject.class,
-                Object.class,
-                ScriptOrigin.class
-            ),
-            cacheFactory);
     }
 }

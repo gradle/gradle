@@ -110,9 +110,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             }
         }
 
-        ImmutableSet<PropertyAnnotationMetadata> propertiesAnnotations = annotationMetadata.getPropertiesAnnotationMetadata();
-        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(propertiesAnnotations.size());
-        for (PropertyAnnotationMetadata propertyAnnotations : propertiesAnnotations) {
+        ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
+        for (PropertyAnnotationMetadata propertyAnnotations : annotationMetadata.getPropertiesAnnotationMetadata()) {
             Annotation typeAnnotation = propertyAnnotations.getAnnotation(TYPE);
             Annotation normalizationAnnotation = propertyAnnotations.getAnnotation(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
@@ -124,7 +123,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid property type @%s",
+                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with invalid property type @%s",
                     propertyType.getSimpleName()));
                 continue;
             }
@@ -136,8 +135,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationType)) {
-                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid modifier annotation @%s",
-                        annotationType.getSimpleName()));
+                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with @%s that is invalid for @%s properties",
+                        annotationType.getSimpleName(), propertyType.getSimpleName()));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid annotation @%s",
                         annotationType.getSimpleName()));

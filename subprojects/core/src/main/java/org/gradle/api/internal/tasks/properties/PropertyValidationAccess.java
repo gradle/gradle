@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
@@ -74,7 +75,8 @@ public class PropertyValidationAccess {
     private final TaskClassInfoStore taskClassInfoStore;
     private final List<TypeScheme> typeSchemes;
 
-    private PropertyValidationAccess() {
+    @VisibleForTesting
+    PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here

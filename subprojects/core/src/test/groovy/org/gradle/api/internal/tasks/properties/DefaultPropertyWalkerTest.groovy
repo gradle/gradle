@@ -35,6 +35,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -228,6 +229,9 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private visitProperties(TaskInternal task) {
-        new DefaultPropertyWalker(new DefaultTypeMetadataStore(services.getAll(PropertyAnnotationHandler), [] as Set, [] as List, new TestCrossBuildInMemoryCacheFactory())).visitProperties(task, validationContext, visitor)
+        def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+        def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], WorkPropertyAnnotationCategory.asMap(), [Object, GroovyObject, DefaultTask], [Object, GroovyObject], cacheFactory)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory)
+        new DefaultPropertyWalker(typeMetadataStore).visitProperties(task, validationContext, visitor)
     }
 }
