@@ -84,22 +84,23 @@ class InstantExecution(private val host: Host) {
             encoder.serializeClassPath(relevantClassPath)
             saveRelevantProjectsFor(scheduledTasks, encoder)
             encoder.serializeCollection(scheduledTasks) { task ->
-                saveStateOf(task, encoder)
+                encoder.saveStateOf(task)
             }
         }
     }
 
     private
     fun saveRelevantProjectsFor(tasks: List<Task>, encoder: KryoBackedEncoder) {
-
-        val relevantProjectPaths = tasks.mapNotNull { task ->
-            task.project.takeIf { it.parent != null }?.path?.let(Path::path)
-        }.toSortedSet()
-
-        encoder.serializeCollection(fillTheGapsOf(relevantProjectPaths)) {
+        encoder.serializeCollection(fillTheGapsOf(relevantProjectsFor(tasks))) {
             encoder.writeString(it.path)
         }
     }
+
+    private
+    fun relevantProjectsFor(tasks: List<Task>): SortedSet<Path> =
+        tasks.mapNotNull { task ->
+            task.project.takeIf { it.parent != null }?.path?.let(Path::path)
+        }.toSortedSet()
 
     private
     fun loadTasks(): List<Task> {
@@ -149,13 +150,13 @@ class InstantExecution(private val host: Host) {
         task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
 
     private
-    fun saveStateOf(task: Task, encoder: KryoBackedEncoder) {
+    fun KryoBackedEncoder.saveStateOf(task: Task) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
-        encoder.writeString(task.project.path)
-        encoder.writeString(task.name)
-        encoder.writeString(taskType.name)
-        encoder.serializeCollection(host.dependenciesOf(task)) {
-            encoder.writeString(it.path)
+        writeString(task.project.path)
+        writeString(task.name)
+        writeString(taskType.name)
+        serializeCollection(host.dependenciesOf(task)) {
+            writeString(it.path)
         }
         for (property in relevantPropertiesOf(taskType)) {
             if (property.setters.isEmpty()) {
@@ -173,15 +174,22 @@ class InstantExecution(private val host: Host) {
             }
             getter.isAccessible = true
 
-            encoder.writeString(property.name)
+            val finalValue =
+                try {
+                    getter(task)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    continue
+                }
+
+            writeString(property.name)
             try {
-                val finalValue = getter(task)
-                propertyValueSerializer.write(encoder, finalValue)
+                writePropertyValue(finalValue)
             } catch (e: Exception) {
                 throw GradleException("Could not save the value of property `${property.name}` of task `${task.path}`.", e)
             }
         }
-        encoder.writeString("")
+        writeString("")
     }
 
     private
@@ -248,6 +256,11 @@ class InstantExecution(private val host: Host) {
     private
     val isInstantExecutionEnabled: Boolean
         get() = host.getSystemProperty("instantExecution") != null
+
+    private
+    fun KryoBackedEncoder.writePropertyValue(value: Any?) {
+        propertyValueSerializer.write(this, value)
+    }
 
     private
     val propertyValueSerializer by lazy {
