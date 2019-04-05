@@ -134,6 +134,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
     private boolean populated;
     private boolean artifactsOverridden;
+    private boolean versionMappingInUse = false;
 
     public DefaultIvyPublication(
         String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
@@ -281,7 +282,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                         if (PlatformSupport.isTargettingPlatform(dependency)) {
                             publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
-                        if (externalDependency.getVersion() == null) {
+                        if (!versionMappingInUse && externalDependency.getVersion() == null) {
                             publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
                         }
                         addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
@@ -535,6 +536,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
+        this.versionMappingInUse = true;
         configureAction.execute(versionMappingStrategy);
     }
 
