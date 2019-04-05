@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -61,7 +62,6 @@ import org.gradle.util.Path;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -208,16 +208,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
         gradle.setRootProject(rootProject);
 
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        instantExecution.loadInstantExecutionStateInto();
-
-        registerProjects();
+        instantExecution.loadInstantExecutionState();
 
         taskGraph.populate();
-    }
-
-    private void registerProjects() {
-        gradle.getServices().get(ProjectStateRegistry.class)
-            .registerProjects(gradle.getServices().get(BuildState.class));
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -374,8 +367,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return gradle.getStartParameter().getSystemPropertiesArgs().get(propertyName);
         }
 
-        public void scheduleTask(Task task) {
-            gradle.getTaskGraph().addEntryTasks(Collections.singleton(task));
+        public void scheduleTasks(Iterable<? extends Task> tasks) {
+            gradle.getTaskGraph().addEntryTasks(tasks);
         }
 
         public List<Task> getScheduledTasks() {
@@ -420,6 +413,21 @@ public class DefaultGradleLauncher implements GradleLauncher {
             return getService(ClassLoaderCache.class).get(
                 ClassLoaderIds.buildScript("instant-execution", "run"), classPath, getCoreAndPluginsScope().getExportClassLoader(), null
             );
+        }
+
+        @Override
+        public Set<Task> dependenciesOf(Task task) {
+            return gradle.getTaskGraph().getDependencies(task);
+        }
+
+        @Override
+        public Project getProject(String projectPath) {
+            return gradle.getRootProject().project(projectPath);
+        }
+
+        @Override
+        public void registerProjects() {
+            getService(ProjectStateRegistry.class).registerProjects(getService(BuildState.class));
         }
     }
 

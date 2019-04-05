@@ -19,7 +19,6 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -109,7 +108,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @Ignore
     def "instant execution for task in multiple projects"() {
         server.start()
 
@@ -142,9 +140,13 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         when:
-        server.expectConcurrent("b", "c")
+        def pendingCalls = server.expectConcurrentAndBlock("b", "c")
         server.expectConcurrent("a")
-        run "slow", "-DinstantExecution", "--parallel"
+
+        def buildHandle = executer.withTasks("slow", "-DinstantExecution", "--parallel", "--max-workers=3").start()
+        pendingCalls.waitForAllPendingCalls()
+        pendingCalls.releaseAll()
+        buildHandle.waitForFinish()
 
         then:
         noExceptionThrown()

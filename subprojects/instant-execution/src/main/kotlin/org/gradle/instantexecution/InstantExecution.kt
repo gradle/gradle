@@ -44,7 +44,9 @@ class InstantExecution(private val host: Host) {
 
         val scheduledTasks: List<Task>
 
-        fun scheduleTask(task: Task)
+        fun dependenciesOf(task: Task): Set<Task>
+
+        fun scheduleTasks(tasks: Iterable<Task>)
 
         fun <T> getService(serviceType: Class<T>): T
 
@@ -53,6 +55,10 @@ class InstantExecution(private val host: Host) {
         fun createProject(path: String): Project
 
         fun classLoaderFor(classPath: ClassPath): ClassLoader
+
+        fun getProject(projectPath: String): Project
+
+        fun registerProjects()
     }
 
     fun canExecuteInstantaneously() =
@@ -65,7 +71,9 @@ class InstantExecution(private val host: Host) {
 
         KryoBackedEncoder(instantExecutionStateFile.outputStream()).use { encoder ->
             val scheduledTasks = host.scheduledTasks
-            val relevantProjectPaths = scheduledTasks.map { Path.path(it.project.path) }.toSortedSet()
+            val relevantProjectPaths = scheduledTasks.mapNotNull { task ->
+                task.project.takeIf { it.parent != null }?.path?.let(Path::path)
+            }.toSortedSet()
             val relevantClassPath = classPathFor(scheduledTasks)
             encoder.serializeClassPath(relevantClassPath)
             encoder.serializeCollection(relevantProjectPaths) {
@@ -77,20 +85,44 @@ class InstantExecution(private val host: Host) {
         }
     }
 
-    fun loadInstantExecutionStateInto() {
+    fun loadInstantExecutionState() {
+        host.scheduleTasks(loadTasks())
+    }
+
+    private
+    fun loadTasks(): List<Task> {
+
+        val tasksWithDependencies = loadTasksWithDependencies()
+
+        val tasksByPath = tasksWithDependencies.associate { (task, _) ->
+            task.path to task
+        }
+
+        val tasks = ArrayList<Task>(tasksWithDependencies.size)
+        tasksWithDependencies.forEach { (task, dependencies) ->
+            task.dependsOn(dependencies.map(tasksByPath::getValue))
+            tasks.add(task)
+        }
+        return tasks
+    }
+
+    private
+    fun loadTasksWithDependencies(): List<Pair<Task, List<String>>> =
         KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
+
             val classPath = decoder.deserializeClassPath()
             val taskClassLoader = classLoaderFor(classPath)
-            val relevantProjects = mutableListOf<Project>()
             decoder.deserializeCollection {
-                relevantProjects.add(host.createProject(decoder.readString()))
+                host.createProject(decoder.readString())
             }
-            decoder.deserializeCollection {
-                val task = loadTask(relevantProjects, decoder, taskClassLoader)
-                host.scheduleTask(task)
+
+            host.registerProjects()
+
+            decoder.deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
+                val task = loadTask(decoder, taskClassLoader)
+                container.add(task)
             }
         }
-    }
 
     private
     fun classLoaderFor(classPath: ClassPath): ClassLoader =
@@ -110,6 +142,9 @@ class InstantExecution(private val host: Host) {
         encoder.writeString(task.project.path)
         encoder.writeString(task.name)
         encoder.writeString(taskType.name)
+        encoder.serializeCollection(host.dependenciesOf(task)) {
+            encoder.writeString(it.path)
+        }
         for (property in relevantPropertiesOf(taskType)) {
             if (property.setters.isEmpty()) {
                 logProperty(taskType, property, "there are no setters")
@@ -134,13 +169,14 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun loadTask(projects: List<Project>, decoder: KryoBackedDecoder, taskClassLoader: ClassLoader): Task {
+    fun loadTask(decoder: KryoBackedDecoder, taskClassLoader: ClassLoader): Pair<Task, List<String>> {
         val projectPath = decoder.readString()
         val taskName = decoder.readString()
         val typeName = decoder.readString()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val details = ClassInspector.inspect(taskClass)
-        val task = projects.single { it.path == projectPath }.tasks.create(taskName, taskClass)
+        val task = host.getProject(projectPath).tasks.create(taskName, taskClass)
+        val taskDependencies = decoder.deserializeStrings()
         while (true) {
             val propertyName = decoder.readString()
             if (propertyName.isEmpty()) {
@@ -156,24 +192,23 @@ class InstantExecution(private val host: Host) {
                 }
             }
         }
-        return task
+        return task to taskDependencies
     }
-
 
     private
     fun relevantPropertiesOf(taskType: Class<*>) =
         ClassInspector.inspect(taskType).properties.filter { property ->
             property.run {
-                getters.any { relevant(it) && !injected(it) } || setters.any(::relevant)
+                getters.any { isRelevant(it) && !isInjected(it) } || setters.any(::isRelevant)
             }
         }
 
     private
-    fun injected(it: Method): Boolean =
+    fun isInjected(it: Method): Boolean =
         it.isAnnotationPresent(Inject::class.java)
 
     private
-    fun relevant(it: Method): Boolean =
+    fun isRelevant(it: Method): Boolean =
         it.declaringClass !in setOf(
             Object::class.java,
             GroovyObject::class.java,
@@ -217,13 +252,12 @@ fun KryoBackedEncoder.serializeClassPath(classPath: ClassPath) {
 
 
 private
-fun KryoBackedDecoder.deserializeClassPath(): ClassPath {
-    val classPathFiles = LinkedHashSet<File>()
-    deserializeCollection {
-        classPathFiles.add(readFile())
-    }
-    return DefaultClassPath.of(classPathFiles)
-}
+fun KryoBackedDecoder.deserializeClassPath(): ClassPath =
+    DefaultClassPath.of(
+        deserializeCollectionInto({ count -> LinkedHashSet<File>(count) }) { container ->
+            container.add(readFile())
+        }
+    )
 
 
 private
@@ -235,6 +269,13 @@ fun KryoBackedEncoder.writeFile(file: File?) {
 private
 fun KryoBackedDecoder.readFile(): File =
     BaseSerializerFactory.FILE_SERIALIZER.read(this)
+
+
+private
+fun KryoBackedDecoder.deserializeStrings(): List<String> =
+    deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
+        container.add(readString())
+    }
 
 
 private
@@ -252,6 +293,17 @@ fun KryoBackedDecoder.deserializeCollection(deserializeElement: () -> Unit) {
     for (i in 0 until count) {
         deserializeElement()
     }
+}
+
+
+private
+inline fun <T> KryoBackedDecoder.deserializeCollectionInto(containerSupplier: (Int) -> T, deserializeElement: (T) -> Unit): T {
+    val count = readSmallInt()
+    val container = containerSupplier(count)
+    for (i in 0 until count) {
+        deserializeElement(container)
+    }
+    return container
 }
 
 
