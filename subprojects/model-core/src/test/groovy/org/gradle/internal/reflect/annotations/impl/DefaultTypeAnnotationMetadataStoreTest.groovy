@@ -20,7 +20,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.ParameterValidationContext
-import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory
+import org.gradle.internal.reflect.PropertyAnnotationCategory
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -191,6 +191,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
+    // TODO This shouldn't be up to ordering, but instead conflicts should be called out
     def "overridden properties inherit interface annotations when same annotation is present in super-class"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [

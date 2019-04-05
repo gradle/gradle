@@ -31,7 +31,7 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;

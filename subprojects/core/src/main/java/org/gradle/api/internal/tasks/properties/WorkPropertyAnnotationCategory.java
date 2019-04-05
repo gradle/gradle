@@ -40,7 +40,7 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.work.Incremental;
 
 import javax.inject.Inject;

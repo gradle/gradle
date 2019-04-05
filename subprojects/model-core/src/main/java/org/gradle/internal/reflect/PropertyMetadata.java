@@ -16,8 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
-
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

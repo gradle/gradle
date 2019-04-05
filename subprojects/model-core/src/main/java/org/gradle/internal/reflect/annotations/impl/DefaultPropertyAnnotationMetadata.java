@@ -19,7 +19,7 @@ package org.gradle.internal.reflect.annotations.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.annotations.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.jetbrains.annotations.NotNull;
 
