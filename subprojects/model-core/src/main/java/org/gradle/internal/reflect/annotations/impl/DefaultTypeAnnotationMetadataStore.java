@@ -278,6 +278,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             // Sort "is"-getters before "get"-getters when both are available
             return method.getName().compareTo(o.method.getName());
         }
+
+        @Override
+        public String toString() {
+            return method.getName();
+        }
     }
 
     private class PropertyAnnotationMetadataBuilder {

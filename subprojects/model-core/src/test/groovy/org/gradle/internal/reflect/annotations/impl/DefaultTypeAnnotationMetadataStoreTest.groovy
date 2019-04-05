@@ -94,7 +94,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             protected boolean getProtectedProperty() { true }
 
             @Small
-            @PackageScope String isPackageProperty() { false }
+            @PackageScope boolean isPackageProperty() { false }
 
             @Small
             private String getPrivateProperty() { "private" }
@@ -191,10 +191,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
-    def "overridden properties inherit super-class annotations when same annotation is present in interfaces"() {
+    def "overridden properties inherit interface annotations when same annotation is present in super-class"() {
         expect:
         assertProperties TypeWithInheritedPropertyFromSuperClassAndInterface, [
-            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "super-class" }]
+            overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "interface" }]
         ]
     }
 
@@ -284,14 +284,14 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty()
         }
 
-    def "uses first declared annotation of conflicting category and warns about the conflict"() {
+    def "warns about conflicting property types being specified, chooses first declaration"() {
         expect:
         assertProperties TypeWithPropertiesWithMultipleAnnotationsOfSameCategory, [
             largeThenSmall: [(SIZE): Large],
             smallThenLarge: [(SIZE): Small]
         ], [
-            "Property 'largeThenSmall' has multiple size annotations: @Large, @Small; assuming @Large",
-            "Property 'smallThenLarge' has multiple size annotations: @Small, @Large; assuming @Small"
+            "Property 'largeThenSmall' has conflicting size annotations declared: @Large, @Small; assuming @Large",
+            "Property 'smallThenLarge' has conflicting size annotations declared: @Small, @Large; assuming @Small"
         ]
     }
 
