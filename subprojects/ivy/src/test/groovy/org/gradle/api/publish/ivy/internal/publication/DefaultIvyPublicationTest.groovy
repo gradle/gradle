@@ -416,6 +416,7 @@ class DefaultIvyPublicationTest extends Specification {
             getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
+            getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
             getUsages() >> [usage]

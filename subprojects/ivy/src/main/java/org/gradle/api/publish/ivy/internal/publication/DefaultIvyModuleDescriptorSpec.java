@@ -22,6 +22,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.UserCodeAction;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -147,6 +148,11 @@ public class DefaultIvyModuleDescriptorSpec implements IvyModuleDescriptorSpecIn
     @Override
     public IvyModuleDescriptorDescription getDescription() {
         return description;
+    }
+
+    @Override
+    public VersionMappingStrategyInternal getVersionMappingStrategy() {
+        return ivyPublication.getVersionMappingStrategy();
     }
 
     @Override

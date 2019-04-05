@@ -131,7 +131,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             @Override
             public void execute(IvyPublicationInternal publication) {
                 final String publicationName = publication.getName();
-                createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir);
+                createGenerateIvyDescriptorTask(tasks, publicationName, publication, buildDir, project);
                 createGenerateMetadataTask(project, tasks, publication, publications, buildDir);
                 createPublishTaskForEachRepository(tasks, publication, publicationName, repositories);
             }
@@ -164,7 +164,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         tasks.named(publishAllToSingleRepoTaskName(repository), publish -> publish.dependsOn(publishTaskName));
     }
 
-    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
+    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir, final Project project) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, new Action<GenerateIvyDescriptor>() {

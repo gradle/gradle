@@ -53,6 +53,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -69,6 +70,10 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
             }
             noMoreDependencies()
         }
+
+        and:
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('compile', "org.test:foo:1.0")
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org.test:bar:1.1', "org.test:foo:1.1")
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -128,6 +133,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -144,6 +150,10 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
             }
             noMoreDependencies()
         }
+
+        and:
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('compile', "org.test:foo:1.0")
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org.test:bar:1.1', "org.test:foo:1.1")
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -210,6 +220,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -226,6 +237,10 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
             }
             noMoreDependencies()
         }
+
+        and:
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('compile', "org.test:foo:1.0")
+        javaLibrary.parsedIvy.assertConfigurationDependsOn('runtime', 'org.test:bar:1.1')
 
         and:
         resolveArtifacts(javaLibrary) {
@@ -296,6 +311,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
         run "publish"
 
         then:
+        javaLibrary.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.1") {
@@ -311,6 +327,13 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
             assert it.org == 'org.test'
             assert it.module == 'foo'
             assert it.revision == '1.0'
+            assert it.conf == 'compile->default'
+        }
+        dependencies.get("org.test:bar:1.1").with {
+            assert it.org == 'org.test'
+            assert it.module == 'bar'
+            assert it.revision == '1.1'
+            assert it.conf == 'runtime->default'
         }
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             constraint("org.test:bar:1.1") {

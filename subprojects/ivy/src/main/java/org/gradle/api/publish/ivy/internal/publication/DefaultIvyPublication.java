@@ -42,6 +42,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.IvyPublishingAwareContext;
@@ -283,7 +284,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                         if (externalDependency.getVersion() == null) {
                             publicationWarningsCollector.addUnsupported(String.format("%s:%s declared without version", externalDependency.getGroup(), externalDependency.getName()));
                         }
-                        addExternalDependency(externalDependency, confMapping);
+                        addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
                     }
                 }
             }
@@ -327,8 +328,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
-    private void addExternalDependency(ExternalDependency dependency, String confMapping) {
-        ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping));
+    private void addExternalDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {
+        ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping, attributes));
     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {

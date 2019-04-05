@@ -24,6 +24,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
@@ -63,6 +64,7 @@ public class IvyDescriptorFileGenerator {
 
     private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
     private final IvyPublicationIdentity projectIdentity;
+    private final VersionMappingStrategyInternal versionMappingStrategy;
     private String branch;
     private String status;
     private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
@@ -75,8 +77,9 @@ public class IvyDescriptorFileGenerator {
     private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
     private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
 
-    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker) {
+    public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker, VersionMappingStrategyInternal versionMappingStrategy) {
         this.projectIdentity = projectIdentity;
+        this.versionMappingStrategy = versionMappingStrategy;
         if (writeGradleRedirectionMarker) {
             xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
         }
@@ -252,10 +255,12 @@ public class IvyDescriptorFileGenerator {
     private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
         xmlWriter.startElement("dependencies");
         for (IvyDependencyInternal dependency : dependencies) {
+            String resolvedVersion = versionMappingStrategy.findStrategyForVariant(dependency.getAttributes()).maybeResolveVersion(dependency.getOrganisation(), dependency.getModule());
+
             xmlWriter.startElement("dependency")
                     .attribute("org", dependency.getOrganisation())
                     .attribute("name", dependency.getModule())
-                    .attribute("rev", dependency.getRevision())
+                    .attribute("rev", resolvedVersion != null ? resolvedVersion : dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
 
             if (!dependency.isTransitive()) {
