@@ -45,7 +45,7 @@ public class DefaultTransformationNodeRegistry implements TransformationNodeRegi
     }
 
     @Override
-    public Optional<TransformationNode> getExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
+    public Optional<TransformationNode> getIfExecuted(ComponentArtifactIdentifier artifactId, Transformation transformation) {
         List<Equivalence.Wrapper<TransformationStep>> transformationChain = unpackTransformation(transformation);
         ArtifactTransformKey transformKey = new ArtifactTransformKey(artifactId, transformationChain);
         TransformationNode node = transformations.get(transformKey);
