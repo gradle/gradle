@@ -400,13 +400,17 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
   - Variant 'api' capability org:test:1.0:
-      - Required custom 'c1' and found compatible value 'c1'.
-      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
+      - Other attributes:
+          - Required custom 'c1' and found compatible value 'c1'.
+          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
   - Variant 'runtime' capability org:test:1.0:
-      - Required custom 'c1' and found incompatible value 'c2'.
-      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
+      - Incompatible attribute:
+          - Required custom 'c1' and found incompatible value 'c2'.
+      - Other attributes:
+          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+          - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
     }
 
     @RequiredFeatures(
@@ -564,13 +568,17 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         then:
         failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
   - Variant 'api' capability org:test:1.0:
-      - Required custom 'c1' and found compatible value 'c1'.
-      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api-jars'.
+      - Other attributes:
+          - Required custom 'c1' and found compatible value 'c1'.
+          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
   - Variant 'runtime' capability org:test:1.0:
-      - Required custom 'c1' and found incompatible value 'c2'.
-      - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-      - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
+      - Incompatible attribute:
+          - Required custom 'c1' and found incompatible value 'c2'.
+      - Other attributes:
+          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+          - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime-jars'""")
     }
 
     @RequiredFeatures(

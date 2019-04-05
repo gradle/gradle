@@ -150,7 +150,8 @@ class LocalComponentDependencyMetadataTest extends Specification {
         def e = thrown(IncompatibleConfigurationSelectionException)
         e.message == toPlatformLineSeparators("""Configuration 'default' in <target> does not match the consumer attributes
 Configuration 'default':
-  - Required key 'other' and found incompatible value 'nothing'.""")
+  - Incompatible attribute:
+      - Required key 'other' and found incompatible value 'nothing'.""")
     }
 
     def "revalidates explicit configuration selection if it has attributes"() {
@@ -188,7 +189,8 @@ Configuration 'default':
         def e = thrown(IncompatibleConfigurationSelectionException)
         e.message == toPlatformLineSeparators("""Configuration 'bar' in <target> does not match the consumer attributes
 Configuration 'bar':
-  - Required key 'something' and found incompatible value 'something else'.""")
+  - Incompatible attribute:
+      - Required key 'something' and found incompatible value 'something else'.""")
     }
 
     @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")

@@ -92,6 +92,7 @@ class DefaultArtifactTransformsTest extends Specification {
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
+        attributeMatcher.isMatching(_, _, _) >> true
 
         when:
         def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set)
@@ -101,9 +102,11 @@ class DefaultArtifactTransformsTest extends Specification {
         def e = thrown(AmbiguousVariantSelectionException)
         e.message == toPlatformLineSeparators("""More than one variant of <component> matches the consumer attributes:
   - <variant1>:
-      - Required artifactType 'classes' and found incompatible value 'classes'.
+      - Compatible attribute:
+          - Required artifactType 'classes' and found compatible value 'classes'.
   - <variant2>:
-      - Required artifactType 'classes' and found incompatible value 'jar'.""")
+      - Compatible attribute:
+          - Required artifactType 'classes' and found compatible value 'jar'.""")
     }
 
     private ResolvedVariant resolvedVariant() {
@@ -281,9 +284,11 @@ Found the following transforms:
         def e = thrown(NoMatchingVariantSelectionException)
         e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
   - <variant1>:
-      - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
   - <variant2>:
-      - Required artifactType 'dll' and found incompatible value 'classes'.""")
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'classes'.""")
     }
 
     def visit(ResolvedArtifactSet set) {
