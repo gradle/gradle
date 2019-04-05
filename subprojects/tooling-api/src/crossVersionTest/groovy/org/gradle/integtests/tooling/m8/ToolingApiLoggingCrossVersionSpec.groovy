@@ -168,7 +168,7 @@ project.logger.debug("debug logging");
         // Must replace both build result formats for cross compat
         return output
             .replaceFirst(/Support for .* was deprecated.*\n/,'')
-            .replaceFirst(/ in [.\d]+s/, " in 0s")
+            .replaceFirst(/ in [.\d]+m?s/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
