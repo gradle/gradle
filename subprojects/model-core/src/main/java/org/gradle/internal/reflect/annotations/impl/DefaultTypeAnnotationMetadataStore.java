@@ -141,13 +141,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private void visitSuperTypes(Class<?> type, Consumer<? super TypeAnnotationMetadata> visitor) {
+        Arrays.stream(type.getInterfaces())
+            .map(iface -> getTypeAnnotationMetadata(iface))
+            .forEach(visitor);
         Class<?> superclass = type.getSuperclass();
         if (superclass != null) {
             visitor.accept(getTypeAnnotationMetadata(superclass));
         }
-        Arrays.stream(type.getInterfaces())
-            .map(iface -> getTypeAnnotationMetadata(iface))
-            .forEach(visitor);
     }
 
     private Map<String, PropertyAnnotationMetadataBuilder> extractPropertiesFrom(Class<?> type) {
