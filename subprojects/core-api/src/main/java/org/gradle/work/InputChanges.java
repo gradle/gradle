@@ -28,6 +28,9 @@ import org.gradle.api.provider.Provider;
  * An incremental work action is one that accepts a single {@link InputChanges} parameter.
  * The work action can then query what changed for an input parameter since the last execution to only process the changes.
  *
+ * The following example shows a task which reverses the text in each of its input files.
+ * It demonstrates how to use {@link InputChanges} to only process the changed files.
+ *
  * <pre class='autoTested'>
  * abstract class IncrementalReverseTask extends DefaultTask {
  *     {@literal @}Incremental
