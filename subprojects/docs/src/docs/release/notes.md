@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features a [new API for Incremental Tasks](#incremental-tasks-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), [running Gradle on JDK12](#jdk12-support) and more.
+This release features [running Gradle on JDK12](#jdk12-support), a [new API for Incremental Tasks](#incremental-tasks-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
@@ -21,6 +21,12 @@ and [Stefan M.](https://github.com/StefMa).
 Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 `./gradlew wrapper --gradle-version=@version@`
+
+<a name="jdk12-support"/>
+
+## Support for JDK12
+
+Gradle now supports running on [JDK12](https://jdk.java.net/12/).
 
 <a name="incremental-tasks-api"/>
 
@@ -61,12 +67,6 @@ Updates include relocating generated object files to separate directories per va
 Gradle now supports [Swift 5](https://swift.org/blog/swift-5-released/) officially [release with the Xcode 10.2](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes).
 Specifying the source compatibility to Swift 5 instruct the compiler to expect Swift 5 compatible source files.
 Have a look at the [Swift samples](https://github.com/gradle/native-samples) to learn more about common use cases.
-
-<a name="jdk12-support"/>
-
-## Support for JDK12
-
-Gradle now supports running on [JDK12](https://jdk.java.net/12/). 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
