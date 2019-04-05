@@ -39,12 +39,12 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.instantexecution.InstantExecution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.instantexecution.InstantExecution;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -53,6 +53,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
+import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -67,6 +68,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     };
     private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
+    private final DefaultGradleLauncher.InstantExecutionHost instantExecutionHost;
 
     private enum Stage {
         LoadSettings, Configure, TaskGraph, RunTasks() {
@@ -126,7 +128,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
-        this.instantExecution = new InstantExecution(new InstantExecutionHost(gradle));
+        instantExecutionHost = new InstantExecutionHost(gradle);
+        this.instantExecution = new InstantExecution(instantExecutionHost);
     }
 
     @Override
@@ -196,56 +199,24 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void prepareTaskGraph() {
         ClassLoaderScopeRegistry classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
-        ScriptHandlerFactory scriptHandlerFactory = gradle.getServices().get(ScriptHandlerFactory.class);
-        StringScriptSource settingsSource = new StringScriptSource("settings", "");
-        final ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-        DefaultSettings settings = new DefaultSettings(
-            gradle.getServices().get(BuildScopeServiceRegistryFactory.class),
-            gradle,
-            classLoaderScopeRegistry.getCoreScope(),
-            classLoaderScopeRegistry.getCoreScope(),
-            scriptHandlerFactory.create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
-            new File(".").getAbsoluteFile(),
-            settingsSource,
-            gradle.getStartParameter()
-        ) {
-            @Override
-            public ExtensionContainer getExtensions() {
-                return null;
-            }
 
-            @Override
-            public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-                return projectDescriptorRegistry;
-            }
-
-            @Override
-            protected FileResolver getFileResolver() {
-                return gradle.getServices().get(FileResolver.class);
-            }
-        };
+        SettingsInternal settings = instantExecutionHost.createSettings();
         gradle.setSettings(settings);
 
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
-            null, ":", new File(".").getAbsoluteFile(),
-            projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
-        );
-
-        IProjectFactory projectFactory = gradle.getServices().get(IProjectFactory.class);
-
-        ProjectInternal rootProject = projectFactory.createProject(
-            projectDescriptor, null, gradle,
-            classLoaderScopeRegistry.getCoreAndPluginsScope(),
-            classLoaderScopeRegistry.getCoreAndPluginsScope()
-        );
+        ProjectInternal rootProject = instantExecutionHost.createProject(":");
         gradle.setRootProject(rootProject);
 
+        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
+        instantExecution.loadInstantExecutionStateInto();
+
+        registerProjects();
+
+        taskGraph.populate();
+    }
+
+    private void registerProjects() {
         gradle.getServices().get(ProjectStateRegistry.class)
             .registerProjects(gradle.getServices().get(BuildState.class));
-
-        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        instantExecution.loadInstantExecutionStateInto(rootProject);
-        taskGraph.populate();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -353,8 +324,45 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private static class InstantExecutionHost implements InstantExecution.Host {
         private final GradleInternal gradle;
 
+        ClassLoaderScopeRegistry classLoaderScopeRegistry;
+        ScriptHandlerFactory scriptHandlerFactory;
+        IProjectFactory projectFactory;
+        final ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
+
         InstantExecutionHost(GradleInternal gradle) {
             this.gradle = gradle;
+            classLoaderScopeRegistry = gradle.getServices().get(ClassLoaderScopeRegistry.class);
+            scriptHandlerFactory = gradle.getServices().get(ScriptHandlerFactory.class);
+            projectFactory = gradle.getServices().get(IProjectFactory.class);
+        }
+
+        SettingsInternal createSettings() {
+            StringScriptSource settingsSource = new StringScriptSource("settings", "");
+            return new DefaultSettings(
+                gradle.getServices().get(BuildScopeServiceRegistryFactory.class),
+                gradle,
+                classLoaderScopeRegistry.getCoreScope(),
+                classLoaderScopeRegistry.getCoreScope(),
+                scriptHandlerFactory.create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
+                new File(".").getAbsoluteFile(),
+                settingsSource,
+                gradle.getStartParameter()
+            ) {
+                @Override
+                public ExtensionContainer getExtensions() {
+                    return null;
+                }
+
+                @Override
+                public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
+                    return projectDescriptorRegistry;
+                }
+
+                @Override
+                protected FileResolver getFileResolver() {
+                    return gradle.getServices().get(FileResolver.class);
+                }
+            };
         }
 
         public <T> T getService(Class<T> serviceType) {
@@ -380,6 +388,33 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         public List<Task> getScheduledTasks() {
             return gradle.getTaskGraph().getAllTasks();
+        }
+
+        @Override
+        public ProjectInternal createProject(String path) {
+            Path projectPath = Path.path(path);
+            @Nullable
+            Path parentPath = projectPath.getParent();
+
+            DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
+                getProjectDescriptor(parentPath), path, new File(".").getAbsoluteFile(),
+                projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
+            );
+            return projectFactory.createProject(
+                projectDescriptor, getProject(parentPath), gradle,
+                classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                classLoaderScopeRegistry.getCoreAndPluginsScope()
+            );
+        }
+
+        @Nullable
+        private ProjectInternal getProject(@Nullable Path parentPath) {
+            return parentPath == null ? null : gradle.getRootProject().project(parentPath.getPath());
+        }
+
+        @Nullable
+        private DefaultProjectDescriptor getProjectDescriptor(@Nullable Path parentPath) {
+            return parentPath == null ? null : projectDescriptorRegistry.getProject(parentPath.getPath());
         }
     }
 
