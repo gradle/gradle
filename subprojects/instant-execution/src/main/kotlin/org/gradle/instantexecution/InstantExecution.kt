@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.logging.Logging
 import org.gradle.internal.reflect.ClassInspector
 import org.gradle.internal.reflect.PropertyDetails
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -134,7 +135,7 @@ class InstantExecution(private val host: Host) {
 
     private
     fun logProperty(taskType: Class<*>, property: PropertyDetails, reason: String) {
-        println("Property `${property.name}` from $taskType cannot be serialized because $reason.")
+        logger.info("Property `${property.name}` from $taskType cannot be serialized because $reason.")
     }
 
     private
@@ -176,3 +177,7 @@ class InstantExecution(private val host: Host) {
     private
     fun instantExecutionStateFile() = File(".instant-execution-state")
 }
+
+
+private
+val logger = Logging.getLogger(InstantExecution::class.java)
