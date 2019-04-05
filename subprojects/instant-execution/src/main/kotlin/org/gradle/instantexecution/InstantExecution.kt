@@ -209,7 +209,7 @@ class InstantExecution(private val host: Host) {
                     break
                 }
             } catch (e: Exception) {
-                throw GradleException("Could not load value of property `${propertyName}` of task ${task.path}.", e)
+                throw GradleException("Could not load value of property `$propertyName` of task ${task.path}.", e)
             }
         }
         return task to taskDependencies
