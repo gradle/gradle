@@ -102,20 +102,6 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
-        val pathsWithoutGaps = ArrayList<Path>(paths.size)
-        paths.forEach { path ->
-            var parent = path.parent
-            while (parent !== null && parent !in pathsWithoutGaps) {
-                pathsWithoutGaps.add(parent)
-                parent = parent.parent
-            }
-            pathsWithoutGaps.add(path)
-        }
-        return pathsWithoutGaps
-    }
-
-    private
     fun loadTasks(): List<Task> {
 
         val tasksWithDependencies = loadTasksWithDependencies()
@@ -274,6 +260,26 @@ class InstantExecution(private val host: Host) {
     private
     val instantExecutionStateFile
         get() = File(".instant-execution-state")
+}
+
+
+internal
+fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
+    val pathsWithoutGaps = ArrayList<Path>(paths.size)
+    var index = 0
+    paths.forEach { path ->
+        var parent = path.parent
+        var added = 0
+        while (parent !== null && parent !in pathsWithoutGaps) {
+            pathsWithoutGaps.add(index, parent)
+            added += 1
+            parent = parent.parent
+        }
+        pathsWithoutGaps.add(path)
+        added += 1
+        index += added
+    }
+    return pathsWithoutGaps
 }
 
 
