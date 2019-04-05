@@ -384,7 +384,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
             String name = projectPath.getName();
             DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
-                getProjectDescriptor(parentPath), name != null ? name : "root-project", new File(".").getAbsoluteFile(),
+                getProjectDescriptor(parentPath), name != null ? name : "instant-execution", new File(".").getAbsoluteFile(),
                 projectDescriptorRegistry, gradle.getServices().get(PathToFileResolver.class)
             );
             return projectFactory.createProject(
