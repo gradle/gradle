@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.transform
 import com.google.common.collect.ImmutableList
 import junit.framework.AssertionFailedError
 import org.gradle.api.Transformer
-import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
@@ -47,14 +46,6 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     def c1 = attributes().attribute(a1, "1").attribute(a2, 1).asImmutable()
     def c2 = attributes().attribute(a1, "1").attribute(a2, 2).asImmutable()
     def c3 = attributes().attribute(a1, "1").attribute(a2, 3).asImmutable()
-
-    static class Transform extends ArtifactTransform {
-        Transformer<List<File>, File> transformer
-
-        List<File> transform(File input) {
-            return transformer.transform(input)
-        }
-    }
 
     /**
      * Match all AttributeContainer that contains the same attributes.

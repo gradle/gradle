@@ -18,7 +18,8 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    id("gradlebuild.classycle")
+    gradlebuild.`strict-compile`
+    gradlebuild.classycle
 }
 
 description = "Execution engine that takes a unit of work and makes it happen"

@@ -56,7 +56,6 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
-import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -272,11 +271,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
             File outputDir = workspace.getOutputDirectory();
             File resultsFile = workspace.getResultsFile();
 
-            boolean incremental = inputChanges != null && inputChanges.isIncremental();
-            if (!incremental) {
-                GFileUtils.cleanDirectory(outputDir);
-                GFileUtils.deleteFileQuietly(resultsFile);
-            }
             ImmutableList<File> result = transformer.transform(inputArtifactProvider, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
             return WorkResult.DID_WORK;
@@ -335,6 +329,11 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         }
 
         @Override
+        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
+        }
+
+        @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, true);
         }
@@ -348,6 +347,16 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public boolean isAllowOverlappingOutputs() {
             return false;
+        }
+
+        @Override
+        public boolean hasOverlappingOutputs() {
+            return false;
+        }
+
+        @Override
+        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+            return true;
         }
 
         @Override
@@ -380,16 +389,6 @@ public class DefaultTransformerInvoker implements TransformerInvoker {
         @Override
         public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotAfterOutputsGenerated() {
             return snapshotOutputs(outputFingerprinter, fileCollectionFactory, workspace);
-        }
-
-        @Override
-        public boolean isRequiresInputChanges() {
-            return transformer.requiresInputChanges();
-        }
-
-        @Override
-        public boolean isRequiresLegacyInputChanges() {
-            return false;
         }
 
         @Override

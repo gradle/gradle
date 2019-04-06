@@ -31,6 +31,7 @@ import java.util.Set;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
+import static org.gradle.performance.results.ScenarioBuildResultData.FLAKINESS_DETECTION_THRESHOLD;
 
 public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     public static final int MOST_RECENT_EXECUTIONS = 9;
@@ -38,7 +39,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
         comparing(ScenarioBuildResultData::isBuildFailed).reversed()
             .thenComparing(ScenarioBuildResultData::isSuccessful)
             .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
-            .thenComparing(comparing(ScenarioBuildResultData::isFlaky).reversed())
+            .thenComparing(comparing(FlakinessIndexPageGenerator::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
     private final FlakinessIssueReporter issueReporter;
@@ -77,7 +78,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             @Override
             protected String getTableTitle() {
                 int total = scenarios.size();
-                long flakyCount = scenarios.stream().filter(ScenarioBuildResultData::isFlaky).count();
+                long flakyCount = scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).count();
                 return "Scenarios ( total: " + total + ", flaky: " + flakyCount + ")";
             }
 
@@ -98,12 +99,12 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario) {
-                return scenario.isFlaky() ? "alert-warning" : "alert-info";
+                return isFlaky(scenario) ? "alert-warning" : "alert-info";
             }
 
             @Override
             protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
-                return scenario.isFlaky() ? Sets.newHashSet(Tag.FLAKY) : Collections.emptySet();
+                return isFlaky(scenario) ? Sets.newHashSet(Tag.FLAKY) : Collections.emptySet();
             }
 
             @Override
@@ -113,6 +114,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     public void reportToIssueTracker() {
-        scenarios.stream().filter(ScenarioBuildResultData::isFlaky).forEach(issueReporter::report);
+        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(issueReporter::report);
+    }
+    private static boolean isFlaky(ScenarioBuildResultData scenario) {
+        return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }
 }

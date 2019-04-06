@@ -25,7 +25,6 @@ import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -58,7 +57,10 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputFilesRepository;
+import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
+import org.gradle.internal.file.ReservedFileSystemLocation;
+import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -87,6 +89,10 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
     }
 
+    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
+        return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
+    }
+
     TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
                                     BuildCacheController buildCacheController,
                                     TaskInputsListener inputsListener,
@@ -101,13 +107,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     ExecutionHistoryStore executionHistoryStore,
                                     OutputFilesRepository outputFilesRepository,
                                     BuildScanPluginApplied buildScanPlugin,
-                                    FileResolver resolver,
                                     FileCollectionFactory fileCollectionFactory,
                                     PropertyWalker propertyWalker,
                                     TaskExecutionGraphInternal taskExecutionGraph,
                                     TaskExecutionListener taskExecutionListener,
                                     TaskCacheabilityResolver taskCacheabilityResolver,
-                                    WorkExecutor<IncrementalContext, CachingResult> workExecutor
+                                    WorkExecutor<IncrementalContext, CachingResult> workExecutor,
+                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
     ) {
 
         boolean buildCacheEnabled = buildCacheController.isEnabled();
@@ -125,7 +131,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             workExecutor
         );
         executer = new ResolveBeforeExecutionStateTaskExecuter(classLoaderHierarchyHasher, valueSnapshotter, taskFingerprinter, executer);
-        executer = new ValidatingTaskExecuter(executer);
+        executer = new ValidatingTaskExecuter(executer, reservedFileSystemLocationRegistry);
         executer = new SkipEmptySourceFilesTaskExecuter(inputsListener, executionHistoryStore, cleanupRegistry, outputChangeListener, executer);
         executer = new ResolveBeforeExecutionOutputsTaskExecuter(taskFingerprinter, executer);
         // TODO:lptr this should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest

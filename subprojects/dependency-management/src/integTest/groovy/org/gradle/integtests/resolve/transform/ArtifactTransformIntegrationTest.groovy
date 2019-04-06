@@ -807,7 +807,7 @@ $fileSizer
             
             abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInput()
                 
                 void transform(TransformOutputs outputs) {
                     println("Transforming")
@@ -1668,11 +1668,11 @@ Found the following transforms:
 
             abstract class MyTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput() 
+                abstract Provider<FileSystemLocation> getInput() 
 
                 void transform(TransformOutputs outputs) {
                     println "Hello?"
-                    def output = outputs.${method}(new File(input, "some/dir/does-not-exist"))
+                    def output = outputs.${method}(new File(input.get().asFile, "some/dir/does-not-exist"))
                     assert !output.parentFile.directory
                 }
             }
