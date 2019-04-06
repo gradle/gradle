@@ -71,12 +71,12 @@ val convertCSV by tasks.registering {
                 tested.add(it.first)
             }
         }
-        outputFile.printWriter().let { writer ->
+        outputFile.printWriter().use { writer ->
             writer.print("Scenario,${tested.joinToString(",")}\n")
             benchmarks.forEach { benchmark, values ->
                 writer.print(benchmark)
                 tested.forEach { test ->
-                    writer.print(",${values.find { it.first == test }?.second}")
+                    writer.print(",${values.find { it.first == test }!!.second}")
                 }
                 writer.print("\n")
             }
