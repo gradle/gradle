@@ -171,7 +171,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 continue;
             }
 
-            PropertyAnnotationMetadataBuilder propertyBuilder = new PropertyAnnotationMetadataBuilder(propertyName, method);
+            // In the vast majority of cases here we go for the default, we only throw it away and actually have a hit
+            // when a type has both an 'is' and a 'get' getter for a boolean property
+            PropertyAnnotationMetadataBuilder propertyBuilder = propertyBuilders.getOrDefault(propertyName,
+                new PropertyAnnotationMetadataBuilder(propertyName, method));
             boolean privateGetter = Modifier.isPrivate(method.getModifiers());
             mergeDeclaredAnnotations(method, privateGetter, field, propertyBuilder).forEach(declaredAnnotation -> {
                 propertyBuilder.recordAnnotation(declaredAnnotation);
@@ -180,7 +183,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             if (privateGetter && !propertyBuilder.hasRecordedAnnotation()) {
                 continue;
             }
-            propertyBuilders.put(propertyName, propertyBuilder);
+            propertyBuilders.putIfAbsent(propertyName, propertyBuilder);
         }
         return propertyBuilders;
     }

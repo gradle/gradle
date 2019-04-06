@@ -115,10 +115,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getProperty() { property }
         }
 
-    def "ignores 'get' getter for 'is'"() {
+    def "merges annotations from 'is' and 'get' getter"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
-            bool: [(SIZE): Large],
+            bool: [(SIZE): Small, (COLOR): Color],
         ]
     }
 
@@ -128,7 +128,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Small
             boolean getBool() { true }
 
-            @Large
+            @Color
             boolean isBool() { true }
         }
 
@@ -366,8 +366,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
                 'Not an input'
             }
         }
-
-
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2115")
     def "annotation on private field is recognized for is-getter"() {
