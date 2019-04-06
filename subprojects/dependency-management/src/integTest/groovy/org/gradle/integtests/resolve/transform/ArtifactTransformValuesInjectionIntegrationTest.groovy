@@ -228,7 +228,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             ],
             incrementalNonFileInput: [
                 'does not have a value specified',
-                'is annotated with @Incremental that is invalid for @Input properties',
+                'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: 'does not have a value specified',
             noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',

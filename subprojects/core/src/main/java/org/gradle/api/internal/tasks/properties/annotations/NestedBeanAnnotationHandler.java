@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
@@ -41,10 +42,8 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
-        return ImmutableSet.<Class<? extends Annotation>>of(
-            Optional.class
-        );
+    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of(OPTIONAL);
     }
 
     @Override

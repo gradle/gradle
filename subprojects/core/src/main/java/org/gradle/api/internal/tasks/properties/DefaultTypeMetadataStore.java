@@ -128,14 +128,15 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 continue;
             }
 
-            ImmutableSet<Class<? extends Annotation>> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
+            ImmutableSet<? extends PropertyAnnotationCategory> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
             for (Map.Entry<PropertyAnnotationCategory, Annotation> entry : propertyAnnotations.getAnnotations().entrySet()) {
-                if (entry.getKey() == TYPE) {
+                PropertyAnnotationCategory annotationCategory = entry.getKey();
+                if (annotationCategory == TYPE) {
                     continue;
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
-                if (!allowedModifiersForPropertyType.contains(annotationType)) {
-                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with @%s that is invalid for @%s properties",
+                if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
+                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
                         annotationType.getSimpleName(), propertyType.getSimpleName()));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
                     validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid annotation @%s",

@@ -20,13 +20,13 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.PathSensitive;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.work.Incremental;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 
 import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override
@@ -35,13 +35,8 @@ public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnn
     }
 
     @Override
-    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
-        return ImmutableSet.of(
-            Classpath.class,
-            CompileClasspath.class,
-            Incremental.class,
-            PathSensitive.class
-        );
+    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of(INCREMENTAL, NORMALIZATION);
     }
 
     @Override

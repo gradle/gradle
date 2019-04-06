@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
@@ -38,7 +39,7 @@ public interface PropertyAnnotationHandler {
     /**
      * The modifier annotations allowed for the handled property type. This set can further be restricted by the actual work type.
      */
-    ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
+    ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers();
 
     /**
      * Does this handler do something useful with the properties that match it? Or can these properties be ignored?

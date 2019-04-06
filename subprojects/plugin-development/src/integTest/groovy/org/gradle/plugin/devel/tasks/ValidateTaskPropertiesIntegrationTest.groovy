@@ -757,13 +757,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is invalid for @Input properties."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
-            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is invalid for @Input properties.
+            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()

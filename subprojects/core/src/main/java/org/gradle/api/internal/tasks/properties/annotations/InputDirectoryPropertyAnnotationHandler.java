@@ -17,15 +17,14 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.PathSensitive;
-import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.work.Incremental;
+import org.gradle.internal.reflect.PropertyAnnotationCategory;
 
 import java.lang.annotation.Annotation;
+
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -33,15 +32,8 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
     }
 
     @Override
-    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
-        return ImmutableSet.of(
-            Classpath.class,
-            CompileClasspath.class,
-            Incremental.class,
-            Optional.class,
-            PathSensitive.class,
-            SkipWhenEmpty.class
-        );
+    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL);
     }
 
     @Override
