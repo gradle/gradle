@@ -1,7 +1,8 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +16,31 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    gradlebuild.classycle
+}
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(project(":core"))
+    compile(project(":dependencyManagement"))
 
-    compile project(':core')
-    compile project(':plugins')
+    runtime(project(":resourcesHttp"))
 
-    compile libraries.slf4j_api.coordinates
-    compile libraries.bndlib.coordinates
+    integTestRuntime(project(":plugins"))
+    integTestRuntime(project(":pluginDevelopment"))
+    integTestRuntime(project(":testKit"))
+    integTestRuntime(project(":toolingApiBuilders"))
 }
+
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
+}
+
 testFixtures {
-    from(':core')
+    from(":resourcesHttp")
 }

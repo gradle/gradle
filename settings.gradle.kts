@@ -126,32 +126,14 @@ rootProject.name = "gradle"
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = listOf(
     "distributions",
-    "process-services",
     "wrapper",
-    "resources",
-    "resources-http",
-    "resources-gcs",
-    "resources-s3",
-    "resources-sftp",
-    "plugins",
-    "scala",
-    "osgi",
     "docs",
-    "signing",
-    "native",
     "performance",
-    "reporting",
-    "publish",
-    "platform-base",
-    "platform-jvm",
-    "plugin-use",
     "testing-base",
     "testing-jvm",
     "testing-junit-platform",
-    "platform-play",
     "test-kit",
     "smoke-test",
-    "persistent-cache",
     "version-control")
 
 fun buildFileNameFor(projectDirName: String) =

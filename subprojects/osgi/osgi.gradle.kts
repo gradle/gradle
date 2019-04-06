@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,13 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile project(':core')
-    compile project(':plugins')
-    compile project(':maven')
+    compile(project(":core"))
+    compile(project(":plugins"))
 
-    testCompile project(':ivy')
-
-    compile libraries.bouncycastle_pgp.coordinates
+    compile(library("slf4j_api"))
+    compile(library("bndlib"))
 }
 
 gradlebuildJava {
@@ -33,5 +31,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':core')
+    from(":core")
 }

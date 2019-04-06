@@ -1,7 +1,7 @@
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,17 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id 'java-library'
-    id 'gradlebuild.strict-compile'
-    id 'gradlebuild.classycle'
-}
 
 dependencies {
-    api project(':resources')
-    api project(':core')
+    compile(library("groovy"))
 
-    implementation libraries.slf4j_api.coordinates
-    implementation libraries.guava.coordinates
-    implementation libraries.jsch.coordinates
-    implementation libraries.commons_io.coordinates
+    compile(project(":core"))
+    compile(project(":plugins"))
+    compile(project(":maven"))
+
+    testCompile(project(":ivy"))
+
+    compile(library("bouncycastle_pgp"))
 }
 
 gradlebuildJava {
@@ -36,13 +33,5 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':dependencyManagement')
-    from(':ivy')
-    from(':maven')
-    from(':core')
-}
-
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-testFilesCleanup {
-    policy = WhenNotEmpty.REPORT
+    from(":core")
 }

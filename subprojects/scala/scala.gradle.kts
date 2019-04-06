@@ -17,17 +17,17 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 dependencies {
-    compile libraries.groovy.coordinates
+    compile(library("groovy"))
 
-    compile project(":core")
-    compile project(":languageJvm")
-    compile project(":languageScala")
-    compile project(":plugins")
+    compile(project(":core"))
+    compile(project(":languageJvm"))
+    compile(project(":languageScala"))
+    compile(project(":plugins"))
 
-    testCompile libraries.slf4j_api.coordinates
+    testCompile(library("slf4j_api"))
 
-    integTestRuntime project(":ide")
-    integTestRuntime project(':maven')
+    integTestRuntime(project(":ide"))
+    integTestRuntime(project(":maven"))
 }
 
 gradlebuildJava {
@@ -36,11 +36,11 @@ gradlebuildJava {
 }
 
 testFixtures {
-    from(':plugins') // include core test fixtures
-    from(':languageJvm')
-    from(':languageScala')
+    from(":plugins") // include core test fixtures
+    from(":languageJvm")
+    from(":languageScala")
 }
 
-tasks.named("integTest").configure {
-    jvmArgs "-XX:MaxPermSize=1500m" // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
+tasks.named<Test>("integTest") {
+    jvmArgs("-XX:MaxPermSize=1500m") // AntInProcessScalaCompilerIntegrationTest needs lots of permgen
 }
