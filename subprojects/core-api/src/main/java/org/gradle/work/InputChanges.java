@@ -28,28 +28,27 @@ import org.gradle.api.provider.Provider;
  * An incremental work action is one that accepts a single {@link InputChanges} parameter.
  * The work action can then query what changed for an input parameter since the last execution to only process the changes.
  *
+ * The following example shows a task which reverses the text in each of its input files.
+ * It demonstrates how to use {@link InputChanges} to only process the changed files.
+ *
  * <pre class='autoTested'>
  * abstract class IncrementalReverseTask extends DefaultTask {
+ *     {@literal @}Incremental
  *     {@literal @}InputDirectory
  *     abstract DirectoryProperty getInputDir()
  *
  *     {@literal @}OutputDirectory
- *     def File outputDir
+ *     abstract DirectoryProperty getOutputDir()
  *
  *     {@literal @}TaskAction
  *     void execute(InputChanges inputChanges) {
- *         if (!inputChanges.incremental) {
- *             project.delete(outputDir.listFiles())
- *         }
- *
  *         inputChanges.getFileChanges(inputDir).each { change -&gt;
+ *             if (change.fileType == FileType.DIRECTORY) return
+ *
+ *             def targetFile = outputDir.file(change.normalizedPath).get().asFile
  *             if (change.changeType == ChangeType.REMOVED) {
- *                 def targetFile = project.file("$outputDir/${change.file.name}")
- *                 if (targetFile.exists()) {
- *                     targetFile.delete()
- *                 }
+ *                 targetFile.delete()
  *             } else {
- *                 def targetFile = project.file("$outputDir/${change.file.name}")
  *                 targetFile.text = change.file.text.reverse()
  *             }
  *         }
@@ -59,6 +58,7 @@ import org.gradle.api.provider.Provider;
  *
  * <p>
  * In the case where Gradle is unable to determine which input files need to be reprocessed, then all of the input files will be reported as {@link ChangeType#ADDED}.
+ * When such a full rebuild happens, the output files of the work are removed prior to executing the work action.
  * Cases where this occurs include:
  * <ul>
  *     <li>There is no history available from a previous execution.</li>
