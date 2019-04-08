@@ -40,6 +40,7 @@ import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.SortedSet
+import java.util.function.Supplier
 
 
 class InstantExecution(private val host: Host) {
@@ -188,6 +189,7 @@ class InstantExecution(private val host: Host) {
         is DirectoryProperty -> fieldValue.asFile.orNull
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
+        is Supplier<*> -> fieldValue.get()
         else -> fieldValue
     }
 
@@ -220,6 +222,7 @@ class InstantExecution(private val host: Host) {
                     DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
                     RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
                     Property::class.java -> (field.getFieldValue(task) as? Property<Any>)?.set(value)
+                    Supplier::class.java -> field.setValue(task, Supplier { value })
                     else -> {
                         if (field.type.isAssignableFrom(value.javaClass)) {
                             field.setValue(task, value)

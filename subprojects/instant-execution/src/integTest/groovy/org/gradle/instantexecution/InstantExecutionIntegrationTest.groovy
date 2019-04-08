@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Ignore
@@ -198,5 +199,16 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("running build script")
         result.assertTasksExecuted(":compileGroovy")
         classFile.isFile()
+    }
+
+    @Ignore
+    def "android"() {
+
+        given:
+        new TestFile("/Users/paul/src/local/gradle/instant-application").copyTo(testDirectory)
+
+        expect:
+        run 'compileDebugAidl', '-DinstantExecution'
+        run 'compileDebugAidl', '-DinstantExecution'
     }
 }
