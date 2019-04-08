@@ -16,8 +16,12 @@
 package gradlebuild
 
 import java.net.URI
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
+val lock = ReentrantLock()
 val allowedSchemes = setOf("https")
+val alreadyChecked = mutableSetOf<ArtifactRepository>()
 val insecureRepos = mutableSetOf<InsecureRepository>()
 val repoToSource = mutableMapOf<ArtifactRepository, String>()
 
@@ -68,11 +72,15 @@ gradle.buildFinished {
 }
 
 fun RepositoryHandler.checkRepositories(project: Project) = forEach {
-    if (it is MavenArtifactRepository) {
-        checkURLs(project, it, setOf(it.url))
-        checkURLs(project, it, it.artifactUrls)
-    } else if (it is IvyArtifactRepository) {
-        checkURLs(project, it, setOf(it.url))
+    lock.withLock {
+        if (alreadyChecked.add(it)) {
+            if (it is MavenArtifactRepository) {
+                checkURLs(project, it, setOf(it.url))
+                checkURLs(project, it, it.artifactUrls)
+            } else if (it is IvyArtifactRepository) {
+                checkURLs(project, it, setOf(it.url))
+            }
+        }
     }
 }
 
