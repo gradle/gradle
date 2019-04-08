@@ -196,13 +196,20 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         buildFile << """
 
             class MyTask extends DefaultTask {
-                @Incremental
-                @InputDirectory
                 File inputOne
+                File inputTwo
 
                 @Incremental
                 @InputDirectory
-                File inputTwo
+                File getInputOne() {
+                    inputOne
+                }
+
+                @Incremental
+                @InputDirectory
+                File getInputTwo() {
+                    inputTwo
+                }
 
                 @OutputDirectory
                 File outputDirectory
