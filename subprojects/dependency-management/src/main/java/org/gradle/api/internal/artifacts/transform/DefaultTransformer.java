@@ -62,6 +62,7 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -262,7 +263,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList())
+                validationMessages.stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
             );
         }
 
@@ -299,7 +300,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable TransformParameters parameters, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges) {
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> inputFileProvider.get().getAsFile()));
+            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
+                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact of a transform as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
+                return inputFileProvider.get().getAsFile();
+            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (parameters != null) {
                 builder.add(InjectionPoint.injectedByType(parameters.getClass(), () -> parameters));

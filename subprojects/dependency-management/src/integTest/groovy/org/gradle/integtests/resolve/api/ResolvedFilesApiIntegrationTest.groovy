@@ -296,13 +296,17 @@ task show {
         fails("show")
         failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
   - Configuration ':a:compile' variant free:
-      - Found artifactType 'jar' but wasn't required.
-      - Found flavor 'free' but wasn't required.
-      - Required usage 'compile' and found compatible value 'compile'.
+      - Unmatched attributes:
+          - Found artifactType 'jar' but wasn't required.
+          - Found flavor 'free' but wasn't required.
+      - Compatible attribute:
+          - Required usage 'compile' and found compatible value 'compile'.
   - Configuration ':a:compile' variant paid:
-      - Found artifactType 'jar' but wasn't required.
-      - Found flavor 'paid' but wasn't required.
-      - Required usage 'compile' and found compatible value 'compile'.""")
+      - Unmatched attributes:
+          - Found artifactType 'jar' but wasn't required.
+          - Found flavor 'paid' but wasn't required.
+      - Compatible attribute:
+          - Required usage 'compile' and found compatible value 'compile'.""")
 
         where:
         expression                                                                                         | _
@@ -367,25 +371,33 @@ task show {
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free:
-      - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Required flavor 'preview' and found incompatible value 'free'.
-      - Required usage 'compile' and found compatible value 'compile'.
+      - Incompatible attributes:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+          - Required flavor 'preview' and found incompatible value 'free'.
+      - Other attribute:
+          - Required usage 'compile' and found compatible value 'compile'.
   - Configuration ':a:compile' variant paid:
-      - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Required flavor 'preview' and found incompatible value 'paid'.
-      - Required usage 'compile' and found compatible value 'compile'.""")
+      - Incompatible attributes:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+          - Required flavor 'preview' and found incompatible value 'paid'.
+      - Other attribute:
+          - Required usage 'compile' and found compatible value 'compile'.""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration runtime:
-      - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Required flavor 'preview' but no value provided.
-      - Required usage 'compile' but no value provided.""")
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Other attributes:
+          - Required flavor 'preview' but no value provided.
+          - Required usage 'compile' but no value provided.""")
 
         failure.assertHasCause("""No variants of things.jar match the consumer attributes:
   - things.jar:
-      - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Required flavor 'preview' but no value provided.
-      - Required usage 'compile' but no value provided.""")
+      - Incompatible attribute:
+          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Other attributes:
+          - Required flavor 'preview' but no value provided.
+          - Required usage 'compile' but no value provided.""")
 
         where:
         expression                                                                                         | _

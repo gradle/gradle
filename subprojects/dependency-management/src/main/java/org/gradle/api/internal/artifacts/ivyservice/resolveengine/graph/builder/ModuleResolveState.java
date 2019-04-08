@@ -66,12 +66,6 @@ class ModuleResolveState implements CandidateModule {
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
-    // This field caches an arbitrary edge attributes, used when computing the attributes
-    // of selection of a constraint, in order to make sure we choose a "variant of the constraint"
-    // which is compatible with edges. In theory we shouldn't select a variant for constraints, but
-    // since they are represented as node states, it's required
-    private ImmutableAttributes nonConstraintAttributes = null;
-
     private AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
@@ -285,7 +279,6 @@ class ModuleResolveState implements CandidateModule {
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
-        nonConstraintAttributes = null;
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
@@ -299,7 +292,7 @@ class ModuleResolveState implements CandidateModule {
         return unattachedDependencies;
     }
 
-    ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) {
+    ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
         if (attributeMergingError != null) {
             throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
         }
@@ -307,28 +300,17 @@ class ModuleResolveState implements CandidateModule {
         if (mergedConstraintAttributes.isEmpty()) {
             return attributes;
         }
-        return attributesFactory.concat(mergedConstraintAttributes, attributes);
-    }
-
-    ImmutableAttributes mergeConstraintAttributesWithHardDependencyAttributes(ImmutableAttributes constraintAttributes) {
-        if (nonConstraintAttributes != null) {
-            return attributesFactory.concat(nonConstraintAttributes, constraintAttributes);
-        }
-        return constraintAttributes;
+        return attributesFactory.safeConcat(mergedConstraintAttributes.asImmutable(), attributes);
     }
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
             DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
             boolean constraint = dependencyMetadata.isConstraint();
-            if (nonConstraintAttributes == null && !constraint) {
-                nonConstraintAttributes = ((AttributeContainerInternal) selectorState.getRequested().getAttributes()).asImmutable();
-            } else {
-                if (constraint) {
-                    ComponentSelector selector = dependencyMetadata.getSelector();
-                    ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
-                    dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
-                }
+            if (constraint) {
+                ComponentSelector selector = dependencyMetadata.getSelector();
+                ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
+                dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
             }
         } catch (AttributeMergingException e) {
             attributeMergingError = e;
@@ -357,14 +339,14 @@ class ModuleResolveState implements CandidateModule {
         return platformState != null && !platformState.getParticipatingModules().isEmpty();
     }
 
-    void decreaseHardEdgeCount() {
+    void decreaseHardEdgeCount(NodeState removalSource) {
         pendingDependencies.decreaseHardEdgeCount();
         if (pendingDependencies.isPending()) {
             // Back to being a pending dependency
             // Clear remaining incoming edges, as they must be all from constraints
             if (selected != null) {
                 for (NodeState node : selected.getNodes()) {
-                    node.clearConstraintEdges(pendingDependencies);
+                    node.clearConstraintEdges(pendingDependencies, removalSource);
                 }
             }
         }

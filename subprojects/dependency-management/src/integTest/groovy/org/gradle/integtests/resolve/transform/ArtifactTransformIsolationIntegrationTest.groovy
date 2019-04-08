@@ -93,13 +93,14 @@ class Resolve extends Copy {
                 }
 
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInputArtifact()
 
                 CountRecorder() {
                     println "Creating CountRecorder"
                 }
                 
                 void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
                     def output = outputs.file(input.name + ".txt")
                     def counter = parameters.counter
                     println "Transforming \${input.name} to \${output.name}"

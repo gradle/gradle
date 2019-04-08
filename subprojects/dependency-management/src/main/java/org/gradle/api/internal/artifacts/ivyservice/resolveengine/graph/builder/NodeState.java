@@ -487,7 +487,7 @@ public class NodeState implements DependencyGraphNode {
             for (EdgeState outgoingDependency : outgoingEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
-                outgoingDependency.maybeDecreaseHardEdgeCount();
+                outgoingDependency.maybeDecreaseHardEdgeCount(this);
             }
         }
         outgoingEdges.clear();
@@ -557,12 +557,16 @@ public class NodeState implements DependencyGraphNode {
      * Invoked when this node is back to being a pending dependency.
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
      */
-    public void clearConstraintEdges(PendingDependencies pendingDependencies) {
+    public void clearConstraintEdges(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
         for (EdgeState incomingEdge : incomingEdges) {
             assert incomingEdge.getDependencyMetadata().isConstraint();
-            incomingEdge.getSelector().release();
             NodeState from = incomingEdge.getFrom();
-            from.getOutgoingEdges().remove(incomingEdge);
+            if (from != backToPendingSource) {
+                // Only remove edges that come from a different node than the source of the dependency going back to pending
+                // The edges from the "From" will be removed first
+                incomingEdge.getSelector().release();
+                from.getOutgoingEdges().remove(incomingEdge);
+            }
             pendingDependencies.addNode(from);
         }
         incomingEdges.clear();

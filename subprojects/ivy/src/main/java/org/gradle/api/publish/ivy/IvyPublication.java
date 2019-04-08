@@ -17,8 +17,10 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
+import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -330,5 +332,34 @@ public interface IvyPublication extends Publication {
      * Sets the revision for this publication.
      */
     void setRevision(String revision);
+
+    /**
+     * Configures the version mapping strategy.
+     *
+     * For example, to use resolved versions for runtime dependencies:
+     * <pre class='autoTested'>
+     * apply plugin: "java"
+     * apply plugin: "ivy-publish"
+     *
+     * publishing {
+     *   publications {
+     *     maven(IvyPublication) {
+     *       from components.java
+     *       versionMapping {
+     *         usage('java-runtime'){
+     *           fromResolutionResult()
+     *         }
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     *
+     * @param configureAction the configuration
+     *
+     * @since 5.4
+     */
+    @Incubating
+    void versionMapping(Action<? super VersionMappingStrategy> configureAction);
 
 }

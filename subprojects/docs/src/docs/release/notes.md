@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features a [new API for Incremental Changes](#incremental-changes-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), [running Gradle on JDK12](#jdk12-support) and more.
+This release features [running Gradle on JDK12](#jdk12-support), a [new API for Incremental Tasks](#incremental-tasks-api), updates to [building native software with Gradle](#native-support), [Swift 5 Support](#swift5-support), and more.
 
 Read the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.0.
 If upgrading from Gradle 4.x, please read [upgrading from Gradle 4.x to 5.0](userguide/upgrading_version_4.html) first.
@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 [Ian Kerins](https://github.com/isker),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Rodolfo Forte](https://github.com/Tschis),
 and [Stefan M.](https://github.com/StefMa).
 
@@ -21,149 +22,36 @@ Switch your build to use Gradle @version@ by updating your wrapper properties:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-<a name="incremental-changes-api"/>
+<a name="jdk12-support"/>
 
-## New API for Incremental Changes
+## Support for JDK12
 
-The new `org.gradle.work` package provides behavior that allow access to any input files that need to be processed by an incremental work action.
-The following `Checksum` example task calculates a SHA256 on each given input. Inputs may be updated at any time, for example by adding more inputs
-to the `sources` property or by updating the content of any given input that was previously listed.
+Gradle now supports running on [JDK12](https://jdk.java.net/12/).
+
+<a name="incremental-tasks-api"/>
+
+## New API for Incremental Tasks
+
+With Gradle, it's very simple to implement a task that is skipped when all of its inputs and outputs are up to date (see [Incremental Builds](userguide/more_about_tasks.html#sec:up_to_date_checks)).
+However, there are times when only a few input files have changed since the last execution, and you'd like to avoid reprocessing all of the unchanged inputs.
+When a task has an input that can represent multiple files and the task only processes those files that are out of date, it's called an _incremental task_.
+Prior to Gradle 5.4, you had to use [`IncrementalTaskInputs`](dsl/org.gradle.api.tasks.incremental.IncrementalTaskInputs.html) to implement an incremental task.
+
+Now you can use the new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks.
+This API addresses some shortcomings of the old API, first and foremost that it is now possible to query for changes of individual input file properties, instead of receiving the changes for all input file properties at once.
+Additionally, the file type and the normalized path can be queried for each change, and the old outputs of the task are automatically removed when Gradle is unable to determine which input files need to be processed.
+
+See the [user manual](userguide/custom_tasks.html#incremental_tasks) for more information on how to implement incremental tasks using the new API.
 
 ```
-import com.google.common.hash.Hashing
-import com.google.common.io.Files
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileType
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
-import org.gradle.api.tasks.SkipWhenEmpty
-import org.gradle.api.tasks.TaskAction
-import org.gradle.work.ChangeType
-import org.gradle.work.FileChange
-import org.gradle.work.InputChanges
-
-class Checksum extends DefaultTask {
-    @SkipWhenEmpty
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFiles
-    ConfigurableFileCollection sources = project.files()
-
-    @OutputDirectory
-    DirectoryProperty outputDirectory = project.objects.directoryProperty()
-
-    @TaskAction
-    void checksum(InputChanges changes) {
-        File outputDir = outputDirectory.get().asFile
-        if (!changes.incremental) {
-            println("Non-incremental changes - cleaning output directory")
-            outputDir.deleteDir()
-            outputDir.mkdirs()
-        }
-        for(FileChange change : changes.getFileChanges(sources)) {
-            File changedFile = change.file
-            if (change.fileType == FileType.FILE) {
-                switch(change.changeType) {
-                    case ChangeType.ADDED: // fall through
-                    case ChangeType.MODIFIED:
-                        outputFileForInput(change).text = hashFileContents(changedFile)
-                        break
-                    case ChangeType.REMOVED:
-                        deleteStaleOutput(outputFileForInput(change))
-                        break
-                }
-            }
-        }
-    }
-
-    private void deleteStaleOutput( File file) {
-        println("Removing old output ${file.name}")
-        file.delete()
-    }
-
-    private File outputFileForInput(FileChange inputFile) {
-        project.file("${outputDirectory.get().asFile}/${inputFile.normalizedPath}.sha256")
-    }
-
-    private String hashFileContents(File file) {
-        println("Hashing ${file.name}")
-        return Files.asByteSource(file).hash(Hashing.sha256()).toString()
+inputChanges.getFileChanges(inputDir).forEach { change ->
+    val targetFile = outputDir.file(change.normalizedPath).get().asFile
+    if (change.changeType == ChangeType.REMOVED) {
+        targetFile.delete()
+    } else {
+        targetFile.writeText(change.file.readText().reversed())
     }
 }
-```
-
-This `CheckSum` task can be configured to incrementally checksum the files on the runtime classpath and everything under the inputs directory:
-
-```
-plugins {
-    id "java"
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.junit.platform:junit-platform-engine:1.4.1")
-    implementation("org.junit.jupiter:junit-jupiter:5.4.1")
-}
-
-tasks.register("checksum", Checksum) {
-    sources.from(configurations.runtimeClasspath)
-    sources.from({
-        project.fileTree("inputs").files
-    })
-    outputDirectory.set(layout.buildDirectory.dir("checksummed"))
-}
-```
-
-On a first run, everything needs to be checksummed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Non-incremental changes - cleaning output directory
-Hashing junit-jupiter-5.4.1.jar
-Hashing junit-jupiter-engine-5.4.1.jar
-Hashing junit-platform-engine-1.4.1.jar
-Hashing junit-jupiter-params-5.4.1.jar
-Hashing junit-jupiter-api-5.4.1.jar
-Hashing junit-platform-commons-1.4.1.jar
-Hashing apiguardian-api-1.0.0.jar
-Hashing opentest4j-1.1.1.jar
-Hashing something-to-checksum.txt
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-```
-
-If we change `inputs/something-to-checksum.txt` and add a new file - `inputs/new-file.txt`, then only the two new files are processed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Hashing something-to-checksum.txt
-Hashing new-file.txt
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 executed
-```
-
-If we now remove the new file again, then the file is removed.
-
-```console
-$> ./gradlew checksum
-
-> Task :checksum
-Removing old output new-file.txt.sha256
-
-BUILD SUCCESSFUL in 0s
-1 actionable task: 1 execute
 ```
 
 <a name="native-support"/>
@@ -179,12 +67,6 @@ Updates include relocating generated object files to separate directories per va
 Gradle now supports [Swift 5](https://swift.org/blog/swift-5-released/) officially [release with the Xcode 10.2](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes).
 Specifying the source compatibility to Swift 5 instruct the compiler to expect Swift 5 compatible source files.
 Have a look at the [Swift samples](https://github.com/gradle/native-samples) to learn more about common use cases.
-
-<a name="jdk12-support"/>
-
-## Support for JDK12
-
-Gradle now supports running on [JDK12](https://jdk.java.net/12/). 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

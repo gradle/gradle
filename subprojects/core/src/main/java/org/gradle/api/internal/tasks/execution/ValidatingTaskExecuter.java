@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -62,6 +63,7 @@ public class ValidatingTaskExecuter implements TaskExecuter {
     }
 
     private static void report(Task task, List<String> messages, TaskStateInternal state) {
+        Collections.sort(messages);
         List<InvalidUserDataException> causes = Lists.newArrayListWithCapacity(messages.size());
         for (String message : messages) {
             causes.add(new InvalidUserDataException(message));

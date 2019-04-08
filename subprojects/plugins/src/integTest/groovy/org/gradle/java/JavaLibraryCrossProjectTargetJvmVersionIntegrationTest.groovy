@@ -58,15 +58,19 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         then:
         failure.assertHasCause('''Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Found org.gradle.category 'library' but wasn't required.
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
+      - Other attributes:
+          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Found org.gradle.category 'library' but wasn't required.
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
+      - Other attributes:
+          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.''')
     }
 
     @Unroll
@@ -143,15 +147,19 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         then:
         failure.assertHasCause("""Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Found org.gradle.category 'library' but wasn't required.
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
+      - Other attributes:
+          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Found org.gradle.category 'library' but wasn't required.
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-      - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
+      - Incompatible attribute:
+          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
+      - Other attributes:
+          - Found org.gradle.category 'library' but wasn't required.
+          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.""")
 
         when:
         buildFile << """

@@ -198,6 +198,9 @@
             <tr>
                 <td>org.gradle.api.resources.TextResourceFactory</td>
             </tr>
+            <tr>
+                <td>org.gradle.work.InputChanges</td>
+            </tr>
         </table>
     </section>
 
