@@ -343,13 +343,9 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
         buildFile << """
             buildscript {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
             }
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
         """
 
         when:
