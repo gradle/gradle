@@ -208,7 +208,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         new TestFile("/Users/paul/src/local/gradle/instant-application").copyTo(testDirectory)
 
         expect:
-        run 'compileDebugAidl', '-DinstantExecution'
-        run 'compileDebugAidl', '-DinstantExecution'
+        run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
+        run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
     }
 }
