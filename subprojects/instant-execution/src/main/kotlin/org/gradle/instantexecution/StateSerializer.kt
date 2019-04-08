@@ -79,36 +79,28 @@ class StateSerializer(
             else -> throw UnsupportedOperationException()
         }
 
-    override fun write(encoder: Encoder, value: Any?) =
+    override fun write(encoder: Encoder, value: Any?) = encoder.run {
         when (value) {
-            null -> encoder.writeByte(NULL_VALUE)
-            is String -> {
-                encoder.writeByte(STRING_TYPE)
-                stringSerializer.write(encoder, value)
-            }
-            is FileTreeInternal -> {
-                encoder.writeByte(FILE_TREE_TYPE)
-                fileTreeSerializer.write(encoder, value)
-            }
-            is File -> {
-                encoder.writeByte(FILE_TYPE)
-                BaseSerializerFactory.FILE_SERIALIZER.write(encoder, value)
-            }
-            is FileCollection -> {
-                encoder.writeByte(FILE_COLLECTION_TYPE)
-                fileSetSerializer.write(encoder, value.files)
-            }
-            is List<*> -> {
-                encoder.writeByte(LIST_TYPE)
-                listSerializer.write(encoder, value)
-            }
+            null -> writeByte(NULL_VALUE)
+            is String -> serialize(STRING_TYPE, stringSerializer, value)
+            is FileTreeInternal -> serialize(FILE_TREE_TYPE, fileTreeSerializer, value)
+            is File -> serialize(FILE_TYPE, BaseSerializerFactory.FILE_SERIALIZER, value)
+            is FileCollection -> serialize(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
+            is List<*> -> serialize(LIST_TYPE, listSerializer, value)
             else -> throw UnsupportedOperationException()
         }
+    }
 
     fun canWrite(type: Class<*>): Boolean =
         type == String::class.java || type == File::class.java ||
             FileCollection::class.java.isAssignableFrom(type) ||
             List::class.java.isAssignableFrom(type)
+
+    private
+    fun <T> Encoder.serialize(tag: Byte, serializer: Serializer<T>, value: T) {
+        writeByte(tag)
+        serializer.write(this, value)
+    }
 
     private
     class FileTreeVisitor : FileCollectionLeafVisitor {
