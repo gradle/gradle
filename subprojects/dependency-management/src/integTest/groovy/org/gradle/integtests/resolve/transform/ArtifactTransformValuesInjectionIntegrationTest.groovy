@@ -200,6 +200,11 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                     @PathSensitive(PathSensitivity.ABSOLUTE)
                     @InputFiles
                     ConfigurableFileCollection getAbsolutePathSensitivity()
+                    
+                    @Incremental
+                    @Input
+                    String getIncrementalNonFileInput()
+                    void setIncrementalNonFileInput(String value)
                 }
             
                 void transform(TransformOutputs outputs) {
@@ -215,17 +220,21 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters\\$Inject@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         assertPropertyValidationErrors(
-            extension: 'is not annotated with an input annotation',
-            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
-            missingInput: 'does not have a value specified',
-            fileInput: [
-                'has @Input annotation used on property of type java.io.File',
-                'does not have a value specified'
-            ],
             absolutePathSensitivity: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
+            extension: 'is not annotated with an input annotation',
+            fileInput: [
+                'does not have a value specified',
+                'has @Input annotation used on property of type java.io.File',
+            ],
+            incrementalNonFileInput: [
+                'does not have a value specified',
+                'has @Incremental annotation used on an @Input property',
+            ],
+            missingInput: 'does not have a value specified',
             noPathSensitivity: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
             noPathSensitivityDir: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
-            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity'
+            noPathSensitivityFile: 'is declared without path sensitivity. Properties of cacheable transforms must declare their path sensitivity',
+            outputDir: 'is annotated with unsupported annotation @OutputDirectory',
         )
     }
 
