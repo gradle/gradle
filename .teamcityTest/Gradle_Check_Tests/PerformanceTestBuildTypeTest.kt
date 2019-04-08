@@ -77,6 +77,7 @@ class PerformanceTestBuildTypeTest {
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
                 "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
+                "-PgithubToken=%github.ci.oauth.token%",
                 "\"-Dscan.tag.PerformanceTest\"",
                 "--build-cache",
                 "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
@@ -95,7 +96,6 @@ class PerformanceTestBuildTypeTest {
                         + expectedRunnerParams
                         + "-PteamCityBuildId=%teamcity.build.id%"
                         + "-PonlyPreviousFailedTestClasses=true"
-                        + "-PgithubToken=%github.ci.oauth.token%"
                         + "-Dscan.tag.RERUN_TESTS"
                         ).joinToString(" "),
                 performanceTest.getGradleStep("GRADLE_RERUNNER").gradleParams
