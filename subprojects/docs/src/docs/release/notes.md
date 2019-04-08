@@ -13,7 +13,7 @@ Include only their name, impactful features should be called out separately belo
 
 [Ian Kerins](https://github.com/isker),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Rodolfo Forte](https://github.com/Tschis),
+[Rodolfo Forte](https://github.com/Tschis)
 and [Stefan M.](https://github.com/StefMa).
 
 ## Upgrade Instructions
@@ -67,6 +67,12 @@ Updates include relocating generated object files to separate directories per va
 Gradle now supports [Swift 5](https://swift.org/blog/swift-5-released/) officially [release with the Xcode 10.2](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_2_release_notes).
 Specifying the source compatibility to Swift 5 instruct the compiler to expect Swift 5 compatible source files.
 Have a look at the [Swift samples](https://github.com/gradle/native-samples) to learn more about common use cases.
+
+
+## Ivy publication can expose resolved versions
+
+When using the [`ivy-publish` plugin](userguide/publishing_ivy.html), you can now opt-in to publish the _resolved_ dependency versions instead of the _declared_ ones.
+For details, have a look at the [dedicated section](userguide/publishing_ivy.html#publishing_ivy:resolved_dependencies) in the plugin documentation.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
