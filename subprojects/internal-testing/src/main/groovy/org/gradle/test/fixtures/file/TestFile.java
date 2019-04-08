@@ -27,6 +27,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.HashingOutputStream;
+import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -468,6 +469,20 @@ public class TestFile extends File {
 
     public static HashCode md5(File file) {
         HashingOutputStream hashingStream = Hashing.primitiveStreamHasher();
+        try {
+            Files.copy(file.toPath(), hashingStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return hashingStream.hash();
+    }
+
+    public String getSha1Hash() {
+        return sha1(this).toString();
+    }
+
+    public static HashCode sha1(File file) {
+        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.sha1(), NullOutputStream.INSTANCE);
         try {
             Files.copy(file.toPath(), hashingStream);
         } catch (IOException e) {

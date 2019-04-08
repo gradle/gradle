@@ -16,7 +16,7 @@
 
 package org.gradle
 
-import java.security.MessageDigest
+import org.gradle.test.fixtures.file.TestFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -30,7 +30,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         'bin'
     }
 
-    def "Verify jar dependencies"() {
+    def "verify 3rd-party dependencies jar hashes"() {
         setup:
         // dependencies produced by Gradle and cannot be verified by this test
         def excluded = ['fastutil-8.2.1-min.jar', 'kotlin-compiler-embeddable-1.3.21-patched-for-gradle-5.4.jar']
@@ -162,7 +162,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         def libDir = unpackDistribution().file('lib')
         def jars = collectJars(libDir)
-        def depJars = jars.collectEntries { [(libDir.relativePath(it)): it] }.findAll { String k, File v -> !k.startsWith('gradle-') && !k.startsWith("plugins/gradle-") && !excluded.contains(k) }.sort()
+        Map<String, TestFile> depJars = jars.collectEntries { [(libDir.relativePath(it)): it] }.findAll { String k, File v -> !k.startsWith('gradle-') && !k.startsWith("plugins/gradle-") && !excluded.contains(k) }
 
         def added = depJars.keySet() - expectedHashes.keySet()
         def removed = expectedHashes.keySet() - depJars.keySet()
@@ -175,30 +175,21 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         }
 
         def errors = []
-        depJars.each { jarPath, jar ->
+        depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
-            def actual = checksum(jar)
+            def actual = jar.sha1Hash
             if (expected != actual) {
-                errors.add([jarPath, expected, actual])
+                errors.add([path: jarPath, expectedHash: expected, actualHash: actual])
             }
         }
 
         !errors.findAll { error ->
-            System.err.println "Sha-1 mismatch for ${error[0]}: expected=${error[1]}, actual=${error[2]}"
+            System.err.println "Sha-1 mismatch for ${error.path}: expected=${error.expectedHash}, actual=${error.actualHash}"
             true
         }
     }
 
-    private def checksum(File file) {
-        // inline checksum implementation to stay independent from gradle/core
-        MessageDigest md = MessageDigest.getInstance("SHA-1")
-        file.eachByte 4096, { bytes, size ->
-            md.update(bytes, 0, size)
-        }
-        md.digest().collect { String.format "%02x", it }.join()
-    }
-
-    private def collectJars(File file, Collection<File> acc = []) {
+    private static def collectJars(TestFile file, Collection<File> acc = []) {
         if (file.name.endsWith('.jar')) {
             acc.add(file)
         }
@@ -208,7 +199,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         acc
     }
 
-    private def printScript(depJars) {
+    private static void printScript(depJars) {
         System.err.println "Use the following script to regenerate the expected hashes"
         System.err.println "(note: install the jq package: `brew install jq`)\n"
 
