@@ -20,21 +20,16 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 val lock = ReentrantLock()
-val stackWalker = StackWalker.getInstance()!!
 val allowedSchemes = setOf("https")
 val alreadyChecked = mutableSetOf<ArtifactRepository>()
 val insecureRepos = mutableSetOf<InsecureRepository>()
 val repoToSource = mutableMapOf<ArtifactRepository, String>()
 
 allprojects {
-    // This check is just a sanity check since it is possible that we compile
-    // build scripts with Java 9+ and run the build with Java 8 in a performance test
-    if (JavaVersion.current().isJava9Compatible) {
-        repositories.whenObjectAdded {
-            stackWalker.walk {
-                it.filter { it.isBuildScript() }.findFirst().ifPresent {
-                    repoToSource.put(this, "${it.fileName}:${it.lineNumber} in ${it.className}")
-                }
+    repositories.whenObjectAdded {
+        Exception().stackTrace.forEachIndexed { idx, it ->
+            if (idx > 1 && !repoToSource.containsKey(this) && it.isBuildScript()) {
+                repoToSource.put(this, "${it.fileName}:${it.lineNumber} in ${it.className}")
             }
         }
     }
@@ -97,4 +92,4 @@ fun checkURLs(project: Project, repository: ArtifactRepository, uris: Collection
 
 data class InsecureRepository(val projectPath: String, val repositoryName: String, val url: URI, val location: String?)
 
-fun StackWalker.StackFrame.isBuildScript() = fileName != null && fileName != "security.gradle.kts" && (fileName.endsWith(".gradle") || fileName.endsWith(".gradle.kts"))
+fun StackTraceElement.isBuildScript() = fileName != null && (fileName.endsWith(".gradle") || fileName.endsWith(".gradle.kts"))
