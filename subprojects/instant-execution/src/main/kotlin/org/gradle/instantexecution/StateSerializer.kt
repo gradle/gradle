@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -24,6 +25,7 @@ import org.gradle.api.internal.file.FileCollectionLeafVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
@@ -33,6 +35,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 
 import java.io.File
+import java.lang.reflect.Modifier
 import java.util.LinkedHashSet
 
 
@@ -76,6 +79,17 @@ class StateSerializer(
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
             LIST_TYPE -> listSerializer.read(decoder)
+            ARTIFACT_COLLECTION_TYPE -> EmptyArtifactCollection(ImmutableFileCollection.of())
+            BEAN_TYPE -> {
+                val beanTypeName = decoder.readString()
+                val beanFactory = { loader: ClassLoader ->
+                    loader.loadClass(beanTypeName).declaredConstructors.first { it.parameterCount == 0 }.run {
+                        isAccessible = true
+                        newInstance()
+                    }
+                }
+                beanFactory
+            }
             else -> throw UnsupportedOperationException()
         }
 
@@ -87,14 +101,21 @@ class StateSerializer(
             is File -> serialize(FILE_TYPE, BaseSerializerFactory.FILE_SERIALIZER, value)
             is FileCollection -> serialize(FILE_COLLECTION_TYPE, fileSetSerializer, value.files)
             is List<*> -> serialize(LIST_TYPE, listSerializer, value)
-            else -> throw UnsupportedOperationException()
+            is ArtifactCollection -> writeByte(ARTIFACT_COLLECTION_TYPE)
+            else -> {
+                writeByte(BEAN_TYPE)
+                writeString(value.javaClass.name)
+            }
         }
     }
 
     fun canWrite(type: Class<*>): Boolean =
-        type == String::class.java || type == File::class.java ||
+        type == String::class.java ||
+            type == File::class.java ||
+            ArtifactCollection::class.java.isAssignableFrom(type) ||
             FileCollection::class.java.isAssignableFrom(type) ||
-            List::class.java.isAssignableFrom(type)
+            List::class.java.isAssignableFrom(type) ||
+            (!Modifier.isAbstract(type.modifiers) && type.declaredConstructors.any { it.parameterCount == 0 })
 
     private
     fun <T> Encoder.serialize(tag: Byte, serializer: Serializer<T>, value: T) {
@@ -124,5 +145,7 @@ class StateSerializer(
         const val FILE_TYPE: Byte = 3
         const val FILE_COLLECTION_TYPE: Byte = 4
         const val LIST_TYPE: Byte = 5
+        const val ARTIFACT_COLLECTION_TYPE: Byte = 6
+        const val BEAN_TYPE: Byte = 7
     }
 }

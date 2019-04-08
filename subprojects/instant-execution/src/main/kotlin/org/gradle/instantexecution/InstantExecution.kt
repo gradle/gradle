@@ -212,7 +212,8 @@ class InstantExecution(private val host: Host) {
                 break
             }
             try {
-                val value = stateSerializer.read(decoder) ?: continue
+                val deserializedValue = stateSerializer.read(decoder) ?: continue
+                val value = (deserializedValue as? (ClassLoader) -> Any)?.invoke(taskClassLoader) ?: deserializedValue
                 val field = taskFieldsByName.getValue(fieldName)
                 println("DESERIALIZED ${task.path} field $fieldName value $value")
                 when (field.type) {
