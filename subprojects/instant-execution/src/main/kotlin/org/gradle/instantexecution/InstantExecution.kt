@@ -190,6 +190,7 @@ class InstantExecution(private val host: Host) {
         is RegularFileProperty -> fieldValue.asFile.orNull
         is Property<*> -> fieldValue.orNull
         is Supplier<*> -> fieldValue.get()
+        is Function0<*> -> (fieldValue as (() -> Any?)).invoke()
         else -> fieldValue
     }
 
@@ -223,6 +224,7 @@ class InstantExecution(private val host: Host) {
                     RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
                     Property::class.java -> (field.getFieldValue(task) as? Property<Any>)?.set(value)
                     Supplier::class.java -> field.setValue(task, Supplier { value })
+                    Function0::class.java -> field.setValue(task, { value })
                     else -> {
                         if (field.type.isAssignableFrom(value.javaClass)) {
                             field.setValue(task, value)
