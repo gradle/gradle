@@ -23,6 +23,10 @@ import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.noDeprecationChecks()
+    }
+
     def "classic"() {
         expect:
         run "help"
@@ -53,7 +57,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
         run "compileJava", "-DinstantExecution"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava")
@@ -89,7 +92,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
         run "assemble", "-DinstantExecution"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
@@ -182,7 +184,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDeprecationWarning()
         run "compileGroovy", "-DinstantExecution"
         outputContains("running build script")
         result.assertTasksExecuted(":compileGroovy")

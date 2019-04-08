@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -29,6 +28,7 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.ListSerializer
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 
@@ -37,7 +37,7 @@ import java.util.LinkedHashSet
 
 
 internal
-class PropertyValueSerializer(
+class StateSerializer(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Serializer<Any> {
@@ -47,6 +47,9 @@ class PropertyValueSerializer(
 
     private
     val stringSerializer = BaseSerializerFactory.STRING_SERIALIZER
+
+    private
+    val listSerializer = ListSerializer(this)
 
     private
     val fileTreeSerializer = object : Serializer<FileTreeInternal> {
@@ -72,6 +75,7 @@ class PropertyValueSerializer(
             FILE_TREE_TYPE -> fileTreeSerializer.read(decoder)
             FILE_TYPE -> BaseSerializerFactory.FILE_SERIALIZER.read(decoder)
             FILE_COLLECTION_TYPE -> fileCollectionFactory.fixed(fileSetSerializer.read(decoder))
+            LIST_TYPE -> listSerializer.read(decoder)
             else -> throw UnsupportedOperationException()
         }
 
@@ -94,11 +98,17 @@ class PropertyValueSerializer(
                 encoder.writeByte(FILE_COLLECTION_TYPE)
                 fileSetSerializer.write(encoder, value.files)
             }
+            is List<*> -> {
+                encoder.writeByte(LIST_TYPE)
+                listSerializer.write(encoder, value)
+            }
             else -> throw UnsupportedOperationException()
         }
 
     fun canWrite(type: Class<*>): Boolean =
-        type == String::class.java || type == FileTree::class.java || type == File::class.java || type == FileCollection::class.java
+        type == String::class.java || type == File::class.java ||
+            FileCollection::class.java.isAssignableFrom(type) ||
+            List::class.java.isAssignableFrom(type)
 
     private
     class FileTreeVisitor : FileCollectionLeafVisitor {
@@ -121,5 +131,6 @@ class PropertyValueSerializer(
         const val FILE_TREE_TYPE: Byte = 2
         const val FILE_TYPE: Byte = 3
         const val FILE_COLLECTION_TYPE: Byte = 4
+        const val LIST_TYPE: Byte = 5
     }
 }

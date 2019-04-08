@@ -20,24 +20,26 @@ import groovy.lang.GroovyObject
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.reflect.ClassInspector
-import org.gradle.internal.reflect.PropertyDetails
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.Path
 
 import java.io.File
-import java.lang.reflect.Method
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import java.util.SortedSet
-import javax.inject.Inject
 
 
 class InstantExecution(private val host: Host) {
@@ -158,38 +160,41 @@ class InstantExecution(private val host: Host) {
         serializeCollection(host.dependenciesOf(task)) {
             writeString(it.path)
         }
-        for (property in relevantPropertiesOf(taskType)) {
-            if (property.setters.isEmpty()) {
-                logProperty(taskType, property, "there are no setters")
+        for (field in relevantStateOf(taskType)) {
+            val fieldValue = field.getFieldValue(task)
+            val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
+            val finalValue = unpack(conventionalValue) ?: continue
+            if (!stateSerializer.canWrite(finalValue.javaClass)) {
+                logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
                 continue
             }
-            if (property.getters.isEmpty()) {
-                logProperty(taskType, property, "there are no getters")
-                continue
-            }
-            val getter = property.getters[0]
-            if (!propertyValueSerializer.canWrite(getter.returnType)) {
-                logProperty(taskType, property, "there's no serializer for type ${getter.returnType}")
-                continue
-            }
-            getter.isAccessible = true
-
-            val finalValue =
-                try {
-                    getter(task)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    continue
-                }
-
-            writeString(property.name)
+            writeString(field.name)
             try {
-                writePropertyValue(finalValue)
+                writeFieldValue(finalValue)
             } catch (e: Exception) {
-                throw GradleException("Could not save the value of property `${property.name}` of task `${task.path}`.", e)
+                throw GradleException("Could not save the value of field `${field.name}` of task `${task.path}`.", e)
             }
+            println("SERIALIZED ${task.path} field ${field.name} value $finalValue")
         }
         writeString("")
+    }
+
+    private
+    fun conventionalValueOf(task: Task, fieldName: String): Any? =
+        (task as IConventionAware).conventionMapping.getConventionValue(null, fieldName, false)
+
+    private
+    fun unpack(fieldValue: Any?) = when (fieldValue) {
+        is DirectoryProperty -> fieldValue.asFile.orNull
+        is RegularFileProperty -> fieldValue.asFile.orNull
+        is Property<*> -> fieldValue.orNull
+        else -> fieldValue
+    }
+
+    private
+    fun Field.getFieldValue(task: Task): Any? {
+        isAccessible = true
+        return get(task)
     }
 
     private
@@ -198,59 +203,77 @@ class InstantExecution(private val host: Host) {
         val taskName = decoder.readString()
         val typeName = decoder.readString()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
-        val details = ClassInspector.inspect(taskClass)
+        val taskFieldsByName = relevantStateOf(taskClass).associateBy { it.name }
         val task = host.getProject(projectPath).tasks.create(taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
         while (true) {
-            val propertyName = decoder.readString()
-            if (propertyName.isEmpty()) {
+            val fieldName = decoder.readString()
+            if (fieldName.isEmpty()) {
                 break
             }
             try {
-                val value = propertyValueSerializer.read(decoder) ?: continue
-                val property = details.getProperty(propertyName)
-                for (setter in property.setters) {
-                    if (setter.parameterTypes[0].isAssignableFrom(value.javaClass)) {
-                        setter.isAccessible = true
-                        setter(task, value)
-                        break
+                val value = stateSerializer.read(decoder) ?: continue
+                val field = taskFieldsByName.getValue(fieldName)
+                println("DESERIALIZED ${task.path} field $fieldName value $value")
+                when (field.type) {
+                    DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
+                    RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
+                    Property::class.java -> (field.getFieldValue(task) as? Property<Any>)?.set(value)
+                    else -> {
+                        if (field.type.isAssignableFrom(value.javaClass)) {
+                            field.setValue(task, value)
+                        } else {
+                            logField(taskClass, fieldName, "deserialize", "${field.type} != ${value.javaClass}")
+                        }
                     }
                 }
             } catch (e: Exception) {
-                throw GradleException("Could not load value of property `$propertyName` of task ${task.path}.", e)
+                throw GradleException("Could not load value of field `$fieldName` of task ${task.path}.", e)
             }
         }
         return task to taskDependencies
     }
 
     private
-    fun relevantPropertiesOf(taskType: Class<*>) =
-        ClassInspector.inspect(taskType).properties.filter { property ->
-            property.run {
-                getters.any { isRelevant(it) && !isInjected(it) } || setters.any(::isRelevant)
+    fun Field.setValue(task: Task, value: Any) {
+        isAccessible = true
+        set(task, value)
+    }
+
+    private
+    fun relevantStateOf(taskType: Class<*>): Sequence<Field> =
+        relevantTypeHierarchyOf(taskType).flatMap { type ->
+            type.declaredFields.asSequence().filterNot { field ->
+                Modifier.isStatic(field.modifiers) || Modifier.isTransient(field.modifiers)
             }
         }
 
     private
-    fun isInjected(it: Method): Boolean =
-        it.isAnnotationPresent(Inject::class.java)
+    fun relevantTypeHierarchyOf(taskType: Class<*>): Sequence<Class<*>> = sequence {
+        var current = taskType
+        while (isRelevantDeclaringClass(current)) {
+            yield(current)
+            current = current.superclass
+        }
+    }
 
     private
-    fun isRelevant(it: Method): Boolean =
-        it.declaringClass !in setOf(
+    fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean {
+        return declaringClass !in setOf(
             Object::class.java,
             GroovyObject::class.java,
             Task::class.java
-        ) && it.declaringClass.name !in setOf(
+        ) && declaringClass.name !in setOf(
             "org.gradle.api.internal.TaskInternal",
             "org.gradle.api.DefaultTask",
             "org.gradle.api.internal.AbstractTask",
             "org.gradle.api.internal.ConventionTask"
         )
+    }
 
     private
-    fun logProperty(taskType: Class<*>, property: PropertyDetails, reason: String) {
-        logger.info("Property `${property.name}` from $taskType cannot be serialized because $reason.")
+    fun logField(taskType: Class<*>, name: String?, actionName: String, reason: String) {
+        logger.lifecycle("Field `$name` from $taskType cannot be ${actionName}d because $reason.")
     }
 
     private
@@ -258,13 +281,13 @@ class InstantExecution(private val host: Host) {
         get() = host.getSystemProperty("instantExecution") != null
 
     private
-    fun KryoBackedEncoder.writePropertyValue(value: Any?) {
-        propertyValueSerializer.write(this, value)
+    fun KryoBackedEncoder.writeFieldValue(value: Any?) {
+        stateSerializer.write(this, value)
     }
 
     private
-    val propertyValueSerializer by lazy {
-        PropertyValueSerializer(
+    val stateSerializer by lazy {
+        StateSerializer(
             host.getService(DirectoryFileTreeFactory::class.java),
             host.getService(FileCollectionFactory::class.java)
         )
