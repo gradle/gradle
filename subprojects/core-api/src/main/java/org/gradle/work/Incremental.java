@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  */
 @Incubating
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.FIELD})
 @Documented
 public @interface Incremental {
 }
