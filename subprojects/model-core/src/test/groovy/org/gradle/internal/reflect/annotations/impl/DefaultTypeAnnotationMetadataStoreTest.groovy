@@ -48,6 +48,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             Object,
             GroovyObject
         ],
+        Ignored,
         new TestCrossBuildInMemoryCacheFactory())
 
     def "finds not-annotated properties"() {
@@ -113,6 +114,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             private final String property = "test"
 
             String getProperty() { property }
+        }
+
+
+    def "skips ignored properties"() {
+        expect:
+        assertProperties TypeWithIgnoredProperty, [:]
+    }
+
+        @SuppressWarnings("unused")
+        interface TypeWithIgnoredProperty {
+            @Ignored
+            String getPublicProperty()
         }
 
     def "merges annotations from 'is' and 'get' getter"() {
@@ -214,6 +227,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getOverriddenProperty() { "test" }
         }
 
+    // TODO This should be a conflict, too, unless the annotations match
     def "implemented properties inherit annotation from first interface"() {
         expect:
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
@@ -256,6 +270,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 
         @SuppressWarnings("unused")
         interface TypeWithOverride extends BaseTypeWithOverride {
+            @Override
             @Color(declaredBy = "override")
             String getOverriddenProperty()
         }
@@ -283,6 +298,32 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Override
             @Small
             String getOverriddenProperty()
+        }
+
+    def "can ignore supertype property"() {
+        expect:
+        assertProperties TypeHidingPropertyFromSuperType, [
+            propertyIgnoredInBase: [(SIZE): Small]
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        interface BaseTypeWithPropertyToHide {
+            @Color
+            String getBaseProperty()
+            @Ignored
+            String getPropertyIgnoredInBase()
+        }
+
+        @SuppressWarnings("unused")
+        interface TypeHidingPropertyFromSuperType extends BaseTypeWithPropertyToHide {
+            @Ignored
+            @Override
+            String getBaseProperty()
+
+            @Override
+            @Small
+            String getPropertyIgnoredInBase()
         }
 
     def "warns about conflicting property types being specified, chooses first declaration"() {
@@ -500,4 +541,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.TYPE, ElementType.METHOD, ElementType.FIELD])
 @interface Irrelevant {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface Ignored {
 }

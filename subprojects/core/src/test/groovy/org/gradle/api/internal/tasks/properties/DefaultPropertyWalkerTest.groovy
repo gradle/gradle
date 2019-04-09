@@ -230,7 +230,14 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
     private visitProperties(TaskInternal task) {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-        def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], WorkPropertyAnnotationCategory.asMap(), [Object, GroovyObject, DefaultTask], [Object, GroovyObject], cacheFactory)
+        def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+            [],
+            WorkPropertyAnnotationCategory.asMap(),
+            [Object, GroovyObject],
+            [Object, GroovyObject],
+            Internal,
+            cacheFactory
+        )
         def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory)
         new DefaultPropertyWalker(typeMetadataStore).visitProperties(task, validationContext, visitor)
     }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.TaskValidationException
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
@@ -101,7 +102,14 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], WorkPropertyAnnotationCategory.asMap(), [Object, GroovyObject], [Object, GroovyObject], cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        WorkPropertyAnnotationCategory.asMap(),
+        [Object, GroovyObject],
+        [Object, GroovyObject],
+        Internal,
+        cacheFactory
+    )
     def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory))
 
     @SuppressWarnings("GroovyUnusedDeclaration")

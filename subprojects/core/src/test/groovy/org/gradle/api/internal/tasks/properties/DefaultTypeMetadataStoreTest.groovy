@@ -67,13 +67,20 @@ class DefaultTypeMetadataStoreTest extends Specification {
     ]
 
     private static final List<Class<? extends Annotation>> UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Console, Internal, ReplacedBy
+        Console, ReplacedBy
     ]
 
     @Shared GroovyClassLoader groovyClassLoader
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([CustomCacheable], WorkPropertyAnnotationCategory.asMap() + [(SearchPath): TYPE], [Object, GroovyObject, DefaultTask], [Object, GroovyObject], cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [CustomCacheable],
+        WorkPropertyAnnotationCategory.asMap() + [(SearchPath): TYPE],
+        [Object, GroovyObject, DefaultTask],
+        [Object, GroovyObject],
+        Internal,
+        cacheFactory
+    )
     def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], typeAnnotationMetadataStore, cacheFactory)
 
     def setupSpec() {

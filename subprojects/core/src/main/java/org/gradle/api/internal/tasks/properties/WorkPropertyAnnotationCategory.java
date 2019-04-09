@@ -58,7 +58,6 @@ public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory
         InputDirectory.class,
         InputFile.class,
         InputFiles.class,
-        Internal.class,
         LocalState.class,
         Nested.class,
         OptionValues.class,

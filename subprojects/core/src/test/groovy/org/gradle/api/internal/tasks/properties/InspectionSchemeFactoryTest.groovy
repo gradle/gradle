@@ -32,7 +32,18 @@ class InspectionSchemeFactoryTest extends Specification {
     def handler1 = handler(Thing1)
     def handler2 = handler(Thing2)
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [(Thing1): TYPE, (Thing2): TYPE, (InjectThing): TYPE], [Object, GroovyObject], [Object, GroovyObject], cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        [
+            (Thing1): TYPE,
+            (Thing2): TYPE,
+            (InjectThing): TYPE
+        ],
+        [Object, GroovyObject],
+        [Object, GroovyObject],
+        IgnoredThing,
+        cacheFactory
+    )
     def factory = new InspectionSchemeFactory([], [handler1, handler2], typeAnnotationMetadataStore, cacheFactory)
 
     def "creates inspection scheme that understands given property annotations and injection annotations"() {
@@ -98,4 +109,8 @@ class AnnotatedBean {
 
 @Retention(RetentionPolicy.RUNTIME)
 @interface InjectThing {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@interface IgnoredThing {
 }

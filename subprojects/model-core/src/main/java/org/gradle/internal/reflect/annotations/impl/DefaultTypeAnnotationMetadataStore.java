@@ -81,12 +81,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final Set<Class<? extends Annotation>> recordedTypeAnnotations;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final Set<Equivalence.Wrapper<Method>> ignoredMethods;
+    private final Class<? extends Annotation> ignoredMethodAnnotation;
 
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends PropertyAnnotationCategory> propertyAnnotationCategories,
         Collection<Class<?>> ignoredSuperClasses,
         Collection<Class<?>> ignoreMethodsFromClasses,
+        Class<? extends Annotation> ignoreMethodAnnotation,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
@@ -95,17 +97,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         for (Class<?> ignoredSuperClass : ignoredSuperClasses) {
             cache.put(ignoredSuperClass, EMPTY_TYPE_ANNOTATION_METADATA);
         }
+        this.ignoredMethodAnnotation = ignoreMethodAnnotation;
         this.ignoredMethods = allMethodsOf(ignoreMethodsFromClasses);
     }
 
     private static ImmutableSet<Equivalence.Wrapper<Method>> allMethodsOf(Iterable<Class<?>> classes) {
-        List<Equivalence.Wrapper<Method>> methods = Lists.newArrayList();
+        ImmutableSet.Builder<Equivalence.Wrapper<Method>> methods = ImmutableSet.builder();
         for (Class<?> clazz : classes) {
             for (Method method : clazz.getMethods()) {
                 methods.add(SIGNATURE_EQUIVALENCE.wrap(method));
             }
         }
-        return ImmutableSet.copyOf(methods);
+        return methods.build();
     }
 
     @Override
@@ -232,9 +235,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return relevantAnnotations;
     }
 
-    private static Map<String, Field> findFields(Class<?> type) {
+    private Map<String, Field> findFields(Class<?> type) {
         Map<String, Field> fields = Maps.newHashMap();
         for (Field field : type.getDeclaredFields()) {
+            if (field.isAnnotationPresent(ignoredMethodAnnotation)) {
+                continue;
+            }
             fields.put(field.getName(), field);
         }
         return fields;
@@ -251,6 +257,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             }
             // We only care about actual methods the user added
             if (method.isBridge() || ignoredMethods.contains(SIGNATURE_EQUIVALENCE.wrap(method))) {
+                continue;
+            }
+            if (method.isAnnotationPresent(ignoredMethodAnnotation)) {
                 continue;
             }
             getters.add(new Getter(method, accessorType.propertyNameFor(method)));

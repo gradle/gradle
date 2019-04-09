@@ -105,6 +105,7 @@ public class ExecutionGlobalServices {
                 Object.class,
                 ScriptOrigin.class
             ),
+            Internal.class,
             cacheFactory);
     }
 
