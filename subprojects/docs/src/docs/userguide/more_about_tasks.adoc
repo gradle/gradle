@@ -649,7 +649,11 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 
 | [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File`+++*+++
-| Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
+| Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output. Implies `<<#incremental,@Incremental>>`.
+
+| [#incremental]`@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]`
+| `Provider<FileSystemLocation>` or `FileCollection`
+| Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track changes to the annotated file property, so the changes can be queried via `@link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges.getFileChanges()]`. Required for <<custom_tasks.adoc#incremental_tasks,incremental tasks>>.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Optional.html[Optional]`
 | Any type
