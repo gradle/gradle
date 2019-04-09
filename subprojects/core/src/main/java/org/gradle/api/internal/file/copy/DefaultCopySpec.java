@@ -510,6 +510,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
+    public Set<File> resolveSourceFiles() {
+        return fileResolver.resolveFiles(sourcePaths).getFiles();
+    }
+
     @Override
     public String getFilteringCharset() {
         return buildRootResolver().getFilteringCharset();

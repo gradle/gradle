@@ -20,6 +20,8 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function2;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Project;
@@ -27,6 +29,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -43,7 +47,9 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.instantexecution.CoreSerializer;
 import org.gradle.instantexecution.InstantExecution;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.classpath.ClassPath;
@@ -54,6 +60,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
@@ -315,7 +325,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private static class InstantExecutionHost implements InstantExecution.Host {
+    private static class InstantExecutionHost implements InstantExecution.Host, CoreSerializer {
         private final GradleInternal gradle;
 
         ClassLoaderScopeRegistry classLoaderScopeRegistry;
@@ -369,6 +379,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         public void scheduleTasks(Iterable<? extends Task> tasks) {
             gradle.getTaskGraph().addEntryTasks(tasks);
+        }
+
+        @Override
+        public CoreSerializer getCoreSerializer() {
+            return this;
         }
 
         public List<Task> getScheduledTasks() {
@@ -428,6 +443,42 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public void registerProjects() {
             getService(ProjectStateRegistry.class).registerProjects(getService(BuildState.class));
+        }
+
+        @Override
+        public Function2<Encoder, Serializer<Object>, Unit> serializerFor(Object value) {
+            if (value instanceof DefaultCopySpec) {
+                final DefaultCopySpec copySpec = (DefaultCopySpec) value;
+                return new Function2<Encoder, Serializer<Object>, Unit>() {
+                    @Override
+                    public Unit invoke(Encoder encoder, Serializer<Object> objectSerializer) {
+                        List<File> allSourcePaths = new ArrayList<File>();
+                        collectSourcePathsFrom(copySpec, allSourcePaths);
+                        try {
+                            objectSerializer.write(encoder, allSourcePaths);
+                        } catch (Exception e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                        return Unit.INSTANCE;
+                    }
+
+                    private void collectSourcePathsFrom(DefaultCopySpec copySpec, List<File> files) {
+                        files.addAll(copySpec.resolveSourceFiles());
+                        for (CopySpecInternal child : copySpec.getChildren()) {
+                            collectSourcePathsFrom((DefaultCopySpec) child, files);
+                        }
+                    }
+                };
+            }
+            return null;
+        }
+
+        @Override
+        public Object deserialize(Decoder decoder, Serializer<Object> stateSerializer) throws Exception {
+            List<File> sourceFiles = (List<File>) stateSerializer.read(decoder);
+            DefaultCopySpec copySpec = new DefaultCopySpec(getService(FileResolver.class), getService(Instantiator.class));
+            copySpec.from(sourceFiles);
+            return copySpec;
         }
     }
 

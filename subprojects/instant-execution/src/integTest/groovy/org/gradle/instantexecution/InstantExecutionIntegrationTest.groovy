@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -210,5 +211,38 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
         run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
+    }
+
+    def "multi-project java build"() {
+        given:
+        settingsFile << """
+            include("a", "b")
+        """
+        buildFile << """
+            allprojects { apply plugin: 'java' }
+            project(":b") {
+                dependencies {
+                    implementation(project(":a"))
+                }
+            }
+        """
+        file("a/src/main/java/a/A.java") << """
+            package a;
+            public class A {}
+        """
+        file("b/src/main/java/b/B.java") << """
+            package b;
+            public class B extends a.A {}
+        """
+
+        when:
+        run ":b:assemble", "-DinstantExecution", "-s"
+
+        and:
+        file("b/build/classes/java/main/b/B.class").delete()
+        run ":b:assemble", "-DinstantExecution", "-s"
+
+        then:
+        new ZipTestFixture(file("b/build/libs/b.jar")).assertContainsFile("b/B.class")
     }
 }

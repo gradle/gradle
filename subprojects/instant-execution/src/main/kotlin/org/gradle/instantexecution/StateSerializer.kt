@@ -35,14 +35,28 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
 
 import java.io.File
+import java.lang.Exception
 import java.lang.reflect.Modifier
 import java.util.LinkedHashSet
+
+
+typealias ValueSerializer = (Encoder, Serializer<Any>) -> Unit
+
+
+interface CoreSerializer {
+
+    fun serializerFor(value: Any): ValueSerializer?
+
+    @Throws(Exception::class)
+    fun deserialize(decoder: Decoder, stateSerializer: Serializer<Any>): Any
+}
 
 
 internal
 class StateSerializer(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val coreSerializer: CoreSerializer
 ) : Serializer<Any> {
 
     private
@@ -90,6 +104,7 @@ class StateSerializer(
                 }
                 beanFactory
             }
+            CORE_TYPE -> coreSerializer.deserialize(decoder, this)
             else -> throw UnsupportedOperationException()
         }
 
@@ -109,6 +124,7 @@ class StateSerializer(
         }
     }
 
+    private
     fun canWrite(type: Class<*>): Boolean =
         type == String::class.java ||
             type == File::class.java ||
@@ -121,6 +137,21 @@ class StateSerializer(
     fun <T> Encoder.serialize(tag: Byte, serializer: Serializer<T>, value: T) {
         writeByte(tag)
         serializer.write(this, value)
+    }
+
+    fun serializerFor(finalValue: Any): ValueSerializer? {
+        if (canWrite(finalValue.javaClass)) {
+            return { encoder, _ ->
+                write(encoder, finalValue)
+            }
+        }
+        coreSerializer.serializerFor(finalValue)?.let { serializeValue ->
+            return { encoder, serializer ->
+                encoder.writeByte(CORE_TYPE)
+                serializeValue(encoder, serializer)
+            }
+        }
+        return null
     }
 
     private
@@ -147,5 +178,6 @@ class StateSerializer(
         const val LIST_TYPE: Byte = 5
         const val ARTIFACT_COLLECTION_TYPE: Byte = 6
         const val BEAN_TYPE: Byte = 7
+        const val CORE_TYPE: Byte = 8
     }
 }

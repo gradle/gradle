@@ -47,6 +47,8 @@ class InstantExecution(private val host: Host) {
 
     interface Host {
 
+        val coreSerializer: CoreSerializer
+
         val scheduledTasks: List<Task>
 
         fun dependenciesOf(task: Task): Set<Task>
@@ -165,13 +167,14 @@ class InstantExecution(private val host: Host) {
             val fieldValue = field.getFieldValue(task)
             val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
             val finalValue = unpack(conventionalValue) ?: continue
-            if (!stateSerializer.canWrite(finalValue.javaClass)) {
+            val valueSerializer = stateSerializer.serializerFor(finalValue)
+            if (valueSerializer == null) {
                 logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
                 continue
             }
             writeString(field.name)
             try {
-                writeFieldValue(finalValue)
+                valueSerializer(this, stateSerializer)
             } catch (e: Exception) {
                 throw GradleException("Could not save the value of field `${field.name}` of task `${task.path}`.", e)
             }
@@ -295,7 +298,8 @@ class InstantExecution(private val host: Host) {
     val stateSerializer by lazy {
         StateSerializer(
             host.getService(DirectoryFileTreeFactory::class.java),
-            host.getService(FileCollectionFactory::class.java)
+            host.getService(FileCollectionFactory::class.java),
+            host.coreSerializer
         )
     }
 
