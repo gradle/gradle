@@ -477,18 +477,16 @@ public class TestFile extends File {
         return hashingStream.hash();
     }
 
-    public String getSha1Hash() {
-        return sha1(this).toString();
-    }
-
-    public static HashCode sha1(File file) {
-        HashingOutputStream hashingStream = new HashingOutputStream(Hashing.sha1(), NullOutputStream.INSTANCE);
+    public String getSha256Hash() {
+        // Sha256 is not part of core-services (i.e. no Hashing.sha256() available), hence we use plain Guava classes here.
+        com.google.common.hash.HashingOutputStream hashingStream =
+            new com.google.common.hash.HashingOutputStream(com.google.common.hash.Hashing.sha256(), NullOutputStream.INSTANCE);
         try {
-            Files.copy(file.toPath(), hashingStream);
+            Files.copy(this.toPath(), hashingStream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return hashingStream.hash();
+        return hashingStream.hash().toString();
     }
 
     public void createLink(File target) {
