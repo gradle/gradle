@@ -24,6 +24,7 @@ import org.hamcrest.Matcher
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -137,7 +138,7 @@ $fileSizer
 
                     classpath 'org.apache.commons:commons-math3:3.6.1'
                 }
-                repositories { jcenter() }
+                ${jcenterRepository()} 
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")

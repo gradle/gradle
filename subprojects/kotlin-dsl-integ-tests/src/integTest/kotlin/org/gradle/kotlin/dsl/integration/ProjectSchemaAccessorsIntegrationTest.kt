@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
@@ -568,7 +570,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 compile("org.apache.commons:commons-io:1.3.2")
             }
 
-            repositories { jcenter() }
+            ${jcenterRepository(GradleDsl.KOTLIN)}
         """)
 
         withBuildScriptIn("c", """
@@ -586,7 +588,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-            repositories { jcenter() }
+            ${jcenterRepository(GradleDsl.KOTLIN)}
 
             configurations.compileClasspath.files.forEach {
                 println(org.gradle.util.TextUtil.normaliseFileSeparators(it.path))
