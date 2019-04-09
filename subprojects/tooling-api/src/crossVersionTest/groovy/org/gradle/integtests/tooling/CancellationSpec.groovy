@@ -72,7 +72,11 @@ latch.await()
     void buildWasCancelled(TestResultHandler resultHandler, String failureMessage = 'Could not execute build using Gradle') {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith(failureMessage)
-        assert resultHandler.failure.cause.message == "Build cancelled."
+
+        if (resultHandler.failure.cause != null) {
+            // https://github.com/gradle/gradle-private/issues/1760
+            assert resultHandler.failure.cause.message in ["Build cancelled.", "Daemon was stopped to handle build cancel request."]
+        }
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
         failure.assertHasDescription('Build cancelled.')
         assertHasBuildFailedLogging()
