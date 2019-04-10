@@ -24,8 +24,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.internal.classloader.ClasspathUtil
@@ -47,7 +45,7 @@ class InstantExecution(private val host: Host) {
 
     interface Host {
 
-        val coreSerializer: CoreSerializer
+        val stateSerializer: StateSerializer
 
         val scheduledTasks: List<Task>
 
@@ -167,14 +165,14 @@ class InstantExecution(private val host: Host) {
             val fieldValue = field.getFieldValue(task)
             val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
             val finalValue = unpack(conventionalValue) ?: continue
-            val valueSerializer = stateSerializer.serializerFor(finalValue)
+            val valueSerializer = host.stateSerializer.serializerFor(finalValue)
             if (valueSerializer == null) {
                 logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
                 continue
             }
             writeString(field.name)
             try {
-                valueSerializer(this, stateSerializer)
+                valueSerializer(this)
             } catch (e: Exception) {
                 throw GradleException("Could not save the value of field `${field.name}` of task `${task.path}`.", e)
             }
@@ -218,7 +216,7 @@ class InstantExecution(private val host: Host) {
                 break
             }
             try {
-                val deserializedValue = stateSerializer.read(decoder) ?: continue
+                val deserializedValue = host.stateSerializer.read(decoder) ?: continue
                 val value = (deserializedValue as? (ClassLoader) -> Any)?.invoke(taskClassLoader) ?: deserializedValue
                 val field = taskFieldsByName.getValue(fieldName)
                 println("DESERIALIZED ${task.path} field $fieldName value $value")
@@ -288,20 +286,6 @@ class InstantExecution(private val host: Host) {
     private
     val isInstantExecutionEnabled: Boolean
         get() = host.getSystemProperty("instantExecution") != null
-
-    private
-    fun KryoBackedEncoder.writeFieldValue(value: Any?) {
-        stateSerializer.write(this, value)
-    }
-
-    private
-    val stateSerializer by lazy {
-        StateSerializer(
-            host.getService(DirectoryFileTreeFactory::class.java),
-            host.getService(FileCollectionFactory::class.java),
-            host.coreSerializer
-        )
-    }
 
     private
     val instantExecutionStateFile

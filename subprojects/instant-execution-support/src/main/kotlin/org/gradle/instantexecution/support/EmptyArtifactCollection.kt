@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.support
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
