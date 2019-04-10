@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.work.Incremental;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -53,7 +54,11 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitError(null, propertyMetadata.getPropertyName(), "has @Input annotation used on property of type " + valueType.getName());
+            visitor.visitError(null, propertyMetadata.getPropertyName(),
+                String.format("has @Input annotation used on property of type %s", valueType.getName()));
+        }
+        if (propertyMetadata.isAnnotationPresent(Incremental.class)) {
+            visitor.visitErrorStrict(null, propertyMetadata.getPropertyName(), "has @Incremental annotation used on an @Input property");
         }
     }
 }

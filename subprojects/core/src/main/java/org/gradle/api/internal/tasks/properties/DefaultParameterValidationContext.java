@@ -28,18 +28,29 @@ public class DefaultParameterValidationContext implements ParameterValidationCon
         this.messages = messages;
     }
 
+    private static String decorateMessage(@Nullable String ownerPath, String propertyName, String message) {
+        String decoratedMessage;
+        if (ownerPath == null) {
+            decoratedMessage = "Property '" + propertyName + "' " + message + ".";
+        } else {
+            decoratedMessage = "Property '" + ownerPath + '.' + propertyName + "' " + message + ".";
+        }
+        return decoratedMessage;
+    }
+
     @Override
     public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-        if (ownerPath == null) {
-            visitError("Property '" + propertyName + "' " + message + ".");
-        } else {
-            visitError("Property '" + ownerPath + '.' + propertyName + "' " + message + ".");
-        }
+        visitError(decorateMessage(ownerPath, propertyName, message));
     }
 
     @Override
     public void visitError(String message) {
         messages.add(message);
+    }
+
+    @Override
+    public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+        visitErrorStrict(decorateMessage(ownerPath, propertyName, message));
     }
 
     @Override
