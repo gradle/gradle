@@ -94,4 +94,16 @@ class WorkerDaemonClient implements Worker, Stoppable {
     public boolean isNotExpirable() {
         return cannotBeExpired;
     }
+
+    @Override
+    public String toString() {
+        return "WorkerDaemonClient{" +
+                " log level=" + logLevel +
+                ", use count=" + uses +
+                ", has failed=" + failed +
+                ", can be expired=" + !cannotBeExpired +
+                ", workerProcess=" + workerProcess +
+                ", forkOptions=" + forkOptions +
+                '}';
+    }
 }
