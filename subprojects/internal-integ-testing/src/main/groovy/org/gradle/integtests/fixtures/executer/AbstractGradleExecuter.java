@@ -1053,6 +1053,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
+            afterExecute.execute(this);
             return result;
         } finally {
             finished();
@@ -1060,11 +1061,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected void finished() {
-        try {
-            afterExecute.execute(this);
-        } finally {
-            reset();
-        }
+        reset();
     }
 
     @Override
@@ -1077,6 +1074,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
+            afterExecute.execute(this);
             return executionFailure;
         } finally {
             finished();
