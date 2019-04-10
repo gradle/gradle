@@ -182,6 +182,7 @@ class StateSerialization(
 
         private
         fun deserializeDefaultCopySpec(decoder: Decoder, read: StateDeserializer): DefaultCopySpec {
+            @Suppress("unchecked_cast")
             val sourceFiles = read.read(decoder) as List<File>
             val copySpec = DefaultCopySpec(fileResolver, instantiator)
             copySpec.from(sourceFiles)
