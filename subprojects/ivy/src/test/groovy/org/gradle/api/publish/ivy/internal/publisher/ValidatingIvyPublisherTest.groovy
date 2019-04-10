@@ -209,7 +209,7 @@ class ValidatingIvyPublisherTest extends Specification {
     def "reports and fails with invalid descriptor file (marker = #marker)"() {
         given:
         def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
-        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity, marker)
+        IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity, marker, null)
         def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity)
         artifact.setConf("unknown")
         ivyFileGenerator.addArtifact(artifact)
@@ -366,7 +366,7 @@ class ValidatingIvyPublisherTest extends Specification {
 
     class TestIvyDescriptorFileGenerator extends IvyDescriptorFileGenerator {
         TestIvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity) {
-            super(projectIdentity, false)
+            super(projectIdentity, false, null)
         }
 
         TestIvyDescriptorFileGenerator withBranch(String branch) {

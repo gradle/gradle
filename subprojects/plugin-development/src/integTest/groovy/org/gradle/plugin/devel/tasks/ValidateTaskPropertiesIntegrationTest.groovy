@@ -703,8 +703,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
             import java.io.*;
 
             public interface MyTransformParameters extends TransformParameters {
@@ -720,7 +722,23 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
                 // Valid because it is annotated
                 @InputFile
-                File getGoodInput();
+                File getGoodFileInput();
+
+                // Valid
+                @Incremental
+                @InputFiles
+                FileCollection getGoodIncrementalInput();
+
+                // Valid
+                @Input
+                String getGoodInput();
+                void setGoodInput(String value);
+
+                // Invalid because only file inputs can be incremental
+                @Incremental
+                @Input
+                String getIncrementalNonFileInput();
+                void setIncrementalNonFileInput(String value);
 
                 // Invalid because it has no annotation
                 long getBadTime();
@@ -739,11 +757,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property.
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()

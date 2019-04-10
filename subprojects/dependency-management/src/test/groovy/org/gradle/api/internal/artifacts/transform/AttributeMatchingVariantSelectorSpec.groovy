@@ -102,6 +102,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             }
         })
         1 * attributeMatcher.matches(_, _) >> [variant, otherResolvedVariant]
+        2 * attributeMatcher.isMatching(_, _, _) >> true
         0 * consumerProvidedVariantFinder._
     }
 

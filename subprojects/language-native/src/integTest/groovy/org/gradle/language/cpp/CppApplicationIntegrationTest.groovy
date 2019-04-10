@@ -607,12 +607,14 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         failure.assertHasCause """Unable to find a matching variant of project :hello:
   - Variant 'cppApiElements' capability test:hello:unspecified:
-      - Found artifactType 'directory' but wasn't required.
-      - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
-      - Required org.gradle.native.debuggable 'true' but no value provided.
-      - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
-      - Required org.gradle.native.optimized 'false' but no value provided.
-      - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'."""
+      - Incompatible attribute:
+          - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'.
+      - Other attributes:
+          - Found artifactType 'directory' but wasn't required.
+          - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
+          - Required org.gradle.native.debuggable 'true' but no value provided.
+          - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
+          - Required org.gradle.native.optimized 'false' but no value provided."""
     }
 
     def "can compile and link against a static library"() {

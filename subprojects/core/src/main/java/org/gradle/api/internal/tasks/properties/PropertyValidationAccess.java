@@ -260,20 +260,29 @@ public class PropertyValidationAccess {
                 this.problems = problems;
             }
 
-            @Override
-            public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+            private String decorateMessage(String propertyName, String message) {
                 String decoratedMessage;
                 if (Task.class.isAssignableFrom(topLevelBean)) {
                     decoratedMessage = String.format("Task type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
                 } else {
                     decoratedMessage = String.format("Type '%s': property '%s' %s.", topLevelBean.getName(), getQualifiedPropertyName(propertyName), message);
                 }
-                visitError(decoratedMessage);
+                return decoratedMessage;
+            }
+
+            @Override
+            public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+                visitError(decorateMessage(propertyName, message));
             }
 
             @Override
             public void visitError(String message) {
                 problems.error(message, false);
+            }
+
+            @Override
+            public void visitErrorStrict(@Nullable String ownerPath, String propertyName, String message) {
+                visitErrorStrict(decorateMessage(propertyName, message));
             }
 
             @Override

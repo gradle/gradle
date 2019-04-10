@@ -26,7 +26,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.List;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatches;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForAmbiguity;
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
@@ -40,7 +40,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatches(formatter, consumer, matcher, variant.getAttributes());
+            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
         }
         formatter.endChildren();
         return formatter.toString();

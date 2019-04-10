@@ -55,6 +55,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -73,23 +74,33 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         and:
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:foo:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:bar:1.1')
+
+        and:
         resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                // With Maven, can't have different versions for a dependency between compile and runtime
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
         }
 
         and:
         resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
         }
 
         where:
@@ -130,6 +141,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -148,23 +160,34 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         and:
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:foo:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:bar:1.1')
+
+        and:
         resolveArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                // With Maven, can't have different versions for a dependency between compile and runtime
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
         }
 
         and:
         resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            withModuleMetadata {
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
+            }
+            withoutModuleMetadata {
+                // With Maven, can't have different versions for a dependency between compile and runtime
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
+            }
         }
 
         where:
@@ -212,6 +235,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             dependency("org.test:foo:1.0") {
@@ -230,33 +254,22 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         and:
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:foo:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:bar:1.1')
+
+        and:
         resolveArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         where:
@@ -298,6 +311,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.1") {
@@ -329,33 +343,22 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         }
 
         and:
+        javaLibrary.parsedPom.scopes.compile.assertDependsOn('org.test:foo:1.0')
+        javaLibrary.parsedPom.scopes.runtime.assertDependsOn('org.test:bar:1.1')
+
+        and:
         resolveArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         where:
@@ -395,6 +398,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:[1.0, 2.0[") {
@@ -424,32 +428,17 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
 
         and:
         resolveArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveApiArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
         and:
         resolveRuntimeArtifacts(javaLibrary) {
-            withModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
-            withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
-            }
+            expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
         }
 
     }
@@ -486,6 +475,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         run "publish"
 
         then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
         javaLibrary.assertPublished()
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
             constraint("org.test:bar:1.0") {
