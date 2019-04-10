@@ -20,6 +20,7 @@ apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gra
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("instantExecution")
+include("instantExecutionSupport")
 include("apiMetadata")
 include("distributionsDependencies")
 include("distributions")

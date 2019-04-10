@@ -230,9 +230,6 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
             package a;
             public class A {}
         """
-        file("a/src/main/resources/some.properties") << """
-            foo=bar
-        """
         file("b/src/main/java/b/B.java") << """
             package b;
             public class B extends a.A {}
@@ -242,12 +239,10 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         run ":b:assemble", "-DinstantExecution", "-s"
 
         and:
-        file("a/build/resources/main/some.properties").delete()
         file("b/build/classes/java/main/b/B.class").delete()
         run ":b:assemble", "-DinstantExecution", "-s"
 
         then:
-        new ZipTestFixture(file("a/build/libs/a.jar")).assertContainsFile("some.properties")
         new ZipTestFixture(file("b/build/libs/b.jar")).assertContainsFile("b/B.class")
     }
 }

@@ -20,26 +20,13 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function2;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.file.copy.DefaultCopySpec;
-import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
-import org.gradle.api.internal.initialization.ClassLoaderIds;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -48,27 +35,18 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.instantexecution.CoreSerializer;
 import org.gradle.instantexecution.InstantExecution;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -82,7 +60,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     };
     private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
-    private final DefaultGradleLauncher.InstantExecutionHost instantExecutionHost;
+    private final InstantExecution.Host instantExecutionHost;
 
     private enum Stage {
         LoadSettings, Configure, TaskGraph, RunTasks() {
@@ -142,7 +120,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
-        instantExecutionHost = new InstantExecutionHost(gradle);
+        instantExecutionHost = gradle.getServices().get(InstantExecution.Host.class);
         this.instantExecution = new InstantExecution(instantExecutionHost);
     }
 
@@ -212,16 +190,35 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void prepareTaskGraph() {
-        SettingsInternal settings = instantExecutionHost.createSettings();
+        SettingsInternal settings = createSettingsForInstantExecution();
         gradle.setSettings(settings);
 
-        ProjectInternal rootProject = instantExecutionHost.createProject(":");
+        ProjectInternal rootProject = (ProjectInternal) instantExecutionHost.createProject(":");
         gradle.setRootProject(rootProject);
 
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
         instantExecution.loadInstantExecutionState();
 
         taskGraph.populate();
+    }
+
+    private <T> T getService(Class<T> type) {
+        return gradle.getServices().get(type);
+    }
+
+    private SettingsInternal createSettingsForInstantExecution() {
+        StringScriptSource settingsSource = new StringScriptSource("settings", "");
+        ClassLoaderScopeRegistry classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry.class);
+        return getService(Instantiator.class).newInstance(DefaultSettings.class,
+            getService(BuildScopeServiceRegistryFactory.class),
+            gradle,
+            classLoaderScopeRegistry.getCoreScope(),
+            classLoaderScopeRegistry.getCoreScope(),
+            getService(ScriptHandlerFactory.class).create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
+            new File(".").getAbsoluteFile(),
+            settingsSource,
+            gradle.getStartParameter()
+        );
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -323,193 +320,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
             CompositeStoppable.stoppable(buildServices).add(servicesToStop).stop();
         } finally {
             buildCompletionListener.completed();
-        }
-    }
-
-    private static class InstantExecutionHost implements InstantExecution.Host, CoreSerializer {
-        private final GradleInternal gradle;
-
-        ClassLoaderScopeRegistry classLoaderScopeRegistry;
-        ScriptHandlerFactory scriptHandlerFactory;
-        IProjectFactory projectFactory;
-        final ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-
-        InstantExecutionHost(GradleInternal gradle) {
-            this.gradle = gradle;
-            classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry.class);
-            scriptHandlerFactory = getService(ScriptHandlerFactory.class);
-            projectFactory = getService(IProjectFactory.class);
-        }
-
-        SettingsInternal createSettings() {
-            StringScriptSource settingsSource = new StringScriptSource("settings", "");
-            return new DefaultSettings(
-                getService(BuildScopeServiceRegistryFactory.class),
-                gradle,
-                classLoaderScopeRegistry.getCoreScope(),
-                classLoaderScopeRegistry.getCoreScope(),
-                scriptHandlerFactory.create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
-                new File(".").getAbsoluteFile(),
-                settingsSource,
-                gradle.getStartParameter()
-            ) {
-                @Override
-                public ExtensionContainer getExtensions() {
-                    return null;
-                }
-
-                @Override
-                public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-                    return projectDescriptorRegistry;
-                }
-
-                @Override
-                protected FileResolver getFileResolver() {
-                    return getService(FileResolver.class);
-                }
-            };
-        }
-
-        public <T> T getService(Class<T> serviceType) {
-            return gradle.getServices().get(serviceType);
-        }
-
-        public String getSystemProperty(String propertyName) {
-            return gradle.getStartParameter().getSystemPropertiesArgs().get(propertyName);
-        }
-
-        public void scheduleTasks(Iterable<? extends Task> tasks) {
-            gradle.getTaskGraph().addEntryTasks(tasks);
-        }
-
-        @Override
-        public CoreSerializer getCoreSerializer() {
-            return this;
-        }
-
-        public List<Task> getScheduledTasks() {
-            return gradle.getTaskGraph().getAllTasks();
-        }
-
-        @Override
-        public ProjectInternal createProject(String path) {
-            Path projectPath = Path.path(path);
-
-            @Nullable
-            Path parentPath = projectPath.getParent();
-
-            String name = projectPath.getName();
-            DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(
-                getProjectDescriptor(parentPath), name != null ? name : "instant-execution", new File(".").getAbsoluteFile(),
-                projectDescriptorRegistry, getService(PathToFileResolver.class)
-            );
-            return projectFactory.createProject(
-                projectDescriptor, getProject(parentPath), gradle,
-                getCoreAndPluginsScope(),
-                getCoreAndPluginsScope()
-            );
-        }
-
-        private ClassLoaderScope getCoreAndPluginsScope() {
-            return classLoaderScopeRegistry.getCoreAndPluginsScope();
-        }
-
-        @Nullable
-        private ProjectInternal getProject(@Nullable Path parentPath) {
-            return parentPath == null ? null : gradle.getRootProject().project(parentPath.getPath());
-        }
-
-        @Nullable
-        private DefaultProjectDescriptor getProjectDescriptor(@Nullable Path parentPath) {
-            return parentPath == null ? null : projectDescriptorRegistry.getProject(parentPath.getPath());
-        }
-
-        @Override
-        public ClassLoader classLoaderFor(ClassPath classPath) {
-            return getService(ClassLoaderCache.class).get(
-                ClassLoaderIds.buildScript("instant-execution", "run"), classPath, getCoreAndPluginsScope().getExportClassLoader(), null
-            );
-        }
-
-        @Override
-        public Set<Task> dependenciesOf(Task task) {
-            return gradle.getTaskGraph().getDependencies(task);
-        }
-
-        @Override
-        public Project getProject(String projectPath) {
-            return gradle.getRootProject().project(projectPath);
-        }
-
-        @Override
-        public void registerProjects() {
-            getService(ProjectStateRegistry.class).registerProjects(getService(BuildState.class));
-        }
-
-        @Override
-        public Function2<Encoder, Serializer<Object>, Unit> serializerFor(Object value) {
-            if (value instanceof DefaultCopySpec) {
-                final DefaultCopySpec copySpec = (DefaultCopySpec) value;
-                return new Function2<Encoder, Serializer<Object>, Unit>() {
-                    @Override
-                    public Unit invoke(Encoder encoder, Serializer<Object> objectSerializer) {
-                        List<File> allSourcePaths = new ArrayList<File>();
-                        collectSourcePathsFrom(copySpec, allSourcePaths);
-                        try {
-                            encoder.writeByte((byte) 1);
-                            objectSerializer.write(encoder, allSourcePaths);
-                        } catch (Exception e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                        return Unit.INSTANCE;
-                    }
-
-                    private void collectSourcePathsFrom(DefaultCopySpec copySpec, List<File> files) {
-                        files.addAll(copySpec.resolveSourceFiles());
-                        for (CopySpecInternal child : copySpec.getChildren()) {
-                            collectSourcePathsFrom((DefaultCopySpec) child, files);
-                        }
-                    }
-                };
-            }
-            if (value instanceof DestinationRootCopySpec) {
-                final DestinationRootCopySpec copySpec = (DestinationRootCopySpec) value;
-                return new Function2<Encoder, Serializer<Object>, Unit>() {
-                    @Override
-                    public Unit invoke(Encoder encoder, Serializer<Object> objectSerializer) {
-                        try {
-                            encoder.writeByte((byte) 2);
-                            objectSerializer.write(encoder, copySpec.getDestinationDir());
-                            serializerFor(copySpec.getDelegate()).invoke(encoder, objectSerializer);
-                        } catch (Exception e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                        return Unit.INSTANCE;
-                    }
-
-                };
-            }
-
-            return null;
-        }
-
-        @Override
-        public Object deserialize(Decoder decoder, Serializer<Object> stateSerializer) throws Exception {
-            switch (decoder.readByte()) {
-                case 1:
-                    List<File> sourceFiles = (List<File>) stateSerializer.read(decoder);
-                    DefaultCopySpec copySpec = new DefaultCopySpec(getService(FileResolver.class), getService(Instantiator.class));
-                    copySpec.from(sourceFiles);
-                    return copySpec;
-                case 2:
-                    File destDir = (File) stateSerializer.read(decoder);
-                    CopySpecInternal delegate = (CopySpecInternal) deserialize(decoder, stateSerializer);
-                    DestinationRootCopySpec spec = new DestinationRootCopySpec(getService(PathToFileResolver.class), delegate);
-                    spec.into(destDir);
-                    return spec;
-                default:
-                    throw new IllegalStateException();
-            }
         }
     }
 

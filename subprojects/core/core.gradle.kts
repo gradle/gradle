@@ -69,6 +69,7 @@ dependencies {
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))
 
+    runtimeOnly(project(":instantExecutionSupport"))
     runtimeOnly(project(":docs"))
 
     testImplementation(testLibrary("jsoup"))
