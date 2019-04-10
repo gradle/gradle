@@ -1,1 +1,1 @@
-class House(val owner: Person)
+class House(val owner: Person = new Person())

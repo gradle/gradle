@@ -16,170 +16,108 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import com.google.common.collect.Lists;
-import com.typesafe.zinc.Compiler;
-import com.typesafe.zinc.SbtJars;
-import com.typesafe.zinc.ScalaLocation;
-import com.typesafe.zinc.Setup;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheRepositoryServices;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import org.apache.tools.ant.AntClassLoader;
+import org.gradle.cache.internal.Cache;
+import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
-import org.gradle.util.GFileUtils;
-import sbt.ScalaInstance;
-import sbt.compiler.AnalyzingCompiler;
-import xsbti.compile.JavaCompiler;
 
+import sbt.internal.inc.ScalaInstance;
+import sbt.internal.inc.ZincUtil;
+import scala.Option;
+import xsbti.ArtifactInfo;
+import xsbti.compile.ClasspathOptionsUtil;
+import xsbti.compile.ScalaCompiler;
+import xsbti.compile.ZincCompilerUtil;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ZincScalaCompilerFactory {
-    private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFactory.class);
 
-    static Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
-        File zincCacheHomeDir = new File(System.getProperty(ZincScalaCompilerUtil.ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
-        CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
+    private static final Cache<Set<File>, ClassLoader> CLASS_LOADER_CACHE = new MapBackedCache<>(new ConcurrentHashMap<>());
+    private static final Cache<Set<File>, ScalaInstance> SCALA_INSTANCE_CACHE = new MapBackedCache<>(new ConcurrentHashMap<>());
+    private static final Cache<Set<File>, ZincScalaCompiler> COMPILER_CACHE = new MapBackedCache<>(new ConcurrentHashMap<>());
+    private static final AnalysisStoreProvider ANALYSIS_STORE_PROVIDER = new AnalysisStoreProvider();
 
-        String zincVersion = Setup.zincVersion().published();
-        String zincCacheKey = String.format("zinc-%s", zincVersion);
-        String zincCacheName = String.format("Zinc %s compiler cache", zincVersion);
-        final PersistentCache zincCache = cacheRepository.cache(zincCacheKey)
-                .withDisplayName(zincCacheName)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
-
-        Compiler compiler;
-        try {
-            final File cacheDir = zincCache.getBaseDir();
-
-            final String userSuppliedZincDir = System.getProperty("zinc.dir");
-            if (userSuppliedZincDir != null && !userSuppliedZincDir.equals(cacheDir.getAbsolutePath())) {
-                LOGGER.warn(ZincScalaCompilerUtil.ZINC_DIR_IGNORED_MESSAGE);
-            }
-
-            compiler = SystemProperties.getInstance().withSystemProperty(ZincScalaCompilerUtil.ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<Compiler>() {
-                @Override
-                public Compiler create() {
-                    Setup zincSetup = createZincSetup(scalaClasspath, zincClasspath, logger);
-                    return createCompiler(zincSetup, zincCache, logger);
+    private static ClassLoader getClassLoader(final Iterable<File> classpath) {
+        return CLASS_LOADER_CACHE.get(Sets.newHashSet(classpath), new Factory<ClassLoader>() {
+            @Nullable
+            @Override
+            public ClassLoader create() {
+                AntClassLoader cl = new AntClassLoader(Thread.currentThread().getContextClassLoader(), false);
+                for (File file : classpath) {
+                    cl.addPathComponent(file);
                 }
-            });
-        } finally {
-            zincCache.close();
-        }
-
-        return compiler;
-    }
-
-    private static Compiler createCompiler(final Setup setup, final PersistentCache zincCache, final xsbti.Logger logger) {
-        return Compiler.compilerCache().get(setup, new scala.runtime.AbstractFunction0<Compiler>() {
-            public Compiler apply() {
-                ScalaInstance instance = Compiler.scalaInstance(setup);
-                File interfaceJar = getCompilerInterface(setup, instance, zincCache, logger);
-                AnalyzingCompiler scalac = Compiler.newScalaCompiler(instance, interfaceJar, logger);
-                JavaCompiler javac = Compiler.newJavaCompiler(instance, setup.javaHome(), setup.forkJava());
-                return new Compiler(scalac, javac);
+                return cl;
             }
         });
     }
 
-    // parallel safe version of Compiler.compilerInterface()
-    private static File getCompilerInterface(final Setup setup, final ScalaInstance instance, PersistentCache zincCache, final xsbti.Logger logger) {
-        final String sbtInterfaceFileName = Compiler.interfaceId(instance.actualVersion()) + ".jar";
-        final File compilerInterface = new File(setup.cacheDir(), sbtInterfaceFileName);
-        if (compilerInterface.exists()) {
-            return zincCache.useCache(new Factory<File>() {
-                @Override
-                public File create() {
-                    return compilerInterface;
-                }
-            });
-        }
+    private static ScalaInstance getScalaInstance(final Iterable<File> scalaClasspath) {
+        return SCALA_INSTANCE_CACHE.get(Sets.newHashSet(scalaClasspath), new Factory<ScalaInstance>() {
+            @Nullable
+            @Override
+            public ScalaInstance create() {
+                ClassLoader scalaClassLoader = getClassLoader(scalaClasspath);
 
+                File libraryJar = findFile(ArtifactInfo.ScalaLibraryID, scalaClasspath);
+                File compilerJar = findFile(ArtifactInfo.ScalaCompilerID, scalaClasspath);
+
+                return new ScalaInstance(
+                    getScalaVersion(scalaClassLoader),
+                    scalaClassLoader,
+                    getClassLoader(Arrays.asList(libraryJar)),
+                    libraryJar,
+                    compilerJar,
+                    Iterables.toArray(scalaClasspath, File.class),
+                    Option.empty()
+                );
+            }
+        });
+
+    }
+
+    static ZincScalaCompiler getCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath) {
+        return COMPILER_CACHE.get(Sets.newHashSet(Iterables.concat(scalaClasspath, zincClasspath)), new Factory<ZincScalaCompiler>() {
+            @Nullable
+            @Override
+            public ZincScalaCompiler create() {
+                ScalaInstance scalaInstance = getScalaInstance(scalaClasspath);
+                File bridgeJar = findFile(ZincUtil.getDefaultBridgeModule(scalaInstance.version()).name(), scalaClasspath);
+                ScalaCompiler scalaCompiler = ZincCompilerUtil.scalaCompiler(scalaInstance, bridgeJar, ClasspathOptionsUtil.auto());
+
+                return new ZincScalaCompiler(scalaInstance, scalaCompiler, Optional.of(Jvm.current().getJavaHome()), ANALYSIS_STORE_PROVIDER);
+            }
+        });
+    }
+
+    private static File findFile(String prefix, Iterable<File> files) {
+        for (File f: files) {
+            if (f.getName().startsWith(prefix)) {
+                return f;
+            }
+        }
+        throw new IllegalStateException(String.format("Cannot find any files starting with %s in %s", prefix, files));
+    }
+
+    private static String getScalaVersion(ClassLoader scalaClassLoader) {
         try {
-            // Compile the interface to a temp file and then copy it to the cache folder.
-            // This avoids sporadic cache lock timeouts when the compiler interface JAR takes
-            // a long time to generate while avoiding starving multiple compiler daemons.
-            final File tmpDir = new File(zincCache.getBaseDir(), "tmp");
-            tmpDir.mkdirs();
-            final File tempFile = File.createTempFile("zinc", ".jar", tmpDir);
-            final Timer timer = Time.startTimer();
-            sbt.compiler.IC.compileInterfaceJar(
-                    sbtInterfaceFileName,
-                    setup.compilerInterfaceSrc(),
-                    tempFile,
-                    setup.sbtInterface(),
-                    instance,
-                    logger);
-            final String interfaceCompletedMessage = String.format("Zinc interface compilation took %s", timer.getElapsed());
-            if (timer.getElapsedMillis() > 30000) {
-                LOGGER.warn(interfaceCompletedMessage);
-            } else {
-                LOGGER.debug(interfaceCompletedMessage);
-            }
-
-            return zincCache.useCache(new Factory<File>() {
-                public File create() {
-                    // Another process may have already copied the compiler interface JAR
-                    // Avoid copying over same existing file to avoid locking problems
-                    if (!compilerInterface.exists()) {
-                        GFileUtils.moveFile(tempFile, compilerInterface);
-                    } else {
-                        GFileUtils.deleteQuietly(tempFile);
-                    }
-                    return compilerInterface;
-                }
-            });
+            Properties props = new Properties();
+            props.load(scalaClassLoader.getResourceAsStream("library.properties"));
+            return props.getProperty("version.number");
         } catch (IOException e) {
-            // fall back to the default logic
-            return zincCache.useCache(new Factory<File>() {
-                public File create() {
-                    return Compiler.compilerInterface(setup, instance, logger);
-                }
-            });
+            throw new IllegalStateException("Unable to determine scala version");
         }
+
     }
 
-    private static Setup createZincSetup(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, xsbti.Logger logger) {
-        ScalaLocation scalaLocation = ScalaLocation.fromPath(Lists.newArrayList(scalaClasspath));
-        SbtJars sbtJars = SbtJars.fromPath(Lists.newArrayList(zincClasspath));
-        Setup setup = Setup.create(scalaLocation, sbtJars, Jvm.current().getJavaHome(), true);
-        if (LOGGER.isDebugEnabled()) {
-            Setup.debug(setup, logger);
-        }
-        return setup;
-    }
-
-    private static class ZincCompilerServices extends DefaultServiceRegistry {
-        private static ZincCompilerServices instance;
-
-        private ZincCompilerServices(File gradleUserHome) {
-            super(NativeServices.getInstance());
-
-            addProvider(LoggingServiceRegistry.NO_OP);
-            addProvider(new GlobalScopeServices(true));
-            addProvider(new CacheRepositoryServices(gradleUserHome, null));
-        }
-
-        public static ZincCompilerServices getInstance(File gradleUserHome) {
-            if (instance == null) {
-                NativeServices.initialize(gradleUserHome);
-                instance = new ZincCompilerServices(gradleUserHome);
-            }
-            return instance;
-        }
-    }
 }

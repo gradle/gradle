@@ -43,12 +43,14 @@ class DownloadingScalaToolChainTest extends Specification {
 
     def setup() {
         _ * scalaPlatform.getScalaVersion() >> "2.10.4"
+        _ * scalaPlatform.getScalaCompatibilityVersion() >> "2.10"
     }
 
     def "tools available when compiler dependencies can be resolved"() {
         when:
         dependencyAvailable("scala-compiler")
         dependencyAvailable("zinc")
+        dependencyAvailable("compiler-bridge")
         then:
         scalaToolChain.select(scalaPlatform).isAvailable()
     }
@@ -71,6 +73,7 @@ class DownloadingScalaToolChainTest extends Specification {
 
         when:
         dependencyAvailable("scala-compiler")
+        dependencyAvailable("compiler-bridge")
         dependencyNotAvailable("zinc")
         toolProvider = scalaToolChain.select(scalaPlatform)
         toolProvider.newCompiler(ScalaCompileSpec.class)
