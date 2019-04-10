@@ -25,5 +25,5 @@ typealias ValueSerializer = (Encoder) -> Unit
 
 interface StateSerializer {
     fun read(decoder: Decoder): Any?
-    fun serializerFor(finalValue: Any): ValueSerializer?
+    fun serializerFor(value: Any?): ValueSerializer?
 }
