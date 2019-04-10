@@ -24,7 +24,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ### Update to the Scala Zinc compiler
 
-The Scala Zinc compiler has been upgraded to version 1.2.5.
+The Scala Zinc compiler has been upgraded to version 1.2.5, which only supports Scala 2.10+, meaning that Gradle no longer supports building for Scala 2.9.
 This fixes some Scala incremental compilation bugs and is reported as significantly improving performance.
 If you used to override the Zinc compiler version, be aware that the minimal version is now 1.2.0.
 
