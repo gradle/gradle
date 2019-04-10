@@ -142,7 +142,7 @@ Unless a task's `scalaClasspath` is configured explicitly, the Scala (base) plug
 [[sec:configure_zinc_compiler]]
 == Configuring the Zinc compiler
 
-The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/typesafehub/zinc[Zinc compiler] and its dependencies. Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can add an explicit dependency like `“com.typesafe.zinc:zinc:0.3.6”` to the `zinc` configuration. Gradle supports version 0.3.0 of Zinc and above; however, due to a regression in the Zinc compiler, versions 0.3.2 through 0.3.5.2 cannot be used.
+The Scala plugin uses a configuration named `zinc` to resolve the https://github.com/typesafehub/zinc[Zinc compiler] and its dependencies. Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can add an explicit dependency like `“org.scala-sbt:zinc_2.12:1.2.5”` to the `zinc` configuration. Gradle supports version 1.2.0 of Zinc and above.
 
 .Declaring a version of the Zinc compiler to use
 ====
