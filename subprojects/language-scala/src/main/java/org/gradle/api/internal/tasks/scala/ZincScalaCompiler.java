@@ -84,9 +84,9 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ScalaCompiler scalaCompiler;
     private final AnalysisStoreProvider analysisStoreProvider;
 
-    private final static ClearableMapBackedCache<File, DefinesClass> DEFINE_CLASS_CACHE = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
+    private final ClearableMapBackedCache<File, DefinesClass> definesClassCache = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
 
-    private static long defineClassCacheTimestamp = -1;
+    private long defineClassCacheTimestamp = -1;
 
     public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
         this.scalaInstance = scalaInstance;
@@ -101,7 +101,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         Timer timer = Time.startTimer();
 
         if (defineClassCacheTimestamp != spec.getBuildStartTimestamp()) {
-            DEFINE_CLASS_CACHE.clear();
+            definesClassCache.clear();
             LOGGER.info("Removed defineClassCache due to build timestamp ({}), old({})", spec.getBuildStartTimestamp(), defineClassCacheTimestamp);
             defineClassCacheTimestamp = spec.getBuildStartTimestamp();
         }
@@ -186,7 +186,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         public DefinesClass definesClass(File classpathEntry) {
             Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis)a : null).map(a -> new AnalysisBakedDefineClass(a));
             return dc.orElseGet(() -> {
-                return DEFINE_CLASS_CACHE.get(classpathEntry, new Factory<DefinesClass>() {
+                return definesClassCache.get(classpathEntry, new Factory<DefinesClass>() {
                     @Nullable
                     @Override
                     public DefinesClass create() {
