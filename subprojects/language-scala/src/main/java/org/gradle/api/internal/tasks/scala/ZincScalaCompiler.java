@@ -82,17 +82,15 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
-    private final Optional<File> javaHome;
     private final AnalysisStoreProvider analysisStoreProvider;
 
     private final static ClearableMapBackedCache<File, DefinesClass> DEFINE_CLASS_CACHE = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
 
     private static long defineClassCacheTimestamp = -1;
 
-    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, Optional<File> javaHome, AnalysisStoreProvider analysisStoreProvider) {
+    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
         this.scalaInstance = scalaInstance;
         this.scalaCompiler = scalaCompiler;
-        this.javaHome = javaHome;
         this.analysisStoreProvider = analysisStoreProvider;
     }
 

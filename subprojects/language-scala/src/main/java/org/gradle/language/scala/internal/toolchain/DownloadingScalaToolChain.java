@@ -69,7 +69,7 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
             compilerBridge.setTransitive(false);
             resolvedScalaClasspath.addAll(compilerBridge.resolve());
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
-            return new DefaultScalaToolProvider(gradleUserHomeDir, daemonWorkingDir, workerDaemonFactory, forkOptionsFactory, resolvedScalaClasspath, resolvedZincClasspath);
+            return new DefaultScalaToolProvider(daemonWorkingDir, workerDaemonFactory, forkOptionsFactory, resolvedScalaClasspath, resolvedZincClasspath);
 
         } catch(ResolveException resolveException) {
             return new NotFoundScalaToolProvider(resolveException);

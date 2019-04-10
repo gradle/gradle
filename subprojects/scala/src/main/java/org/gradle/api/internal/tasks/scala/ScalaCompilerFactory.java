@@ -30,17 +30,15 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private final File daemonWorkingDir;
-    private final File gradleUserHomeDir;
     private final JavaForkOptionsFactory forkOptionsFactory;
 
     public ScalaCompilerFactory(
         File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
-        FileCollection zincClasspath, File gradleUserHomeDir, JavaForkOptionsFactory forkOptionsFactory) {
+        FileCollection zincClasspath, JavaForkOptionsFactory forkOptionsFactory) {
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
-        this.gradleUserHomeDir = gradleUserHomeDir;
         this.forkOptionsFactory = forkOptionsFactory;
     }
 
@@ -50,7 +48,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
-            daemonWorkingDir, new ZincScalaCompilerFacade(scalaClasspathFiles, zincClasspathFiles, gradleUserHomeDir),
+            daemonWorkingDir, new ZincScalaCompilerFacade(scalaClasspathFiles, zincClasspathFiles),
             workerDaemonFactory, zincClasspathFiles, forkOptionsFactory);
         return new NormalizingScalaCompiler(scalaCompiler);
     }

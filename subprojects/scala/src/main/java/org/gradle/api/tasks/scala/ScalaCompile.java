@@ -89,7 +89,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             JavaForkOptionsFactory forkOptionsFactory = getServices().get(JavaForkOptionsFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory);
+                getZincClasspath(), forkOptionsFactory);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

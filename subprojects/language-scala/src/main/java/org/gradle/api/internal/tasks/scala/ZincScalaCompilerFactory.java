@@ -22,8 +22,6 @@ import org.apache.tools.ant.AntClassLoader;
 import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
-
 import sbt.internal.inc.ScalaInstance;
 import sbt.internal.inc.ZincUtil;
 import scala.Option;
@@ -36,7 +34,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,7 +92,7 @@ public class ZincScalaCompilerFactory {
                 File bridgeJar = findFile(ZincUtil.getDefaultBridgeModule(scalaInstance.version()).name(), scalaClasspath);
                 ScalaCompiler scalaCompiler = ZincCompilerUtil.scalaCompiler(scalaInstance, bridgeJar, ClasspathOptionsUtil.auto());
 
-                return new ZincScalaCompiler(scalaInstance, scalaCompiler, Optional.of(Jvm.current().getJavaHome()), ANALYSIS_STORE_PROVIDER);
+                return new ZincScalaCompiler(scalaInstance, scalaCompiler, ANALYSIS_STORE_PROVIDER);
             }
         });
     }

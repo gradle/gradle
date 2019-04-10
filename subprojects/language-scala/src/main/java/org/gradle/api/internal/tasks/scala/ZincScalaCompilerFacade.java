@@ -28,12 +28,10 @@ public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSp
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompilerFacade.class);
     private final Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
-    private final File gradleUserHome;
 
-    public ZincScalaCompilerFacade(Iterable<File> scalaClasspath, Iterable<File> zincClasspath, File gradleUserHome) {
+    public ZincScalaCompilerFacade(Iterable<File> scalaClasspath, Iterable<File> zincClasspath) {
         this.scalaClasspath = scalaClasspath;
         this.zincClasspath = zincClasspath;
-        this.gradleUserHome = gradleUserHome;
     }
 
     @Override
