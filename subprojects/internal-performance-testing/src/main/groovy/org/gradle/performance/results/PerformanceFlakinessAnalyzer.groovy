@@ -73,7 +73,11 @@ class PerformanceFlakinessAnalyzer {
     }
 
     FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
+        FlakyTest f = provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
+        if (f != null) {
+            println "issue number: ${f.issue.number}"
+        }
+        return f
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
