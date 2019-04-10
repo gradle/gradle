@@ -60,6 +60,12 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
             public boolean apply(@Nullable File input) {
                 return hasExtension(input, ".java");
             }
+
+            @Override
+            // Added for Java 6 source compatibility
+            public boolean test(@Nullable File input) {
+                return apply(input);
+            }
         });
 
         spec.setSourceFiles(ImmutableSet.copyOf(javaOnly));

@@ -121,6 +121,12 @@ class WatchPointsRegistry {
                 public boolean apply(File input) {
                     return inCombinedRootsOrAncestorOfAnyRoot(input, roots, unfiltered);
                 }
+
+                @Override
+                // Added for Java 6 source compatibility
+                public boolean test(File input) {
+                    return apply(input);
+                }
             });
         }
 
