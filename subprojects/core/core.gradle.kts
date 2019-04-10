@@ -69,7 +69,6 @@ dependencies {
     implementation(library("xmlApis"))
 
     runtimeOnly(project(":instantExecution"))
-    runtimeOnly(project(":instantExecutionSupport"))
     runtimeOnly(project(":docs"))
 
     testImplementation(testLibrary("jsoup"))

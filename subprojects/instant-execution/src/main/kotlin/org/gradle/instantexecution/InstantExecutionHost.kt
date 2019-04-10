@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.support
+package org.gradle.instantexecution
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
@@ -33,10 +33,6 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
-import org.gradle.instantexecution.DefaultInstantExecution
-import org.gradle.instantexecution.InstantExecutionBuild
-import org.gradle.instantexecution.StateDeserializer
-import org.gradle.instantexecution.StateSerializer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver

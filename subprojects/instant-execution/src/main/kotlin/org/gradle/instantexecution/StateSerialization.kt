@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.support
+package org.gradle.instantexecution
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.file.FileCollection
@@ -31,9 +31,6 @@ import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.instantexecution.StateSerializer
-import org.gradle.instantexecution.StateDeserializer
-import org.gradle.instantexecution.ValueSerializer
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder

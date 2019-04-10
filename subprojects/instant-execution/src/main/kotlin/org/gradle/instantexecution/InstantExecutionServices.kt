@@ -23,6 +23,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
     override fun registerGradleServices(registration: ServiceRegistration) {
+        registration.add(InstantExecutionHost::class.java)
         registration.add(DefaultInstantExecution::class.java)
     }
 }
