@@ -60,7 +60,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     };
     private static final NotifyProjectsEvaluatedBuildOperationType.Result PROJECTS_EVALUATED_RESULT = new NotifyProjectsEvaluatedBuildOperationType.Result() {
     };
-    private final InstantExecution.Host instantExecutionHost;
 
     private enum Stage {
         LoadSettings, Configure, TaskGraph, RunTasks() {
@@ -96,6 +95,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
+
+    private final InstantExecution.Host instantExecutionHost;
     private final InstantExecution instantExecution;
 
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
@@ -120,7 +121,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
-        instantExecutionHost = gradle.getServices().get(InstantExecution.Host.class);
+        this.instantExecutionHost = gradle.getServices().get(InstantExecution.Host.class);
         this.instantExecution = new InstantExecution(instantExecutionHost);
     }
 

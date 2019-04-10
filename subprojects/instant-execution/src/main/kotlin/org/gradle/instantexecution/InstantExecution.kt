@@ -100,7 +100,7 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun relevantProjectsFor(tasks: List<Task>): SortedSet<Path> =
+    fun relevantProjectsFor(tasks: List<Task>) =
         tasks.mapNotNull { task ->
             task.project.takeIf { it.parent != null }?.path?.let(Path::path)
         }.toSortedSet()
@@ -141,15 +141,15 @@ class InstantExecution(private val host: Host) {
         }
 
     private
-    fun classLoaderFor(classPath: ClassPath): ClassLoader =
+    fun classLoaderFor(classPath: ClassPath) =
         host.classLoaderFor(classPath)
 
     private
-    fun classPathFor(tasks: List<Task>): ClassPath =
+    fun classPathFor(tasks: List<Task>) =
         tasks.map(::taskClassPath).fold(ClassPath.EMPTY, ClassPath::plus)
 
     private
-    fun taskClassPath(task: Task): ClassPath =
+    fun taskClassPath(task: Task) =
         task.javaClass.classLoader.let(ClasspathUtil::getClasspath)
 
     private

@@ -23,6 +23,7 @@ import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.Closeable;
 
+// TODO:instant-execution reconsider type visibility
 public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory, Closeable {
     private final ServiceRegistry services;
     private final CompositeStoppable registries = new CompositeStoppable();
