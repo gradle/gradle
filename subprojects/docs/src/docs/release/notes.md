@@ -8,17 +8,7 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-<!-- 
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
+[Predrag Knežević](https://github.com/pedjak)
 
 ## Upgrade Instructions
 
@@ -32,9 +22,10 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Update to the Scala Zinc compiler
+
+The Scala Zinc compiler has been upgraded to version 1.2.5. 
+This should fix some Scala incremental compilation bugs and was reported as significantly improving performance.
 
 ## Fixed issues
 
