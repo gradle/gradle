@@ -20,10 +20,14 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
 
+interface StateSerializer {
+    fun serializerFor(value: Any?): ValueSerializer?
+}
+
+
 typealias ValueSerializer = (Encoder) -> Unit
 
 
-interface StateSerializer {
+interface StateDeserializer {
     fun read(decoder: Decoder): Any?
-    fun serializerFor(value: Any?): ValueSerializer?
 }

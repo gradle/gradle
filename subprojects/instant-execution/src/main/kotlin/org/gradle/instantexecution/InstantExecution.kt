@@ -45,7 +45,9 @@ class InstantExecution(private val host: Host) {
 
     interface Host {
 
-        val stateSerializer: StateSerializer
+        fun newStateSerializer(): StateSerializer
+
+        fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer
 
         val scheduledTasks: List<Task>
 
@@ -64,6 +66,11 @@ class InstantExecution(private val host: Host) {
         fun getProject(projectPath: String): Project
 
         fun registerProjects()
+    }
+
+    private
+    val stateSerializer by lazy(LazyThreadSafetyMode.NONE) {
+        host.newStateSerializer()
     }
 
     fun canExecuteInstantaneously() =
@@ -161,11 +168,12 @@ class InstantExecution(private val host: Host) {
         serializeCollection(host.dependenciesOf(task)) {
             writeString(it.path)
         }
+
         for (field in relevantStateOf(taskType)) {
             val fieldValue = field.getFieldValue(task)
             val conventionalValue = fieldValue ?: conventionalValueOf(task, field.name)
             val finalValue = unpack(conventionalValue) ?: continue
-            val valueSerializer = host.stateSerializer.serializerFor(finalValue)
+            val valueSerializer = stateSerializer.serializerFor(finalValue)
             if (valueSerializer == null) {
                 logField(taskType, field.name, "serialize", "there's no serializer for type ${finalValue.javaClass}")
                 continue
@@ -210,14 +218,14 @@ class InstantExecution(private val host: Host) {
         val taskFieldsByName = relevantStateOf(taskClass).associateBy { it.name }
         val task = host.getProject(projectPath).tasks.create(taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
+        val deserializer = host.deserializerFor(taskClassLoader)
         while (true) {
             val fieldName = decoder.readString()
             if (fieldName.isEmpty()) {
                 break
             }
             try {
-                val deserializedValue = host.stateSerializer.read(decoder) ?: continue
-                val value = (deserializedValue as? (ClassLoader) -> Any)?.invoke(taskClassLoader) ?: deserializedValue
+                val value = deserializer.read(decoder) ?: continue
                 val field = taskFieldsByName.getValue(fieldName)
                 println("DESERIALIZED ${task.path} field $fieldName value $value")
                 when (field.type) {

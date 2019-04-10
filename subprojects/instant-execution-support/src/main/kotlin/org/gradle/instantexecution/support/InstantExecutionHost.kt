@@ -31,6 +31,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.instantexecution.InstantExecution
+import org.gradle.instantexecution.StateSerializer
+import org.gradle.instantexecution.StateDeserializer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
@@ -53,14 +55,21 @@ class InstantExecutionHost internal constructor(
     val projectDescriptorRegistry
         get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
 
-    override val stateSerializer by lazy {
-        DefaultStateSerializer(
+    private
+    val serialization by lazy {
+        StateSerialization(
             getService(DirectoryFileTreeFactory::class.java),
             getService(FileCollectionFactory::class.java),
             getService(FileResolver::class.java),
             getService(Instantiator::class.java)
         )
     }
+
+    override fun newStateSerializer(): StateSerializer =
+        serialization.newSerializer()
+
+    override fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer =
+        serialization.deserializerFor(beanClassLoader)
 
     override val scheduledTasks: List<Task>
         get() = gradle.taskGraph.allTasks
