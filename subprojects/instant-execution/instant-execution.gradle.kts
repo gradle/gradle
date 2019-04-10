@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":coreApi"))
+    implementation(project(":core"))
     implementation(project(":modelCore"))
     implementation(project(":files"))
 

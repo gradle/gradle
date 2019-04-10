@@ -25,6 +25,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
+import org.gradle.initialization.InstantExecution
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -40,7 +41,9 @@ import java.util.SortedSet
 import java.util.function.Supplier
 
 
-class InstantExecution(private val host: Host) {
+class DefaultInstantExecution(
+    private val host: Host
+) : InstantExecution {
 
     interface Host {
 
@@ -66,16 +69,17 @@ class InstantExecution(private val host: Host) {
         host.newStateSerializer()
     }
 
-    fun canExecuteInstantaneously() =
+    override fun canExecuteInstantaneously() =
         isInstantExecutionEnabled && instantExecutionStateFile.isFile
 
-    fun saveInstantExecutionState() {
+    override fun saveTaskGraph() {
         if (isInstantExecutionEnabled) {
             saveTasks()
         }
     }
 
-    fun loadInstantExecutionStateInto(build: InstantExecutionBuild) {
+    override fun loadTaskGraph() {
+        val build = host.createBuild()
         build.scheduleTasks(loadTasksFor(build))
     }
 
@@ -221,6 +225,7 @@ class InstantExecution(private val host: Host) {
                 val value = deserializer.read(decoder) ?: continue
                 val field = taskFieldsByName.getValue(fieldName)
                 println("DESERIALIZED ${task.path} field $fieldName value $value")
+                @Suppress("unchecked_cast")
                 when (field.type) {
                     DirectoryProperty::class.java -> (field.getFieldValue(task) as? DirectoryProperty)?.set(value as File)
                     RegularFileProperty::class.java -> (field.getFieldValue(task) as? RegularFileProperty)?.set(value as File)
@@ -383,4 +388,4 @@ inline fun <T> KryoBackedDecoder.deserializeCollectionInto(containerSupplier: (I
 
 
 private
-val logger = Logging.getLogger(InstantExecution::class.java)
+val logger = Logging.getLogger(DefaultInstantExecution::class.java)

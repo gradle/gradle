@@ -32,8 +32,6 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.exception.ExceptionAnalyser;
-import org.gradle.instantexecution.InstantExecution;
-import org.gradle.instantexecution.InstantExecutionBuild;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -91,7 +89,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private SettingsInternal settings;
     private Stage stage;
 
-    private final InstantExecution.Host instantExecutionHost;
     private final InstantExecution instantExecution;
 
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
@@ -116,8 +113,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
-        this.instantExecutionHost = gradle.getServices().get(InstantExecution.Host.class);
-        this.instantExecution = new InstantExecution(instantExecutionHost);
+        this.instantExecution = gradle.getServices().get(InstantExecution.class);
     }
 
     @Override
@@ -175,7 +171,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.TaskGraph) {
             return;
         }
-        instantExecution.saveInstantExecutionState();
+        instantExecution.saveTaskGraph();
         runTasks();
     }
 
@@ -186,8 +182,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void reconstructTaskGraphForInstantExecution() {
-        InstantExecutionBuild build = instantExecutionHost.createBuild();
-        instantExecution.loadInstantExecutionStateInto(build);
+        instantExecution.loadTaskGraph();
         gradle.getTaskGraph().populate();
     }
 

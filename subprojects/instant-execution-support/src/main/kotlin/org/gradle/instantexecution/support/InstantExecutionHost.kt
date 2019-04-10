@@ -33,7 +33,7 @@ import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
-import org.gradle.instantexecution.InstantExecution
+import org.gradle.instantexecution.DefaultInstantExecution
 import org.gradle.instantexecution.InstantExecutionBuild
 import org.gradle.instantexecution.StateDeserializer
 import org.gradle.instantexecution.StateSerializer
@@ -48,7 +48,7 @@ import java.io.File
 
 class InstantExecutionHost internal constructor(
     private val gradle: GradleInternal
-) : InstantExecution.Host {
+) : DefaultInstantExecution.Host {
 
     private
     val classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry::class.java)

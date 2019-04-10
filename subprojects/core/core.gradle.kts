@@ -55,7 +55,6 @@ dependencies {
     api(library("guava"))
     api(library("inject"))
 
-    implementation(project(":instantExecution"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
@@ -69,6 +68,7 @@ dependencies {
     implementation(library("commons_compress"))
     implementation(library("xmlApis"))
 
+    runtimeOnly(project(":instantExecution"))
     runtimeOnly(project(":instantExecutionSupport"))
     runtimeOnly(project(":docs"))
 
