@@ -35,6 +35,7 @@ import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FAIL
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FLAKY;
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FROM_CACHE;
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.IMPROVED;
+import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.KNOWN_FLAKY;
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.NEARLY_FAILED;
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.REGRESSED;
 import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNKNOWN;
@@ -185,9 +186,13 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isFromCache()) {
                     result.add(FROM_CACHE);
                 }
+
                 if (isFlaky(scenario)) {
                     result.add(FLAKY);
+                } else if (PerformanceFlakinessAnalyzer.getInstance().findKnownFlakyTest(scenario) != null) {
+                    result.add(KNOWN_FLAKY);
                 }
+
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
                 } else if (scenario.isBuildFailed()) {

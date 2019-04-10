@@ -310,7 +310,8 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
         REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
         UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
-        FLAKY("FLAKY", "badge badge-warning", "The scenario's difference confidence > 95% even when running identical code."),
+        FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
+        KNOWN_FLAKY("KNOWN-FLAKY", "badge badge-danger", "The scenario was marked as flaky in gradle-private issue tracker recently."),
         UNTAGGED("UNTAGGED", null, null);
 
         private String name;

@@ -17,8 +17,6 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.Sets;
-import org.gradle.ci.github.GitHubIssuesClient;
-import org.gradle.ci.tagging.flaky.GitHubKnownIssuesProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,11 +40,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(comparing(FlakinessIndexPageGenerator::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
-    private final FlakinessIssueReporter issueReporter;
 
-    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson, GitHubIssuesClient gitHubIssuesClient) {
+    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
         super(resultsStore, resultJson);
-        issueReporter = new FlakinessIssueReporter(gitHubIssuesClient, new GitHubKnownIssuesProvider(gitHubIssuesClient));
     }
 
     @Override
@@ -114,8 +110,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     public void reportToIssueTracker() {
-        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(issueReporter::report);
+        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(PerformanceFlakinessAnalyzer.getInstance()::report);
     }
+
     private static boolean isFlaky(ScenarioBuildResultData scenario) {
         return scenario.getExecutions().stream().anyMatch(execution -> execution.getConfidencePercentage() > FLAKINESS_DETECTION_THRESHOLD);
     }

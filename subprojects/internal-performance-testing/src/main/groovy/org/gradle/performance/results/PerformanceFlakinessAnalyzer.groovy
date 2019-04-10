@@ -20,7 +20,9 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.ci.common.model.FlakyTest
+import org.gradle.ci.github.DefaultGitHubIssuesClient
 import org.gradle.ci.github.GitHubIssuesClient
+import org.gradle.ci.tagging.flaky.GitHubKnownIssuesProvider
 import org.gradle.ci.tagging.flaky.KnownFlakyTestProvider
 import org.gradle.performance.results.ScenarioBuildResultData.ExecutionData
 import org.kohsuke.github.GHIssue
@@ -32,14 +34,26 @@ import static org.gradle.ci.github.GitHubIssuesClient.MESSAGE_PREFIX
 import static org.gradle.ci.github.GitHubIssuesClient.TEST_NAME_PREFIX
 
 @CompileStatic
-class FlakinessIssueReporter {
-    static final String GITHUB_FIX_IT_LABEL = "fix-it"
-    private final KnownFlakyTestProvider provider
-    private final GitHubIssuesClient gitHubIssuesClient
+class PerformanceFlakinessAnalyzer {
+    private static PerformanceFlakinessAnalyzer instance
 
-    FlakinessIssueReporter(GitHubIssuesClient gitHubIssuesClient, KnownFlakyTestProvider provider) {
-        this.provider = provider
+    static PerformanceFlakinessAnalyzer getInstance() {
+        if (instance == null) {
+            GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"))
+            KnownFlakyTestProvider provider = new GitHubKnownIssuesProvider(gitHubIssuesClient)
+            instance = new PerformanceFlakinessAnalyzer(gitHubIssuesClient, provider)
+        }
+        return instance
+    }
+
+    static final String GITHUB_FIX_IT_LABEL = "fix-it"
+    static final String GITHUB_IN_PERFORMANCE_LABEL = "in:performance"
+    private final GitHubIssuesClient gitHubIssuesClient
+    private final KnownFlakyTestProvider provider
+
+    PerformanceFlakinessAnalyzer(GitHubIssuesClient gitHubIssuesClient, KnownFlakyTestProvider provider) {
         this.gitHubIssuesClient = gitHubIssuesClient
+        this.provider = provider
     }
 
     void report(ScenarioBuildResultData flakyScenario) {
@@ -58,8 +72,12 @@ class FlakinessIssueReporter {
         commentCurrentFailureToIssue(flakyScenario, knownFlakyTest.issue)
     }
 
+    FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
+        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
+    }
+
     @TypeChecked(TypeCheckingMode.SKIP)
-    static void commentCurrentFailureToIssue(ScenarioBuildResultData scenario, GHIssue issue) {
+    void commentCurrentFailureToIssue(ScenarioBuildResultData scenario, GHIssue issue) {
         issue.comment("""
 ${FROM_BOT_PREFIX}
 
@@ -74,7 +92,7 @@ ${assembleTable(scenario)}
 """)
     }
 
-    private static String assembleTable(ScenarioBuildResultData scenario) {
+    private String assembleTable(ScenarioBuildResultData scenario) {
         scenario.executions.withIndex().collect { ExecutionData execution, int index ->
             "|${index + 1}|${execution.differenceDisplay}|${execution.formattedConfidence}|"
         }.join('\n')
@@ -91,19 +109,16 @@ ${TEST_NAME_PREFIX}${flakyScenario.flakyIssueTestName}
 ${MESSAGE_PREFIX}$message
 """
 
-        GHIssue issue = gitHubIssuesClient.createBuildToolInvalidFailureIssue(title, body, [CI_TRACKED_FLAKINESS_LABEL])
+        GHIssue issue = gitHubIssuesClient.createBuildToolInvalidFailureIssue(title, body, [CI_TRACKED_FLAKINESS_LABEL, GITHUB_IN_PERFORMANCE_LABEL])
         return new FlakyTest(issue: issue)
     }
 
-    private FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
-    }
 
-    private static boolean issueClosed(FlakyTest flakyTest) {
+    private boolean issueClosed(FlakyTest flakyTest) {
         return flakyTest.issue.state == GHIssueState.CLOSED
     }
 
-    private static boolean hasFixItLabel(FlakyTest flakyTest) {
+    private boolean hasFixItLabel(FlakyTest flakyTest) {
         return flakyTest.issue.getLabels().collect { it.name }.contains(GITHUB_FIX_IT_LABEL)
     }
 }
