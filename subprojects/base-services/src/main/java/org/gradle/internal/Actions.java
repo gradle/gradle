@@ -37,6 +37,12 @@ public abstract class Actions {
         public boolean apply(@Nullable Action<?> input) {
             return input != DO_NOTHING;
         }
+
+        @Override
+        // Added for Java 6 source compatibility
+        public boolean test(@Nullable Action<?> input) {
+            return apply(input);
+        }
     };
 
     /**

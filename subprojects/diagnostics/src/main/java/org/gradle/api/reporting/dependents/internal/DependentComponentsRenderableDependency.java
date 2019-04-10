@@ -54,6 +54,12 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
                 public boolean apply(BinarySpec binarySpec) {
                     return binarySpec.isBuildable();
                 }
+
+                @Override
+                // Added for Java 6 source compatibility
+                public boolean test(BinarySpec input) {
+                    return apply(input);
+                }
             });
         }
         boolean testSuite = false;

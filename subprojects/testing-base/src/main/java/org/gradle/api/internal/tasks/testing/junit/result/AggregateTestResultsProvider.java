@@ -102,8 +102,15 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         return Iterables.any(
                 classOutputProviders.get(id),
                 new Predicate<DelegateProvider>() {
+                    @Override
                     public boolean apply(DelegateProvider delegateProvider) {
                         return delegateProvider.provider.hasOutput(delegateProvider.id, destination);
+                    }
+
+                    @Override
+                    // Added for Java 6 source compatibility
+                    public boolean test(DelegateProvider input) {
+                        return apply(input);
                     }
                 });
     }

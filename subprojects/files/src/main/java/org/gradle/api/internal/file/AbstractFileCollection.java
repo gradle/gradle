@@ -15,8 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.AbstractIterator;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
@@ -32,7 +31,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -190,12 +188,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        final Predicate<File> predicate = new Predicate<File>() {
-            @Override
-            public boolean apply(@Nullable File input) {
-                return filterSpec.isSatisfiedBy(input);
-            }
-        };
         return new AbstractFileCollection() {
             @Override
             public String getDisplayName() {
@@ -214,12 +206,24 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
             @Override
             public boolean contains(File file) {
-                return AbstractFileCollection.this.contains(file) && predicate.apply(file);
+                return AbstractFileCollection.this.contains(file) && filterSpec.isSatisfiedBy(file);
             }
 
             @Override
             public Iterator<File> iterator() {
-                return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
+                final Iterator<File> delegate = AbstractFileCollection.this.iterator();
+                return new AbstractIterator<File>() {
+                    @Override
+                    protected File computeNext() {
+                        while (delegate.hasNext()) {
+                            File element = delegate.next();
+                            if (filterSpec.isSatisfiedBy(element)) {
+                                return element;
+                            }
+                        }
+                        return endOfData();
+                    }
+                };
             }
         };
     }
