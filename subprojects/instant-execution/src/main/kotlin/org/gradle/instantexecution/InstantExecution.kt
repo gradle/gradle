@@ -18,7 +18,6 @@ package org.gradle.instantexecution
 
 import groovy.lang.GroovyObject
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -45,6 +44,8 @@ class InstantExecution(private val host: Host) {
 
     interface Host {
 
+        fun createBuild(): InstantExecutionBuild
+
         fun newStateSerializer(): StateSerializer
 
         fun deserializerFor(beanClassLoader: ClassLoader): StateDeserializer
@@ -53,19 +54,11 @@ class InstantExecution(private val host: Host) {
 
         fun dependenciesOf(task: Task): Set<Task>
 
-        fun scheduleTasks(tasks: Iterable<Task>)
-
         fun <T> getService(serviceType: Class<T>): T
 
         fun getSystemProperty(propertyName: String): String?
 
-        fun createProject(path: String): Project
-
         fun classLoaderFor(classPath: ClassPath): ClassLoader
-
-        fun getProject(projectPath: String): Project
-
-        fun registerProjects()
     }
 
     private
@@ -82,8 +75,8 @@ class InstantExecution(private val host: Host) {
         }
     }
 
-    fun loadInstantExecutionState() {
-        host.scheduleTasks(loadTasks())
+    fun loadInstantExecutionStateInto(build: InstantExecutionBuild) {
+        build.scheduleTasks(loadTasksFor(build))
     }
 
     private
@@ -113,9 +106,9 @@ class InstantExecution(private val host: Host) {
         }.toSortedSet()
 
     private
-    fun loadTasks(): List<Task> {
+    fun loadTasksFor(build: InstantExecutionBuild): List<Task> {
 
-        val tasksWithDependencies = loadTasksWithDependencies()
+        val tasksWithDependencies = loadTasksWithDependenciesFor(build)
 
         val tasksByPath = tasksWithDependencies.associate { (task, _) ->
             task.path to task
@@ -130,19 +123,19 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun loadTasksWithDependencies(): List<Pair<Task, List<String>>> =
+    fun loadTasksWithDependenciesFor(build: InstantExecutionBuild): List<Pair<Task, List<String>>> =
         KryoBackedDecoder(instantExecutionStateFile.inputStream()).use { decoder ->
 
             val classPath = decoder.deserializeClassPath()
             val taskClassLoader = classLoaderFor(classPath)
             decoder.deserializeCollection {
-                host.createProject(decoder.readString())
+                build.createProject(decoder.readString())
             }
 
-            host.registerProjects()
+            build.registerProjects()
 
             decoder.deserializeCollectionInto({ count -> ArrayList(count) }) { container ->
-                val task = loadTask(decoder, taskClassLoader)
+                val task = loadTaskFor(build, decoder, taskClassLoader)
                 container.add(task)
             }
         }
@@ -210,13 +203,13 @@ class InstantExecution(private val host: Host) {
     }
 
     private
-    fun loadTask(decoder: KryoBackedDecoder, taskClassLoader: ClassLoader): Pair<Task, List<String>> {
+    fun loadTaskFor(build: InstantExecutionBuild, decoder: KryoBackedDecoder, taskClassLoader: ClassLoader): Pair<Task, List<String>> {
         val projectPath = decoder.readString()
         val taskName = decoder.readString()
         val typeName = decoder.readString()
         val taskClass = taskClassLoader.loadClass(typeName).asSubclass(Task::class.java)
         val taskFieldsByName = relevantStateOf(taskClass).associateBy { it.name }
-        val task = host.getProject(projectPath).tasks.create(taskName, taskClass)
+        val task = build.createTask(projectPath, taskName, taskClass)
         val taskDependencies = decoder.deserializeStrings()
         val deserializer = host.deserializerFor(taskClassLoader)
         while (true) {
@@ -248,6 +241,10 @@ class InstantExecution(private val host: Host) {
         }
         return task to taskDependencies
     }
+
+    private
+    fun InstantExecutionBuild.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
+        getProject(projectPath).tasks.create(taskName, taskClass)
 
     private
     fun Field.setValue(task: Task, value: Any) {

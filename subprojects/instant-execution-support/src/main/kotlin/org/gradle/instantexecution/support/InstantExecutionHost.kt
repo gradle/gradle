@@ -18,25 +18,30 @@ package org.gradle.instantexecution.support
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.instantexecution.InstantExecution
-import org.gradle.instantexecution.StateSerializer
+import org.gradle.instantexecution.InstantExecutionBuild
 import org.gradle.instantexecution.StateDeserializer
+import org.gradle.instantexecution.StateSerializer
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
 
@@ -65,6 +70,9 @@ class InstantExecutionHost internal constructor(
         )
     }
 
+    override fun createBuild(): InstantExecutionBuild =
+        DefaultInstantExecutionBuild()
+
     override fun newStateSerializer(): StateSerializer =
         serialization.newSerializer()
 
@@ -84,27 +92,59 @@ class InstantExecutionHost internal constructor(
     override fun getSystemProperty(propertyName: String) =
         gradle.startParameter.systemPropertiesArgs[propertyName]
 
-    override fun scheduleTasks(tasks: Iterable<Task>) =
-        gradle.taskGraph.addEntryTasks(tasks)
+    inner class DefaultInstantExecutionBuild : InstantExecutionBuild {
 
-    override fun createProject(path: String): ProjectInternal {
-        val projectPath = Path.path(path)
-        val parentPath = projectPath.parent
-        val name = projectPath.name
-        val projectDescriptor = DefaultProjectDescriptor(
-            getProjectDescriptor(parentPath),
-            name ?: "instant-execution",
-            File(".").absoluteFile,
-            projectDescriptorRegistry,
-            getService(PathToFileResolver::class.java)
-        )
-        return projectFactory.createProject(
-            projectDescriptor,
-            getProject(parentPath),
-            gradle,
-            coreAndPluginsScope,
-            coreAndPluginsScope
-        )
+        init {
+            gradle.run {
+                settings = createSettings()
+                rootProject = createProject(":")
+            }
+        }
+
+        override fun createProject(path: String): ProjectInternal {
+            val projectPath = Path.path(path)
+            val parentPath = projectPath.parent
+            val name = projectPath.name
+            val projectDescriptor = DefaultProjectDescriptor(
+                getProjectDescriptor(parentPath),
+                name ?: "instant-execution",
+                File(".").absoluteFile,
+                projectDescriptorRegistry,
+                getService(PathToFileResolver::class.java)
+            )
+            return projectFactory.createProject(
+                projectDescriptor,
+                getProject(parentPath),
+                gradle,
+                coreAndPluginsScope,
+                coreAndPluginsScope
+            )
+        }
+
+        override fun registerProjects() =
+            getService(ProjectStateRegistry::class.java).registerProjects(getService(BuildState::class.java))
+
+        override fun getProject(path: String): ProjectInternal =
+            gradle.rootProject.project(path)
+
+        override fun scheduleTasks(tasks: Iterable<Task>) =
+            gradle.taskGraph.addEntryTasks(tasks)
+
+        private
+        fun createSettings(): SettingsInternal {
+            val settingsSource = StringScriptSource("settings", "")
+            val classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry::class.java)
+            return getService(Instantiator::class.java).newInstance(DefaultSettings::class.java,
+                getService(BuildScopeServiceRegistryFactory::class.java),
+                gradle,
+                classLoaderScopeRegistry.coreScope,
+                classLoaderScopeRegistry.coreScope,
+                getService(ScriptHandlerFactory::class.java).create(settingsSource, classLoaderScopeRegistry.coreScope),
+                File(".").absoluteFile,
+                settingsSource,
+                gradle.startParameter
+            )
+        }
     }
 
     private
@@ -125,10 +165,4 @@ class InstantExecutionHost internal constructor(
 
     override fun dependenciesOf(task: Task): Set<Task> =
         gradle.taskGraph.getDependencies(task)
-
-    override fun getProject(projectPath: String): ProjectInternal =
-        gradle.rootProject.project(projectPath)
-
-    override fun registerProjects() =
-        getService(ProjectStateRegistry::class.java).registerProjects(getService(BuildState::class.java))
 }

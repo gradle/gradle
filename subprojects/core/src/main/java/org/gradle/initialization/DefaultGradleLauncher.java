@@ -25,17 +25,15 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.instantexecution.InstantExecution;
+import org.gradle.instantexecution.InstantExecutionBuild;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -43,13 +41,10 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -185,41 +180,15 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doInstantExecution() {
-        prepareTaskGraph();
+        reconstructTaskGraphForInstantExecution();
         stage = Stage.TaskGraph;
         runTasks();
     }
 
-    private void prepareTaskGraph() {
-        SettingsInternal settings = createSettingsForInstantExecution();
-        gradle.setSettings(settings);
-
-        ProjectInternal rootProject = (ProjectInternal) instantExecutionHost.createProject(":");
-        gradle.setRootProject(rootProject);
-
-        TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        instantExecution.loadInstantExecutionState();
-
-        taskGraph.populate();
-    }
-
-    private <T> T getService(Class<T> type) {
-        return gradle.getServices().get(type);
-    }
-
-    private SettingsInternal createSettingsForInstantExecution() {
-        StringScriptSource settingsSource = new StringScriptSource("settings", "");
-        ClassLoaderScopeRegistry classLoaderScopeRegistry = getService(ClassLoaderScopeRegistry.class);
-        return getService(Instantiator.class).newInstance(DefaultSettings.class,
-            getService(BuildScopeServiceRegistryFactory.class),
-            gradle,
-            classLoaderScopeRegistry.getCoreScope(),
-            classLoaderScopeRegistry.getCoreScope(),
-            getService(ScriptHandlerFactory.class).create(settingsSource, classLoaderScopeRegistry.getCoreScope()),
-            new File(".").getAbsoluteFile(),
-            settingsSource,
-            gradle.getStartParameter()
-        );
+    private void reconstructTaskGraphForInstantExecution() {
+        InstantExecutionBuild build = instantExecutionHost.createBuild();
+        instantExecution.loadInstantExecutionStateInto(build);
+        gradle.getTaskGraph().populate();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
