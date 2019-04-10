@@ -33,7 +33,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "verify 3rd-party dependencies jar hashes"() {
         setup:
         // dependencies produced by Gradle and cannot be verified by this test
-        def excluded = ['fastutil-8.2.1-min.jar', 'kotlin-compiler-embeddable-1.3.21-patched-for-gradle-5.4.jar']
+        def excluded = ['fastutil-8.2.1-min.jar', 'kotlin-compiler-embeddable-1.3.21-patched-for-gradle-5.5.jar']
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
