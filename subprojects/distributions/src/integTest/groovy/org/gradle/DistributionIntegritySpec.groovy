@@ -33,7 +33,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "verify 3rd-party dependencies jar hashes"() {
         setup:
         // dependencies produced by Gradle and cannot be verified by this test
-        def excluded = ['fastutil-8.2.1-min.jar', 'kotlin-compiler-embeddable-1.3.21-patched-for-gradle-5.5.jar']
+        def excluded = ['gradle-', 'fastutil-8.2.1-min', 'kotlin-compiler-embeddable-1.3.21-patched']
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
@@ -162,7 +162,11 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
         def libDir = unpackDistribution().file('lib')
         def jars = collectJars(libDir)
-        Map<String, TestFile> depJars = jars.collectEntries { [(libDir.relativePath(it)): it] }.findAll { String k, File v -> !k.startsWith('gradle-') && !k.startsWith("plugins/gradle-") && !excluded.contains(k) }
+        def filtered = jars.grep { jar ->
+            // Filter out any excluded jars
+            !excluded.any { jar.name.startsWith(it) }
+        }
+        Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
 
         def added = depJars.keySet() - expectedHashes.keySet()
         def removed = expectedHashes.keySet() - depJars.keySet()
