@@ -16,8 +16,8 @@
 
 package org.gradle.internal.reflect.annotations;
 
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -25,17 +25,16 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 public interface PropertyAnnotationMetadata extends Comparable<PropertyAnnotationMetadata> {
+    Method getMethod();
+
     String getPropertyName();
 
     @Nullable
-    Annotation getAnnotation(PropertyAnnotationCategory category);
+    Annotation getAnnotation(AnnotationCategory category);
 
-    boolean hasAnnotation(PropertyAnnotationCategory category, Class<? extends Annotation> annotationType);
+    boolean hasAnnotation(AnnotationCategory category, Class<? extends Annotation> annotationType);
 
-    // TODO Maybe keep this package private?
-    Map<PropertyAnnotationCategory, Annotation> getAnnotations();
-
-    Method getGetter();
+    Map<AnnotationCategory, Annotation> getAnnotations();
 
     void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext);
 }

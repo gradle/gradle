@@ -18,5 +18,5 @@ package org.gradle.internal.reflect;
 
 import org.gradle.api.Describable;
 
-public interface PropertyAnnotationCategory extends Describable {
+public interface AnnotationCategory extends Describable {
 }

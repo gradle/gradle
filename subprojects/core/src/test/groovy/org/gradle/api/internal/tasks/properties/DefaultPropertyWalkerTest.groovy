@@ -232,7 +232,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-            WorkPropertyAnnotationCategory.asMap(),
+            WorkAnnotationCategory.asMap(),
             [Object, GroovyObject],
             [Object, GroovyObject],
             Internal,

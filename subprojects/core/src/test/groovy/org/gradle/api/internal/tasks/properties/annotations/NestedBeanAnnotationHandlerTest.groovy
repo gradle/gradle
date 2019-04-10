@@ -28,7 +28,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.internal.reflect.PropertyMetadata
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL
 
 class NestedBeanAnnotationHandlerTest extends Specification {
 

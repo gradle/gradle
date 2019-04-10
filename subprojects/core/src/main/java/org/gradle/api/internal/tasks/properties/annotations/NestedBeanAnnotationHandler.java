@@ -25,14 +25,14 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -42,7 +42,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of(OPTIONAL);
     }
 

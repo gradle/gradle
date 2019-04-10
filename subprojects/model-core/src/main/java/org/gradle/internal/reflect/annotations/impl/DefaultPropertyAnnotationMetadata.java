@@ -18,8 +18,8 @@ package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,15 +30,20 @@ import java.util.Map;
 
 public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMetadata {
     private final String propertyName;
-    private final Method getter;
-    private final ImmutableMap<PropertyAnnotationCategory, Annotation> annotations;
+    private final Method method;
+    private final ImmutableMap<AnnotationCategory, Annotation> annotations;
     private final ImmutableList<String> validationProblems;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method getter, ImmutableMap<PropertyAnnotationCategory, Annotation> annotations, ImmutableList<String> validationProblems) {
+    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations, ImmutableList<String> validationProblems) {
         this.propertyName = propertyName;
-        this.getter = getter;
+        this.method = method;
         this.annotations = annotations;
         this.validationProblems = validationProblems;
+    }
+
+    @Override
+    public Method getMethod() {
+        return method;
     }
 
     @Override
@@ -46,40 +51,35 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
         return propertyName;
     }
 
-    @Override
-    public Method getGetter() {
-        return getter;
-    }
-
     @Nullable
     @Override
-    public Annotation getAnnotation(PropertyAnnotationCategory category) {
+    public Annotation getAnnotation(AnnotationCategory category) {
         return annotations.get(category);
     }
 
     @Override
-    public boolean hasAnnotation(PropertyAnnotationCategory category, Class<? extends Annotation> annotationType) {
+    public boolean hasAnnotation(AnnotationCategory category, Class<? extends Annotation> annotationType) {
         Annotation annotation = annotations.get(category);
         return annotation != null && annotation.annotationType().equals(annotationType);
     }
 
     @Override
-    public Map<PropertyAnnotationCategory, Annotation> getAnnotations() {
+    public Map<AnnotationCategory, Annotation> getAnnotations() {
         return annotations;
     }
 
     @Override
     public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
-        validationProblems.forEach(validationProblem -> validationContext.visitError(ownerPath, propertyName, validationProblem));
+        validationProblems.forEach(validationProblem -> validationContext.visitError(ownerPath, getPropertyName(), validationProblem));
     }
 
     @Override
     public int compareTo(@NotNull PropertyAnnotationMetadata o) {
-        return propertyName.compareTo(o.getPropertyName());
+        return method.getName().compareTo(o.getMethod().getName());
     }
 
     @Override
     public String toString() {
-        return propertyName;
+        return method.getName();
     }
 }

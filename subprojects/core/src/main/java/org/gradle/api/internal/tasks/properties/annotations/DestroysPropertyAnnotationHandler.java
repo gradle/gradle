@@ -21,8 +21,8 @@ import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Destroys;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +33,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
         return Destroys.class;
     }
 
-    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of();
     }
 

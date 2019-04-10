@@ -29,7 +29,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -40,14 +39,14 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.options.OptionValues;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.work.Incremental;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 
-public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory {
+public enum WorkAnnotationCategory implements AnnotationCategory {
     TYPE(
         Console.class,
         Destroys.class,
@@ -82,7 +81,7 @@ public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory
 
     private final ImmutableSet<Class<? extends Annotation>> annotations;
 
-    WorkPropertyAnnotationCategory(Class<? extends Annotation>... annotations) {
+    WorkAnnotationCategory(Class<? extends Annotation>... annotations) {
         this.annotations = ImmutableSet.copyOf(annotations);
     }
 
@@ -91,9 +90,9 @@ public enum WorkPropertyAnnotationCategory implements PropertyAnnotationCategory
         return name().toLowerCase();
     }
 
-    public static Map<Class<? extends Annotation>, WorkPropertyAnnotationCategory> asMap() {
-        ImmutableMap.Builder<Class<? extends Annotation>, WorkPropertyAnnotationCategory> builder = ImmutableMap.builder();
-        for (WorkPropertyAnnotationCategory category : values()) {
+    public static Map<Class<? extends Annotation>, WorkAnnotationCategory> asMap() {
+        ImmutableMap.Builder<Class<? extends Annotation>, WorkAnnotationCategory> builder = ImmutableMap.builder();
+        for (WorkAnnotationCategory category : values()) {
             for (Class<? extends Annotation> annotation : category.annotations) {
                 builder.put(annotation, category);
             }

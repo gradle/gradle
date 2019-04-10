@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
@@ -30,11 +31,13 @@ import java.lang.annotation.Annotation;
 public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableBiMap<Class<? extends Annotation>, Annotation> annotations;
     private final ImmutableSortedSet<PropertyAnnotationMetadata> properties;
+    private final ImmutableList<String> problems;
 
-    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties) {
+    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<String> problems) {
         //noinspection ConstantConditions
         this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, annotation -> annotation.annotationType()));
         this.properties = ImmutableSortedSet.copyOf(properties);
+        this.problems = ImmutableList.copyOf(problems);
     }
 
     @Override
@@ -54,6 +57,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
 
     @Override
     public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
+        problems.forEach(problem -> validationContext.visitError(problem));
         properties.forEach(property -> property.visitValidationFailures(ownerPath, validationContext));
     }
 }

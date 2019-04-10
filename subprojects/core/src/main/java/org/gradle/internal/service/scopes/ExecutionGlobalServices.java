@@ -31,7 +31,7 @@ import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
-import org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory;
+import org.gradle.api.internal.tasks.properties.WorkAnnotationCategory;
 import org.gradle.api.internal.tasks.properties.annotations.CacheableTaskTypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.DestroysPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.InputDirectoryPropertyAnnotationHandler;
@@ -86,7 +86,7 @@ public class ExecutionGlobalServices {
                 CacheableTask.class,
                 CacheableTransform.class
             ),
-            WorkPropertyAnnotationCategory.asMap(),
+            WorkAnnotationCategory.asMap(),
             ImmutableSet.of(
                 AbstractTask.class,
                 ConventionTask.class,

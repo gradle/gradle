@@ -19,8 +19,8 @@ package org.gradle.internal.reflect.annotations.impl
 import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.ParameterValidationContext
-import org.gradle.internal.reflect.PropertyAnnotationCategory
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -128,10 +128,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             String getPublicProperty()
         }
 
-    def "merges annotations from 'is' and 'get' getter"() {
+    def "ignores 'is' getter when 'get' getter is also defined"() {
         expect:
         assertProperties TypeWithIsAndGetProperty, [
-            bool: [(SIZE): Small, (COLOR): Color],
+            bool: [(SIZE): Small],
+        ], [
+            "Property 'bool' has redundant getters: 'isBool()' and 'getBool()'"
         ]
     }
 
@@ -353,7 +355,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties WithBothFieldAndGetterAnnotation, [
             inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has both a getter and field declared with annotation @Color"
+            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color"
         ]
     }
 
@@ -449,7 +451,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         @Irrelevant
         interface TypeWithAnnotations {}
 
-    void assertProperties(Class<?> type, Map<String, Map<PropertyAnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
+    void assertProperties(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
         def metadata = store.getTypeAnnotationMetadata(type)
         def actualPropertyNames = metadata.propertiesAnnotationMetadata*.propertyName.sort()
         def expectedPropertyNames = expectedProperties.keySet().sort()
@@ -503,7 +505,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assert actualErrors == expectedErrors
     }
 
-    enum Category implements PropertyAnnotationCategory {
+    enum Category implements AnnotationCategory {
         SIZE, COLOR;
 
         @Override

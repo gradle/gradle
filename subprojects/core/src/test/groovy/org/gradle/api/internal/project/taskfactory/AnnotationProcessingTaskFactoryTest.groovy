@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
-import org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory
+import org.gradle.api.internal.tasks.properties.WorkAnnotationCategory
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskPropertyTestUtils
@@ -104,7 +104,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
-        WorkPropertyAnnotationCategory.asMap(),
+        WorkAnnotationCategory.asMap(),
         [Object, GroovyObject],
         [Object, GroovyObject],
         Internal,

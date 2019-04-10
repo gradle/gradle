@@ -31,8 +31,8 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.ValidationProblem;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -46,8 +46,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.TYPE;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.TYPE;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers;
@@ -111,40 +111,40 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
-        for (PropertyAnnotationMetadata propertyAnnotations : annotationMetadata.getPropertiesAnnotationMetadata()) {
-            Annotation typeAnnotation = propertyAnnotations.getAnnotation(TYPE);
-            Annotation normalizationAnnotation = propertyAnnotations.getAnnotation(NORMALIZATION);
+        for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
+            Annotation typeAnnotation = propertyAnnotationMetadata.getAnnotation(TYPE);
+            Annotation normalizationAnnotation = propertyAnnotationMetadata.getAnnotation(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
-                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(),
+                validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(),
                     String.format("is not annotated with %s", displayName));
                 continue;
             }
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with invalid property type @%s",
+                validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with invalid property type @%s",
                     propertyType.getSimpleName()));
                 continue;
             }
 
-            ImmutableSet<? extends PropertyAnnotationCategory> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
-            for (Map.Entry<PropertyAnnotationCategory, Annotation> entry : propertyAnnotations.getAnnotations().entrySet()) {
-                PropertyAnnotationCategory annotationCategory = entry.getKey();
+            ImmutableSet<? extends AnnotationCategory> allowedModifiersForPropertyType = annotationHandler.getAllowedModifiers();
+            for (Map.Entry<AnnotationCategory, Annotation> entry : propertyAnnotationMetadata.getAnnotations().entrySet()) {
+                AnnotationCategory annotationCategory = entry.getKey();
                 if (annotationCategory == TYPE) {
                     continue;
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
+                    validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("is annotated with @%s that is not allowed for @%s properties",
                         annotationType.getSimpleName(), propertyType.getSimpleName()));
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitError(type.getName(), propertyAnnotations.getPropertyName(), String.format("has invalid annotation @%s",
+                    validationContext.visitError(type.getName(), propertyAnnotationMetadata.getPropertyName(), String.format("has invalid annotation @%s",
                         annotationType.getSimpleName()));
                 }
             }
 
-            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotations);
+            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotationMetadata);
             annotationHandler.validatePropertyMetadata(property, validationContext);
 
             if (annotationHandler.isPropertyRelevant()) {
@@ -265,18 +265,18 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public boolean isAnnotationPresent(PropertyAnnotationCategory category, Class<? extends Annotation> annotationType) {
+        public boolean isAnnotationPresent(AnnotationCategory category, Class<? extends Annotation> annotationType) {
             return annotationMetadata.hasAnnotation(category, annotationType);
         }
 
         @Nullable
         @Override
-        public Annotation getAnnotation(PropertyAnnotationCategory category) {
+        public Annotation getAnnotation(AnnotationCategory category) {
             return annotationMetadata.getAnnotation(category);
         }
 
         @Override
-        public boolean hasAnnotation(PropertyAnnotationCategory category) {
+        public boolean hasAnnotation(AnnotationCategory category) {
             return annotationMetadata.getAnnotation(category) != null;
         }
 
@@ -287,7 +287,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Method getGetterMethod() {
-            return annotationMetadata.getGetter();
+            return annotationMetadata.getMethod();
         }
 
         @Override

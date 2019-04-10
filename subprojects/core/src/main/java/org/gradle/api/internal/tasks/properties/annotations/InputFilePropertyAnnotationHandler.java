@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
+import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.INCREMENTAL;
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
 
 public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -32,7 +32,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropert
     }
 
     @Override
-    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL);
     }
 

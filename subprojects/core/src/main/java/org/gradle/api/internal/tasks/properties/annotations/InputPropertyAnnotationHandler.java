@@ -22,14 +22,14 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.internal.reflect.PropertyAnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.WorkAnnotationCategory.OPTIONAL;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
@@ -37,7 +37,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public ImmutableSet<? extends PropertyAnnotationCategory> getAllowedModifiers() {
+    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of(OPTIONAL);
     }
 

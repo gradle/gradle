@@ -57,8 +57,8 @@ import spock.lang.Unroll
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.NORMALIZATION
-import static org.gradle.api.internal.tasks.properties.WorkPropertyAnnotationCategory.TYPE
+import static WorkAnnotationCategory.NORMALIZATION
+import static WorkAnnotationCategory.TYPE
 
 class DefaultTypeMetadataStoreTest extends Specification {
 
@@ -75,7 +75,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [CustomCacheable],
-        WorkPropertyAnnotationCategory.asMap() + [(SearchPath): TYPE],
+        WorkAnnotationCategory.asMap() + [(SearchPath): TYPE],
         [Object, GroovyObject, DefaultTask],
         [Object, GroovyObject],
         Internal,
