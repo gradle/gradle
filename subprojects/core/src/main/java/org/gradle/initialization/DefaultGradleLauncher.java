@@ -31,6 +31,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -455,6 +456,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                         List<File> allSourcePaths = new ArrayList<File>();
                         collectSourcePathsFrom(copySpec, allSourcePaths);
                         try {
+                            encoder.writeByte((byte) 1);
                             objectSerializer.write(encoder, allSourcePaths);
                         } catch (Exception e) {
                             throw UncheckedException.throwAsUncheckedException(e);
@@ -470,15 +472,44 @@ public class DefaultGradleLauncher implements GradleLauncher {
                     }
                 };
             }
+            if (value instanceof DestinationRootCopySpec) {
+                final DestinationRootCopySpec copySpec = (DestinationRootCopySpec) value;
+                return new Function2<Encoder, Serializer<Object>, Unit>() {
+                    @Override
+                    public Unit invoke(Encoder encoder, Serializer<Object> objectSerializer) {
+                        try {
+                            encoder.writeByte((byte) 2);
+                            objectSerializer.write(encoder, copySpec.getDestinationDir());
+                            serializerFor(copySpec.getDelegate()).invoke(encoder, objectSerializer);
+                        } catch (Exception e) {
+                            throw UncheckedException.throwAsUncheckedException(e);
+                        }
+                        return Unit.INSTANCE;
+                    }
+
+                };
+            }
+
             return null;
         }
 
         @Override
         public Object deserialize(Decoder decoder, Serializer<Object> stateSerializer) throws Exception {
-            List<File> sourceFiles = (List<File>) stateSerializer.read(decoder);
-            DefaultCopySpec copySpec = new DefaultCopySpec(getService(FileResolver.class), getService(Instantiator.class));
-            copySpec.from(sourceFiles);
-            return copySpec;
+            switch (decoder.readByte()) {
+                case 1:
+                    List<File> sourceFiles = (List<File>) stateSerializer.read(decoder);
+                    DefaultCopySpec copySpec = new DefaultCopySpec(getService(FileResolver.class), getService(Instantiator.class));
+                    copySpec.from(sourceFiles);
+                    return copySpec;
+                case 2:
+                    File destDir = (File) stateSerializer.read(decoder);
+                    CopySpecInternal delegate = (CopySpecInternal) deserialize(decoder, stateSerializer);
+                    DestinationRootCopySpec spec = new DestinationRootCopySpec(getService(PathToFileResolver.class), delegate);
+                    spec.into(destDir);
+                    return spec;
+                default:
+                    throw new IllegalStateException();
+            }
         }
     }
 
