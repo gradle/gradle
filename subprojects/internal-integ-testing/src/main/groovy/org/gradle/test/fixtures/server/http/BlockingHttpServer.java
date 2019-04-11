@@ -110,19 +110,14 @@ public class BlockingHttpServer extends ExternalResource {
         String connectionVar = "connection" + count;
         String urlVar = "url" + count;
         String streamVar = "inputStream" + count;
-        String responseCodeVar = "responseCode" + count;
         StringWriter result = new StringWriter();
         PrintWriter writer = new PrintWriter(result);
         writer.print("String " + urlVar + " = " + uriExpression + ";");
         writer.print("System.out.println(\"[G] calling \" + " + urlVar + ");");
         writer.print("try {");
-        writer.print("  java.net.HttpURLConnection " + connectionVar + " = (java.net.HttpURLConnection)new java.net.URL(" + urlVar + ").openConnection();");
+        writer.print("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
         writer.print("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
         writer.print("  " + connectionVar + ".connect();");
-        writer.print("  int " + responseCodeVar + " = " + connectionVar + ".getResponseCode();");
-        writer.print("  if (" + responseCodeVar + " != 200) {");
-        writer.print("    throw new RuntimeException(\"Unexpected response code:\" + " + responseCodeVar + ");");
-        writer.print("  };");
         writer.print("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
         writer.print("  try {");
         writer.print("    while (" + streamVar + ".read() >= 0) {}"); // read entire response
