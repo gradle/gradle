@@ -300,7 +300,7 @@ class DefaultInstantExecution(
 
     private
     val isInstantExecutionEnabled: Boolean
-        get() = host.getSystemProperty("instantExecution") != null
+        get() = host.getSystemProperty("org.gradle.unsafe.instant-execution") != null
 
     private
     val instantExecutionStateFile

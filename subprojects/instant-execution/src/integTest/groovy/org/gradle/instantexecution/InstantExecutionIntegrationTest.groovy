@@ -25,6 +25,8 @@ import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    private String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
+
     def setup() {
         executer.noDeprecationChecks()
     }
@@ -36,11 +38,11 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "instant execution for help on empty project"() {
         given:
-        run "help", "-DinstantExecution"
+        instantRun "help"
         def firstRunOutput = result.normalizedOutput
 
         when:
-        run "help", "-DinstantExecution"
+        instantRun "help"
 
         then:
         result.normalizedOutput == firstRunOutput
@@ -59,7 +61,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "compileJava", "-DinstantExecution"
+        instantRun "compileJava"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -67,7 +69,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         classFile.delete()
-        run "compileJava", "-DinstantExecution"
+        instantRun "compileJava"
 
         then:
         outputDoesNotContain("running build script")
@@ -94,7 +96,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "assemble", "-DinstantExecution"
+        instantRun "assemble"
         outputContains("running build script")
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -102,7 +104,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         classFile.delete()
-        run "assemble", "-DinstantExecution"
+        instantRun "assemble"
 
         then:
         outputDoesNotContain("running build script")
@@ -139,7 +141,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        run "slow", "-DinstantExecution", "--parallel"
+        instantRun "slow", "--parallel"
 
         then:
         noExceptionThrown()
@@ -148,7 +150,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         def pendingCalls = server.expectConcurrentAndBlock("b", "c")
         server.expectConcurrent("a")
 
-        def buildHandle = executer.withTasks("slow", "-DinstantExecution", "--parallel", "--max-workers=3").start()
+        def buildHandle = executer.withTasks("slow", "--parallel", "--max-workers=3", INSTANT_EXECUTION_PROPERTY).start()
         pendingCalls.waitForAllPendingCalls()
         pendingCalls.releaseAll()
         buildHandle.waitForFinish()
@@ -162,11 +164,11 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             include 'a:b', 'a:c'
         """
-        run ":a:b:help", ":a:c:help", "-DinstantExecution"
+        instantRun ":a:b:help", ":a:c:help"
         def firstRunOutput = result.normalizedOutput
 
         when:
-        run ":a:b:help", ":a:c:help", "-DinstantExecution"
+        instantRun ":a:b:help", ":a:c:help"
 
         then:
         result.normalizedOutput == firstRunOutput
@@ -186,7 +188,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        run "compileGroovy", "-DinstantExecution"
+        instantRun "compileGroovy"
         outputContains("running build script")
         result.assertTasksExecuted(":compileGroovy")
         def classFile = file("build/classes/java/main/Thing.class")
@@ -194,7 +196,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         classFile.delete()
-        run "compileGroovy", "-DinstantExecution"
+        instantRun "compileGroovy"
 
         then:
         outputDoesNotContain("running build script")
@@ -209,8 +211,8 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         new TestFile("/Users/paul/src/local/gradle/instant-application").copyTo(testDirectory)
 
         expect:
-        run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
-        run 'mainApkListPersistenceDebug', 'compileDebugAidl', '-DinstantExecution'
+        instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
+        instantRun 'mainApkListPersistenceDebug', 'compileDebugAidl'
     }
 
     def "multi-project java build"() {
@@ -236,13 +238,18 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run ":b:assemble", "-DinstantExecution", "-s"
+        instantRun ":b:assemble", "-s"
 
         and:
         file("b/build/classes/java/main/b/B.class").delete()
-        run ":b:assemble", "-DinstantExecution", "-s"
+        instantRun ":b:assemble", "-s"
 
         then:
         new ZipTestFixture(file("b/build/libs/b.jar")).assertContainsFile("b/B.class")
     }
+
+    private void instantRun(String... args) {
+        run(INSTANT_EXECUTION_PROPERTY, *args)
+    }
+
 }
