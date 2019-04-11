@@ -34,7 +34,9 @@ import org.gradle.reporting.ReportRenderer;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
@@ -167,6 +169,12 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             @Override
             public boolean apply(ModelRuleDescriptor input) {
                 return !input.equals(model.getDescriptor());
+            }
+
+            @Override
+            // Added for Java 6 source compatibility
+            public boolean test(ModelRuleDescriptor input) {
+                return apply(input);
             }
         });
         return ImmutableSet.copyOf(filtered);

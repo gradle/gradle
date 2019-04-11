@@ -229,10 +229,11 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         """
 
         file("input").createDir()
+        def inputPath = file('input').absolutePath
 
         expect:
         fails("myTask")
-        failureHasCause("Multiple entries with same key: ${file('input').absolutePath}=inputTwo and ${file('input').absolutePath}=inputOne")
+        failureHasCause("Multiple entries with same value: inputTwo=$inputPath and inputOne=$inputPath")
     }
 
     def "two incremental file properties can point to the same file"() {

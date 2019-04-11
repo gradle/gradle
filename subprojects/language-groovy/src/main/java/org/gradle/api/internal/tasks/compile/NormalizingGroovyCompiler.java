@@ -28,6 +28,7 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -70,6 +71,12 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
                     }
                 }
                 return false;
+            }
+
+            @Override
+            // Added for Java 6 source compatibility
+            public boolean test(@Nullable File input) {
+                return apply(input);
             }
         });
 
