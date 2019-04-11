@@ -245,13 +245,13 @@ include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskFirstRun.o
 ----
 ====
 
-Naturally when the task is executed again with no changes, then the entire task is up to date and no files are reported to the task action (which is why there is no output):
+Naturally when the task is executed again with no changes, then the entire task is up to date and the task action is not executed:
 
 .Running the incremental task with unchanged inputs
 ====
-.Output of `gradle -q incrementalReverse`
+.Output of `gradle incrementalReverse`
 ----
-> gradle -q incrementalReverse
+> gradle incrementalReverse
 include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskNoChange.out[]
 ----
 ====
@@ -331,7 +331,7 @@ This way when the task's results are loaded from cache, the next execution can a
 
 However, if the state files are non-relocatable, then they can't be shared via the build cache.
 Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state from confusing the tool during the next execution.
-Gradle can ensure such stale files are removed if they are declared via `link:{javadocPath}/org/gradle/api/tasks/TaskLocalState.html#register-java.lang.Object++...++-[task.localState.register()]` or if a property is marked with the `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]` annotation.
+Gradle can ensure such stale files are removed if they are declared via `link:{javadocPath}/org/gradle/api/tasks/TaskLocalState.html#register-java.lang.Object++...++-[task.localState.register()]` or if a property is marked with the `link:{javadocPath}/org/gradle/api/tasks/LocalState.html[@LocalState]` annotation.
 
 [[sec:declaring_and_using_command_line_options]]
 == Declaring and Using Command Line Options
