@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -146,13 +147,16 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doBuildStages(Stage upTo) {
+        Preconditions.checkArgument(
+            upTo != Stage.Finished,
+            "Stage.Finished is not supported by doBuildStages."
+        );
         try {
             if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
                 doInstantExecution();
             } else {
                 doClassicBuildStages(upTo);
             }
-            finishBuild();
         } catch (Throwable t) {
             finishBuild(upTo.getDisplayName(), t);
         }
