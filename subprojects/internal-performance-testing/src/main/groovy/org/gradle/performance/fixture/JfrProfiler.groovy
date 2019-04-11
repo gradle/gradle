@@ -59,11 +59,15 @@ class JfrProfiler extends Profiler implements Stoppable {
 
     @Override
     List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
-        String flightRecordOptions = "stackdepth=1024"
         def jfrFile = getJfrFile(spec)
         jfrFile.parentFile.mkdirs()
-        if (!useDaemon(spec)) {
-            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrFile},settings=$config"
+        getJvmOpts(!useDaemon(spec), jfrFile)
+    }
+
+    private List<String> getJvmOpts(boolean startRecordingImmediately, File jfrOutputLocation) {
+        String flightRecordOptions = "stackdepth=1024"
+        if (startRecordingImmediately) {
+            flightRecordOptions += ",defaultrecording=true,dumponexit=true,dumponexitpath=${jfrOutputLocation},settings=$config"
         }
         def opts = []
         if (!JavaVersion.current().isJava11Compatible()) {
@@ -71,6 +75,14 @@ class JfrProfiler extends Profiler implements Stoppable {
         }
         opts += ["-XX:+FlightRecorder", "-XX:FlightRecorderOptions=" + flightRecordOptions, "-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints"]
         opts
+    }
+
+    @Override
+    String getJvmOptsForUseInBuild(String recordingsDirectoryRelativePath) {
+        // Don't use the flames directory, since we shouldn't generate flame graphs for the additional JFR files.
+        def recordingsLocation = new File(new File(logDirectory.parentFile, "jfr-recordings"), recordingsDirectoryRelativePath)
+        recordingsLocation.mkdirs()
+        return getJvmOpts(true, recordingsLocation).join(";")
     }
 
     @Override
@@ -103,7 +115,7 @@ class JfrProfiler extends Profiler implements Stoppable {
         flameGraphGenerator.generateDifferentialGraphs(logDirectory)
     }
 
-    private boolean useDaemon(BuildExperimentSpec spec) {
+    private static boolean useDaemon(BuildExperimentSpec spec) {
         spec.displayInfo.daemon
     }
 }
