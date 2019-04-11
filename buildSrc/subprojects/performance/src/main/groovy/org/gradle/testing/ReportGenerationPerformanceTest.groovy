@@ -44,8 +44,8 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
 
     protected void generatePerformanceReport() {
         generateResultsJson()
-        def out = new ByteArrayOutputStream()
 
+        project.delete(reportDir)
         project.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain(reportGeneratorClass)
@@ -54,12 +54,8 @@ abstract class ReportGenerationPerformanceTest extends PerformanceTest {
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
                 spec.systemProperty("githubToken", project.findProperty("githubToken"))
                 spec.setClasspath(ReportGenerationPerformanceTest.this.getClasspath())
-                spec.standardOutput = out
-                spec.errorOutput = out
             }
         })
-
-        println("Exec output: ${out}")
     }
 
     protected void generateResultsJson() {

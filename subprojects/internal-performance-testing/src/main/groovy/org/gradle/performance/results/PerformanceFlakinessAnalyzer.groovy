@@ -28,6 +28,7 @@ import org.gradle.performance.results.ScenarioBuildResultData.ExecutionData
 import org.kohsuke.github.GHIssue
 import org.kohsuke.github.GHIssueState
 
+import static org.apache.commons.lang3.StringUtils.isNoneBlank
 import static org.gradle.ci.github.GitHubIssuesClient.CI_TRACKED_FLAKINESS_LABEL
 import static org.gradle.ci.github.GitHubIssuesClient.FROM_BOT_PREFIX
 import static org.gradle.ci.github.GitHubIssuesClient.MESSAGE_PREFIX
@@ -73,11 +74,7 @@ class PerformanceFlakinessAnalyzer {
     }
 
     FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        FlakyTest f = provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
-        if (f != null) {
-            println "issue number: ${f.issue.number}"
-        }
-        return f
+        return provider.knownInvalidFailures.find { isNoneBlank(it.name) && scenario.flakyIssueTestName.contains(it.name) }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
