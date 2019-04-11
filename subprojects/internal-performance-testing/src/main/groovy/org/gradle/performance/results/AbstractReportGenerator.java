@@ -26,9 +26,6 @@ import java.lang.reflect.Type;
 import java.net.URL;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
-    protected static <G extends AbstractReportGenerator> G getGenerator(Class<G> generatorClass) throws Exception {
-        return generatorClass.getConstructor().newInstance();
-    }
 
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);

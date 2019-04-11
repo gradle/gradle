@@ -20,8 +20,8 @@ import java.io.File;
 import java.io.IOException;
 
 public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersionResultsStore> {
-    public static void main(String[] args) throws Exception {
-        getGenerator(FlakinessReportGenerator.class).generateReport(args);
+    public static void main(String[] args) {
+        new FlakinessReportGenerator().generateReport(args);
     }
 
     @Override

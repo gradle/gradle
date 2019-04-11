@@ -42,8 +42,11 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
+    private final PerformanceFlakinessAnalyzer flakinessAnalyzer;
+
     public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
         super(resultsStore, resultJson);
+        this.flakinessAnalyzer = PerformanceFlakinessAnalyzer.create();
     }
 
     @Override
@@ -111,7 +114,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     }
 
     public void reportToIssueTracker() {
-        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(PerformanceFlakinessAnalyzer.getInstance()::report);
+        scenarios.stream().filter(FlakinessIndexPageGenerator::isFlaky).forEach(flakinessAnalyzer::report);
     }
 
     private static boolean isFlaky(ScenarioBuildResultData scenario) {

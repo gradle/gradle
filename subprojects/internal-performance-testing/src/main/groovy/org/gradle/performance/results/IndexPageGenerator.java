@@ -57,8 +57,11 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName);
 
+    private final PerformanceFlakinessAnalyzer flakinessAnalyzer;
+
     public IndexPageGenerator(ResultsStore resultsStore, File resultJson) {
         super(resultsStore, resultJson);
+        this.flakinessAnalyzer = PerformanceFlakinessAnalyzer.create();
     }
 
     @Override
@@ -213,7 +216,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             private void markKnownFlakyTestIfFound(ScenarioBuildResultData scenario, Set<Tag> result) {
-                FlakyTest flakyTest = PerformanceFlakinessAnalyzer.getInstance().findKnownFlakyTest(scenario);
+                FlakyTest flakyTest = flakinessAnalyzer.findKnownFlakyTest(scenario);
                 if (flakyTest != null) {
                     result.add(new Tag.KnownFlakyTag(flakyTest));
                 }

@@ -36,15 +36,11 @@ import static org.gradle.ci.github.GitHubIssuesClient.TEST_NAME_PREFIX
 
 @CompileStatic
 class PerformanceFlakinessAnalyzer {
-    private static PerformanceFlakinessAnalyzer instance
 
-    static PerformanceFlakinessAnalyzer getInstance() {
-        if (instance == null) {
-            GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"))
-            KnownFlakyTestProvider provider = new GitHubKnownIssuesProvider(gitHubIssuesClient)
-            instance = new PerformanceFlakinessAnalyzer(gitHubIssuesClient, provider)
-        }
-        return instance
+    static PerformanceFlakinessAnalyzer create() {
+        GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"))
+        KnownFlakyTestProvider provider = new GitHubKnownIssuesProvider(gitHubIssuesClient)
+        return new PerformanceFlakinessAnalyzer(gitHubIssuesClient, provider)
     }
 
     static final String GITHUB_FIX_IT_LABEL = "fix-it"
