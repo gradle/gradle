@@ -42,11 +42,9 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    private final PerformanceFlakinessAnalyzer flakinessAnalyzer;
 
-    public FlakinessIndexPageGenerator(ResultsStore resultsStore, File resultJson) {
-        super(resultsStore, resultJson);
-        this.flakinessAnalyzer = PerformanceFlakinessAnalyzer.create();
+    public FlakinessIndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+        super(flakinessAnalyzer, resultsStore, resultJson);
     }
 
     @Override

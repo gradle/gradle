@@ -25,8 +25,8 @@ public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersi
     }
 
     @Override
-    protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        FlakinessIndexPageGenerator reporter = new FlakinessIndexPageGenerator(store, resultJson);
+    protected void renderIndexPage(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore store, File resultJson, File outputDirectory) throws IOException {
+        FlakinessIndexPageGenerator reporter = new FlakinessIndexPageGenerator(flakinessAnalyzer, store, resultJson);
         new FileRenderer().render(store, reporter, new File(outputDirectory, "index.html"));
 
         reporter.reportToIssueTracker();

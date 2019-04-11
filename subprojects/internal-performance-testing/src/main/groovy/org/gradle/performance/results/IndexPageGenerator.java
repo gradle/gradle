@@ -57,11 +57,8 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    private final PerformanceFlakinessAnalyzer flakinessAnalyzer;
-
-    public IndexPageGenerator(ResultsStore resultsStore, File resultJson) {
-        super(resultsStore, resultJson);
-        this.flakinessAnalyzer = PerformanceFlakinessAnalyzer.create();
+    public IndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+        super(flakinessAnalyzer, resultsStore, resultJson);
     }
 
     @Override

@@ -36,7 +36,6 @@ import static org.gradle.ci.github.GitHubIssuesClient.TEST_NAME_PREFIX
 
 @CompileStatic
 class PerformanceFlakinessAnalyzer {
-
     static PerformanceFlakinessAnalyzer create() {
         GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"))
         KnownFlakyTestProvider provider = new GitHubKnownIssuesProvider(gitHubIssuesClient)
