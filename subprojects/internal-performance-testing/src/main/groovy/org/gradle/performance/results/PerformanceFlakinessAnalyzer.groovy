@@ -115,11 +115,11 @@ ${MESSAGE_PREFIX}$message
     }
 
 
-    private boolean issueClosed(FlakyTest flakyTest) {
+    private static boolean issueClosed(FlakyTest flakyTest) {
         return flakyTest.issue.state == GHIssueState.CLOSED
     }
 
-    private boolean hasFixItLabel(FlakyTest flakyTest) {
+    private static boolean hasFixItLabel(FlakyTest flakyTest) {
         return flakyTest.issue.getLabels().collect { it.name }.contains(GITHUB_FIX_IT_LABEL)
     }
 }

@@ -189,12 +189,10 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
                 if (isFlaky(scenario)) {
                     result.add(FLAKY);
-                } else {
-                    FlakyTest flakyTest = PerformanceFlakinessAnalyzer.getInstance().findKnownFlakyTest(scenario);
-                    if (flakyTest != null) {
-                        result.add(new Tag.KnownFlakyTag(flakyTest));
-                    }
                 }
+
+                markKnownFlakyTestIfFound(scenario, result);
+
 
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
@@ -212,6 +210,13 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                     result.add(UNTAGGED);
                 }
                 return result;
+            }
+
+            private void markKnownFlakyTestIfFound(ScenarioBuildResultData scenario, Set<Tag> result) {
+                FlakyTest flakyTest = PerformanceFlakinessAnalyzer.getInstance().findKnownFlakyTest(scenario);
+                if (flakyTest != null) {
+                    result.add(new Tag.KnownFlakyTag(flakyTest));
+                }
             }
 
             @Override
