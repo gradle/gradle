@@ -30,6 +30,7 @@ import java.util.Set;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.performance.results.ScenarioBuildResultData.FLAKINESS_DETECTION_THRESHOLD;
+import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
 
 public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
     public static final int MOST_RECENT_EXECUTIONS = 9;
@@ -100,7 +101,7 @@ public class FlakinessIndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected Set<Tag> determineTags(ScenarioBuildResultData scenario) {
-                return isFlaky(scenario) ? Sets.newHashSet(Tag.FLAKY) : Collections.emptySet();
+                return isFlaky(scenario) ? Sets.newHashSet(FLAKY) : Collections.emptySet();
             }
 
             @Override

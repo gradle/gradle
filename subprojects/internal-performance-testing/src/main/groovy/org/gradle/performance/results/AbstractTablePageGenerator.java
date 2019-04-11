@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static org.gradle.performance.results.Tag.FixedTag;
 
 public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<ResultsStore> {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
@@ -173,14 +174,14 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
 
             private void renderPopoverDiv() {
                 div().id("filter-popover").style("display: none");
-                    Stream.of(Tag.values()).forEach(tag -> {
+                    Stream.of(FixedTag.values()).forEach(tag -> {
                         div().classAttr("form-check");
                             label().classAttr("form-check-label");
-                                input().classAttr("form-check-input").type("checkbox").checked("true").value(tag.name).end();
+                                input().classAttr("form-check-input").type("checkbox").checked("true").value(tag.getName()).end();
                                 if(tag.isValid()) {
-                                    span().classAttr(tag.classAttr).text(tag.name).end();
+                                    span().classAttr(tag.getClassAttr()).text(tag.getName()).end();
                                 } else {
-                                    span().text(tag.name).end();
+                                    span().text(tag.getName()).end();
                                 }
                             end();
                         end();
@@ -223,7 +224,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                             end();
                             div().classAttr("col-7");
                                 big().text(scenario.getScenarioName()).end();
-                                tags.stream().filter(Tag::isValid).forEach(tag -> span().classAttr(tag.classAttr).attr("data-toggle", "tooltip").title(tag.title).text(tag.name).end());
+                                tags.stream().filter(Tag::isValid).forEach(this::renderTag);
                             end();
                             div().classAttr("col-2");
                                 renderScenarioButtons(index, scenario);
@@ -255,6 +256,16 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                         end();
                     end();
                 end();
+            }
+
+            private void renderTag(Tag tag) {
+                if (tag.getUrl() == null) {
+                    span().classAttr(tag.getClassAttr()).attr("data-toggle", "tooltip").title(tag.getTitle()).text(tag.getName()).end();
+                } else {
+                    span().classAttr(tag.getClassAttr()).attr("data-toggle", "tooltip").title(tag.getTitle());
+                    a().target("_blank").href(tag.getUrl()).text(tag.getName()).end();
+                    end();
+                }
             }
 
             protected abstract String determineScenarioBackgroundColorCss(ScenarioBuildResultData scenario);
@@ -299,37 +310,5 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                 end();
             }
             // @formatter:on
-
-    }
-
-
-    public enum Tag {
-        FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
-        FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
-        NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
-        REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
-        IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
-        UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
-        FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
-        KNOWN_FLAKY("KNOWN-FLAKY", "badge badge-danger", "The scenario was marked as flaky in gradle-private issue tracker recently."),
-        UNTAGGED("UNTAGGED", null, null);
-
-        private String name;
-        private String classAttr;
-        private String title;
-
-        Tag(String name, String classAttr, String title) {
-            this.name = name;
-            this.classAttr = classAttr;
-            this.title = title;
-        }
-
-        public boolean isValid() {
-            return this != UNTAGGED;
-        }
-
-        public String getName() {
-            return name;
-        }
     }
 }
