@@ -668,7 +668,7 @@ abstract class MakeGreen extends ArtifactTransform {
     @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
         def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
@@ -695,7 +695,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails(":a:resolve")
 
         then:
-        if (configurationTime) {
+        if (expectFailureDuringConfigurationTime) {
             failure.assertHasDescription("A problem occurred evaluating root project")
             failure.assertHasCause("Cannot register artifact transform MakeGreen with parameters null")
             failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider.")
@@ -706,7 +706,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         }
 
         where:
-        propertyType                                   | configurationTime
+        propertyType                                   | expectFailureDuringConfigurationTime
         FileCollection                                 | true
         new TypeToken<Provider<File>>() {}.getType()   | false
         new TypeToken<Provider<String>>() {}.getType() | false
@@ -715,7 +715,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @Unroll
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
         buildFile << """
@@ -746,9 +746,9 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
         where:
-        annotation                | propertyType                                   | configurationTime
-        InputArtifactDependencies | File                                           | true
-        InputArtifactDependencies | String                                         | true
+        annotation                | propertyType
+        InputArtifactDependencies | File
+        InputArtifactDependencies | String
     }
 
     def "transform cannot use @Inject to receive input file"() {
