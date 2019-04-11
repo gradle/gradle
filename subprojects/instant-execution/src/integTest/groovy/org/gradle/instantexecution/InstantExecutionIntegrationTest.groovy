@@ -25,8 +25,6 @@ import spock.lang.Ignore
 
 class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    private String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
-
     def setup() {
         executer.noDeprecationChecks()
     }
@@ -251,5 +249,7 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     private void instantRun(String... args) {
         run(INSTANT_EXECUTION_PROPERTY, *args)
     }
+
+    private static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
 
 }
