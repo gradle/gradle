@@ -163,13 +163,14 @@ class InstantExecutionIntegrationTest extends AbstractIntegrationSpec {
             include 'a:b', 'a:c'
         """
         instantRun ":a:b:help", ":a:c:help"
-        def firstRunOutput = result.normalizedOutput
+        def firstRunOutput = result.groupedOutput
 
         when:
         instantRun ":a:b:help", ":a:c:help"
 
         then:
-        result.normalizedOutput == firstRunOutput
+        result.groupedOutput.task(":a:b:help").output == firstRunOutput.task(":a:b:help").output
+        result.groupedOutput.task(":a:c:help").output == firstRunOutput.task(":a:c:help").output
     }
 
     @Ignore
