@@ -47,6 +47,7 @@ class PerformanceFlakinessAnalyzer {
     static final String GITHUB_IN_PERFORMANCE_LABEL = "in:performance"
     private final GitHubIssuesClient gitHubIssuesClient
     private final KnownFlakyTestProvider provider
+    private List<FlakyTest> knownInvalidFailures
 
     PerformanceFlakinessAnalyzer(GitHubIssuesClient gitHubIssuesClient, KnownFlakyTestProvider provider) {
         this.gitHubIssuesClient = gitHubIssuesClient
@@ -70,11 +71,18 @@ class PerformanceFlakinessAnalyzer {
     }
 
     FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        return provider.knownInvalidFailures.find { isNoneBlank(it.name) && scenario.flakyIssueTestName.contains(it.name) }
+        return getKnownInvalidFailures().find { isNoneBlank(it.name) && scenario.flakyIssueTestName.contains(it.name) }
+    }
+
+    private List<FlakyTest> getKnownInvalidFailures() {
+        if (knownInvalidFailures == null) {
+            knownInvalidFailures = provider.knownInvalidFailures
+        }
+        return knownInvalidFailures
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    void commentCurrentFailureToIssue(ScenarioBuildResultData scenario, GHIssue issue) {
+    static void commentCurrentFailureToIssue(ScenarioBuildResultData scenario, GHIssue issue) {
         issue.comment("""
 ${FROM_BOT_PREFIX}
 
@@ -89,7 +97,7 @@ ${assembleTable(scenario)}
 """)
     }
 
-    private String assembleTable(ScenarioBuildResultData scenario) {
+    private static String assembleTable(ScenarioBuildResultData scenario) {
         scenario.executions.withIndex().collect { ExecutionData execution, int index ->
             "|${index + 1}|${execution.differenceDisplay}|${execution.formattedConfidence}|"
         }.join('\n')
