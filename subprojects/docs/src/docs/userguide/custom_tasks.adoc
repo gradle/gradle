@@ -152,18 +152,18 @@ If you need to use the old API, have a look at the documentation in the link:htt
 For a task to process inputs incrementally, that task must contain an _incremental task action_.
 This is a task action method that has a single link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges] parameter.
 That parameter tells Gradle that the action only wants to process the changed inputs.
-In addition, the task needs to declare at least one incremental file input property by using either `@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]` or `@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`.
+In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[@Incremental] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[@SkipWhenEmpty].
 
 [IMPORTANT]
 ====
 To query incremental changes for an input file property, that property always needs to return the same instance.
-The easiest way to accomplish this is to use one of the following types for such properties: `link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty]`, `link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]` or `link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection]`.
+The easiest way to accomplish this is to use one of the following types for such properties: link:{javadocPath}/org/gradle/api/file/RegularFileProperty.html[RegularFileProperty], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty] or link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[ConfigurableFileCollection].
 
 You can learn more about `RegularFileProperty` and `DirectoryProperty` in the <<lazy_configuration#lazy_configuration,Lazy Configuration>> chapter, especially the sections on <<lazy_configuration#sec:lazy_properties,using read-only and configurable properties>> and <<lazy_configuration#sec:working_with_files_in_lazy_properties,lazy file properties>>.
 ====
 
-The incremental task action can use `link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()]` to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
-The method returns an `Iterable` of type `link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges]`, which in turn can be queried for the following:
+The incremental task action can use link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[InputChanges.getFileChanges()] to find out what files have changed for a given file-based input property, be it of type `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`.
+The method returns an `Iterable` of type link:{javadocPath}/org/gradle/work/FileChange.html[FileChanges], which in turn can be queried for the following:
 
 * the link:{javadocPath}/org/gradle/work/FileChange.html#getFile--[affected file]
 * the link:{javadocPath}/org/gradle/work/FileChange.html#getChangeType--[change type] (`ADDED`, `REMOVED` or `MODIFIED`)
@@ -331,7 +331,7 @@ This way when the task's results are loaded from cache, the next execution can a
 
 However, if the state files are non-relocatable, then they can't be shared via the build cache.
 Indeed, when the task is loaded from cache, any such state files must be cleaned up to prevent stale state from confusing the tool during the next execution.
-Gradle can ensure such stale files are removed if they are declared via `link:{javadocPath}/org/gradle/api/tasks/TaskLocalState.html#register-java.lang.Object++...++-[task.localState.register()]` or if a property is marked with the `link:{javadocPath}/org/gradle/api/tasks/LocalState.html[@LocalState]` annotation.
+Gradle can ensure such stale files are removed if they are declared via link:{javadocPath}/org/gradle/api/tasks/TaskLocalState.html#register-java.lang.Object++...++-[task.localState.register()] or if a property is marked with the link:{javadocPath}/org/gradle/api/tasks/LocalState.html[@LocalState] annotation.
 
 [[sec:declaring_and_using_command_line_options]]
 == Declaring and Using Command Line Options
