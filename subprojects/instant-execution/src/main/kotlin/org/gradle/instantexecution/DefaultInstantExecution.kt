@@ -17,12 +17,16 @@
 package org.gradle.instantexecution
 
 import groovy.lang.GroovyObject
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.internal.AbstractTask
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import org.gradle.initialization.InstantExecution
@@ -275,18 +279,19 @@ class DefaultInstantExecution(
     }
 
     private
-    fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean {
-        return declaringClass !in setOf(
-            Object::class.java,
-            GroovyObject::class.java,
-            Task::class.java
-        ) && declaringClass.name !in setOf(
-            "org.gradle.api.internal.TaskInternal",
-            "org.gradle.api.DefaultTask",
-            "org.gradle.api.internal.AbstractTask",
-            "org.gradle.api.internal.ConventionTask"
-        )
-    }
+    fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
+        declaringClass !in irrelevantDeclaringClasses
+
+    private
+    val irrelevantDeclaringClasses = setOf(
+        Object::class.java,
+        GroovyObject::class.java,
+        Task::class.java,
+        TaskInternal::class.java,
+        DefaultTask::class.java,
+        AbstractTask::class.java,
+        ConventionTask::class.java
+    )
 
     private
     fun logField(taskType: Class<*>, name: String?, actionName: String, reason: String) {
