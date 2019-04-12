@@ -63,7 +63,6 @@ abstract class ClassRelocator implements TransformAction<Parameters> {
 
     private relocateJar(File output) {
         // implementation...
-// end::artifact-transform-relocate[]
         def relocatedPackages = (dependencies.collectMany { readPackages(it) } + readPackages(primaryInput.get().asFile)) as Set
         def nonRelocatedPackages = parameters.externalClasspath.collectMany { readPackages(it) }
         def relocations = (relocatedPackages - nonRelocatedPackages).collect { packageName ->
@@ -73,6 +72,7 @@ abstract class ClassRelocator implements TransformAction<Parameters> {
         }
         new JarRelocator(primaryInput.get().asFile, output, relocations).run()
     }
+// end::artifact-transform-relocate[]
 
     private Set<String> readPackages(File file)  {
         return new JarFile(file).withCloseable { jarFile ->
@@ -84,8 +84,8 @@ abstract class ClassRelocator implements TransformAction<Parameters> {
                 }
                 .collect(Collectors.toSet())
         }
-// tag::artifact-transform-relocate[]
     }
+// tag::artifact-transform-relocate[]
 }
 // end::artifact-transform-relocate[]
 

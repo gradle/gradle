@@ -16,12 +16,6 @@
 
 import me.lucko.jarrelocator.JarRelocator
 import me.lucko.jarrelocator.Relocation
-import java.util.function.Predicate
-import java.util.jar.JarEntry
-import java.util.jar.JarFile
-import java.util.stream.Collectors
-
-import org.gradle.api.artifacts.transform.TransformParameters
 
 buildscript {
     repositories {
@@ -64,7 +58,6 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
 
     private fun relocateJar(output: File) {
         // implementation...
-// end::artifact-transform-relocate[]
         val relocatedPackages = (dependencies.flatMap { it.readPackages() } + primaryInput.get().asFile.readPackages()).toSet()
         val nonRelocatedPackages = parameters.externalClasspath.flatMap { it.readPackages() }
         val relocations = (relocatedPackages - nonRelocatedPackages).map { packageName ->
@@ -74,6 +67,7 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
         }
         JarRelocator(primaryInput.get().asFile, output, relocations).run()
     }
+// end::artifact-transform-relocate[]
 
     private fun File.readPackages(): Set<String> {
         return JarFile(this).use { jarFile ->
@@ -85,8 +79,8 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
                 }
                 .collect(Collectors.toSet())
         }
-// tag::artifact-transform-relocate[]
     }
+// tag::artifact-transform-relocate[]
 }
 // end::artifact-transform-relocate[]
 

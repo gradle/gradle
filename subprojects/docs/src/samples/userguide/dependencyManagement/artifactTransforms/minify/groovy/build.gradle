@@ -1,0 +1,114 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+
+import org.gradle.internal.reflect.ClassDetails
+
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipException
+import java.util.zip.ZipFile
+import java.util.jar.JarOutputStream
+
+import org.gradle.api.artifacts.transform.TransformParameters
+
+// tag::artifact-transform-minify[]
+abstract class Minify implements TransformAction<Parameters> { // <1>
+    interface Parameters extends TransformParameters {
+        @Input
+        Map<String, Set<String>> getKeepClassesByArtifact()
+    }
+
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @InputArtifact                                                          // <2>
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        for (entry in parameters.keepClassesByArtifact) {
+            def fileName = inputArtifact.get().asFile.name
+            if (fileName.startsWith(entry.key)) {
+                def nameWithoutExtension = fileName.substring(0, filename.length - 4)
+                minify(inputArtifact.get().asFile, entry.value, outputs.file("${nameWithoutExtension}-min.jar"))
+                return
+            }
+        }
+        outputs.file(inputArtifact)
+    }
+
+    private void minify(File artifact, Set<String> keepClasses, File jarFile) {
+        // Implementation
+// end::artifact-transform-minify[]
+        new JarOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile))).withCloseable { jarOutputStream ->
+            new ZipFile(artifact).withCloseable { zip ->
+                for (entry in zip.entries()) {
+                    if (entry.directory) {
+                        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
+                        jarOutputStream.closeEntry()
+                    } else if (entry.name.endsWith(".class")) {
+                        def className = entry.name.replace("/", ".").substring(0, entry.name.length - 6)
+                        if (keepClasses.contains(className)) {
+                            jarOutputStream.putNextEntry(new ZipEntry(entry.name))
+                            zip.getInputStream(entry).withCloseable { jarOutputStream << it }
+                            jarOutputStream.closeEntry()
+                        }
+                    } else {
+                        jarOutputStream.putNextEntry(new ZipEntry(entry.name))
+                        zip.getInputStream(entry).withCloseable { jarOutputStream << it }
+                        jarOutputStream.closeEntry()
+                    }
+                }
+            }
+        }
+// tag::artifact-transform-minify[]
+    }
+}
+// end::artifact-transform-minify[]
+
+def usage = Attribute.of('usage', String)
+// tag::artifact-transform-registration[]
+def minified = Attribute.of('minified', Boolean)
+def keepPatterns = [
+    "fastutil": [
+        "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
+        "it.unimi.dsi.fastutil.ints.IntSets"
+    ] as Set
+]
+
+dependencies {
+    registerTransform(Minify) {
+        from.attribute(minified, false)
+        to.attribute(minified, true)
+
+        parameters {
+            keepClasses = keepPatterns
+        }
+    }
+}
+// end::artifact-transform-registration[]
+
+
+allprojects {
+    dependencies {
+        attributesSchema {
+            attribute(minified)
+        }
+    }
+    configurations.create("compile") {
+        attributes.attribute usage, 'api'
+    }
+}
