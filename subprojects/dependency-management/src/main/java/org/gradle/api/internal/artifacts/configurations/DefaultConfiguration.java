@@ -128,6 +128,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
@@ -214,7 +215,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private AttributeContainerInternal configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final ImmutableAttributesFactory attributesFactory;
-    private final FileCollection intrinsicFiles;
+    private final FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private CollectionCallbackActionDecorator callbackActionDecorator;
@@ -465,6 +466,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Iterator<File> iterator() {
         return intrinsicFiles.iterator();
+    }
+
+    @Override
+    public void visitContents(Consumer<File> visitor) {
+        intrinsicFiles.visitContents(visitor);
     }
 
     @Override

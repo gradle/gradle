@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
@@ -40,6 +39,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
@@ -70,6 +70,13 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public Iterator<File> iterator() {
         return getFiles().iterator();
+    }
+
+    @Override
+    public void visitContents(Consumer<File> visitor) {
+        for (File file : getFiles()) {
+            visitor.accept(file);
+        }
     }
 
     @Override
@@ -221,11 +228,19 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             public Iterator<File> iterator() {
                 return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
             }
-        };
-    }
 
-    protected String getCapDisplayName() {
-        return StringUtils.capitalize(getDisplayName());
+            @Override
+            public void visitContents(final Consumer<File> visitor) {
+                AbstractFileCollection.this.visitContents(new Consumer<File>() {
+                    @Override
+                    public void accept(File file) {
+                        if (filterSpec.isSatisfiedBy(file)) {
+                            visitor.accept(file);
+                        }
+                    }
+                });
+            }
+        };
     }
 
     @Override

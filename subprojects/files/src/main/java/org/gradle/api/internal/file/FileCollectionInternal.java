@@ -19,6 +19,9 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
 
+import java.io.File;
+import java.util.function.Consumer;
+
 public interface FileCollectionInternal extends FileCollection {
 
     /**
@@ -41,4 +44,10 @@ public interface FileCollectionInternal extends FileCollection {
      * <p>The implementation should call the most specific method on {@link FileCollectionLeafVisitor} that it is able to.</p>
      */
     void visitLeafCollections(FileCollectionLeafVisitor visitor);
+
+    /**
+     * Visits the contents of the collection.
+     * Visits the same files as {@link #getFiles()}, but there is no guarantee that each file is visited only once.
+     */
+    void visitContents(Consumer<File> visitor);
 }

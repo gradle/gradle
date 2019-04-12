@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -44,8 +45,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Responsible for snapshotting various aspects of the file system.
@@ -121,10 +120,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public List<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
-        FileCollectionLeafVisitorImpl visitor = new FileCollectionLeafVisitorImpl();
+    public ImmutableSet<FileSystemSnapshot> snapshot(FileCollectionInternal fileCollection) {
+        RootVisitingSnapshotBuilder visitor = new RootVisitingSnapshotBuilder();
         fileCollection.visitLeafCollections(visitor);
-        return visitor.getRoots();
+        return visitor.build();
     }
 
     private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable PatternSet patternSet) {
@@ -232,14 +231,12 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         return FileSystemSnapshotFilter.filterSnapshot(spec, snapshot, fileSystem);
     }
 
-    private class FileCollectionLeafVisitorImpl implements FileCollectionLeafVisitor {
-        private final List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+    private class RootVisitingSnapshotBuilder implements FileCollectionLeafVisitor {
+        private final ImmutableSet.Builder<FileSystemSnapshot> roots = ImmutableSet.builder();
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
-            for (File file : fileCollection) {
-                roots.add(snapshot(file));
-            }
+            fileCollection.visitContents(root -> roots.add(snapshot(root)));
         }
 
         @Override
@@ -252,8 +249,8 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
             roots.add(snapshotDirectoryTree(root, patterns));
         }
 
-        public List<FileSystemSnapshot> getRoots() {
-            return roots;
+        public ImmutableSet<FileSystemSnapshot> build() {
+            return roots.build();
         }
     }
 
