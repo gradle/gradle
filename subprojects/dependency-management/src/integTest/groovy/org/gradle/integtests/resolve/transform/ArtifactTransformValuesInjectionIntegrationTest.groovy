@@ -695,21 +695,12 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails(":a:resolve")
 
         then:
-        if (expectFailureDuringConfigurationTime) {
-            failure.assertHasDescription("A problem occurred evaluating root project")
-            failure.assertHasCause("Cannot register artifact transform MakeGreen with parameters null")
-            failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider.")
-        } else {
-            failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-            failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-            failure.assertHasCause("Cannot use @InputArtifact annotation on property of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
-        }
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Cannot register artifact transform MakeGreen with parameters null")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
-        propertyType                                   | expectFailureDuringConfigurationTime
-        FileCollection                                 | true
-        new TypeToken<Provider<File>>() {}.getType()   | false
-        new TypeToken<Provider<String>>() {}.getType() | false
+        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
     }
 
     @Unroll

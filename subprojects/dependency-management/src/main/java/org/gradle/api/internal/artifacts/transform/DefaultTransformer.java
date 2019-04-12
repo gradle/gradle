@@ -351,17 +351,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
             Object result = find(serviceType, annotatedWith);
             if (result == null) {
-                String allowedTypes = injectionPoints.stream()
-                    .filter(injectionPoint -> injectionPoint.getAnnotation() == annotatedWith)
-                    .map(injectionPoint -> injectionPoint.getInjectedType().getTypeName())
-                    .sorted()
-                    .collect(Collectors.joining(", "));
-                throw new UnknownServiceException(serviceType, String.format(
-                    "Cannot use @%s annotation on property of type %s. Allowed property types: %s.",
-                    annotatedWith.getSimpleName(),
-                    serviceType,
-                    allowedTypes
-                ));
+                throw new UnknownServiceException(serviceType, "No service of type " + serviceType + " available.");
             }
             return result;
         }
