@@ -47,7 +47,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'commons-io-2.6.jar' : 'f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
             'commons-lang-2.6.jar' : '50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c',
             'groovy-all-1.0-2.5.4.jar' : '704d3307616c57234871c4db3a355c3e81ea975db8dac8ee6c9264b91c74d2b7',
-            'guava-26.0-jre.jar' : 'a0e9cabad665bc20bcd2b01f108e5fc03f756e13aea80abaadb9f407033bea2c',
+            'guava-26.0-android.jar' : '1d044ebb866ef08b7d04e998b4260c9b52fab6e6d6b68d207859486bb3686cd5',
             'jansi-1.17.1.jar' : 'b2234bfb0d8f245562d64ed9325df6b907093f4daa702c9082d4796db2a2d894',
             'javax.inject-1.jar' : '91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff',
             'jcl-over-slf4j-1.7.25.jar' : '5e938457e79efcbfb3ab64bc29c43ec6c3b95fffcda3c155f4a86cc320c11e14',

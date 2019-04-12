@@ -103,15 +103,8 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     private Plugin doFindPlugin(String id) {
         for (final PluginManagerInternal.PluginWithId pluginWithId : pluginManager.pluginsForId(id)) {
             Plugin plugin = Iterables.tryFind(DefaultPluginContainer.this, new Predicate<Plugin>() {
-                @Override
                 public boolean apply(Plugin plugin) {
                     return pluginWithId.clazz.equals(plugin.getClass());
-                }
-
-                @Override
-                // Added for Java 6 source compatibility
-                public boolean test(Plugin input) {
-                    return apply(input);
                 }
             }).orNull();
 

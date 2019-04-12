@@ -44,7 +44,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.VersionNumber;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -163,12 +162,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             @Override
                             public boolean apply(File file) {
                                 return hasExtension(file, ".java");
-                            }
-
-                            @Override
-                            // Added for Java 6 source compatibility
-                            public boolean test(@Nullable File input) {
-                                return apply(input);
                             }
                         }));
 

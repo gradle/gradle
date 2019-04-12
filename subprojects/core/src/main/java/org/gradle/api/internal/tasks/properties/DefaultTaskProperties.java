@@ -125,12 +125,6 @@ public class DefaultTaskProperties implements TaskProperties {
             public boolean apply(InputFilePropertySpec property) {
                 return property.isSkipWhenEmpty();
             }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(@Nullable InputFilePropertySpec input) {
-                return apply(input);
-            }
         });
         this.outputFiles = new CompositeFileCollection() {
             @Override

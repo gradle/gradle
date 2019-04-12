@@ -45,12 +45,6 @@ public class DefaultVariantsMetaData implements VariantsMetaData {
             public boolean apply(Map.Entry<String, Object> input) {
                 return input.getValue()!=null;
             }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(Map.Entry<String, Object> input) {
-                return apply(input);
-            }
         }).keySet());
         this.variantAxisTypes = variantAxisTypes;
     }

@@ -109,12 +109,6 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         public boolean apply(@Nullable T input) {
             return namer.determineName(input).equals(name);
         }
-
-        @Override
-        // Added for Java 6 source compatibility
-        public boolean test(@Nullable T input) {
-            return apply(input);
-        }
     }
 
     private static class ToName<T> implements Function<T, String> {
