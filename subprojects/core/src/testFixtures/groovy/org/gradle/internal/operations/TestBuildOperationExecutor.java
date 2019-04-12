@@ -173,12 +173,6 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                     public boolean apply(Record input) {
                         return detailsType.isInstance(input.descriptor.getDetails());
                     }
-
-                    @Override
-                    // Added for Java 6 source compatibility
-                    public boolean test(Record input) {
-                        return apply(input);
-                    }
                 })
                 .transform(new Function<Record, TypedRecord<D, R>>() {
                     @Override

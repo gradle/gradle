@@ -20,10 +20,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.tasks.AntBuilderAware;
 
 import java.util.Collections;
 
@@ -45,12 +45,6 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
                             @Override
                             public boolean apply(DirectoryFileTree input) {
                                 return input.getDir().exists();
-                            }
-
-                            @Override
-                            // Added for Java 6 source compatibility
-                            public boolean test(DirectoryFileTree input) {
-                                return apply(input);
                             }
                         })
         );

@@ -400,12 +400,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             public boolean apply(Node input) {
                 return visitingNodes.containsEntry(input, nodeWithVisitingSegment.visitingSegment);
             }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(@Nullable Node input) {
-                return apply(input);
-            }
         });
     }
 
@@ -443,12 +437,6 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     @SuppressWarnings("NullableProblems")
                     public boolean apply(NodeInVisitingSegment nodeInVisitingSegment) {
                         return nodeInVisitingSegment.node.equals(dependsOnTask);
-                    }
-
-                    @Override
-                    // Added for Java 6 source compatibility
-                    public boolean test(@Nullable NodeInVisitingSegment input) {
-                        return apply(input);
                     }
                 });
             }

@@ -46,12 +46,6 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
             public boolean apply(ModelReference<?> element) {
                 return element.getType().equals(baseType);
             }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(ModelReference<?> input) {
-                return apply(input);
-            }
         });
     }
 
@@ -60,12 +54,6 @@ public abstract class ModelMapBasedRule<T, C> extends AbstractMethodRuleAction<C
             @Override
             public boolean apply(ModelReference<?> element) {
                 return !element.getType().equals(baseType);
-            }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(ModelReference<?> input) {
-                return apply(input);
             }
         });
 

@@ -89,19 +89,7 @@ public class LocalLibraryDependencyResolver implements DependencyToComponentIdRe
                     public boolean apply(Binary input) {
                         return binaryType.isAssignableFrom(input.getClass());
                     }
-
-                    @Override
-                    // Added for Java 6 source compatibility
-                    public boolean test(Binary input) {
-                        return apply(input);
-                    }
                 });
-            }
-
-            @Override
-            // Added for Java 6 source compatibility
-            public boolean test(VariantComponent input) {
-                return apply(input);
             }
         };
     }

@@ -24,7 +24,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
@@ -127,12 +126,6 @@ public class DependentComponentsGraphRenderer {
                 return !hideNonBuildable && !hideTestSuite;
             }
             return false;
-        }
-
-        @Override
-        // Added for Java 6 source compatibility
-        public boolean test(@Nullable RenderableDependency input) {
-            return apply(input);
         }
     }
 }

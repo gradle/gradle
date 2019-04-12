@@ -41,16 +41,9 @@ class ClassRelevancyFilter implements Predicate<String> {
         this.excludedClassName = excludedClassName;
     }
 
-    @Override
     public boolean apply(String className) {
         return !className.startsWith("java.")
             && !excludedClassName.equals(className)
             && !PRIMITIVES.contains(className);
-    }
-
-    @Override
-    // Added for Java 6 source compatibility
-    public boolean test(String input) {
-        return apply(input);
     }
 }
