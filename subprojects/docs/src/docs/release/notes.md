@@ -13,7 +13,8 @@ Include only their name, impactful features should be called out separately belo
 
 [Ian Kerins](https://github.com/isker),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Rodolfo Forte](https://github.com/Tschis)
+[Rodolfo Forte](https://github.com/Tschis),
+[gla3dr](https://github.com/gla3dr),
 and [Stefan M.](https://github.com/StefMa).
 
 ## Upgrade Instructions
