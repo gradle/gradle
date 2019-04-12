@@ -20,26 +20,37 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import org.gradle.ci.common.model.FlakyTest
+import org.gradle.ci.github.DefaultGitHubIssuesClient
 import org.gradle.ci.github.GitHubIssuesClient
+import org.gradle.ci.tagging.flaky.GitHubKnownIssuesProvider
 import org.gradle.ci.tagging.flaky.KnownFlakyTestProvider
 import org.gradle.performance.results.ScenarioBuildResultData.ExecutionData
 import org.kohsuke.github.GHIssue
 import org.kohsuke.github.GHIssueState
 
+import static org.apache.commons.lang3.StringUtils.isNoneBlank
 import static org.gradle.ci.github.GitHubIssuesClient.CI_TRACKED_FLAKINESS_LABEL
 import static org.gradle.ci.github.GitHubIssuesClient.FROM_BOT_PREFIX
 import static org.gradle.ci.github.GitHubIssuesClient.MESSAGE_PREFIX
 import static org.gradle.ci.github.GitHubIssuesClient.TEST_NAME_PREFIX
 
 @CompileStatic
-class FlakinessIssueReporter {
-    static final String GITHUB_FIX_IT_LABEL = "fix-it"
-    private final KnownFlakyTestProvider provider
-    private final GitHubIssuesClient gitHubIssuesClient
+class PerformanceFlakinessAnalyzer {
+    static PerformanceFlakinessAnalyzer create() {
+        GitHubIssuesClient gitHubIssuesClient = new DefaultGitHubIssuesClient(System.getProperty("githubToken"))
+        KnownFlakyTestProvider provider = new GitHubKnownIssuesProvider(gitHubIssuesClient)
+        return new PerformanceFlakinessAnalyzer(gitHubIssuesClient, provider)
+    }
 
-    FlakinessIssueReporter(GitHubIssuesClient gitHubIssuesClient, KnownFlakyTestProvider provider) {
-        this.provider = provider
+    static final String GITHUB_FIX_IT_LABEL = "fix-it"
+    static final String GITHUB_IN_PERFORMANCE_LABEL = "in:performance"
+    private final GitHubIssuesClient gitHubIssuesClient
+    private final KnownFlakyTestProvider provider
+    private List<FlakyTest> knownInvalidFailures
+
+    PerformanceFlakinessAnalyzer(GitHubIssuesClient gitHubIssuesClient, KnownFlakyTestProvider provider) {
         this.gitHubIssuesClient = gitHubIssuesClient
+        this.provider = provider
     }
 
     void report(ScenarioBuildResultData flakyScenario) {
@@ -56,6 +67,17 @@ class FlakinessIssueReporter {
         }
 
         commentCurrentFailureToIssue(flakyScenario, knownFlakyTest.issue)
+    }
+
+    FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
+        return getKnownInvalidFailures().find { isNoneBlank(it.name) && scenario.flakyIssueTestName.contains(it.name) }
+    }
+
+    private List<FlakyTest> getKnownInvalidFailures() {
+        if (knownInvalidFailures == null) {
+            knownInvalidFailures = provider.knownInvalidFailures
+        }
+        return knownInvalidFailures
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -91,13 +113,10 @@ ${TEST_NAME_PREFIX}${flakyScenario.flakyIssueTestName}
 ${MESSAGE_PREFIX}$message
 """
 
-        GHIssue issue = gitHubIssuesClient.createBuildToolInvalidFailureIssue(title, body, [CI_TRACKED_FLAKINESS_LABEL])
+        GHIssue issue = gitHubIssuesClient.createBuildToolInvalidFailureIssue(title, body, [CI_TRACKED_FLAKINESS_LABEL, GITHUB_IN_PERFORMANCE_LABEL])
         return new FlakyTest(issue: issue)
     }
 
-    private FlakyTest findKnownFlakyTest(ScenarioBuildResultData scenario) {
-        return provider.knownInvalidFailures.find { scenario.flakyIssueTestName.contains(it.name) }
-    }
 
     private static boolean issueClosed(FlakyTest flakyTest) {
         return flakyTest.issue.state == GHIssueState.CLOSED

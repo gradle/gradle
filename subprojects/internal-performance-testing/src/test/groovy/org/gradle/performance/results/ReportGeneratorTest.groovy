@@ -49,7 +49,7 @@ class ReportGeneratorTest extends ResultSpecification {
         store.report(result2)
 
         when:
-        generator.generate(reportDir, resultsJson, 'testProject')
+        generator.generate(Mock(PerformanceFlakinessAnalyzer), reportDir, resultsJson, 'testProject')
 
         then:
         reportDir.file("index.html").isFile()
