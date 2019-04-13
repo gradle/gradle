@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.FileCollection} that contains the union of zero or more file collections. Maintains file ordering.
@@ -85,10 +84,13 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public void visitContents(Consumer<File> visitor) {
+    public boolean visitContents(CancellableVisitor<File> visitor) {
         for (FileCollectionInternal sourceCollection : getSourceCollections()) {
-            sourceCollection.visitContents(visitor);
+            if (!sourceCollection.visitContents(visitor)) {
+                return false;
+            }
         }
+        return true;
     }
 
     @Override

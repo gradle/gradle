@@ -17,8 +17,9 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionLeafVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -26,37 +27,47 @@ import java.io.File;
 import java.util.Set;
 
 public abstract class ImmutableFileCollection extends AbstractFileCollection {
-    private static final ImmutableFileCollection EMPTY = new ImmutableFileCollection() {
-        @Override
-        public Set<File> getFiles() {
-            return ImmutableSet.of();
-        }
-    };
+    private static final String DEFAULT_DISPLAY_NAME = "file collection";
+
+    private final String displayName;
 
     public static ImmutableFileCollection of() {
-        return EMPTY;
+        return EmptyImmutableFileCollection.DEFAULT;
+    }
+
+    public static FileCollectionInternal named(String displayName) {
+        return new EmptyImmutableFileCollection(displayName);
     }
 
     public static ImmutableFileCollection of(File... files) {
-        if (files.length == 0) {
-            return EMPTY;
-        }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+        return create(DEFAULT_DISPLAY_NAME, ImmutableSet.copyOf(files));
+    }
+
+    public static FileCollectionInternal named(String displayName, File... files) {
+        return create(displayName, ImmutableSet.copyOf(files));
     }
 
     public static ImmutableFileCollection of(Iterable<? extends File> files) {
-        if (Iterables.isEmpty(files)) {
-            return EMPTY;
-        }
-        return new FileOnlyImmutableFileCollection(ImmutableSet.copyOf(files));
+        return create(DEFAULT_DISPLAY_NAME, ImmutableSet.copyOf(files));
     }
 
-    private ImmutableFileCollection() {
+    public static ImmutableFileCollection named(String displayName, Iterable<? extends File> files) {
+        return create(displayName, ImmutableSet.copyOf(files));
+    }
+
+    private static ImmutableFileCollection create(String displayName, ImmutableSet<File> files) {
+        return files.isEmpty()
+            ? EmptyImmutableFileCollection.of(displayName)
+            : new FileOnlyImmutableFileCollection(displayName, files);
+    }
+
+    private ImmutableFileCollection(String displayName) {
+        this.displayName = displayName;
     }
 
     @Override
     public String getDisplayName() {
-        return "file collection";
+        return displayName;
     }
 
     @Override
@@ -67,7 +78,8 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
     private static class FileOnlyImmutableFileCollection extends ImmutableFileCollection {
         private final ImmutableSet<File> files;
 
-        FileOnlyImmutableFileCollection(ImmutableSet<File> files) {
+        FileOnlyImmutableFileCollection(String displayName, ImmutableSet<File> files) {
+            super(displayName);
             this.files = files;
         }
 
@@ -84,6 +96,44 @@ public abstract class ImmutableFileCollection extends AbstractFileCollection {
             }
 
             return super.toString();
+        }
+    }
+
+    private static class EmptyImmutableFileCollection extends ImmutableFileCollection {
+        public static final ImmutableFileCollection DEFAULT = new EmptyImmutableFileCollection(DEFAULT_DISPLAY_NAME);
+
+        private EmptyImmutableFileCollection(String displayName) {
+            super(displayName);
+        }
+
+        public static ImmutableFileCollection of(String displayName) {
+            return DEFAULT_DISPLAY_NAME.equals(displayName)
+                ? DEFAULT
+                : new EmptyImmutableFileCollection(displayName);
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public boolean contains(File file) {
+            return false;
+        }
+
+        @Override
+        public boolean visitContents(CancellableVisitor<File> visitor) {
+            return true;
+        }
+
+        @Override
+        public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
         }
     }
 }

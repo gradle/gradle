@@ -236,7 +236,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
 
         @Override
         public void visitCollection(FileCollectionInternal fileCollection) {
-            fileCollection.visitContents(root -> roots.add(snapshot(root)));
+            fileCollection.visitContents(root -> {
+                roots.add(snapshot(root));
+                return true;
+            });
         }
 
         @Override

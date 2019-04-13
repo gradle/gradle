@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -44,13 +43,16 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     }
 
     @Override
-    public void visitContents(Consumer<File> visitor) {
+    public boolean visitContents(CancellableVisitor<File> visitor) {
         if (canCache) {
             for (File file : getCachedValue()) {
-                visitor.accept(file);
+                if (!visitor.accept(file)) {
+                    return false;
+                }
             }
+            return true;
         } else {
-            super.visitContents(visitor);
+            return super.visitContents(visitor);
         }
     }
 
@@ -69,10 +71,11 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             super.visitContents(nested);
             final ImmutableSet.Builder<File> files = ImmutableSet.builder();
             for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
-                fileCollection.visitContents(new Consumer<File>() {
+                fileCollection.visitContents(new CancellableVisitor<File>() {
                     @Override
-                    public void accept(File file) {
+                    public boolean accept(File file) {
                         files.add(file);
+                        return true;
                     }
                 });
             }

@@ -20,7 +20,6 @@ package org.gradle.api.internal.file;
 import org.gradle.api.file.FileCollection;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 public interface FileCollectionInternal extends FileCollection {
 
@@ -48,6 +47,19 @@ public interface FileCollectionInternal extends FileCollection {
     /**
      * Visits the contents of the collection.
      * Visits the same files as {@link #getFiles()}, but there is no guarantee that each file is visited only once.
+     * Stops visiting if visitor returns {@code false}.
+     *
+     * @return {@code true} if all elements were processed.
      */
-    void visitContents(Consumer<File> visitor);
+    boolean visitContents(CancellableVisitor<File> visitor);
+
+    interface CancellableVisitor<T> {
+        /**
+         * Visits the given object.
+         *
+         * @return {@code true} if visiting should continue with the next element,
+         * {@code false} if it should stop.
+         */
+        boolean accept(T file);
+    }
 }

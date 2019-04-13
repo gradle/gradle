@@ -128,7 +128,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
@@ -469,8 +468,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void visitContents(Consumer<File> visitor) {
-        intrinsicFiles.visitContents(visitor);
+    public boolean visitContents(CancellableVisitor<File> visitor) {
+        return intrinsicFiles.visitContents(visitor);
     }
 
     @Override

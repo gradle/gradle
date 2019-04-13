@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     /**
@@ -73,10 +72,13 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public void visitContents(Consumer<File> visitor) {
+    public boolean visitContents(CancellableVisitor<File> visitor) {
         for (File file : getFiles()) {
-            visitor.accept(file);
+            if (!visitor.accept(file)) {
+                return false;
+            }
         }
+        return true;
     }
 
     @Override
@@ -85,8 +87,13 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public boolean contains(File file) {
-        return getFiles().contains(file);
+    public boolean contains(final File file) {
+        return !visitContents(new CancellableVisitor<File>() {
+            @Override
+            public boolean accept(File candidate) {
+                return !candidate.equals(file);
+            }
+        });
     }
 
     @Override
@@ -165,7 +172,12 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public boolean isEmpty() {
-        return getFiles().isEmpty();
+        return visitContents(new CancellableVisitor<File>() {
+            @Override
+            public boolean accept(File candidate) {
+                return false;
+            }
+        });
     }
 
     @Override
@@ -230,12 +242,14 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitContents(final Consumer<File> visitor) {
-                AbstractFileCollection.this.visitContents(new Consumer<File>() {
+            public boolean visitContents(final CancellableVisitor<File> visitor) {
+                return AbstractFileCollection.this.visitContents(new CancellableVisitor<File>() {
                     @Override
-                    public void accept(File file) {
+                    public boolean accept(File file) {
                         if (filterSpec.isSatisfiedBy(file)) {
-                            visitor.accept(file);
+                            return visitor.accept(file);
+                        } else {
+                            return true;
                         }
                     }
                 });
