@@ -293,8 +293,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public Set<Task> getDependencies(Task task) {
         ensurePopulated();
         Node node = executionPlan.getNode(task);
-        ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
-        for (Node dependencyNode : node.getDependencySuccessors()) {
+        Set<Node> dependencySuccessors = node.getDependencySuccessors();
+        ImmutableSet.Builder<Task> builder = ImmutableSet.builderWithExpectedSize(dependencySuccessors.size());
+        for (Node dependencyNode : dependencySuccessors) {
             if (dependencyNode instanceof TaskNode) {
                 builder.add(((TaskNode) dependencyNode).getTask());
             }

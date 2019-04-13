@@ -92,13 +92,13 @@ public class ClassSetAnalysisData {
             Map<Integer, String> classNameMap = new HashMap<Integer, String>();
 
             int count = decoder.readSmallInt();
-            ImmutableSet.Builder<String> classes = ImmutableSet.builder();
+            ImmutableSet.Builder<String> classes = ImmutableSet.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 classes.add(readClassName(decoder, classNameMap));
             }
 
             count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builder();
+            ImmutableMap.Builder<String, DependentsSet> dependentsBuilder = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
                 DependentsSet dependents = readDependentsSet(decoder, classNameMap);
@@ -106,7 +106,7 @@ public class ClassSetAnalysisData {
             }
 
             count = decoder.readSmallInt();
-            ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder = ImmutableMap.builder();
+            ImmutableMap.Builder<String, IntSet> classesToConstantsBuilder = ImmutableMap.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 String className = readClassName(decoder, classNameMap);
                 IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
@@ -146,7 +146,7 @@ public class ClassSetAnalysisData {
                 return DependentsSet.dependencyToAll(decoder.readNullableString());
             }
             int count = decoder.readSmallInt();
-            ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+            ImmutableSet.Builder<String> builder = ImmutableSet.builderWithExpectedSize(count);
             for (int i = 0; i < count; i++) {
                 builder.add(readClassName(decoder, classNameMap));
             }

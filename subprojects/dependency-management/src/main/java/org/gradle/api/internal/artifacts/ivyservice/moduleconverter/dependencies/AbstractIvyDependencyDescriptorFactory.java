@@ -49,7 +49,7 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
     }
 
     protected ImmutableList<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {
-        ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builder();
+        ImmutableList.Builder<IvyArtifactName> names = ImmutableList.builderWithExpectedSize(dependencyArtifacts.size());
         for (DependencyArtifact dependencyArtifact : dependencyArtifacts) {
             DefaultIvyArtifactName name = new DefaultIvyArtifactName(dependencyArtifact.getName(), dependencyArtifact.getType(), getExtension(dependencyArtifact), dependencyArtifact.getClassifier());
             names.add(name);

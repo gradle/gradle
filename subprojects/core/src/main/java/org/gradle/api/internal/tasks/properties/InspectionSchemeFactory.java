@@ -37,7 +37,7 @@ public class InspectionSchemeFactory {
     private final CrossBuildInMemoryCacheFactory cacheFactory;
 
     public InspectionSchemeFactory(List<? extends PropertyAnnotationHandler> allKnownPropertyHandlers, List<? extends TypeAnnotationHandler> allKnownTypeHandlers, CrossBuildInMemoryCacheFactory cacheFactory) {
-        ImmutableMap.Builder<Class<? extends Annotation>, PropertyAnnotationHandler> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<Class<? extends Annotation>, PropertyAnnotationHandler> builder = ImmutableMap.builderWithExpectedSize(allKnownPropertyHandlers.size());
         for (PropertyAnnotationHandler handler : allKnownPropertyHandlers) {
             builder.put(handler.getAnnotationType(), handler);
         }

@@ -106,7 +106,7 @@ public abstract class AbstractTaskOutputPackagingBenchmark {
 
     private static ImmutableList<DataSource> createInputFiles(int fileCount, int minFileSize, int maxFileSize, DataAccessor accessor) throws IOException {
         Random random = new Random(1234L);
-        ImmutableList.Builder<DataSource> inputs = ImmutableList.builder();
+        ImmutableList.Builder<DataSource> inputs = ImmutableList.builderWithExpectedSize(fileCount);
         for (int idx = 0; idx < fileCount; idx++) {
             String name = "input-" + idx + ".bin";
             int fileSize = minFileSize + random.nextInt(maxFileSize - minFileSize);

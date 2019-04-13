@@ -68,7 +68,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     private static ImmutableMap<String, Configuration> toMap(Collection<Configuration> configurations) {
-        ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builderWithExpectedSize(configurations.size());
         for (Configuration configuration : configurations) {
             builder.put(configuration.getName(), configuration);
         }

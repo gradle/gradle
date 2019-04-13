@@ -17,7 +17,11 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.platform.base.*;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.DependencySpecBuilder;
+import org.gradle.platform.base.DependencySpecContainer;
+import org.gradle.platform.base.ModuleDependencySpecBuilder;
+import org.gradle.platform.base.ProjectDependencySpecBuilder;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -77,7 +81,7 @@ public class DefaultDependencySpecContainer implements DependencySpecContainer {
     }
 
     private Set<DependencySpec> dependencySpecSet() {
-        ImmutableSet.Builder<DependencySpec> specs = ImmutableSet.builder();
+        ImmutableSet.Builder<DependencySpec> specs = ImmutableSet.builderWithExpectedSize(builders.size());
         for (DependencySpecBuilder specBuilder : builders) {
             specs.add(specBuilder.build());
         }

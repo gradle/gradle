@@ -56,10 +56,10 @@ class GradleApiSpecAggregator {
     }
 
     private Spec mergeSpecsOf(List<Class<? extends GradleApiSpecProvider>> providers) {
-        final ImmutableSet.Builder<Class<?>> exportedClasses = ImmutableSet.builder();
-        final ImmutableSet.Builder<String> exportedPackages = ImmutableSet.builder();
-        final ImmutableSet.Builder<String> exportedResources = ImmutableSet.builder();
-        final ImmutableSet.Builder<String> exportedResourcePrefixes = ImmutableSet.builder();
+        final ImmutableSet.Builder<Class<?>> exportedClasses = ImmutableSet.builderWithExpectedSize(providers.size());
+        final ImmutableSet.Builder<String> exportedPackages = ImmutableSet.builderWithExpectedSize(providers.size());
+        final ImmutableSet.Builder<String> exportedResources = ImmutableSet.builderWithExpectedSize(providers.size());
+        final ImmutableSet.Builder<String> exportedResourcePrefixes = ImmutableSet.builderWithExpectedSize(providers.size());
         for (Class<? extends GradleApiSpecProvider> provider : providers) {
             Spec spec = specFrom(provider);
             exportedClasses.addAll(spec.getExportedClasses());

@@ -41,13 +41,13 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
         // Deduplicates the include file states, as these are often shared between source files
         Map<Integer, IncludeFileEdge> ids = new HashMap<Integer, IncludeFileEdge>();
         int sourceFileCount = decoder.readSmallInt();
-        ImmutableMap.Builder<File, SourceFileState> builder = ImmutableMap.builder();
+        ImmutableMap.Builder<File, SourceFileState> builder = ImmutableMap.builderWithExpectedSize(sourceFileCount);
         for (int i = 0; i < sourceFileCount; i++) {
             File sourceFile = fileSerializer.read(decoder);
             HashCode sourceHashCode = hashSerializer.read(decoder);
             boolean isUnresolved = decoder.readBoolean();
             int includeFileCount = decoder.readSmallInt();
-            ImmutableSet.Builder<IncludeFileEdge> includeFileStateBuilder = ImmutableSet.builder();
+            ImmutableSet.Builder<IncludeFileEdge> includeFileStateBuilder = ImmutableSet.builderWithExpectedSize(includeFileCount);
             for (int j = 0; j < includeFileCount; j++) {
                 int id = decoder.readSmallInt();
                 IncludeFileEdge includeFileState = ids.get(id);

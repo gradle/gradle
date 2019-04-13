@@ -68,7 +68,7 @@ public class WriteProperties extends DefaultTask {
      */
     @Input
     public Map<String, String> getProperties() {
-        ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builderWithExpectedSize(properties.size() + deferredProperties.size());
         propertiesBuilder.putAll(properties);
         try {
             for (Map.Entry<String, Callable<String>> e : deferredProperties.entrySet()) {

@@ -146,11 +146,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public void addVariant(String configuration, OutgoingVariant variant) {
         List<LocalComponentArtifactMetadata> artifacts;
-        if (variant.getArtifacts().isEmpty()) {
+        Set<? extends PublishArtifact> variantArtifacts = variant.getArtifacts();
+        if (variantArtifacts.isEmpty()) {
             artifacts = ImmutableList.of();
         } else {
-            ImmutableList.Builder<LocalComponentArtifactMetadata> builder = ImmutableList.builder();
-            for (PublishArtifact artifact : variant.getArtifacts()) {
+            ImmutableList.Builder<LocalComponentArtifactMetadata> builder = ImmutableList.builderWithExpectedSize(variantArtifacts.size());
+            for (PublishArtifact artifact : variantArtifacts) {
                 builder.add(new PublishArtifactLocalArtifactMetadata(componentId, artifact));
             }
             artifacts = builder.build();
@@ -411,7 +412,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 if (attributeValue.isPresent() && attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
                     // need to wrap all dependencies to force them
                     ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
-                    result = ImmutableList.builder();
+                    result = ImmutableList.builderWithExpectedSize(rawDependencies.size());
                     for (LocalOriginDependencyMetadata rawDependency : rawDependencies) {
                         result.add(rawDependency.forced());
                     }

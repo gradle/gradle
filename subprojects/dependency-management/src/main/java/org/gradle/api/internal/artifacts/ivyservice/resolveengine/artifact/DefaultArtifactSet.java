@@ -72,12 +72,13 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
     }
 
     public static ArtifactSet multipleVariants(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes) {
-        if (variants.size() == 1) {
+        int variantCount = variants.size();
+        if (variantCount == 1) {
             VariantResolveMetadata variantMetadata = variants.iterator().next();
             ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
             return new SingleVariantArtifactSet(componentIdentifier, schema, resolvedVariant, selectionAttributes);
         }
-        ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
+        ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builderWithExpectedSize(variantCount);
         for (VariantResolveMetadata variant : variants) {
             ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSource, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry);
             result.add(resolvedVariant);
@@ -93,7 +94,7 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
 
     private static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
-        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
+        ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builderWithExpectedSize(artifacts.size());
 
         // Apply any artifact type mappings to the attributes of the variant
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant);

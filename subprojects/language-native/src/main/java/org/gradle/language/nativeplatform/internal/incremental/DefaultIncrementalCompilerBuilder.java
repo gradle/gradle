@@ -119,7 +119,7 @@ public class DefaultIncrementalCompilerBuilder implements IncrementalCompilerBui
         }
 
         private IncludeDirectives directivesForMacros(Map<String, String> macros) {
-            ImmutableList.Builder<Macro> builder = ImmutableList.builder();
+            ImmutableList.Builder<Macro> builder = ImmutableList.builderWithExpectedSize(macros.size());
             for (Map.Entry<String, String> entry : macros.entrySet()) {
                 Expression expression = RegexBackedCSourceParser.parseExpression(entry.getValue());
                 builder.add(new MacroWithSimpleExpression(entry.getKey(), expression.getType(), expression.getValue()));

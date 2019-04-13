@@ -99,7 +99,7 @@ public class ModuleExclusions {
         if (exclusion != null) {
             return exclusion;
         }
-        ImmutableSet.Builder<AbstractModuleExclusion> exclusions = ImmutableSet.builder();
+        ImmutableSet.Builder<AbstractModuleExclusion> exclusions = ImmutableSet.builderWithExpectedSize(excludes.size());
         for (ExcludeMetadata exclude : excludes) {
             exclusions.add(forExclude(exclude));
         }

@@ -30,7 +30,7 @@ public class IgnoringResourceFilter implements ResourceFilter {
 
     public IgnoringResourceFilter(ImmutableSet<String> ignores) {
         this.ignores = ignores;
-        ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builder();
+        ImmutableSet.Builder<PathMatcher> builder = ImmutableSet.builderWithExpectedSize(ignores.size());
         for (String ignore : ignores) {
             PathMatcher matcher = PatternMatcherFactory.compile(true, ignore);
             builder.add(matcher);
