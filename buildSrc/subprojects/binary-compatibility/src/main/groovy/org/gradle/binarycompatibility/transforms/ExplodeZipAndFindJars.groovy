@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
@@ -34,13 +36,13 @@ abstract class ExplodeZipAndFindJars implements TransformAction<TransformParamet
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
-    abstract File getArtifact()
+    abstract Provider<FileSystemLocation> getArtifact()
 
     @Override
     void transform(TransformOutputs outputs) {
         File gradleJars = outputs.dir("gradle-jars")
         File dependencies = outputs.dir("gradle-dependencies")
-        ZipInputStream zin = new ZipInputStream(artifact.newInputStream())
+        ZipInputStream zin = new ZipInputStream(artifact.get().asFile.newInputStream())
         ZipEntry zipEntry
         while (zipEntry = zin.nextEntry) {
             String shortName = zipEntry.name

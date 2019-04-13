@@ -17,7 +17,9 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
+import spock.lang.Ignore
 
+@Ignore
 class PlayJavaScriptCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {

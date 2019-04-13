@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -31,12 +32,14 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.impl.OutputsCleaner;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.function.Predicate;
 
 /**
  * A {@link TaskExecuter} which skips tasks whose source file collection is empty.
@@ -70,30 +73,26 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 state.setOutcome(TaskExecutionOutcome.NO_SOURCE);
                 LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
             } else {
-                boolean cleanupDirectories = !context.getOverlappingOutputs().isPresent();
-                if (!cleanupDirectories) {
-                    LOGGER.info("No leftover directories for {} will be deleted since overlapping outputs were detected.", task);
-                }
                 outputChangeListener.beforeOutputChange();
-                boolean deletedFiles = false;
-                boolean debugEnabled = LOGGER.isDebugEnabled();
-
+                OutputsCleaner outputsCleaner = new OutputsCleaner(new Predicate<File>() {
+                    @Override
+                    public boolean test(File file) {
+                        return buildOutputCleanupRegistry.isOutputOwnedByBuild(file);
+                    }
+                }, new Predicate<File>() {
+                    @Override
+                    public boolean test(File dir) {
+                        return buildOutputCleanupRegistry.isOutputOwnedByBuild(dir);
+                    }
+                });
                 for (FileCollectionFingerprint outputFingerprints : outputFiles.values()) {
-                    for (String outputPath : outputFingerprints.getFingerprints().keySet()) {
-                        File file = new File(outputPath);
-                        if (file.exists() && buildOutputCleanupRegistry.isOutputOwnedByBuild(file)) {
-                            if (!cleanupDirectories && file.isDirectory()) {
-                                continue;
-                            }
-                            if (debugEnabled) {
-                                LOGGER.debug("Deleting stale output file '{}'.", file.getAbsolutePath());
-                            }
-                            GFileUtils.forceDelete(file);
-                            deletedFiles = true;
-                        }
+                    try {
+                        outputsCleaner.cleanupOutputs(outputFingerprints);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
                     }
                 }
-                if (deletedFiles) {
+                if (outputsCleaner.getDidWork()) {
                     LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
                     state.setOutcome(TaskExecutionOutcome.EXECUTED);
                 } else {

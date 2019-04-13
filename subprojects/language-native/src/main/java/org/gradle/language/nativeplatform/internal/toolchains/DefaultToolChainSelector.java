@@ -105,13 +105,12 @@ public class DefaultToolChainSelector implements ToolChainSelector {
     }
 
     static SwiftVersion toSwiftVersion(VersionNumber swiftCompilerVersion) {
-        if (swiftCompilerVersion.getMajor() == 3) {
-            return SwiftVersion.SWIFT3;
-        } else if (swiftCompilerVersion.getMajor() == 4) {
-            return SwiftVersion.SWIFT4;
-        } else {
-            throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
+        for (SwiftVersion version : SwiftVersion.values()) {
+            if (version.getVersion() == swiftCompilerVersion.getMajor()) {
+                return version;
+            }
         }
+        throw new IllegalArgumentException(String.format("Swift language version is unknown for the specified Swift compiler version (%s)", swiftCompilerVersion.toString()));
     }
 
     class DefaultResult<T> implements Result<T> {

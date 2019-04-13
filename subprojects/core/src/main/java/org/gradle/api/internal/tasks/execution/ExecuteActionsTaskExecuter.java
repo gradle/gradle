@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.OverlappingOutputs;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
@@ -258,6 +258,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public boolean hasOverlappingOutputs() {
+            return context.getOverlappingOutputs().isPresent();
+        }
+
+        @Override
+        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
+            return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+        }
+
+        @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
             return Optional.empty();
         }
@@ -266,10 +276,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public Optional<CachingDisabledReason> shouldDisableCaching() {
             if (task.isHasCustomActions()) {
                 LOGGER.info("Custom actions are attached to {}.", task);
-            }
-
-            if (!context.getTaskProperties().hasDeclaredOutputs()) {
-                return Optional.of(NO_OUTPUTS_DECLARED);
             }
 
             return taskCacheabilityResolver.shouldDisableCaching(
@@ -290,6 +296,19 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public Optional<Duration> getTimeout() {
             return Optional.ofNullable(task.getTimeout().getOrNull());
+        }
+
+        @Override
+        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
+                if (taskAction instanceof IncrementalInputsTaskAction) {
+                    return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+                }
+                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
+                    return InputChangeTrackingStrategy.ALL_PARAMETERS;
+                }
+            }
+            return InputChangeTrackingStrategy.NONE;
         }
 
         @Override
@@ -321,26 +340,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         );
                     }
                 }).orElse(outputsAfterExecution);
-        }
-
-        @Override
-        public boolean isRequiresInputChanges() {
-            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-                if (taskAction instanceof AbstractIncrementalTaskAction) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public boolean isRequiresLegacyInputChanges() {
-            for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-                if (taskAction instanceof IncrementalTaskInputsTaskAction) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         @Override

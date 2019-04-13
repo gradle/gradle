@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
@@ -29,12 +31,13 @@ abstract class FindGradleClasspath implements TransformAction<TransformParameter
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputArtifact
-    abstract File getArtifact()
+    abstract Provider<FileSystemLocation> getArtifact()
 
     @Override
     void transform(TransformOutputs outputs) {
-        if (artifact.name == 'gradle-dependencies') {
-            (artifact.listFiles() as List<File>).sort { it.name }.each {
+        File artifactFile = artifact.get().asFile
+        if (artifactFile.name == 'gradle-dependencies') {
+            (artifactFile.listFiles() as List<File>).sort { it.name }.each {
                 outputs.file(it)
             }
         }

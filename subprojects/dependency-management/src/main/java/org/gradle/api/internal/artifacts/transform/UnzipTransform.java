@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.artifacts.transform.TransformParameters;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedInputStream;
@@ -42,14 +44,15 @@ import static org.apache.commons.io.FilenameUtils.removeExtension;
 public interface UnzipTransform extends TransformAction<TransformParameters.None> {
 
     @InputArtifact
-    File getZippedFile();
+    Provider<FileSystemLocation> getZippedFile();
 
     @Override
     default void transform(TransformOutputs outputs) {
-        String unzippedDirName = removeExtension(getZippedFile().getName());
+        File zippedFile = getZippedFile().get().getAsFile();
+        String unzippedDirName = removeExtension(zippedFile.getName());
         File unzipDir = outputs.dir(unzippedDirName);
         try {
-            unzipTo(getZippedFile(), unzipDir);
+            unzipTo(zippedFile, unzipDir);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

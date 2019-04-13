@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
@@ -26,6 +27,7 @@ import groovyx.net.http.HttpResponseException
 import groovyx.net.http.RESTClient
 import org.apache.commons.io.input.CloseShieldInputStream
 import org.gradle.api.GradleException
+import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
@@ -35,6 +37,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.CommandLineArgumentProvider
 import org.openmbee.junit.JUnitMarshalling
@@ -44,6 +47,7 @@ import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.inject.Inject
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.ZipInputStream
 
 /**
@@ -75,6 +79,10 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     @Internal
     String teamCityPassword
 
+    /**
+     * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
+     * This field is used to control the iteration count.
+     */
     @Internal
     int repeat = 1
 
@@ -84,9 +92,11 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
 
     private RESTClient client
 
-    private Map<String, Scenario> scheduledBuilds = [:]
+    protected Map<String, Scenario> scheduledBuilds = [:]
 
-    private Map<String, ScenarioResult> finishedBuilds = [:]
+    @Internal
+    @VisibleForTesting
+    Map<String, ScenarioResult> finishedBuilds = [:]
 
     private final JUnitXmlTestEventsGenerator testEventsGenerator
 
@@ -134,13 +144,17 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     @Override
+    @TypeChecked(TypeCheckingMode.SKIP)
     protected List<ScenarioBuildResultData> generateResultsForReport() {
         finishedBuilds.collect { workerBuildId, scenarioResult ->
             new ScenarioBuildResultData(
                 teamCityBuildId: workerBuildId,
                 scenarioName: scheduledBuilds.get(workerBuildId).id,
-                webUrl: scenarioResult.buildResult.webUrl.toString(),
-                status: scenarioResult.buildResult.status.toString(),
+                scenarioClass: scenarioResult.testSuite.name,
+                webUrl: scenarioResult.buildResult.webUrl,
+                status: scenarioResult.buildResult.status,
+                agentName: scenarioResult.buildResult.agent.name,
+                agentUrl: scenarioResult.buildResult.agent.webUrl,
                 testFailure: collectFailures(scenarioResult.testSuite))
         }
     }
@@ -183,7 +197,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],
-                    [name: 'channel', value: channel ?: 'commits'],
+                    [name: 'channel', value: channel ?: 'commits']
                 ]
             ]
         ]
@@ -438,9 +452,27 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
         }
     }
 
-    private static class ScenarioResult {
+    static class ScenarioResult {
         String name
         Map buildResult
         JUnitTestSuite testSuite
+
+        String getTestClassFullName() {
+            return testSuite.name
+        }
+
+        boolean isSuccessful() {
+            return buildResult.status == 'SUCCESS'
+        }
+
+        TestMethodResult toMethodResult(AtomicLong counter) {
+            return new TestMethodResult(
+                counter.incrementAndGet(),
+                name,
+                name,
+                isSuccessful() ? TestResult.ResultType.SUCCESS : TestResult.ResultType.FAILURE,
+                0L,
+                0L)
+        }
     }
 }

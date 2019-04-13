@@ -112,9 +112,10 @@ abstract class TestTransform implements TransformAction<Parameters> {
     abstract FileCollection getInputArtifactDependencies()
 
     @InputArtifact
-    abstract File getInput()
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
     void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
         println "\${parameters.transformName} received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
         assert inputArtifactDependencies.every { it.exists() }
 
@@ -129,9 +130,10 @@ abstract class TestTransform implements TransformAction<Parameters> {
 abstract class SimpleTransform implements TransformAction<TransformParameters.None> {
 
     @InputArtifact
-    abstract File getInput()
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
     void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
         def output = outputs.file(input.name + ".txt")
         def workspace = output.parentFile
         assert workspace.directory && workspace.list().length == 0
@@ -420,9 +422,10 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
     abstract FileCollection getInputArtifactDependencies()
 
     @InputArtifact
-    abstract File getInput()
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
     void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
         println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
 
         def output = outputs.file(input.name + ".txt")
@@ -516,9 +519,10 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
     abstract FileCollection getInputArtifactDependencies()
 
     @InputArtifact
-    abstract File getInput()
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
     void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
         println "Single step transform received dependencies files \${inputArtifactDependencies*.name} for processing \${input.name}"
 
         def output = outputs.file(input.name + ".txt")

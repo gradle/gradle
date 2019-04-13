@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.internal.TaskInputsListener
-import org.gradle.api.internal.OverlappingOutputs
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
@@ -116,11 +115,11 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
+        1 * cleanupRegistry.isOutputOwnedByBuild(previousFile.parentFile) >> false
 
         then:
         1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
@@ -158,7 +157,6 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecution
         _ * afterPreviousExecution.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
@@ -175,7 +173,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def 'does not delete directories when there are overlapping outputs'() {
+    def 'does not delete non-empty directories'() {
         given:
         def outputFiles = []
         def outputDir = temporaryFolder.createDir("rootDir")
@@ -196,12 +194,8 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
             "output", fingerprinter.fingerprint(ImmutableFileCollection.of(outputDir, outputFile))
         )
 
-        def overlappingFile = outputDir.file("overlap")
+        def overlappingFile = subDir.file("overlap")
         overlappingFile << "overlapping file"
-        def outputFilesBefore = ImmutableSortedMap.of(
-            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(outputDir, outputFile, overlappingFile))
-        )
-        def overlappingOutputs = new OverlappingOutputs("someProperty", "path/to/outputFile")
 
         when:
         executer.execute(task, state, taskContext)
@@ -215,12 +209,15 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         then:
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
-        _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> Optional.of(overlappingOutputs)
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the file succeeds'
-        5 * cleanupRegistry.isOutputOwnedByBuild(_) >> true
+        _ * cleanupRegistry.isOutputOwnedByBuild(subDir) >> true
+        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir) >> true
+        _ * cleanupRegistry.isOutputOwnedByBuild(outputDir.parentFile) >> false
+        outputFiles.each {
+            1 * cleanupRegistry.isOutputOwnedByBuild(it) >> true
+        }
         outputDir.exists()
         subDir.exists()
         overlappingFile.exists()
@@ -263,19 +260,19 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         _ * taskContext.afterPreviousExecution >> afterPreviousExecutionState
         _ * afterPreviousExecutionState.outputFileProperties >> previousOutputFiles
         _ * taskContext.outputFilesBeforeExecution >> outputFilesBefore
-        1 * taskContext.overlappingOutputs >> Optional.empty()
         1 * outputChangeListener.beforeOutputChange()
 
         then: 'deleting the previous file fails'
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
-            // Delete the file here so that deletion in SkipEmptySourceFilesTaskExecuter fails
+            // Convert file into directory here, so that deletion in SkipEmptySourceFilesTaskExecuter fails
             assert previousFile.delete()
+            previousFile.file("subdir/inSubdir.txt") << "inSubdir"
             return true
         }
 
         then:
         UncheckedIOException exception = thrown()
-        exception.message.contains("java.io.FileNotFoundException: File does not exist")
+        exception.message.contains("java.nio.file.DirectoryNotEmptyException")
     }
 
     def 'executes task when sourceFiles are not empty'() {

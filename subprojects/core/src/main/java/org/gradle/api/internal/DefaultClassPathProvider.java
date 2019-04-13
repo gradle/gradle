@@ -32,9 +32,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("GRADLE_INSTALLATION_BEACON")) {
             return moduleRegistry.getModule("gradle-installation-beacon").getImplementationClasspath();
         }
-        if (name.equals("COMMONS_CLI")) {
-            return moduleRegistry.getExternalModule("commons-cli").getClasspath();
-        }
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());

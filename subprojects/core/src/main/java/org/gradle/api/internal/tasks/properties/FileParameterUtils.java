@@ -156,7 +156,7 @@ public class FileParameterUtils {
             if (nonFileRoot.get()) {
                 consumer.accept(new CompositeOutputFilePropertySpec(
                     propertyName,
-                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileCollectionFactory.resolving(unpackedValue)),
+                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", outputFileCollection),
                     outputType)
                 );
             } else {

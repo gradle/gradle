@@ -1,7 +1,7 @@
 package projects
 
 import configurations.FunctionalTest
-import configurations.PerformanceTest
+import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
 import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
@@ -36,7 +36,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
     specificBuildTypes.forEach { buildType(it) }
 
     stage.performanceTests.forEach {
-        buildType(PerformanceTest(model, it, stage))
+        buildType(PerformanceTestCoordinator(model, it, stage))
     }
 
     stage.functionalTests.forEach { testCoverage ->

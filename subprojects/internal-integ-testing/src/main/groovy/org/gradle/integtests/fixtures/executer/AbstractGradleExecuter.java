@@ -1053,6 +1053,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 result = new ErrorsOnStdoutScrapingExecutionResult(result);
             }
+            afterExecute.execute(this);
             return result;
         } finally {
             finished();
@@ -1060,11 +1061,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected void finished() {
-        try {
-            afterExecute.execute(this);
-        } finally {
-            reset();
-        }
+        reset();
     }
 
     @Override
@@ -1077,6 +1074,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             if (errorsShouldAppearOnStdout()) {
                 executionFailure = new ErrorsOnStdoutScrapingExecutionFailure(executionFailure);
             }
+            afterExecute.execute(this);
             return executionFailure;
         } finally {
             finished();
@@ -1198,7 +1196,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
-                    } else if (line.matches("w: .* is deprecated\\..*")) {
+                    } else if (line.matches(".*w: .* is deprecated\\..*")) {
                         // A kotlinc warning, ignore
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {

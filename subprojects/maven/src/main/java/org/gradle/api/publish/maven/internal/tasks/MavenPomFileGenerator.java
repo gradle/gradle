@@ -107,7 +107,7 @@ public class MavenPomFileGenerator {
         model.setArtifactId(identity.getArtifactId().get());
         model.setVersion(identity.getVersion().get());
         if (gradleMetadataMarker) {
-            withXml(ADD_GRADLE_METADATA_MARKER);
+            xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
         }
     }
 

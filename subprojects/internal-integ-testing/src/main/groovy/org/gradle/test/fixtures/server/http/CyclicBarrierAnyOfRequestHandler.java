@@ -279,8 +279,14 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
         condition.signalAll();
     }
 
+
     @Override
     public void waitForAllPendingCalls() {
+        waitForAllPendingCalls(BlockingHttpServer.FailureTracker.NO_FAILURE_TRACKER);
+    }
+
+    @Override
+    public void waitForAllPendingCalls(BlockingHttpServer.FailureTracker failureTracker) {
         lock.lock();
         try {
             previous.assertCanWait();
@@ -290,7 +296,7 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 mostRecentEvent = now;
             }
 
-            while (waitingFor > 0 && !state.isFailed()) {
+            while (waitingFor > 0 && !state.isFailed() && failureTracker.getFailure() == null) {
                 long waitMs = mostRecentEvent + timeoutMs - clock.getCurrentTime();
                 if (waitMs < 0) {
                     System.out.println(String.format("[%d] timeout waiting for expected requests.", testId));
@@ -303,6 +309,9 @@ class CyclicBarrierAnyOfRequestHandler implements TrackingHttpHandler, WaitPreco
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+            }
+            if (failureTracker.getFailure() != null) {
+                throw failureTracker.getFailure();
             }
             if (state.isFailed()) {
                 throw state.getWaitFailure(describeCurrentState());

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
-import org.gradle.api.artifacts.transform.ArtifactTransform;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -34,7 +33,7 @@ import java.io.File;
 /**
  * The actual code which needs to be executed to transform a file.
  *
- * This encapsulates the public interface {@link ArtifactTransform} into an internal type.
+ * This encapsulates the public interface {@link org.gradle.api.artifacts.transform.TransformAction} into an internal type.
  */
 public interface Transformer extends Describable, TaskDependencyContainer {
     Class<?> getImplementationClass();

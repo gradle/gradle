@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +34,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     private final boolean transitive;
     private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
     private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
+    private final ImmutableAttributes attributes;
 
     public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive) {
         this.organisation = organisation;
@@ -40,6 +42,7 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         this.revision = Strings.nullToEmpty(revision);
         this.confMapping = confMapping;
         this.transitive = transitive;
+        this.attributes = ImmutableAttributes.EMPTY;
     }
 
     public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts) {
@@ -52,8 +55,15 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
         this.excludeRules.addAll(excludeRules);
     }
 
-    public DefaultIvyDependency(ExternalDependency dependency, String confMapping) {
-        this(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.isTransitive(), dependency.getArtifacts(), dependency.getExcludeRules());
+    public DefaultIvyDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {
+        this.organisation = dependency.getGroup();
+        this.module = dependency.getName();
+        this.revision = Strings.nullToEmpty(dependency.getVersion());
+        this.confMapping = confMapping;
+        this.transitive = dependency.isTransitive();
+        this.artifacts.addAll(dependency.getArtifacts());
+        this.excludeRules.addAll(dependency.getExcludeRules());
+        this.attributes = attributes;
     }
 
     public String getOrganisation() {
@@ -82,5 +92,10 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
 
     public Iterable<ExcludeRule> getExcludeRules() {
         return excludeRules;
+    }
+
+    @Override
+    public ImmutableAttributes getAttributes() {
+        return attributes;
     }
 }

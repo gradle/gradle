@@ -117,7 +117,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of %s." : "Some problems were found with the configuration of %s.", ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream().map(InvalidUserDataException::new).collect(Collectors.toList()));
+                validationMessages.stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList()));
         }
         Transformer transformer = new DefaultTransformer(
             implementation,
@@ -137,6 +137,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends ArtifactTransform> implementation, Object[] params) {
         Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvoker, domainObjectProjectStateHandler, fileCollectionFingerprinterRegistry));

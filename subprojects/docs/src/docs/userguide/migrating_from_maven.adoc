@@ -333,10 +333,10 @@ If you're more interested in controlling which version of a dependency is actual
 [[migmvn:optional_deps]]
 === Handling optional dependencies
 
-There are two sides to optional dependencies: 
+You are likely to encounter two situations regarding optional dependencies: 
 
- * How the build treats them as transitive dependencies
- * How declared dependencies are published as optional
+ * Some of your transitive dependencies are declared as optional
+ * You want to declare some of your direct dependencies as optional in your project's published POM
 
 For the first scenario, Gradle behaves the same way as Maven and simply ignores any transitive dependencies that are declared as optional.
 They are not resolved and have no impact on the versions selected if the same dependencies appear elsewhere in the dependency graph as non-optional.

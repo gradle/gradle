@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.xml;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.util.IndentPrinter;
 import groovy.util.Node;
@@ -56,10 +57,15 @@ import java.util.List;
 
 public class XmlTransformer implements Transformer<String, String> {
     private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
+    private final List<Action<? super XmlProvider>> finalizers = Lists.newArrayListWithExpectedSize(2);
     private String indentation = "  ";
 
     public void addAction(Action<? super XmlProvider> provider) {
         actions.add(provider);
+    }
+
+    public void addFinalizer(Action<? super XmlProvider> provider) {
+        finalizers.add(provider);
     }
 
     public void setIndentation(String indentation) {
@@ -144,6 +150,7 @@ public class XmlTransformer implements Transformer<String, String> {
 
     private XmlProviderImpl doTransform(XmlProviderImpl provider) {
         provider.apply(actions);
+        provider.apply(finalizers);
         return provider;
     }
 

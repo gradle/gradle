@@ -24,6 +24,7 @@ import org.hamcrest.Matcher
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -137,7 +138,7 @@ $fileSizer
 
                     classpath 'org.apache.commons:commons-math3:3.6.1'
                 }
-                repositories { jcenter() }
+                ${jcenterRepository()} 
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
@@ -807,7 +808,7 @@ $fileSizer
             
             abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput()
+                abstract Provider<FileSystemLocation> getInput()
                 
                 void transform(TransformOutputs outputs) {
                     println("Transforming")
@@ -1668,11 +1669,11 @@ Found the following transforms:
 
             abstract class MyTransform implements TransformAction<TransformParameters.None> {
                 @InputArtifact
-                abstract File getInput() 
+                abstract Provider<FileSystemLocation> getInput() 
 
                 void transform(TransformOutputs outputs) {
                     println "Hello?"
-                    def output = outputs.${method}(new File(input, "some/dir/does-not-exist"))
+                    def output = outputs.${method}(new File(input.get().asFile, "some/dir/does-not-exist"))
                     assert !output.parentFile.directory
                 }
             }

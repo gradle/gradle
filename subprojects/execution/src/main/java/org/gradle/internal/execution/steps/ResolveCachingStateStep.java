@@ -73,7 +73,7 @@ public class ResolveCachingStateStep implements Step<IncrementalContext, Caching
         } else {
             cachingState = context.getBeforeExecutionState()
                 .map(beforeExecutionState -> calculateCachingState(beforeExecutionState, work))
-                .orElseGet(() -> work.shouldDisableCaching()
+                .orElseGet(() -> (buildCache.isEnabled() ? work.shouldDisableCaching() : Optional.of(BUILD_CACHE_DISABLED_REASON))
                     .map(disabledReason -> CachingState.disabledWithoutInputs(disabledReason))
                     .orElse(CachingState.NOT_DETERMINED)
                 );

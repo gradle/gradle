@@ -55,7 +55,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == "<-------------> 0% INITIALIZING [0s]"
+        statusBar.display == "<-------------> 0% INITIALIZING [0ms]"
 
         when:
         currentTimeMs += 1000
@@ -75,7 +75,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% INITIALIZING [0s]'
+        statusBar.display == '<-------------> 0% INITIALIZING [0ms]'
 
         when:
         renderer.onOutput(complete(1, 'WAITING'))
@@ -94,7 +94,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% INITIALIZING [0s]'
+        statusBar.display == '<-------------> 0% INITIALIZING [0ms]'
 
         when:
         renderer.onOutput(complete(1))
@@ -118,21 +118,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<===----------> 25% CONFIGURING [0s]'
+        statusBar.display == '<===----------> 25% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
@@ -143,7 +143,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=========----> 75% CONFIGURING [0s]'
+        statusBar.display == '<=========----> 75% CONFIGURING [0ms]'
     }
 
     def "formats configuration phase with nested builds"() {
@@ -160,21 +160,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=------------> 10% CONFIGURING [0s]'
+        statusBar.display == '<=------------> 10% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -182,7 +182,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=------------> 10% CONFIGURING [0s]'
+        statusBar.display == '<=------------> 10% CONFIGURING [0ms]'
     }
 
     def "formats execution phase"() {
@@ -197,28 +197,28 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<===----------> 25% EXECUTING [0s]'
+        statusBar.display == '<===----------> 25% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(2))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<===----------> 25% EXECUTING [0s]'
+        statusBar.display == '<===----------> 25% EXECUTING [0ms]'
     }
 
     def "formats execution phase with nested builds"() {
@@ -235,21 +235,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=------------> 10% EXECUTING [0s]'
+        statusBar.display == '<=------------> 10% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -257,7 +257,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=------------> 10% EXECUTING [0s]'
+        statusBar.display == '<=------------> 10% EXECUTING [0ms]'
     }
 
     def "configuration phase runs until task graph execution"() {
@@ -274,7 +274,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% CONFIGURING [0s]'
+        statusBar.display == '<-------------> 0% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event3)
@@ -283,14 +283,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=============> 100% CONFIGURING [0s]'
+        statusBar.display == '<=============> 100% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<=============> 100% CONFIGURING [0s]'
+        statusBar.display == '<=============> 100% CONFIGURING [0ms]'
 
         when:
         renderer.onOutput(complete(4))
@@ -298,7 +298,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '<-------------> 0% EXECUTING [0s]'
+        statusBar.display == '<-------------> 0% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(5))

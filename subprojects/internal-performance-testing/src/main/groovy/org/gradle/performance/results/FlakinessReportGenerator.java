@@ -20,13 +20,16 @@ import java.io.File;
 import java.io.IOException;
 
 public class FlakinessReportGenerator extends AbstractReportGenerator<CrossVersionResultsStore> {
-    public static void main(String[] args) throws Exception {
-        getGenerator(FlakinessReportGenerator.class).generateReport(args);
+    public static void main(String[] args) {
+        new FlakinessReportGenerator().generateReport(args);
     }
 
     @Override
-    protected void renderIndexPage(ResultsStore store, File resultJson, File outputDirectory) throws IOException {
-        new FileRenderer().render(store, new FlakinessIndexPageGenerator(store, resultJson), new File(outputDirectory, "index.html"));
+    protected void renderIndexPage(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore store, File resultJson, File outputDirectory) throws IOException {
+        FlakinessIndexPageGenerator reporter = new FlakinessIndexPageGenerator(flakinessAnalyzer, store, resultJson);
+        new FileRenderer().render(store, reporter, new File(outputDirectory, "index.html"));
+
+        reporter.reportToIssueTracker();
     }
 
     @Override

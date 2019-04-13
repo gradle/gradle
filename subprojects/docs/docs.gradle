@@ -309,7 +309,7 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
     options.addStringOption "source", "8"
     source ProjectGroups.INSTANCE.getPublicJavaProjects(project).collect { project -> project.sourceSets.main.allJava }
-    destinationDir = new File(docsDir, 'javadoc')
+    destinationDir = new File(docsDir, 'javadoc') 
     classpath = configurations.gradleApiRuntime
 
     PublicApi.includes.each {
@@ -333,7 +333,10 @@ def javadocAll = tasks.register("javadocAll", Javadoc) {
 
             // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856) fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
             // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
-            new File(destinationDir, 'script.js').text = new File(srcDocsDir, 'js/javadoc/script.js').text
+            project.copy { 
+            	from(new File(srcDocsDir, "js/javadoc"))
+                into(destinationDir)
+            }
         }
     }
 }

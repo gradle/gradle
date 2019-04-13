@@ -41,6 +41,11 @@ public abstract class AbstractLocator {
                 execAction.executable("xcrun");
                 execAction.workingDir(System.getProperty("user.dir"));
                 execAction.args(getXcrunFlags());
+
+                String developerDir = System.getenv("DEVELOPER_DIR");
+                if (developerDir != null) {
+                    execAction.environment("DEVELOPER_DIR", developerDir);
+                }
                 execAction.setStandardOutput(outputStream);
                 execAction.execute().assertNormalExitValue();
 

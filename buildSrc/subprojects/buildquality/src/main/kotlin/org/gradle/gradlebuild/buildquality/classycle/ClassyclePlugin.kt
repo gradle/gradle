@@ -39,7 +39,7 @@ open class ClassyclePlugin : Plugin<Project> {
         val classycle = tasks.register("classycle")
         java.sourceSets.all {
             val taskName = getTaskName("classycle", null)
-            val sourceSetTask = project.tasks.register(
+            val sourceSetTask = tasks.register(
                 taskName,
                 Classycle::class.java,
                 output.classesDirs,
@@ -48,9 +48,9 @@ open class ClassyclePlugin : Plugin<Project> {
                 reporting.file("classycle"),
                 extension.reportResourcesZip
             )
-            classycle.configure { dependsOn(sourceSetTask) }
-            tasks.named("check").configure { dependsOn(sourceSetTask) }
-        tasks.named("codeQuality").configure { dependsOn(sourceSetTask) }
+            classycle { dependsOn(sourceSetTask) }
+            tasks.named("check") { dependsOn(sourceSetTask) }
+            tasks.named("codeQuality") { dependsOn(sourceSetTask) }
         }
     }
 }

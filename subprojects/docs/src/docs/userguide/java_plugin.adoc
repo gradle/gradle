@@ -694,11 +694,11 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/immutables/immutables/issues/804[Open issue]
 | N/A
 
-| link:https://developer.android.com/topic/libraries/architecture/room)[Room]
+| link:https://developer.android.com/topic/libraries/architecture/room[Room]
 | link:https://issuetracker.google.com/issues/112110217[Open Issue]
 | N/A
 
-| link:https://developer.android.com/jetpack/androidx/releases/lifecycle)[Lifecycle]
+| link:https://developer.android.com/jetpack/androidx/releases/lifecycle[Lifecycle]
 | link:https://issuetracker.google.com/issues/129115778[Open Issue]
 | N/A
 

@@ -23,6 +23,7 @@ import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.RebaselinePerformanceTests
 import org.gradle.testing.ReportGenerationPerformanceTest
+import org.gradle.testing.RerunableDistributedPerformanceTest
 import org.gradle.testing.performance.generator.tasks.AbstractProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JavaExecProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
@@ -57,6 +58,8 @@ object Config {
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
 
     const val performanceTestReportsDir = "performance-tests/report"
+
+    const val performanceTestResultsJson = "perf-results.json"
 
     const val teamCityUrl = "https://builds.gradle.org/"
 
@@ -250,24 +253,24 @@ class PerformanceTestPlugin : Plugin<Project> {
         prepareSamplesTask: TaskProvider<Task>
     ) {
 
-        fun create(name: String, configure: DistributedPerformanceTest.() -> Unit = {}) {
-            createDistributedPerformanceTestTask(name, performanceSourceSet, prepareSamplesTask).configure(configure)
+        fun create(name: String, clazz: KClass<out DistributedPerformanceTest>, configure: DistributedPerformanceTest.() -> Unit = {}) {
+            createDistributedPerformanceTestTask(name, clazz, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
-        create("distributedPerformanceTest") {
+        create("distributedPerformanceTest", RerunableDistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             channel = "commits"
         }
-        create("distributedPerformanceExperiment") {
+        create("distributedPerformanceExperiment", RerunableDistributedPerformanceTest::class) {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
             channel = "experiments"
         }
-        create("distributedFullPerformanceTest") {
+        create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
             setBaselines(Config.baseLineList)
             checks = "none"
             channel = "historical"
         }
-        create("distributedFlakinessDetection") {
+        create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             reportGeneratorClass = "org.gradle.performance.results.FlakinessReportGenerator"
             repeat = 3
@@ -309,10 +312,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createDistributedPerformanceTestTask(
         name: String,
+        clazz: KClass<out DistributedPerformanceTest>,
         performanceSourceSet: SourceSet,
         prepareSamplesTask: TaskProvider<Task>
-    ): TaskProvider<DistributedPerformanceTest> {
-        val performanceTest = tasks.register(name, DistributedPerformanceTest::class) {
+    ): TaskProvider<out DistributedPerformanceTest> {
+        val performanceTest = tasks.register(name, clazz) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet, prepareSamplesTask)
             scenarioList = buildDir / Config.performanceTestScenarioListFileName
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
@@ -453,6 +457,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             task.apply {
                 buildId = System.getenv("BUILD_ID")
                 reportDir = project.buildDir / Config.performanceTestReportsDir
+                resultsJson = project.buildDir / Config.performanceTestResultsJson
             }
         }
     }

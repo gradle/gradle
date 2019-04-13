@@ -108,6 +108,31 @@ You can also add arbitrary XML to the descriptor file via link:{groovyDslPath}/o
 
 CAUTION: It is possible to modify the descriptor in such a way that it is no longer a valid Ivy module descriptor, so care must be taken when using this feature.
 
+[[publishing_ivy:resolved_dependencies]]
+=== Customizing dependencies versions
+
+By default, the set of dependencies and constraints that are added to the Ivy file will contain the versions _declared_ in the build file.
+Sometimes it is desirable to publish the _resolved_ version instead.
+
+Example use cases:
+
+* A project uses dynamic versions for dependencies but prefers exposing the resolved version for a given release to its consumers.
+* In combination with <<dependency_locking.adoc,dependency locking>>, you want to publish the locked versions.
+* A project leverages the rich versions constraints of Gradle, which have a lossy conversion to Ivy.
+Instead of relying on the conversion, it publishes the resolved versions.
+
+This is done by using the `versionMapping` DSL method which allows to configure the link:{javadocPath}/org/gradle/api/publish/VersionMappingStrategy.html[VersionMappingStrategy]:
+
+.Using resolved versions
+====
+include::sample[dir="ivy-publish/descriptor-customization/groovy",files="build.gradle[tags=versions-resolved]"]
+include::sample[dir="ivy-publish/descriptor-customization/kotlin",files="build.gradle.kts[tags=versions-resolved]"]
+====
+
+In the example above, Gradle will use the versions resolved on the `runtimeClasspath` for dependencies declared in `api`, which are mapped to the `compile` configuration of Ivy.
+Gradle will also use the versions resolved on the `runtimeClasspath` for dependencies declared in `implementation`, which are mapped to the `runtime` configuration of Ivy.
+`fromResolutionResult()` indicates that Gradle should use the default classpath of a variant and `runtimeClasspath` is the default classpath of `java-runtime`.
+
 [[publishing_ivy:repositories]]
 == Repositories
 

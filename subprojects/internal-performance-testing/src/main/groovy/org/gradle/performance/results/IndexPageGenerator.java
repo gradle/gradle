@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.ci.common.model.FlakyTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,18 +25,24 @@ import java.io.Writer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
+import static com.google.common.collect.ImmutableList.of;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FAILED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.FROM_CACHE;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.IMPROVED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.NEARLY_FAILED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.REGRESSED;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNKNOWN;
-import static org.gradle.performance.results.AbstractTablePageGenerator.Tag.UNTAGGED;
+import static java.util.stream.Collectors.toSet;
+import static org.gradle.performance.results.ScenarioBuildResultData.ExecutionData;
+import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_SUCCESS;
+import static org.gradle.performance.results.ScenarioBuildResultData.STATUS_UNKNOWN;
+import static org.gradle.performance.results.Tag.FixedTag.FAILED;
+import static org.gradle.performance.results.Tag.FixedTag.FLAKY;
+import static org.gradle.performance.results.Tag.FixedTag.FROM_CACHE;
+import static org.gradle.performance.results.Tag.FixedTag.IMPROVED;
+import static org.gradle.performance.results.Tag.FixedTag.NEARLY_FAILED;
+import static org.gradle.performance.results.Tag.FixedTag.REGRESSED;
+import static org.gradle.performance.results.Tag.FixedTag.UNKNOWN;
+import static org.gradle.performance.results.Tag.FixedTag.UNTAGGED;
 
 public class IndexPageGenerator extends AbstractTablePageGenerator {
     private static final int DEFAULT_RETRY_COUNT = 3;
@@ -44,40 +51,77 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
     static final Comparator<ScenarioBuildResultData> SCENARIO_COMPARATOR = comparing(ScenarioBuildResultData::isBuildFailed).reversed()
         .thenComparing(ScenarioBuildResultData::isSuccessful)
         .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
+        .thenComparing(comparing(IndexPageGenerator::isFlaky).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    public IndexPageGenerator(ResultsStore resultsStore, File resultJson) {
-        super(resultsStore, resultJson);
+    public IndexPageGenerator(PerformanceFlakinessAnalyzer flakinessAnalyzer, ResultsStore resultsStore, File resultJson) {
+        super(flakinessAnalyzer, resultsStore, resultJson);
     }
 
     @Override
     protected Set<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
-        return scenarioList.stream().map(this::queryAndSortExecutionData).collect(treeSetCollector(SCENARIO_COMPARATOR));
+        // scenarioList contains duplicate scenarios because of rerun
+        return scenarioList.stream()
+            .collect(groupingBy(ScenarioBuildResultData::getScenarioName))
+            .values()
+            .stream()
+            .map(this::queryAndSortExecutionData).collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
-    private ScenarioBuildResultData queryAndSortExecutionData(ScenarioBuildResultData scenario) {
-        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
+    private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {
+        ScenarioBuildResultData mergedScenario = mergeScenarioWithSameName(scenarios);
+
+        List<String> teamCityBuildIds = scenarios.stream().map(ScenarioBuildResultData::getTeamCityBuildId).collect(toList());
+
+        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
         List<? extends PerformanceTestExecution> currentBuildExecutions = recentExecutions.stream()
-            .filter(execution -> Objects.equals(execution.getTeamCityBuildId(), scenario.getTeamCityBuildId()))
+            .filter(execution -> teamCityBuildIds.contains(execution.getTeamCityBuildId()))
             .collect(toList());
 
         if (currentBuildExecutions.isEmpty()) {
-            scenario.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
+            mergedScenario.setRecentExecutions(determineRecentExecutions(removeEmptyExecution(recentExecutions)));
         } else {
-            scenario.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
+            mergedScenario.setCurrentBuildExecutions(removeEmptyExecution(currentBuildExecutions));
         }
 
-        scenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
+        mergedScenario.setCrossBuild(history instanceof CrossBuildPerformanceTestHistory);
 
-        return scenario;
+        return mergedScenario;
     }
 
-    private List<ScenarioBuildResultData.ExecutionData> determineRecentExecutions(List<ScenarioBuildResultData.ExecutionData> executions) {
-        List<ScenarioBuildResultData.ExecutionData> executionsOfSameCommit = executions.stream().filter(this::sameCommit).collect(toList());
+    private ScenarioBuildResultData mergeScenarioWithSameName(List<ScenarioBuildResultData> scenariosWithSameName) {
+        if (scenariosWithSameName.size() == 1) {
+            return scenariosWithSameName.get(0);
+        } else {
+            ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();
+            mergedScenario.setScenarioName(scenariosWithSameName.get(0).getScenarioName());
+            mergedScenario.setRawData(scenariosWithSameName);
+            mergedScenario.setStatus(determineMergedScenarioStatus(scenariosWithSameName));
+            return mergedScenario;
+        }
+    }
+
+    private String determineMergedScenarioStatus(List<ScenarioBuildResultData> scenariosWithSameName) {
+        if (allScenarioHaveSameStatus(scenariosWithSameName)) {
+            return scenariosWithSameName.get(0).getStatus();
+        } else if (scenariosWithSameName.stream().anyMatch(scenario -> STATUS_SUCCESS.equals(scenario.getStatus()))) {
+            // Flaky
+            return STATUS_SUCCESS;
+        } else {
+            return STATUS_UNKNOWN;
+        }
+    }
+
+    private boolean allScenarioHaveSameStatus(List<ScenarioBuildResultData> scenariosWithSameName) {
+        return scenariosWithSameName.stream().map(ScenarioBuildResultData::getStatus).collect(toSet()).size() == 1;
+    }
+
+    private List<ExecutionData> determineRecentExecutions(List<ExecutionData> executions) {
+        List<ExecutionData> executionsOfSameCommit = executions.stream().filter(this::sameCommit).collect(toList());
         if (executionsOfSameCommit.isEmpty()) {
             return executions;
         } else {
@@ -142,6 +186,14 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isFromCache()) {
                     result.add(FROM_CACHE);
                 }
+
+                if (isFlaky(scenario)) {
+                    result.add(FLAKY);
+                }
+
+                markKnownFlakyTestIfFound(scenario, result);
+
+
                 if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
                 } else if (scenario.isBuildFailed()) {
@@ -160,11 +212,43 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 return result;
             }
 
+            private void markKnownFlakyTestIfFound(ScenarioBuildResultData scenario, Set<Tag> result) {
+                FlakyTest flakyTest = flakinessAnalyzer.findKnownFlakyTest(scenario);
+                if (flakyTest != null) {
+                    result.add(new Tag.KnownFlakyTag(flakyTest));
+                }
+            }
+
             @Override
             protected void renderScenarioButtons(int index, ScenarioBuildResultData scenario) {
-                a().target("_blank").classAttr("btn btn-primary btn-sm").href(scenario.getWebUrl()).text("Build").end();
+                List<String> webUrls =
+                    scenario.getRawData().isEmpty()
+                        ? of(scenario.getWebUrl())
+                        : scenario.getRawData().stream().map(ScenarioBuildResultData::getWebUrl).collect(toList());
+                if (webUrls.size() == 1) {
+                    a().target("_blank").classAttr("btn btn-primary btn-sm").href(webUrls.get(0)).text("Build").end();
+                } else {
+                    // @formatter:off
+                    div().classAttr("dropdown").style("display: inline-block");
+                        button().classAttr("btn btn-primary btn-sm dropdown-toggle").attr("data-toggle", "dropdown").text("Build").end();
+                        div().classAttr("dropdown-menu");
+                            for (int i = 0; i < webUrls.size(); ++i) {
+                                a().target("_blank").classAttr("dropdown-item").href(webUrls.get(i)).text("Build " + (i + 1)).end();
+                            }
+                        end();
+                    end();
+                    // @formatter:on
+                }
             }
         };
     }
 
+    private static boolean isFlaky(ScenarioBuildResultData scenario) {
+        if (scenario.getRawData().size() < 1) {
+            return false;
+        }
+
+        Set<String> statuses = scenario.getRawData().stream().map(ScenarioBuildResultData::getStatus).collect(toSet());
+        return statuses.size() > 1 && statuses.contains(STATUS_SUCCESS);
+    }
 }

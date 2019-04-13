@@ -21,16 +21,29 @@ import org.gradle.performance.measure.DataSeries
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ScenarioBuildResultData {
+    public static final String STATUS_SUCCESS = "SUCCESS"
+    public static final String STATUS_FAILURE = "FAILURE"
+    public static final String STATUS_UNKNOWN = "UNKNOWN"
+    public static final int FLAKINESS_DETECTION_THRESHOLD = 99
     private static final int ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD = 90
-    private static final int FLAKINESS_DETECTION_THRESHOLD = 99
     String teamCityBuildId
     String scenarioName
+    String scenarioClass
     String webUrl
+    String agentName
+    String agentUrl
     String testFailure
     String status
     boolean crossBuild
     List<ExecutionData> currentBuildExecutions = []
     List<ExecutionData> recentExecutions = []
+
+    // For rerun scenarios
+    List<ScenarioBuildResultData> rawData = []
+
+    String getFlakyIssueTestName() {
+        return "${scenarioClass}.${scenarioName}"
+    }
 
     boolean isCrossVersion() {
         return !crossBuild
@@ -45,23 +58,23 @@ class ScenarioBuildResultData {
     }
 
     boolean isUnknown() {
-        return status == 'UNKNOWN'
+        return status == STATUS_UNKNOWN
     }
 
     boolean isSuccessful() {
-        return status == 'SUCCESS'
+        return status == STATUS_SUCCESS
     }
 
     boolean isBuildFailed() {
-        return status == 'FAILURE' && currentBuildExecutions.empty
+        return status == STATUS_FAILURE && currentBuildExecutions.empty
     }
 
     boolean isRegressed() {
-        return status == 'FAILURE' && !currentBuildExecutions.empty
+        return status == STATUS_FAILURE && !currentBuildExecutions.empty
     }
 
     boolean isFromCache() {
-        return status == 'SUCCESS' && currentBuildExecutions.empty
+        return status == STATUS_SUCCESS && currentBuildExecutions.empty
     }
 
     double getDifferenceSortKey() {
@@ -90,10 +103,6 @@ class ScenarioBuildResultData {
         } else {
             return executions
         }
-    }
-
-    boolean isFlaky() {
-        return executions.any { it.confidencePercentage > FLAKINESS_DETECTION_THRESHOLD }
     }
 
     static class ExecutionData {

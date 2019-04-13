@@ -16,12 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
-
-import org.gradle.api.ReplacedBy
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.model.ReplacedBy
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -153,6 +152,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "task can have property with annotation @#annotation.simpleName"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
@@ -640,6 +640,8 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
             import java.io.*;
@@ -665,7 +667,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
                 // Valid because it is annotated
                 @InputArtifact
-                public abstract File getGoodInput();
+                public abstract Provider<FileSystemLocation> getGoodInput();
 
                 // Invalid because it has no annotation
                 public long getBadTime() {
@@ -701,8 +703,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
+            import org.gradle.work.*;
             import java.io.*;
 
             public interface MyTransformParameters extends TransformParameters {
@@ -718,7 +722,23 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
                 // Valid because it is annotated
                 @InputFile
-                File getGoodInput();
+                File getGoodFileInput();
+
+                // Valid
+                @Incremental
+                @InputFiles
+                FileCollection getGoodIncrementalInput();
+
+                // Valid
+                @Input
+                String getGoodInput();
+                void setGoodInput(String value);
+
+                // Invalid because only file inputs can be incremental
+                @Incremental
+                @Input
+                String getIncrementalNonFileInput();
+                void setIncrementalNonFileInput(String value);
 
                 // Invalid because it has no annotation
                 long getBadTime();
@@ -737,11 +757,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails "validateTaskProperties"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
+        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
 
         file("build/reports/task-properties/report.txt").text == """
             Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
+            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' has @Incremental annotation used on an @Input property.
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with unsupported annotation @InputArtifact.
             Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
         """.stripIndent().trim()
@@ -768,6 +790,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "reports conflicting types when property is replaced but keeps old annotations"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
+            import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.*;
             

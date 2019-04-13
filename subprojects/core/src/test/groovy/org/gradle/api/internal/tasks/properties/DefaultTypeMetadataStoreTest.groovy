@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.ReplacedBy
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.AbstractTask
@@ -28,6 +27,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.annotations.ClasspathPropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler
+import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console

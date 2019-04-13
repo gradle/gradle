@@ -146,7 +146,7 @@ rootProject.name = "${rootProjectName}"
     // TODO: Use @RequiresInstalledToolChain instead once Xcode test are sorted out
     void assumeSwiftCompilerSupportsLanguageVersion(SwiftVersion swiftVersion) {
         assert toolChain != null, "You need to specify Swift tool chain requirement with 'requireSwiftToolChain()'"
-        assumeTrue(toolChain.version.major >= swiftVersion.version)
+        assumeTrue((toolChain.version.major == 5 && swiftVersion.version in [5, 4]) || (toolChain.version.major == 4 && swiftVersion.version in [4, 3]) || (toolChain.version.major == 3 && swiftVersion.version == 3))
     }
 
     void assertTargetIsUnitTest(ProjectFile.PBXTarget target, String expectedProductName) {

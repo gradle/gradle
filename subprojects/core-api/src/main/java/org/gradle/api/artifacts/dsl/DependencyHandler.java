@@ -440,9 +440,11 @@ public interface DependencyHandler {
     /**
      * Registers an artifact transform.
      *
+     * @deprecated use {@link #registerTransform(Class, Action)} instead.
      * @see org.gradle.api.artifacts.transform.ArtifactTransform
      * @since 3.5
      */
+    @Deprecated
     void registerTransform(Action<? super VariantTransform> registrationAction);
 
     /**
