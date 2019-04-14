@@ -33,6 +33,7 @@ public abstract class OperatingSystem {
     public static final Solaris SOLARIS = new Solaris();
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
+    public static final OpenBSD OPEN_BSD = new OpenBSD();
     public static final Unix UNIX = new Unix();
     private static OperatingSystem currentOs;
     private final String toStringValue;
@@ -69,6 +70,8 @@ public abstract class OperatingSystem {
             return LINUX;
         } else if (osName.contains("freebsd")) {
             return FREE_BSD;
+        } else if (osName.contains("openbsd")) {
+            return OPEN_BSD;
         } else {
             // Not strictly true
             return UNIX;
@@ -102,6 +105,14 @@ public abstract class OperatingSystem {
     }
 
     public boolean isLinux() {
+        return false;
+    }
+
+    public boolean isFreeBSD() {
+        return false;
+    }
+
+    public boolean isOpenBSD() {
         return false;
     }
 
@@ -406,6 +417,9 @@ public abstract class OperatingSystem {
     }
 
     static class FreeBSD extends Unix {
+    }
+
+    static class OpenBSD extends Unix {
     }
 
     static class Solaris extends Unix {

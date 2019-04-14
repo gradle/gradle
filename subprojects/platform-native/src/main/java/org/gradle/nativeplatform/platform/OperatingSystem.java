@@ -93,4 +93,10 @@ public interface OperatingSystem extends Named {
      */
     @Internal
     boolean isFreeBSD();
+
+    /**
+     * Is it OpenBSD?
+     */
+    @Internal
+    boolean isOpenBSD();
 }

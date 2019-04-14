@@ -97,6 +97,11 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     }
 
     @Override
+    public boolean isOpenBSD() {
+        return internalOs == OperatingSystem.OPEN_BSD;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

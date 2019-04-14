@@ -44,6 +44,7 @@ class DefaultOperatingSystemTest extends Specification {
         "sunos"   | OperatingSystem.SOLARIS
         "solaris" | OperatingSystem.SOLARIS
         "freebsd" | OperatingSystem.FREE_BSD
+        "openbsd" | OperatingSystem.OPEN_BSD
     }
 
     def "can create arbitrary operating system"() {
