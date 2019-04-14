@@ -50,7 +50,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     SourceDirectorySet srcDir(Object srcPath);
 
     /**
-     * Adds the given source directories to this set. The given directories to not need to exist. Directories that do no exist are ignored.
+     * Adds the given source directories to this set. The given directories do not need to exist. Directories that do not exist are ignored.
      *
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
