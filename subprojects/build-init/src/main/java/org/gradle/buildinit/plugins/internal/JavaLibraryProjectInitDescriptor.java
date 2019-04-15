@@ -54,6 +54,8 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
                 return fromClazzTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
             case JUNIT:
                 return fromClazzTemplate("javalibrary/LibraryTest.java.template", settings, "test");
+            case JUNITJUPITER:
+                return fromClazzTemplate("javalibrary/junitjupiter/LibraryTest.java.template", settings, "test");
             default:
                 throw new IllegalArgumentException();
         }
