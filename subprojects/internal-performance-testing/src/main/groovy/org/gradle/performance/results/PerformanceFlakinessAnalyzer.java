@@ -44,6 +44,7 @@ public interface PerformanceFlakinessAnalyzer {
 
         @Override
         public void report(ScenarioBuildResultData flakyScenario) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
