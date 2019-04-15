@@ -118,17 +118,21 @@ class PublicAPIRulesTest extends Specification {
             } 
         """
         : apiElement.startsWith('annotation') ? """
-            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
-        """
-        : apiElement in ['class', 'constructor'] ? """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public ApiTest() { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                String method();
             }
         """
-        : """
+        : apiElement == 'interface' ? """
             public interface $TEST_INTERFACE_SIMPLE_NAME {
                 String field = "value";
                 void method();
+            }
+        """
+        : """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public String field = "value";
+                public void method() { }
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
             }
         """
 
@@ -136,10 +140,17 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType).humanExplanation =~ 'Is not annotated with @since 11.38'
 
         when:
-        sourceFile.text = apiElement.startsWith('enum') ? """
+        sourceFile.text = apiElement == 'enum' ? """
             /**
              * @since 11.38
              */
+            public enum $TEST_INTERFACE_SIMPLE_NAME {
+                field;
+                
+                void method() { }
+            } 
+        """
+        : apiElement.startsWith('enum') ? """
             public enum $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
@@ -152,33 +163,48 @@ class PublicAPIRulesTest extends Specification {
                 void method() { }
             } 
         """
-        : apiElement.startsWith('annotation') ? """
+        : apiElement == 'annotation' ? """
             /**
              * @since 11.38
              */
-            public @interface $TEST_INTERFACE_SIMPLE_NAME { }
-        """
-        : apiElement.startsWith('class') ? """
-            /**
-             * @since 11.38
-             */
-            public class $TEST_INTERFACE_SIMPLE_NAME {
-                public ApiTest() { }
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
+                String method();
             }
         """
-        : apiElement.startsWith('constructor') ? """
-            public class $TEST_INTERFACE_SIMPLE_NAME {
+        : apiElement == 'annotation member' ? """
+            public @interface $TEST_INTERFACE_SIMPLE_NAME {
                 /**
                  * @since 11.38
                  */
-                public ApiTest() { }
+                 String method();
             }
         """
-        : """
+        : apiElement == 'class' ? """
+            /**
+             * @since 11.38
+             */
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public String field = "value";
+                public void method() { }
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
+            }
+        """
+        : apiElement == 'interface' ? """
             /**
              * @since 11.38
              */
             public interface $TEST_INTERFACE_SIMPLE_NAME {
+                String field = "value";
+                void method();
+            }
+        """
+        : """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
+
                 /**
                  * @since 11.38
                  */
@@ -195,16 +221,17 @@ class PublicAPIRulesTest extends Specification {
         rule.maybeViolation(jApiType) == null
 
         where:
-        apiElement     | jApiTypeName
-        'interface'    | 'jApiClassifier'
-        'class'        | 'jApiClassifier'
-        'method'       | 'jApiMethod'
-        'field'        | 'jApiField'
-        'constructor'  | 'jApiConstructor'
-        'enum'         | 'jApiClassifier'
-        'enum literal' | 'jApiField'
-        'enum method'  | 'jApiMethod'
-        'annotation'   | 'jApiClassifier'
+        apiElement          | jApiTypeName
+        'interface'         | 'jApiClassifier'
+        'class'             | 'jApiClassifier'
+        'method'            | 'jApiMethod'
+        'field'             | 'jApiField'
+        'constructor'       | 'jApiConstructor'
+        'enum'              | 'jApiClassifier'
+        'enum literal'      | 'jApiField'
+        'enum method'       | 'jApiMethod'
+        'annotation'        | 'jApiClassifier'
+        'annotation member' | 'jApiMethod'
     }
 
     @Unroll

@@ -677,9 +677,10 @@ abstract class MakeGreen extends ArtifactTransform {
     @Unroll
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         settingsFile << """
-            include 'a', 'b', 'c'
+            include 'a', 'b'
         """
         setupBuildWithColorTransformAction()
+        def typeName = propertyType instanceof Class ? propertyType.name : propertyType.toString()
         buildFile << """
 
 project(':a') {
@@ -690,7 +691,7 @@ project(':a') {
 
 abstract class MakeGreen implements TransformAction<TransformParameters.None> {
     @InputArtifact
-    abstract ${propertyType instanceof Class ? propertyType.name : propertyType} getInput()
+    abstract ${typeName} getInput()
     
     void transform(TransformOutputs outputs) {
         input
@@ -703,13 +704,51 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails(":a:resolve")
 
         then:
-        // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
-        failure.assertHasCause("No service of type ${propertyType} available.")
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
         propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
+    }
+
+    @Unroll
+    def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        setupBuildWithColorTransformAction()
+        buildFile << """
+
+project(':a') {
+    dependencies {
+        implementation project(':b')
+    }
+}
+
+abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+    @${annotation.name}
+    abstract ${propertyType.name} getDependencies()
+    
+    void transform(TransformOutputs outputs) {
+        dependencies
+        throw new RuntimeException("broken")
+    }
+}
+"""
+
+        when:
+        fails(":a:resolve")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
+
+        where:
+        annotation                | propertyType
+        InputArtifactDependencies | File
+        InputArtifactDependencies | String
     }
 
     def "transform cannot use @Inject to receive input file"() {
