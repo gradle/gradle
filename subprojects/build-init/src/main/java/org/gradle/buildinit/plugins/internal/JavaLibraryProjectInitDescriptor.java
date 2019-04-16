@@ -64,17 +64,12 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
-    protected String getImplementationConfigurationName() {
-        return "implementation";
-    }
-
-    @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",
             "org.apache.commons:commons-math3:" + libraryVersionProvider.getVersion("commons-math"));
-        buildScriptBuilder.dependency(getImplementationConfigurationName(), "This dependency is used internally, and not exposed to consumers on their own compile classpath.",
+        buildScriptBuilder.implementationDependency("This dependency is used internally, and not exposed to consumers on their own compile classpath.",
             "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 }

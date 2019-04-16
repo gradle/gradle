@@ -19,8 +19,11 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
     public JavaApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(libraryVersionProvider, documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -38,6 +41,8 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
             .conventionPropertyAssignment(
                 "Define the main class for the application",
                 "application", "mainClassName", withPackage(settings, "App"));
+        buildScriptBuilder.implementationDependency("This dependency is used by the application.",
+            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
     @Override

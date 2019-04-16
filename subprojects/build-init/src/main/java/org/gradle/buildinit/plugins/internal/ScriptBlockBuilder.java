@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.Action;
+
 import javax.annotation.Nullable;
 
 public interface ScriptBlockBuilder {
@@ -35,6 +37,18 @@ public interface ScriptBlockBuilder {
      * @return The body of the block, to which further statements can be added.
      */
     ScriptBlockBuilder block(@Nullable String comment, String methodName);
+
+    /**
+     * Adds a block that adds an element to the current container.
+     *
+     * @return The body of the block, to which further statements can be added
+     */
+    ScriptBlockBuilder containerElement(@Nullable String comment, String elementName);
+
+    /**
+     * Adds a block that adds an element to the current container.
+     */
+    void containerElement(@Nullable String comment, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
 
     /**
      * Returns a property expression that can be used as a method argument or property assignment value

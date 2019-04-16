@@ -21,8 +21,11 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.Transformer;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.internal.Transformers;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
@@ -205,6 +208,8 @@ public class BuildScriptBuilder {
 
     /**
      * Adds a top level method invocation statement.
+     *
+     * @return this
      */
     public BuildScriptBuilder methodInvocation(@Nullable String comment, String methodName, Object... methodArgs) {
         block.methodInvocation(comment, methodName, methodArgs);
@@ -213,6 +218,8 @@ public class BuildScriptBuilder {
 
     /**
      * Adds a top level property assignment statement.
+     *
+     * @return this
      */
     public BuildScriptBuilder propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
         block.propertyAssignment(comment, propertyName, propertyValue);
@@ -226,6 +233,13 @@ public class BuildScriptBuilder {
      */
     public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
         return block.block(comment, methodName);
+    }
+
+    /**
+     * Adds a top level block statement.
+     */
+    public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
+        blockContentBuilder.execute(block.block(comment, methodName));
     }
 
     /**
@@ -693,15 +707,19 @@ public class BuildScriptBuilder {
 
     private static class BlockStatement implements Statement {
         private final String comment;
-        final String blockSelector;
+        final Transformer<String, Syntax> blockSelector;
         final ScriptBlockImpl body = new ScriptBlockImpl();
 
         BlockStatement(String blockSelector) {
-            this.comment = null;
-            this.blockSelector = blockSelector;
+            this(null, blockSelector);
         }
 
-        BlockStatement(String comment, String blockSelector) {
+        BlockStatement(@Nullable String comment, String blockSelector) {
+            this.comment = comment;
+            this.blockSelector = Transformers.constant(blockSelector);
+        }
+
+        BlockStatement(@Nullable String comment, Transformer<String, Syntax> blockSelector) {
             this.comment = comment;
             this.blockSelector = blockSelector;
         }
@@ -723,13 +741,17 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(blockSelector, body);
+            printer.printBlock(blockSelector.transform(printer.syntax), body);
         }
     }
 
     private static class ScriptBlock extends BlockStatement {
-        ScriptBlock(String comment, String methodName) {
-            super(comment, methodName);
+        ScriptBlock(String comment, String blockSelector) {
+            super(comment, blockSelector);
+        }
+
+        ScriptBlock(String comment, Transformer<String, Syntax> blockSelector) {
+            super(comment, blockSelector);
         }
 
         @Override
@@ -851,6 +873,18 @@ public class BuildScriptBuilder {
             ScriptBlock scriptBlock = new ScriptBlock(comment, methodName);
             statements.add(scriptBlock);
             return scriptBlock.body;
+        }
+
+        @Override
+        public ScriptBlockBuilder containerElement(@Nullable String comment, String elementName) {
+            ScriptBlock scriptBlock = new ScriptBlock(comment, syntax -> syntax.containerElement(elementName));
+            statements.add(scriptBlock);
+            return scriptBlock.body;
+        }
+
+        @Override
+        public void containerElement(@Nullable String comment, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            blockContentsBuilder.execute(containerElement(comment, elementName));
         }
 
         @Override
@@ -1158,6 +1192,8 @@ public class BuildScriptBuilder {
         String mapLiteral(Map<String, ExpressionValue> map);
 
         String firstArg(ExpressionValue argument);
+
+        String containerElement(String elementName);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1249,6 +1285,11 @@ public class BuildScriptBuilder {
         public String taskRegistration(String taskName, String taskType) {
             return "val " + taskName + " by tasks.creating(" + taskType + "::class)";
         }
+
+        @Override
+        public String containerElement(String elementName) {
+            return "val " + elementName + " by creating";
+        }
     }
 
     private static final class GroovySyntax implements Syntax {
@@ -1333,6 +1374,11 @@ public class BuildScriptBuilder {
         @Override
         public String taskRegistration(String taskName, String taskType) {
             return "task " + taskName + "(type: " + taskType + ")";
+        }
+
+        @Override
+        public String containerElement(String elementName) {
+            return elementName;
         }
     }
 }

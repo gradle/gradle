@@ -54,7 +54,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
         buildScriptBuilder
-            .dependency("testImplementation", "Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+            .testImplementationDependency("Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
     }
 
     protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName) {

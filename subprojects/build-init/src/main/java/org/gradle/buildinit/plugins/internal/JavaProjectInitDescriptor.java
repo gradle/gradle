@@ -17,15 +17,12 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static org.gradle.api.plugins.JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNITJUPITER;
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.SPOCK;
@@ -73,29 +70,20 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         return DESCRIPTION;
     }
 
-    protected String getImplementationConfigurationName() {
-        return IMPLEMENTATION_CONFIGURATION_NAME;
-    }
-
-    protected String getTestImplementationConfigurationName() {
-        return TEST_IMPLEMENTATION_CONFIGURATION_NAME;
-    }
-
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
         switch (testFramework) {
             case SPOCK:
                 buildScriptBuilder
                     .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
-                    .dependency(getTestImplementationConfigurationName(), "Use the latest Groovy version for Spock testing",
+                    .testImplementationDependency("Use the latest Groovy version for Spock testing",
                         "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"))
-                    .dependency(getTestImplementationConfigurationName(), "Use the awesome Spock testing and specification framework even with Java",
+                    .testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
                         "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
             case TESTNG:
                 buildScriptBuilder
-                    .dependency(
-                        getTestImplementationConfigurationName(),
+                    .testImplementationDependency(
                         "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
                     .taskMethodInvocation(
@@ -104,30 +92,24 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                 break;
             case JUNITJUPITER:
                 buildScriptBuilder
-                    .dependency(
-                        getTestImplementationConfigurationName(),
+                    .testImplementationDependency(
                         "Use JUnit Jupiter API for testing.",
                         "org.junit.jupiter:junit-jupiter-api:" + libraryVersionProvider.getVersion("junitjupiter")
-                    ).dependency(JavaPlugin.TEST_RUNTIME_ONLY_CONFIGURATION_NAME,
-                        "Use JUnit Jupiter Engine for testing.",
-                        "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junitjupiter")
-                    ).taskMethodInvocation(
-                        "Use junit platform for unit tests",
-                        "test", "Test", "useJUnitPlatform"
-                    );
+                    ).testRuntimeOnlyDependency(
+                    "Use JUnit Jupiter Engine for testing.",
+                    "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junitjupiter")
+                ).taskMethodInvocation(
+                    "Use junit platform for unit tests",
+                    "test", "Test", "useJUnitPlatform"
+                );
                 break;
             default:
-                buildScriptBuilder
-                    .dependency(getTestImplementationConfigurationName(), "Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.testImplementationDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
         }
     }
 
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        // todo: once we use "implementation" for Java projects too, we need to change the comment
-        buildScriptBuilder.dependency(getImplementationConfigurationName(),
-            "This dependency is found on compile classpath of this component and consumers.",
-            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory);

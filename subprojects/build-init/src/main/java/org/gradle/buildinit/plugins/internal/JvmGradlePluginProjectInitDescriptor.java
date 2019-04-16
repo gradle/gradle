@@ -40,11 +40,12 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             .fileComment("For more details take a look at the Writing Custom Plugins chapter in the Gradle")
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
-        ScriptBlockBuilder pluginBlock = buildScriptBuilder.block(null, "gradlePlugin")
+        buildScriptBuilder.block(null, "gradlePlugin")
             .block(null, "plugins")
-            .block("Define the plugin", "create(\"greeting\")");
-        pluginBlock.propertyAssignment(null, "id", pluginId);
-        pluginBlock.propertyAssignment(null, "implementationClass", settings.getPackageName() + "." + pluginClassName);
+            .containerElement("Define the plugin", "greeting", b -> {
+                b.propertyAssignment(null, "id", pluginId);
+                b.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
+            });
 
         TemplateOperation javaSourceTemplate = sourceTemplate(settings, templateFactory, pluginClassName);
         TemplateOperation javaTestTemplate = testTemplate(settings, templateFactory, pluginClassName, testClassName);
