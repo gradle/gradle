@@ -42,21 +42,23 @@ class BinaryCompatibilityHelper {
 
             addExcludeFilter(KotlinInternalFilter)
 
+            def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
+
             richReport.tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [
-                    acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(),
+                    acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: richReport.includedClasses
                 ])
                 addRule(MethodsRemovedInInternalSuperClassRule, [
-                    acceptedApiChanges: acceptedViolations.toAcceptedChangesMap(),
+                    acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: richReport.includedClasses
                 ])
-                addRule(BinaryBreakingChangesRule, acceptedViolations.toAcceptedChangesMap())
-                addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedViolations.toAcceptedChangesMap())
-                addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedViolations.toAcceptedChangesMap())
-                addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedViolations.toAcceptedChangesMap())
+                addRule(BinaryBreakingChangesRule, acceptedChangesMap)
+                addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedChangesMap)
+                addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedChangesMap)
+                addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedChangesMap)
 
-                addSetupRule(AcceptedRegressionsRuleSetup, acceptedViolations.toAcceptedChangesMap())
+                addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
                 addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
 
                 addPostProcessRule(AcceptedRegressionsRulePostProcess)
