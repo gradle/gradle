@@ -25,15 +25,15 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.ci.github.GitHubIssuesClient.CI_TRACKED_FLAKINESS_LABEL
-import static org.gradle.performance.results.PerformanceFlakinessAnalyzer.GITHUB_FIX_IT_LABEL
-import static org.gradle.performance.results.PerformanceFlakinessAnalyzer.GITHUB_IN_PERFORMANCE_LABEL
+import static DefaultPerformanceFlakinessAnalyzer.GITHUB_FIX_IT_LABEL
+import static DefaultPerformanceFlakinessAnalyzer.GITHUB_IN_PERFORMANCE_LABEL
 
-class PerformanceFlakinessAnalyzerTest extends Specification {
+class DefaultPerformanceFlakinessAnalyzerTest extends Specification {
     GitHubIssuesClient issuesClient = Mock(GitHubIssuesClient)
     KnownFlakyTestProvider flakyTestProvider = Mock(KnownFlakyTestProvider)
 
     @Subject
-    PerformanceFlakinessAnalyzer reporter = new PerformanceFlakinessAnalyzer(issuesClient, flakyTestProvider)
+    DefaultPerformanceFlakinessAnalyzer reporter = new DefaultPerformanceFlakinessAnalyzer(issuesClient, flakyTestProvider)
 
     ScenarioBuildResultData scenario = new ScenarioBuildResultData(
         scenarioName: 'myScenario',
