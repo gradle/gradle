@@ -263,6 +263,10 @@ public class IvyDescriptorFileGenerator {
                     .attribute("rev", resolvedVersion != null ? resolvedVersion : dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
 
+            if(resolvedVersion != null) {
+                xmlWriter.attribute("revConstraint", dependency.getRevision());
+            }
+
             if (!dependency.isTransitive()) {
                 xmlWriter.attribute("transitive", "false");
             }
