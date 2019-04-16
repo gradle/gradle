@@ -126,7 +126,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
 
     // binary breaking change checking setup
-    onlyModified = true
+    onlyModified = false
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
     richReport {

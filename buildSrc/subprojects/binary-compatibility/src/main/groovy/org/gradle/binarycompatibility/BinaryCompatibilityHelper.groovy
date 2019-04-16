@@ -26,6 +26,7 @@ import org.gradle.binarycompatibility.rules.IncubatingInternalInterfaceAddedRule
 import org.gradle.binarycompatibility.rules.IncubatingMissingRule
 import org.gradle.binarycompatibility.rules.MethodsRemovedInInternalSuperClassRule
 import org.gradle.binarycompatibility.rules.NewIncubatingAPIRule
+import org.gradle.binarycompatibility.rules.NullabilityBreakingChangesRule
 import org.gradle.binarycompatibility.rules.SinceAnnotationMissingRule
 import org.gradle.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
 
@@ -54,6 +55,7 @@ class BinaryCompatibilityHelper {
                     publicApiPatterns: richReport.includedClasses
                 ])
                 addRule(BinaryBreakingChangesRule, acceptedChangesMap)
+                addRule(NullabilityBreakingChangesRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedChangesMap)
                 addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedChangesMap)

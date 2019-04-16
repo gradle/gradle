@@ -72,6 +72,9 @@ data class RichReport(
     val information: List<ReportMessage>
 ) {
 
+    val isEmpty: Boolean
+        get() = errors.isEmpty() && warnings.isEmpty() && information.isEmpty()
+
     fun toText() =
         StringBuilder("Binary compatibility\n").apply {
             listOf("Errors" to errors, "Warnings" to warnings, "Information" to information).forEach { (name, list) ->
