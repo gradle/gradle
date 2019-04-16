@@ -19,8 +19,8 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.file.FileResolver;
 
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-    public JvmProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        super(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public JvmProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
     }
 
     @Override

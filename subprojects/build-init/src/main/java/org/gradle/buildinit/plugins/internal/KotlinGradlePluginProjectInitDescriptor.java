@@ -23,40 +23,47 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
-public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
-    public JavaGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
+    public KotlinGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
     }
 
     @Override
     public String getId() {
-        return "java-gradle-plugin";
+        return "kotlin-gradle-plugin";
     }
 
     @Override
     public Language getLanguage() {
-        return Language.JAVA;
+        return Language.KOTLIN;
     }
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
-        return BuildInitTestFramework.JUNIT;
+        return BuildInitTestFramework.KOTLINTEST;
     }
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return ImmutableSet.of(BuildInitTestFramework.JUNIT);
+        return ImmutableSet.of(BuildInitTestFramework.KOTLINTEST);
     }
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
+
+        String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
+        buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.", "org.jetbrains.kotlin.jvm", kotlinVersion);
+        buildScriptBuilder.
+            implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
+
         buildScriptBuilder
-            .dependency("testImplementation", "Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+            .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
+            .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
     }
 
     protected TemplateOperation sourceTemplate(InitSettings settings, String pluginClassName) {
-        return fromSourceTemplate("plugin/java/Plugin.java.template", settings, t -> {
+        return fromSourceTemplate("plugin/kotlin/Plugin.kt.template", settings, t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginName", settings.getProjectName());
@@ -64,7 +71,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     protected TemplateOperation testTemplate(InitSettings settings, String pluginClassName, String testClassName) {
-        return fromSourceTemplate("plugin/java/junit/PluginTest.java.template", settings, t -> {
+        return fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", settings, t -> {
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("classUnderTest", pluginClassName);

@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -26,15 +27,24 @@ import java.util.Set;
 import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
 
 public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+    private final DocumentationRegistry documentationRegistry;
 
-    public CppProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        super("cpp", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public CppProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+        this.documentationRegistry = documentationRegistry;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.CPP;
     }
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
-            .fileComment("This generated file contains a sample CPP project to get you started.");
+            .fileComment("This generated file contains a sample C++ project to get you started.")
+            .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("cpp_plugin"));
         configureBuildScript(settings, buildScriptBuilder);
 
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);

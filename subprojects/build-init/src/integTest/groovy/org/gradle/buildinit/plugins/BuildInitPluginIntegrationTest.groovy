@@ -203,11 +203,13 @@ include("child")
   - 'cpp-application'
   - 'cpp-library'
   - 'groovy-application'
+  - 'groovy-gradle-plugin'
   - 'groovy-library'
   - 'java-application'
   - 'java-gradle-plugin'
   - 'java-library'
   - 'kotlin-application'
+  - 'kotlin-gradle-plugin'
   - 'kotlin-library'
   - 'pom'
   - 'scala-library'""")
@@ -287,11 +289,13 @@ include("child")
                      cpp-application
                      cpp-library
                      groovy-application
+                     groovy-gradle-plugin
                      groovy-library
                      java-application
                      java-gradle-plugin
                      java-library
                      kotlin-application
+                     kotlin-gradle-plugin
                      kotlin-library
                      pom
                      scala-library""")

@@ -29,11 +29,13 @@ import org.gradle.buildinit.plugins.internal.CppLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.DefaultTemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
 import org.gradle.buildinit.plugins.internal.GroovyApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.GroovyGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.GroovyLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.KotlinGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
@@ -73,11 +75,13 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new GroovyApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new ScalaLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new CppApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), commonGenerators));
-        registry.add(of(new CppLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), commonGenerators));
+        registry.add(of(new CppApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), commonGenerators));
+        registry.add(of(new CppLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), commonGenerators));
         registry.add(of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         registry.add(of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
-        registry.add(of(new JavaGradlePluginProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(of(new JavaGradlePluginProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new GroovyGradlePluginProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new KotlinGradlePluginProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         return registry;
     }
 

@@ -26,20 +26,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
-
-    protected final String language;
     protected final FileResolver fileResolver;
     protected final TemplateOperationFactory templateOperationFactory;
     protected final TemplateLibraryVersionProvider libraryVersionProvider;
     protected final BuildScriptBuilderFactory scriptBuilderFactory;
 
-    public LanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-        this.language = language;
+    public LanguageLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.fileResolver = fileResolver;
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
     }
+
+    abstract public Language getLanguage();
 
     @Override
     public BuildInitDsl getDefaultDsl() {
@@ -58,7 +57,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(new Factory<Boolean>() {
             public Boolean create() {
-                return fileResolver.resolveFilesAsTree("src/main/" + language).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + language).isEmpty();
+                return fileResolver.resolveFilesAsTree("src/main/" + getLanguage().getName()).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + getLanguage().getName()).isEmpty();
             }
         }, operations);
     }
@@ -72,18 +71,18 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     }
 
     protected TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName) {
-        return fromSourceTemplate(clazzTemplate, sourceSetName, this.language);
+        return fromSourceTemplate(clazzTemplate, sourceSetName, getLanguage());
     }
 
     protected TemplateOperation fromSourceTemplate(String clazzTemplate, InitSettings settings, String sourceSetName) {
-        return fromSourceTemplate(clazzTemplate, settings, sourceSetName, this.language);
+        return fromSourceTemplate(clazzTemplate, settings, sourceSetName, getLanguage());
     }
 
-    protected TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName, String language) {
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName, Language language) {
         return fromSourceTemplate(clazzTemplate, null, sourceSetName, language);
     }
 
-    protected TemplateOperation fromSourceTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, Language language) {
         return fromSourceTemplate(clazzTemplate, settings, t -> {
             t.sourceSet(sourceSetName);
             t.language(language);
@@ -93,7 +92,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     protected TemplateOperation fromSourceTemplate(String sourceTemplate, InitSettings settings, Action<? super SourceFileTemplate> config) {
         String targetFileName = sourceTemplate.substring(sourceTemplate.lastIndexOf("/") + 1).replace(".template", "");
 
-        TemplateDetails details = new TemplateDetails(language, targetFileName);
+        TemplateDetails details = new TemplateDetails(getLanguage(), targetFileName);
         config.execute(details);
 
         String packageDecl = "";
@@ -107,7 +106,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
 
         TemplateOperationFactory.TemplateOperationBuilder operationBuilder = templateOperationFactory.newTemplateOperation()
             .withTemplate(sourceTemplate)
-            .withTarget("src/" + details.sourceSet + "/" + details.language + "/" + targetFileName)
+            .withTarget("src/" + details.sourceSet + "/" + details.language.getName() + "/" + targetFileName)
             .withBinding("packageDecl", packageDecl)
             .withBinding("className", className);
         for (Map.Entry<String, String> entry : details.bindings.entrySet()) {
@@ -119,12 +118,12 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     private static class TemplateDetails implements SourceFileTemplate {
         final Map<String, String> bindings = new HashMap<>();
         String sourceSet = "main";
-        String language;
+        Language language;
         String fileName;
         @Nullable
         String className;
 
-        TemplateDetails(String language, String fileName) {
+        TemplateDetails(Language language, String fileName) {
             this.language = language;
             this.fileName = fileName;
         }
@@ -135,8 +134,8 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         }
 
         @Override
-        public void language(String name) {
-            this.language = name;
+        public void language(Language language) {
+            this.language = language;
         }
 
         @Override
@@ -151,7 +150,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
 
         public String getTargetFileName() {
             if (className != null) {
-                return className + "." + language;
+                return className + "." + language.getExtension();
             }
             return fileName;
         }
@@ -160,7 +159,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     protected interface SourceFileTemplate {
         void sourceSet(String name);
 
-        void language(String name);
+        void language(Language language);
 
         void className(String name);
 

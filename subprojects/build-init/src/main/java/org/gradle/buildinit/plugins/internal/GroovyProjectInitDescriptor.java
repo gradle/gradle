@@ -30,8 +30,13 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
 
     public GroovyProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
                                        TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("groovy", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.GROOVY;
     }
 
     @Override

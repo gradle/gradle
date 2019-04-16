@@ -25,12 +25,17 @@ import java.util.Set;
 
 public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescriptor {
     public KotlinApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
     public String getId() {
         return "kotlin-application";
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.KOTLIN;
     }
 
     @Override

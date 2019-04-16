@@ -50,9 +50,9 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test", "groovy");
+                return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test", Language.GROOVY);
             case TESTNG:
-                return fromSourceTemplate("javaapp/testng/AppTest.java.template", settings, "test", "java");
+                return fromSourceTemplate("javaapp/testng/AppTest.java.template", settings, "test");
             case JUNIT:
                 return fromSourceTemplate("javaapp/AppTest.java.template", settings, "test");
             case JUNITJUPITER:

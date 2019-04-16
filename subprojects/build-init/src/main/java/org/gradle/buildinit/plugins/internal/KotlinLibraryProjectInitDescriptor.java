@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     public KotlinLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super("kotlin", scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
     }
 
     @Override
@@ -46,6 +46,11 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
         return Collections.singleton(BuildInitTestFramework.KOTLINTEST);
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.KOTLIN;
     }
 
     @Override

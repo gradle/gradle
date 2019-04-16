@@ -29,13 +29,18 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
 
     public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
                                              TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super("scala", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public String getId() {
         return "scala-library";
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.SCALA;
     }
 
     @Override

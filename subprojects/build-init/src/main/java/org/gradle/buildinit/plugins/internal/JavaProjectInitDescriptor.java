@@ -46,8 +46,13 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                                      FileResolver fileResolver,
                                      TemplateLibraryVersionProvider libraryVersionProvider,
                                      DocumentationRegistry documentationRegistry) {
-        super("java", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.JAVA;
     }
 
     @Override

@@ -23,40 +23,41 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
-public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
-    public JavaGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
+    public GroovyGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
     }
 
     @Override
     public String getId() {
-        return "java-gradle-plugin";
-    }
-
-    @Override
-    public Language getLanguage() {
-        return Language.JAVA;
+        return "groovy-gradle-plugin";
     }
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {
-        return BuildInitTestFramework.JUNIT;
+        return BuildInitTestFramework.SPOCK;
     }
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks() {
-        return ImmutableSet.of(BuildInitTestFramework.JUNIT);
+        return ImmutableSet.of(BuildInitTestFramework.SPOCK);
+    }
+
+    @Override
+    public Language getLanguage() {
+        return Language.GROOVY;
     }
 
     @Override
     protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
-        buildScriptBuilder
-            .dependency("testImplementation", "Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+        buildScriptBuilder.plugin("Apply the Groovy plugin to add support for using Groovy source", "groovy");
+        buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
+            "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
     }
 
     protected TemplateOperation sourceTemplate(InitSettings settings, String pluginClassName) {
-        return fromSourceTemplate("plugin/java/Plugin.java.template", settings, t -> {
+        return fromSourceTemplate("plugin/groovy/Plugin.groovy.template", settings, t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginName", settings.getProjectName());
@@ -64,7 +65,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     protected TemplateOperation testTemplate(InitSettings settings, String pluginClassName, String testClassName) {
-        return fromSourceTemplate("plugin/java/junit/PluginTest.java.template", settings, t -> {
+        return fromSourceTemplate("plugin/groovy/spock/PluginTest.groovy.template", settings, t -> {
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("classUnderTest", pluginClassName);

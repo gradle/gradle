@@ -1,0 +1,46 @@
+/*
+ * Copyright 2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.buildinit.plugins
+
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import spock.lang.Unroll
+
+@LeaksFileHandles
+class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
+    @Unroll
+    def "creates sample source if no source present with #scriptDsl build scripts"() {
+        when:
+        run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id)
+
+        then:
+        targetDir.file("src/main/kotlin").assertHasDescendants("some/thing/SomeThingPlugin.kt")
+        targetDir.file("src/test/kotlin").assertHasDescendants("some/thing/SomeThingPluginTest.kt")
+
+        and:
+        commonJvmFilesGenerated(scriptDsl)
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("some.thing.SomeThingPluginTest", "testCanApplyPlugin")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+}

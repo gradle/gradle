@@ -49,7 +49,7 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", "groovy");
+                return fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", Language.GROOVY);
             case TESTNG:
                 return fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
             case JUNIT:

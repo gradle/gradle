@@ -125,8 +125,11 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
     }
 
     class TestLanguageLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+        Language language
+
         TestLanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-            super(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+            super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+            this.language = new Language(language)
         }
 
         @Override
