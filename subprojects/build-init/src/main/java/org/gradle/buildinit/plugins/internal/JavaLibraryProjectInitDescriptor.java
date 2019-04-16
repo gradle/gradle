@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 
 public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor {
     private final static Description DESCRIPTION = new Description(
@@ -26,13 +25,11 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
         "java_library_plugin",
         "java-library"
     );
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public JavaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
-                                            TemplateOperationFactory templateOperationFactory,
-                                            FileResolver fileResolver,
-                                            TemplateLibraryVersionProvider libraryVersionProvider,
-                                            DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    public JavaLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(libraryVersionProvider, documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -41,21 +38,21 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromSourceTemplate("javalibrary/Library.java.template",  settings, "main");
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("javalibrary/Library.java.template", "main");
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+    protected TemplateOperation testTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", Language.GROOVY);
+                return templateFactory.fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", "test", Language.GROOVY);
             case TESTNG:
-                return fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", "test");
             case JUNIT:
-                return fromSourceTemplate("javalibrary/LibraryTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javalibrary/LibraryTest.java.template", "test");
             case JUNITJUPITER:
-                return fromSourceTemplate("javalibrary/junitjupiter/LibraryTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javalibrary/junitjupiter/LibraryTest.java.template", "test");
             default:
                 throw new IllegalArgumentException();
         }

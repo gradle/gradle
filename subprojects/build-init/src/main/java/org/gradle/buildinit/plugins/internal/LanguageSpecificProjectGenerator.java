@@ -31,5 +31,5 @@ public interface LanguageSpecificProjectGenerator {
 
     boolean supportsPackage();
 
-    void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+    void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory);
 }

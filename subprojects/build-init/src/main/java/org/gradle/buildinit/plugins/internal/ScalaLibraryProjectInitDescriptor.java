@@ -17,18 +17,17 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
-
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
     private final DocumentationRegistry documentationRegistry;
 
-    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public ScalaLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -43,8 +42,8 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -65,9 +64,9 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
             .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        TemplateOperation scalaLibTemplateOperation = fromSourceTemplate("scalalibrary/Library.scala.template", settings, "main");
-        TemplateOperation scalaTestTemplateOperation = fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
-        whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
+        TemplateOperation scalaLibTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/Library.scala.template", "main");
+        TemplateOperation scalaTestTemplateOperation = templateFactory.fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        templateFactory.whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
     }
 
     @Override

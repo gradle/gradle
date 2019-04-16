@@ -17,11 +17,10 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 
 public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescriptor {
-    public JavaApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    public JavaApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(libraryVersionProvider, documentationRegistry);
     }
 
     @Override
@@ -42,21 +41,21 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromSourceTemplate("javaapp/App.java.template", settings, "main");
+    protected TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("javaapp/App.java.template", "main");
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(InitSettings settings) {
+    protected TemplateOperation testTemplateOperation(InitSettings settings, TemplateFactory templateFactory) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test", Language.GROOVY);
+                return templateFactory.fromSourceTemplate("groovyapp/AppTest.groovy.template", "test", Language.GROOVY);
             case TESTNG:
-                return fromSourceTemplate("javaapp/testng/AppTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javaapp/testng/AppTest.java.template", "test");
             case JUNIT:
-                return fromSourceTemplate("javaapp/AppTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javaapp/AppTest.java.template", "test");
             case JUNITJUPITER:
-                return fromSourceTemplate("javaapp/junitjupiter/AppTest.java.template", settings, "test");
+                return templateFactory.fromSourceTemplate("javaapp/junitjupiter/AppTest.java.template", "test");
             default:
                 throw new IllegalArgumentException();
         }

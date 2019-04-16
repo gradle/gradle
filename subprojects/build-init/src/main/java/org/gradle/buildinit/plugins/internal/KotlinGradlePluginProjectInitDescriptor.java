@@ -18,14 +18,16 @@ package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
 public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
-    public KotlinGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
+    public KotlinGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -49,8 +51,8 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.", "org.jetbrains.kotlin.jvm", kotlinVersion);
@@ -62,16 +64,16 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
     }
 
-    protected TemplateOperation sourceTemplate(InitSettings settings, String pluginClassName) {
-        return fromSourceTemplate("plugin/kotlin/Plugin.kt.template", settings, t -> {
+    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName) {
+        return templateFactory.fromSourceTemplate("plugin/kotlin/Plugin.kt.template", t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginName", settings.getProjectName());
         });
     }
 
-    protected TemplateOperation testTemplate(InitSettings settings, String pluginClassName, String testClassName) {
-        return fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", settings, t -> {
+    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("classUnderTest", pluginClassName);

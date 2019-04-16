@@ -16,15 +16,16 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescriptor {
-    public KotlinApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, DefaultTemplateLibraryVersionProvider versionProvider) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, versionProvider);
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
+    public KotlinApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider) {
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -48,8 +49,8 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder
@@ -63,8 +64,8 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
                 "Define the main class for the application.",
                 "application", "mainClassName", withPackage(settings, "AppKt"));
 
-        TemplateOperation kotlinSourceTemplate = fromSourceTemplate("kotlinapp/App.kt.template", settings, "main");
-        TemplateOperation kotlinTestTemplate = fromSourceTemplate("kotlinapp/AppTest.kt.template", settings, "test");
-        whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
+        TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinapp/App.kt.template", "main");
+        TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinapp/AppTest.kt.template", "test");
+        templateFactory.whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

@@ -18,14 +18,16 @@ package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
 import java.util.Set;
 
 public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjectInitDescriptor {
-    public JavaGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
+
+    public JavaGradlePluginProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(documentationRegistry);
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -49,22 +51,22 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
         buildScriptBuilder
             .dependency("testImplementation", "Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
     }
 
-    protected TemplateOperation sourceTemplate(InitSettings settings, String pluginClassName) {
-        return fromSourceTemplate("plugin/java/Plugin.java.template", settings, t -> {
+    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName) {
+        return templateFactory.fromSourceTemplate("plugin/java/Plugin.java.template", t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginName", settings.getProjectName());
         });
     }
 
-    protected TemplateOperation testTemplate(InitSettings settings, String pluginClassName, String testClassName) {
-        return fromSourceTemplate("plugin/java/junit/PluginTest.java.template", settings, t -> {
+    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/java/junit/PluginTest.java.template", t -> {
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("classUnderTest", pluginClassName);

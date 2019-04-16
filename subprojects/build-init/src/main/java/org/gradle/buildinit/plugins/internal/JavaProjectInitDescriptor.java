@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
@@ -39,14 +38,11 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         "tutorial_java_projects",
         "java"
     );
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
     private final DocumentationRegistry documentationRegistry;
 
-    public JavaProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory,
-                                     TemplateOperationFactory templateOperationFactory,
-                                     FileResolver fileResolver,
-                                     TemplateLibraryVersionProvider libraryVersionProvider,
-                                     DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public JavaProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -56,8 +52,8 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         Description desc = getDescription();
         buildScriptBuilder
@@ -68,9 +64,9 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);
 
-        TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
-        TemplateOperation testSourceTemplate = testTemplateOperation(settings);
-        whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
+        TemplateOperation sourceTemplate = sourceTemplateOperation(settings, templateFactory);
+        TemplateOperation testSourceTemplate = testTemplateOperation(settings, templateFactory);
+        templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
     }
 
     protected Description getDescription() {
@@ -134,9 +130,9 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
             "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
     }
 
-    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings, TemplateFactory templateFactory);
 
-    protected abstract TemplateOperation testTemplateOperation(InitSettings settings);
+    protected abstract TemplateOperation testTemplateOperation(InitSettings settings, TemplateFactory templateFactory);
 
     @Override
     public BuildInitTestFramework getDefaultTestFramework() {

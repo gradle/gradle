@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
@@ -23,11 +24,15 @@ import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
+    private final FileResolver fileResolver;
+    private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
 
-    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory) {
+    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, FileResolver fileResolver, TemplateOperationFactory templateOperationFactory) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.descriptor = descriptor;
+        this.fileResolver = fileResolver;
+        this.templateOperationFactory = templateOperationFactory;
     }
 
     @Override
@@ -61,7 +66,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     @Override
     public void generate(InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
-        descriptor.generate(settings, buildScriptBuilder);
+        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileResolver, templateOperationFactory));
         buildScriptBuilder.create().generate();
     }
 }

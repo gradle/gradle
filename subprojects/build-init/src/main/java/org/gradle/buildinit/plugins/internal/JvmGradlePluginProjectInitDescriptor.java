@@ -18,20 +18,18 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GUtil;
 
 public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
 
-    public JvmGradlePluginProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generate(settings, buildScriptBuilder);
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+        super.generate(settings, buildScriptBuilder, templateFactory);
 
         String pluginId = settings.getPackageName() + "." + settings.getProjectName();
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
@@ -48,12 +46,12 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
         pluginBlock.propertyAssignment(null, "id", pluginId);
         pluginBlock.propertyAssignment(null, "implementationClass", settings.getPackageName() + "." + pluginClassName);
 
-        TemplateOperation javaSourceTemplate = sourceTemplate(settings, pluginClassName);
-        TemplateOperation javaTestTemplate = testTemplate(settings, pluginClassName, testClassName);
-        whenNoSourcesAvailable(javaSourceTemplate, javaTestTemplate).generate();
+        TemplateOperation javaSourceTemplate = sourceTemplate(settings, templateFactory, pluginClassName);
+        TemplateOperation javaTestTemplate = testTemplate(settings, templateFactory, pluginClassName, testClassName);
+        templateFactory.whenNoSourcesAvailable(javaSourceTemplate, javaTestTemplate).generate();
     }
 
-    protected abstract TemplateOperation sourceTemplate(InitSettings settings, String pluginClassName);
+    protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName);
 
-    protected abstract TemplateOperation testTemplate(InitSettings settings, String pluginClassName, String testClassName);
+    protected abstract TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName);
 }

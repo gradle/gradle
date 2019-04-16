@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
 
@@ -27,10 +26,11 @@ import java.util.Set;
 import static org.gradle.buildinit.plugins.internal.NamespaceBuilder.toNamespace;
 
 public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
+    private final TemplateOperationFactory templateOperationFactory;
     private final DocumentationRegistry documentationRegistry;
 
-    public CppProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
+    public CppProjectInitDescriptor(TemplateOperationFactory templateOperationFactory, DocumentationRegistry documentationRegistry) {
+        this.templateOperationFactory = templateOperationFactory;
         this.documentationRegistry = documentationRegistry;
     }
 
@@ -40,7 +40,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample C++ project to get you started.")
             .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")
@@ -50,7 +50,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation headerTemplate = headerTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
-        whenNoSourcesAvailable(sourceTemplate, headerTemplate, testSourceTemplate).generate();
+        templateFactory.whenNoSourcesAvailable(sourceTemplate, headerTemplate, testSourceTemplate).generate();
     }
 
     @Override

@@ -22,21 +22,19 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Specification
 
-class LanguageLibraryProjectInitDescriptorSpec extends Specification {
+class TemplateFactoryTest extends Specification {
 
     FileResolver fileResolver = Mock()
     TemplateOperationFactory templateOperationFactory = Mock()
-    BuildScriptBuilderFactory scriptBuilderFactory = Mock()
-    TemplateLibraryVersionProvider libraryVersionProvider = Mock()
-    LanguageLibraryProjectInitDescriptor descriptor
     TemplateOperationFactory.TemplateOperationBuilder templateOperationBuilder = Mock(TemplateOperationFactory.TemplateOperationBuilder)
 
     def "generates from template within sourceSet"() {
         setup:
-        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE)
+        def factory = new TemplateFactory(settings, new Language(language), fileResolver, templateOperationFactory)
 
         when:
-        descriptor.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
+        factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
 
         then:
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
@@ -56,10 +54,10 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
     def "generates source file with package from template"() {
         setup:
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
-        descriptor = new TestLanguageLibraryProjectInitDescriptor(language, scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+        def factory = new TemplateFactory(settings, new Language(language), fileResolver, templateOperationFactory)
 
         when:
-        descriptor.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", settings, sourceSet)
+        factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", sourceSet)
 
         then:
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
@@ -79,10 +77,10 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
     def "can specify output class name"() {
         setup:
         def settings = new InitSettings("project", BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE)
-        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+        def factory = new TemplateFactory(settings, new Language("somelang"), fileResolver, templateOperationFactory)
 
         when:
-        descriptor.fromSourceTemplate("someTemplate/SomeClazz.somelang.template", settings) {
+        factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template") {
             it.className = className
         }
 
@@ -105,10 +103,11 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         def mainSourceDirectory = Mock(FileTreeInternal)
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        descriptor = new TestLanguageLibraryProjectInitDescriptor("somelang", scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
+        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
+        def factory = new TemplateFactory(settings, new Language("somelang"), fileResolver, templateOperationFactory)
 
         when:
-        descriptor.whenNoSourcesAvailable(delegate).generate()
+        factory.whenNoSourcesAvailable(delegate).generate()
 
         then:
         1 * mainSourceDirectory.empty >> noMainSources
@@ -122,39 +121,5 @@ class LanguageLibraryProjectInitDescriptorSpec extends Specification {
         true          | true          | 1
         true          | false         | 1
         false         | false         | 0
-    }
-
-    class TestLanguageLibraryProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
-        Language language
-
-        TestLanguageLibraryProjectInitDescriptor(String language, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider) {
-            super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider)
-            this.language = new Language(language)
-        }
-
-        @Override
-        boolean supportsPackage() {
-            return true
-        }
-
-        @Override
-        String getId() {
-            return "test"
-        }
-
-        @Override
-        void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        Set<BuildInitTestFramework> getTestFrameworks() {
-            return []
-        }
-
-        @Override
-        BuildInitTestFramework getDefaultTestFramework() {
-            return BuildInitTestFramework.NONE
-        }
     }
 }

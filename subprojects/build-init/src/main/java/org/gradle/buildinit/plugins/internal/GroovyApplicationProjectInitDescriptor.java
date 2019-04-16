@@ -17,11 +17,10 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.FileResolver;
 
 public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDescriptor {
-    public GroovyApplicationProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
-        super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider, documentationRegistry);
+    public GroovyApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+        super(libraryVersionProvider, documentationRegistry);
     }
 
     @Override
@@ -41,12 +40,12 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
     }
 
     @Override
-    protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromSourceTemplate("groovyapp/App.groovy.template", settings, "main");
+    protected TemplateOperation sourceTemplateOperation(TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("groovyapp/App.groovy.template", "main");
     }
 
     @Override
-    protected TemplateOperation testTemplateOperation(InitSettings settings) {
-        return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test");
+    protected TemplateOperation testTemplateOperation(TemplateFactory templateFactory) {
+        return templateFactory.fromSourceTemplate("groovyapp/AppTest.groovy.template", "test");
     }
 }
