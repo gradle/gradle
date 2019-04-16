@@ -66,8 +66,8 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
                 withModule("xalan:xalan", DowngradeXmlApisRule::class.java)
                 withModule("jaxen:jaxen", DowngradeXmlApisRule::class.java)
 
-                // We don't need any of Guava's dependencies
-                withModule("com.google.guava:guava", ExcludeDependencies::class.java)
+                // We only need "failureaccess" of Guava's dependencies
+                withLibraryDependencies("com.google.guava:guava", KeepDepednenciesByNameRule::class, setOf("failureaccess"))
 
                 // Test dependencies - minify: remove unused transitive dependencies
                 withLibraryDependencies("org.gradle.org.littleshoot:littleproxy", DependencyRemovalByNameRule::class,
@@ -204,6 +204,19 @@ open class DependencyRemovalByGroupRule @Inject constructor(
         context.details.allVariants {
             withDependencies {
                 removeAll { groupsToRemove.contains(it.group) }
+            }
+        }
+    }
+}
+
+
+open class KeepDepednenciesByNameRule @Inject constructor(
+    val moduleToKeep: Set<String>
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                removeAll { !moduleToKeep.contains(it.name) }
             }
         }
     }
