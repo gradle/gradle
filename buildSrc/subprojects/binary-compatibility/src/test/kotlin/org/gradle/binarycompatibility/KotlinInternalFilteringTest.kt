@@ -22,7 +22,7 @@ import org.junit.Test
 /**
  * Asserts Kotlin `internal` members are filtered from the comparison.
  */
-class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
+class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
 
     private
     val internalMembers = """
@@ -179,7 +179,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
     @Test
     fun `added internal members are filtered from the comparison`() {
 
-        checkBinaryCompatible(
+        checkBinaryCompatibleKotlin(
             v1 = existingSource,
             v2 = internalSource
         ).assertEmptyReport()
@@ -188,7 +188,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
     @Test
     fun `existing internal members made public appear as added`() {
 
-        checkNotBinaryCompatible(
+        checkNotBinaryCompatibleKotlin(
             v1 = internalSource,
             v2 = publicSource
         ).apply {
@@ -203,7 +203,7 @@ class KotlinInternalFilteringTest : AbstractKotlinBinaryCompatibilityTest() {
     @Test
     fun `existing public members made internal appear as removed`() {
 
-        checkNotBinaryCompatible(
+        checkNotBinaryCompatibleKotlin(
             v1 = publicSource,
             v2 = internalSource
         ).apply {

@@ -19,7 +19,7 @@ package org.gradle.binarycompatibility
 import org.junit.Test
 
 
-class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest() {
+class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
     private
     val publicKotlinMembers = """
@@ -98,7 +98,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
     @Test
     fun `new top-level kotlin members`() {
 
-        checkNotBinaryCompatible(v2 = """
+        checkNotBinaryCompatibleKotlin(v2 = """
 
            $publicKotlinMembers
 
@@ -126,7 +126,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             )
         }
 
-        checkNotBinaryCompatible(v2 = """
+        checkNotBinaryCompatibleKotlin(v2 = """
 
            $annotatedKotlinMembers
 
@@ -161,7 +161,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         // Singleton INSTANCE fields of `object`s are public
 
-        checkNotBinaryCompatible(v2 = """
+        checkNotBinaryCompatibleKotlin(v2 = """
 
             interface Foo
 
@@ -187,7 +187,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             )
         }
 
-        checkBinaryCompatible(v2 = """
+        checkBinaryCompatibleKotlin(v2 = """
 
             /**
              * @since 2.0
@@ -246,7 +246,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
 
         """
 
-        checkNotBinaryCompatible(v1 = baseline, v2 = """
+        checkNotBinaryCompatibleKotlin(v1 = baseline, v2 = """
 
             /**
              * @since 1.0
@@ -285,7 +285,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractKotlinBinaryCompatibilityTest(
             )
         }
 
-        checkBinaryCompatible(v1 = baseline, v2 = """
+        checkBinaryCompatibleKotlin(v1 = baseline, v2 = """
 
             /**
              * @since 1.0

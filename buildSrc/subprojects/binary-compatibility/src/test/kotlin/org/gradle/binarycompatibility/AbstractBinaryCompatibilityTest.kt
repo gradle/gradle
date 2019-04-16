@@ -16,41 +16,141 @@
 
 package org.gradle.binarycompatibility
 
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-
-import org.hamcrest.CoreMatchers.equalTo
-
+import org.gradle.testkit.runner.UnexpectedBuildFailure
+import org.hamcrest.CoreMatchers
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-
+import java.awt.Desktop
 import java.io.File
 
 
-abstract class AbstractKotlinBinaryCompatibilityTest {
+abstract class AbstractBinaryCompatibilityTest {
 
     @get:Rule
-    val tmpDir = TemporaryFolder()
+    val tmpDir = object : TemporaryFolder() {
+        // TODO:kotlin-dsl remove me
+        override fun delete() {
+            // super.delete()
+        }
+    }
 
     private
     val rootDir: File
         get() = tmpDir.root
 
+    internal
+    fun checkBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runKotlinBinaryCompatibilityCheck(v1, v2) {
+            assertBinaryCompatible()
+            block()
+        }
 
     internal
-    fun checkBinaryCompatible(v1: String = "", v2: String): CheckResult =
-        checkBinaryCompatibility(true, v1, v2)
+    fun checkNotBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runKotlinBinaryCompatibilityCheck(v1, v2) {
+            assertNotBinaryCompatible()
+            block()
+        }
 
     internal
-    fun checkNotBinaryCompatible(v1: String = "", v2: String): CheckResult =
-        checkBinaryCompatibility(false, v1, v2)
+    fun checkBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runJavaBinaryCompatibilityCheck(v1, v2) {
+            assertBinaryCompatible()
+            block()
+        }
+
+    internal
+    fun checkNotBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runJavaBinaryCompatibilityCheck(v1, v2) {
+            assertNotBinaryCompatible()
+            block()
+        }
 
     private
-    fun checkBinaryCompatibility(compatible: Boolean, v1: String, v2: String): CheckResult {
+    fun CheckResult.assertBinaryCompatible() {
+        assertTrue(richReport.toAssertionMessage("Expected to be compatible but the check failed"), isBinaryCompatible)
+    }
+
+    private
+    fun CheckResult.assertNotBinaryCompatible() {
+        assertFalse(richReport.toAssertionMessage("Expected to be breaking but the check passed"), isBinaryCompatible)
+    }
+
+    private
+    fun RichReport.toAssertionMessage(message: String) =
+        if (isEmpty) "$message with an empty report"
+        else "$message\n${toText().prependIndent("    ")}"
+
+    private
+    fun runKotlinBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runBinaryCompatibilityCheck(
+            v1 = {
+                withFile("kotlin/com/example/Source.kt", """
+                    package com.example
+
+                    import org.gradle.api.Incubating
+                    import javax.annotation.Nullable
+
+                    $v1
+                """)
+            },
+            v2 = {
+                withFile("kotlin/com/example/Source.kt", """
+                    package com.example
+
+                    import org.gradle.api.Incubating
+                    import javax.annotation.Nullable
+
+                    $v2
+                """)
+            },
+            block = block
+        )
+
+    private
+    fun runJavaBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+        runBinaryCompatibilityCheck(
+            v1 = {
+                withFile("java/com/example/Source.java", """
+                    package com.example;
+
+                    import org.gradle.api.Incubating;
+                    import javax.annotation.Nullable;
+
+                    $v1
+                """)
+            },
+            v2 = {
+                withFile("java/com/example/Source.java", """
+                    package com.example;
+
+                    import org.gradle.api.Incubating;
+                    import javax.annotation.Nullable;
+
+                    $v2
+                """)
+            },
+            block = block
+        )
+
+    /**
+     * Runs the binary compatibility check against two source trees.
+     *
+     * The fixture build supports both Java and Kotlin sources.
+     *
+     * @param v1 sources producer for V1, receiver is the `src/main` directory
+     * @param v2 sources producer for V2, receiver is the `src/main` directory
+     * @param block convenience block invoked on the result
+     * @return the check result
+     */
+    private
+    fun runBinaryCompatibilityCheck(v1: File.() -> Unit, v2: File.() -> Unit, block: CheckResult.() -> Unit = {}): CheckResult {
 
         val inputBuildDir = rootDir.withDirectory("input-build").apply {
 
@@ -78,20 +178,8 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
                         version = "2.0"
                     }
                 """)
-            withFile("v1/src/main/kotlin/com/example/Source.kt", """
-                    package com.example
-
-                    import org.gradle.api.Incubating
-
-                    $v1
-                """)
-            withFile("v2/src/main/kotlin/com/example/Source.kt", """
-                    package com.example
-
-                    import org.gradle.api.Incubating
-
-                    $v2
-                """)
+            withDirectory("v1/src/main").v1()
+            withDirectory("v2/src/main").v2()
             withDirectory("binaryCompatibility").apply {
                 withBuildScript("""
                     import japicmp.model.JApiChangeStatus
@@ -114,7 +202,7 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
                         newArchives = files(v2Jar)
                         newClasspath = files(v2.configurations.named("runtimeClasspath"), v2Jar)
 
-                        onlyModified = true
+                        onlyModified = false
                         failOnModification = false // we rely on the rich report to fail
 
                         txtOutputFile = file("build/japi-report.txt")
@@ -146,30 +234,35 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
             .withPluginClasspath()
             .withArguments(":binaryCompatibility:checkBinaryCompatibility", "-s")
 
-        val richReportFile = inputBuildDir.resolve("binaryCompatibility/build/japi/japi.html")
+        val (buildResult, failure) = try {
+            runner.build()!! to null
+        } catch (ex: UnexpectedBuildFailure) {
+            ex.buildResult!! to ex
+        }
 
-        val result: BuildResult =
-            if (compatible) runner.build()
-            else runner.buildAndFail()
+        println(buildResult.output)
 
-        println(result.output)
+        val richReportFile = inputBuildDir.resolve("binaryCompatibility/build/japi/japi.html").apply {
+            assertTrue("Rich report file exists", isFile)
+        }
 
-        assertTrue(
-            "Rich report file exists",
-            richReportFile.isFile
-        )
+        // TODO:kotlin-dsl remove me
+        Desktop.getDesktop().browse(richReportFile.toURL().toURI())
 
-        return CheckResult(compatible, scrapeRichReport(richReportFile), result).also {
-            println(it.richReport.toText())
+        return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
+            println(richReport.toText())
+            block()
         }
     }
 
     internal
     data class CheckResult(
-        val isBinaryCompatible: Boolean,
+        val checkFailure: UnexpectedBuildFailure?,
         val richReport: RichReport,
         val buildResult: BuildResult
     ) {
+
+        val isBinaryCompatible = checkFailure == null
 
         fun assertEmptyReport() {
             assertHasNoError()
@@ -190,15 +283,15 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
         }
 
         fun assertHasErrors(vararg errors: String) {
-            assertThat("Has errors", richReport.errors.map { it.message }, equalTo(errors.toList()))
+            assertThat("Has errors", richReport.errors.map { it.message }, CoreMatchers.equalTo(errors.toList()))
         }
 
         fun assertHasWarnings(vararg warnings: String) {
-            assertThat("Has warnings", richReport.warnings.map { it.message }, equalTo(warnings.toList()))
+            assertThat("Has warnings", richReport.warnings.map { it.message }, CoreMatchers.equalTo(warnings.toList()))
         }
 
         fun assertHasInformation(vararg information: String) {
-            assertThat("Has information", richReport.information.map { it.message }, equalTo(information.toList()))
+            assertThat("Has information", richReport.information.map { it.message }, CoreMatchers.equalTo(information.toList()))
         }
 
         fun assertHasErrors(vararg errors: List<String>) {
@@ -206,7 +299,7 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
         }
 
         fun assertHasErrors(vararg errorWithDetail: Pair<String, List<String>>) {
-            assertThat("Has errors", richReport.errors, equalTo(errorWithDetail.map { ReportMessage(it.first, it.second) }))
+            assertThat("Has errors", richReport.errors, CoreMatchers.equalTo(errorWithDetail.map { ReportMessage(it.first, it.second) }))
         }
 
         fun newApi(thing: String, desc: String): String =
@@ -226,21 +319,21 @@ abstract class AbstractKotlinBinaryCompatibilityTest {
             if (thing == "Field") desc else "com.example.$desc"
     }
 
-    private
+    protected
     fun File.withDirectory(path: String): File =
         resolve(path).apply {
             mkdirs()
         }
 
-    private
+    protected
     fun File.withSettings(text: String = ""): File =
         withFile("settings.gradle.kts", text)
 
-    private
+    protected
     fun File.withBuildScript(text: String = ""): File =
         withFile("build.gradle.kts", text)
 
-    private
+    protected
     fun File.withFile(path: String, text: String = ""): File =
         resolve(path).apply {
             parentFile.mkdirs()
