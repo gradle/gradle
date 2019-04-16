@@ -19,8 +19,10 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore("Swift failures - trying to build with Swift5 on older versions of Gradle")
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
