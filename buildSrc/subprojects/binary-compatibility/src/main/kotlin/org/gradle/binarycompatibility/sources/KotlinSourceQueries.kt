@@ -70,8 +70,8 @@ object KotlinSourceQueries {
     private
     fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, field: JApiField): Boolean =
         "${declaringClass.baseQualifiedKotlinName}.${field.name}".let { fqn ->
-            collectDescendantsOfType<KtProperty> { it.fqName?.asString() == fqn }
-                .singleOrNull()
+            collectDescendantsOfType<KtProperty>()
+                .firstOrNull { it.fqName?.asString() == fqn }
                 ?.isDocumentedAsSince(version) == true
         }
 
@@ -79,12 +79,14 @@ object KotlinSourceQueries {
     fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, constructor: JApiConstructor): Boolean {
         val classFqName = declaringClass.fullyQualifiedName
         val ctorParamTypes = constructor.parameters.map { it.type }
-        return collectDescendantsOfType<KtConstructor<*>> { ktCtor ->
-            val sameName = ktCtor.containingClassOrObject?.fqName?.asString() == classFqName
-            val sameParamCount = ktCtor.valueParameters.size == ctorParamTypes.size
-            val sameParamTypes = sameParamCount && ctorParamTypes.mapIndexed { idx, paramType -> paramType.endsWith(ktCtor.valueParameters[idx].typeReference!!.text) }.all { it }
-            sameName && sameParamCount && sameParamTypes
-        }.singleOrNull()?.isDocumentedAsSince(version) == true
+        return collectDescendantsOfType<KtConstructor<*>>()
+            .firstOrNull { ktCtor ->
+                val sameName = ktCtor.containingClassOrObject?.fqName?.asString() == classFqName
+                val sameParamCount = ktCtor.valueParameters.size == ctorParamTypes.size
+                val sameParamTypes = sameParamCount && ctorParamTypes.mapIndexed { idx, paramType -> paramType.endsWith(ktCtor.valueParameters[idx].typeReference!!.text) }.all { it }
+                sameName && sameParamCount && sameParamTypes
+            }
+            ?.isDocumentedAsSince(version) == true
     }
 
     private
