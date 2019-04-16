@@ -49,7 +49,7 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
         buildScriptBuilder
             .dependency("testImplementation", "Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));

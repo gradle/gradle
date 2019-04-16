@@ -20,11 +20,21 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
+
 class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.java"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.java"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "some/thing/AppTest.groovy"
+
+    def "defaults to Groovy build scripts"() {
+        when:
+        run ('init', '--type', 'java-application')
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+    }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {

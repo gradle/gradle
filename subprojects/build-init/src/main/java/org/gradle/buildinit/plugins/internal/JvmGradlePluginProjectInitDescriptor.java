@@ -30,7 +30,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
 
         String pluginId = settings.getPackageName() + "." + settings.getProjectName();

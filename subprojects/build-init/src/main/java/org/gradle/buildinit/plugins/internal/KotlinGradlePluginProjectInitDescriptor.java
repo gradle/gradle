@@ -49,7 +49,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
 
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");

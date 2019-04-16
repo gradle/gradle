@@ -37,6 +37,8 @@ import org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.LanguageSpecificAdaptor;
+import org.gradle.buildinit.plugins.internal.LanguageSpecificProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.ResourceDirsGenerator;
@@ -51,17 +53,18 @@ public class ProjectLayoutSetupRegistryFactory {
     private final DocumentationRegistry documentationRegistry;
     private final MavenSettingsProvider mavenSettingsProvider;
     private final FileResolver fileResolver;
+    private final BuildScriptBuilderFactory scriptBuilderFactory;
 
     public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver) {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
         this.fileResolver = fileResolver;
+        scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
     }
 
     public ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
         DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
         TemplateOperationFactory templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
-        BuildScriptBuilderFactory scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
         BuildContentGenerator settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(scriptBuilderFactory, documentationRegistry);
         BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
         BuildContentGenerator gitIgnoreGenerator = new GitIgnoreGenerator(fileResolver);
@@ -87,6 +90,10 @@ public class ProjectLayoutSetupRegistryFactory {
 
     private BuildInitializer of(ProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
         return new CompositeProjectInitDescriptor(projectGenerator, generators);
+    }
+
+    private BuildInitializer of(LanguageSpecificProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
+        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory), generators);
     }
 
 }

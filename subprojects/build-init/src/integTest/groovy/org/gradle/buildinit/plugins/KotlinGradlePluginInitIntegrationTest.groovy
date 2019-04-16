@@ -20,8 +20,18 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+
 @LeaksFileHandles
 class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
+    def "defaults to kotlin build scripts"() {
+        when:
+        run ('init', '--type', 'kotlin-gradle-plugin')
+
+        then:
+        dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
+    }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

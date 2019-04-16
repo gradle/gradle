@@ -27,8 +27,7 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
 
     private final DocumentationRegistry documentationRegistry;
 
-    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver,
-                                             TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public ScalaLibraryProjectInitDescriptor(BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, FileResolver fileResolver, TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(scriptBuilderFactory, templateOperationFactory, fileResolver, libraryVersionProvider);
         this.documentationRegistry = documentationRegistry;
     }
@@ -44,7 +43,7 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");

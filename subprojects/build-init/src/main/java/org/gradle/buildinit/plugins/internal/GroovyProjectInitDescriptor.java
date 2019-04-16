@@ -40,7 +40,7 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
 
         buildScriptBuilder

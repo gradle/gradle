@@ -56,7 +56,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         super.generate(settings, buildScriptBuilder);
 
         Description desc = getDescription();

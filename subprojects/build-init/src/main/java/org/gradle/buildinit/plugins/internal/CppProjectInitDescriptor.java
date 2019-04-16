@@ -40,7 +40,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    protected void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample C++ project to get you started.")
             .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")

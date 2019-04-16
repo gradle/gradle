@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import spock.lang.Unroll
 
+import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.Matchers.allOf
 
 class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -27,6 +28,14 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.java"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.java"
     public static final String SAMPLE_SPOCK_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
+
+    def "defaults to Groovy build scripts"() {
+        when:
+        run ('init', '--type', 'java-library')
+
+        then:
+        dslFixtureFor(GROOVY).assertGradleFilesGenerated()
+    }
 
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {

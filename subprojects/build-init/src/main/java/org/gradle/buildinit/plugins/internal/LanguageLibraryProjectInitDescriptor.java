@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Factory;
 
 import javax.annotation.Nullable;
@@ -37,22 +36,6 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
     }
-
-    abstract public Language getLanguage();
-
-    @Override
-    public BuildInitDsl getDefaultDsl() {
-        return BuildInitDsl.GROOVY;
-    }
-
-    @Override
-    public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
-        generate(settings, buildScriptBuilder);
-        buildScriptBuilder.create().generate();
-    }
-
-    protected abstract void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder);
 
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(new Factory<Boolean>() {
