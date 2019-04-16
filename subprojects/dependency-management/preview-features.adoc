@@ -4,7 +4,7 @@
 
 In order to provide rich support for variant-aware dependency management and dependency constraints, Gradle 5.0 will define a new module metadata format, that can be used in conjunction with Ivy descriptor and Maven POM files in existing repositories.
 
-The new metadata format is still under active development. The latest version of the specification can be found https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-specification.md[here]. Currently there are the following issues with enabling it in Gradle 4.x:
+The new metadata format is still under active development. The latest version of the specification can be found https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md[here]. Currently there are the following issues with enabling it in Gradle 4.x:
 
 - We do not yet guarantee backward or forward compatibility for the metadata file format. Thus, resolution may change when upgrading Gradle, if a metadata file is published with an old format.
 - An additional request is required for Maven and Ivy repositories to check for the new metadata file.
