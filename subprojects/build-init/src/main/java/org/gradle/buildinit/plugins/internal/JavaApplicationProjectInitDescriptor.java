@@ -55,6 +55,8 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
                 return fromClazzTemplate("javaapp/testng/AppTest.java.template", settings, "test", "java");
             case JUNIT:
                 return fromClazzTemplate("javaapp/AppTest.java.template", settings, "test");
+            case JUNITJUPITER:
+                return fromClazzTemplate("javaapp/junitjupiter/AppTest.java.template", settings, "test");
             default:
                 throw new IllegalArgumentException();
         }

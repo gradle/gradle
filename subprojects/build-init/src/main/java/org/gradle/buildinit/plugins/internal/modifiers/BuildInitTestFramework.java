@@ -26,7 +26,8 @@ public enum BuildInitTestFramework {
     TESTNG,
     SPOCK,
     KOTLINTEST,
-    SCALATEST;
+    SCALATEST,
+    JUNITJUPITER;
 
     public static List<String> listSupported() {
         List<String> result = new ArrayList<String>();
