@@ -20,8 +20,10 @@ import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore("Swift failures - trying to build with Swift5 on older versions of Gradle")
 @Category(PerformanceExperiment)
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
