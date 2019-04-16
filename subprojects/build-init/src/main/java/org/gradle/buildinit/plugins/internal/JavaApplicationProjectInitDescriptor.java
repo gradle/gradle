@@ -43,20 +43,20 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
 
     @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("javaapp/App.java.template", settings, "main");
+        return fromSourceTemplate("javaapp/App.java.template", settings, "main");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromClazzTemplate("groovyapp/AppTest.groovy.template", settings, "test", "groovy");
+                return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test", "groovy");
             case TESTNG:
-                return fromClazzTemplate("javaapp/testng/AppTest.java.template", settings, "test", "java");
+                return fromSourceTemplate("javaapp/testng/AppTest.java.template", settings, "test", "java");
             case JUNIT:
-                return fromClazzTemplate("javaapp/AppTest.java.template", settings, "test");
+                return fromSourceTemplate("javaapp/AppTest.java.template", settings, "test");
             case JUNITJUPITER:
-                return fromClazzTemplate("javaapp/junitjupiter/AppTest.java.template", settings, "test");
+                return fromSourceTemplate("javaapp/junitjupiter/AppTest.java.template", settings, "test");
             default:
                 throw new IllegalArgumentException();
         }

@@ -32,11 +32,11 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
 
     @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovylibrary/Library.groovy.template", settings, "main");
+        return fromSourceTemplate("groovylibrary/Library.groovy.template", settings, "main");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test");
+        return fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test");
     }
 }

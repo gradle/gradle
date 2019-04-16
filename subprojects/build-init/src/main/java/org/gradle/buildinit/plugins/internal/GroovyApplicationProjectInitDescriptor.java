@@ -42,11 +42,11 @@ public class GroovyApplicationProjectInitDescriptor extends GroovyProjectInitDes
 
     @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovyapp/App.groovy.template", settings, "main");
+        return fromSourceTemplate("groovyapp/App.groovy.template", settings, "main");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("groovyapp/AppTest.groovy.template", settings, "test");
+        return fromSourceTemplate("groovyapp/AppTest.groovy.template", settings, "test");
     }
 }

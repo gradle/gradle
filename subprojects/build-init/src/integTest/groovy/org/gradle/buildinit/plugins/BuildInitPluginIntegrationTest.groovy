@@ -205,6 +205,7 @@ include("child")
   - 'groovy-application'
   - 'groovy-library'
   - 'java-application'
+  - 'java-gradle-plugin'
   - 'java-library'
   - 'kotlin-application'
   - 'kotlin-library'
@@ -288,6 +289,7 @@ include("child")
                      groovy-application
                      groovy-library
                      java-application
+                     java-gradle-plugin
                      java-library
                      kotlin-application
                      kotlin-library

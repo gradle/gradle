@@ -61,8 +61,8 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
             .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
 
-        TemplateOperation scalaLibTemplateOperation = fromClazzTemplate("scalalibrary/Library.scala.template", settings, "main");
-        TemplateOperation scalaTestTemplateOperation = fromClazzTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
+        TemplateOperation scalaLibTemplateOperation = fromSourceTemplate("scalalibrary/Library.scala.template", settings, "main");
+        TemplateOperation scalaTestTemplateOperation = fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", settings, "test");
         whenNoSourcesAvailable(scalaLibTemplateOperation, scalaTestTemplateOperation).generate();
     }
 

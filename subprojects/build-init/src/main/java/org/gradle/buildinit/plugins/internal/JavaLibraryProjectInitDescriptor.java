@@ -42,20 +42,20 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
 
     @Override
     protected TemplateOperation sourceTemplateOperation(InitSettings settings) {
-        return fromClazzTemplate("javalibrary/Library.java.template",  settings, "main");
+        return fromSourceTemplate("javalibrary/Library.java.template",  settings, "main");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(InitSettings settings) {
         switch (settings.getTestFramework()) {
             case SPOCK:
-                return fromClazzTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", "groovy");
+                return fromSourceTemplate("groovylibrary/LibraryTest.groovy.template", settings, "test", "groovy");
             case TESTNG:
-                return fromClazzTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
+                return fromSourceTemplate("javalibrary/testng/LibraryTest.java.template", settings, "test");
             case JUNIT:
-                return fromClazzTemplate("javalibrary/LibraryTest.java.template", settings, "test");
+                return fromSourceTemplate("javalibrary/LibraryTest.java.template", settings, "test");
             case JUNITJUPITER:
-                return fromClazzTemplate("javalibrary/junitjupiter/LibraryTest.java.template", settings, "test");
+                return fromSourceTemplate("javalibrary/junitjupiter/LibraryTest.java.template", settings, "test");
             default:
                 throw new IllegalArgumentException();
         }

@@ -185,7 +185,7 @@ public class BuildScriptBuilder {
     /**
      * Allows dependencies to be added to this script.
      */
-    DependenciesBuilder dependencies() {
+    public DependenciesBuilder dependencies() {
         return block.dependencies;
     }
 
@@ -478,27 +478,6 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.println(printer.syntax.dependencySpec(configuration, "project(" + printer.syntax.string(projectPath) + ")"));
-        }
-    }
-
-    /**
-     * A configuration to be applied to a Gradle model object.
-     */
-    private static class ConfigSpec {
-
-        /**
-         * Selects the model object to be configured.
-         */
-        final ConfigSelector selector;
-
-        /**
-         * The statement to be applied to the selected model object.
-         */
-        final Statement statement;
-
-        ConfigSpec(ConfigSelector selector, Statement statement) {
-            this.selector = selector;
-            this.statement = statement;
         }
     }
 

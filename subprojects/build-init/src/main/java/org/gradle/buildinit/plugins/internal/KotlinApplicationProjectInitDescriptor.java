@@ -64,8 +64,8 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
                 "Define the main class for the application.",
                 "application", "mainClassName", withPackage(settings, "AppKt"));
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinapp/App.kt.template", settings, "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinapp/AppTest.kt.template", settings, "test");
+        TemplateOperation kotlinSourceTemplate = fromSourceTemplate("kotlinapp/App.kt.template", settings, "main");
+        TemplateOperation kotlinTestTemplate = fromSourceTemplate("kotlinapp/AppTest.kt.template", settings, "test");
         whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }

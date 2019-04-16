@@ -16,9 +16,14 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Factory;
+
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
 
@@ -34,11 +39,6 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         this.fileResolver = fileResolver;
         this.templateOperationFactory = templateOperationFactory;
         this.libraryVersionProvider = libraryVersionProvider;
-    }
-
-    @Override
-    public boolean supportsPackage() {
-        return true;
     }
 
     @Override
@@ -71,29 +71,99 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
         }
     }
 
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName) {
-        return fromClazzTemplate(clazzTemplate, sourceSetName, this.language);
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName) {
+        return fromSourceTemplate(clazzTemplate, sourceSetName, this.language);
     }
 
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName) {
-        return fromClazzTemplate(clazzTemplate, settings, sourceSetName, this.language);
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, InitSettings settings, String sourceSetName) {
+        return fromSourceTemplate(clazzTemplate, settings, sourceSetName, this.language);
     }
 
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language) {
-        return fromClazzTemplate(clazzTemplate, null, sourceSetName, language);
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, String sourceSetName, String language) {
+        return fromSourceTemplate(clazzTemplate, null, sourceSetName, language);
     }
 
-    protected TemplateOperation fromClazzTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
-        String targetFileName = clazzTemplate.substring(clazzTemplate.lastIndexOf("/") + 1).replace(".template", "");
+    protected TemplateOperation fromSourceTemplate(String clazzTemplate, InitSettings settings, String sourceSetName, String language) {
+        return fromSourceTemplate(clazzTemplate, settings, t -> {
+            t.sourceSet(sourceSetName);
+            t.language(language);
+        });
+    }
+
+    protected TemplateOperation fromSourceTemplate(String sourceTemplate, InitSettings settings, Action<? super SourceFileTemplate> config) {
+        String targetFileName = sourceTemplate.substring(sourceTemplate.lastIndexOf("/") + 1).replace(".template", "");
+
+        TemplateDetails details = new TemplateDetails(language, targetFileName);
+        config.execute(details);
+
         String packageDecl = "";
+        String className = details.className == null ? "" : details.className;
         if (settings != null && !settings.getPackageName().isEmpty()) {
             packageDecl = "package " + settings.getPackageName();
-            targetFileName = settings.getPackageName().replace(".", "/") + "/" + targetFileName;
+            targetFileName = settings.getPackageName().replace(".", "/") + "/" + details.getTargetFileName();
+        } else {
+            targetFileName = details.getTargetFileName();
         }
-        return templateOperationFactory.newTemplateOperation()
-            .withTemplate(clazzTemplate)
-            .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
+
+        TemplateOperationFactory.TemplateOperationBuilder operationBuilder = templateOperationFactory.newTemplateOperation()
+            .withTemplate(sourceTemplate)
+            .withTarget("src/" + details.sourceSet + "/" + details.language + "/" + targetFileName)
             .withBinding("packageDecl", packageDecl)
-            .create();
+            .withBinding("className", className);
+        for (Map.Entry<String, String> entry : details.bindings.entrySet()) {
+            operationBuilder.withBinding(entry.getKey(), entry.getValue());
+        }
+        return operationBuilder.create();
+    }
+
+    private static class TemplateDetails implements SourceFileTemplate {
+        final Map<String, String> bindings = new HashMap<>();
+        String sourceSet = "main";
+        String language;
+        String fileName;
+        @Nullable
+        String className;
+
+        TemplateDetails(String language, String fileName) {
+            this.language = language;
+            this.fileName = fileName;
+        }
+
+        @Override
+        public void sourceSet(String name) {
+            this.sourceSet = name;
+        }
+
+        @Override
+        public void language(String name) {
+            this.language = name;
+        }
+
+        @Override
+        public void className(String name) {
+            this.className = name;
+        }
+
+        @Override
+        public void binding(String name, String value) {
+            this.bindings.put(name, value);
+        }
+
+        public String getTargetFileName() {
+            if (className != null) {
+                return className + "." + language;
+            }
+            return fileName;
+        }
+    }
+
+    protected interface SourceFileTemplate {
+        void sourceSet(String name);
+
+        void language(String name);
+
+        void className(String name);
+
+        void binding(String name, String value);
     }
 }

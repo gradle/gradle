@@ -31,6 +31,7 @@ import org.gradle.buildinit.plugins.internal.GitIgnoreGenerator;
 import org.gradle.buildinit.plugins.internal.GroovyApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.GroovyLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaApplicationProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.JavaGradlePluginProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.KotlinLibraryProjectInitDescriptor;
@@ -76,6 +77,7 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new CppLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), commonGenerators));
         registry.add(of(new KotlinApplicationProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         registry.add(of(new KotlinLibraryProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
+        registry.add(of(new JavaGradlePluginProjectInitDescriptor(scriptBuilderFactory, templateOperationBuilder, fileResolver, libraryVersionProvider), jvmProjectGenerators));
         return registry;
     }
 

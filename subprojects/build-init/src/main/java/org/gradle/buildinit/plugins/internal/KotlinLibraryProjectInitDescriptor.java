@@ -60,8 +60,8 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
             .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
 
-        TemplateOperation kotlinSourceTemplate = fromClazzTemplate("kotlinlibrary/Library.kt.template", settings, "main");
-        TemplateOperation kotlinTestTemplate = fromClazzTemplate("kotlinlibrary/LibraryTest.kt.template", settings, "test");
+        TemplateOperation kotlinSourceTemplate = fromSourceTemplate("kotlinlibrary/Library.kt.template", settings, "main");
+        TemplateOperation kotlinTestTemplate = fromSourceTemplate("kotlinlibrary/LibraryTest.kt.template", settings, "test");
         whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();
     }
 }
