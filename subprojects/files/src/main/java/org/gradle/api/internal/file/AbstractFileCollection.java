@@ -73,7 +73,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public boolean visitContents(CancellableVisitor<File> visitor) {
-        for (File file : getFiles()) {
+        for (File file : this) {
             if (!visitor.accept(file)) {
                 return false;
             }
