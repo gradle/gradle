@@ -53,7 +53,7 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         super.generate(settings, buildScriptBuilder, templateFactory);
-        buildScriptBuilder.plugin("Apply the Groovy plugin to add support for using Groovy source", "groovy");
+        buildScriptBuilder.plugin("Apply the Groovy plugin to add support for Groovy", "groovy");
         buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
             "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
     }

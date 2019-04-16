@@ -47,9 +47,9 @@ public class CppApplicationProjectInitDescriptor extends CppProjectInitDescripto
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .plugin(
-                "Apply the cpp-application plugin to add support for building CPP executables",
+                "Apply the cpp-application plugin to add support for building C++ executables",
                 "cpp-application")
-            .plugin("Apply the cpp-unit-test plugin to add support for building and running CPP test executables",
+            .plugin("Apply the cpp-unit-test plugin to add support for building and running C++ test executables",
                 "cpp-unit-test")
             .block("Set the target operating system and architecture for this application", "application", b -> {
                 b.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));

@@ -36,13 +36,13 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
         super.configureBuildScript(settings, buildScriptBuilder);
         buildScriptBuilder
             .plugin(
-                "Apply the application plugin to add support for building an application",
+                "Apply the application plugin to add support for building a CLI application",
                 "application")
-            .conventionPropertyAssignment(
-                "Define the main class for the application",
-                "application", "mainClassName", withPackage(settings, "App"));
-        buildScriptBuilder.implementationDependency("This dependency is used by the application.",
-            "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+            .implementationDependency("This dependency is used by the application.",
+                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"))
+            .block(null, "application", b -> {
+                b.propertyAssignment("Define the main class for the application", "mainClassName", withPackage(settings, "App"));
+            });
     }
 
     @Override

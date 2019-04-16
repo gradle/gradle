@@ -60,9 +60,9 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
             .implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8")
             .testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test")
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit")
-            .conventionPropertyAssignment(
-                "Define the main class for the application.",
-                "application", "mainClassName", withPackage(settings, "AppKt"));
+            .block(null, "application", b -> {
+                b.propertyAssignment("Define the main class for the application", "mainClassName", withPackage(settings, "AppKt"));
+            });
 
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinapp/App.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinapp/AppTest.kt.template", "test");
