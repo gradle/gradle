@@ -37,7 +37,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "can apply plugin")
+        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

@@ -48,7 +48,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "testCanApplyPlugin")
+        assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

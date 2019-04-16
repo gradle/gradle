@@ -7,6 +7,9 @@ import org.gradle.api.Plugin;
 
 public class ${className.javaIdentifier} implements Plugin<Project> {
     public void apply(Project project) {
-        System.out.println("plugin '${pluginName.value}' applied!");
+        // Register a task
+        project.getTasks().register("greeting", task -> {
+            task.doLast(s -> System.out.println("Hello from plugin '${pluginName.value}'"));
+        });
     }
 }

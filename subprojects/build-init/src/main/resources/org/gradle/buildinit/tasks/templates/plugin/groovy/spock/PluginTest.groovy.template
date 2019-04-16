@@ -7,7 +7,7 @@ import org.gradle.api.Project
 import spock.lang.Specification
 
 public class ${className.javaIdentifier} extends Specification {
-    def "can apply plugin"() {
+    def "plugin registers task"() {
         given:
         def project = ProjectBuilder.builder().build()
 
@@ -15,6 +15,6 @@ public class ${className.javaIdentifier} extends Specification {
         project.plugins.apply(${classUnderTest.javaIdentifier})
 
         then:
-        noExceptionThrown()
+        project.tasks.findByName("greeting") != null
     }
 }

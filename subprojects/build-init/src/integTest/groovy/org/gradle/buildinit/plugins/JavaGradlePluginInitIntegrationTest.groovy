@@ -37,7 +37,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("build")
 
         then:
-        assertTestPassed("some.thing.SomeThingPluginTest", "testCanApplyPlugin")
+        assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

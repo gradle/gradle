@@ -7,6 +7,11 @@ import org.gradle.api.Plugin
 
 class ${className.javaIdentifier}: Plugin<Project> {
     override fun apply(project: Project) {
-        println("plugin '${pluginName.value}' applied!")
+        // Register a task
+        project.tasks.register("greeting") { task ->
+            task.doLast {
+                println("Hello from plugin '${pluginName.value}'")
+            }
+        }
     }
 }

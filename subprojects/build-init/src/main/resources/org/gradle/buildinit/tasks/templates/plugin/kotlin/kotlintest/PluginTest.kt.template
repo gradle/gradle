@@ -4,13 +4,14 @@
 ${packageDecl.statement}
 import org.gradle.testfixtures.ProjectBuilder
 import kotlin.test.Test
+import kotlin.test.assertNotNull
 
 class ${className.javaIdentifier} {
-    @Test fun testCanApplyPlugin() {
-        // Create a test project
+    @Test fun `plugin registers task`() {
+        // Create a test project and apply the plugin
         val project = ProjectBuilder.builder().build()
-
-        // Apply the plugin
         project.plugins.apply(${classUnderTest.javaIdentifier}::class.java)
+
+        assertNotNull(project.tasks.findByName("greeting"))
     }
 }
