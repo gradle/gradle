@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.MutableReference;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -55,13 +56,21 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public File getSingleFile() throws IllegalStateException {
-        Iterator<File> iterator = iterator();
-        if (!iterator.hasNext()) {
+        final MutableReference<File> foundFile = MutableReference.empty();
+        visitContents(new CancellableVisitor<File>() {
+            @Override
+            public boolean accept(File file) {
+                File previousFile = foundFile.get();
+                if (previousFile != null && !previousFile.equals(file)) {
+                    throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains more than one file.", getDisplayName()));
+                }
+                foundFile.set(file);
+                return true;
+            }
+        });
+        File singleFile = foundFile.get();
+        if (singleFile == null) {
             throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains no files.", getDisplayName()));
-        }
-        File singleFile = iterator.next();
-        if (iterator.hasNext()) {
-            throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains more than one file.", getDisplayName()));
         }
         return singleFile;
     }
