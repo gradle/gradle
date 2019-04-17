@@ -71,13 +71,13 @@ object KotlinMetadataQueries {
     fun isKotlinInternal(ctClass: CtClass): Boolean =
         if (Modifier.isPrivate(ctClass.modifiers)) false
         else queryKotlinMetadata(ctClass, false) { metadata ->
-            metadata.isKotlinInternal(ctClass.name, isConstructor = false, isField = false, isMethod = false)
+            metadata.isKotlinInternal(ctClass.name, MemberType.TYPE)
         }
 
     fun isKotlinInternal(ctMember: CtMember): Boolean =
         if (Modifier.isPrivate(ctMember.modifiers)) false
         else queryKotlinMetadata(ctMember.declaringClass, false) { metadata ->
-            metadata.isKotlinInternal(ctMember.jvmSignature, ctMember is CtConstructor, ctMember is CtField, ctMember is CtMethod)
+            metadata.isKotlinInternal(ctMember.jvmSignature, memberTypeFor(ctMember))
         }
 
     internal
@@ -88,7 +88,7 @@ object KotlinMetadataQueries {
             ?: defaultResult
 
     private
-    fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, isConstructor: Boolean, isField: Boolean, isMethod: Boolean): Boolean {
+    fun KotlinClassMetadata.isKotlinInternal(jvmSignature: String, memberType: MemberType): Boolean {
 
         var isInternal = false
         var isDoneVisiting = false
@@ -107,7 +107,7 @@ object KotlinMetadataQueries {
         }
 
         val internalPropertyVisitorFactory: (Flags, Flags, Flags) -> KmPropertyVisitor? = { flags, getterFlags, setterFlags ->
-            if (isDoneVisiting || (!isField && !isMethod)) null
+            if (isDoneVisiting || (memberType != MemberType.FIELD && memberType != MemberType.METHOD)) null
             else {
                 val internalField = Flag.IS_INTERNAL(flags)
                 val internalGetter = Flag.IS_INTERNAL(getterFlags)
@@ -134,7 +134,7 @@ object KotlinMetadataQueries {
         val internalPackageVisitor = object : KmPackageVisitor() {
 
             override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-                if (isDoneVisiting || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || memberType != MemberType.METHOD || !Flag.IS_INTERNAL(flags)) null
                 else internalFunctionVisitor
 
             override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
@@ -151,14 +151,15 @@ object KotlinMetadataQueries {
         val internalClassVisitor = object : KmClassVisitor() {
 
             override fun visit(flags: Flags, name: ClassName) {
-                if (!isDoneVisiting && Flag.IS_INTERNAL(flags) && jvmSignature == name.replace("/", ".")) {
+                if (isDoneVisiting || memberType != MemberType.TYPE) return
+                if (Flag.IS_INTERNAL(flags) && jvmSignature == name.replace("/", ".")) {
                     isInternal = true
                     isDoneVisiting = true
                 }
             }
 
             override fun visitConstructor(flags: Flags): KmConstructorVisitor? =
-                if (isDoneVisiting || !isConstructor || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || memberType != MemberType.CONSTRUCTOR || !Flag.IS_INTERNAL(flags)) null
                 else object : KmConstructorVisitor() {
                     override fun visitExtensions(type: KmExtensionType): KmConstructorExtensionVisitor =
                         object : JvmConstructorExtensionVisitor() {
@@ -172,7 +173,7 @@ object KotlinMetadataQueries {
                 }
 
             override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor? =
-                if (isDoneVisiting || !isMethod || !Flag.IS_INTERNAL(flags)) null
+                if (isDoneVisiting || memberType != MemberType.METHOD || !Flag.IS_INTERNAL(flags)) null
                 else internalFunctionVisitor
 
             override fun visitProperty(flags: Flags, name: String, getterFlags: Flags, setterFlags: Flags): KmPropertyVisitor? =
@@ -198,6 +199,20 @@ object KotlinMetadataQueries {
 
         return isInternal
     }
+
+    private
+    enum class MemberType {
+        TYPE, CONSTRUCTOR, FIELD, METHOD;
+    }
+
+    private
+    fun memberTypeFor(member: CtMember): MemberType =
+        when (member) {
+            is CtConstructor -> MemberType.CONSTRUCTOR
+            is CtField -> MemberType.FIELD
+            is CtMethod -> MemberType.METHOD
+            else -> throw IllegalArgumentException("Unsupported javassist member type '${member::class}'")
+        }
 
     private
     val CtClass.kotlinClassHeader: KotlinClassHeader?
