@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -23,7 +24,6 @@ import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.composite.internal.IncludedBuildControllers;
@@ -32,6 +32,7 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationCategory;
@@ -89,6 +90,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private SettingsInternal settings;
     private Stage stage;
 
+    private final InstantExecution instantExecution;
+
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsLoader settingsLoader, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, ModelConfigurationListener modelConfigurationListener,
@@ -111,6 +114,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
         this.fromBuild = fromBuild;
+        this.instantExecution = gradle.getServices().get(InstantExecution.class);
     }
 
     @Override
@@ -143,27 +147,47 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doBuildStages(Stage upTo) {
+        Preconditions.checkArgument(
+            upTo != Stage.Finished,
+            "Stage.Finished is not supported by doBuildStages."
+        );
         try {
-            loadSettings();
-            if (upTo == Stage.LoadSettings) {
-                return;
+            if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
+                doInstantExecution();
+            } else {
+                doClassicBuildStages(upTo);
             }
-            configureBuild();
-            if (upTo == Stage.Configure) {
-                return;
-            }
-            constructTaskGraph();
-            if (upTo == Stage.TaskGraph) {
-                return;
-            }
-            runTasks();
-            if (upTo == Stage.RunTasks) {
-                return;
-            }
-            finishBuild();
         } catch (Throwable t) {
             finishBuild(upTo.getDisplayName(), t);
         }
+    }
+
+    private void doClassicBuildStages(Stage upTo) {
+        loadSettings();
+        if (upTo == Stage.LoadSettings) {
+            return;
+        }
+        configureBuild();
+        if (upTo == Stage.Configure) {
+            return;
+        }
+        constructTaskGraph();
+        if (upTo == Stage.TaskGraph) {
+            return;
+        }
+        instantExecution.saveTaskGraph();
+        runTasks();
+    }
+
+    private void doInstantExecution() {
+        reconstructTaskGraphForInstantExecution();
+        stage = Stage.TaskGraph;
+        runTasks();
+    }
+
+    private void reconstructTaskGraphForInstantExecution() {
+        instantExecution.loadTaskGraph();
+        gradle.getTaskGraph().populate();
     }
 
     private void finishBuild(String action, @Nullable Throwable stageFailure) {
@@ -281,17 +305,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Load build"))
-                    .details(new LoadBuildBuildOperationType.Details() {
-                        @Override
-                        public String getBuildPath() {
-                            return gradle.getIdentityPath().toString();
-                        }
+                .details(new LoadBuildBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
 
-                        @Override
-                        public String getIncludedBy() {
-                            return fromBuild == null ? null : fromBuild.getBuildPath().toString();
-                        }
-                    });
+                    @Override
+                    public String getIncludedBy() {
+                        return fromBuild == null ? null : fromBuild.getBuildPath().toString();
+                    }
+                });
         }
     }
 
@@ -366,12 +390,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
-                    .details(new CalculateTaskGraphBuildOperationType.Details() {
-                        @Override
-                        public String getBuildPath() {
-                            return getGradle().getIdentityPath().getPath();
-                        }
-                    });
+                .details(new CalculateTaskGraphBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return getGradle().getIdentityPath().getPath();
+                    }
+                });
         }
     }
 
@@ -411,12 +435,12 @@ public class DefaultGradleLauncher implements GradleLauncher {
         @Override
         public BuildOperationDescriptor.Builder description() {
             return BuildOperationDescriptor.displayName(gradle.contextualize("Notify projectsEvaluated listeners"))
-                    .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
-                        @Override
-                        public String getBuildPath() {
-                            return gradle.getIdentityPath().toString();
-                        }
-                    });
+                .details(new NotifyProjectsEvaluatedBuildOperationType.Details() {
+                    @Override
+                    public String getBuildPath() {
+                        return gradle.getIdentityPath().toString();
+                    }
+                });
         }
     }
 

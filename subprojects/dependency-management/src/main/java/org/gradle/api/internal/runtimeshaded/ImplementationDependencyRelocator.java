@@ -44,7 +44,8 @@ class ImplementationDependencyRelocator extends Remapper {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
-                    if (line.length() > 0) {
+                    // TODO:instant-execution remove kotlin predicate after updating the wrapper
+                    if (line.length() > 0 && !line.startsWith("kotlin")) {
                         builder.addWord(line);
                     }
                 }

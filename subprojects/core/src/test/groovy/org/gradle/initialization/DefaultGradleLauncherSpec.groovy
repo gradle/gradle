@@ -79,6 +79,7 @@ class DefaultGradleLauncherSpec extends Specification {
     private BuildScopeServices buildServices = Mock(BuildScopeServices.class)
     private Stoppable otherService = Mock(Stoppable)
     private IncludedBuildControllers includedBuildControllers = Mock()
+    private InstantExecution instantExecution = Mock()
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     final RuntimeException failure = new RuntimeException("main")
@@ -121,6 +122,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         buildScopeServices.get(ExecutionHistoryCacheAccess) >> cacheAccess
         buildScopeServices.get(IncludedBuildControllers) >> includedBuildControllers
+        buildScopeServices.get(InstantExecution) >> instantExecution
         buildServices.get(WorkerLeaseService) >> workerLeaseService
     }
 
