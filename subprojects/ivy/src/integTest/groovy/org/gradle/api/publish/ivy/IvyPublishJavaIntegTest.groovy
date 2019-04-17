@@ -734,7 +734,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             ${jcenterRepository()}
 
             dependencies {
-                implementation "commons-collections:commons-collections"
+                implementation "commons-collections:commons-collections:3.2.+"
                 constraints {
                     implementation "commons-collections:commons-collections:3.2.2"
                 }
@@ -764,6 +764,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
+        javaLibrary.parsedIvy.dependencies["commons-collections:commons-collections:3.2.2"].revisionConstraint == "3.2.+"
 
         and:
         javaLibrary.parsedModuleMetadata.variant('apiElements') {
