@@ -28,7 +28,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
-import java.awt.Desktop
 import java.io.File
 
 import org.gradle.kotlin.dsl.*
@@ -37,12 +36,7 @@ import org.gradle.kotlin.dsl.*
 abstract class AbstractBinaryCompatibilityTest {
 
     @get:Rule
-    val tmpDir = object : TemporaryFolder() {
-        // TODO:kotlin-dsl remove me
-        override fun delete() {
-            // super.delete()
-        }
-    }
+    val tmpDir = TemporaryFolder()
 
     private
     val rootDir: File
@@ -249,9 +243,6 @@ abstract class AbstractBinaryCompatibilityTest {
         val richReportFile = inputBuildDir.resolve("binaryCompatibility/build/japi/japi.html").apply {
             assertTrue("Rich report file exists", isFile)
         }
-
-        // TODO:kotlin-dsl remove me
-        Desktop.getDesktop().browse(richReportFile.toURL().toURI())
 
         return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
             println(richReport.toText())
