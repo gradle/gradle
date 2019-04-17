@@ -93,7 +93,7 @@ class SourcesRepository(
                 )
             }
             .ktFiles
-            .single { it.virtualFile.canonicalPath == apiSourceFile.currentFile.canonicalPath }
+            .first { it.virtualFile.canonicalPath == apiSourceFile.currentFile.canonicalPath }
             .let(transform)
 
     override fun close() {
