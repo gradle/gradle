@@ -75,7 +75,10 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
         LOGGER.info("Deploying to {}", gradleRepo.getUrl());
 
         DefaultMavenDeployRetrier deployRetrier = new DefaultMavenDeployRetrier(
-            () -> { repositorySystem.deploy(session, request); return null; },
+            () -> {
+                repositorySystem.deploy(session, request);
+                return null;
+                },
             remoteRepository,
             maxDeployAttempts,
             initialBackOff
