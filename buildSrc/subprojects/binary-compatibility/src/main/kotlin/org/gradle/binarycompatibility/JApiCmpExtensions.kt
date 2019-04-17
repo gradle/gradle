@@ -19,10 +19,10 @@
 
 package org.gradle.binarycompatibility
 
-import japicmp.model.JApiCompatibility
-import japicmp.model.JApiClass
-import japicmp.model.JApiField
 import japicmp.model.JApiBehavior
+import japicmp.model.JApiClass
+import japicmp.model.JApiCompatibility
+import japicmp.model.JApiField
 
 import java.lang.IllegalStateException
 
@@ -35,6 +35,11 @@ val JApiCompatibility.jApiClass: JApiClass
         is JApiBehavior -> this.getjApiClass()
         else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
     }
+
+
+internal
+val JApiClass.isKotlin: Boolean
+    get() = newClass.orNull()?.isKotlin ?: false
 
 
 internal

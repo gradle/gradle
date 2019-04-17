@@ -16,8 +16,8 @@
 
 package org.gradle.binarycompatibility
 
-import japicmp.model.JApiCompatibility
 import japicmp.model.JApiClass
+import japicmp.model.JApiCompatibility
 import japicmp.model.JApiMethod
 
 import javassist.bytecode.SourceFileAttribute
@@ -26,7 +26,6 @@ import org.gradle.binarycompatibility.sources.ApiSourceFile
 import org.gradle.binarycompatibility.sources.JavaSourceQueries
 import org.gradle.binarycompatibility.sources.KotlinSourceQueries
 import org.gradle.binarycompatibility.sources.SourcesRepository
-import org.gradle.binarycompatibility.sources.isKotlin
 
 import com.google.common.annotations.VisibleForTesting
 

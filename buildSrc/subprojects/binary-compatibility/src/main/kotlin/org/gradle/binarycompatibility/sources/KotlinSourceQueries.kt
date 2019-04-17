@@ -16,13 +16,18 @@
 
 package org.gradle.binarycompatibility.sources
 
-import japicmp.model.JApiCompatibility
 import japicmp.model.JApiClass
+import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
-import japicmp.model.JApiHasSyntheticModifier
 import japicmp.model.JApiMethod
-import japicmp.model.SyntheticModifier
+
+import javassist.CtBehavior
+import javassist.CtClass
+import javassist.CtConstructor
+import javassist.CtField
+import javassist.CtMember
+import javassist.CtMethod
 
 import org.jetbrains.kotlin.kdoc.psi.api.KDoc
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -31,15 +36,12 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
-import org.gradle.binarycompatibility.isKotlin
-import org.gradle.binarycompatibility.jApiClass
-import org.gradle.binarycompatibility.packageName
+import org.gradle.binarycompatibility.isSynthetic
 import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 
 
@@ -47,28 +49,30 @@ internal
 object KotlinSourceQueries {
 
     fun isOverrideMethod(method: JApiMethod): (KtFile) -> Boolean = { ktFile ->
-        ktFile.kotlinDeclarationSatisfies(method.jApiClass, method) { ktMember ->
+        val ctMethod = method.newMethod.get()
+        ktFile.kotlinDeclarationSatisfies(ctMethod.declaringClass, ctMethod) { ktMember ->
             ktMember.hasModifier(KtTokens.OVERRIDE_KEYWORD)
         }
     }
 
     fun isSince(version: String, member: JApiCompatibility): (KtFile) -> Boolean = { ktFile ->
-        val declaringClass = member.jApiClass
+        val ctMember = member.newCtMember
+        val ctDeclaringClass = ctMember.declaringClass
         when {
-            member.isSynthetic -> true // skip
-            member is JApiClass -> ktFile.ktClassOf(member)?.isDocumentedAsSince(version) == true
-            ktFile.ktClassOf(declaringClass)?.isDocumentedAsSince(version) == true -> true
-            else -> when (member) {
-                is JApiField -> ktFile.isDocumentedAsSince(version, declaringClass, member)
-                is JApiConstructor -> ktFile.isDocumentedAsSince(version, declaringClass, member)
-                is JApiMethod -> ktFile.isDocumentedAsSince(version, declaringClass, member)
+            ctMember is CtMethod && ctMember.isSynthetic -> true // synthetic members cannot have kdoc
+            ctMember is CtClass -> ktFile.ktClassOf(ctMember)?.isDocumentedAsSince(version) == true
+            ktFile.ktClassOf(ctDeclaringClass)?.isDocumentedAsSince(version) == true -> true
+            else -> when (ctMember) {
+                is CtField -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
+                is CtConstructor -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
+                is CtMethod -> ktFile.isDocumentedAsSince(version, ctDeclaringClass, ctMember)
                 else -> throw IllegalStateException("Unsupported japicmp member type '${member::class}'")
             }
         }
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, field: JApiField): Boolean =
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, field: CtField): Boolean =
         "${declaringClass.baseQualifiedKotlinName}.${field.name}".let { fqn ->
             collectDescendantsOfType<KtProperty>()
                 .firstOrNull { it.fqName?.asString() == fqn }
@@ -76,9 +80,9 @@ object KotlinSourceQueries {
         }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, constructor: JApiConstructor): Boolean {
-        val classFqName = declaringClass.fullyQualifiedName
-        val ctorParamTypes = constructor.parameters.map { it.type }
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, constructor: CtConstructor): Boolean {
+        val classFqName = declaringClass.name
+        val ctorParamTypes = constructor.parameterTypes.map { it.name }
         return collectDescendantsOfType<KtConstructor<*>>()
             .firstOrNull { ktCtor ->
                 val sameName = ktCtor.containingClassOrObject?.fqName?.asString() == classFqName
@@ -90,7 +94,7 @@ object KotlinSourceQueries {
     }
 
     private
-    fun KtFile.isDocumentedAsSince(version: String, declaringClass: JApiClass, method: JApiMethod): Boolean =
+    fun KtFile.isDocumentedAsSince(version: String, declaringClass: CtClass, method: CtMethod): Boolean =
         kotlinDeclarationSatisfies(declaringClass, method) { declaration ->
             declaration.isDocumentedAsSince(version)
         }
@@ -98,7 +102,7 @@ object KotlinSourceQueries {
 
 
 private
-fun KtFile.kotlinDeclarationSatisfies(declaringClass: JApiClass, method: JApiMethod, predicate: (KtDeclaration) -> Boolean): Boolean {
+fun KtFile.kotlinDeclarationSatisfies(declaringClass: CtClass, method: CtMethod, predicate: (KtDeclaration) -> Boolean): Boolean {
 
     val qualifiedBaseName = declaringClass.baseQualifiedKotlinName
 
@@ -113,12 +117,12 @@ fun KtFile.kotlinDeclarationSatisfies(declaringClass: JApiClass, method: JApiMet
 
 
 private
-fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: JApiMethod): List<KtProperty> {
+fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: CtMethod): List<KtProperty> {
 
     val hasGetterName = method.name.matches(propertyGetterNameRegex)
     val hasSetterName = method.name.matches(propertySetterNameRegex)
-    val paramCount = method.parameters.size
-    val returnsVoid = method.returnType.newReturnType == "void"
+    val paramCount = method.parameterTypes.size
+    val returnsVoid = method.returnType.name == "void"
 
     val couldBeProperty = (hasGetterName && paramCount == 0 && !returnsVoid) || (hasSetterName && paramCount == 1 && returnsVoid)
     val couldBeExtensionProperty = (hasGetterName && paramCount == 1 && !returnsVoid) || (hasSetterName && paramCount == 2 && returnsVoid)
@@ -141,9 +145,9 @@ fun KtFile.collectKtPropertiesFor(qualifiedBaseName: String, method: JApiMethod)
 
 
 private
-fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: JApiMethod): List<KtFunction> {
+fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): List<KtFunction> {
 
-    val paramCount = method.parameters.size
+    val paramCount = method.parameterTypes.size
     val couldBeExtensionFunction = paramCount > 0
     val paramCountWithReceiver = paramCount - 1
     val functionFqName = "$qualifiedBaseName.${method.name}"
@@ -164,42 +168,53 @@ private
 val propertySetterNameRegex = "^set[A-Z].*$".toRegex()
 
 
-internal
-val JApiClass.isKotlin: Boolean
-    get() = newClass.orNull()?.isKotlin ?: false
+private
+val JApiCompatibility.newCtMember: CtClassOrCtMember
+    get() = when (this) {
+        is JApiClass -> newClass.get()
+        is JApiConstructor -> newConstructor.get()
+        is JApiField -> newFieldOptional.get()
+        is JApiMethod -> newMethod.get()
+        else -> throw IllegalStateException("Unsupported japicmp member type '${this::class}'")
+    }
+
+
+/**
+ * [CtClass] or [CtMember].
+ */
+private
+typealias CtClassOrCtMember = Any
 
 
 private
-val JApiCompatibility.isSynthetic
-    get() = this is JApiHasSyntheticModifier
-        && syntheticModifier.newModifier.or(SyntheticModifier.NON_SYNTHETIC) == SyntheticModifier.SYNTHETIC
+val CtClassOrCtMember.declaringClass: CtClass
+    get() = when (this) {
+        is CtClass -> declaringClass ?: this
+        is CtMember -> declaringClass
+        else -> throw IllegalStateException("Unsupported javassist member type '${this::class}'")
+    }
 
 
 private
-val JApiClass.baseQualifiedKotlinName: String
+val CtClass.baseQualifiedKotlinName: String
     get() =
         if (isKotlinFileFacadeClass) packageName
-        else fullyQualifiedName
+        else name
 
 
 private
-val JApiClass.isKotlinFileFacadeClass: Boolean
-    get() = KotlinMetadataQueries.isKotlinFileFacadeClass(newClass.get())
+val CtClass.isKotlinFileFacadeClass: Boolean
+    get() = KotlinMetadataQueries.isKotlinFileFacadeClass(this)
 
 
 private
-fun JApiMethod.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
-    parameters.isNotEmpty() && (primitiveTypeStrings[parameters[0].type] ?: parameters[0].type).endsWith(ktTypeReference.text)
+fun CtBehavior.firstParameterMatches(ktTypeReference: KtTypeReference): Boolean =
+    parameterTypes.isNotEmpty() && (primitiveTypeStrings[parameterTypes.first().name] ?: parameterTypes.first().name).endsWith(ktTypeReference.text)
 
 
 private
-fun KtFile.ktClassOf(member: JApiClass) =
-    collectDescendantsOfType<KtClassOrObject> { it.fqName?.asString() == member.fullyQualifiedName }.singleOrNull()
-
-
-private
-inline fun <reified T : KtNamedDeclaration> KtFile.ktFqNamed(fqn: String) =
-    collectDescendantsOfType<T> { it.fqName?.asString() == fqn }.singleOrNull()
+fun KtFile.ktClassOf(member: CtClass) =
+    collectDescendantsOfType<KtClassOrObject> { it.fqName?.asString() == member.name }.singleOrNull()
 
 
 private

@@ -80,7 +80,7 @@ object KotlinMetadataQueries {
             metadata.isKotlinInternal(ctMember.jvmSignature, memberTypeFor(ctMember))
         }
 
-    internal
+    private
     fun <T : Any?> queryKotlinMetadata(ctClass: CtClass, defaultResult: T, query: (KotlinClassMetadata) -> T): T =
         ctClass.kotlinClassHeader
             ?.let { KotlinClassMetadata.read(it) }

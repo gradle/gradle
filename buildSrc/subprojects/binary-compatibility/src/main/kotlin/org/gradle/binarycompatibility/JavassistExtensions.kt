@@ -19,6 +19,8 @@
 package org.gradle.binarycompatibility
 
 import javassist.CtClass
+import javassist.CtMethod
+import javassist.bytecode.SyntheticAttribute
 import javassist.bytecode.annotation.MemberValue
 import javassist.bytecode.annotation.AnnotationMemberValue
 import javassist.bytecode.annotation.ArrayMemberValue
@@ -43,6 +45,11 @@ import org.gradle.kotlin.dsl.typeOf
 internal
 val CtClass.isKotlin: Boolean
     get() = hasAnnotation(Metadata::class.qualifiedName)
+
+
+internal
+val CtMethod.isSynthetic
+    get() = methodInfo.getAttribute(SyntheticAttribute.tag) != null
 
 
 internal
