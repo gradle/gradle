@@ -99,13 +99,16 @@ object KotlinSourceQueries {
 
 private
 fun KtFile.kotlinDeclarationSatisfies(declaringClass: JApiClass, method: JApiMethod, predicate: (KtDeclaration) -> Boolean): Boolean {
+
     val qualifiedBaseName = declaringClass.baseQualifiedKotlinName
-    val properties = collectKtPropertiesFor(qualifiedBaseName, method)
+
     val functions = collectKtFunctionsFor(qualifiedBaseName, method)
-    if (properties.isEmpty() && functions.isEmpty()) {
-        return false
+    if (functions.isNotEmpty()) {
+        return functions.all(predicate)
     }
-    return properties.all(predicate) && functions.all(predicate)
+
+    val properties = collectKtPropertiesFor(qualifiedBaseName, method)
+    return properties.isNotEmpty() && properties.all(predicate)
 }
 
 
