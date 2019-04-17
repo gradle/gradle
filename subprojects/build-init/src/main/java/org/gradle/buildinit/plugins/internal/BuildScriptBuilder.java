@@ -279,8 +279,15 @@ public class BuildScriptBuilder {
      */
     public ScriptBlockBuilder taskRegistration(@Nullable String comment, String taskName, String taskType) {
         TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
-        block.tasksRegistrations.add(registration);
+        block.add(registration);
         return registration.body;
+    }
+
+    /**
+     * Registers a task.
+     */
+    public void taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+        blockContentsBuilder.execute(taskRegistration(comment, taskName, taskType));
     }
 
     /**
@@ -876,6 +883,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            blockContentsBuilder.execute(block(comment, methodName));
+        }
+
+        @Override
         public ScriptBlockBuilder containerElement(@Nullable String comment, String elementName) {
             ScriptBlock scriptBlock = new ScriptBlock(comment, syntax -> syntax.containerElement(elementName));
             statements.add(scriptBlock);
@@ -898,7 +910,6 @@ public class BuildScriptBuilder {
         final RepositoriesBlock repositories = new RepositoriesBlock();
         final DependenciesBlock dependencies = new DependenciesBlock();
         final StatementSequence plugins = new StatementSequence();
-        final StatementSequence taskRegistrations = new StatementSequence();
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<TaskTypeSelector>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<TaskSelector>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<ConventionSelector>();
@@ -935,7 +946,7 @@ public class BuildScriptBuilder {
         @Override
         public ScriptBlockBuilder taskRegistration(String comment, String taskName, String taskType) {
             TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
-            taskRegistrations.add(registration);
+            add(registration);
             return registration.body;
         }
 
@@ -944,7 +955,6 @@ public class BuildScriptBuilder {
             if (super.type() == Type.Empty
                 && repositories.type() == Type.Empty
                 && plugins.type() == Type.Empty
-                && taskRegistrations.type() == Type.Empty
                 && conventions.type() == Type.Empty
                 && tasks.type() == Type.Empty
                 && taskTypes.type() == Type.Empty
@@ -970,7 +980,6 @@ public class BuildScriptBuilder {
             printer.printStatement(plugins);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
-            printer.printStatement(taskRegistrations);
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
@@ -980,7 +989,6 @@ public class BuildScriptBuilder {
 
     private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
-        final StatementSequence tasksRegistrations = new StatementSequence();
         final RepositoriesBlock repositories = new RepositoriesBlock();
         final DependenciesBlock dependencies = new DependenciesBlock();
         final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
@@ -996,7 +1004,6 @@ public class BuildScriptBuilder {
             printer.printStatement(subprojects);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
-            printer.printStatement(tasksRegistrations);
             super.writeBodyTo(printer);
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);

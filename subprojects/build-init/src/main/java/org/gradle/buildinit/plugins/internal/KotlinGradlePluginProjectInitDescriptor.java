@@ -79,4 +79,12 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
             t.binding("classUnderTest", pluginClassName);
         });
     }
+
+    @Override
+    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginFunctionalTest.kt.template", t -> {
+            t.sourceSet("functionalTest");
+            t.className(testClassName);
+        });
+    }
 }

@@ -40,6 +40,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         then:
         targetDir.file("src/main/kotlin").assertHasDescendants("some/thing/SomeThingPlugin.kt")
         targetDir.file("src/test/kotlin").assertHasDescendants("some/thing/SomeThingPluginTest.kt")
+        targetDir.file("src/functionalTest/kotlin").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.kt")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -49,6 +50,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         then:
         assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

@@ -73,4 +73,12 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
             t.binding("classUnderTest", pluginClassName);
         });
     }
+
+    @Override
+    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/groovy/spock/PluginFunctionalTest.groovy.template", t -> {
+            t.sourceSet("functionalTest");
+            t.className(testClassName);
+        });
+    }
 }

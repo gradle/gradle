@@ -29,6 +29,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         then:
         targetDir.file("src/main/java").assertHasDescendants("some/thing/SomeThingPlugin.java")
         targetDir.file("src/test/java").assertHasDescendants("some/thing/SomeThingPluginTest.java")
+        targetDir.file("src/functionalTest/java").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.java")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -38,6 +39,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         assertTestPassed("some.thing.SomeThingPluginTest", "pluginRegistersATask")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "canRunTask")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

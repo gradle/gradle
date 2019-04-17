@@ -29,6 +29,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         then:
         targetDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
         targetDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
+        targetDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -38,6 +39,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         then:
         assertTestPassed("some.thing.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("some.thing.SomeThingPluginFunctionalTest", "can run task")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

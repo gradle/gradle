@@ -39,6 +39,11 @@ public interface ScriptBlockBuilder {
     ScriptBlockBuilder block(@Nullable String comment, String methodName);
 
     /**
+     * Adds a block statement to this block.
+     */
+    void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
+
+    /**
      * Adds a block that adds an element to the current container.
      *
      * @return The body of the block, to which further statements can be added
