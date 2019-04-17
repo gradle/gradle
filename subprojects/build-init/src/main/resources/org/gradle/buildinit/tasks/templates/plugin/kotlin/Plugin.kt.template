@@ -10,7 +10,7 @@ class ${className.javaIdentifier}: Plugin<Project> {
         // Register a task
         project.tasks.register("greeting") { task ->
             task.doLast {
-                println("Hello from plugin '${pluginName.value}'")
+                println("Hello from plugin '${pluginId.value}'")
             }
         }
     }

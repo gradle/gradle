@@ -42,16 +42,19 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
-        buildScriptBuilder.block(null, "gradlePlugin")
-            .block(null, "plugins")
-            .containerElement("Define the plugin", "greeting", b -> {
-                b.propertyAssignment(null, "id", pluginId);
-                b.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
-            });
-
         buildScriptBuilder.block(null, "sourceSets")
             .containerElement(null, "functionalTest", b -> {
             });
+
+        buildScriptBuilder.block(null, "gradlePlugin", b -> {
+            b.methodInvocation(null, "testSourceSets", buildScriptBuilder.propertyExpression("sourceSets.getByName(\"functionalTest\")"));
+            b.block(null, "plugins")
+            .containerElement("Define the plugin", "greeting", g -> {
+                g.propertyAssignment(null, "id", pluginId);
+                g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
+            });
+        });
+
         buildScriptBuilder.methodInvocation(null, "configurations.getByName(\"functionalTestImplementation\").extendsFrom", buildScriptBuilder.propertyExpression("configurations.getByName(\"testImplementation\")"));
         buildScriptBuilder.taskRegistration(null, "functionalTest", "Test", b -> {
             b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression("sourceSets.getByName(\"functionalTest\").output.classesDirs"));
@@ -59,15 +62,15 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
         });
         buildScriptBuilder.taskMethodInvocation(null, "check", "Task", "dependsOn", buildScriptBuilder.propertyExpression("tasks.getByName(\"functionalTest\")"));
 
-        TemplateOperation sourceTemplate = sourceTemplate(settings, templateFactory, pluginClassName);
-        TemplateOperation testTemplate = testTemplate(settings, templateFactory, pluginClassName, testClassName);
-        TemplateOperation functionalTestTemplate = functionalTestTemplate(settings, templateFactory, functionalTestClassName);
+        TemplateOperation sourceTemplate = sourceTemplate(settings, templateFactory, pluginId, pluginClassName);
+        TemplateOperation testTemplate = testTemplate(settings, templateFactory, pluginId, testClassName);
+        TemplateOperation functionalTestTemplate = functionalTestTemplate(settings, templateFactory, pluginId, functionalTestClassName);
         templateFactory.whenNoSourcesAvailable(sourceTemplate, testTemplate, functionalTestTemplate).generate();
     }
 
-    protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName);
+    protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);
 
-    protected abstract TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName);
+    protected abstract TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName);
 
-    protected abstract TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String testClassName);
+    protected abstract TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName);
 }

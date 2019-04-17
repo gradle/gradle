@@ -64,27 +64,30 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
             .testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
     }
 
-    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName) {
+    @Override
+    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/Plugin.kt.template", t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
-            t.binding("pluginName", settings.getProjectName());
-        });
-    }
-
-    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName) {
-        return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
-            t.sourceSet("test");
-            t.className(testClassName);
-            t.binding("classUnderTest", pluginClassName);
+            t.binding("pluginId", pluginId);
         });
     }
 
     @Override
-    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String testClassName) {
+    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
+            t.sourceSet("test");
+            t.className(testClassName);
+            t.binding("pluginId", pluginId);
+        });
+    }
+
+    @Override
+    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginFunctionalTest.kt.template", t -> {
             t.sourceSet("functionalTest");
             t.className(testClassName);
+            t.binding("pluginId", pluginId);
         });
     }
 }

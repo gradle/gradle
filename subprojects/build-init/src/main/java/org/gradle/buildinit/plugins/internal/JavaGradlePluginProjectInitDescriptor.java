@@ -56,27 +56,30 @@ public class JavaGradlePluginProjectInitDescriptor extends JvmGradlePluginProjec
         buildScriptBuilder.testImplementationDependency("Use JUnit test framework for unit tests", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
     }
 
-    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName) {
+    @Override
+    protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/java/Plugin.java.template", t -> {
             t.sourceSet("main");
             t.className(pluginClassName);
-            t.binding("pluginName", settings.getProjectName());
-        });
-    }
-
-    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginClassName, String testClassName) {
-        return templateFactory.fromSourceTemplate("plugin/java/junit/PluginTest.java.template", t -> {
-            t.sourceSet("test");
-            t.className(testClassName);
-            t.binding("classUnderTest", pluginClassName);
+            t.binding("pluginId", pluginId);
         });
     }
 
     @Override
-    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String testClassName) {
+    protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        return templateFactory.fromSourceTemplate("plugin/java/junit/PluginTest.java.template", t -> {
+            t.sourceSet("test");
+            t.className(testClassName);
+            t.binding("pluginId", pluginId);
+        });
+    }
+
+    @Override
+    protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/java/junit/PluginFunctionalTest.java.template", t -> {
             t.sourceSet("functionalTest");
             t.className(testClassName);
+            t.binding("pluginId", pluginId);
         });
     }
 }

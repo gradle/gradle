@@ -3,10 +3,29 @@
  */
 ${packageDecl.statement}
 import spock.lang.Specification
+import org.gradle.testkit.runner.GradleRunner
 
 public class ${className.javaIdentifier} extends Specification {
     def "can run task"() {
-        expect:
-        true
+        given:
+        def projectDir = new File("build/functionalTest")
+        projectDir.mkdirs()
+        new File(projectDir, "settings.gradle") << ""
+        new File(projectDir, "build.gradle") << """
+            plugins {
+                id('${pluginId.value}')
+            }
+        """
+
+        when:
+        def runner = GradleRunner.create()
+        runner.forwardOutput()
+        runner.withPluginClasspath()
+        runner.withArguments("greeting")
+        runner.withProjectDir(projectDir)
+        def result = runner.build()
+
+        then:
+        result.output.contains("Hello from plugin '${pluginId.value}'")
     }
 }

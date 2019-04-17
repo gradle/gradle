@@ -35,6 +35,7 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         commonJvmFilesGenerated(scriptDsl)
 
         when:
+        executer.requireGradleDistribution() // TestKit and Kotlin DSL both require a distribution
         run("build")
 
         then:

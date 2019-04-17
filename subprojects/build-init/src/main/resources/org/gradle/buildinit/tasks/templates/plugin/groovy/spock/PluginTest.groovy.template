@@ -12,7 +12,7 @@ public class ${className.javaIdentifier} extends Specification {
         def project = ProjectBuilder.builder().build()
 
         when:
-        project.plugins.apply(${classUnderTest.javaIdentifier})
+        project.plugins.apply("${pluginId.value}")
 
         then:
         project.tasks.findByName("greeting") != null
