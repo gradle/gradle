@@ -19,7 +19,6 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
