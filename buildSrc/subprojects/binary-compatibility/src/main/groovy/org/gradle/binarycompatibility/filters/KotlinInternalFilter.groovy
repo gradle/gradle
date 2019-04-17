@@ -27,6 +27,9 @@ import javassist.CtField
 import org.gradle.binarycompatibility.metadata.KotlinMetadataQueries
 
 
+/**
+ * Matches Kotlin <code>internal</code> members.
+ */
 class KotlinInternalFilter implements ClassFilter, FieldFilter, BehaviorFilter {
 
     @Override
